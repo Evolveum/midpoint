@@ -64,6 +64,15 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     /**
+     * A dev-shadow document built from a {@code conndev_*} shadow: its stable {@code uuid}/{@code uri}
+     * (derived from the discovered name), content type, and the unwrapped schema-mapping {@code content}.
+     * Kept purely in memory (not a file-backed {@link ProcessedDocumentation}) because the content is only
+     * a transient upload body — the stored {@link ProcessedDocumentation} is materialized from what the
+     * generation service returns (see {@link #synchronizeDocumentation}).
+     */
+    protected record DevShadowDocument(String uuid, String uri, String contentType, String content) {}
+
+    /**
      * Returns a supplier that operations must poll to implement cooperative cancellation.
      *
      * Because operations run in threads that cannot be forcibly killed, each operation is
@@ -648,8 +657,14 @@ public abstract class ConnectorDevelopmentBackend {
         }
 
         var objectClasses = devDocumentationObjectClasses();
-        var newDocs = objectClasses.stream()
+        var shadowDocs = objectClasses.stream()
                 .flatMap(objectClass -> loadShadowsAsDocumentation(testingResourceOid, objectClass).stream())
+                .toList();
+
+        // Push the freshly built dev-shadow documentation to the generation service and pull the
+        // processed result back (see synchronizeDocumentation). Offline/base does nothing and keeps
+        // the docs as built; REST/SCIM overrides it to POST each doc and pull the processed items.
+        var newDocs = synchronizeDocumentation(shadowDocs).stream()
                 .map(ProcessedDocumentation::toBean)
                 .toList();
 
@@ -667,6 +682,15 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
     }
+
+    /**
+     * Pushes the freshly built dev-shadow documentation to the generation service, waits for it to be
+     * processed, and pulls the processed result back as file-backed {@link ProcessedDocumentation}. The
+     * service is the source of truth: a {@link ProcessedDocumentation} only ever comes into being from
+     * what the service returns for a processed upload. Backends without a generation service (offline) do
+     * not support this.
+     */
+    protected abstract List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException;
 
     /**
      * Development object classes whose objects are forwarded as documentation: the shared
@@ -690,13 +714,14 @@ public abstract class ConnectorDevelopmentBackend {
 
     /**
      * Loads shadows of a given {@code conndev_*} object class from a testing resource and forwards each
-     * as a {@link ProcessedDocumentation}, faithfully: the shadow content is only structurally unwrapped
-     * from prism serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns
-     * the schema-mapping content (single source), midPoint reads only the name (for uri/uuid).
-     * Connector-agnostic core: any connector exposing {@code conndev_ObjectClass} (SCIM, SQL, ...) works
-     * unchanged, including future fields.
+     * as a {@link DevShadowDocument}, faithfully: the shadow content is only structurally unwrapped from
+     * prism serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns the
+     * schema-mapping content (single source), midPoint reads only the name (for uri/uuid). The result is
+     * an in-memory carrier; it becomes a persisted {@link ProcessedDocumentation} only in
+     * {@link #synchronizeDocumentation}. Connector-agnostic core: any connector exposing
+     * {@code conndev_ObjectClass} (SCIM, SQL, ...) works unchanged, including future fields.
      */
-    protected List<ProcessedDocumentation> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
+    protected List<DevShadowDocument> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
         try {
             var objectClass = new QName(SchemaConstants.NS_RI, objectClassLocalName);
             var query = PrismContext.get().queryFor(ShadowType.class)
@@ -718,7 +743,7 @@ public abstract class ConnectorDevelopmentBackend {
             var mapper = new ObjectMapper();
             var writer = mapper.writerWithDefaultPrettyPrinter();
             var unwrapper = new ConnDevShadowUnwrapper();
-            var docs = new ArrayList<ProcessedDocumentation>();
+            var docs = new ArrayList<DevShadowDocument>();
             for (var shadow : shadows) {
                 var attrs = shadow.findContainer(ShadowType.F_ATTRIBUTES);
                 if (attrs == null || attrs.isEmpty()) {
@@ -737,9 +762,7 @@ public abstract class ConnectorDevelopmentBackend {
                 var name = resolveDocName(shadow, document);
                 var uri = objectClassLocalName + "_" + name + ".json";
                 var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
-                var doc = new ProcessedDocumentation(uuid, uri).contentType(CONNDEV_CONTENT_TYPE);
-                doc.write(content);
-                docs.add(doc);
+                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE, content));
             }
             return docs;
         } catch (Exception e) {

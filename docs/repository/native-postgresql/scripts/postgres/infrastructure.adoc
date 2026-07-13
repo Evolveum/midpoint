@@ -121,6 +121,7 @@ No primary key is defined for this table.
 | `BYTEA`
 | 
 | Serialized full object representation, however some items are stored separately.
+
 See xref:/midpoint/reference/repository/native-postgresql/splitted-fullobject/[Splitted full object] for more information.
 
 | `tenantRefTargetOid`

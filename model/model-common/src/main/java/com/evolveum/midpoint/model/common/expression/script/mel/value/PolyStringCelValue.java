@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.common.expression.script.mel.MelComparable;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
@@ -24,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Radovan Semancik
  */
-public class PolyStringCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<PolyString> {
+public class PolyStringCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<PolyString>, MelComparable {
 
     public static final String POLYSTRING_PACKAGE_NAME = PolyString.class.getTypeName();
     private static final String F_ORIG = PolyString.F_ORIG.getLocalPart();
@@ -145,19 +147,19 @@ public class PolyStringCelValue extends CelValue implements Map<String,String>, 
         return StructType.create(POLYSTRING_PACKAGE_NAME, fieldNames, fieldResolver);
     }
 
-//    @Override
-//    public boolean equals(Object other) {
-//        if (other == null) {
-//            return false;
-//        }
-//        if (other instanceof PolyStringCelValue celPs) {
-//            other = celPs.getOrig();
-//        }
-//        if (other instanceof String str) {
-//            return getOrig().equals(str);
-//        }
-//        return false;
-//    }
+    @Override
+    public boolean melEquals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (other instanceof PolyStringCelValue celPs) {
+            other = celPs.getOrig();
+        }
+        if (other instanceof String str) {
+            return getOrig().equals(str);
+        }
+        return false;
+    }
 
 }
 

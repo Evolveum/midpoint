@@ -41,10 +41,9 @@
                     </source>
                     <condition>
                         <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                assert resource != null
-                                locality?.getNorm() != "hidden"
+                                locality.norm != 'hidden'
                             </code>
                         </script>
                     </condition>
@@ -70,7 +69,8 @@
                     </source>
                     <expression>
                         <script>
-                            <code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>fullName + ' is the best pirate ' + default(locality, 'the world') + ' has ever seen'</code>
                         </script>
                     </expression>
                 </outbound>
@@ -103,14 +103,15 @@
                     </source>
                     <expression>
                         <script>
+                            <!-- TODO: MELize? -->
                             <code>name + " sailed " + magicSea + ", immediately " + immediateSea + ", role " + immediateRoleSea + ", with this " + thisSea + " while focused on " + focusSea + " (in "+source.getName()+")"</code>
                         </script>
                     </expression>
                     <condition>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                assert resource != null
-                                !magicSea?.isAllWhitespace()
+                                !isBlank(magicSea)
                             </code>
                         </script>
                     </condition>

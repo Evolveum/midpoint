@@ -541,6 +541,21 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
     }
 
+    public void evaluateAndAssertIntegerScalarExpression(String fileName, VariablesMap variables, Integer expectedResult) throws Exception {
+        PrismPropertyValue<Integer> expressionResult = asScalar(
+                evaluateExpression(fileName, DOMUtil.XSD_INT, true, variables),
+                getTestName());
+        displayValue("Size expression result", expressionResult);
+        if (expectedResult == null) {
+            assertNull("Unexpected non-null result: "+expressionResult, expressionResult);
+            return;
+        } else {
+            assertNotNull("Unexpected ull result", expressionResult);
+            assertEquals("Expression " + getTestName() + " resulted in wrong value",
+                    expectedResult, expressionResult.getValue());
+        }
+    }
+
     protected VariablesMap createVariables(Object... params) {
         return VariablesMap.create(prismContext, params);
     }

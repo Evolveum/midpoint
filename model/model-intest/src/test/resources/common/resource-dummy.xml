@@ -59,6 +59,14 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <classificationCondition>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>!projection.attributes.name.startsWith('T')</code>
+                    </script>
+                </classificationCondition>
+            </delineation>
             <attribute>
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
@@ -104,15 +112,11 @@
                         <allowEmptyValues>true</allowEmptyValues>
                         <script>
                             <description>
-                                This is ugly. However, this kind of expression should not be common.
+                                This is somehow ugly. However, this kind of expression should not be common.
                             </description>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input == null
-                                    ? null
-                                    : input.contains('#')
-                                        ? null
-                                        : input
+                                input.contains('#') ? nil : input
                             </code>
                         </script>
                     </expression>
@@ -304,11 +308,9 @@
                         <strength>weak</strength>
                         <condition>
                             <name>administrativeStatus-validFrom-validTo-c</name>
-                            <trace>true</trace>
                             <script>
-                                <trace>true</trace>
                                 <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                                <code>isNull(focus.?activation.?validFrom) &amp;&amp; isNull(focus.?activation.?validTo)</code>
+                                <code>focus.activation.validFrom == null &amp;&amp; focus.activation.validTo == null</code>
                             </script>
                         </condition>
                     </inbound>
@@ -334,6 +336,43 @@
                 </password>
             </credentials>
 
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+
         </objectType>
 
         <objectType>
@@ -342,6 +381,14 @@
             <displayName>Testing Account</displayName>
             <default>false</default>
             <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <classificationCondition>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>projection.attributes.name.startsWith('T')</code>
+                    </script>
+                </classificationCondition>
+            </delineation>
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
@@ -445,6 +492,43 @@
                     <outbound/>
                 </password>
             </credentials>
+
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>name</ref>
+                        </item>
+                    </items>
+                </correlators>
+            </correlation>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <unlink/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
 
         </objectType>
 
@@ -609,7 +693,7 @@
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        'user: ' + default( focus.?name, 'null' )
+                        'user: ' + default( focus.name, 'null' )
                     </code>
                 </script>
                 <name>usr</name>
@@ -619,7 +703,7 @@
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <!-- Note: We cannot test for account name as name is only assigned in provisioning -->
                     <code>
-                    'account: ' + default( projection.?activation.?administrativeStatus, 'null' )
+                    'account: ' + default( projection.activation.administrativeStatus, 'null' )
                     </code>
                 </script>
                 <name>acc</name>
@@ -628,7 +712,7 @@
                 <script>
                     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                    'resource: %s'.format(resource.?name)
+                    'resource: %s'.format(resource.name)
                     </code>
                 </script>
                 <name>res</name>
@@ -696,7 +780,7 @@ end
             <host>resource</host>
             <language>Gibberish</language>
             <argument>
-                <path>$shadow/activation/administrativeStatus</path>
+                <path>$projection/activation/administrativeStatus</path>
                 <name>how</name>
             </argument>
             <code>He left it dead, and with its head</code>
@@ -711,100 +795,4 @@ end
         <caseIgnoreAttributeNames>true</caseIgnoreAttributeNames>
     </consistency>
 
-    <synchronization>
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
-            <enabled>true</enabled>
-            <condition>
-                <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                    <code>!projection.attributes.name.startsWith('T')</code>
-                </script>
-            </condition>
-            <correlation>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <expression>
-                        <path>$account/attributes/icfs:name</path>
-                    </expression>
-                </q:equal>
-            </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-
-        <objectSynchronization>
-            <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>test</intent>
-            <enabled>true</enabled>
-            <condition>
-                <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                    <code>projection.attributes.name.startsWith('T')</code>
-                </script>
-            </condition>
-            <correlation>
-                <q:equal>
-                    <q:path>name</q:path>
-                    <expression>
-                        <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>projection.attributes.name.substring(1)</code>
-                        </script>
-                    </expression>
-                </q:equal>
-            </correlation>
-            <reaction>
-                <situation>linked</situation>
-                <synchronize>true</synchronize>
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unlinked</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                </action>
-            </reaction>
-            <reaction>
-                <situation>unmatched</situation>
-                <synchronize>true</synchronize>
-                <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-                </action>
-            </reaction>
-        </objectSynchronization>
-    </synchronization>
 </resource>

@@ -6,23 +6,25 @@ xref:../schema.adoc[Back to native PostgreSQL schema overview]
 This page documents schema objects parsed from `config/sql/native/postgres-audit.sql`.
 
 Naming conventions:
-`M_` prefix is used for tables in main part of the repo, `MA_` for audit tables (can be separate)
+
+* `M_` prefix is used for tables in main part of the repo, `MA_` for audit tables (can be separate)
 Constraints/indexes use table_column(s)_suffix convention, with `PK` for primary key,
 `FK` foreign key, `IDX` for index, `KEY` for unique index.
 `TR` is suffix for triggers.
-Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
-Column names are Java style and match attribute names from M-classes (e.g. MAuditEvent).
+
+* Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
+
+* Column names are Java style and match attribute names from M-classes (e.g. MAuditEvent).
 
 Other notes:
-`TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[dba.stackexchange.com]
 
-noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+* `TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[DBA stackexchange]
 
-public schema is not used as of now, everything is in the current user schema
-https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[ddl schemas patterns]
-see secure schema usage pattern
+* Public schema is not used as of now, everything is in the current user schema.
+See secure schema usage pattern in https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[PostgreSQL documentation].
 
-just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+* Just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
++
 ```
 drop schema current_user cascade;
 ```

@@ -457,14 +457,15 @@ export default class MidPointTheme {
             });
         });
 
-        jQuery(function ($) {
-            $(document).on("keydown", ".showPasswordButton", function (e, t) {
-                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                    e.key == "Enter" || e.keyCode == 13) {
-                    $(this).showPassword();
-                }
-            });
-        });
+        // jQuery(function ($) {
+        //     $(document).on("keydown", ".showPasswordButton", function (e, t) {
+        //         if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+        //             e.key == "Enter" || e.keyCode == 13) {
+        //                 e.preventDefault();
+        //                 $(this).trigger("click");
+        //         }
+        //     });
+        // });
 
         (function ($) {
             $.fn.showPassword = function () {
@@ -553,18 +554,14 @@ export default class MidPointTheme {
         var url = new URL(window.location.href);
         var wParam = url.searchParams.get('w');
         if (isFirstLoad) {
-            console.log("inside isFirstLoad check");
             url.searchParams.set('w', windowId);
             if (shouldReloadOnFirstLoad) {
-                console.log("will be reloaded");
                 window.location.replace(url);
             } else {
-                console.log("will be replaced state");
                 window.history.replaceState({}, '', url);
             }
             return;
         }
-        console.log("after isFirstLoad check");
 
         if (!url.searchParams.has('w') || wParam !== windowId) {
             url.searchParams.set('w', windowId);
