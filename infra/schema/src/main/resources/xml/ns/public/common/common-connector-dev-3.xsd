@@ -826,7 +826,14 @@
     <xsd:simpleType name="ConnDevRelevancyLevelType">
         <xsd:annotation>
             <xsd:documentation>
-                Relevancy / Confidendce Levels
+                Relevancy / Confidendce Levels.
+
+                IMPORTANT: The declaration order of the enumeration values is significant.
+                Values MUST be declared from the lowest confidence to the highest (low, medium, high),
+                because consuming code relies on the generated enum's natural order (ordinal) to
+                compare confidence levels (e.g. to show only the highest-confidence object classes
+                first in the connector wizard). Reordering or inserting a value in the middle would
+                silently change the ranking.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
