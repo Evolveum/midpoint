@@ -280,6 +280,21 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 //
 //                ),
 
+                // midpoint.hasLinkedObjectOnResource(resourceOid, kind,  intent)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "hasLinkedObjectOnResource",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "hasLinkedObjectOnResource",
+                                        "Returns true if current focus has link to resource object on specified resource.",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING, NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.STRING))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "hasLinkedObjectOnResource",
+                                ImmutableList.of(String.class, String.class, String.class),
+                                this::hasLinkedObjectOnResource)
+
+                ),
+
                 // midpoint.hello
                 new Function(
                         CelFunctionDecl.newFunctionDeclaration(
@@ -560,6 +575,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         }
         return "Hello " + s;
     }
+
+    private boolean hasLinkedObjectOnResource(Object[] args) {
+        ShadowKindType kind = args[1] == null ? null : ShadowKindType.fromValue((String)args[1]);
+        return midpointExpressionFunctions.hasLinkedObjectOnResource((String)args[0], kind, (String)args[2]);
+    }
+
 
     private <O extends ObjectType> CelValue getObject(String typeLocalPart, String oid) {
         return getObject(new QName(ObjectFactory.NAMESPACE, typeLocalPart), oid);

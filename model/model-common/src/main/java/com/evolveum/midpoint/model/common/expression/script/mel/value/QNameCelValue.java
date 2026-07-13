@@ -7,6 +7,10 @@ package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.common.expression.script.mel.MelComparable;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
 import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
@@ -20,7 +24,7 @@ import javax.xml.namespace.QName;
 /**
  * @author Radovan Semancik
  */
-public class QNameCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<QName> {
+public class QNameCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<QName>, MelComparable {
 
     public static final String QNAME_PACKAGE_NAME = QName.class.getTypeName();
     private static final String F_LOCAL_PART = "localPart";
@@ -163,6 +167,20 @@ public class QNameCelValue extends CelValue implements Map<String,String>, MidPo
     @Override
     public int hashCode() {
         return Objects.hashCode(qname);
+    }
+
+    @Override
+    public boolean melEquals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (other instanceof String s) {
+            return s.equals(getLocalPart());
+        }
+        if (other instanceof QNameCelValue q) {
+            return QNameUtil.match(getQName(), q.getQName());
+        }
+        return false;
     }
 }
 

@@ -118,20 +118,92 @@ public class TestMelExpressions extends AbstractScriptTest {
                 false);
     }
 
-    @Test(enabled = false) // WIP
-    public void testUserNameSubstringStringTrue() throws Exception {
+    @Test
+    public void testUserNameContainsStringTrue() throws Exception {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         evaluateAndAssertBooleanScalarExpression(
-                "expression-user-name-substring.xml",
+                "expression-user-name-contains.xml",
                 createVariables(
-                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
                         "foo", "ack", PrimitiveType.STRING
                 ),
                 true);
     }
 
-    @Test(enabled = false) // WIP
+    @Test
+    public void testUserNameContainsStringNull() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-name-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testUserFullNameContainsStringTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-fullname-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
+    public void testUserFullNameContainsStringNull() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-fullname-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testUserFullNameContainsStringMissing() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        userJack.asObjectable().setFullName(null);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-fullname-contains.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testUserNameSubstringString() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertStringScalarExpression(
+                "expression-user-name-substring.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition()
+                ),
+                null);
+    }
+
+    @Test
     public void testUserNameEndsWithStringTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-name-endswith.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition(),
+                        "foo", "ack", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
+    public void testUserNameEndsWithStringNull() throws Exception {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         evaluateAndAssertBooleanScalarExpression(
                 "expression-user-name-endswith.xml",
@@ -139,7 +211,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                         ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition(),
                         "foo", "ack", PrimitiveType.STRING
                 ),
-                true);
+                false);
     }
 
     @Test
@@ -594,6 +666,58 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionUserAdditionalNameEqualsStringTrue() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        userBarbossa.asObjectable().setAdditionalName(createPolyStringType("Cursed One"));
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", "Cursed One", PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionUserAdditionalNameEqualsStringFalse() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        userBarbossa.asObjectable().setAdditionalName(createPolyStringType("Cursed One"));
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", "Foobar", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    @Test
+    public void testExpressionUserAdditionalNameEqualsNullStringTrue() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", null, PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
+    public void testExpressionUserAdditionalNameEqualsNullStringFalse() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-user-additionalname-equals.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userBarbossa, userBarbossa.getDefinition(),
+                        "foo", "Foobar", PrimitiveType.STRING
+                ),
+                Boolean.FALSE);
+    }
+
+    // TODO: testExpressionUserAdditionalNameEquals*PolyString*
+
+    @Test
     public void testExpressionEqualsIgnoreCaseGlobalPolyStringFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-equalsignorecase-global.xml",
@@ -614,6 +738,28 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "bar", "BAR", PrimitiveType.STRING
                 ),
                 "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionStringPlusStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", null, PrimitiveType.STRING
+                ),
+                "FOO");
+    }
+
+    @Test
+    public void testExpressionStringNullPlusStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", null, PrimitiveType.STRING,
+                        "bar", null, PrimitiveType.STRING
+                ),
+                null);
     }
 
     @Test
@@ -647,6 +793,28 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "bar", createPolyStringType("BAR"), PolyStringType.COMPLEX_TYPE
                 ),
                 "FOOBAR");
+    }
+
+    @Test
+    public void testExpressionPolyStringPlusPolyStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", createPolyStringType("FOO"), PolyStringType.COMPLEX_TYPE,
+                        "bar", null, PolyStringType.COMPLEX_TYPE
+                ),
+                "FOO");
+    }
+
+    @Test
+    public void testExpressionPolyStringNullPlusPolyStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", null, PolyStringType.COMPLEX_TYPE,
+                        "bar", null, PolyStringType.COMPLEX_TYPE
+                ),
+                null);
     }
 
     @Test
@@ -1310,6 +1478,30 @@ public class TestMelExpressions extends AbstractScriptTest {
                 null);
     }
 
+    @Test
+    public void testExpressionContainsMemberReverseString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-contains-member-reverse.xml",
+                createVariables("input", "foobar", PrimitiveType.STRING),
+                "foobar");
+    }
+
+    @Test
+    public void testExpressionContainsMemberReverseStringHash() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-contains-member-reverse.xml",
+                createVariables("input", "foo#bar", PrimitiveType.STRING),
+                null);
+    }
+
+    @Test
+    public void testExpressionContainsMemberReverseStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-contains-member-reverse.xml",
+                createVariables("input", null, PrimitiveType.STRING),
+                null);
+    }
+
 
     @Test
     public void testUsernameJackSubstring() throws Exception {
@@ -1438,7 +1630,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "jsparrow");
     }
 
-    @Test(enabled = false) // WIP
+    @Test
     public void testUsernameGeneratorFormatNull() throws Exception {
         usernameGenerator("expression-username-generator-format.xml",
         null, null, "",
@@ -1454,7 +1646,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "JSparrow");
     }
 
-    @Test(enabled = false) // WIP
+    @Test
     public void testUsernameGeneratorFormatPolystringNull() throws Exception {
         usernameGenerator("expression-username-generator-format-polystring.xml",
                 null, null, "",
@@ -1736,14 +1928,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 Boolean.FALSE);
     }
 
-    // Does not work due to CEL limitation
-    // There is no easy way to set up custom equality function for objects.
-    // Setting up custom == overload for (qname,qname) clashes with default equals overload.
-    // Good chance would be to set up custom RuntimeEquality in CEL Runtime.
-    // However, CelRuntimeImpl hardcodes the RuntimeEquality to ProtoMessageRuntimeEquality
-    // (see CelRuntimeImpl.build() line 490)
-    // Disabling the tests until a good solution is found.
-    @Test(enabled = false)
+    @Test
     public void testExpressionQNameEqualsQNameNoNsTrue() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-foo-equals-bar.xml",
@@ -1754,7 +1939,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 Boolean.TRUE);
     }
 
-    @Test(enabled = false)
+    @Test
     public void testExpressionQNameEqualsQNameNoNsFalse() throws Exception {
         evaluateAndAssertBooleanScalarExpression(
                 "expression-foo-equals-bar.xml",
@@ -1829,6 +2014,100 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "foo", userJack, userJack.getDefinition()
                 ),
                 Boolean.FALSE);
+    }
+
+    @Test
+    public void testSizeString() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", "FooBar", String.class
+                ),
+                6
+        );
+    }
+
+    @Test
+    public void testSizeStringEmpty() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", "", String.class
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizeStringNull() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", null, String.class
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizePolystring() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", createPolyStringType("FooBar"), PolyStringType.COMPLEX_TYPE
+                ),
+                6
+        );
+    }
+
+    @Test
+    public void testSizePolystringEmpty() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", createPolyStringType(""), PolyStringType.COMPLEX_TYPE
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizePolystringNull() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", null, PolyStringType.COMPLEX_TYPE
+                ),
+                0
+        );
+    }
+
+    @Test
+    public void testSizeList() throws Exception {
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+        sizeTest(
+                createVariables(
+                        "foo", userBarbossa.asObjectable().getOrganizationalUnit(), List.class
+                ),
+                1
+        );
+    }
+
+    @Test
+    public void testSizeListNull() throws Exception {
+        sizeTest(
+                createVariables(
+                        "foo", null, List.class
+                ),
+                0
+        );
+    }
+
+    public void sizeTest(VariablesMap variables, Integer expectedResult) throws Exception {
+        evaluateAndAssertIntegerScalarExpression("expression-size.xml", variables, expectedResult);
+    }
+
+    @Test
+    public void testSizeNil() throws Exception {
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-size-nil.xml",
+                createVariables(),
+                0
+        );
     }
 
     @Test
@@ -2564,6 +2843,41 @@ public class TestMelExpressions extends AbstractScriptTest {
                         "input", "foobar", PrimitiveType.STRING
                 ),
                 "We have foobar");
+    }
+
+    @Test
+    public void testHasAdministrativeStatusHas() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-has-administrativestatus.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition()
+                ),
+                true);
+    }
+
+    @Test
+    public void testHasAdministrativeStatusNullStatus() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        userJack.asObjectable().getActivation().setDisableReason("foo"); // To keep the activation container
+        userJack.asObjectable().getActivation().setAdministrativeStatus(null);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-has-administrativestatus.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, userJack, userJack.getDefinition()
+                ),
+                false);
+    }
+
+    @Test
+    public void testHasAdministrativeStatusNullFocus() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-has-administrativestatus.xml",
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, null, userJack.getDefinition()
+                ),
+                false);
     }
 
     @Test

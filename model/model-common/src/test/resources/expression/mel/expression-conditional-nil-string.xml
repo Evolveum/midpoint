@@ -12,6 +12,6 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        isNil(input) ? nil : 'We have ' + input
+        input == null ? nil : 'We have ' + input
     </code>
 </script>
