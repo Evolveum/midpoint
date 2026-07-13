@@ -56,6 +56,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * Multi-tab Browser Support. See bug:MID-11050[].
 
+* xref:/midpoint/guides/updating-native-db/updating-to-pg18.adoc[Support for PostgreSQL 18]
+
 #TODO#
 
 === Other Improvements
