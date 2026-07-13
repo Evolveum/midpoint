@@ -69,6 +69,7 @@ public class TestFocusPolicyHrScenarioMultiNode extends TestFocusPolicyHrScenari
                             .assertCounterMinMax(simulateId, 1, DELETE_THRESHOLD - 1)
                             .end()
                         .end()
+                    .end()
                 .subtask("execute", false)
                     .display()
                     .assertClosed()

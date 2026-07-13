@@ -419,7 +419,8 @@ focus.assignment.filter(a, has(a.targetRef))
 
 === format
 
-`string.format(list)` -> string
+`string.format(list)` -> string +
+`format(string, list)` -> string
 
 Format strings according to specified template, filling in data from the arguments.
 
@@ -430,9 +431,10 @@ Format specification follows https://docs.oracle.com/en/java/javase/21/docs/api/
 ----
 // Returns 'Jack has 3 apples'
 '%s has %d apples'.format(['Jack', 3])
+format('%s has %d apples', ['Jack', 3])
 ----
 
-It is strongly recommended to use `format()` function instead of add operator (`\+`) for string concatenation.
+It is recommended to use `format()` function instead of add operator (`\+`) for complex string formatting.
 Unlike the add operator (`+`), the `format()` function can work reliably with all data types and values, including `null` values.
 
 === has
@@ -526,16 +528,21 @@ isPresent(focus.activation.validFrom)
 === join
 
 `list(string).join()` -> string +
-`list(string).join(separator)` -> string
+`list(string).join(separator)` -> string +
+join(`list(string))` -> string +
+join(`list(string), separator)` -> string
+
 
 Returns a new string where the elements of string list are concatenated using the separator.
 If no separator is specified, empty string is used as separator.
+List items that are `null` are ignored during processing.
 
 .Example
 [source,mel]
 ----
-['foo','bar','baz'].join()     // Returns 'foobarbaz'
-['foo','bar','baz'].join(',')  // Returns 'foo,bar,baz'
+['foo','bar','baz'].join()       // Returns 'foobarbaz'
+['foo','bar','baz'].join(',')    // Returns 'foo,bar,baz'
+join(['foo', null, 'bar'], '/')  // Returns 'foo/bar'
 ----
 
 === lastIndexOf
