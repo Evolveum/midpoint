@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.tasks;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -318,17 +320,19 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         assertThat(countUsers()).as("preview did not delete").isEqualTo(ACCOUNTS);
         assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
 
-        when("the source is fixed (4 accounts restored) and the suspended task is resumed");
-        addAccounts(0, 4);   // 4 of the 8 restored -> only 4 accounts still missing
-        dropShadows(0, 4);   // drop stale shadows so the restored accounts re-correlate by name
+        when("the suspended task is resumed with the source still broken");
         taskManager.resumeTaskTree(TASK_HR.oid, result);
         waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
-        then("resume re-suspends — the persisted delete counter trips again despite the fix");
+        then("resume re-suspends — the persisted counter is already at the threshold, so re-processing "
+                + "any of the still-broken accounts (fewer than the threshold remain, so a cleared counter "
+                + "could not trip) re-fires the policy");
         assertTaskTree(TASK_HR.oid, "after resume").display().assertSuspended();
         assertThat(countUsers()).as("still nothing deleted after resume").isEqualTo(ACCOUNTS);
 
-        when("the task is run fresh (clean counters) with the fixed source");
+        when("the source is fixed (4 accounts restored) and the task is run fresh (clean counters)");
+        addAccounts(0, 4);   // 4 of the 8 restored -> only 4 accounts still missing
+        dropShadows(0, 4);   // drop stale shadows so the restored accounts re-correlate by name
         int notificationsBeforeFreshRun = policyNotifications();
         deleteIfPresent(TASK_HR, result);
         addObject(TASK_HR, getTestTask(), result, topology());
