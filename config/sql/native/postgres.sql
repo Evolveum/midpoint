@@ -8,33 +8,35 @@
 -- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
 
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
-
+-- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 /*
 @script-description:
 
 Naming conventions:
-M_ prefix is used for tables in main part of the repo, MA_ for audit tables (can be separate)
-Constraints/indexes use table_column(s)_suffix convention, with PK for primary key,
-FK foreign key, IDX for index, KEY for unique index.
-TR is suffix for triggers.
-Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
-Column names are Java style and match attribute names from M-classes (e.g. MObject).
+
+* `M_` prefix is used for tables in main part of the repo, `MA_` for audit tables (can be separate)
+Constraints/indexes use table_column(s)_suffix convention, with `PK` for primary key,
+`FK` foreign key, `IDX` for index, `KEY` for unique index.
+`TR` is suffix for triggers.
+
+* Names are generally lowercase (despite prefix/suffixes above in uppercase ;-)).
+
+* Column names are Java style and match attribute names from M-classes (e.g. MObject).
 
 Other notes:
-`TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[dba.stackexchange]
+
+* `TEXT` is used instead of `VARCHAR`, see: https://dba.stackexchange.com/a/21496/157622[DBA stackexchange]
 We prefer `CREATE UNIQUE INDEX` to `ALTER TABLE ... ADD CONSTRAINT`, unless the column
 is marked as UNIQUE directly - then the index is implied, don't create it explicitly.
 
-For Audit tables see 'postgres-audit.sql' right next to this file.
+* For Audit tables see 'postgres-audit.sql' right next to this file.
 For Quartz tables see 'postgres-quartz.sql'.
 
-noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
+* Public schema is not used as of now, everything is in the current user schema.
+See secure schema usage pattern in https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[PostgreSQL documentation].
 
-public schema is not used as of now, everything is in the current user schema
-https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS[ddl-schemas-patterns]
-see secure schema usage pattern
-
-just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+* Just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
++
 ```
 drop schema current_user cascade;
 ```
