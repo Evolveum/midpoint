@@ -431,18 +431,18 @@ public class CelTypeMapper implements CelTypeProvider  {
             return NullValue.NULL_VALUE;
         }
         Object value = typedValue.getValue();
-//        if (value == null) {
-//            // CEL has special type and value for null
-//            return NullValue.NULL_VALUE;
-//        }
+        if (value == null) {
+            // CEL has special type and value for null
+            return NullValue.NULL_VALUE;
+        }
         ItemDefinition def = typedValue.getDefinition();
         if (def == null) {
             if (typedValue.getTypeClass() != null && Objectable.class.isAssignableFrom(typedValue.getTypeClass())) {
                 // Some (legacy) code is using typeClass instead of definition.
                 // E.g. this happens when resolving references (see TestMelExpressions.testExpressionObjectRefVariablesNonExistingObject()
-                if (value == null) {
-                    return Optional.empty();
-                }
+//                if (value == null) {
+//                    return Optional.empty();
+//                }
                 if (value instanceof PrismObject<?> o) {
                     return ObjectCelValue.create(o);
                 } else if (value instanceof Objectable o) {
@@ -452,16 +452,16 @@ public class CelTypeMapper implements CelTypeProvider  {
             return CelTypeMapper.toCelValue(value);
         }
         if (def instanceof PrismPropertyDefinition<?> propDef) {
-            if (value == null) {
-                if (isRepresentedAsStructured(propDef)) {
-                    // This applies to property types that are presented as structures in CEL (polystring, qname, etc.)
-                    // For these types we need to return optional instead of plain null, otherwise field resolution will fail.
-                    // E.g. givenName.?norm won't work for NullValue.NULL_VALUE, but it will work for Optional.empty()
-                    return Optional.empty();
-                } else {
-                    return NullValue.NULL_VALUE;
-                }
-            }
+//            if (value == null) {
+//                if (isRepresentedAsStructured(propDef)) {
+//                    // This applies to property types that are presented as structures in CEL (polystring, qname, etc.)
+//                    // For these types we need to return optional instead of plain null, otherwise field resolution will fail.
+//                    // E.g. givenName.?norm won't work for NullValue.NULL_VALUE, but it will work for Optional.empty()
+//                    return Optional.empty();
+//                } else {
+//                    return NullValue.NULL_VALUE;
+//                }
+//            }
             if (propDef.isEnum()) {
                 if (value instanceof TypeSafeEnum tse) {
                     return tse.value();
@@ -480,9 +480,9 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         if (def instanceof PrismObjectDefinition<?>) {
-            if (value == null) {
-                return Optional.empty();
-            }
+//            if (value == null) {
+//                return Optional.empty();
+//            }
             if (value instanceof PrismObject<?> o) {
                 return ObjectCelValue.create(o);
             } else if (value instanceof Objectable o) {
@@ -490,9 +490,9 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         if (def instanceof PrismContainerDefinition<?>) {
-            if (value == null) {
-                return Optional.empty();
-            }
+//            if (value == null) {
+//                return Optional.empty();
+//            }
             if (value instanceof PrismContainerValue<?> cval) {
                 return ContainerValueCelValue.create(cval);
             } else if (value instanceof Containerable c) {
@@ -500,9 +500,9 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         if (def instanceof PrismReferenceDefinition) {
-            if (value == null) {
-                return Optional.empty();
-            }
+//            if (value == null) {
+//                return Optional.empty();
+//            }
             if (value instanceof PrismReferenceValue rval) {
                 return ReferenceCelValue.create(rval);
             } else if (value instanceof Referencable r) {

@@ -157,6 +157,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActions"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsComposite"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsMultiNode"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyCombinations"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioSimple"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultithreaded"/>
             <!--<class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultiNode"/>-->

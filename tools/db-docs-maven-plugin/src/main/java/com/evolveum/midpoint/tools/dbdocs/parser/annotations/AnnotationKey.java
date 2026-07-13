@@ -10,6 +10,7 @@ package com.evolveum.midpoint.tools.dbdocs.parser.annotations;
  * Supported documentation annotation keys in SQL comments.
  */
 enum AnnotationKey {
+    SCRIPT_DESCRIPTION("script-description"),
     DESCRIPTION("description"),
     TYPE("type"),
     SINCE("since"),

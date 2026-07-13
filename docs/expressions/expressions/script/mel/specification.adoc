@@ -44,9 +44,12 @@ If you are used to create Groovy scripts, xref:../migration/[MEL Migration Guide
 |
 
 | Null
-| `null`
-| `null`
-|
+| `null` +
+`nil`
+| `null` +
+`nil`
+| `nil` is dynamically-typed,
+see xref:../null/[nullability notes].
 
 | List
 | `[]` (square brackets)
@@ -152,19 +155,10 @@ Following _operators_ can be used in MEL expressions:
 | Selection
 | Used to resolve structured data, assumes non-null operand.
 
-|`.?`
-| Optional selection
-| Used to resolve structured data, can handle null operand.
-
 |`[]`
 | Index
 | Used to retrieve specific value from a list, map or structured data.
 Assumes non-null operand.
-
-|`[?]`
-| Optional Index
-| Used to retrieve specific value from a list, map or structured data.
-Can handle null operand.
 
 |====
 
@@ -476,7 +470,7 @@ If the search string is not found the function returns -1.
 `isBlank(string)` -> bool +
 `string.isBlank()` -> bool
 
-Returns true if string is blank (has zero length or contains only white characters).
+Returns true if string is blank (is null, has zero length or contains only white characters).
 
 .Example
 [source,mel]
@@ -504,44 +498,13 @@ Also returns true if the argument is an empty list.
 isEmpty([])      // Returns true
 ----
 
-=== isNil
-
-`isNil(any)` -> bool
-
-Returns true if the argument is `null` or any of its equivalents.
-This function works reliably in all the cases when a test for "nullness" would be done.
-E.g. it works with variables as well as _optionals_ that are result of `.?` operator use.
-
-Use of this function is strongly recommended for null checks in all places.
-
-.Example
-[source,mel]
-----
-isNil(null)     // Returns true
-isNil('foo')    // Returns false
-----
-
-Function `isNil()` can be used with structured data as well.
-The following expression returns `false` only if (non-null) value of `validFrom` property is present.
-It returns `true` in all other cases, such as when `focus` variable contains `null`, if the object in `focus` variable does not have `activation` container, if the container does not contain `validFrom` property or if that property is `null`.
-
-.Example
-[source,mel]
-----
-isNil(focus.?activation.?validFrom)
-----
-
-It is strongly recommended to use `isNil()` function instead of `null` equality check (e.g. `foo == null`) in all cases.
-
 === isPresent
 
 `isPresent(any)` -> bool
 
 Returns true if the argument is present, i.e. if it is not `null` nor any of its equivalents.
 This function works reliably in all the cases when a test for presence would be done.
-E.g. it works with variables as well as _optionals_ that are result of `.?` operator use.
-
-Use of this function is strongly recommended for presence checks in all places.
+E.g. it works with primitive types as well as items of structured types.
 
 .Example
 [source,mel]
@@ -557,11 +520,8 @@ It returns `false` in all other cases, such as when `focus` variable contains `n
 .Example
 [source,mel]
 ----
-isPresent(focus.?activation.?validFrom)
+isPresent(focus.activation.validFrom)
 ----
-
-It is strongly recommended to use `isPresent()` function instead of `null` inequality check (e.g. `foo != null`) in all cases.
-
 
 === join
 
@@ -868,7 +828,8 @@ For type conversion function see `str()`.
 ----
 stringify(['foo','bar'])  // Returns '["foo","bar"]'
 stringify(3)              // Returns '3'
-stringify(null, '?')      // Returns '*'
+stringify(null)           // Returns ''
+stringify(null, '?')      // Returns '?'
 ----
 
 === substring
@@ -1969,12 +1930,29 @@ QNames can be used instead of strings to access structured midPoint data when us
 focus.extension[qname('http://example.com/ns', 'ship')]
 ----
 
+QNames can be compared with strings.
+Namespace part is ignored in such case.
+
+[source,mel]
+----
+qname('http://example.com/ns', 'ship') == 'ship'    // Returns true
+----
+
+Fully-qualified qnames can be compared with qnames without a namespace.
+Namespace part is ignored in such case.
+
+[source,mel]
+----
+qname('http://example.com/ns', 'ship') == qname(null, 'ship')    // Returns true
+----
+
 === qname
 
 `qname(namespaceURI, localPart)` -> qname +
 `qname(localPart)` -> qname
 
 Creates a qname value.
+When namespace is not specified, qname with unspecified (null) namespace is created.
 
 === encrypt
 
@@ -2030,51 +2008,54 @@ projection.attributes.cn
 projection.attributes['cn']
 ----
 
-The `has()` macro can be used for tests regarding presence of items in structured objects and maps:
+The `isPresent()` function can be used for tests regarding presence of value:
 
 [source,mel]
 ----
-has(focus.fullName)
+isPresent(foo)
 ----
 
-However, the `has()` macro is not null-safe.
-E.g. the expression above fails in case the `focus` variable is `null`.
-It is recommended to use `isNil()` and `isPresent()` functions instead (see below).
+The `isPresent()` function returns true value in case that the variable `foo` has value, i.e. it is not null.
+The `isPresent()` function works on plain data (variables) as well as structured data:
+
+[source,mel]
+----
+isPresent(focus.fullName)
+----
+
+Note that some MEL operators may not be able to work with `null` values.
+E.g. addition operator (`+`) when dealing with numeric values.
 
 === Optional Values in Structured Data
 
-CEL interpreter that evaluates MEL expressions assumes that the data structures accessed by the expression exist when the expression is evaluated.
-E.g. the following expression assumes that variable `focus` contains structured data value, which has field `activation`, which has field `administrativeStatus`.
-The expression fails if any of that assumptions is false, e.g. if variable `focus` does not contain a value (is `null`).
+The data structures are seldom complete.
+In usual case, the data are only partially populated.
+E.g. a focus may not have activation at all, and objects with `administrativeStatus` explicitly defined are quite rare.
+MEL _selection_ operator (`.`) is null-safe.
+The following expression does not fail when variable `focus` does not contain any value, or in case that there is no `activation` container or `administrativeStatus` property.
+In such cases the expression evaluates to `null` without any error.
 
 [source,mel]
 ----
 focus.activation.administrativeStatus
 ----
 
-However, the data are seldom complete.
-In usual case, the data are only partially populated.
-E.g. a focus may not have activation at all, and objects with `administrativeStatus` explicitly defined are quite rare.
-MEL allows specification of _optional selection_ by adding question mark (`?`) after the dot when working with incomplete data.
+The `isPresent()` function can be used for tests regarding presence of items in structured objects and maps:
 
 [source,mel]
 ----
-focus.?activation.?administrativeStatus
+isPresent(focus.activation.administrativeStatus)
 ----
 
-The expression above does not fail when variable `focus` does not contain any value, or in case that there is no `activation` container or `administrativeStatus` property.
-In such cases the expression evaluates to an _empty optional_, which is supposed to be equivalent to `null`.
-
-MidPoint interprets the value correctly when it is a result value of an expression.
-Most of MEL functions can interpret the value correctly as well.
-However, interpretation of some built-in CEL operators (e.g. `==` and `+`) can be confusing.
-Therefore, it is recommended to use functions `isPresent()` and `isNil()` for checks, and `format()` for string formatting when dealing with optional values.
-E.g. the `isPresent()` function can be used to determine whether a particular item is present in data:
+CEL provides the `has()` macro, which can also be used for tests regarding presence of items in structured objects and maps:
 
 [source,mel]
 ----
-isPresent(focus.?activation.?administrativeStatus)
+has(focus.fullName)
 ----
+
+However, the `has()` macro cannot be used to check presence of plain values (e.g. variables).
+Therefore, as a rule of thumb, it is recommended to use `isPresent()` function instead of `has()` macro.
 
 See xref:#null-and-optional-values[Null and Optional Values section] below.
 
@@ -2101,31 +2082,20 @@ focus.find('activation/administrativeStatus')
 
 == Null and Optional Values
 
-Use following constructs when dealing with `null` values:
+MEL data structures and functions are generally null-safe.
+I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.
+MEL interpreter substitutes a reasonable return value in such a case, which is usually also `null` value.
+However, some functions may return empty string (`''`), zero (`0`) or appropriate boolean value instead.
 
-|===
-| Instead of (wrong) | Use this (correct)
+Navigation of structured data is also null-safe.
+See section xref:#optional-values-in-structured-data[Optional Values in Structured Data] for more details.
 
-| `focus.activation.administrativeStatus`
-| `focus.?activation.?administrativeStatus`
-
-| `null`
-| `nil`
-
-| `foo == null`
-| `isNil(foo)`
-
-| `foo != null`
-| `isPresent(foo)`
-
-| `foo.contains('#')`
-| `stringify(foo).contains('#')`
-
-|===
-
-As a rule of thumb, never use `null` literal.
-Use `nil` instead.
-Use functions `isNil()` and `isPresent()` whenever possible.
+However, there is one unpleasant detail regarding `null` literal.
+CEL interpreter is regarding `null` as a special data type.
+The `null` literal is considered to be statically-typed, which may cause problems in some cases.
+The conditionals (`?:`) are the most notorious (see xref:../tips[] for details).
+As a rule of thumb, use `nil` instead of `null` literal if your code does not work with `null`.
+The `nil` provides a dynamically-typed null value, which usually fixes the situation.
 
 See xref:../null[] for details.
 
@@ -2261,6 +2231,8 @@ MEL expressions are living in their own safe little world.
 // TODO: later: types and conversions
 
 // TODO: cel.bind(var, val, expression)
+
+// TODO: midpoint.* extension
 
 == See Also
 

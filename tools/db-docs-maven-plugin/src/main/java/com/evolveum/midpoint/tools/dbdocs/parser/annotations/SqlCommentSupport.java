@@ -54,11 +54,7 @@ final class SqlCommentSupport {
             text = text.substring(0, end);
         }
 
-        String stripped = text.stripLeading();
-        if (stripped.startsWith("*")) {
-            return stripped.substring(1).stripLeading();
-        }
-        return stripped;
+        return text;
     }
 
     static String appendContinuation(String value, String continuation) {

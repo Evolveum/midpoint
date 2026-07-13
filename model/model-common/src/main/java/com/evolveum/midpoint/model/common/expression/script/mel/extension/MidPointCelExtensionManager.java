@@ -61,7 +61,7 @@ public class MidPointCelExtensionManager {
         registerLibrary("lists", CelExtensions.lists());
         registerLibrary("regex", CelExtensions.regex());
         registerLibrary("comprehensions", CelExtensions.comprehensions());
-        registerLibrary("optional", CelExtensions.optional());
+//        registerLibrary("optional", CelExtensions.optional());
 
         registerLibrary(CelMelExtensions.library(celOptions, protector, basicExpressionFunctions));
         registerLibrary(CelFormatExtensions.library(basicExpressionFunctions));
