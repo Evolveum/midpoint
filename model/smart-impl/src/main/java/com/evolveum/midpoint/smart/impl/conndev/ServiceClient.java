@@ -114,8 +114,8 @@ public class ServiceClient {
         return job;
     }
 
-    public RestorationClient synchronizationClient() {
-        return new RestorationClient();
+    public SynchronizationClient synchronizationClient() {
+        return new SynchronizationClient();
     }
 
 
@@ -337,6 +337,89 @@ public class ServiceClient {
                 return;
             }
             put(apiUri, entitySupplier);
+        }
+
+    }
+
+    /**
+     * Client for the documentation synchronization direction: upload dev documentation to the generation
+     * service, wait for it to be processed, and pull the processed result back. The service is the source
+     * of truth for processed documentation, so callers push with {@link #postDocumentation}, then, once
+     * {@link #awaitDocumentation} confirms processing, read the result with {@link #getDocumentation}.
+     */
+    public class SynchronizationClient {
+
+        private String documentationUri(String docId) {
+            return appendSession(apiBase + "session/{sessionId}/documentation/" + docId);
+        }
+
+        /**
+         * Uploads a single documentation file (multipart {@code documentation} part). The endpoint does
+         * not merely store it but hands it to the LLM, chunking it into {@code DocumentationItem}s (source
+         * {@code upload}, {@code doc_id == docId}) as an asynchronous job. Returns immediately; use
+         * {@link #awaitDocumentation} to wait for the job and {@link #getDocumentation} to pull the result.
+         */
+        public void postDocumentation(String docId, InputStream documentation, ContentType contentType, String filename) throws IOException {
+            ensureSessionExists();
+
+            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setMode(HttpMultipartMode.EXTENDED);
+            builder.addBinaryBody("documentation", documentation, contentType, filename);
+
+            var uri = documentationUri(docId);
+            var request = new HttpPost(uri);
+            request.setEntity(builder.build());
+            try (var response = client.execute(request)) {
+                if (response.getCode() < 200 || response.getCode() >= 300) {
+                    throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code " + response.getCode());
+                }
+            }
+        }
+
+        /**
+         * Waits until an uploaded documentation has finished processing, by polling {@code HEAD
+         * documentation/{docId}}. Unlike the module job endpoints, the documentation endpoint has no
+         * {@code ?jobId=} status envelope; the HEAD status is the contract instead: {@code 204} once the
+         * chunks are persisted, {@code 202} while the upload job is still running, and {@code 404} when
+         * neither items nor a pending job exist (i.e. the upload failed).
+         */
+        public void awaitDocumentation(String docId, long sleepTime, BooleanSupplier canRun) throws IOException {
+            var uri = documentationUri(docId);
+            while (true) {
+                int code;
+                try (var response = client.execute(new HttpHead(uri))) {
+                    code = response.getCode();
+                }
+                if (code == HttpStatus.SC_NO_CONTENT || code == HttpStatus.SC_OK) {
+                    return;
+                }
+                if (code != HttpStatus.SC_ACCEPTED) {
+                    throw new IOException("Documentation " + docId + " was not processed. Status code " + code);
+                }
+                if (!canRun.getAsBoolean()) {
+                    throw new IOException("Cancelled while waiting for documentation " + docId + " to be processed");
+                }
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting for documentation " + docId, e);
+                }
+            }
+        }
+
+        /**
+         * Fetches a single processed documentation bundle ({@code docId} + its chunks) as raw JSON. Only
+         * call this once {@link #awaitDocumentation} has confirmed processing has finished.
+         */
+        public String getDocumentation(String docId) throws IOException {
+            var uri = documentationUri(docId);
+            try (var response = client.execute(new HttpGet(uri))) {
+                if (HttpStatus.SC_OK == response.getCode()) {
+                    return new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+                }
+                throw new IOException("Could not fetch documentation " + docId + " from " + uri + ". Status code " + response.getCode());
+            }
         }
 
     }
