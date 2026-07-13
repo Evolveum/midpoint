@@ -346,7 +346,8 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
     /** Import all accounts with no policy, to link users to shadows (bootstrap for the delete test). */
     private void importAllAccounts(OperationResult result) throws Exception {
         deleteIfPresent(TASK_FPC_IMPORT, result);
-        addObject(TASK_FPC_IMPORT, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> { });
+        addObject(TASK_FPC_IMPORT, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> {
+        });
         waitForTaskTreeCloseCheckingSuspensionWithError(TASK_FPC_IMPORT.oid, result, 5 * TIMEOUT);
         deleteIfPresent(TASK_FPC_IMPORT, result);
     }

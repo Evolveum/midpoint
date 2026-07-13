@@ -39,9 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * removed. A composite task reconciles it in two phases:
  *
  * - child "simulate" — reconciliation in preview mode, guarded by a max-deleted-users suspend policy that
- *   stops the task before anything is really deleted;
+ * stops the task before anything is really deleted;
  * - child "execute" — reconciliation in full mode, guarded by the same policy so it can never delete more
- *   than allowed.
+ * than allowed.
  *
  * Two recovery paths are contrasted once the source is fixed so fewer users would be deleted:
  * a plain resume re-suspends (the delete counter is not cleared), and only a fresh run completes; whereas a
@@ -140,7 +140,8 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
     /** Imports all accounts (plain import, no policy), linking users to shadows — the state the scenario prunes. */
     private void importAllAndLink(OperationResult result) throws Exception {
         deleteIfPresent(TASK_HR_IMPORT, result);
-        addObject(TASK_HR_IMPORT, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> { });
+        addObject(TASK_HR_IMPORT, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> {
+        });
         waitForTaskCloseOrSuspend(TASK_HR_IMPORT.oid, 5 * TIMEOUT);
         assertTaskTree(TASK_HR_IMPORT.oid, "after import").assertClosed().assertSuccess();
         deleteIfPresent(TASK_HR_IMPORT, result);
@@ -294,7 +295,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
      * reconciliation trips the max-deleted threshold and suspends before any real deletion. We then show that:
      *
      * - a plain resume re-suspends (the delete counter is not cleared by suspend/resume), even after the
-     *   source is fixed, and
+     * source is fixed, and
      * - only a fresh run (with a clean counter) completes, deleting just the now-allowed number.
      */
     @Test

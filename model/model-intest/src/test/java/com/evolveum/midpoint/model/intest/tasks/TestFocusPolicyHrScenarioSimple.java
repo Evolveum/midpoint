@@ -18,6 +18,7 @@ public class TestFocusPolicyHrScenarioSimple extends TestFocusPolicyHrScenario {
 
     @Override
     protected Consumer<PrismObject<TaskType>> topology() {
-        return t -> { }; // no distribution
+        return t -> {
+        }; // no distribution
     }
 }
