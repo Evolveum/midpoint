@@ -1513,6 +1513,11 @@ public class TestMelExpressions extends AbstractScriptTest {
         usernameJack("expression-username-format.xml");
     }
 
+    @Test
+    public void testUsernameJackFormatGlobal() throws Exception {
+        usernameJack("expression-username-format-global.xml");
+    }
+
     public void usernameJack(String expressionFile) throws Exception {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         evaluateAndAssertStringScalarExpression(
@@ -1878,6 +1883,88 @@ public class TestMelExpressions extends AbstractScriptTest {
                 // expected no values (empty list)
         );
     }
+
+    @Test
+    public void testExpressionJoinMemberString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-member.xml",
+                createVariables(
+                        "s1", "foo", PrimitiveType.STRING,
+                        "s2", "bar", PrimitiveType.STRING
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testExpressionJoinMemberStringNullMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-member.xml",
+                createVariables(
+                        "s1", "foo", PrimitiveType.STRING,
+                        "s2", null, PrimitiveType.STRING
+                ),
+                "foo");
+    }
+
+    @Test
+    public void testExpressionJoinMemberPolystring() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-member.xml",
+                createVariables(
+                        "s1", createPolyStringType("foo"), PolyStringType.COMPLEX_TYPE,
+                        "s2", createPolyStringType("bar"), PolyStringType.COMPLEX_TYPE
+                ),
+                "foobar");
+    }
+
+    @Test
+    public void testExpressionJoinGlobalString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-global.xml",
+                createVariables(
+                        "s1", "foo", PrimitiveType.STRING,
+                        "s2", "bar", PrimitiveType.STRING,
+                        "separator", ",", PrimitiveType.STRING
+                ),
+                "foo,bar");
+    }
+
+    @Test
+    public void testExpressionJoinGlobalPolystring() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-global.xml",
+                createVariables(
+                        "s1", createPolyStringType("foo"), PolyStringType.COMPLEX_TYPE,
+                        "s2", createPolyStringType("bar"), PolyStringType.COMPLEX_TYPE,
+                        "separator", ",", PrimitiveType.STRING
+                ),
+                "foo,bar");
+    }
+
+    @Test
+    public void testExpressionJoinGlobalPolystringStringMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-global.xml",
+                createVariables(
+                        "s1", "foo", PrimitiveType.STRING,
+                        "s2", createPolyStringType("bar"), PolyStringType.COMPLEX_TYPE,
+                        "separator", ",", PrimitiveType.STRING
+                ),
+                "foo,bar");
+    }
+
+    @Test
+    public void testExpressionJoinGlobalStringNullMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-join-global.xml",
+                createVariables(
+                        "s1", "foo", PrimitiveType.STRING,
+                        "s2", null, PrimitiveType.STRING,
+                        "separator", ",", PrimitiveType.STRING
+                ),
+                "foo");
+    }
+
 
     @Test
     public void testExpressionQName() throws Exception {

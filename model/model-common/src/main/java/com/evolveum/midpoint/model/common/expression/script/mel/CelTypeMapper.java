@@ -403,6 +403,10 @@ public class CelTypeMapper implements CelTypeProvider  {
                 || (object instanceof Optional<?> opt && (opt.isEmpty() || isCelNull(opt.get())));
     }
 
+    public static boolean isNotCelNull(@Nullable Object object) {
+        return !isCelNull(object);
+    }
+
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {
         if (item == null) {
             return null;

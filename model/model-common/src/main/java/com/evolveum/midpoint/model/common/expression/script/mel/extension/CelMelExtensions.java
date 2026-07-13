@@ -430,6 +430,21 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::stringFormat,
                             NullabilityProperties.NULLABLE_NULL)),
 
+                // format(str, [args])
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                "format",
+                                CelOverloadDecl.newGlobalOverload(
+                                        "format-global",
+                                        "Format strings according to specified template, filling in data from the arguments."
+                                                + " Follow Java formatting conventions.",
+                                        SimpleType.STRING,
+                                        SimpleType.STRING, SimpleType.ANY)),
+                        CelFunctionBinding.from(
+                                "format-global", String.class, Object.class,
+                                CelMelExtensions::stringFormat,
+                                NullabilityProperties.NULLABLE_NULL)),
+
             // string.indexOf(substring [, offset])
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -630,6 +645,42 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "isPresent_any", Object.class,
                             CelMelExtensions::isPresent,
                             NullabilityProperties.NULLABLE)),
+
+            // join(list)
+            // join(list, separator)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "join",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "join-list",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "join-list",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "join-list-string",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY), SimpleType.STRING),
+                            CelOverloadDecl.newMemberOverload(
+                                    "join-list-string",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY), SimpleType.STRING)
+                    ),
+                    CelFunctionBinding.from(
+                            "join-list", Object.class,
+                            CelMelExtensions::join,
+                            NullabilityProperties.NULLABLE),
+                    CelFunctionBinding.from(
+                            "join-list-string", Object.class, String.class,
+                            CelMelExtensions::join,
+                            NullabilityProperties.NULLABLE)
+                    ),
 
             // TODO: JOIN? Does it make sense? -> join(list(any))
 
@@ -1114,7 +1165,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(SimpleType.ANY))),
                     CelFunctionBinding.from(
                             "mel-stringify", Object.class,
-                            arg -> stringify(arg, ""),
+                            CelMelExtensions::stringify,
                             NullabilityProperties.NULLABLE)),
 
             // stringify(any, nullValue)
@@ -1395,6 +1446,25 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE_NULL))
 
         );
+    }
+
+    private static String join(Object list) {
+        return join(list, "");
+    }
+
+    private static String join(Object list, String separator) {
+        if (isCelNull(list)) {
+            return "";
+        }
+        if (list instanceof List l) {
+            List<String> strList = l.stream()
+                    .filter(CelTypeMapper::isNotCelNull)
+                    .map(CelMelExtensions::stringify)
+                    .toList();
+            return String.join(separator, strList);
+        } else {
+            throw createException("Non-list argument to join() function.");
+        }
     }
 
     private static boolean polystringContains(Object[] args) {
@@ -1710,6 +1780,11 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         } else {
             return o;
         }
+    }
+
+    @NotNull
+    private static String stringify(Object arg) {
+        return stringify(arg, "");
     }
 
     @NotNull
