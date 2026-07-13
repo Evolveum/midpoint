@@ -250,10 +250,12 @@ For applying focus policy rules to processed objects (including via `policyRef` 
 
 Activity policies are configured in the activity definition XML only.
 
-All activity policies may be enabled or disabled via the user interface in task details.
+Inline activity policies may be enabled or disabled via the user interface in task details.
 This is useful when you want to force a task to finish even when some policies prevent it from happening (e.g., there is a triggered policy that suspends the task).
+Policies contributed via `policyRef` or virtual assignments are not affected by this action and remain enabled.
 
-The task details UI also allows users to clear all activity policy triggers and counters, while keeping the policies and activity state untouched.
+The task details UI also allows users to clear activity policy triggers and counters, while keeping the policies and activity state untouched.
+Triggers are cleared for all policies.
 
 .Activity policies options in task details
 image::activity-policies/activity-policies-gui.png[Activity policies in task details UI, width=600]
@@ -278,6 +280,9 @@ This is a real limitation, steming from the current architecture and ConnId Conn
 Such exceptions are reported from ConnId as failures of the whole search operation, and can be seen in midPoint as such.
 They usually cause halting the whole activity.
 //** When shadow object is being initialized after connector object was returned from the connector.
+* When a threshold-based policy suspends the task, the threshold counters (stored in the task's activity state) are preserved.
+Simply resuming the task will re-trigger the policy and suspend it again.
+To resume, first disable the policy or clear its state via the <<User interface>>.
 
 == Examples
 
