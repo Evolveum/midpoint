@@ -52,7 +52,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyCombinations"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioSimple"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultithreaded"/>
-            <!--<class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultiNode"/>-->
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestCustomPolicyReconciliationMultiNode"/>
         </classes>
     </test>
