@@ -294,6 +294,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                             protected @NotNull Label initLabel(IModel<String> messageModel) {
                                 Label label = super.initLabel(messageModel);
                                 label.add(AttributeModifier.append("class", "alert alert-danger"));
+                                label.add(AttributeModifier.append("style", "white-space: pre-line").setSeparator("; "));
                                 return label;
                             }
 
