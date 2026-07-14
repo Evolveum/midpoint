@@ -116,10 +116,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         this.showAsCard = showAsCard;
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
-    }
+//    @Override
+//    public void renderHead(IHeaderResponse response) {
+//        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
+//    }
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, String> provider) {
         setOutputMarkupId(true);

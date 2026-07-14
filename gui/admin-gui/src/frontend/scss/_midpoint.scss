@@ -2504,3 +2504,9 @@ footer.app-footer a {
 .info-box-progress-bar {
     background-color: #fff;
 }
+
+@media (min-width: 992px) {
+    .table-responsive {
+        overflow: visible !important;
+    }
+}
