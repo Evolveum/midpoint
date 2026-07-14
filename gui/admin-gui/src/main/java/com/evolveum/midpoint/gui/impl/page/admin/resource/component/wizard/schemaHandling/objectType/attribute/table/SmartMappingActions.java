@@ -143,7 +143,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.getString("InboundAttributeMappingsTable.allMappings"));
 
         dropdown.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px;"));
-        dropdown.getBaseFormComponent().add(AttributeModifier.replace("class", "form-control"));
+        dropdown.getBaseFormComponent().add(AttributeModifier.replace("class", "form-select"));
         dropdown.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {

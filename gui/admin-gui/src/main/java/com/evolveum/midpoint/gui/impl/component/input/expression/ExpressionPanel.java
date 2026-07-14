@@ -324,6 +324,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm"));
             return label;
         }
 
