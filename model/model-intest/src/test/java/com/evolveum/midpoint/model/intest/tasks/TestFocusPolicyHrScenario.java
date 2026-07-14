@@ -45,9 +45,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * - child "execute" — reconciliation in full mode, guarded by the same policy so it can never delete more
  * than allowed.
  *
- * Two recovery paths are contrasted once the source is fixed so fewer users would be deleted:
- * a plain resume re-suspends (the delete counter is not cleared), and only a fresh run completes; whereas a
- * {@code restartActivity} action clears the counter each cycle, so the task recovers on its own.
+ * Recovery paths are contrasted. Once the source is fixed so fewer users would be deleted: a plain resume
+ * re-suspends (the delete counter is not cleared), and only a fresh run completes; whereas a
+ * {@code restartActivity} action clears the counter each cycle, so the task recovers on its own. Separately,
+ * with the source left broken, clearing the activity policy states through the model interaction service resets
+ * the preview delete counter, so a resume lets the same suspended task keep processing before it trips again.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -251,13 +253,13 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
                 .display()
                 .assertSuspended()
                 .activityState(SIMULATE)
-                    .assertFatalError()
-                    .previewModePolicyRulesCounters()
-                        .assertCounterMinMax(counterId, DELETE_THRESHOLD, DELETE_THRESHOLD + 3)
-                        .end()
-                    .end()
+                .assertFatalError()
+                .previewModePolicyRulesCounters()
+                .assertCounterMinMax(counterId, DELETE_THRESHOLD, DELETE_THRESHOLD + 3)
+                .end()
+                .end()
                 .activityState(EXECUTE)
-                    .assertRealizationState(null);
+                .assertRealizationState(null);
         // @formatter:on
     }
 
@@ -276,18 +278,89 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
                 .assertClosed()
                 .assertSuccess()
                 .activityState(SIMULATE)
-                    .assertSuccess()
-                    .assertNoPolicies()
-                    .previewModePolicyRulesCounters()
-                        .assertCounterMinMax(simulateId, 1, DELETE_THRESHOLD - 1)
-                        .end()
-                    .end()
+                .assertSuccess()
+                .assertNoPolicies()
+                .previewModePolicyRulesCounters()
+                .assertCounterMinMax(simulateId, 1, DELETE_THRESHOLD - 1)
+                .end()
+                .end()
                 .activityState(EXECUTE)
-                    .assertSuccess()
-                    .assertNoPolicies()
-                    .fullExecutionModePolicyRulesCounters()
-                        .assertCounterMinMax(executeId, 1, DELETE_THRESHOLD - 1);
+                .assertSuccess()
+                .assertNoPolicies()
+                .fullExecutionModePolicyRulesCounters()
+                .assertCounterMinMax(executeId, 1, DELETE_THRESHOLD - 1);
         // @formatter:on
+    }
+
+    /**
+     * Cumulative number of objects processed by the reconciliation, summed over the root task and all of its
+     * subtasks so it aggregates worker threads and subtask-distributed activities alike (a delegated activity
+     * reports its statistics in its own subtask, not in the parent, so nothing is double-counted). Only the
+     * simulate activity ever runs in this test (execute never starts), so the whole-tree total equals what
+     * simulate has processed. Item-processing statistics accumulate across the activity's runs, so this only
+     * grows while the activity keeps doing real work.
+     */
+    protected int simulateItemsProcessed(String rootOid) throws Exception {
+        OperationResult result = getTestOperationResult();
+        Task root = taskManager.getTaskTree(rootOid, result);
+        int total = itemsProcessed(root);
+        for (Task sub : root.listSubtasksDeeply(true, result)) {
+            total += itemsProcessed(sub);
+        }
+        return total;
+    }
+
+    private static int itemsProcessed(Task task) {
+        return ActivityItemProcessingStatisticsUtil.getItemsProcessed(
+                ActivityItemProcessingStatisticsUtil.getSummarizedStatistics(task.getActivitiesStateOrClone()));
+    }
+
+    /**
+     * Asserts that clearing the activity policy states wiped the simulate preview delete counter (the
+     * {@code max-deleted} suspend policy is counter-based and stores no separate policy-state object). Walks the
+     * root task and its subtasks so it works for the distributed flavor, where the counter lives in a subtask.
+     */
+    protected void assertSimulateStatesCleared(String rootOid, String counterId) throws Exception {
+        OperationResult result = getTestOperationResult();
+        Task root = taskManager.getTaskTree(rootOid, result);
+        List<Task> tasks = new ArrayList<>();
+        tasks.add(root);
+        tasks.addAll(root.listSubtasksDeeply(true, result));
+        for (Task task : tasks) {
+            ActivityStateType simulate = findActivityState(task.getActivitiesStateOrClone(), "simulate");
+            if (simulate == null) {
+                continue;
+            }
+            ActivityPoliciesStateType policies = simulate.getPolicies();
+            assertThat(policies == null || policies.getPolicy().isEmpty())
+                    .as("simulate policy states cleared in " + task.getName()).isTrue();
+            ActivityCounterGroupsType counters = simulate.getCounters();
+            if (counters != null && counters.getPreviewModePolicyRules() != null) {
+                boolean present = counters.getPreviewModePolicyRules().getCounter().stream()
+                        .anyMatch(c -> counterId.equals(c.getIdentifier()));
+                assertThat(present).as("simulate preview counter cleared in " + task.getName()).isFalse();
+            }
+        }
+    }
+
+    private static ActivityStateType findActivityState(TaskActivityStateType taskState, String identifier) {
+        return taskState == null ? null : findActivityState(taskState.getActivity(), identifier);
+    }
+
+    private static ActivityStateType findActivityState(ActivityStateType state, String identifier) {
+        if (state == null) {
+            return null;
+        }
+        if (identifier.equals(state.getIdentifier())) {
+            return state;
+        }
+        for (ActivityStateType child : state.getActivity()) {
+            ActivityStateType found = findActivityState(child, identifier);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     // endregion
@@ -343,6 +416,79 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         assertThat(countUsers()).as("users remaining after allowed deletions").isEqualTo(ACCOUNTS - 4);
         assertThat(policyNotifications()).as("clean fresh run fires no new policy notification")
                 .isEqualTo(notificationsBeforeFreshRun);
+    }
+
+    /**
+     * Clear-policy-states recovery via {@link com.evolveum.midpoint.model.api.ModelInteractionService#clearAllActivityPolicyStates}.
+     * Same broken source as {@link #test100SuspendResumeThenFreshRun} (8 accounts removed, over the threshold),
+     * but the source is never fixed. Instead of a fresh run, the <i>same</i> task is recovered by clearing its
+     * activity policy states:
+     *
+     * - the simulate (preview) reconciliation trips the max-deleted threshold and suspends;
+     * - a plain resume re-suspends at once (the persisted counter/trigger is untouched), doing no new work;
+     * - clearing the activity policy states removes the simulate trigger and its preview delete counter;
+     * - the next resume lets the reconciliation process objects again before it trips once more, so the number
+     * of processed objects strictly increases even though the source stays broken.
+     */
+    @Test
+    public void test150ClearPolicyStatesResumesProgress() throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("all users linked, then most accounts removed on the source (far over the threshold)");
+        importAllAndLink(result);
+        assertThat(countUsers()).as("users before").isEqualTo(ACCOUNTS);
+        deleteAccounts(0, ACCOUNTS - 2);
+
+        when("running the HR reconciliation");
+        deleteIfPresent(TASK_HR, result);
+        addObject(TASK_HR, getTestTask(), result, topology());
+        waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
+
+        then("the simulate activity suspends on the delete threshold, having processed some objects");
+        String id = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
+        assertSimulateSuspended(TASK_HR.oid, id);
+        assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
+        int processedAtFirstSuspend = simulateItemsProcessed(TASK_HR.oid);
+        assertThat(processedAtFirstSuspend).as("some objects processed before first trip").isGreaterThan(0);
+        int notificationsAtFirstSuspend = policyNotifications();
+
+        when("the suspended task is resumed without clearing the policy state");
+        taskManager.resumeTaskTree(TASK_HR.oid, result);
+        waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
+
+        then("it re-suspends in simulate — the persisted counter trips again after barely any new work");
+        assertSimulateSuspended(TASK_HR.oid, id);
+        int processedAfterPlainResume = simulateItemsProcessed(TASK_HR.oid);
+        assertThat(processedAfterPlainResume)
+                .as("plain resume re-trips almost at once, so it makes hardly any progress")
+                .isGreaterThanOrEqualTo(processedAtFirstSuspend)
+                .isLessThan(processedAtFirstSuspend + DELETE_THRESHOLD);
+
+        when("the activity policy states (the preview delete counter) are cleared via model interaction service");
+        boolean changed = modelInteractionService.clearAllActivityPolicyStates(
+                getTask(TASK_HR.oid), getTestTask(), result);
+
+        then("the clear reports a change and the simulate preview counter is gone");
+        assertThat(changed).as("clearAllActivityPolicyStates made a change").isTrue();
+        assertSimulateStatesCleared(TASK_HR.oid, id);
+
+        when("the task is resumed again with the cleared counter");
+        taskManager.resumeTaskTree(TASK_HR.oid, result);
+        waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
+
+        then("the reconciliation processes further objects before tripping again — processed count incremented");
+        assertSimulateSuspended(TASK_HR.oid, id);
+        int processedAfterClear = simulateItemsProcessed(TASK_HR.oid);
+        assertThat(processedAfterClear)
+                .as("clearing the counter let the reconciliation process more objects before re-tripping")
+                .isGreaterThan(processedAfterPlainResume);
+        assertThat(processedAfterClear - processedAfterPlainResume)
+                .as("the cleared resume makes more forward progress than the plain resume did")
+                .isGreaterThan(processedAfterPlainResume - processedAtFirstSuspend);
+        assertThat(policyNotifications())
+                .as("the fresh trip fired at least one more policy notification")
+                .isGreaterThan(notificationsAtFirstSuspend);
+        assertThat(countUsers()).as("still preview only — no user was really deleted").isEqualTo(ACCOUNTS);
     }
 
     /**
