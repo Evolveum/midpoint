@@ -2349,6 +2349,131 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "The number of the beast is c0c010c0-d34d-b33f-f00d-ff1111111111");
     }
 
+    @Test
+    public void testReFindStringMatch() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-refind.xml",
+                createVariables(
+                        "text", "tel. 4321 or 6543", PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                "4321");
+    }
+
+    @Test
+    public void testReFindStringNoMatch() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-refind.xml",
+                createVariables(
+                        "text", "nothing to see here", PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
+    public void testReFindStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-refind.xml",
+                createVariables(
+                        "text", null, PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
+    public void testReFindPolyStringMatch() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-refind.xml",
+                createVariables(
+                        "text", createPolyStringType("tel. 4321 or 6543"), PolyStringType.COMPLEX_TYPE,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                "4321");
+    }
+
+    @Test
+    public void testReFindPolyStringNoMatch() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-refind.xml",
+                createVariables(
+                        "text", createPolyStringType("nothing to see here"), PolyStringType.COMPLEX_TYPE,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+
+    @Test
+    public void testReFindAllStringMatch() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-refindall.xml",
+                createVariables(
+                        "text", "tel. 4321 or 6543", PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                "4321", "6543");
+    }
+
+
+    @Test
+    public void testReFindAllStringNoMatch() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-refindall.xml",
+                createVariables(
+                        "text", "nothing to see here", PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING
+                )
+                /* empty list expected */);
+    }
+
+    @Test
+    public void testReFindAllPolyStringMatch() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-refindall.xml",
+                createVariables(
+                        "text", createPolyStringType("tel. 4321 or 6543"), PolyStringType.COMPLEX_TYPE,
+                        "regex", "\\d+", PrimitiveType.STRING
+                ),
+                "4321", "6543");
+    }
+
+
+    @Test
+    public void testReFindAllPolyStringNoMatch() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-refindall.xml",
+                createVariables(
+                        "text", createPolyStringType("nothing to see here"), PolyStringType.COMPLEX_TYPE,
+                        "regex", "\\d+", PrimitiveType.STRING
+                )
+                /* empty list expected */);
+    }
+
+    @Test
+    public void testReFindAllStringNull() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-refindall.xml",
+                createVariables(
+                        "text", null, PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING
+                )
+                /* empty list expected */);
+    }
+
+    @Test
+    public void testReReplaceString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-rereplace.xml",
+                createVariables(
+                        "text", "tel. 4321 or 6543", PrimitiveType.STRING,
+                        "regex", "\\d+", PrimitiveType.STRING,
+                        "replacement", "X", PrimitiveType.STRING
+                ),
+                "tel. X or X");
+    }
+
 
     @Test
     public void testExpressionParseGivenName() throws Exception {

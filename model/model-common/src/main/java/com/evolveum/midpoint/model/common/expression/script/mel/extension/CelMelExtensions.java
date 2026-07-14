@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -26,6 +25,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -419,31 +420,23 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionDecl.newFunctionDeclaration(
                             "format",
                             CelOverloadDecl.newMemberOverload(
-                                    "pm-string-format",
+                                    "mp-string-format",
                                     "Format strings according to specified template, filling in data from the arguments."
                                             + " Follow Java formatting conventions.",
                                     SimpleType.STRING,
                                     SimpleType.STRING,
-                                    SimpleType.ANY)),
+                                    SimpleType.ANY),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mp-string-format",
+                                    "Format strings according to specified template, filling in data from the arguments."
+                                            + " Follow Java formatting conventions.",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING, SimpleType.ANY)
+                            ),
                     CelFunctionBinding.from(
-                            "pm-string-format", String.class, Object.class,
+                            "mp-string-format", String.class, Object.class,
                             CelMelExtensions::stringFormat,
                             NullabilityProperties.NULLABLE_NULL)),
-
-                // format(str, [args])
-                new Function(
-                        CelFunctionDecl.newFunctionDeclaration(
-                                "format",
-                                CelOverloadDecl.newGlobalOverload(
-                                        "format-global",
-                                        "Format strings according to specified template, filling in data from the arguments."
-                                                + " Follow Java formatting conventions.",
-                                        SimpleType.STRING,
-                                        SimpleType.STRING, SimpleType.ANY)),
-                        CelFunctionBinding.from(
-                                "format-global", String.class, Object.class,
-                                CelMelExtensions::stringFormat,
-                                NullabilityProperties.NULLABLE_NULL)),
 
             // string.indexOf(substring [, offset])
             new Function(
@@ -930,6 +923,105 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE_NULL)
             ),
 
+            // str.reFind(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFind",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-find-string",
+                                    "Returns the string that corresponds to the fist occurrence of specified regular expression.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-find-string", String.class, String.class,
+                            this::reFindString,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // polystring.reFind(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFind",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-find-polystring",
+                                    "Returns the string that corresponds to the fist occurrence of specified regular expression.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-find-polystring", PolyStringCelValue.class, String.class,
+                            this::reFindPolyString,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // str.reFindAll(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFindAll",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-findall-string",
+                                    "Returns list of all strings that correspond to all the occurrences of specified regular expression.",
+                                    ListType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-findall-string", String.class, String.class,
+                            this::reFindAllString,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+            // polystring.reFindAll(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFindAll",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-findall-polystring",
+                                    "Returns list of all strings that correspond to all the occurrences of specified regular expression.",
+                                    ListType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-findall-polystring", PolyStringCelValue.class, String.class,
+                            this::reFindAllPolyString,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+
+                // sting.reMatches(regex)
+            // reMatches(string, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reMatches",
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_rematches",
+                                    "Returns true if string matches the specified RE2 regular expression",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string_rematches",
+                                    "Returns size of the orig part of polystring.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "string_rematches", String.class, String.class,
+                            (text, regex) -> RuntimeHelpers.matches(text, regex, celOptions),
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
+
+            // polysting.reMatches(regex)
+            // reMatches(polysting, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reMatches",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_rematches",
+                                    "Returns true if orig part of polystring matches the specified RE2 regular expression",
+                                    SimpleType.BOOL,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "polystring_rematches",
+                                    "Returns size of the orig part of polystring.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "polystring_rematches", PolyStringCelValue.class, String.class,
+                            (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions),
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
+
             // string.replace(searchString, replacement [, limit])
             // replace(string, searchString, replacement [, limit])
             new Function(
@@ -993,6 +1085,71 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             ImmutableList.of(PolyStringCelValue.class, String.class, String.class, Long.class),
                             CelMelExtensions::replacePolystring,
                             NullabilityProperties.NULLABLE_NULL)),
+
+            // str.reReplace(regex, replacement)
+            // str.reReplace(regex, replacement, replaceAll)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reReplace",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-string",
+                                    "Returns the string that corresponds to the input string, with all matches of " +
+                                    "the specified regular expression replaced.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING, NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-string-bool",
+                                    "Returns the string that corresponds to the input string, with matches of " +
+                                            "the specified regular expression replaced. " +
+                                            "The last argument specified whether to replace all occurrences (true) or " +
+                                            "just the first one (false).",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING, NullableType.create(SimpleType.ANY), SimpleType.BOOL)
+                            ),
+                    CelFunctionBinding.from(
+                            "re-replace-string",
+                            ImmutableList.of(String.class, String.class, Object.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL),
+                    CelFunctionBinding.from(
+                            "re-replace-string-bool",
+                            ImmutableList.of(String.class, String.class, Object.class, Boolean.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+
+            // polystring.reReplace(regex, replacement)
+            // polystring.reReplace(regex, replacement, replaceAll)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reReplace",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-polystring",
+                                    "Returns the string that corresponds to the input string, with all matches of " +
+                                            "the specified regular expression replaced.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-polystring-bool",
+                                    "Returns the string that corresponds to the input string, with matches of " +
+                                            "the specified regular expression replaced. " +
+                                            "The last argument specified whether to replace all occurrences (true) or " +
+                                            "just the first one (false).",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, NullableType.create(SimpleType.ANY), SimpleType.BOOL)
+                    ),
+                    CelFunctionBinding.from(
+                            "re-replace-polystring",
+                            ImmutableList.of(PolyStringCelValue.class, String.class, Object.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL),
+                    CelFunctionBinding.from(
+                            "re-replace-polystring-bool",
+                            ImmutableList.of(PolyStringCelValue.class, String.class, Object.class, Boolean.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
 
             // string.reverse()
             new Function(
@@ -1446,6 +1603,93 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE_NULL))
 
         );
+    }
+
+    private Object reReplace(Object[] args) {
+        String text;
+        if (args[0] instanceof String s) {
+            text = s;
+        } else if (args[0] instanceof PolyStringCelValue ps) {
+            text = ps.getOrig();
+        } else {
+            throw new IllegalArgumentException("Illegal arg[0] to reReplace");
+        }
+        String regex;
+        if (args[1] instanceof String s) {
+            regex = s;
+        } else if (args[1] instanceof PolyStringCelValue ps) {
+            regex = ps.getOrig();
+        } else {
+            throw new IllegalArgumentException("Illegal arg[1] to reReplace");
+        }
+        String replacement;
+        if (isCelNull(args[2])) {
+            replacement = "";
+        } else if (args[2] instanceof String s) {
+            replacement = s;
+        } else if (args[2] instanceof PolyStringCelValue ps) {
+            replacement = ps.getOrig();
+        } else {
+            replacement = args[2].toString();
+        }
+        boolean replaceAll = true;
+        if (args.length > 3 && args[3] instanceof Boolean b) {
+            replaceAll = b;
+        }
+        return reReplace(text, regex, replacement, replaceAll);
+    }
+
+    private Object reReplace(String text, String regex, String replacement, boolean replaceAll) {
+        Pattern pattern = prepareRe2Pattern(regex);
+        Matcher matcher = pattern.matcher(text);
+        if (replaceAll) {
+            return matcher.replaceAll(replacement);
+        } else {
+            return matcher.replaceFirst(replacement);
+        }
+    }
+
+    private Object reFindString(String text, String regex) {
+        Pattern pattern = prepareRe2Pattern(regex);
+        Matcher matcher = pattern.matcher(text);
+
+        if (matcher.find()) {
+            return matcher.group();
+        } else {
+            return NullValue.NULL_VALUE;
+        }
+    }
+
+    private Object reFindPolyString(PolyStringCelValue text, String regex) {
+        return reFindString(text.getOrig(), regex);
+    }
+
+    private Object reFindAllString(String text, String regex) {
+        Pattern pattern = prepareRe2Pattern(regex);
+        Matcher matcher = pattern.matcher(text);
+        List<String> matches = new ArrayList<>();
+
+        while (matcher.find()) {
+            matches.add(matcher.group());
+        }
+
+        return matches;
+    }
+
+    private Object reFindAllPolyString(PolyStringCelValue text, String regex) {
+        return reFindAllString(text.getOrig(), regex);
+    }
+
+    private Pattern prepareRe2Pattern(String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        int maxProgramSize = celOptions.maxRegexProgramSize();
+        if (maxProgramSize >= 0 && pattern.programSize() > maxProgramSize) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Regex pattern exceeds allowed program size. Allowed: %d, Provided: %d",
+                            maxProgramSize, pattern.programSize()));
+        }
+        return pattern;
     }
 
     private static String join(Object list) {

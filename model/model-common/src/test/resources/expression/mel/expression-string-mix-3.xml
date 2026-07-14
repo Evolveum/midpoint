@@ -10,7 +10,7 @@
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
         string(bar.contains('a')) + '/' + string(bar.contains('x')) + ' : ' +
-        string(bar.matches('F.*B')) + '/' + string(bar.matches('X.*Y')) + ' : ' +
+        string(bar.matches('F.*B')) + '/' + string(bar.reMatches('X.*Y')) + ' : ' +
         string(bar.startsWith('F')) + '/' + string(bar.startsWith('X')) + ' : ' +
         string(bar.endsWith('r')) + '/' + string(bar.endsWith('Z'))
     </code>

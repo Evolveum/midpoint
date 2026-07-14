@@ -86,14 +86,14 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
-                            "find",
+                            "findItem",
                             CelOverloadDecl.newMemberOverload(
-                                    "prism-object-find-string",
+                                    "prism-object-finditem-string",
                                     "Returns an item to which the specified item path refers.",
                                     SimpleType.ANY,
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.STRING)),
-                    CelFunctionBinding.from("prism-object-find-string", ObjectCelValue.class, String.class,
+                    CelFunctionBinding.from("prism-object-finditem-string", ObjectCelValue.class, String.class,
                             CelObjectExtensions::prismFind)),
 
             // resource.connectorConfiguration(propertyName)

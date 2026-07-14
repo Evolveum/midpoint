@@ -647,7 +647,7 @@ focus.assignment.map(a, has(a.targetRef) a.targetRef.oid)
 Function that tests whether the string matches a specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
 Works on strings as well as polystrings.
 
-The `match` function tests for a _partial_ match of regular expression.
+The `match` function tests for a _partial_ (non-anchored) match of regular expression.
 I.e. the function returns true if any substring of the specified string matches specified regular expression.
 If a different behavior is needed, the regular expression needs to be _anchored_, e.g. by using `^` and `$` anchors.
 
@@ -663,6 +663,10 @@ focus.telephoneNumber.matches('^[0-9]+$')
 // Checks whether the full name contains a number anywhere in the string
 focus.fullName.matches('[0-9]+')
 ----
+
+See also `reMatches()` function, which is effectively a copy of this function.
+The `matches()` function is provided only for compatibility with CEL conventions.
+Use of `reMatches()` and other `re*` regular expression functions is recommended.
 
 === norm
 
@@ -692,6 +696,69 @@ If any invalid UTF-8 characters are encountered, they are replaced with \uFFFD.
 'foo\nbar'.quote()  // Returns '"foo\\nbar"'
 ----
 
+=== reFind
+
+`string.reFind(regex)` -> string
+
+Function that returns the string that corresponds to the fist occurrence of specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+'foo 123 bar 456'.reFind('[0-9]+')    // Returns '123'
+----
+
+=== reFindAll
+
+`string.reFindAll(regex)` -> list
+
+Function that returns list of string that corresponds to all occurrences of specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+Empty list is returned in case there are no occurences, or in case the input text is `null`.
+
+.Examples
+[source,mel]
+----
+'foo 123 bar 456'.reFindAll('[0-9]+')    // Returns ['123', '456']
+----
+
+=== reMatches
+
+`string.reMatches(regex)` -> bool +
+`reMatches(string, regex)` -> bool
+
+Function that tests whether the string matches a specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+The `match` function tests for a _partial_ (non-anchored) match of regular expression.
+I.e. the function returns true if any substring of the specified string matches specified regular expression.
+If a different behavior is needed, the regular expression needs to be _anchored_, e.g. by using `^` and `$` anchors.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+// Checks whether the telephone number contains numbers only
+focus.telephoneNumber.reMatches('^[0-9]+$')
+
+// Checks whether the full name contains a number anywhere in the string
+focus.fullName.reMatches('[0-9]+')
+----
+
+The `matches()` function described above is effectively a copy of this function.
+The `matches()` function is provided only for compatibility with CEL conventions.
+Use of `reMatches()` and other `re*` regular expression functions is recommended.
+
 === replace
 
 `string.replace(search, replacement)` -> string +
@@ -706,6 +773,27 @@ When the limit is a negative number, the function behaves the same as replace al
 [source,mel]
 ----
 'sailpoint'.replace('sail','mid')  // Returns 'midpoint'
+----
+
+=== reReplace
+
+`string.reReplace(regex, replacement)` -> string +
+`string.reReplace(regex, replacement, replaceAll)` -> string
+
+Function that returns the string that corresponds to the input string,
+with matches of the specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression] replaced.
+The last argument specified whether to replace all occurrences (`true`) or just the first one (`false`).
+The default behavior is to replace all occurrences.
+Works on strings as well as polystrings.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+'foo 123 bar 456'.reReplace('[0-9]+', 'X')          // Returns 'foo X bar X'
+'foo 123 bar 456'.reReplace('[0-9]+', 'X', false)   // Returns 'foo X bar 456'
 ----
 
 === reverse
@@ -1463,9 +1551,9 @@ such as resources or shadows.
 Functions in this language extension does not have a prefix.
 They are invoked as a _member_ functions on appropriate value or variable containing midPoint object.
 
-==== find
+==== findItem
 
-`object.find(path)` -> item
+`object.findItem(path)` -> item
 
 Returns an item to which the specified item path refers.
 
@@ -1473,7 +1561,7 @@ Returns an item to which the specified item path refers.
 [source,mel]
 ----
 // Returns a value of administrativeStatus property
-focus.find('activation/administrativeStatus')
+focus.findItem('activation/administrativeStatus')
 ----
 
 ==== isEffectivelyEnabled
