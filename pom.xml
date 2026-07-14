@@ -489,6 +489,12 @@
                 <version>4.33.5</version>
             </dependency>
             <dependency>
+                <!-- Required by CEL. Need to match version used in CEL. -->
+                <groupId>com.google.re2j</groupId>
+                <artifactId>re2j</artifactId>
+                <version>1.8</version>
+            </dependency>
+            <dependency>
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <!-- Version defined in Spring Boot parent/BOM. -->
