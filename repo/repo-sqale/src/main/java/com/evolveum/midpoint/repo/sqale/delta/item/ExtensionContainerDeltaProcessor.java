@@ -11,6 +11,9 @@ import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqale.mapping.ExtensionMapping;
@@ -24,7 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @param <T> type of the processed container (target)
  */
 public class ExtensionContainerDeltaProcessor<T extends Containerable>
-        extends ItemDeltaSingleValueProcessor<T> {
+        extends ItemDeltaSingleValueProcessor<PrismContainerValue<?>> {
 
     private final JsonbPath jsonbPath;
     private final ExtensionMapping<?, ?> mapping;
@@ -48,10 +51,33 @@ public class ExtensionContainerDeltaProcessor<T extends Containerable>
     /**
      * Sets the values for items in the PCV that are mapped to database columns and nulls the rest.
      */
-    public void setValue(@NotNull T value) throws SchemaException {
+    public void setValue(@NotNull PrismContainerValue<?> value) throws SchemaException {
         context.set(jsonbPath,
                 new ExtensionProcessor(context.repositoryContext())
                         .processExtensions(value, mapping.holderType()));
+    }
+
+    /**
+     * Keeps the extension value in Prism form. Dynamic extension containers do not have
+     * a generated {@link Containerable} class, so the inherited real-value conversion
+     * would fail when it tries to materialize the container value as a containerable.
+     */
+    @Override
+    protected PrismContainerValue<?> getAnyValue(ItemDelta<?, ?> modification) {
+        PrismValue anyValue = modification.getAnyValue();
+        return anyValue != null ? (PrismContainerValue<?>) anyValue : null;
+    }
+
+    /**
+     * Accepts ordinary compile-time containers for inherited value-setting paths while
+     * preserving already generic extension container values.
+     */
+    @Override
+    public PrismContainerValue<?> convertRealValue(Object realValue) {
+        if (realValue instanceof Containerable containerable) {
+            return containerable.asPrismContainerValue();
+        }
+        return (PrismContainerValue<?>) realValue;
     }
 
     @Override

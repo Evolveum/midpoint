@@ -159,6 +159,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed default login redirect to home page. See bug:MID-10269[]
 * Updated spring boot to 4.1. See bug:MID-11547[]
 * Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
+* Fixed saving dynamic extension attributes. See bug:MID-11716[]
 
 === Releases Of Other Components
 
