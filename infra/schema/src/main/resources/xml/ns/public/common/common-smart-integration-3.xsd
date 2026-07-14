@@ -621,6 +621,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="iterationSpecification" type="c:IterationSpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default iteration specification to be used when suggested mappings contain iteration tokens.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionType"/>

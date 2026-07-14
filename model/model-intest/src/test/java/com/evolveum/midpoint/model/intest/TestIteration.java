@@ -64,6 +64,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final String RESOURCE_DUMMY_PINK_OID = "10000000-0000-0000-0000-00000000a104";
     private static final String RESOURCE_DUMMY_PINK_NAME = "pink";
 
+    // Iteration with start and end (1..10) and name + iterationToken mapping
+    private static final File RESOURCE_DUMMY_PINK_START_END_FILE = new File(TEST_DIR, "resource-dummy-pink-start-end.xml");
+    private static final String RESOURCE_DUMMY_PINK_START_END_OID = "10000000-0000-0000-0000-00000000a10a";
+    private static final String RESOURCE_DUMMY_PINK_START_END_NAME = "pink-start-end";
+
     // Iteration with token expression, pre-iteration condition and post-iteration condition
     private static final File RESOURCE_DUMMY_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-violet.xml");
     private static final String RESOURCE_DUMMY_VIOLET_OID = "10000000-0000-0000-0000-00000000a204";
@@ -192,6 +197,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         initDummyResourcePirate(RESOURCE_DUMMY_PINK_NAME,
                 RESOURCE_DUMMY_PINK_FILE, RESOURCE_DUMMY_PINK_OID, initTask, initResult);
+
+        initDummyResourcePirate(RESOURCE_DUMMY_PINK_START_END_NAME,
+                RESOURCE_DUMMY_PINK_START_END_FILE, RESOURCE_DUMMY_PINK_START_END_OID, initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_VIOLET_NAME,
                 RESOURCE_DUMMY_VIOLET_FILE, RESOURCE_DUMMY_VIOLET_OID, initTask, initResult);
@@ -484,6 +492,72 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
+    }
+
+    /**
+     * End-to-end test for resource-level iteration with explicit start and end values.
+     * The resource maps account name from user name using the iterationToken variable.
+     * With iteration start=1 and end=10, a conflicting account name is resolved by
+     * appending a numeric token. The first attempt (iteration=1) yields the original name
+     * (empty token), which conflicts; the second attempt (iteration=2) yields the token "2".
+     */
+    @Test
+    public void test225JohnAssignAccountDummyPinkStartEndConflicting() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyAuditService.clear();
+
+        // Create a new user in the repository which will be projected through outbound mapping to resource.
+        PrismObject<UserType> userJohn = createUser("john", "John", "Smith", true);
+        addObject(userJohn);
+        String userJohnOid = userJohn.getOid();
+
+        // Simulate a pre-existing conflicting account on the target resource. The account "john"
+        // already exists on the dummy resource, so the projection must iterate to a different name.
+        String accountJohnName = "john";
+        DummyAccount account = new DummyAccount(accountJohnName);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "John Pinky");
+        getDummyResource(RESOURCE_DUMMY_PINK_START_END_NAME).addAccount(account);
+
+        // Add a corresponding shadow for the conflicting account to the repository.
+        repoAddObject(createRepoShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_START_END_NAME), accountJohnName).getPrismObject(), result);
+
+        // Build the assignment delta that assigns the dummy resource to the user. This triggers
+        // projection and account creation on the resource.
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(userJohnOid, RESOURCE_DUMMY_PINK_START_END_OID, null, true);
+
+        // The model will compute  account name using the iteration token mapping, and handle the naming conflict.
+        when();
+        executeChanges(accountAssignmentUserDelta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        // Verify the user state after the operation. The user's name and full name remain unchanged.
+        PrismObject<UserType> userJohnAfter = getUser(userJohnOid);
+        display("User after change execution", userJohnAfter);
+        assertUser(userJohnAfter, userJohnOid, "john", "John Smith", "John", "Smith");
+
+        assertLiveLinks(userJohnAfter, 1);
+
+        String accountStartEndOid = getSingleLinkOid(userJohnAfter);
+
+        // Check the shadow as stored directly in the repository. The account name should be "john2"
+        var accountStartEndShadow = getShadowRepo(accountStartEndOid);
+        assertAccountShadowRepo(accountStartEndShadow, accountStartEndOid, "john2", getDummyResourceType(RESOURCE_DUMMY_PINK_START_END_NAME));
+
+        // Check the shadow through the model layer. This validates that the projection logic and
+        // schema handling also see the same account name "john2".
+        PrismObject<ShadowType> accountStartEndModel = modelService.getObject(ShadowType.class, accountStartEndOid, null, task, result);
+        assertAccountShadowModel(accountStartEndModel, accountStartEndOid, "john2", getDummyResourceType(RESOURCE_DUMMY_PINK_START_END_NAME));
+
+        // Verify the dummy resource state. The original conflicting account "john" remains unchanged.
+        assertDummyAccount(RESOURCE_DUMMY_PINK_START_END_NAME, accountJohnName, "John Pinky", true);
+
+        // The projected account should be "john2" with the user's full name "John Smith".
+        assertDummyAccount(RESOURCE_DUMMY_PINK_START_END_NAME, "john2", "John Smith", true);
     }
 
     @Test

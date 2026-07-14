@@ -54,4 +54,19 @@ public class GroupOfNamesLdapMappingProviderTest extends WellKnownSchemaTestBase
 
         Assert.assertEquals(output, "ldap-app:customer-conversions:developers");
     }
+
+    @Test
+    void shadowContainsOuSuffix_outboundMappingsAreSuggested_dnAndCnScriptsShouldUseIterationToken() throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new GroupOfNamesLdapMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("dn", "cn=app:customer-conversion:specs,ou=appgroups,dc=example,dc=com")));
+
+        final String dnScript = getScriptCode(getExpression(systemMappingSuggestions, "dn"));
+        final String cnScript = getScriptCode(getExpression(systemMappingSuggestions, "cn"));
+
+        Assert.assertTrue(dnScript.contains("iterationToken"),
+                "dn mapped from identifier should use iterationToken, but was: " + dnScript);
+        Assert.assertTrue(cnScript.contains("iterationToken"),
+                "cn mapped from identifier should use iterationToken, but was: " + cnScript);
+    }
 }

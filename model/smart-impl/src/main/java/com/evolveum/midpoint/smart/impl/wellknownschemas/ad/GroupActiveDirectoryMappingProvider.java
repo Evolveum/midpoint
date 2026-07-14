@@ -70,12 +70,22 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
                     AbstractRoleType.F_IDENTIFIER,
-                    "ldap.composeDnWithSuffix(['cn', identifier, '%s'])".formatted(ouSuffix),
-                    "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier + iterationToken, '%s'])".formatted(ouSuffix),
+                    "Compose DN: cn=<identifier + iterationToken>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER, MappingStrengthType.WEAK));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", AbstractRoleType.F_IDENTIFIER));
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                "cn",
+                AbstractRoleType.F_IDENTIFIER,
+                "identifier + iterationToken",
+                "CN: identifier + iterationToken",
+                MappingStrengthType.WEAK));
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                "sAMAccountName",
+                AbstractRoleType.F_IDENTIFIER,
+                "identifier + iterationToken",
+                "sAMAccountName: identifier + iterationToken",
+                MappingStrengthType.STRONG));
         return mappings;
     }
 

@@ -70,12 +70,22 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
                     UserType.F_FULL_NAME,
-                    "ldap.composeDnWithSuffix(['cn', fullName, '%s'])".formatted(ouSuffix),
-                    "Compose DN: cn=<fullName>,%s".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', fullName + iterationToken, '%s'])".formatted(ouSuffix),
+                    "Compose DN: cn=<fullName + iterationToken>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
-            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME, MappingStrengthType.WEAK));
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "cn",
+                    UserType.F_FULL_NAME,
+                    "fullName + iterationToken",
+                    "CN: fullName + iterationToken",
+                    MappingStrengthType.WEAK));
         } else {
-            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "cn",
+                    UserType.F_FULL_NAME,
+                    "fullName + iterationToken",
+                    "CN: fullName + iterationToken",
+                    MappingStrengthType.STRONG));
         }
         String upnSuffix = extractUpnSuffixFromSamples(sampleShadows);
         if (upnSuffix != null) {

@@ -55,4 +55,39 @@ public class InetOrgPersonLdapMappingProviderTest extends WellKnownSchemaTestBas
 
         Assert.assertEquals(output, "cn=Johny English,ou=users,dc=example,dc=com");
     }
+
+    @Test
+    void shadowContainsUid_dnMappedFromName_scriptShouldNotUseIterationToken() throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new InetOrgPersonLdapMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("dn", "uid=abaker,ou=users,dc=example,dc=com")));
+        final ExpressionType expression = getExpression(systemMappingSuggestions, "dn");
+        final String script = getScriptCode(expression);
+
+        Assert.assertFalse(script.contains("iterationToken"),
+                "dn mapped from uid/name should not use iterationToken, but was: " + script);
+    }
+
+    @Test
+    void shadowContainsCn_dnMappedFromFullName_scriptShouldUseIterationToken() throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new InetOrgPersonLdapMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("dn", "cn=Alice Baker,ou=users,dc=example,dc=com")));
+        final ExpressionType expression = getExpression(systemMappingSuggestions, "dn");
+        final String script = getScriptCode(expression);
+
+        Assert.assertTrue(script.contains("iterationToken"),
+                "dn mapped from fullName should use iterationToken, but was: " + script);
+    }
+
+    @Test
+    void cnMappedFromFullName_scriptShouldAlwaysUseIterationToken() throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new InetOrgPersonLdapMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(null);
+        final ExpressionType expression = getExpression(systemMappingSuggestions, "cn");
+        final String script = getScriptCode(expression);
+
+        Assert.assertTrue(script.contains("iterationToken"),
+                "cn mapped from fullName should use iterationToken, but was: " + script);
+    }
 }

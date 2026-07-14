@@ -55,4 +55,24 @@ public class GroupActiveDirectoryMappingProviderTest extends WellKnownSchemaTest
 
         Assert.assertEquals(output, "AD-app:customer-conversions:developers");
     }
+
+    @Test
+    void shadowContainsOuSuffix_outboundMappingsAreSuggested_dnCnAndSamAccountNameScriptsShouldUseIterationToken()
+            throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new GroupActiveDirectoryMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("distinguishedName",
+                        "cn=app:customer-conversion:specs,ou=appgroups,dc=example,dc=com")));
+
+        final String dnScript = getScriptCode(getExpression(systemMappingSuggestions, "distinguishedName"));
+        final String cnScript = getScriptCode(getExpression(systemMappingSuggestions, "cn"));
+        final String samAccountNameScript = getScriptCode(getExpression(systemMappingSuggestions, "sAMAccountName"));
+
+        Assert.assertTrue(dnScript.contains("iterationToken"),
+                "distinguishedName mapped from identifier should use iterationToken, but was: " + dnScript);
+        Assert.assertTrue(cnScript.contains("iterationToken"),
+                "cn mapped from identifier should use iterationToken, but was: " + cnScript);
+        Assert.assertTrue(samAccountNameScript.contains("iterationToken"),
+                "sAMAccountName mapped from identifier should use iterationToken, but was: " + samAccountNameScript);
+    }
 }

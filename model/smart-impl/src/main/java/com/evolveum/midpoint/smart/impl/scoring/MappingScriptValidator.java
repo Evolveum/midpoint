@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.BulkActionsProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorsProfile;
@@ -111,6 +112,9 @@ public class MappingScriptValidator {
         final String description = "Mapping expression evaluation";
         final VariablesMap variables = new VariablesMap();
         variables.put(variableName, value, valueClass);
+        // Provide default iteration variables for validation
+        variables.put(ExpressionConstants.VAR_ITERATION, 0, Integer.class);
+        variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "", String.class);
         final ExpressionProfile profile = restrictedProfile();
 
         return ExpressionUtil.evaluateStringExpression(

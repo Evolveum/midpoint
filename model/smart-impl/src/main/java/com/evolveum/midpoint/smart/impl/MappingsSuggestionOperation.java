@@ -249,6 +249,8 @@ class MappingsSuggestionOperation {
             mappingCandidates.best()
                     .forEach(suggestion.getAttributeMappings()::add);
 
+            addDefaultIterationSpecificationIfNeeded(suggestion);
+
             return suggestion;
         } catch (Exception e) {
             mappingsSuggestionState.recordException(e);
@@ -748,6 +750,67 @@ class MappingsSuggestionOperation {
                 boolean isSystemProvided) {
             return new MappingEvaluationResult(expression, expectedQuality, isSystemProvided);
         }
+    }
+
+    private void addDefaultIterationSpecificationIfNeeded(MappingsSuggestionType suggestion) {
+        for (AttributeMappingsSuggestionType mapping : suggestion.getAttributeMappings()) {
+            if (mappingUsesIterationToken(mapping)) {
+                IterationSpecificationType existingIterationSpec = ctx.typeDefinition.getDefinitionBean().getIteration();
+                if (existingIterationSpec != null) {
+                    suggestion.setIterationSpecification(existingIterationSpec);
+                    return;
+                }
+
+                IterationSpecificationType iterationSpec = new IterationSpecificationType();
+                iterationSpec.setStart(1);
+                iterationSpec.setEnd(10);
+                suggestion.setIterationSpecification(iterationSpec);
+                return;
+            }
+        }
+    }
+
+    private boolean mappingUsesIterationToken(AttributeMappingsSuggestionType mapping) {
+        String script = extractScriptFromAttributeMapping(mapping);
+        return script != null && (script.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
+                || script.contains(ExpressionConstants.VAR_ITERATION));
+    }
+
+    private String extractScriptFromAttributeMapping(AttributeMappingsSuggestionType mapping) {
+        ResourceAttributeDefinitionType definition = mapping.getDefinition();
+        if (definition == null) {
+            return null;
+        }
+        if (isInbound) {
+            if (definition.getInbound() != null && !definition.getInbound().isEmpty()) {
+                InboundMappingType inbound = definition.getInbound().get(0);
+                if (inbound != null) {
+                    return extractScriptFromExpression(inbound.getExpression());
+                }
+            }
+        } else {
+            MappingType outbound = definition.getOutbound();
+            if (outbound != null) {
+                return extractScriptFromExpression(outbound.getExpression());
+            }
+        }
+        return null;
+    }
+
+    private String extractScriptFromExpression(ExpressionType expression) {
+        if (expression == null) {
+            return null;
+        }
+        var evaluators = expression.getExpressionEvaluator();
+        if (evaluators == null) {
+            return null;
+        }
+        for (var evaluator : evaluators) {
+            if (evaluator.getValue() instanceof ScriptExpressionEvaluatorType scriptEval) {
+                return scriptEval.getCode();
+            }
+        }
+        return null;
     }
 
 }

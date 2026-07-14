@@ -50,9 +50,35 @@ public class UserActiveDirectoryMappingProviderTest extends WellKnownSchemaTestB
         final WellKnownSchemaProvider mappingProvider = new UserActiveDirectoryMappingProvider();
         final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
                 List.of(shadowWithAttribute("userPrincipalName", "alice.baker@example.com")));
-        final ExpressionType expression = getExpression(systemMappingSuggestions);
+        final ExpressionType expression = getExpression(systemMappingSuggestions, "userPrincipalName");
         final String output = evaluateExpression(expression, "name", "jenglish");
 
         Assert.assertEquals(output, "jenglish@example.com");
+    }
+
+    @Test
+    void shadowContainsCn_outboundMappingsAreSuggested_dnAndCnScriptsShouldUseIterationToken() throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new UserActiveDirectoryMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("distinguishedName", "cn=Alice Baker,ou=users,dc=example,dc=com")));
+
+        final String dnScript = getScriptCode(getExpression(systemMappingSuggestions, "distinguishedName"));
+        final String cnScript = getScriptCode(getExpression(systemMappingSuggestions, "cn"));
+
+        Assert.assertTrue(dnScript.contains("iterationToken"),
+                "distinguishedName mapped from fullName should use iterationToken, but was: " + dnScript);
+        Assert.assertTrue(cnScript.contains("iterationToken"),
+                "cn mapped from fullName should use iterationToken, but was: " + cnScript);
+    }
+
+    @Test
+    void noOuSuffix_outboundMappingsAreSuggested_cnScriptShouldUseIterationToken() throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new UserActiveDirectoryMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(null);
+
+        final String cnScript = getScriptCode(getExpression(systemMappingSuggestions, "cn"));
+
+        Assert.assertTrue(cnScript.contains("iterationToken"),
+                "cn mapped from fullName should use iterationToken, but was: " + cnScript);
     }
 }
