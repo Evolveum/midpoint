@@ -1750,7 +1750,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyDelete(
-                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "null -- Elaine Marley");
+                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, " -- Elaine Marley");
         assertSerializable(modelContext);
     }
 
@@ -1844,7 +1844,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         accountSecondaryDelta = accContext.getSummarySecondaryDelta();
         PrismAsserts.assertModifications("account secondary delta (blue)", accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyDelete(
-                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, "null -- Elaine Marley");
+                accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_PATH, " -- Elaine Marley");
         assertSerializable(modelContext);
     }
 
