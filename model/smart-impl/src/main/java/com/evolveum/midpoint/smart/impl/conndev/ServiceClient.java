@@ -237,7 +237,7 @@ public class ServiceClient {
             if (status == JobStatus.FAILED) {
                 var errors = extractErrors();
                 throw new SystemException("The connector generation service reported a failure"
-                        + (errors != null ? ": " + errors : ""));
+                        + (errors != null ? ":\n" + errors : ""));
             }
             if (status == JobStatus.COMPLETED) {
                 return transform.apply(getResult());

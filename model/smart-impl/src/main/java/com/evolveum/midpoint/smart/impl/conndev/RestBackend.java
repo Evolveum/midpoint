@@ -236,7 +236,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return null;
             }
             return classification.create().content(content);
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't generate authorization script", e);
         }
     }
@@ -272,7 +272,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, boolean skipCache) {
         try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
         }
 
@@ -289,7 +289,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, boolean skipCache) {
         try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
         }
     }
