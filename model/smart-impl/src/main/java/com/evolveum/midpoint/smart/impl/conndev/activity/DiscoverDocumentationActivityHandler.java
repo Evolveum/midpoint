@@ -65,9 +65,6 @@ public class DiscoverDocumentationActivityHandler
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
             var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
             var documentation = backend.discoverDocumentation(skipCache);
-            if (documentation.isEmpty()) {
-                documentation = backend.discoverDocumentation(skipCache);
-            }
 
             var ret = new ConnDevDiscoverDocumentationResultType();
             documentation.stream().map(ConnDevDocumentationSourceType::clone).forEach(ret::documentation);
