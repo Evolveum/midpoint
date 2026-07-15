@@ -57,14 +57,12 @@ public class ActivityPolicyRulesCollector {
     /**
      * Collects all activity policy rules from the activity and its parent activities.
      * Collects also preexisting (initial) values for individual constraints.
-     *
-     * TODO Currently returns "doubled" policies when activity has embedded child activities (e.g. reconciliation).
-     *  Reason is that embedded activities do inherit definition from parent activity (if there's no tailoring in place).
      */
     public void collectRulesAndPreexistingValues(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
-        List<ActivityPolicyRule> rules = collectRulesFromActivity(activityRun.getActivity(), result);
+        List<ActivityPolicyRule> rules =
+                collectRules(activityRun.getActivity(), activityRun.getRunningTask(), objectResolver, result);
         getPolicyRulesContext().setPolicyRules(rules);
 
         LOGGER.trace("Found {} activity policy rules for activity hierarchy, activity: '{}', rules: {}",
@@ -84,27 +82,36 @@ public class ActivityPolicyRulesCollector {
      * By collecting rules from the entire activity hierarchy, we ensure that parent rules are
      * enforced as often as necessary.
      *
+     * Note that each rule is returned exactly once, under the path of the activity that declares it. Embedded child
+     * activities (e.g. of reconciliation) must not inherit the policies of their parent into their own definition,
+     * otherwise the parent rules would be returned twice; see
+     * {@link com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils#cloneWithoutIdForChildActivity}.
+     *
+     * Only the activity and the task are needed here; the activity run is not, which is what makes this callable
+     * (and testable) without running the task.
+     *
      * @param activity The activity from which to start collecting policy rules (null to stop).
      * @return List of evaluated activity policy rules, ordered by their defined order.
      */
-    private List<ActivityPolicyRule> collectRulesFromActivity(
-            @Nullable Activity<?, ?> activity, @NotNull OperationResult result) throws ConfigurationException {
+    public static List<ActivityPolicyRule> collectRules(
+            @Nullable Activity<?, ?> activity, @NotNull Task task,
+            @NotNull ObjectResolver objectResolver, @NotNull OperationResult result) throws ConfigurationException {
 
         if (activity == null) {
             return List.of();
         }
 
-        var rules = new ArrayList<>(collectRulesFromActivity(activity.getParent(), result));
+        var rules = new ArrayList<>(collectRules(activity.getParent(), task, objectResolver, result));
 
         ActivityPath activityPath = activity.getPath();
         ActivityPoliciesType activityPoliciesBean = activity.getDefinition().getPoliciesDefinition().getPolicies();
 
         List<ActivityPolicyRule> activityRules = new ArrayList<>();
 
-        collectRulesFromActivityPolicies(activityPoliciesBean, activityPath, activityRules);
+        collectRulesFromActivityPolicies(activityPoliciesBean, activityPath, activityRules, task);
 
         collectRulesFromActivityPolicyRefs(
-                activityPoliciesBean, activityPath, activityRules, activityRun.getRunningTask(), result);
+                activityPoliciesBean, activityPath, activityRules, objectResolver, task, result);
 
         activityRules.sort(
                 Comparator.comparing(
@@ -118,11 +125,12 @@ public class ActivityPolicyRulesCollector {
         return rules;
     }
 
-    private void collectRulesFromActivityPolicies(
-            ActivityPoliciesType activityPoliciesBean, ActivityPath activityPath, List<ActivityPolicyRule> rules) {
+    private static void collectRulesFromActivityPolicies(
+            ActivityPoliciesType activityPoliciesBean, ActivityPath activityPath, List<ActivityPolicyRule> rules,
+            Task task) {
 
         ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(
-                activityRun.getRunningTask().getRawTaskObjectClonedIfNecessary().asObjectable(),
+                task.getRawTaskObjectClonedIfNecessary().asObjectable(),
                 TaskType.F_ACTIVITY);
 
         for (PolicyRuleType rule : activityPoliciesBean.getPolicy()) {
@@ -134,9 +142,9 @@ public class ActivityPolicyRulesCollector {
         }
     }
 
-    private void collectRulesFromActivityPolicyRefs(
-            ActivityPoliciesType activityPoliciesBean, ActivityPath activityPath, List<ActivityPolicyRule> rules, Task task,
-            OperationResult result) throws ConfigurationException {
+    private static void collectRulesFromActivityPolicyRefs(
+            ActivityPoliciesType activityPoliciesBean, ActivityPath activityPath, List<ActivityPolicyRule> rules,
+            ObjectResolver objectResolver, Task task, OperationResult result) throws ConfigurationException {
 
         for (ObjectReferenceType policyRef : activityPoliciesBean.getPolicyRef()) {
             AbstractRoleType role = null;
@@ -186,7 +194,7 @@ public class ActivityPolicyRulesCollector {
         }
     }
 
-    private void addActivityPolicyRule(
+    private static void addActivityPolicyRule(
             PolicyRuleType rule, ActivityPath activityPath, ConfigurationItemOrigin origin,
             PolicyRuleIdentifier customPolicyRuleIdentifier, List<ActivityPolicyRule> rules) {
 
