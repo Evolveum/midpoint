@@ -1,0 +1,13 @@
+.btn-xs {
+  @include button-size(.125rem, .25rem, .75rem, .2rem);
+
+  height: 24px;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+
+  > i {
+    line-height: 1;
+    margin-top: 0 !important; // neutralizes Bootstrap's .mt-1 utility inside xs buttons
+  }
+}
