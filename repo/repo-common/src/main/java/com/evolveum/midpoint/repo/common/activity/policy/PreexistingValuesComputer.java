@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +46,9 @@ class PreexistingValuesComputer {
 
     private Multimap<ActivityPath, OtherActivityState> allActivityStatesMap;
 
+    /** The state the current activity increments its counters into. Resolved once in {@link #compute(OperationResult)}. */
+    private ActivityState counterState;
+
     private final Map<ActivityPath, Long> executionTimeMap = new HashMap<>();
 
     private final Map<ActivityPath, Integer> executionAttemptNumberMap = new HashMap<>();
@@ -71,6 +76,7 @@ class PreexistingValuesComputer {
     public void compute(@NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         allActivityStatesMap =
                 CommonTaskBeans.get().activityManager.getAllActivityStates(activityRun.getRunningTask().getRootTaskOid(), result);
+        counterState = activityRun.getActivityStateForThresholds(result);
         determineExecutionTimeMap();
         determineExecutionAttemptNumberMap();
         summarizeCounters();
@@ -101,7 +107,7 @@ class PreexistingValuesComputer {
                 var rulePath = rule.getPath();
                 var executionAttempt = allActivityStatesMap.get(rulePath).stream()
                         .filter(state -> !state.isDelegating()) // maybe not necessary
-                        .mapToInt(state -> state.getExecutionAttempt())
+                        .mapToInt(ActivityState::getExecutionAttempt)
                         .max(); // this should take care of coordinator/workers and maybe delegation case
                 LOGGER.trace("Determined execution attempt # for '{}' to be {}", rulePath, executionAttempt);
                 if (executionAttempt.isPresent()) { // this should always be true
@@ -111,10 +117,21 @@ class PreexistingValuesComputer {
         }
     }
 
-    /** For simplicity, let's just summarize all counters from all activities. */
+    /**
+     * For simplicity, let's just summarize all counters from all activities - except for:
+     *
+     * - the state this run increments its counters into ({@link #counterState}: usually my own; the parent's when
+     * {@code useOtherActivityStateForCounters} redirects, the coordinator's for bucketed workers) - the increment
+     * result already carries that state's cumulative value as the local count, so summing it here would count it twice;
+     * - my own path (as before);
+     * - delegating states - the real state, holding the counters, lives in the delegate subtask and is present
+     * in the map under the same path.
+     */
     private void summarizeCounters() {
         allActivityStatesMap.entries().stream()
                 .filter(e -> !e.getKey().equals(myPath))
+                .filter(e -> !e.getValue().isDelegating())
+                .filter(e -> !isCounterState(e.getValue()))
                 .forEach(e -> {
                     var state = e.getValue();
                     var localCounters = state.getCounters(activityRun.getCountersGroup());
@@ -122,6 +139,12 @@ class PreexistingValuesComputer {
                         ruleCounters.merge(entry.getKey(), entry.getValue(), Integer::sum);
                     }
                 });
+    }
+
+    /** Is this the state that the current run's counter increments are written into? */
+    private boolean isCounterState(@NotNull OtherActivityState state) {
+        return state.getActivityPath().equals(counterState.getActivityPath())
+                && state.getTaskOid().equals(counterState.getTaskOid());
     }
 
     @NotNull Map<ActivityPath, Long> getExecutionTimeMap() {

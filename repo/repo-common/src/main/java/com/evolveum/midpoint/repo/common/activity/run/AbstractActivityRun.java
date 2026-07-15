@@ -540,7 +540,8 @@ public abstract class AbstractActivityRun<
                 .updatePolicies(states, result);
     }
 
-    private @NotNull ActivityState getActivityStateForThresholds(OperationResult result)
+    /** The state into which this run's counters are written; see {@link #determineActivityStateForThresholds(OperationResult)}. */
+    public @NotNull ActivityState getActivityStateForThresholds(OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         synchronized (activityStateForThresholdsLock) {
             if (activityStateForThresholds == null) {
