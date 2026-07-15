@@ -31,7 +31,14 @@ $form-feedback-icon-failed-to-apply: url("data:image/svg+xml,%3Csvg xmlns='http:
 }
 
 .is-valid-all-set {
-  background-size: 55px 20px !important; // size of the valid-all-set box
+  background-size: 55px 20px !important;
+
+  // A form-select has two backgrounds: the Bootstrap caret and
+  // the All set indicator. Preserve the normal caret size.
+  &.form-select:not([multiple]):not([size]),
+  &.form-select:not([multiple])[size="1"] {
+    background-size: $form-select-bg-size, 55px 20px !important;
+  }
 }
 
 .form-control.is-valid-all-set {
