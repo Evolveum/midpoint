@@ -1672,7 +1672,8 @@ duration('-300ms')
 The duration string used by CEL is not following any standardized format.
 It is built on common conventions, where characters `h`, `m`, `s`, `ms`, `us` and `ns` specifying units of time.
 
-CEL timestamps follow _protocol buffer_ convention, which means that the timestamps are fixed to UTC (`Z`) timezone.
+CEL timestamps follow _protocol buffer_ convention, which means that the timestamps are kept as a combination of _epoch second_ and _nanosecond fraction_, referring to UNIX epoch (00:00:00 UTC on January 1, 1970).
+There is no timezone information in timestamps, which means they are effectively fixed to UTC (`Z`) timezone.
 Functions that work with timestamps in a timezone-specific manner (e.g. `atStartOfDay()`) assume system timezone as default, allowing optional explicit specification of a time zone.
 Timezone specification follows _IANA Time Zone Database_ (a.k.a _Olson_ or _tz database_).
 
@@ -1683,6 +1684,8 @@ Timestamps and durations can be used in some arithmetic and comparison operation
 timestamp('2026-03-15T12:34:56Z') + duration('1h30m')
 timestamp('2026-03-15T12:34:56Z') < timestamp('2026-03-15T14:30:00Z')
 ----
+
+Conversion of timestamp to integer (e.g. using `int(ts)`) renders the epoch second.
 
 Timestamp referring to the "current" time instant is available in variable `now`.
 The value of this variable refers to an approximate moment of the start of expression evaluation.
@@ -1804,6 +1807,30 @@ timestamp('2026-02-11T12:34:56Z').getDayOfYear()     // Returns 40
 timestamp('2026-02-11T12:34:56Z').getDayOfYear('Z')  // Returns 40
 ----
 
+=== getEpochMillisecond
+
+`timestamp.getEpochMillisecond()` -> int
+
+Returns the number of milliseconds since the UNIX epoch.
+
+.Example
+[source,mel]
+----
+timestamp('2026-07-15T12:34:56.987Z').getEpochMillisecond()  // Returns 1784118896987
+----
+
+=== getEpochSecond
+
+`timestamp.getEpochSecond()` -> int
+
+Returns the number of seconds since the UNIX epoch.
+
+.Example
+[source,mel]
+----
+timestamp('2026-07-15T12:34:56.987Z').getEpochSecond()  // Returns 1784118896
+----
+
 === getFullYear
 
 `timestamp.getFullYear()` -> int +
@@ -1893,6 +1920,19 @@ If no timezone is specified, UTC is assumed (because CEL stores timestamps in UT
 ----
 timestamp('2026-02-11T12:34:56Z').getMonth()     // Returns 1
 timestamp('2026-02-11T12:34:56Z').getMonth('Z')  // Returns 1
+----
+
+=== getNanos
+
+`timestamp.getNanos()` -> int
+
+Returns the number of fractional nanoseconds following the epoch second.
+This value measures the total number of nanoseconds from the second returned by getEpochSecond.
+
+.Example
+[source,mel]
+----
+timestamp('2026-07-15T12:34:56.987Z').getNanos()  // Returns 987000000
 ----
 
 === getSeconds

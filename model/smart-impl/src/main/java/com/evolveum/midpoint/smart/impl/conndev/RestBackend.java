@@ -67,7 +67,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 // FIXME: Add dynamic
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover basic application information", e);
         }
     }
@@ -139,7 +139,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover authorization information", e);
         }
     }
@@ -178,7 +178,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover candidate links", e);
         }
     }
@@ -393,7 +393,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover object classes from documentation", e);
         }
     }
@@ -415,7 +415,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover connectivity endpoints", e);
         }
     }
@@ -431,7 +431,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover endpoints for object class " + objectClass, e);
         }
     }
@@ -448,7 +448,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover attributes for object class " + objectClass, e);
         }
     }
@@ -568,7 +568,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     return ret;
                 });
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover relations between object classes", e);
         }
     }
