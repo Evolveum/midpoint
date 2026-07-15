@@ -7,39 +7,107 @@ doc-type: config
 :page-upkeep-status: green
 :page-toc: top
 
-// TODO: conditional and matching types. E.g. problem with cond ? string : polystring -> use default() instead
-
-// TODO: nested conditionals -> use parentheses
-
 xref:../introduction/[MidPoint Expression Language (MEL)] is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
 This page lists miscellaneous tips and recommendations for writing MEL expressions.
 
+== Conditions
+
+MEL as well as CEL are expression languages with distinct functional character.
+There are no _commands_ in such expression languages.
+Every clause is an operator or a function.
+Therefore, the classic _if-then-else_ construct does not exist in a form of command.
+Conditional operator (`?:`) is used instead.
+
+.Conditional operator
+[source,mel]
+----
+condition ? true-branch : false-branch
+----
+
+Short MEL expressions are usually written on a single line.
+However, complicated expressions can be very long.
+The expression can be split to several lines in MEL.
+This can be used to the advantage, especially when the expression contains conditionals:
+
+.Conditional operator indent
+[source,mel]
+----
+condition
+    ? true-branch
+    : false-branch
+----
+
+While the practice of indenting the code can bring clarity, the indents are still considered just an ordinary white space and have no special semantic meaning.
+This can become slightly confusing especially when nested conditional operators are used.
+
+.Nested conditionals: error
+[source,mel]
+----
+condition-A
+    ? condition-B
+        ? true-branch-B
+        : false-branch-B
+    : false-branch-A
+----
+
+The CEL engine cannot compile such code.
+Nested conditionals have to be enclosed in parentheses:
+
+.Nested conditionals: correct
+[source,mel]
+----
+condition-A
+    ? ( condition-B
+        ? true-branch-B
+        : false-branch-B
+    )
+    : false-branch-A
+----
+
+CEL conditionals tend to be quite strict.
+Strictly speaking, the conditional operator expects the same data types in both branches.
+This can be painful especially when strings are combined with polystrings:
+
+.Wrong use of conditional with strings and polystrings
+[source,mel]
+----
+fullName == null ? 'John Doe' : fullName
+----
+
+Such expression leads to an error, as the data types in the branches do not match.
+While `'John Doe'` is a string, the value of `fullName` variable is polystring.
+Quick fix would be to explicitly convert polystring to string:
+
+.Quick fix of conditional with strings and polystrings
+[source,mel]
+----
+fullName == null ? 'John Doe' : stringify(fullName)
+----
+
+However, the best approach is to avoid using conditionals whenever possible.
+For example, function `default()` provides very elegant way to specify default value:
+
+.Correct use of default() function to specify default value
+[source,mel]
+----
+default(fullName, 'John Doe')
+----
+
+The `default()` function takes care of everything, null checks, data conversion and all other details.
+
 == Formatting
 
-Use xref:../specification/#format[`format()`] function to format data into strings instead of string concatenation.
-I.e. use this:
+Use xref:../specification/#format[`format()`] function for advanced string formatting:
 
-.Correct data formatting
+.Advanced string formatting
 [source,mel]
 ----
 '%s:%s'.format([foo, bar])
 ----
 
-instead of this:
-
-.Fragile data formatting
-[source,mel]
-----
-foo + ':' + bar
-----
-
-String concatenation using the plus (`+`) operator is quite fragile method to construct strings in Common Expression Language (CEL).
-This method is susceptible to problems with various data types, null values and so on.
-On the other hand, the `format()` method handles all such details, making the formatting code much more robust.
-
 When formatting timestamps, use specialized timestamp functions, such as xref:../specification/#format-strftime[`format.strftime()`]:
 
-.Correct timestamp formatting
+.Timestamp formatting
 [source,mel]
 ----
 // Returns formatted time, e.g. `11/02/26 09:32:15`
