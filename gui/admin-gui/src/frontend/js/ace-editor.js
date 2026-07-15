@@ -52,7 +52,7 @@ export default class MidPointAceEditor {
             mode: mode,
             highlightActiveLine : true,
             highlightSelectedWord: true,
-            autoScrollEditorIntoView: true,
+            autoScrollEditorIntoView: false,
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
