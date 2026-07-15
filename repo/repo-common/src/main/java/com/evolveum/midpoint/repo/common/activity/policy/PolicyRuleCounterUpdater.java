@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.task.api.ExecutionSupport.CountersGroup.PREV
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,8 +27,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
 /**
- * This class is responsible for updating the counters of evaluated activity (TODO - only activity [povol])
- * policy rules. It checks which rules have been triggered and have a threshold, and increments their counters accordingly.
+ * This class is responsible for updating the counters of evaluated activity and focus policy rules.
+ * It checks which rules have been triggered and have a threshold, and increments their counters accordingly.
  */
 public abstract class PolicyRuleCounterUpdater {
 
@@ -85,27 +84,34 @@ public abstract class PolicyRuleCounterUpdater {
                 executionSupport.incrementCounters(group, rulesToIncrementMap.keySet(), result);
         LOGGER.trace("Updated counters for group {}: {}", group, currentValues);
 
-        // Combine with preexisting values to get total values
-        Map<String, Integer> totalValues = computeTotalValues(executionSupport, currentValues);
-
         // Update the rules with the new counter values
-        currentValues.forEach((id, value) -> {
-            rulesToIncrementMap.get(id).setCount(value, totalValues.get(id));
-            storeIncrementedPolicyRuleCounter(id, value);
+        currentValues.forEach((id, localValue) -> {
+            setCount(rulesToIncrementMap.get(id), id, localValue);
+            storeIncrementedPolicyRuleCounter(id, localValue);
         });
     }
 
-    private Map<String, Integer> computeTotalValues(ExecutionSupport executionSupport, Map<String, Integer> currentValues) {
-        if (!(executionSupport instanceof AbstractActivityRun<?, ?, ?> aar)) {
-            return currentValues;
+    /**
+     * Sets the local and the total count on the rule, deriving the total from the local one. Only the local value is
+     * ever known by the caller: it is what {@link ExecutionSupport#incrementCounters} returns, and it is what
+     * {@link #storeIncrementedPolicyRuleCounter(String, Integer)} caches.
+     */
+    private void setCount(@NotNull EvaluatedPolicyRule rule, String ruleIdentifier, Integer localValue) {
+        rule.setCount(localValue, computeTotalValue(ruleIdentifier, localValue));
+    }
+
+    /**
+     * The total value to be checked against the threshold: the value computed for the current activity (the local one)
+     * plus the value that already existed before this activity run started - i.e. the counts contributed by the other
+     * activities of the tree. See {@link PreexistingValues}.
+     */
+    private Integer computeTotalValue(String ruleIdentifier, Integer localValue) {
+        if (!(getExecutionSupport() instanceof AbstractActivityRun<?, ?, ?> aar)) {
+            return localValue;
         }
 
         var preexistingCounters = aar.getActivityPolicyRulesContext().getPreexistingValues().getPreexistingCounters();
-        // for each entry in currentValues, add the corresponding value from preexistingValues
-        return currentValues.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> ComputationUtil.add(e.getValue(), preexistingCounters.get(e.getKey()))));
+        return ComputationUtil.add(localValue, preexistingCounters.get(ruleIdentifier));
     }
 
     /** Returns rules that should have their counters incremented, in a form of map: ID -> rule. */
@@ -124,16 +130,20 @@ public abstract class PolicyRuleCounterUpdater {
                 continue;
             }
 
-            Integer alreadyIncrementedValue = getIncrementedPolicyRuleCounter(rule.getRuleIdentifier().asString());
+            String ruleIdentifier = rule.getRuleIdentifier().asString();
+            Integer alreadyIncrementedValue = getIncrementedPolicyRuleCounter(ruleIdentifier);
             if (alreadyIncrementedValue != null) {
-                rule.setCount(alreadyIncrementedValue, alreadyIncrementedValue);    // todo local/total is wrong! [viliam]
+                // The counter was already incremented for this rule during this evaluation, so we must not increment it
+                // again. We only restore the counts on the rule. The cached value is the local one, hence the total has
+                // to be derived from it the same way as on the incrementing path above.
+                setCount(rule, ruleIdentifier, alreadyIncrementedValue);
                 LOGGER.trace("Rule {} already has an incremented value {}, skipping counter update",
                         rule.getRuleIdentifier(), alreadyIncrementedValue);
                 continue;
             }
 
             LOGGER.trace("Incrementing counter for rule {}", rule.getRuleIdentifier());
-            rulesToIncrementMap.put(rule.getRuleIdentifier().asString(), rule);
+            rulesToIncrementMap.put(ruleIdentifier, rule);
         }
         return rulesToIncrementMap;
     }
