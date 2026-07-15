@@ -2678,6 +2678,39 @@ public class TestMelExpressions extends AbstractScriptTest {
                 "12/25/2025 12.33.44");
     };
 
+    @Test
+    public void testTimestampEpochSeconds() throws Exception {
+        evaluateAndAssertLongScalarExpression(
+                "expression-timestamp-epoch-second.xml",
+                createVariables(
+                        "t", XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2026-07-15T12:34:56.987Z"), PrimitiveType.DATETIME
+                ),
+                1784118896L
+        );
+    }
+
+    @Test
+    public void testTimestampEpochMillis() throws Exception {
+        evaluateAndAssertLongScalarExpression(
+                "expression-timestamp-epoch-millisecond.xml",
+                createVariables(
+                        "t", XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2026-07-15T12:34:56.987Z"), PrimitiveType.DATETIME
+                ),
+                1784118896987L
+        );
+    }
+
+    @Test
+    public void testTimestampNanos() throws Exception {
+        evaluateAndAssertLongScalarExpression(
+                "expression-timestamp-nanos.xml",
+                createVariables(
+                        "t", XmlTypeConverter.createXMLGregorianCalendarFromIso8601("2026-07-15T12:34:56.987Z"), PrimitiveType.DATETIME
+                ),
+                987000000L
+        );
+    }
+
     /**
      * Situation: name of variable (ldap) is the same as a function prefix (ldap.composeDn).
      * This test is checking that the expression interprets this correctly.

@@ -1433,7 +1433,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("timestamp_atStartOfDay",
-                            Instant.class, this::atStartOfDay,
+                            Instant.class,
+                            this::atStartOfDay,
                             NullabilityProperties.NOT_NULLABLE)
             ),
 
@@ -1447,7 +1448,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP, SimpleType.STRING)),
                     CelFunctionBinding.from("timestamp_atStartOfDay_string",
-                            Instant.class, String.class, this::atStartOfDay,
+                            Instant.class, String.class,
+                            this::atStartOfDay,
                             NullabilityProperties.NOT_NULLABLE)
             ),
 
@@ -1461,7 +1463,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("timestamp_atEndOfDay",
-                            Instant.class, this::atEndOfDay,
+                            Instant.class,
+                            this::atEndOfDay,
                             NullabilityProperties.NOT_NULLABLE)
             ),
 
@@ -1475,8 +1478,54 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP, SimpleType.STRING)),
                     CelFunctionBinding.from("timestamp_atEndOfDay_string",
-                            Instant.class, String.class, this::atEndOfDay,
+                            Instant.class, String.class,
+                            this::atEndOfDay,
                             NullabilityProperties.NOT_NULLABLE)
+            ),
+
+            // ts.getEpochMillisecond()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "getEpochMillisecond",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-timestamp-getepochmillisecond",
+                                    "Returns number of milliseconds since the epoch.",
+                                    SimpleType.INT,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-getepochmillisecond",
+                            Instant.class,
+                            CelMelExtensions::getEpochMillisecond,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // ts.getEpochSecond()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "getEpochSecond",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-timestamp-getepochsecond",
+                                    "Returns number of seconds since the epoch.",
+                                    SimpleType.INT,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-getepochsecond",
+                            Instant.class,
+                            CelMelExtensions::getEpochSecond,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // ts.getNanos()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "getNanos",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-timestamp-getnanos",
+                                    "Returns number of fractional nanoseconds, additive to the epoch second.",
+                                    SimpleType.INT,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-getnanos",
+                            Instant.class,
+                            CelMelExtensions::getNanos,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // timestamp.longAgo()
@@ -1989,6 +2038,18 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private Instant atEndOfDay(Instant instant, ZoneId zoneId) {
         ZonedDateTime eodZdt = LocalDate.ofInstant(instant, zoneId).atTime(LocalTime.MAX).atZone(zoneId);
         return eodZdt.toInstant();
+    }
+
+    private static long getEpochSecond(Instant timestamp) {
+        return timestamp.getEpochSecond();
+    }
+
+    private static long getEpochMillisecond(Instant timestamp) {
+        return timestamp.toEpochMilli();
+    }
+
+    private static long getNanos(Instant timestamp) {
+        return timestamp.getNano();
     }
 
     @NotNull

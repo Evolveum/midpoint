@@ -556,6 +556,21 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         }
     }
 
+    public void evaluateAndAssertLongScalarExpression(String fileName, VariablesMap variables, Long expectedResult) throws Exception {
+        PrismPropertyValue<Long> expressionResult = asScalar(
+                evaluateExpression(fileName, DOMUtil.XSD_LONG, true, variables),
+                getTestName());
+        displayValue("Size expression result", expressionResult);
+        if (expectedResult == null) {
+            assertNull("Unexpected non-null result: "+expressionResult, expressionResult);
+            return;
+        } else {
+            assertNotNull("Unexpected ull result", expressionResult);
+            assertEquals("Expression " + getTestName() + " resulted in wrong value",
+                    expectedResult, expressionResult.getValue());
+        }
+    }
+
     protected VariablesMap createVariables(Object... params) {
         return VariablesMap.create(prismContext, params);
     }
