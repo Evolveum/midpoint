@@ -100,7 +100,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
     }
 
     protected String getSpecialButtonClass() {
-        return "btn-sm btn-light border";
+        return "btn-xs btn-light border";
     }
 
 
