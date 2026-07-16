@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -25,6 +27,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,6 +164,77 @@ public class ConnectorDevelopmentWizardUtil {
         }
 
         return taskBean.getOid();
+    }
+
+    /**
+     * The single line shown in the step's feedback alert: always just a short summary (affected
+     * file count), regardless of how many errors there are - the concrete detail always goes to
+     * the sidebar instead, see {@link #scriptValidationOperationResult}.
+     */
+    public static String scriptValidationErrorMessage(
+            ConnDevArtifactValidationResult validation, String fileName, PageAdminLTE page) {
+        long affectedFiles = validation.errors().stream()
+                .map(error -> error.source() != null ? error.source() : fileName)
+                .distinct().count();
+        return page.createStringResource("ScriptConnectorStepPanel.validation.summary",
+                affectedFiles).getString();
+    }
+
+    /**
+     * Per-error detail for the wizard's right-side drawer (see {@code WizardModelWithParentSteps
+     * #addOperationResult}) - the feedback alert only ever shows the one-line summary above, so
+     * this is where the user finds the concrete error(s), even when there's just one.
+     */
+    public static OperationResult scriptValidationOperationResult(
+            ConnDevArtifactValidationResult validation, String fileName) {
+        var result = new OperationResult("Script validation: " + fileName);
+        for (var error : validation.errors()) {
+            String source = error.source() != null ? error.source() : fileName;
+            var sub = result.createSubresult(source + (error.phase() != null ? " (" + error.phase() + ")" : ""));
+            String message = error.line() != null
+                    ? source + ":" + error.line() + " - " + error.message()
+                    : source + " - " + error.message();
+            sub.recordFatalError(message);
+        }
+        result.computeStatus();
+        return result;
+    }
+
+    /** Drops any sidebar entry left over from a previous, now-superseded validation of {@code panelId}. */
+    public static void clearScriptValidationErrors(AbstractWizardStepPanel<?> step, String panelId) {
+        if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            wizardModel.removeOperationResult(panelId);
+        }
+    }
+
+    /**
+     * Pushes the concrete validation error(s) to the wizard's right-side drawer and refreshes it -
+     * the feedback alert only ever shows the one-line summary from {@link
+     * #scriptValidationErrorMessage}, so this is where the user finds the detail.
+     */
+    public static void reportScriptValidationErrors(
+            AbstractWizardStepPanel<?> step, String panelId,
+            ConnDevArtifactValidationResult validation, String fileName, AjaxRequestTarget target) {
+        if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+            return;
+        }
+        wizardModel.addOperationResult(panelId, scriptValidationOperationResult(validation, fileName));
+        refreshDrawerPanel(step, target);
+    }
+
+    /**
+     * Adds the wizard's right-side drawer ({@code mainForm:drawerInfoPanel}) to {@code target} so
+     * its content re-renders on this AJAX response - callers must invoke this after any change to
+     * the drawer's underlying model (e.g. via {@link WizardModelWithParentSteps#addOperationResult}
+     * or {@link WizardModelWithParentSteps#removeOperationResult}), since that change alone doesn't
+     * push anything to the browser. A no-op if the drawer isn't part of this wizard's component
+     * tree (e.g. not yet rendered).
+     */
+    public static void refreshDrawerPanel(AbstractWizardStepPanel<?> step, AjaxRequestTarget target) {
+        Component drawerInfoPanel = step.getWizard().getPanel().get("mainForm:drawerInfoPanel");
+        if (drawerInfoPanel != null) {
+            target.add(drawerInfoPanel);
+        }
     }
 
     public static <C extends PrismContainerWrapper<?>> boolean existContainerValue(C container, ItemPath path) {
