@@ -479,6 +479,16 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult);
     }
 
+    protected void evaluateAndAssertStringScalarExpressions(
+            List<String> fileNames, VariablesMap variables, String expectedValue)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        for (String fileName : fileNames) {
+            String expressionResult = evaluateStringScalarExpression(fileName, variables);
+            assertEquals("Expression " + getTestName() + "("+fileName+") resulted in wrong value", expectedValue, expressionResult);
+        }
+    }
+
     protected String evaluateStringScalarExpression(
             String fileName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,

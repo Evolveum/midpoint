@@ -891,6 +891,160 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionPrefixStringString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", "Foobar", PrimitiveType.STRING,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                "xyzFoobar");
+    }
+
+    @Test
+    public void testExpressionPrefixNullString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", null, PrimitiveType.STRING,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
+    public void testExpressionPrefixStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", "Foobar", PrimitiveType.STRING,
+                        "prefix", null, PrimitiveType.STRING
+                ),
+                "Foobar");
+    }
+
+    @Test
+    public void testExpressionPrefixPolyStringString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                "xyzFoobar");
+    }
+
+    @Test
+    public void testExpressionPrefixPolyNullString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", null, PolyStringType.COMPLEX_TYPE,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
+    public void testExpressionPrefixPolyStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE,
+                        "prefix", null, PrimitiveType.STRING
+                ),
+                "Foobar");
+    }
+
+    @Test
+    public void testExpressionPrefixPolyStringPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE,
+                        "prefix", createPolyStringType("xyz"), PolyStringType.COMPLEX_TYPE
+                ),
+                "xyzFoobar");
+    }
+
+    @Test
+    public void testExpressionSuffixStringString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-suffix-global.xml", "expression-suffix-member.xml"),
+                createVariables(
+                        "foo", "Foobar", PrimitiveType.STRING,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                "Foobarxyz");
+    }
+
+    @Test
+    public void testExpressionSuffixNullString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-suffix-global.xml", "expression-suffix-member.xml"),
+                createVariables(
+                        "foo", null, PrimitiveType.STRING,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
+    public void testExpressionSuffixStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-suffix-global.xml", "expression-suffix-member.xml"),
+                createVariables(
+                        "foo", "Foobar", PrimitiveType.STRING,
+                        "prefix", null, PrimitiveType.STRING
+                ),
+                "Foobar");
+    }
+
+    @Test
+    public void testExpressionSuffixPolyStringString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-suffix-global.xml", "expression-suffix-member.xml"),
+                createVariables(
+                        "foo", createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                "Foobarxyz");
+    }
+
+    @Test
+    public void testExpressionSuffixPolyNullString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-suffix-global.xml", "expression-suffix-member.xml"),
+                createVariables(
+                        "foo", null, PolyStringType.COMPLEX_TYPE,
+                        "prefix", "xyz", PrimitiveType.STRING
+                ),
+                null);
+    }
+
+    @Test
+    public void testExpressionSuffixPolyStringNull() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-suffix-global.xml", "expression-suffix-member.xml"),
+                createVariables(
+                        "foo", createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE,
+                        "prefix", null, PrimitiveType.STRING
+                ),
+                "Foobar");
+    }
+
+    @Test
+    public void testExpressionSuffixPolyStringPolyString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of("expression-prefix-global.xml", "expression-prefix-member.xml"),
+                createVariables(
+                        "foo", createPolyStringType("Foobar"), PolyStringType.COMPLEX_TYPE,
+                        "prefix", createPolyStringType("xyz"), PolyStringType.COMPLEX_TYPE
+                ),
+                "xyzFoobar");
+    }
+
+    @Test
     public void testExpressionStringNormPolyString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-string-norm.xml",
