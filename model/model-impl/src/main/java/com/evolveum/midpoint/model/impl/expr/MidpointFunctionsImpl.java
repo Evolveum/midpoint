@@ -1467,6 +1467,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return orgStructFunctions.getManagersOidsExceptUser(userRefList, false);
     }
 
+    /**
+     * Returns organization object (org) specified by name.
+     */
     @Override
     public OrgType getOrgByName(String name) throws SchemaException, SecurityViolationException {
         return orgStructFunctions.getOrgByName(name, false);
