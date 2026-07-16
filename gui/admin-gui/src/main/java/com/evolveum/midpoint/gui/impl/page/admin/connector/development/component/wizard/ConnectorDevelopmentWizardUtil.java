@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -149,6 +150,16 @@ public class ConnectorDevelopmentWizardUtil {
         }
 
         return taskBean.getOid();
+    }
+
+    public static String scriptValidationErrorMessage(
+            ConnDevArtifactValidationResult validation, String fileName, PageAdminLTE page) {
+        if (validation.line() != null) {
+            return page.createStringResource("ScriptConnectorStepPanel.validation.failedAtLine",
+                    validation.phase(), validation.message(), fileName, validation.line()).getString();
+        }
+        return page.createStringResource("ScriptConnectorStepPanel.validation.failed",
+                validation.phase(), validation.message(), fileName).getString();
     }
 
     public static <C extends PrismContainerWrapper<?>> boolean existContainerValue(C container, ItemPath path) {
