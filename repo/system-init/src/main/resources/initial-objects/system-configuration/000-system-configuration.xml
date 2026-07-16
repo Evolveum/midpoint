@@ -184,7 +184,7 @@
     <smartIntegration>
         <statisticsTtl>P1D</statisticsTtl>
         <schemaMatchTtl>P1D</schemaMatchTtl>
-        <mappingSuggestionRetryCount>0</mappingSuggestionRetryCount>
+        <mappingSuggestionRetryCount>1</mappingSuggestionRetryCount>
     </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">

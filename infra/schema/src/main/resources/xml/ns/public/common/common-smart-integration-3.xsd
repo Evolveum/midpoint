@@ -87,11 +87,11 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mappingSuggestionRetryCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="mappingSuggestionRetryCount" type="xsd:int" minOccurs="0" default="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Number of retry attempts for AI mapping suggestion when validation fails.
-                        Default is 0 (no retry). Set to 1 or higher to enable retry mechanism.
+                        Default is 1 (one retry). Set to 0 to disable retries.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.11</a:since>

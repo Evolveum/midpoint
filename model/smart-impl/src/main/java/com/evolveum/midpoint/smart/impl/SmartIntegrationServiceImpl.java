@@ -783,7 +783,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     /**
      * Retrieves the configured retry count for AI mapping suggestions from system configuration.
-     * Falls back to default of 0 (no retry) if not configured.
+     * Falls back to default of 1 (one retry) if not configured.
      */
     private int getConfiguredRetryCount(OperationResult result) {
         try {
@@ -793,11 +793,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .filter(count -> count >= 0);
             configuredRetryCount.ifPresent(
                     count -> LOGGER.debug("Using configured retry count for mapping suggestions: {}", count));
-            return configuredRetryCount.orElse(0);
+            return configuredRetryCount.orElse(1);
         } catch (SchemaException e) {
             LOGGER.warn("Failed to retrieve configured retry count, using default", e);
         }
-        return 0;
+        return 1;
     }
 
     @Override
