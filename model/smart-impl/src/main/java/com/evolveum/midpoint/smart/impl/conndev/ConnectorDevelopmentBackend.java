@@ -11,14 +11,21 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import jakarta.xml.bind.JAXBElement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,11 +44,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public abstract class ConnectorDevelopmentBackend {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentBackend.class);
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
     private static final String CONNECTOR_MANIFEST = "connector.manifest.yaml";
@@ -247,6 +257,74 @@ public abstract class ConnectorDevelopmentBackend {
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
         editableConnector().deleteFileIfExists(CONNECTOR_MANIFEST_JSON_LEGACY);
+    }
+
+    /**
+     * Validates the script by the connector itself (supported only in development mode) using
+     * the testing resource. If the testing resource isn't configured yet, or the artifact isn't
+     * a groovy script, the script is considered valid (nothing to check against). Any failure to
+     * even run the check (testing resource unreachable, deployed connector broken, doesn't
+     * support script validation, ...) is reported as an error, blocking the save.
+     */
+    public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact) {
+        if (artifact.getFilename() == null || !artifact.getFilename().endsWith(".groovy")) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null || testing.getTestingResource().getOid() == null) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+
+        var script = new ProvisioningScriptType()
+                .language("groovy")
+                .code(artifact.getContent())
+                .host(ProvisioningScriptHostType.RESOURCE);
+        script.getArgument().add(scriptArgument("operation", "build"));
+        script.getArgument().add(scriptArgument("artifactKind",
+                ConnDevOperationType.SCHEMA.equals(artifact.getOperation()) ? "schema" : "operation"));
+        script.getArgument().add(scriptArgument("filename", "/" + artifact.getFilename()));
+
+        Object response;
+        try {
+            response = beans.provisioningService.executeScript(
+                    testingResourceOid, script, task, result);
+        } catch (CommonException | RuntimeException e) {
+            LOGGER.warn("Couldn't validate script {}.", artifact.getFilename(), e);
+            return ConnDevArtifactValidationResult.errors(List.of(
+                    new ConnDevArtifactValidationResult.Error(
+                            "initialization", e.getMessage(), null, null, null)));
+        }
+
+        if (!(response instanceof Map<?, ?> map) || !"error".equals(map.get("status"))) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        if (map.get("errors") instanceof List<?> errorList) {
+            return ConnDevArtifactValidationResult.errors(
+                    errorList.stream()
+                            .filter(Map.class::isInstance)
+                            .map(entry -> validationError((Map<?, ?>) entry))
+                            .toList());
+        }
+        return ConnDevArtifactValidationResult.errors(List.of(validationError(map)));
+    }
+
+    private static ConnDevArtifactValidationResult.Error validationError(Map<?, ?> map) {
+        return new ConnDevArtifactValidationResult.Error(
+                map.get("phase") != null ? map.get("phase").toString() : null,
+                map.get("message") != null ? map.get("message").toString() : null,
+                map.get("line") instanceof Integer line ? line : null,
+                map.get("column") instanceof Integer column ? column : null,
+                map.get("source") != null ? map.get("source").toString() : null);
+    }
+
+    private static ProvisioningScriptArgumentType scriptArgument(String name, String value) {
+        var argument = new ProvisioningScriptArgumentType();
+        argument.setName(name);
+        var node = PrismContext.get().xnodeFactory().primitive(value, DOMUtil.XSD_STRING);
+        argument.getExpressionEvaluator().add(
+                new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(node.frozen())));
+        return argument;
     }
 
     private EditableConnector editableConnector() {
