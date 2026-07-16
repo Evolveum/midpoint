@@ -37,12 +37,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  *
  * How it is related to {@link EvaluatedActivityPolicyRuleImpl}:
  *
- * This class represents the rule as defined in the policy, enriched with data such as current state and counters, and persisted
- * in {@link ActivityPolicyRulesContext} throughout an activity run.
+ * This class represents the rule as defined in the policy, enriched with the state that spans the whole activity run
+ * (currently: the recorded {@link ActivityPolicyStateType}), and persisted in {@link ActivityPolicyRulesContext}
+ * throughout that run.
  *
  * On the other hand, {@link EvaluatedActivityPolicyRuleImpl} is a lightweight wrapper used only during a single evaluation cycle.
  *
- * TODO think of a better name, since this class is responsible for storing activity policy state (counters, data needs, etc.)
+ * There is exactly one instance of this class per activity run, so it is shared by all the worker threads of that
+ * activity. Hence, only the state that really belongs to the whole run may be kept here; anything belonging to a single
+ * evaluation (namely the counts a threshold is checked against) lives in {@link EvaluatedActivityPolicyRuleImpl}.
  */
 public class ActivityPolicyRule implements DebugDumpable {
 
@@ -52,19 +55,6 @@ public class ActivityPolicyRule implements DebugDumpable {
 
     /** The bean recorded to the activity state (if any). */
     private ActivityPolicyStateType currentState;
-
-    /**
-     * The total value (to be checked against the threshold): existing before + computed for the current activity.
-     */
-    private Integer totalCount;
-
-    /**
-     * The value (to be checked against the threshold) that was computed for the current activity only (if any).
-     *
-     * @see ActivityPolicyRule#getLocalCount()
-     * @see ActivityPolicyRule#getTotalCount()
-     */
-    private Integer localCount;
 
     private final @NotNull Set<DataNeed> dataNeeds;
 
@@ -108,34 +98,8 @@ public class ActivityPolicyRule implements DebugDumpable {
         return getPolicyBean().getOrder();
     }
 
-    /**
-     * Local count of the rule, i.e., the count that was computed for the current activity only.
-     * It is a part of {@link #getTotalCount()}.
-     *
-     * @see #getTotalCount()
-     */
-    public synchronized Integer getLocalCount() {
-        return localCount;
-    }
-
-    /**
-     * Current count that should be used for policy threshold evaluation.
-     * This is the result of policy constraint evaluation.
-     *
-     * For activity trees, this value is the total count for the activity tree, i.e., it contains the relevant data from
-     * all activities that were already finished.
-     */
-    public synchronized Integer getTotalCount() {
-        return totalCount;
-    }
-
     public synchronized ActivityPolicyStateType getCurrentState() {
         return currentState;
-    }
-
-    public synchronized void setCount(Integer localValue, Integer totalValue) {
-        this.localCount = localValue;
-        this.totalCount = totalValue;
     }
 
     public synchronized void setCurrentState(ActivityPolicyStateType currentState) {

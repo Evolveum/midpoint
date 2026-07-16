@@ -682,6 +682,23 @@ This function works on strings as well as polystrings.
 norm('  Semančík')    // Returns 'semancik'
 ----
 
+=== prefix
+
+`string.prefix(string)` -> string +
+`prefix(string, string)` -> string
+
+Returns string prefixed with another string.
+
+This function is null-safe. It returns null if the first string is null.
+
+.Example
+[source,mel]
+----
+'foo'.prefix('bar')  // Returns 'barfoo'
+prefix('foo', 'bar') // Returns 'barfoo'
+prefix(null, 'bar')  // Returns null
+----
+
 === quote
 
 `string.quote()` -> string
@@ -954,6 +971,23 @@ substring('midpoint',0,3)   // Returns 'mid' (null resistant)
 NOTE: The `substring` function does not fail in case the indexes extend beyond the original string.
 This behavior differs from stock behavior of Google CEL string extensions.
 This behavior change is very intentional, enabling creation of simpler expressions.
+
+=== suffix
+
+`string.suffix(string)` -> string +
+`suffix(string, string)` -> string
+
+Returns string suffix by another string.
+
+This function is null-safe. It returns null if the first string is null.
+
+.Example
+[source,mel]
+----
+'foo'.suffix('bar')  // Returns 'foobar'
+suffix('foo', 'bar') // Returns 'foobar'
+suffix(null, 'bar')  // Returns null
+----
 
 === trim
 

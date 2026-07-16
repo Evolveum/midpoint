@@ -94,8 +94,15 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
             @Override
             public void setObject(String value) {
-                if (getModelObject() != null) {
-                    getModelObject().setDescription(value);
+                ExpressionType expression = getModelObject();
+                if (expression == null && StringUtils.isNotEmpty(value)) {
+                    // Preserve a description entered before the script evaluator is created.
+                    expression = new ExpressionType();
+                    getModel().setObject(expression);
+                }
+
+                if (expression != null) {
+                    expression.setDescription(value);
                 }
             }
         };
@@ -108,7 +115,13 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
         documentationField.setOutputMarkupId(true);
         documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
-        documentationField.add(new CaretPreservingOnChangeBehavior());
+        documentationField.add(new CaretPreservingOnChangeBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // The model is updated before this callback. Avoid rerendering the
+                // unchanged field, as replacing it causes visible flickering.
+            }
+        });
         return documentationField;
     }
 
