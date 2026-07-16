@@ -84,6 +84,13 @@
   color: #737373;
 }
 
+@media (min-width: 992px) {
+  .layout-fixed.sidebar-expand-lg .app-sidebar {
+    // The inner sidebar wrapper owns vertical scrolling.
+    overflow: hidden;
+  }
+}
+
 .fixed-header.sidebar-mini.sidebar-collapse .app-wrapper .brand-link,
 .fixed-header.sidebar-mini-md.sidebar-collapse .app-wrapper .brand-link,
 .fixed-header.sidebar-mini-xs.sidebar-collapse .app-wrapper .brand-link {

@@ -37,6 +37,8 @@ export default class MidPointAceEditor {
             newHeight = this.getMaxSizeHeight(minHeight);
         }
         $('<div id="' + editorId + '" class="aceEditor" style="height: ' + newHeight + 'px;"></div>').insertAfter($('#' + textAreaId));
+        $(jqEditor).data('resizeToMaxHeight', resize);
+        $(jqEditor).data('minHeight', minHeight);
 
         $(jqEditor).text($(jqTextArea).val());
         $(jqTextArea).hide();
@@ -52,7 +54,7 @@ export default class MidPointAceEditor {
             mode: mode,
             highlightActiveLine : true,
             highlightSelectedWord: true,
-            autoScrollEditorIntoView: false,
+            autoScrollEditorIntoView: true,
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
@@ -89,6 +91,7 @@ export default class MidPointAceEditor {
 
         // add editor to global map, so we can find it later
         $.aceEditors[editorId] = editor;
+        this.registerWindowResizeHandler();
         // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
     }
 
@@ -100,28 +103,10 @@ export default class MidPointAceEditor {
     }
 
     getMaxSizeHeight(minHeight) {
-        var footerHeight = $('footer.app-footer').outerHeight(true);
+        var headerHeight = $('nav.app-header').outerHeight(true);
+        var newHeight = $(window).height() - headerHeight;
 
-        var newHeight;
-        if (footerHeight) {
-            newHeight = $(document).innerHeight()
-                - footerHeight - $('nav.app-header').outerHeight(true);
-        } else {
-            newHeight = $(document).innerHeight() - $('nav.app-header').outerHeight(true);
-        }
-
-        var boxHeader = $('div.card-header').outerHeight(true);
-        var buttonsBar = $('div.main-button-bar').outerHeight(true);
-        if (buttonsBar){
-            newHeight = newHeight - buttonsBar;
-        }
-        if (boxHeader){
-            newHeight = newHeight - boxHeader;
-        }
-        if (newHeight < minHeight) {
-            newHeight = minHeight;
-        }
-        return newHeight;
+        return Math.max(newHeight, minHeight);
     }
 
     resizeToFixedHeight(editorId, height) {
@@ -129,6 +114,28 @@ export default class MidPointAceEditor {
         $('#' + editorId + '-section').height(height.toString() + "px");
 
         $.aceEditors[editorId].resize();
+    }
+
+    registerWindowResizeHandler() {
+        if (this.windowResizeHandlerRegistered) {
+            return;
+        }
+
+        this.windowResizeHandlerRegistered = true;
+
+        var self = this;
+        var resizeTimeout;
+        $(window).on('resize.midPointAceEditor', function () {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function () {
+                Object.keys($.aceEditors).forEach(function (editorId) {
+                    var jqEditor = $('#' + editorId);
+                    if (jqEditor.data('resizeToMaxHeight')) {
+                        self.resizeToMaxHeight(editorId, jqEditor.data('minHeight'));
+                    }
+                });
+            }, 100);
+        });
     }
 
     refreshReadonly(textAreaId, readonly) {
