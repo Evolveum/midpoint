@@ -15,9 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.exception.CommonException;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 
-import java.util.Set;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,11 +48,6 @@ public class DiscoverObjectClassAttributesActivityHandler
         handlerRegistry.unregister(
                 ConnDevDiscoverObjectClassAttributesDefinitionType.COMPLEX_TYPE,
                 DiscoverObjectClassAttributesActivityHandler.WorkDefinition.class);
-    }
-
-    @Override
-    public @NotNull Set<ItemName> getSiblingActivityTypes() {
-        return Set.of(WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_ENDPOINTS);
     }
 
     @Override
@@ -92,21 +85,16 @@ public class DiscoverObjectClassAttributesActivityHandler
             String connectorDevelopmentOid = getWorkDefinition().connectorDevelopmentOid;
 
             LOGGER.info("Discovering attributes for object class '{}' in task {}", objectClass, getRunningTask().getName());
-            try {
-                var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
-                backend.ensureDocumentationIsProcessed();
-                backend.ensureObjectClass(objectClass);
+            var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
+            backend.ensureDocumentationIsProcessed();
+            backend.ensureObjectClass(objectClass);
 
-                var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
-                var attributes = backend.discoverObjectClassAttributes(objectClass, skipCache);
-                backend.updateConnectorObjectClassAttributes(objectClass, attributes);
-            } catch (CommonException | RuntimeException e) {
-                getActivityHandler().suspendSiblings(connectorDevelopmentOid, this, result);
-                throw e;
-            }
+            var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+            var attributes = backend.discoverObjectClassAttributes(objectClass, skipCache);
+            backend.updateConnectorObjectClassAttributes(objectClass, attributes);
             LOGGER.info("Successfully discovered attributes for object class '{}'", objectClass);
 
-            return getActivityHandler().waitForSiblingByPolling(connectorDevelopmentOid, this, result);
+            return ActivityRunResult.success();
         }
     }
 }

@@ -87,15 +87,7 @@ public class ConnectorDevelopmentWizardUtil {
                 .searchObjects(TaskType.class, query, null, operationTask, operationTask.getResult());
 
         if (objectClassName != null) {
-            tasks.removeIf(task ->
-                    task.asObjectable().getActivity() == null
-                            || task.asObjectable().getActivity().getWork() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact() == null
-                            || !Strings.CS.equals(
-                            task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact().getObjectClass(),
-                            objectClassName)
-            );
+            tasks.removeIf(task -> !Strings.CS.equals(getTaskObjectClass(task.asObjectable()), objectClassName));
         }
 
         if (scriptType != null) {
@@ -114,6 +106,24 @@ public class ConnectorDevelopmentWizardUtil {
         }
 
         return tasks.get(0);
+    }
+
+    /** Resolves the object class the task works on, for the work definition types that are object class specific. */
+    private static String getTaskObjectClass(TaskType task) {
+        if (task.getActivity() == null || task.getActivity().getWork() == null) {
+            return null;
+        }
+        var work = task.getActivity().getWork();
+        if (work.getGenerateConnectorArtifact() != null && work.getGenerateConnectorArtifact().getArtifact() != null) {
+            return work.getGenerateConnectorArtifact().getArtifact().getObjectClass();
+        }
+        if (work.getDiscoverObjectClassAttributes() != null) {
+            return work.getDiscoverObjectClassAttributes().getObjectClass();
+        }
+        if (work.getDiscoverObjectClassEndpoints() != null) {
+            return work.getDiscoverObjectClassEndpoints().getObjectClass();
+        }
+        return null;
     }
 
     public static String getTaskToken(
