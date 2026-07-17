@@ -4,33 +4,41 @@ WARNING: Ninja upgrade distribution command is not supported for generic reposit
 
 The `upgrade-distribution` command a composite command that will do multiple steps at once:
 
-* xref:./pre-upgrade-check.adoc[Pre-upgrade check]
-* xref:./verify.adoc[Verification]
-* xref:./download-distribution.adoc[Download distribution]
-* Upgrade DB schema (xref:./run-sql.adoc[Run SQL])
-* xref:./upgrade-installation.adoc[Upgrade installation]
+* <<pre-upgrade-check,Pre-upgrade check>>
+* <<verification,Verification>>
+* <<download-distribution,Download distribution>>
+* <<upgrade-db-schema,Upgrade DB schema (Run SQL)>>
+* <<upgrade-installation,Upgrade installation>>
 
 The midPoint instance has to be stopped before running this command.
 
-By default, ninja determines the installation directory as the parent directory of the xref:/midpoint/reference/deployment/midpoint-home-directory/[`midpoint.home`] directory.
-Use the `--installation-directory` option to override the detected location or to specify the installation to be upgraded explicitly.
+The `upgrade-distribution` command requires using the `--installation-directory` option which specifies the installation directory.
 
-The pre-upgrade check can be skipped using the `--skip-pre-check` option.
-The midPoint instance must be stopped before running this command.
+[[pre-upgrade-check]]
+== Pre-upgrade check
+The xref:./pre-upgrade-check.adoc[pre-upgrade check] can be skipped using the `--skip-pre-check` option.
+This might be useful for custom builds with a DB schema version that does not match the expected version of the corresponding midPoint release.
 
-This might be useful for custom builds with DB schema version that doesn't match the expected version of the corresponding midPoint release.
-
-The verification step checks for items with *critical* priority and stops the upgrade if any are found.
+[[verification]]
+== Verification
+The xref:./verify.adoc[verification step] checks for items with *critical* priority and stops the upgrade if any are found.
 Although not recommended, this step can be skipped using the `--skip-verification` option.
 
-By default, ninja downloads the recommended target distribution for the current installation.
+[[download-distribution]]
+== Download distribution
+By default, Ninja xref:./download-distribution.adoc[downloads the recommended target distribution] for the current installation.
 For regular releases, this is the next supported minor version.
 For LTS releases, this is the next supported LTS version.
+
 Use the `--distribution-version` option to download a different version.
-To skip the download altogether, use the `--distribution-archive` option to point ninja to an already downloaded distribution archive.
+To skip the download altogether and use an already downloaded distribution archive, use the `--distribution-archive <PATH_TO_ZIP>` option.
 
-The database schema is upgraded using the `run-sql` command and the SQL scripts downloaded in the previous step.
+[[upgrade-db-schema]]
+== Upgrade DB schema (Run SQL)
+The database schema is upgraded using the xref:./run-sql.adoc[`run-sql` command] and the SQL scripts downloaded in the previous step.
 
-The final step upgrades the midPoint installation by updating the installation directory with files from the new distribution.
+[[upgrade-installation]]
+== Upgrade installation
+The final step xref:./upgrade-installation.adoc[upgrades the midPoint installation] by updating the installation directory with files from the new distribution.
 A backup of the replaced files can be created using the `--backup-midpoint-directory` option.
 The `midpoint.home` directory is not modified during this step.
