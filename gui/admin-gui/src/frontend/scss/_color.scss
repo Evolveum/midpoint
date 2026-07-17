@@ -9,6 +9,25 @@
  * Contains all styles for all kinds of tile panels
  */
 
+// Preserve legacy color variables used by configurations created before the AdminLTE 4 upgrade.
+:root {
+  --blue: var(--bs-blue);
+  --purple: var(--bs-purple);
+  --green: var(--bs-green);
+  --primary: var(--bs-primary);
+  --secondary: var(--bs-secondary);
+  --lightblue: var(--bs-lightblue);
+  --success: var(--bs-success);
+  --info: var(--bs-info);
+  --warning: var(--bs-warning);
+  --danger: var(--bs-danger);
+  --light: var(--bs-light);
+  --dark: var(--bs-dark);
+  --orange: var(--bs-orange);
+  --red: var(--bs-red);
+  --gray: var(--bs-gray);
+}
+
  .app-main, .login-page, .register-page {
   background-color: var(--app-content-bg);
 }
