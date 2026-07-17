@@ -1862,13 +1862,20 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testUserAssignmentFirstRelation() throws Exception {
-        VariablesMap variables = createUserScriptVariables();
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-user-assignment-first-relation.xml");
-        OperationResult opResult = createOperationResult();
-        List<PrismPropertyValue<QName>> expressionResultList = evaluateExpression(scriptType, DOMUtil.XSD_QNAME, true, variables, getTestName(), opResult);
-        PrismPropertyValue<QName> expressionResult = asScalar(expressionResultList, getTestName());
-        displayValue("Expression result", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value", SchemaConstants.ORG_OWNER, expressionResult.getValue());
+        evaluateAndAssertQNameScalarExpression(
+                "expression-user-assignment-first-relation.xml",
+                createUserScriptVariables(),
+                SchemaConstants.ORG_OWNER
+        );
+    }
+
+    @Test
+    public void testUserAssignmentFirstTargetType() throws Exception {
+        evaluateAndAssertQNameScalarExpression(
+                "expression-user-assignment-first-targettype.xml",
+                createUserScriptVariables(),
+                RoleType.COMPLEX_TYPE
+        );
     }
 
     @Test
@@ -1910,6 +1917,114 @@ public class TestMelExpressions extends AbstractScriptTest {
                 createUserScriptVariables(),
                 "c0c010c0-d34d-b33f-f00d-001111111112", "c0c010c0-d34d-b33f-f00d-001111111111");
     }
+
+    @Test
+    public void testUserAssignmentTargetOids() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-user-assignment-targetoid.xml",
+                createUserScriptVariables(),
+                null, "c0c010c0-d34d-b33f-f00d-001111111112", "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetTypeRole() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                    "expression-user-assignment-filter-roles-targettype.xml",
+                    "expression-user-assignment-filter-roles-istarget.xml",
+                    "expression-user-assignment-filter-roles-istargetrole.xml"
+                ),
+                createUserScriptVariables(
+                        "ttype", "RoleType", PrimitiveType.STRING
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetTypeOrg() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targettype.xml",
+                        "expression-user-assignment-filter-roles-istarget.xml",
+                        "expression-user-assignment-filter-roles-istargetorg.xml"
+                ),
+                createUserScriptVariables(
+                        "ttype", OrgType.COMPLEX_TYPE, PrimitiveType.QNAME
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111112");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetTypeService() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targettype.xml",
+                        "expression-user-assignment-filter-roles-istarget.xml",
+                        "expression-user-assignment-filter-roles-istargetservice.xml"
+                ),
+                createUserScriptVariables(
+                        "ttype", ServiceType.COMPLEX_TYPE, PrimitiveType.QNAME
+                )
+                /* empty list */
+                );
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationOwnerString() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasownerrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", "owner", PrimitiveType.STRING
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationOwnerQName() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasownerrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", SchemaConstants.ORG_OWNER, PrimitiveType.QNAME
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationDefaultString() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasdefaultrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", "default", PrimitiveType.STRING
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111112");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationDefaultQName() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasdefaultrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", SchemaConstants.ORG_DEFAULT, PrimitiveType.QNAME
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111112");
+    }
+
 
     @Test
     public void testUserLinkRefFirstOid() throws Exception {

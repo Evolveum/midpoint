@@ -1615,6 +1615,122 @@ If the `activation/effectiveStatus` is not present, the return value of the meth
 focus.isEffectivelyEnabled()
 ----
 
+==== hasRelation
+
+`assignment.hasRelation(relation)` -> bool
+
+Returns true if `targetRef` of the assignment has specified relation.
+
+Relation can be specified as string or qname.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasRelation('owner')
+----
+
+==== has*Relation
+
+`assignment.hasDefaultRelation()` -> bool +
+`assignment.hasApproverRelation()` -> bool +
+`assignment.hasConsentRelation()` -> bool +
+`assignment.hasDeputyRelation()` -> bool +
+`assignment.hasMetaRelation()` -> bool +
+`assignment.hasOwnerRelation()` -> bool +
+`assignment.hasRelatedRelation()` -> bool
+
+
+Returns true if `targetRef` of the assignment has specified relation.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasOwnerRelation()
+----
+
+==== isTarget
+
+`assignment.isTarget(type)` -> bool
+
+Returns true if `targetRef` of the assignment is of specified type.
+
+Type can be specified as string or qname.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTarget('RoleType')
+----
+
+==== isTarget*
+
+`assignment.isTargetRole()` -> bool +
+`assignment.isTargetOrg()` -> bool +
+`assignment.isTargetService()` -> bool +
+`assignment.isTargetPolicy()` -> bool +
+`assignment.isTargetUser()` -> bool
+
+
+Returns true if `targetRef` of the assignment is of specified type.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTargetRole()
+----
+
+==== targetOid
+
+`assignment.targetOid()` -> oid
+
+Returns OID of targetRef of the assignment.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetOid() == '9dbea12d-81dc-11f1-9bfe-9c6b00360713'
+----
+
+==== targetRelation
+
+`assignment.targetRelation()` -> qname
+
+Returns relation of targetRef of the assignment.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetRelation() == 'owner'
+----
+
+
+==== targetType
+
+`assignment.targetType()` -> qname
+
+Returns type of targetRef of the assignment.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetType() == 'RoleType'
+----
+
+
 ==== connectorConfiguration
 
 `resource.connectorConfiguration(propertyName)` -> list

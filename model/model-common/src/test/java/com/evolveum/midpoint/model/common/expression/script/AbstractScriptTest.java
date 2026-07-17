@@ -524,11 +524,32 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         List<PrismPropertyValue<String>> expressionResultList =
                 evaluateExpression(scriptType, DOMUtil.XSD_STRING, false, variables, testName, opResult);
         displayValue("Expression result", expressionResultList);
-        TestUtil.assertSetEquals("Expression " + getTestName() + " resulted in wrong values",
-                PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
+        TestUtil.assertSetEquals("Expression " + getTestName() + "("+fileName+") resulted in wrong values",
+                getPropertyValues(expressionResultList), expectedValues);
     }
 
-    protected void evaluateAndAssertBooleanScalarExpression(String fileName,
+    public static <T> Collection<T> getPropertyValues(Collection<PrismPropertyValue<T>> pvals) {
+        Collection<T> realValues = new ArrayList<>(pvals.size());
+        for (PrismPropertyValue<T> pval: pvals) {
+            if (pval == null) {
+                realValues.add(null);
+            } else {
+                realValues.add(pval.getValue());
+            }
+        }
+        return realValues;
+    }
+
+    protected void evaluateAndAssertStringListExpressions(
+            List<String> fileNames, VariablesMap variables, String... expectedValues)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        for(String fileName : fileNames) {
+            evaluateAndAssertStringListExpression(fileName, variables, expectedValues);
+        }
+    }
+
+        protected void evaluateAndAssertBooleanScalarExpression(String fileName,
             VariablesMap variables, Boolean expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {

@@ -1,0 +1,58 @@
+---
+midpoint-feature: expression-mel
+doc-type: config
+---
+= MidPoint Expression Language Examples
+:page-nav-title: Examples
+:page-upkeep-status: green
+:page-toc: top
+
+xref:../introduction/[MidPoint Expression Language (MEL)] is an expression language, designed to support customization of midPoint functionality in an easy-to-use and secure way.
+This page lists examples of MEL usage in practical scenarios.
+
+== Assignments
+
+=== Role OIDs
+
+[source,mel]
+----
+focus.assignment.map(a, a.isTargetRole(), a.targetRef.oid)
+----
+
+[source,mel]
+----
+focus.assignment.map(a, a.isTarget('RoleType'), a.targetRef.oid)
+----
+
+[source,mel]
+----
+focus.assignment.map(a, a.targetType() == 'RoleType', a.targetRef.oid)
+----
+
+Returns list of OIDs of all role assignments of the focus.
+
+=== Relations
+
+[source,mel]
+----
+focus.assignment.map(a, a.hasOwnerRelation(), a.targetRef.oid)
+----
+
+[source,mel]
+----
+focus.assignment.map(a, a.hasRelation('owner'), a.targetRef.oid)
+----
+
+[source,mel]
+----
+focus.assignment.map(a, a.targetRelation() == 'owner', a.targetRef.oid)
+----
+
+Returns list of OIDs of all assignments of the focus that have owner relation.
+
+
+== See Also
+
+* xref:../specification/[MEL Specification]
+* xref:../tip/[MEL Tips]
+* xref:../troubleshooting/[MEL Troubleshooting]
