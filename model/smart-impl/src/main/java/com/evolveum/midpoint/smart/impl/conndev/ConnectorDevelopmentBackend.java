@@ -207,6 +207,19 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
         recomputeConnectorManifest();
+        invalidateConnector();
+    }
+
+    /**
+     * Disposes cached connector instances so that the next operation re-initializes the connector
+     * with the freshly saved scripts. Without this, provisioning keeps using the connector instance
+     * that compiled the scripts during its init.
+     */
+    private void invalidateConnector() {
+        var connectorRef = development.getConnector().getConnectorRef();
+        if (connectorRef != null && connectorRef.getOid() != null) {
+            beans.cacheDispatcher.dispatchInvalidation(ConnectorType.class, connectorRef.getOid(), false, null);
+        }
     }
 
     private void copyRelationToConnectorInfo(String objectClass) throws CommonException {
