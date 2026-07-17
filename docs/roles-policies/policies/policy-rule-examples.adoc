@@ -226,3 +226,128 @@ The following example shows a global policy rule that excludes roles assigned to
     </condition>
 <globalPolicyRule>
 ----
+
+[[time-limited-assignments]]
+== Time-limited role assignment
+
+The following example policy enforces time-limited assignments for selected roles.
+Whenever a user is assigned to a role that is governed by this policy, the assignment is automatically constrained to a fixed validity period - 4 hours in this example.
+
+In effect, this policy ensures that any assignment to selected roles is automatically temporary, without requiring manual input from administrators or users.
+
+This can be useful in scenarios where certain roles should only be granted for a limited time, such as emergency admin DB access or temporary access for external contractors.
+
+The example below finds archetypes that have the policy assigned.
+Then, when a new role assignment is added to a user, it checks if that role belongs to one of those archetypes.
+If it does and the assignment has not been processed yet, it sets its validity to 4 hours and adds a process description to prevent repetitive validity changes.
+
+.Policy rule that limits the validity of assignments to 4 hours
+[source, xml]
+----
+<policy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="488399b2-4679-461c-afc0-1f70aaa7456e">
+    <name>assignment-limited-to-4-hours</name>
+    <activation/>
+    <displayName>Assignment limited to 4 hours</displayName>
+    <inducement>
+        <identifier>assignment-limited-to-4-hours</identifier>
+        <policyRule>
+            <name>assignment-limited-to-4-hours</name>
+            <description>
+                Policy rule triggered when new user assignments are added.
+                The scripted action sets the validity period and process description for user assignments that meet the following criteria:
+                - The targetRef OID is in the list of TargetRef OIDs that triggered the action.
+                - The targetRef OID belongs to a role connected to the policy (role → archetype → policy).
+                - The assignment has not been processed yet.
+            </description>
+            <policyConstraints>
+                <assignment>
+                    <name>Add assignment constraint</name>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                        <s:action>
+                            <s:type>execute-script</s:type>
+                            <s:parameter>
+                                <s:name>script</s:name>
+                                <s:value xsi:type="c:ScriptExpressionEvaluatorType">
+                                    <code><![CDATA[
+                                        import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                                        // Adjust to your needs
+                                        def VALIDITY_PERIOD = "PT4H"
+                                        // Informational purpose + Needed to prevent repetitive validity change
+                                        // in case an assignment to the same role already exists
+                                        def PROCESS_DESCRIPTION = "Validity automatically adjusted!"
+
+                                        // Fetch assignments that were added and have triggered the policy rule
+                                        def primaryDelta = modelContext?.getFocusContext()?.getPrimaryDelta()
+                                        if (primaryDelta == null) {
+                                            return
+                                        }
+                                        def assignmentDelta = primaryDelta.findContainerDelta(UserType.F_ASSIGNMENT)
+                                        if (assignmentDelta == null) {
+                                            return
+                                        }
+
+                                        // Clone the input user object used to create the final delta
+                                        def user = input
+                                        def userBefore = user.clone()
+
+                                        // Fetch all archetypes connected to the policy
+                                        def archetypeQuery = midpoint.queryFor(
+                                                ArchetypeType,
+                                                "assignment/targetRef matches (oid = '488399b2-4679-461c-afc0-1f70aaa7456e')")
+                                        def connectedArchetypes = midpoint.searchObjects(archetypeQuery)
+                                        def connectedArchetypesOIDs = connectedArchetypes.collect { it.oid }
+
+                                        // Filter only those assignment role oids that are directly connected to the archetypes
+                                        // (In case of adding multiple assignments in one operation,
+                                        // there can be present non-relevant assignments)
+                                        def relevantAssignmentsOIDs = []
+                                        assignmentDelta.getValuesToAdd().each {
+                                            if (it.asContainerable().targetRef?.type == RoleType.COMPLEX_TYPE) {
+                                                def targetRole = midpoint.getObject(RoleType.class, it.asContainerable().targetRef?.oid)
+                                                if (connectedArchetypesOIDs.intersect(targetRole?.archetypeRef?.oid)) {
+                                                    relevantAssignmentsOIDs.add(it.asContainerable().targetRef?.oid)
+                                                }
+                                            }
+                                        }
+
+                                        // Set validity period and process description to all relevant user assignments
+                                        // (Relevant assignments do not have the process description yet
+                                        // and their role oids are present in the filtered oids from the previous step)
+                                        user.assignment.each {
+                                            if (relevantAssignmentsOIDs.contains(it.targetRef.oid)
+                                                    && it.description != PROCESS_DESCRIPTION) {
+                                                it.activation.setValidTo(basic.fromNow(VALIDITY_PERIOD))
+                                                it.setDescription(PROCESS_DESCRIPTION)
+                                            }
+                                        }
+
+                                        // Modify user
+                                        def delta = userBefore
+                                                .asPrismObject()
+                                                .diff(user.asPrismObject(), EquivalenceStrategy.IGNORE_METADATA)
+                                        midpoint.modifyObject(delta)
+                                    ]]></code>
+                                </s:value>
+                            </s:parameter>
+                        </s:action>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</policy>
+----

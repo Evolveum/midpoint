@@ -142,3 +142,5 @@ The xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assi
 * xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[Assigning vs Linking]
+
+* xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/#time-limited-assignments[Time-limited assignments]

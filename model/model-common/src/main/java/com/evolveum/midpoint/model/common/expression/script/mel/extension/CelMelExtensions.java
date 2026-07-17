@@ -861,6 +861,54 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE)
             ),
 
+            // sting.prefix(any)
+            // prefix(string, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "prefix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "string-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "string-prefix",
+                            String.class, Object.class,
+                            CelMelExtensions::prefix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polysting.prefix(regex)
+            // prefix(polysting, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "prefix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "polystring-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "polystring-prefix", PolyStringCelValue.class, Object.class,
+                            CelMelExtensions::prefix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+
             // qname(local)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -980,7 +1028,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
 
-                // sting.reMatches(regex)
+            // sting.reMatches(regex)
             // reMatches(string, regex)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1423,6 +1471,53 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::substringAny,
                             NullabilityProperties.NULLABLE)),
 
+            // sting.suffix(any)
+            // suffix(string, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "suffix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "string-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "string-suffix",
+                            String.class, Object.class,
+                            CelMelExtensions::suffix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polysting.suffix(regex)
+            // suffix(polysting, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "suffix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "polystring-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "polystring-suffix", PolyStringCelValue.class, Object.class,
+                            CelMelExtensions::suffix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
             // timestamp.atStartOfDay
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1652,6 +1747,26 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE_NULL))
 
         );
+    }
+
+    private static Object prefix(Object s, Object prefix) {
+        if (isCelNull(s)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (isCelNull(prefix)) {
+            return string(s);
+        }
+        return stringify(prefix, "") + stringify(s, "");
+    }
+
+    private static Object suffix(Object s, Object suffix) {
+        if (isCelNull(s)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (isCelNull(suffix)) {
+            return string(s);
+        }
+        return stringify(s, "") + stringify(suffix, "");
     }
 
     private Object reReplace(Object[] args) {

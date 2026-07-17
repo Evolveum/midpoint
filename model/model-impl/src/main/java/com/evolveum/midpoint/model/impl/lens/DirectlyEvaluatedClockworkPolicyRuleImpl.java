@@ -72,15 +72,6 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     @NotNull private final TargetType targetType;
 
     /**
-     * Policy rule counter, used when {@link #activityPolicyRule} is not available,
-     * e.g. policy rule wasn't collected from activity.
-     *
-     * If policy rule was collected from activity, then counting happens via {@link #activityPolicyRule}
-     * and it's local/total count.
-     */
-    private int count;
-
-    /**
      * Set to `true` after {@link #enabledActions} are computed.
      * See {@link #computeEnabledActions(PolicyRuleEvaluationContext, PrismObject, Task, OperationResult)}.
      */
@@ -158,15 +149,6 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     @Override
     public ActivityPath getActivityPath() {
         return activityPolicyRule != null ? activityPolicyRule.getPath() : null;
-    }
-
-    @Override
-    public void setCount(Integer localValue, Integer totalValue) {
-        if (activityPolicyRule != null) {
-            activityPolicyRule.setCount(localValue, totalValue);
-        }
-
-        count = totalValue;
     }
 
     @Override
@@ -395,15 +377,6 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     }
 
     //experimental
-
-    @Override
-    public Integer getCount() {
-        if (activityPolicyRule != null) {
-            return activityPolicyRule.getTotalCount();
-        }
-
-        return count;
-    }
 
     @Override
     public @NotNull DirectlyEvaluatedClockworkPolicyRule.TargetType getTargetType() {

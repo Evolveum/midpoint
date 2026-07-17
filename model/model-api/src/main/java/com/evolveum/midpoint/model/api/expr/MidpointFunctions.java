@@ -137,11 +137,19 @@ public interface MidpointFunctions {
      */
     <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name) throws SchemaException;
 
+    /**
+     * Resolves specified reference, returning an object that the reference references.
+     * Error is raised in case that the referenced object does not exist.
+     */
     <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * Resolves specified reference, returning an object that the reference references.
+     * If the referenced object does not exist, null is returned.
+     */
     <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
             throws SchemaException,
             CommunicationException, ConfigurationException,
@@ -483,6 +491,14 @@ public interface MidpointFunctions {
     <F extends FocusType> void recompute(Class<F> type, String oid)
              throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
+    /**
+     * <p>
+     * Returns the Focus object representing owner of specified shadow.
+     * </p>
+     * <p>
+     * May return null if there is no owner specified for the account.
+     * </p>
+     */
     <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException, CommunicationException;
@@ -908,10 +924,42 @@ public interface MidpointFunctions {
     /** Uses repository service directly, bypassing authorization checking. */
     long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException;
 
+    /**
+     * Returns a list of OIDs of user's managers. Formally, for each Org O which this user has (any) relation to,
+     * all managers of O are added to the result.
+     *
+     * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
+     * or defining who is a manager of a user who is itself a manager in its org.unit. (A parent org unit manager,
+     * perhaps.)
+     *
+     * @return list of oids of the respective managers
+     */
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
+    /**
+     * Returns a list of OIDs of user's managers.
+     * Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+     * The list excludes OID of the user itself.
+     *
+     * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
+     * or defining who is a manager of a user who is itself a manager in its org.unit. (A parent org unit manager,
+     * perhaps.)
+     *
+     * @return list of oids of the respective managers
+     */
     Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * Returns a list of OIDs of user's managers.
+     * Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+     * The list excludes OID of the user itself.
+     *
+     * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
+     * or defining who is a manager of a user who is itself a manager in its org.unit. (A parent org unit manager,
+     * perhaps.)
+     *
+     * @return list of oids of the respective managers
+     */
     Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ExpressionEvaluationException,
             ConfigurationException;
@@ -1101,12 +1149,19 @@ public interface MidpointFunctions {
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 
+    /**
+     * Returns a shadow on specified resource, which is linked to the specified focus.
+     * This function assumes that at most one such shadow is linked to the focus.
+     */
     default ShadowType getLinkedShadow(FocusType focus, String resourceOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         return getLinkedShadow(focus, resourceOid, false);
     }
 
+    /**
+     * Returns a list of shadows on specified resource (`resourceOid`), which is linked to the specified focus.
+     */
     @NotNull
     default List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
@@ -1114,6 +1169,14 @@ public interface MidpointFunctions {
         return getLinkedShadows(focus, resourceOid, false);
     }
 
+    /**
+     * Returns a shadow on specified resource, which is linked to the specified focus.
+     * The repositoryObjectOnly parameter specifies whether the shadow has to be retrieved only from midPoint repository (true),
+     * or whether the data corresponding to the shadow can be retrieved from the resource (false).
+     *
+     * This function assumes that at most one such shadow is linked to the focus.
+     * If more than one shadow is linked, function behavior is unspecified.
+     */
     default ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -1142,6 +1205,10 @@ public interface MidpointFunctions {
         return getLinkedShadow(focus, resource.getOid(), repositoryObjectOnly);
     }
 
+    /**
+     * Returns a shadow on specified resource, which is linked to the specified focus.
+     * This function assumes that at most one such shadow is linked to the focus.
+     */
     default ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -1149,6 +1216,10 @@ public interface MidpointFunctions {
     }
 
     /**
+     * Returns a shadow on specified resource, which is linked to the specified focus.
+     * This function assumes that at most one such shadow is linked to the focus.
+     * The repositoryObjectOnly parameter specifies whether the shadow has to be retrieved only from midPoint repository (true),
+     * or whether the data corresponding to the shadow can be retrieved from the resource (false).
      * Null values of resource oid, kind, and intent mean "any".
      */
     ShadowType getLinkedShadow(
@@ -1350,10 +1421,30 @@ public interface MidpointFunctions {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * Checks uniqueness of property value.
+     * Returns true if specified property value is unique.
+     * Returns false if an object exists, conflicting with the specified object on specified property.
+     *
+     * @param objectType object that determines type of objects to look for, also filtered out of list of conflicting objects
+     * @param propertyPathString specifies item path of the item to be checked.
+     * @param propertyValue specifies the candidate value of that item
+     * @param getAllConflicting specifies whether to get all conflicting objects (true) or just the first one (false)
+     * @return list of objects that are conflicting with the specified object on specified property.
+     */
     <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException;
 
+    /**
+     * Returns a list of objects that are conflicting with the specified object on specified property.
+     *
+     * @param objectType object that determines type of objects to look for, also filtered out of list of conflicting objects
+     * @param propertyPathString specifies item path of the item to be checked.
+     * @param propertyValue specifies the candidate value of that item
+     * @param getAllConflicting specifies whether to get all conflicting objects (true) or just the first one (false)
+     * @return list of objects that are conflicting with the specified object on specified property.
+     */
     <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
             T propertyValue, boolean getAllConflicting)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,

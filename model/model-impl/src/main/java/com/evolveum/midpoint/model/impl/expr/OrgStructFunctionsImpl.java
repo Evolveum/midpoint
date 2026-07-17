@@ -55,7 +55,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Autowired private MidpointFunctions midpointFunctions;
 
     /**
-     * Returns a list of user's managers. Formally, for each Org O which this user has (any) relation to,
+     * Returns a list of OIDs of user's managers. Formally, for each Org O which this user has (any) relation to,
      * all managers of O are added to the result.
      *
      * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
@@ -74,6 +74,17 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         return retval;
     }
 
+    /**
+     * Returns a list of OIDs of user's managers.
+     * Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+     * The list excludes OID of the user itself.
+     *
+     * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
+     * or defining who is a manager of a user who is itself a manager in its org.unit. (A parent org unit manager,
+     * perhaps.)
+     *
+     * @return list of oids of the respective managers
+     */
     @Override
     public Collection<String> getManagersOidsExceptUser(UserType user, boolean preAuthorized) throws SchemaException,
             SecurityViolationException {

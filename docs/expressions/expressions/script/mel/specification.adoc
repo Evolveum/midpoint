@@ -682,6 +682,23 @@ This function works on strings as well as polystrings.
 norm('  Semančík')    // Returns 'semancik'
 ----
 
+=== prefix
+
+`string.prefix(string)` -> string +
+`prefix(string, string)` -> string
+
+Returns string prefixed with another string.
+
+This function is null-safe. It returns null if the first string is null.
+
+.Example
+[source,mel]
+----
+'foo'.prefix('bar')  // Returns 'barfoo'
+prefix('foo', 'bar') // Returns 'barfoo'
+prefix(null, 'bar')  // Returns null
+----
+
 === quote
 
 `string.quote()` -> string
@@ -954,6 +971,23 @@ substring('midpoint',0,3)   // Returns 'mid' (null resistant)
 NOTE: The `substring` function does not fail in case the indexes extend beyond the original string.
 This behavior differs from stock behavior of Google CEL string extensions.
 This behavior change is very intentional, enabling creation of simpler expressions.
+
+=== suffix
+
+`string.suffix(string)` -> string +
+`suffix(string, string)` -> string
+
+Returns string suffix by another string.
+
+This function is null-safe. It returns null if the first string is null.
+
+.Example
+[source,mel]
+----
+'foo'.suffix('bar')  // Returns 'foobar'
+suffix('foo', 'bar') // Returns 'foobar'
+suffix(null, 'bar')  // Returns null
+----
 
 === trim
 
@@ -1650,6 +1684,270 @@ As most identifiers as single-valued, this function is often combined with `sing
 // Returns string value, e.g. 'uid=foo,ou=People,dc=example,dc=com'
 single(shadow.secondaryIdentifiers())
 ----
+
+=== MidPoint Extension
+
+MidPoint extension provides functions that interact with midPoint, such as functions for reading midPoint objects from repository, searching for objects and so on.
+
+Due to the nature of MEL, only functions that are safe and free of side effects are provided.
+This means that the functions have read-only character.
+
+==== midpoint.getLinkedShadow
+
+`midpoint.getLinkedShadow(focus, resourceOid)` -> shadow +
+`midpoint.getLinkedShadow(focus, resourceOid, repositoryObjectOnly)` -> shadow +
+`midpoint.getLinkedShadow(focus, resourceOid, kind, intent)` -> shadow +
+`midpoint.getLinkedShadow(focus, resourceOid, kind, intent, repositoryObjectOnly)` -> shadow
+
+Returns a shadow on specified resource (`resourceOid`), which is linked to the specified focus.
+The `repositoryOnly` parameter specifies whether the shadow has to be retrieved only from midPoint repository (`true`), or whether the data corresponding to the shadow can be retrieved from the resource (`false`, default).
+Shadow _kind_ and _intent_ can be specified as well.
+Null values of resource oid, kind, and intent mean "any".
+
+This function assumes that at most one such shadow is linked to the focus.
+If more than one shadow is linked, function behavior is unspecified.
+
+.Example
+[source,mel]
+----
+// Returns shadow on resource specified by OID, which has account kind and any intent.
+midpoint.getLinkedShadow(focus, '5b1b59f6-805c-11f1-be6c-e3515ff454a8', 'account', null)
+----
+
+==== midpoint.getLinkedShadows
+
+`midpoint.getLinkedShadows(focus, resourceOid)` -> list(shadow) +
+`midpoint.getLinkedShadows(focus, resourceOid, repositoryObjectOnly)` -> list(shadow)
+
+Returns a list of shadows on specified resource (`resourceOid`), which is linked to the specified focus.
+The `repositoryOnly` parameter specifies whether the shadow has to be retrieved only from midPoint repository (`true`), or whether the data corresponding to the shadow can be retrieved from the resource (`false`, default).
+
+.Example
+[source,mel]
+----
+// Returns list of shadows on resource specified by OID
+midpoint.getLinkedShadows(focus, '5b1b59f6-805c-11f1-be6c-e3515ff454a8')
+----
+
+==== midpoint.getManagersOids
+
+`midpoint.getManagersOids(user)` -> list(string)
+
+Returns a list of OIDs of user's managers.
+Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+
+.Example
+[source,mel]
+----
+midpoint.getManagersOids(focus)
+----
+
+==== midpoint.getManagersOidsExceptUser
+
+`midpoint.getManagersOidsExceptUser(user)` -> list(string)
+
+Returns a list of OIDs of user's managers.
+Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+The list excludes OID of the user itself.
+
+.Example
+[source,mel]
+----
+midpoint.getManagersOidsExceptUser(focus)
+----
+
+==== midpoint.getObject
+
+`midpoint.getObject(type, oid)` -> object
+
+Returns object for provided OID.
+It retrieves the object from an appropriate source for an object type
+(e.g. internal repository, resource or both), merging data as necessary,
+processing any policies, caching mechanisms, etc.
+
+Object type can be specified as qname or as string.
+
+.Example
+[source,mel]
+----
+midpoint.getObject('user', '06407948-8061-11f1-96a1-631cb39ca677')
+----
+
+==== midpoint.getObjectsInConflictOnPropertyValue
+
+`getObjectsInConflictOnPropertyValue(object, propertyPath, propertyValue, getAllConflicting)` -> list(object)
+
+Returns a list of objects that are conflicting with the specified object on specified property.
+The `propertyPath` parameter specifies xref:/midpoint/reference/concepts/item-path/[item path] of the item to be checked.
+The `propertyValue` specifies the candidate value of that item.
+Uniqueness of that value will be checked.
+The `getAllConflicting` boolean parameter specifies whether to get all conflicting objects (`true`) or just the first one (`false`).
+
+The object specified as the first parameter is used to determine type of objects to look for.
+It is also always filtered out of list of conflicting objects.
+
+.Example
+[source,mel]
+----
+// Check for all objects that conflict on emailAddress property with the current focus
+midpoint.getObjectsInConflictOnPropertyValue(focus, 'emailAddresses', focus.emailAddress, true)
+----
+
+==== midpoint.getOrgByName
+
+`midpoint.getOrgByName(name)` -> object
+
+Returns organization object (org) specified by name.
+
+.Example
+[source,mel]
+----
+midpoint.getOrgByName('F00101')
+----
+
+==== midpoint.hasLinkedObjectOnResource
+
+`midpoint.hasLinkedObjectOnResource(resourceOid, kind,  intent)` -> boolean
+
+Returns `true` if current focus has link to resource object on specified resource.
+
+.Example
+[source,mel]
+----
+midpoint.hasLinkedObjectOnResource('5b1b59f6-805c-11f1-be6c-e3515ff454a8', 'account', 'default')
+----
+
+==== midpoint.isFocusActivated
+
+`midpoint.isFocusActivated()` -> boolean
+
+Returns `true` if current clockwork operation brings the focus into existence, being effectively enabled, assuming previously it was either non-existent or effectively disabled.
+
+.Example
+[source,mel]
+----
+midpoint.isFocusActivated()
+----
+
+==== midpoint.isFocusDeactivated
+
+`midpoint.isFocusDeactivated()` -> boolean
+
+Returns `true` if current clockwork operation deletes or effectively disables the focus,
+assuming previously it existed and was effectively enabled.
+
+.Example
+[source,mel]
+----
+midpoint.isFocusDeactivated()
+----
+
+==== midpoint.isFocusDeleted
+
+`midpoint.isFocusDeleted()` -> boolean
+
+Returns `true` if current clockwork operation deletes the focus.
+
+.Example
+[source,mel]
+----
+midpoint.isFocusDeleted()
+----
+
+==== midpoint.isUniquePropertyValue
+
+`isUniquePropertyValue(object, propertyPath, propertyValue)` -> boolean
+
+Checks uniqueness of property value.
+Returns true if specified property value is unique.
+Returns false if an object exists, conflicting with the specified object on specified property.
+
+The `propertyPath` parameter specifies xref:/midpoint/reference/concepts/item-path/[item path] of the item to be checked.
+The `propertyValue` specifies the candidate value of that item.
+Uniqueness of that value will be checked.
+
+.Example
+[source,mel]
+----
+midpoint.isUniquePropertyValue(focus, 'emailAddresses', focus.emailAddress)
+----
+
+==== midpoint.isUniqueAccountValue
+
+`isUniqueAccountValue(resource, shadow, attributeName, attributeValue)` -> boolean
+
+Checks uniqueness of account attribute value.
+Returns true if specified attribute value is unique.
+Returns false if an account exists, conflicting with the specified shadow on specified attribute.
+
+The `resource` and `shadow` parameters specify resource and shadow objects (usually present in `resource` and `projection` variables during computation).
+The `attributeName` parameter specifies name of account attribute to be checked.
+The `attributeValue` specifies the candidate value of that attribute.
+Uniqueness of that value will be checked.
+
+.Example
+[source,mel]
+----
+midpoint.isUniqueAccountValue(resource, projection, 'uid', 'foobar')
+----
+
+==== midpoint.resolveReference
+
+`midpoint.resolveReference(ref)` -> object
+
+Resolves specified reference, returning an object that the reference references.
+Error is raised in case that the referenced object does not exist.
+
+.Example
+[source,mel]
+----
+// Returns shadow linked to the current focus (assuming there is only one link)
+midpoint.resolveReference(single(focus.linkRef))
+----
+
+==== midpoint.resolveReferenceIfExists
+
+`midpoint.resolveReferenceIfExists(ref)` -> object
+
+Resolves specified reference, returning an object that the reference references.
+If the referenced object does not exist, null is returned.
+
+.Example
+[source,mel]
+----
+// Returns shadow linked to the current focus (assuming there is only one link)
+midpoint.resolveReferenceIfExists(single(focus.linkRef))
+----
+
+==== midpoint.searchObjects
+
+`midpoint.searchObjects(type, filter)` -> list(object)
+
+Searches through all object of a specified type.
+Returns a list of objects that match search criteria.
+
+The `type` parameter may be a string (e.g. `UserType`) or QName.
+The `filter` parameter is a string containing search filter specified in xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language (MQL)].
+
+.Example
+[source,mel]
+----
+midpoint.searchObjects('UserType', 'name = \'jack\'')
+----
+
+==== midpoint.searchShadowOwner
+
+`midpoint.searchShadowOwner(oid)` -> object
+
+Returns the Focus object representing owner of specified shadow.
+The function may return `null` if there is no owner specified for the shadow.
+
+.Example
+[source,mel]
+----
+midpoint.searchShadowOwner('3699defe-8133-11f1-b274-5b07c17a83bc')
+----
+
 
 == Timestamps and Durations
 
