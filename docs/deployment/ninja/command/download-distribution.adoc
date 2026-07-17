@@ -1,25 +1,47 @@
 = Download distribution
+:page-description: This describes the Ninja download-distribution command which downloads the target midPoint distribution from download.evolveum.com and extracts it into the specified directory.
+:page-keywords: ninja, download-distribution, distribution, download, upgrade, midPoint
 
-The `download-distribution` command downloads a target midPoint distribution from https://download.evolveum.com/midpoint/[download.evolveum.com]
-and extracts it into a directory specified by the `--distribution-directory` option.
+The `download-distribution` command downloads the target midPoint distribution from https://download.evolveum.com/midpoint/[download.evolveum.com] and extracts it into the directory specified by the `--distribution-directory` option.
 
 By default, Ninja downloads the next supported target version based on the current midPoint version. For example:
 
 * 4.7.1 → 4.8
 * 4.4.6 (LTS) → 4.8
 
-To download a specific version, use the `--distribution-version` option.
-Specify `latest` to download the latest available development (snapshot) build, which may not be as stable as an official release.
+The `download-distribution` command takes the following options:
 
-Instead of downloading the distribution, you can provide an existing ZIP archive using the `--distribution-archive <PATH_TO_ZIP>` option.
-Ninja uses the provided archive instead of downloading it from `download.evolveum.com` and extracts it into the directory specified by `--distribution-directory`.
-This is useful if you already have the required distribution archive available locally, for example a previously downloaded release or a custom build created using a Maven overlay.
-It is especially useful when used together with the `upgrade-distribution` command.
+[options="header"]
+|===
+| Option | Description
 
-The `--temp-dir` option specifies the directory used for temporary files during the download and extraction process.
-If not specified, the default JVM temporary directory is used.
+| `--distribution-directory <PATH_TO_DIRECTORY>`
+| Specifies the directory to which the distribution is extracted.
+If not specified, the distribution is extracted to `<midPoint-home>/tmp`.
 
-.Download the default target distribution
+| `--distribution-version <VERSION>`
+| Specifies the version of the distribution to download. +
+Version formats `x.x` and `x.x.x` are accepted, e.g., `4.9` or `4.10.1`. +
+If not specified, Ninja downloads the next supported target version based on the current midPoint version. +
+For example, if the current midPoint version is 4.7.1, Ninja downloads version 4.8, and if the current midPoint version is 4.4.6 (LTS), Ninja downloads version 4.8. +
+Alternatively, to download the latest development (snapshot) build, use `--distribution-version latest`.
+Note that the latest development build may not be as stable as an official release. +
+For more information on release versions, see xref:/midpoint/install/containers/container-image-naming/[].
+
+| `--distribution-archive <PATH_TO_ZIP>`
+| Specifies the path to an existing ZIP archive of the distribution.
+If specified, Ninja uses the provided archive instead of downloading it from `download.evolveum.com`, and extracts it in the directory specified by `--distribution-directory`. +
+This is useful if you already have the required distribution archive available locally, for example, a previously downloaded release, or a custom build created using a Maven overlay.
+It is also useful when used together with the xref:/midpoint/reference/deployment/ninja/command/upgrade-distribution[`upgrade-distribution`] command.
+
+| `--temp-dir <PATH_TO_DIRECTORY>`
+| Specifies the directory used for temporary files during the download and extraction process.
+If not specified, the default JVM temporary directory is used.`
+
+|===
+
+
+.Example downloading the default target distribution
 [source,bash]
 ----
 ./bin/ninja.sh download-distribution \
@@ -27,7 +49,7 @@ If not specified, the default JVM temporary directory is used.
   --distribution-directory .upgrade/new-distribution
 ----
 
-.Download the latest available development build
+.Example downloading the latest available development build
 [source,bash]
 ----
 ./bin/ninja.sh download-distribution \

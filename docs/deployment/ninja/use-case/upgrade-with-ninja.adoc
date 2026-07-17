@@ -1,27 +1,27 @@
 = Upgrade with ninja
 :page-toc: top
-:page-description: This document describes how to upgrade midPoint installation using a tool called ninja.
+:page-description: This document describes how to upgrade midPoint installation using a tool called Ninja.
 :page-keywords: upgrade, ninja, distribution upgrade, database schema upgrade, initial objects update
 
 == Introduction
 
-This document describes how to upgrade midPoint installation using a tool called _ninja_.
-For more overall information about `ninja` tool visit xref:/midpoint/reference/deployment/ninja/[`ninja`] documentation.
-This article focuses primarily on the sequence of ninja commands required for the upgrade process and intentionally omits some general upgrade recommendations.
-For a more comprehensive overview of the upgrade procedure, see xref:/midpoint/reference/upgrade/upgrade-guide/[MidPoint Upgrade Guide].
-The article also does not describe the upgrade procedure for containerized deployments.
+This document describes how to upgrade midPoint installations using a tool called _Ninja_.
+For more overall information about the `ninja` tool, see xref:/midpoint/reference/deployment/ninja/[].
+This article focuses primarily on the sequence of Ninja commands required for the upgrade process, and intentionally omits some general upgrade recommendations.
+For a more comprehensive overview of the upgrade procedure, see the xref:/midpoint/reference/upgrade/upgrade-guide/[MidPoint Upgrade Guide].
+This article does not describe the upgrade procedure for containerized deployments.
 
 Ninja supports two different upgrade paths:
 
-* *Feature release upgrade* - from previous version to next one (e.g. 4.7 -> 4.8)
-* *LTS upgrade* - from previous LTS to next one (e.g. 4.4 -> 4.8)
+* *Feature release upgrade* - From previous version to the next one (e.g., 4.7 -> 4.8).
+* *LTS upgrade* - From previous LTS to the next one (e.g., 4.4 -> 4.8).
 
 Always upgrade to the latest maintenance release in your version branch before upgrading to the next minor version.
 This is done to mitigate potential issues during upgrade.
 For example, if you are on 4.8 and you want to upgrade to 4.9, first upgrade to the latest 4.8.x release, and only then upgrade to 4.9.
 Also, make sure you read the xref:/midpoint/release/[Release Notes] for the version you are upgrading to, and all intermediate versions between your current and the new version, to be aware of all changes that might affect your upgrade procedure.
 
-Always use the version of ninja from the version of midPoint that you are upgrading to, not the version of midPoint that you are currently running.
+Always use the version of Ninja from the version of midPoint that you are upgrading to, not the version of midPoint that you are currently running.
 
 [NOTE]
 ====
@@ -30,20 +30,20 @@ Throughout this guide, `$MP_INSTALLATION` refers to the root directory of the ex
 
 == Sequential upgrade
 
-This part describes the sequence of ninja commands used for upgrading midPoint.
+This part describes the sequence of Ninja commands used for upgrading midPoint.
 Manual upgrade allows for customization of each step done during upgrade procedure via custom options.
 
 === Overview of upgrade steps
 
-Upgrade procedure consists of two main phases with several steps.
-First phase (preparation) can be executed while midPoint is still running, without any interruption of service.
-Second phase (upgrade) requires downtime of midPoint instance.
-This phase should be quick to minimize required downtime.
-All steps mentioned above are described in following sections, ninja will guide you through them.
+The upgrade procedure consists of two main phases with several steps.
+The first phase (preparation) can be executed while midPoint is still running, without any interruption of service.
+The second phase (upgrade) requires stopping of the midPoint instance.
+This phase should be quick to minimize the required downtime.
+All steps mentioned above are described in the following sections.
 
 
 . *Preparation phase*
-.. Read release notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade)
+.. Read the Release Notes for the new midPoint version / for all intermediate midPoint versions between your current and the new midPoint version (this is especially important for LTS to LTS upgrade).
 .. <<Run pre-upgrade check>>
 .. <<Run verify>>
 .. Review verification results
@@ -177,14 +177,14 @@ $MP_INSTALLATION/bin/ninja.sh run-sql \
 
 The pre-upgrade check verifies that the current midPoint repository is at the expected source version for the upgrade.
 It also checks that all nodes in the midPoint cluster are running the same midPoint version.
-For more information refer to: xref:/midpoint/reference/deployment/ninja/command/pre-upgrade-check/[Pre-upgrade check] command documentation.
+For more information, refer to the xref:/midpoint/reference/deployment/ninja/command/pre-upgrade-check/[`pre-upgrade-check`] command documentation.
 
 [source,bash]
 ----
 $MP_INSTALLATION/bin/ninja.sh pre-upgrade-check
 ----
 
-.Click here to display example output of the *pre-upgrade-check* command
+.Click here to display an example output of the `pre-upgrade-check` command
 [%collapsible]
 ====
 
@@ -211,16 +211,16 @@ $MP_INSTALLATION/bin/ninja.sh pre-upgrade-check
 Verification scans objects stored in the midPoint repository and checks whether they are compatible with the target version of midPoint.
 It detects deprecated or removed elements, as well as other issues that could cause problems during or after the upgrade.
 
-If verification reports obsolete or deprecated data or configuration, you can either update the affected objects manually or use the `upgrade-objects` command to perform the upgrade automatically.
+If verification reports obsolete or deprecated data or configuration, you can either update the affected objects manually, or use the `upgrade-objects` command to perform the upgrade automatically.
 
-For more information, see the documentation for the xref:/midpoint/reference/deployment/ninja/command/verify/[] and xref:/midpoint/reference/master/deployment/ninja/command/upgrade-objects/[] commands.
+For more information, see the documentation for the xref:/midpoint/reference/deployment/ninja/command/verify/[`verify`] and xref:/midpoint/reference/deployment/ninja/command/upgrade-objects/[`upgrade-objects`] commands.
 
 [source,bash]
 ----
 $MP_INSTALLATION/bin/ninja.sh verify
 ----
 
-.Click here to display example output of the *verify* command
+.Click here to display an example output of the `verify` command
 [%collapsible]
 ====
 
@@ -253,10 +253,10 @@ Such content may no longer be supported by the target version of midPoint and ca
 
 === Download (new) distribution
 
-`download-distribution` prepares the target midPoint distribution for the upgrade.
-It downloads the target distribution from https://download.evolveum.com/midpoint/[download.evolveum.com] and extracts it into a local directory, where it can be used by the following upgrade steps.
+The `download-distribution` command prepares the target midPoint distribution for the upgrade.
+It downloads the target distribution from https://download.evolveum.com/midpoint/[download.evolveum.com] and extracts it into a local directory, where it can be used by subsequent upgrade steps.
 
-For more information, see the xref:/midpoint/reference/deployment/ninja/command/download-distribution/[] command documentation.
+For more information, see the xref:/midpoint/reference/deployment/ninja/command/download-distribution/[`download-distribution`] command documentation.
 
 [source,bash]
 ----
@@ -265,7 +265,7 @@ $MP_INSTALLATION/bin/ninja.sh download-distribution \
   --distribution-directory $MP_INSTALLATION/.upgrade/new-distribution
 ----
 
-.Click here to display example output of the *download-distribution* command
+.Click here to display an example output of the `download-distribution` command
 [%collapsible]
 ====
 [source,bash]
@@ -302,7 +302,7 @@ Database schema changes are handled by SQL scripts that are bundled with distrib
 * For the Generic SQL repository: `doc/config/sql/generic/*.sql`
 
 These changes can be applied using ninja command `run-sql`.
-For more information see xref:/midpoint/reference/ninja/command/run-sql/[] command documentation.
+For more information see xref:/midpoint/reference/deployment/ninja/command/run-sql/[] command documentation.
 
 For the Native PostgreSQL repository, use the `--upgrade` option to execute the appropriate upgrade scripts automatically.
 
@@ -345,7 +345,7 @@ $MP_INSTALLATION/bin/ninja.sh run-sql --upgrade --mode repository
 $MP_INSTALLATION/bin/ninja.sh run-sql --upgrade --mode audit
 ----
 
-.Click here to display example output of the run-sql --upgrade --mode audit
+.Click here to display example output of the `run-sql --upgrade --mode audit`
 [%collapsible]
 ====
 
@@ -366,10 +366,10 @@ $MP_INSTALLATION/bin/ninja.sh run-sql --upgrade --mode audit
 
 === Upgrade installation
 
-Upgrade installation command will copy and replace files in midPoint installation directory using files from distribution.
-By default, installation directory is computed as a parent of midpoint-home directory.
+The upgrade installation command will copy and replace files in the midPoint installation directory using files from the distribution.
+By default, the installation directory is computed as the parent of the midpoint-home directory.
 
-To learn more about this command see xref:/midpoint/reference/deployment/ninja/command/upgrade-installation/[].
+To learn more about this command, see xref:/midpoint/reference/deployment/ninja/command/upgrade-installation/[].
 
 [source,bash]
 ----
@@ -378,7 +378,7 @@ $MP_INSTALLATION/bin/ninja.sh upgrade-installation \
   --installation-directory $MP_INSTALLATION
 ----
 
-.Click here to display example output of the *upgrade-installation* command
+.Click here to display an example output of the `upgrade-installation` command
 [%collapsible]
 ====
 [source,bash]
@@ -403,17 +403,19 @@ NOTE: The same MP_INSTALLATION directory is used for new midPoint.
 
 Each midPoint distribution includes a set of default initial objects that are imported during the first startup.
 Use the `initial-objects` command to update them to the new version while preserving your custom changes whenever possible.
-To learn more about this command see xref:/midpoint/reference/deployment/initial-objects/[].
+To learn more about this command, see xref:/midpoint/reference/deployment/initial-objects/[].
 
-If there are *no custom changes* in initial objects made by users, then ninja can update initial objects automatically.
-Update can be done by overwriting existing ones without merge.
+* If there are *no custom changes* in the user-made initial objects, then Ninja can update initial objects automatically.
+The update can be applied by overwriting the existing objects without merge.
 
++
 [source,bash]
 ----
 $MP_INSTALLATION/bin/ninja.sh initial-objects --no-merge
 ----
 
-.Click here to display example output of the *initial-objects --dry-run* command
++
+.Click here to display an example output of the `initial-objects --dry-run` command
 [%collapsible]
 ====
 [source,bash]
@@ -447,28 +449,31 @@ $MP_INSTALLATION/bin/ninja.sh initial-objects --no-merge
 ----
 ====
 
-If there are *custom changes* in initial objects made by users, then ninja can help you merge them.
-First, running the command with `--dry-run` flag is recommended.
+* If there are *custom changes* in the user-made initial objects, then Ninja can help you merge them.
+First, running the command with the `--dry-run` flag is recommended.
 It enables you to preview which objects would be updated without actually changing them.
 To review the proposed changes in detail, enable reporting using the `-r (--report)` option.
 In the example below, the report contains the full objects after the update instead of only the deltas (`--report-style FULL_OBJECT`) and is saved to a file using the `-o`, `--output` option.
 
++
 [source,bash]
 ----
 ./bin/ninja.sh initial-objects --dry-run --report --report-style FULL_OBJECT -o report-initial-objects.xml
 ----
 
-If you're satisfied with changes proposed by ninja, you can execute command without `--dry-run` and report related options.
++
+If you are satisfied with changes proposed by Ninja, you can execute command without `--dry-run` and report related options.
 
++
 [source,bash]
 ----
 $MP_INSTALLATION/bin/ninja.sh initial-objects
 ----
 
++
 .Click here to display example output of the *initial-objects* command
 [%collapsible]
 ====
-
 [source,bash]
 ----
 /opt/midpoint/bin/ninja.sh initial-objects
@@ -506,10 +511,10 @@ Start the upgraded midPoint instance and verify that it starts successfully.
 
 == Automatic upgrade
 
-Instead of running each of the commands listed above manually, it is possible to use a command `upgrade-distribution`.
-`upgrade-distribution`  is a composite command that will do multiple steps at once.
+Instead of running each of the commands listed above manually, it is possible to use the `upgrade-distribution` command.
+This is a composite command that will perform multiple steps at once.
 
-Before running the command, stop the midPoint.
+Before running the command, stop your midPoint.
 
 .Run distribution upgrade - example
 [source,bash]
@@ -519,20 +524,22 @@ $MP_INSTALLATION/bin/ninja.sh upgrade-distribution \
   --temp-directory $MP_INSTALLATION/tmp \
   --backup-midpoint-directory \
 ----
-To learn more details about the command options see xref:/midpoint/reference/deployment/ninja/command/upgrade-distribution/[].
+
+To learn more details about the command options, see xref:/midpoint/reference/deployment/ninja/command/upgrade-distribution/[].
 
 If the verification command finds objects with *critical* priority that cannot be upgraded automatically, the upgrade process stops.
 
 However, if the reported issues have a lower priority, the upgrade continues.
-Depending on the reported issues, the upgraded midPoint instance may not function correctly until they are resolved.
+Depending on the reported issues, the upgraded midPoint instance may not function correctly until the issues are resolved.
 
 The automatic upgrade is well suited for sandbox and test deployments, or for straightforward upgrades between subsequent patch releases.
 For production environments, consider performing the upgrade step by step to review the outcome of each stage before proceeding.
 
-TIP: You could use `--distribution-version{nbsp}latest` option to upgrade to an unreleased midPoint version (latest SNAPSHOT)
+TIP: You can use the `--distribution-version{nbsp}latest` option to upgrade to an unreleased midPoint version (latest SNAPSHOT).
+Note, however, that this option is intended for testing purposes only and should not be used in production environments.
 
 The automatic upgrade does not update existing initial objects in the repository.
-After the upgrade, review the initial objects and update them using the xref:/midpoint/reference/support-4.10/deployment/initial-objects/[`initial-objects`] command.
+After the upgrade, review the initial objects and update them using the xref:/midpoint/reference/deployment/initial-objects/[`initial-objects`] command.
 Updating the initial objects ensures that they match the definitions provided by the target midPoint version while preserving custom changes whenever possible.
 
 Once the upgrade is complete, start the upgraded midPoint instance and verify that it is operating as expected.
