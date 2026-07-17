@@ -3,27 +3,27 @@
 The `initial-objects` command compares the initial objects in the repository with the initial objects provided by the target midPoint version.
 Depending on the selected options, it either replaces the existing objects or merges them with the new definitions.
 
-By default, ninja attempts to preserve custom changes by merging them with the definitions from the target midPoint version.
+By default, Ninja attempts to preserve custom changes by merging them with the definitions from the target midPoint version.
 Alternatively, you can replace the existing objects without merging by using the `--no-merge` option.
 
-WARNING: Merging algorithm used in this ninja command is experimental and might not work properly in all cases.
-Please review all changes proposed by ninja using `--dry-run` before applying them to repository.
+WARNING: The merging algorithm used in this Ninja command is experimental and might not work properly in all cases.
+Review all changes proposed by Ninja using `--dry-run` before applying them to repository.
 
 The default set of initial objects is bundled with the midPoint distribution.
 To use a custom set of initial objects, specify it using the `--file` option.
-`--file` option can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
+The `--file` option can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
 
 Ninja also supports filtered processing using `--type`, `--oid` and `--reverse-oid-filter`/`--reverse-type-filter`.
-Such options enable you to process only subset of objects using this command.
-For example, you can replace objects without custom changes directly, without merge, reports, or a dry run, while reviewing only the merged objects that contain custom changes.
+Such options enable you to process only a subset of objects.
+For example, you can replace objects without custom changes directly, without merging, reports, or dry runs, while reviewing only the merged objects that contain your custom changes.
 
-This command also supports dry-run mode and reporting.
+`initial-objects` also supports a dry-run mode and reporting.
 Use the `--dry-run` option to preview the changes that would be applied to the repository without modifying it.
-Enable reporting by `-r, --report` option.
-Report option can be coupled with `--report-style [DELTA|FULL_OBJECT]` to specify whether XML output should contain only deltas or full objects after update.
-There's also standard set of options to send output to file (`-o, --output`) and overwrite (`-O, --overwrite`).
+Enable reporting by the `-r, --report` option.
+The `report` option can be coupled with `--report-style [DELTA|FULL_OBJECT]` to specify whether XML outputs should contain only deltas or full objects after updates.
+There are also options to send outputs to a file (`-o, --output`), and to overwrite existing outputs (`-O, --overwrite`).
 
-.Example: Create initial object changes report
+.Example creating an initial object changes report
 [source,bash]
 ----
 ./bin/ninja.sh initial-objects --dry-run --report --report-style FULL_OBJECT -o report-initial-objects.xml
@@ -35,6 +35,6 @@ There's also standard set of options to send output to file (`-o, --output`) and
 ./bin/ninja.sh initial-objects --type securityPolicy --reverse-type-filter
 ----
 
-NOTE: Initial objects that are new in upgraded version of midPoint are not added to repository by ninja automatically.
-By default, these objects will be properly imported during first start of upgraded midPoint.
-To import them before first start, it is possible to use `--force-add` option.
+NOTE: Initial objects that are new in an upgraded version of midPoint are not added to the repository by Ninja automatically.
+By default, these objects will be properly imported during the first start of the upgraded midPoint.
+To import them before the first start, use the `--force-add` option.

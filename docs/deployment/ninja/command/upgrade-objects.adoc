@@ -1,8 +1,8 @@
 = Upgrade objects
 
-The command updates objects to the current object model by replacing outdated object structures with their supported equivalents.
-This operation should be used with the CSV output file from the `verify` command.
-Specify the path to the CSV output file with `--verification-file` (see an example below).
+The `upgrade-objects` command updates objects in the object model by replacing outdated object structures with their supported equivalents.
+This operation should be used with the CSV output file from the xref:/midpoint/reference/deployment/ninja/command/verify/[`verify` command].
+Specify the path to the CSV output file using the `--verification-file` option, for example:
 
 [source,bash]
 ----
@@ -10,26 +10,25 @@ Specify the path to the CSV output file with `--verification-file` (see an examp
   --verification-file verify-output.csv
 ----
 
-By default, the command applies only verification items marked as `type = seamless`.
-The command does not introduce new configuration; it only rewrites existing obsolete constructs into their current form.
+By default, this command applies only verification items marked as `type = seamless`.
+It does not introduce new configuration; it only rewrites the existing obsolete constructs with their current forms.
 
-The verification report should be reviewed before running the upgrade command.
+Make sure you review the verification report before running the `upgrade-objects` command.
 It is important to understand what will be changed and how it may affect the system.
 For more information about verification, see xref:./verify.adoc[].
 
 If no verification report is provided using the `--verification-file` option, the command displays a warning before applying any automatic upgrades.
-The warning can be suppressed using the `--skip-upgrade-warning` option.
+This warning can be suppressed using the `--skip-upgrade-warning` option.
 
-By default, the command upgrades objects stored in the repository.
+By default, the `upgrade-objects` command upgrades objects stored in the repository. +
 Alternatively, you can use the `--file` option to upgrade objects from an XML file.
-This mode does not require repository access.
-In this case, the original file is updated in place with the upgraded object definitions.
+This option does not require repository access, and it updates the original file in place with the upgraded object definitions.
 
-The scope of the `upgrade-objects` command can be set in several ways:
+The scope of the `upgrade-objects` command can be set using:
 
-* by oid (`--oid`)
-* by type (`-t, --type`) - e.g. `./bin/ninja.sh upgrade-objects -t user`
-* with filter (`-f, --filter`)
+* OID: `--oid`
+* Type: `-t, --type`, e.g., `./bin/ninja.sh upgrade-objects -t user`
+* Filter: `-f, --filter`
 +
 Prefix the filter with `%` to interpret it as a MidPoint Query Language (MQL) query or with `@` to load it from a file.
 
@@ -47,18 +46,18 @@ Prefix the filter with `%` to interpret it as a MidPoint Query Language (MQL) qu
 
 After selecting the objects to upgrade, you can further limit which verification items are applied by filtering them based on:
 
-* identifier (`--upgrade-identifier`)
-* type (`--upgrade-type`)
-* phase (`--upgrade-phase`)
-* priority (`--upgrade-priority`)
+* Identifier: `--upgrade-identifier`
+* Type: `--upgrade-type`
+* Phase: `--upgrade-phase`
+* Priority: `--upgrade-priority`
 
-The meaning of these filtering categories is described in the xref:./verify.adoc[] command documentation.
+For details on these filtering categories, see xref:./verify.adoc[].
 
-Verification items can also be skipped using the last column in the CSV file.
+Verification of items can also be skipped using the last column in the CSV file.
 Set the column to any of the following values to skip the item: `true`, `t`, `yes`, or `y`.
 
 Objects can also be upgraded partially.
-To exclude specific parts of an object (properties or containers), such as `activation` or `description`, from processing during the upgrade, use the `-ei`, `--exclude-item` option.
+To exclude specific parts of an object (properties or containers), such as `activation` or `description`, from processing during the upgrade, use the `-ei`, or `--exclude-item` option.
 
-The `upgrade-objects` command also supports multi-threading (`-l`, `--multi-thread`).
-For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
+The `upgrade-objects` command also supports multi-threading (`-l`, `--multi-thread <NUMBER_OF_THREADS>`).
+For more information, see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[how multithreading works].
