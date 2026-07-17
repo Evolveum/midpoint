@@ -211,13 +211,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             return null;
         }
 
-        var body = JSON_FACTORY.objectNode();
-
-        var artifact = input.getArtifact();
-        body.set("currentScript", JSON_FACTORY.textNode(
-                artifact != null && artifact.getContent() != null ? artifact.getContent() : ""));
-
-        body.set("midpointErrors", JSON_FACTORY.arrayNode());
+        var body = repairContextBody(input);
 
         var authArray = JSON_FACTORY.arrayNode();
         for (var auth : auths) {
@@ -246,22 +240,23 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         var artifactSpec = input.getArtifact();
         var objectClass = artifactSpec.getObjectClass();
         var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
+        var body = repairContextBody(input);
         var content = switch (classification) {
             case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
-                    "native-schema", "native schema script", skipCache);
+                    "native-schema", "native schema script", body, skipCache);
             case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
-                    "connid", "ConnID mapping script", skipCache);
-            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint(), skipCache);
+                    "connid", "ConnID mapping script", body, skipCache);
+            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint(), body, skipCache);
             case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
-                    "search by ID script", skipCache);
+                    "search by ID script", body, skipCache);
             case SEARCH_FILTER_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
-                    "search filter script", skipCache);
-            case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script", skipCache);
-            case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script", skipCache);
-            case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script", skipCache);
-            case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation(), skipCache);
+                    "search filter script", body, skipCache);
+            case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script", body, skipCache);
+            case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script", body, skipCache);
+            case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script", body, skipCache);
+            case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation(), body, skipCache);
             default -> throw new IllegalStateException("Unexpected script type: " + classification);
         };
         content = content.replace("${objectClass}", objectClass);
@@ -269,8 +264,19 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     }
 
-    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, boolean skipCache) {
-        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), skipCache)) {
+    private ObjectNode repairContextBody(ConnDevGenerateArtifactDefinitionType input) {
+        var body = JSON_FACTORY.objectNode();
+        var artifact = input.getArtifact();
+        body.set("currentScript", JSON_FACTORY.textNode(
+                artifact != null && artifact.getContent() != null ? artifact.getContent() : ""));
+        var errors = JSON_FACTORY.arrayNode();
+        input.getMidpointError().forEach(errors::add);
+        body.set("midpointErrors", errors);
+        return body;
+    }
+
+    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, ObjectNode body, boolean skipCache) {
+        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), body, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
         } catch (IOException e) {
             throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
@@ -280,14 +286,14 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
 
 
-    private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints, boolean skipCache) {
+    private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints, ObjectNode body, boolean skipCache) {
         // TODO: In future when endpoints are editable ensure synchronization of endpoints
         return generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
-                "search script", skipCache);
+                "search script", body, skipCache);
     }
 
-    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, boolean skipCache) {
-        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, skipCache)) {
+    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, ObjectNode body, boolean skipCache) {
+        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, body, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
         } catch (IOException e) {
             throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);

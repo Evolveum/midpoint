@@ -65,7 +65,15 @@ public interface ConnectorDevelopmentOperation {
 
 
     default String submitGenerateEndpointBasedScript(ConnectorDevelopmentArtifacts.KnownArtifactType artifactDef, String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateArtifact(artifactDef.create(objectClass),
+        return submitGenerateEndpointBasedScript(artifactDef, objectClass, endpoints, retry, null, List.of(), task, result);
+    }
+
+    default String submitGenerateEndpointBasedScript(ConnectorDevelopmentArtifacts.KnownArtifactType artifactDef, String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        var artifact = artifactDef.create(objectClass);
+        if (currentScript != null) {
+            artifact.setContent(currentScript);
+        }
+        return submitGenerateArtifact(artifact,
                 definition -> {
                     if (endpoints != null && !endpoints.isEmpty()) {
                         for (var endpoint : endpoints) {
@@ -79,44 +87,64 @@ public interface ConnectorDevelopmentOperation {
                             );
                         }
                     }
+                    if (midpointErrors != null) {
+                        definition.getMidpointError().addAll(midpointErrors);
+                    }
                 }, retry, task, result);
 
     }
 
     default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(SEARCH_ALL_DEFINITION, objectClass, endpoints, retry, task, result);
+        return submitGenerateSearchScript(objectClass, endpoints, retry, null, List.of(), task, result);
     }
 
-    default String submitGenerateSearchByIdScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(SEARCH_BY_ID_DEFINITION, objectClass, endpoints, retry, task, result);
+    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_ALL_DEFINITION, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    default String submitGenerateSearchFilterScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(SEARCH_FILTER_DEFINITION, objectClass, endpoints, retry, task, result);
+    default String submitGenerateSearchByIdScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_BY_ID_DEFINITION, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
+    }
+
+    default String submitGenerateSearchFilterScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_FILTER_DEFINITION, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
 
     default String submitGenerateRelationScript(ConnDevRelationInfoType relation, boolean retry, Task task, OperationResult result) {
+        return submitGenerateRelationScript(relation, retry, null, List.of(), task, result);
+    }
+
+    default String submitGenerateRelationScript(ConnDevRelationInfoType relation, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
         var safeClone = new ConnDevRelationInfoType()
                 .name(relation.getName())
                 .subject(relation.getSubject())
                 .subjectAttribute(relation.getSubjectAttribute())
                 .object(relation.getObject())
                 .objectAttribute(relation.getObjectAttribute());
-        return submitGenerateArtifact(RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName()),
-                definition -> definition.relation(safeClone), retry,  task, result);
+        var artifact = RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName());
+        if (currentScript != null) {
+            artifact.setContent(currentScript);
+        }
+        return submitGenerateArtifact(artifact,
+                definition -> {
+                    definition.relation(safeClone);
+                    if (midpointErrors != null) {
+                        definition.getMidpointError().addAll(midpointErrors);
+                    }
+                }, retry,  task, result);
     }
 
-    default String submitGenerateCreateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(CREATE, objectClass, endpoints, retry, task, result);
+    default String submitGenerateCreateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(CREATE, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    default String submitGenerateUpdateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(UPDATE, objectClass, endpoints, retry, task, result);
+    default String submitGenerateUpdateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(UPDATE, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    default String submitGenerateDeleteScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(DELETE, objectClass, endpoints, retry, task, result);
+    default String submitGenerateDeleteScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(DELETE, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
     String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, boolean retry, Task task, OperationResult result);

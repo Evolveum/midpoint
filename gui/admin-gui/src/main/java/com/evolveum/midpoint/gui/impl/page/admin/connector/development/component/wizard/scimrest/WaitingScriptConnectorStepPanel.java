@@ -17,18 +17,36 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
+import java.util.List;
+
 /**
  * @author lskublik
  */
 public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorStepPanel {
 
+    private String repairScript;
+    private List<String> repairErrors = List.of();
 
     public WaitingScriptConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
     public void resetScript(PageBase pageBase) {
+        resetScript(pageBase, null, List.of());
+    }
+
+    public void resetScript(PageBase pageBase, String currentScript, List<String> errorMessages) {
+        repairScript = currentScript;
+        repairErrors = errorMessages != null ? errorMessages : List.of();
         restartTask();
+    }
+
+    protected String getRepairScript() {
+        return repairScript;
+    }
+
+    protected List<String> getRepairErrors() {
+        return repairErrors;
     }
 
     @Override
