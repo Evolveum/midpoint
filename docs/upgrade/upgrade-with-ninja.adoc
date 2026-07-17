@@ -1,7 +1,8 @@
-= Upgrade with ninja
+= Upgrade with Ninja
 :page-toc: top
 :page-description: This document describes how to upgrade midPoint installation using a tool called Ninja.
 :page-keywords: upgrade, ninja, distribution upgrade, database schema upgrade, initial objects update
+:page-moved-from: /midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/
 
 == Introduction
 
