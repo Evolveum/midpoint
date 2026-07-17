@@ -668,6 +668,8 @@ body.custom-hold-transition {
     position: absolute;
     margin-left: -20px;
     margin-top: 6px;
+    width: auto;
+    max-width: none;
   }
 
   .check-table-label {
