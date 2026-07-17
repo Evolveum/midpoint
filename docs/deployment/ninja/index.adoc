@@ -3,46 +3,44 @@
 :page-upkeep-note: Need to update, also for midScale and DB migration
 :page-alias: { "parent" : "/midpoint/tools/" }
 
-[NOTE]
-====
-Since midPoint 4.8. Also in 4.4.6, 4.7.2 and later.
-
-* Commands and options names realigned:
-** All command and option names are kebab cased
-** File output is now `-o, --output`
-** `-O, --overwrite` for all commands
-====
-
 Ninja is a command-line tool bundled with midPoint that can communicate directly with the repository database.
 This makes it particularly useful for administrative and recovery tasks.
-Because it works directly with the repository, it can be used even when the web UI or REST API is unavailable.
+Because it works directly with the repository, it can be used even when the web UI or REST API are unavailable.
 Typical use cases include recovering from configuration issues or object data corruption that prevent midPoint from starting, as well as restoring access when the built-in administrator account is locked out.
 
-Since ninja operates directly on the repository layer, it bypasses the model component.
+Since Ninja operates directly on the repository layer, it bypasses the model component.
 As a result, authorizations are not enforced, changes are not audited, and model-level processing is skipped.
-While this makes ninja a powerful recovery tool, it also means that it should be used with caution.
+While this makes Ninja a powerful recovery tool, it also means that it should be used with caution.
 
-In addition to object import and export, ninja provides several administrative and maintenance commands.
+In addition to object import and export, Ninja provides several administrative and maintenance commands.
 These include listing keys stored in the keystore, re-encrypting objects with a new encryption key,
 validating the database schema, resetting user passwords, and unlocking user accounts.
 
-== Running ninja
+[NOTE]
+====
+Since midPoint 4.8 (also in 4.4.6, 4.7.2 and later), commands and options names realigned:
+
+* All command and option names are kebab cased.
+* File output is now `-o, --output`
+* `-O, --overwrite` for all commands.
+====
+
+== Running Ninja
 
 Ninja can be started either by using the bundled shell/batch scripts or as a standalone Java application.
 
 Both methods provide the same functionality.
-The bundled scripts simplify the startup process by automatically locating the xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home]
-directory and preparing the runtime environment.
+The bundled scripts simplify the startup process by automatically locating the xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home] directory and preparing the runtime environment.
 
 === Bundled scripts
 
-The bundled `ninja.sh` (Linux/macOS) and `ninja.bat` (Windows) scripts provide the simplest way to run ninja.
-They automatically configure ninja and start the `ninja.jar` application.
+The bundled `ninja.sh` (Linux/macOS) and `ninja.bat` (Windows) scripts provide the simplest way to run Ninja.
+They automatically configure Ninja and start the `ninja.jar` application.
 
 The scripts are located in the `<midpoint>/bin` directory.
 In the following examples, `<midpoint>` denotes the root directory of the midPoint installation.
 
-For commands that communicate directly with the repository, ninja needs access to the midPoint home directory.
+For commands that communicate directly with the repository, Ninja needs access to the midPoint home directory.
 It uses the `config.xml` file located in the midPoint home directory to obtain the repository configuration.
 
 By default, the bundled scripts determine the midPoint home directory automatically:
@@ -50,8 +48,7 @@ By default, the bundled scripts determine the midPoint home directory automatica
 * If the `MIDPOINT_HOME` environment variable is defined, its value is used.
 * Otherwise, the scripts use the default `<midpoint>/var` directory.
 
-.Example of command with `$MIDPOINT_HOME` environment variable directly defined in the command line:
-
+.Example command with `$MIDPOINT_HOME` environment variable directly defined in the command line
 [source,bash]
 ----
 MIDPOINT_HOME=/var/other-mp-home <midpoint>/bin/ninja.sh [general options] [command] [command options]
@@ -67,35 +64,35 @@ Alternatively, the location of the midPoint home directory can be specified expl
 
 [NOTE]
 ====
-When using a standalone ninja container, initialize the midPoint home directory before running repository commands:
+When using a standalone Ninja container, initialize the midPoint home directory before running repository commands:
 
 [source,bash]
 ----
 midpoint.sh init-native
 ----
 
-This command initializes the MidPoint Home directory, allowing ninja to locate the required configuration files (such as `config.xml`) and initialize the repository layer.
+This allows Ninja to locate the required configuration files (such as `config.xml`) and initialize the repository layer.
 
-This step is not required when running ninja from an existing midPoint container, because the MidPoint home directory has already been initialized.
+This step is not required when running Ninja from an existing midPoint container, because the midPoint home directory has already been initialized.
 ====
 
 
-Once the midPoint home directory is located, ninja reads the repository configuration from `config.xml`.
+Once the midPoint home directory is located, Ninja reads the repository configuration from `config.xml`.
 If the file contains the JDBC URL, username, and password, these values are used automatically.
 
 If `config.xml` contains only a datasource definition, the connection details must be provided explicitly using:
 
 * `-U` - JDBC URL
 * `-u` - JDBC username
-* `-p` or `-P` - JDBC password
+* `-p`, or `-P` - JDBC password
 
 These options can also be used to override the values specified in `config.xml`.
 
-=== Using ninja as a standalone JAR application
+=== Using Ninja as a standalone JAR application
 
 Ninja can also be executed directly as a standalone JAR application without using the bundled shell or batch scripts.
 
-When running ninja this way, the location of the midPoint home directory must be specified explicitly using the `-m` option.
+When running Ninja this way, the location of the midPoint home directory must be specified explicitly using the `-m` option.
 
 .General command syntax
 [source,bash]
@@ -109,12 +106,13 @@ java -jar ninja.jar -m <midpoint_home> [general options] [connection options] [c
 java -jar ninja.jar -m /opt/midpoint-home -U jdbc:postgresql://localhost:5432/testdb -u testuser -p testpassword export -t UserType -o /tmp/user-types.xml
 ----
 
-=== Using ninja with databases other than PostgreSQL
+=== Using Ninja with databases other than PostgreSQL
 
-If you are using a different database (for example Oracle or Microsoft SQL Server), you must obtain the appropriate JDBC driver and provide it to ninja.
+If you are using a different database (for example, Oracle or Microsoft SQL Server), you must obtain an appropriate JDBC driver and provide it to Ninja.
 
-When running ninja using the bundled scripts, specify the path to the JDBC driver JAR file using the `-j` option.
+* When running Ninja using the bundled scripts, specify the path to the JDBC driver JAR file using the `-j` option.
 
++
 .Example using a custom JDBC driver with bundled scripts
 [source,bash]
 ----
@@ -123,9 +121,10 @@ When running ninja using the bundled scripts, specify the path to the JDBC drive
   [general options] [connection options] [command] [command options]
 ----
 
-When running ninja as a standalone JAR application, specify the JDBC driver using the `-Dloader.path` JVM option.
+* When running Ninja as a standalone JAR application, specify the JDBC driver using the `-Dloader.path` JVM option.
 
-.Example using a custom JDBC driver with standalone ninja
++
+.Example using a custom JDBC driver with standalone Ninja
 [source,bash]
 ----
 java -Dloader.path=/path/to/jdbc-driver.jar \
@@ -135,29 +134,29 @@ java -Dloader.path=/path/to/jdbc-driver.jar \
 
 == FAQ
 
-=== Can I use ninja from midPoint 4.8.* distribution with deployment running midPoint 4.4.*?
+=== Can I use Ninja from a midPoint 4.8.* distribution with a deployment running midPoint 4.4.*?
 
-No, ninja 4.8 internally uses repository (DB) implementation from midPoint 4.8
-MidPoint 4.4.* has differences in DB schema compared to midPoint 4.8.
-Technically it is possible to run ninja 4.4.7 against midPoint 4.4.2 for example since DB schema didn't change between these versions.
-However, this is not recommended and not supported.
+No, Ninja 4.8 internally uses a repository (DB) implementation from midPoint 4.8.
+MidPoint 4.4.* has differences in the DB schema compared to midPoint 4.8.
+Technically it is possible to run Ninja 4.4.7 against midPoint 4.4.2, for example, since the DB schema did not change between these versions.
+However, this is not recommended and it is not supported.
 
 === Why raw (`-r`, `--raw`) option is needed when exporting objects?
 
-Raw option will tell ninja to export objects together with their definitions if needed.
+The raw option will tell Ninja to export objects together with their definitions if needed.
 These definitions are used to import objects back to midPoint.
-For more information see xref:./command/export.adoc[].
+For more information, see xref:./command/export.adoc[].
 
 === How multithreading works?
 
 Ninja uses multithreading for exporting and importing objects.
 Ninja will create a thread pool with a number of threads.
 
-When reading objects from midPoint, ninja will create queries that will split the data by object type (e.g. users, roles, shadows, ...).
-On top of this, shadow objects are also split by resource oid.
-Each query and query results is then processed in a separate thread.
+When reading objects from midPoint, Ninja will create queries that will split the data by object type (e.g., users, roles, shadows, ...).
+On top of this, shadow objects are also split by resource OID.
+Each query and query result is then processed by a separate thread.
 
-When importing objects to midPoint, ninja will read the file with objects into single queue and add objects to midPoint repository in parallel.
+When importing objects to midPoint, Ninja reads the file with objects in a single queue, and adds objects to the midPoint repository in parallel.
 
 == See also
 
