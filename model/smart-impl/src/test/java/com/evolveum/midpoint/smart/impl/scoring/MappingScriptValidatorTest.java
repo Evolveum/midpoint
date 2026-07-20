@@ -22,6 +22,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
@@ -49,11 +50,13 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     private static final String MEL = "mel";
 
     private ExpressionFactory expressionFactory;
+    private ExpressionProfileManager expressionProfileManager;
 
     @BeforeClass
     void setupBeans() throws SchemaException, IOException, SAXException {
         final ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
         this.expressionFactory = beans.expressionFactory;
+        this.expressionProfileManager = new ExpressionProfileManager();
         final var scriptExpressionEvaluatorFactory = ((ScriptExpressionEvaluatorFactory) this.expressionFactory
                 .getEvaluatorFactory(SchemaConstantsGenerated.C_SCRIPT));
 
@@ -78,7 +81,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
             ConfigurationException, ObjectNotFoundException {
         final ExpressionType expression = createExpression(GROOVY, "input.replaceAll('-', '')");
 
-        final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
+        final Collection<String> result = new MappingScriptValidator(this.expressionFactory, this.expressionProfileManager)
                 .evaluateExpression(expression, "input", "1-2-3", String.class,
                         new NullTaskImpl(), createOperationResult());
 
@@ -90,7 +93,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     void groovyScriptIsNotValid_validateScript_scriptValidationFails() {
         final ExpressionType expression = createExpression(GROOVY, "input.replce('-', '')");
 
-        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
+        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory, this.expressionProfileManager);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
                 expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
     }
@@ -101,7 +104,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
             ConfigurationException, ObjectNotFoundException {
         final ExpressionType expression = createExpression(MEL, "input.replace('-', '')");
 
-        final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
+        final Collection<String> result = new MappingScriptValidator(this.expressionFactory, this.expressionProfileManager)
                 .evaluateExpression(expression, "input", "1-2-3", String.class,
                         new NullTaskImpl(), createOperationResult());
 
@@ -113,7 +116,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     void melExpressionIsNotValid_validateExpression_expressionValidationFails() {
         final ExpressionType expression = createExpression(MEL, "input.replce('-', '')");
 
-        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
+        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory, this.expressionProfileManager);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
                 expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
     }
@@ -130,7 +133,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
         final XMLGregorianCalendar dateTime =
                 XmlTypeConverter.createXMLGregorianCalendar(2024, 5, 17, 10, 30, 0);
 
-        final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
+        final Collection<String> result = new MappingScriptValidator(this.expressionFactory, this.expressionProfileManager)
                 .evaluateExpression(expression, "input", dateTime, XMLGregorianCalendar.class,
                         new NullTaskImpl(), createOperationResult());
 
@@ -146,7 +149,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     void melExpressionUsesXmlGregorianCalendarMethod_variablePassedAsString_expressionValidationFails() {
         final ExpressionType expression = createExpression(MEL, "input.formatDateTime('yyyy')");
 
-        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
+        final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory, this.expressionProfileManager);
         Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
                 expression, "input", "2024-05-17T10:30:00", String.class,
                 new NullTaskImpl(), createOperationResult()));

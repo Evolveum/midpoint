@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -82,6 +83,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
             });
 
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ExpressionProfileManager expressionProfileManager;
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
     @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
     @Autowired private CorrelationService correlationService;
@@ -201,8 +203,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -261,8 +263,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -312,8 +314,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -366,8 +368,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -406,8 +408,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -459,8 +461,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         String script = scriptEvaluator.get().getCode();
         assertThat(script)
-                .as("Script should use basic.composeDnWithSuffix function")
-                .contains("basic.composeDnWithSuffix");
+                .as("Script should use ldap.composeDnWithSuffix function")
+                .contains("ldap.composeDnWithSuffix");
         assertThat(script)
                 .as("Script should use 'uid' as RDN type")
                 .contains("'uid'");
@@ -501,8 +503,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -549,8 +551,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -588,8 +590,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         String script = scriptEvaluator.get().getCode();
         assertThat(script)
-                .as("Script should use basic.composeDnWithSuffix function")
-                .contains("basic.composeDnWithSuffix");
+                .as("Script should use ldap.composeDnWithSuffix function")
+                .contains("ldap.composeDnWithSuffix");
         assertThat(script)
                 .as("Script should use 'cn' as RDN type for AD")
                 .contains("'cn'");
@@ -625,8 +627,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -673,8 +675,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         var op = MappingsSuggestionOperation.init(
                 ctx,
-                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
-                new MappingScriptValidator(expressionFactory),
+                new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory, expressionProfileManager)),
+                new MappingScriptValidator(expressionFactory, expressionProfileManager),
                 new ShadowsWithOwnersCorrelatingProvider(correlationService),
                 wellKnownSchemaService,
                 heuristicRuleMatcher,

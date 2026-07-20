@@ -7,10 +7,16 @@
 package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionClassProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionMethodProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
 
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +57,43 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             BulkActionsProfile.none(),
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY); // actually does not matter
+
+    /**
+     * Profile for mappings quality assessment: allows only Groovy and MEL script evaluators with security restrictions.
+     * Specifically denies dangerous operations like String.execute() in Groovy to prevent shell command execution.
+     * This profile is used when evaluating AI-generated or untrusted mapping scripts.
+     */
+    public static ExpressionProfile createMappingsQualityAssessmentProfile() {
+        ExpressionPermissionProfile groovyPermissionsProfile = ExpressionPermissionProfile.closed(
+                "LLM Groovy scripts permission profile", AccessDecision.ALLOW, Collections.emptyList(),
+                List.of(new ExpressionPermissionClassProfileType()
+                        .decision(AuthorizationDecisionType.ALLOW)
+                        .name("java.lang.String")
+                        .method(new ExpressionPermissionMethodProfileType()
+                                .name("execute")
+                                .decision(AuthorizationDecisionType.DENY))));
+
+        ExpressionEvaluatorProfile scriptEvaluatorProfile = new ExpressionEvaluatorProfile(
+                SchemaConstantsGenerated.C_SCRIPT, AccessDecision.DENY, // Deny by default
+                List.of(
+                        new ScriptLanguageExpressionProfile(
+                                "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy",
+                                AccessDecision.ALLOW,
+                                true,
+                                groovyPermissionsProfile),
+                        new ScriptLanguageExpressionProfile(
+                                "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel",
+                                AccessDecision.ALLOW,
+                                true,
+                                null)));
+
+        return new ExpressionProfile(
+                SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
+                new ExpressionEvaluatorsProfile(AccessDecision.DENY, List.of(scriptEvaluatorProfile)),
+                BulkActionsProfile.none(),
+                FunctionLibrariesProfile.none(),
+                AccessDecision.DENY); // No privilege elevation
+    }
 
     /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.

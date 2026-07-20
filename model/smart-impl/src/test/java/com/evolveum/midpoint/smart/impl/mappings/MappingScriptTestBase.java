@@ -15,6 +15,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
@@ -94,6 +95,6 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
                         // be careful to not invoke any Midpoint functions library method in tested expressions.
                         null));
 
-        return new MappingScriptValidator(expressionFactory);
+        return new MappingScriptValidator(expressionFactory, new ExpressionProfileManager());
     }
 }

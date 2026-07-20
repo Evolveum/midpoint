@@ -270,4 +270,15 @@ public class ExpressionProfileManager {
             return ExpressionProfile.legacyUnprivilegedBulkActions();
         }
     }
+
+    /**
+     * Returns the expression profile for mappings quality assessment.
+     * This profile is used when evaluating mapping expressions to assess their quality.
+     *
+     * Currently always returns the built-in profile.
+     * In the future, this could be extended to support custom profiles from system configuration.
+     */
+    public @NotNull ExpressionProfile getMappingsQualityAssessmentProfile() {
+        return ExpressionProfile.createMappingsQualityAssessmentProfile();
+    }
 }
