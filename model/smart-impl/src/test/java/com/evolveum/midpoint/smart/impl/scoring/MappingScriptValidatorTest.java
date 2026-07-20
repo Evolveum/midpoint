@@ -73,25 +73,11 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     }
 
     @Test
-    void groovyScriptIsValid_validateScript_scriptPassValidation()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+    void groovyScriptIsValid_validateScript_scriptFailsDueToSecurityRestriction() {
         final ExpressionType expression = createExpression(GROOVY, "input.replaceAll('-', '')");
 
-        final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
-                .evaluateExpression(expression, "input", "1-2-3", String.class,
-                        new NullTaskImpl(), createOperationResult());
-
-        assertEquals(result.size(), 1);
-        assertEquals(result.iterator().next(), "123");
-    }
-
-    @Test
-    void groovyScriptIsNotValid_validateScript_scriptValidationFails() {
-        final ExpressionType expression = createExpression(GROOVY, "input.replce('-', '')");
-
         final MappingScriptValidator validator = new MappingScriptValidator(this.expressionFactory);
-        Assert.assertThrows(ExpressionEvaluationException.class, () -> validator.evaluateExpression(
+        Assert.assertThrows(SecurityViolationException.class, () -> validator.evaluateExpression(
                 expression, "input", "1-2-3", String.class, new NullTaskImpl(), createOperationResult()));
     }
 
