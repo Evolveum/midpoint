@@ -3,78 +3,41 @@
 WARNING: Experimental feature.
 This command is experimental and might not work properly in all cases.
 It will fail when used against generic repository implementation when unsupported objects are handled.
+The `initial-objects` command compares the initial objects in the repository with the initial objects provided by the target midPoint version.
+Depending on the selected options, it either replaces the existing objects or merges them with the new definitions.
 
-This is the last step of upgrade procedure while midPoint is still down.
-It is necessary to update initial objects to make sure that they are compatible with new version of midPoint and midPoint can start and work properly.
+By default, Ninja attempts to preserve custom changes by merging them with the definitions from the target midPoint version.
+Alternatively, you can replace the existing objects without merging by using the `--no-merge` option.
 
-IMPORTANT: When upgrading LTS (from 4.4 -> 4.8) it is necessary to upgrade at least securityPolicy object.
-Reason for this is that there were changes in authentication/authorization processing for different channels and configuration related to it, hence securityPolicy.
-See <<Important updates>> for more details.
+WARNING: The merging algorithm used in this Ninja command is experimental and might not work properly in all cases.
+Review all changes proposed by Ninja using `--dry-run` before applying them to repository.
 
-Ninja contains command `initial-objects` to help you update set of initial objects (see `ninja.sh help initial-objects` for more details).
-Initial objects command will help add, update or replace existing objects in repository.
-
-All necessary objects are bundled in directly in ninja, however, it is possible to use custom set of new initial objects using `--file` option.
-`--file` options can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
+The default set of initial objects is bundled with the midPoint distribution.
+To use a custom set of initial objects, specify it using the `--file` option.
+The `--file` option can be used multiple times or have multiple values separated by comma to specify multiple directories/files.
 
 Ninja also supports filtered processing using `--type`, `--oid` and `--reverse-oid-filter`/`--reverse-type-filter`.
-Such options give you possibility to process only subset of objects using this command.
-E.g. replace objects without custom changes without any merge, reports or dry-run while reviewing merged objects with custom changes.
+Such options enable you to process only a subset of objects.
+For example, you can replace objects without custom changes directly, without merging, reports, or dry runs, while reviewing only the merged objects that contain your custom changes.
 
-This command also supports dry-run mode and reporting.
-Dry-run mode can be used to see what changes will be done in repository without actually doing them (option `--dry-run`).
-Reporting can be turned on using `-r, --report` options.
-Report option can be coupled with `--report-style [DELTA|FULL_OBJECT]` to specify whether XML output should contain only deltas or full objects after update.
-There's also standard set of options to send output to file (`-o, --output`) and overwrite (`-O, --overwrite`).
+`initial-objects` also supports a dry-run mode and reporting.
+Use the `--dry-run` option to preview the changes that would be applied to the repository without modifying it.
+Enable reporting by the `-r, --report` option.
+The `report` option can be coupled with `--report-style [DELTA|FULL_OBJECT]` to specify whether XML outputs should contain only deltas or full objects after updates.
+There are also options to send outputs to a file (`-o, --output`), and to overwrite existing outputs (`-O, --overwrite`).
 
-NOTE: Initial objects that are new in upgraded version of midPoint are not added to repository by ninja automatically.
-By default, these objects will be properly imported during first start of upgraded midPoint.
-If one wants to import them before first start, it is possible to use `--force-add` option.
-
-WARNING: Merging algorithm used in this ninja command is experimental and might not work properly in all cases.
-Please review all changes proposed by ninja using `--dry-run` before applying them to repository.
-
-There are two main scenarios that can be followed:
-
-* <<No changes in initial objects>>
-* <<Custom changes in initial objects>>
-
-== No changes in initial objects
-
-This one is the simplest case.
-If there are no custom changes in initial objects made by users, then ninja can update initial objects automatically.
-Update can be done by overwriting existing ones without merge.
-Following command can be used (please use `--dry-run` if you want to see what will be done without actually doing it):
-
-[source,bash]
-----
-./bin/ninja.sh initial-objects --no-merge
-----
-
-== Custom changes in initial objects
-
-If there are custom changes in initial objects made by users, then ninja can help you merge them.
-First, dry run is recommended to see what needs to be done, optionally with report of changes:
-
+.Example creating an initial object changes report
 [source,bash]
 ----
 ./bin/ninja.sh initial-objects --dry-run --report --report-style FULL_OBJECT -o report-initial-objects.xml
 ----
 
-If you're satisfied with changes proposed by ninja, you can execute command without `--dry-run` and report related options.
-If there are objects (filtered by types or oids) that can be handled without merge, you can run:
-
+.Update all initial objects except security policies
 [source,bash]
 ----
-./bin/ninja.sh initial-objects --no-merge [--type securityPolicy,valuePolicy,...] [--oid 93ae3cd3-b34d-4093-ad49-adba573a95ba]
+./bin/ninja.sh initial-objects --type securityPolicy --reverse-type-filter
 ----
 
-== Important updates
-
-There is at least one object - securityPolicy that needs to be updated when upgrading LTS from 4.4 to 4.8.
-If there are no custom changes in securityPolicy, following command can be used:
-
-[source,bash]
-----
-./bin/ninja.sh initial-objects --no-merge --type securityPolicy
-----
+NOTE: Initial objects that are new in an upgraded version of midPoint are not added to the repository by Ninja automatically.
+By default, these objects will be properly imported during the first start of the upgraded midPoint.
+To import them before the first start, use the `--force-add` option.
