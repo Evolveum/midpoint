@@ -2613,8 +2613,10 @@ footer.app-footer a {
     background-color: #fff;
 }
 
+// Keep dropdown menus visible in responsive tables, but preserve explicit overflow behavior
+// for tables that provide their own scrolling or clipping.
 @media (min-width: 992px) {
-    .table-responsive {
+    .table-responsive:not([class*="overflow"]) {
         overflow: visible !important;
     }
 }
