@@ -565,7 +565,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-with-ninja/#initial-objects-update[here].
 
 * 000-system-configuration.xml: improved `safe` expression profile, added `permissive` and `prohobitive` profiles, renamed `script-safe` to `script-limited` permission profile, added possibility for configuration of volatility of attribute in resource wizard, added task execution constraints to advanced options tab, updated default paging options, made operation execution recording a regular feature, extended with compliance dashboard, improving `help` attribute values.
 * 010-value-policy.xml: improved localization for name attributes, removed max password length constraint, added `ignoreWhenGenerating` value policy feature.
