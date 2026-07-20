@@ -400,6 +400,7 @@ $MP_INSTALLATION/bin/ninja.sh upgrade-installation \
 
 NOTE: The same MP_INSTALLATION directory is used for new midPoint.
 
+[[initial-objects]]
 === Initial objects update
 
 Each midPoint distribution includes a set of default initial objects that are imported during the first startup.
