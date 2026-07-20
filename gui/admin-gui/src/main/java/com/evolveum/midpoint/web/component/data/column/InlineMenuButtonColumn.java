@@ -317,7 +317,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     protected String getInlineMenuItemCssClass(IModel<T> rowModel) {
-        return "btn btn-light border btn-xs";
+        return "btn btn-light border btn-sm";
     }
 
     protected String getDropDownButtonIcon() {

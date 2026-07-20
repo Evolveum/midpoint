@@ -1789,7 +1789,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected String getInlineMenuItemCssClass(@Nullable IModel<PO> rowModel) {
-        return "btn btn-light border btn-xs";
+        return "btn btn-light border btn-sm";
     }
 
     private boolean isPartOfDetailsPage() {
