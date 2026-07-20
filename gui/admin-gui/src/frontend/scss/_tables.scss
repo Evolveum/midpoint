@@ -74,6 +74,12 @@ td.rounded-icon-column div.rounded-circle {
   vertical-align: middle;
 }
 
+// Use the regular body text color instead of Bootstrap's emphasized table text.
+.table-body-color {
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-striped-color: var(--bs-body-color);
+}
+
 /*
  * Styles for the container object comparison table layout.
  * Defines minimum column widths and basic visual formatting

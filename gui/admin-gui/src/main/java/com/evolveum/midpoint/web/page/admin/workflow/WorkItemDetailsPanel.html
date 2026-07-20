@@ -7,8 +7,8 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="card shadow-sm mb-3 bg-info">
-        <div class="card-body no-padding">
+    <div>
+        <div>
             <table class="table table-condensed table-striped">
                 <tr>
                     <td class="col-md-3">
@@ -66,13 +66,13 @@
 
     <div style="margin-top:20px" wicket:id="additionalInformation"/>
 
-    <div class="card shadow-sm mb-3 bg-info" wicket:id="additionalAttributes">
-        <div class="card-header">
-            <h3 class="card-title">
+    <div wicket:id="additionalAttributes">
+        <div>
+            <h3>
                 <wicket:message key="workItemPanel.additionalAttributes"/>
             </h3>
         </div>
-        <div class="card-body">
+        <div>
             <div wicket:id="customForm"/>
         </div>
     </div>
