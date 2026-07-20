@@ -1616,6 +1616,20 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NOT_NULLABLE)
             ),
 
+            // timestamp.farAhead()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "timestamp.farAhead",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-timestamp-farAhead",
+                                    "Returns timestamp that is referring to a time far ahead, too far into the future.",
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-farAhead",
+                            ImmutableList.of(),
+                            CelMelExtensions::farAhead,
+                            NullabilityProperties.NOT_NULLABLE)
+            ),
+
             // ts.getEpochMillisecond()
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -2198,6 +2212,11 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private static Instant longAgo(Object[] args) {
         return Instant.ofEpochSecond(0);
+    }
+
+    private static Instant farAhead(Object[] args) {
+        // 9999-12-31T23:59:59
+        return Instant.ofEpochSecond(253402300799L);
     }
 
     private Instant atStartOfDay(Instant instant) {

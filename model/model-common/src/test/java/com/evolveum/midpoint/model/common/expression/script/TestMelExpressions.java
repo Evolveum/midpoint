@@ -2927,22 +2927,21 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testTimestampLongAgo() throws Exception {
-
-        // WHEN
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-timestamp-long-ago.xml");
-        List<PrismPropertyValue<XMLGregorianCalendar>> expressionResultList =
-                evaluateExpression(scriptType, DOMUtil.XSD_DATETIME, true,
-                        createVariables(),
-                        getTestName(), createOperationResult());
-
-        // THEN
-        PrismPropertyValue<XMLGregorianCalendar> expressionResult = asScalar(expressionResultList, getTestName());
-        displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + getTestName() + " resulted in null value)", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value",
-                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("1970-01-01T00:00:00.000Z"), expressionResult.getValue());
+        evaluateAndAssertDateTimeScalarExpression(
+                "expression-timestamp-long-ago.xml",
+                createVariables(),
+                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("1970-01-01T00:00:00.000Z")
+        );
     }
 
+    @Test
+    public void testTimestampFarAhead() throws Exception {
+        evaluateAndAssertDateTimeScalarExpression(
+                "expression-timestamp-far-ahead.xml",
+                createVariables(),
+                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("9999-12-31T23:59:59.000Z")
+        );
+    }
 
     @Test
     public void testTimestampFormatParse() throws Exception {
