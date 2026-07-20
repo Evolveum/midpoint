@@ -169,6 +169,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         add(searchResultInfo);
 
         WebMarkupContainer footer = createFooter(ID_FOOTER);
+        footer.add(AttributeAppender.append("class", "boxed-table-footer"));
         footer.add(AttributeAppender.append("class", getAdditionalFooterCssClasses()));
         footer.add(new VisibleBehaviour(() -> isFooterVisible(provider, pageSize)));
         add(footer);
