@@ -712,7 +712,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-with-ninja/#initial-objects-update[here].
 
 * 040-role-enduser.xml: The `End user` role was updated with a hidden visibility for `myCertificationItems` dashboard widget.
 * 042-role-enduser.xml: The `Reviewer` role was extended with `myActiveCertificationCampaigns` UI authorization for active campaigns page and with more items of the certification campaign object to be read.
