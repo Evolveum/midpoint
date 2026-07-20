@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.commons.lang3.StringUtils;
@@ -87,6 +88,16 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
         }
         return operationResultCollapsedItem.getResults().stream()
                 .anyMatch(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()));
+    }
+
+    public List<OperationResult> getOperationResultsForFixStep(String stepId) {
+        if (StringUtils.isEmpty(stepId)) {
+            return List.of();
+        }
+        return operationResultCollapsedItem.getResults().stream()
+                .filter(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()))
+                .map(OperationResultWrapper::getResult)
+                .toList();
     }
 
     public abstract boolean isShowedSummary();

@@ -249,6 +249,10 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     private void onRefreshPerformed(AjaxRequestTarget target) {
         if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
+            ConnDevArtifactType currentArtifact = valueModel.getObject();
+            String currentScript = currentArtifact != null ? currentArtifact.getContent() : null;
+            List<String> errorMessages = ConnectorDevelopmentWizardUtil.collectErrorMessages(
+                    parentWizardModel.getOperationResultsForFixStep(getStepId()));
             List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
             int activeStepIndex = parentWizardModel.getActiveStepIndex();
             String idOfFound = null;
@@ -260,7 +264,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 WizardStep step = steps.get(i);
                 if (step instanceof WaitingScriptConnectorStepPanel waitingPanel) {
                     idOfFound = step.getStepId();
-                    waitingPanel.resetScript(getPageBase());
+                    waitingPanel.resetScript(getPageBase(), currentScript, errorMessages);
                     if (i == 0) {
                         setActiveStepById(target, parentWizardModel, idOfFound);
                     }

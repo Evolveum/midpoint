@@ -565,6 +565,24 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    public static List<String> collectErrorMessages(Collection<OperationResult> results) {
+        List<String> messages = new ArrayList<>();
+        results.forEach(result -> collectErrorMessages(result, messages));
+        return messages;
+    }
+
+    private static void collectErrorMessages(OperationResult result, List<String> messages) {
+        if (result == null) {
+            return;
+        }
+        if (result.isError() && StringUtils.isNotEmpty(result.getMessage()) && !messages.contains(result.getMessage())) {
+            messages.add(result.getMessage());
+        }
+        for (OperationResult subresult : result.getSubresults()) {
+            collectErrorMessages(subresult, messages);
+        }
+    }
+
     public static void enableConnectorLogCapture(Task task) {
         task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
         task.addTracingRequest(TracingRootType.CONNECTOR_OPERATION);
