@@ -831,6 +831,43 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionListContainsTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of("expression-foo-contains-bar.xml",
+                        "expression-foo-containsignorecase-bar.xml"),
+                createVariables(
+                        "foo", userJack.asObjectable().getOrganizationalUnit(), List.class,
+                        "bar", "Leaders", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
+    public void testExpressionListContainsFalse() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of("expression-foo-contains-bar.xml",
+                        "expression-foo-containsignorecase-bar.xml"),
+                createVariables(
+                        "foo", userJack.asObjectable().getOrganizationalUnit(), List.class,
+                        "bar", "Bar", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testExpressionListContainsIgnoreCaseTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression("expression-foo-containsignorecase-bar.xml",
+                createVariables(
+                        "foo", userJack.asObjectable().getOrganizationalUnit(), List.class,
+                        "bar", "leaders", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
     public void testExpressionFooDefaultString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-foo-default.xml",

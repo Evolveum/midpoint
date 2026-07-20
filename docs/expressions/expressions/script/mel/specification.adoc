@@ -277,7 +277,7 @@ If the position is negative, or greater than the length of the string, the funct
 'midpoint'.charAt(1)   // Returns 'i'
 ----
 
-=== contains
+=== contains(string)
 
 `string.contains(substring)` -> bool +
 `contains(string, substring)` -> bool
@@ -296,8 +296,22 @@ focus.fullName.contains('Mr.')
 contains(focus.?fullName, 'Mr.')
 ----
 
+=== contains(list)
 
-=== containsIgnoreCase
+`list.contains(any)` -> bool
+
+Function that tests whether provided list contains specified item.
+
+.Example
+[source,mel]
+----
+['Alpha', 'Bravo', 'Charlie'].contains('Bravo')  // Returns true
+
+focus.organizationUnit.contains('Sales')
+----
+
+
+=== containsIgnoreCase(string)
 
 `string.containsIgnoreCase(substring)` -> bool +
 `containsIgnoreCase(string, substring)` -> bool
@@ -311,6 +325,23 @@ Works on strings as well as polystrings.
 // Checks whether the full name contains substring 'phd.' in any combination of cases
 focus.fullName.containsIgnoreCase('phd.')
 ----
+
+=== containsIgnoreCase(list)
+
+`list.containsIgnoreCase(any)` -> bool
+
+Function that tests whether provided list contains specified item without regard to case.
+
+.Example
+[source,mel]
+----
+['Alpha', 'Bravo', 'Charlie'].contains('Bravo')            // Returns true
+
+['Alpha', 'Bravo', 'Charlie'].containsIgnoreCase('bravo')  // Returns true
+
+focus.organizationUnit.contains('sales')
+----
+
 
 === debugDump
 

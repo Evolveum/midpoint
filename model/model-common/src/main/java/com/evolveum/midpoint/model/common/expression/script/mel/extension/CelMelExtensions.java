@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static java.io.File.separator;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -62,11 +63,17 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private final CelOptions celOptions;
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final Protector protector;
+    private final RuntimeEquality runtimeEquality;
 
-    public CelMelExtensions(CelOptions celOptions, Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+    public CelMelExtensions(
+            CelOptions celOptions,
+            Protector protector,
+            BasicExpressionFunctions basicExpressionFunctions,
+            RuntimeEquality runtimeEquality) {
         this.celOptions = celOptions;
         this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
+        this.runtimeEquality = runtimeEquality;
         initialize();
     }
 
@@ -232,12 +239,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionDecl.newFunctionDeclaration(
                             "contains",
                             CelOverloadDecl.newGlobalOverload(
-                                    "mel_contains_any",
+                                    "mel-contains-any",
                                     "Returns true if string contains specified substring.",
                                     SimpleType.BOOL,
                                     NullableType.create(SimpleType.ANY), SimpleType.STRING)),
                     CelFunctionBinding.from(
-                            "mel_contains_any", Object.class, String.class,
+                            "mel-contains-any", Object.class, String.class,
                             CelMelExtensions::containsAny,
                             NullabilityProperties.NULLABLE)),
 
@@ -246,16 +253,31 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionDecl.newFunctionDeclaration(
                             "contains",
                             CelOverloadDecl.newMemberOverload(
-                                    "polystring_contains",
+                                    "polystring-contains",
                                     "Returns true if orig part of polystring contains specified substring.",
                                     SimpleType.BOOL,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
-                            "polystring_contains",
+                            "polystring-contains",
                             ImmutableList.of(PolyStringCelValue.class, String.class),
                             CelMelExtensions::polystringContains,
                             NullabilityProperties.NULLABLE_FALSE)),
 
+            // list.contains(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "contains",
+                            CelOverloadDecl.newMemberOverload(
+                                    "list-contains-any",
+                                    "Returns true if the list contains specified item.",
+                                    SimpleType.BOOL,
+                                    ListType.create(SimpleType.ANY), SimpleType.ANY)
+                    ),
+                    CelFunctionBinding.from(
+                            "list-contains-any", List.class, Object.class,
+                            this::listContains,
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
 
             // string.containsIgnoreCase(substring)
             new Function(
@@ -300,7 +322,23 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::containsIgnoreCase,
                             NullabilityProperties.NULLABLE)),
 
-            // default(x, defaultVal)
+            // list.containsIgnoreCase(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "containsIgnoreCase",
+                            CelOverloadDecl.newMemberOverload(
+                                    "list-containsIgnoreCase-any",
+                                    "Returns true if the list contains specified item without regard to case.",
+                                    SimpleType.BOOL,
+                                    ListType.create(SimpleType.ANY), SimpleType.ANY)
+                    ),
+                    CelFunctionBinding.from(
+                            "list-containsIgnoreCase-any", List.class, Object.class,
+                            this::listContainsIgnoreCase,
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
+
+                // default(x, defaultVal)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "default",
@@ -641,6 +679,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
             // join(list)
             // join(list, separator)
+            // list.join()
+            // list.join(separator)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "join",
@@ -674,8 +714,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::join,
                             NullabilityProperties.NULLABLE)
                     ),
-
-            // TODO: JOIN? Does it make sense? -> join(list(any))
 
             // string.lastIndexOf(substring [, offset])
             new Function(
@@ -1898,6 +1936,31 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return o.toString().contains(substring);
     }
 
+    private boolean listContains(List<Object> list, final Object item) {
+        if (isCelNull(list)) {
+            return false;
+        }
+        return list.stream()
+                .anyMatch(i -> runtimeEquality.objectEquals(item, i));
+    }
+
+    private boolean listContainsIgnoreCase(List<Object> list, final Object item) {
+        if (isCelNull(list)) {
+            return false;
+        }
+        return list.stream()
+                .anyMatch(i -> {
+                    if (i instanceof String s) {
+                        return s.equalsIgnoreCase(stringify(item, null));
+                    }
+                    if (i instanceof PolyStringCelValue ps) {
+                        return ps.getOrig().equalsIgnoreCase(stringify(item, null));
+                    }
+                    return runtimeEquality.objectEquals(item, i);
+                });
+    }
+
+
     private Object nilProducer(Object[] objects) {
         return NullValue.NULL_VALUE;
     }
@@ -2051,8 +2114,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
         private final CelMelExtensions version0;
 
-        private Library(CelOptions celOptions, Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
-            version0 = new CelMelExtensions(celOptions, protector, basicExpressionFunctions);
+        private Library(
+                CelOptions celOptions,
+                Protector protector,
+                BasicExpressionFunctions basicExpressionFunctions,
+                RuntimeEquality runtimeEquality) {
+            version0 = new CelMelExtensions(celOptions, protector, basicExpressionFunctions, runtimeEquality);
         }
 
         @Override
@@ -2066,8 +2133,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static CelExtensionLibrary<CelMelExtensions> library(CelOptions celOptions, Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
-        return new Library(celOptions, protector, basicExpressionFunctions);
+    public static CelExtensionLibrary<CelMelExtensions> library(
+            CelOptions celOptions,
+            Protector protector,
+            BasicExpressionFunctions basicExpressionFunctions,
+            RuntimeEquality runtimeEquality) {
+        return new Library(celOptions, protector, basicExpressionFunctions, runtimeEquality);
     }
 
     @Override

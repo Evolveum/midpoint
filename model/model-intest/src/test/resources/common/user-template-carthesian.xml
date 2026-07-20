@@ -31,8 +31,8 @@
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                         <code>
-                            y.targetType() == 'OrgType' &amp;&amp; !list(y.subtype).exists(s, s == 'combined')
-                            // y.targetType() == 'OrgType' &amp;&amp; !y.subtype.contains('combined')
+                            // y.targetType() == 'OrgType' &amp;&amp; !list(y.subtype).exists(s, s == 'combined')
+                            y.targetType() == 'OrgType' &amp;&amp; !y.subtype.contains('combined')
                         </code>
                     </script>
                 </condition>
@@ -91,9 +91,9 @@
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                         <code>
-                            list(assignment.subtype).exists(s, s == 'combined')
+                            // list(assignment.subtype).exists(s, s == 'combined')
                             // assignment.subtype.exists(s, s == 'combined')
-                            // assignment.subtype.contains('combined')
+                            assignment.subtype.contains('combined')
                         </code>
                     </script>
                 </condition>

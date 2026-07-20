@@ -556,8 +556,17 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         List<PrismPropertyValue<Boolean>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_BOOLEAN, true, variables);
         PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
+        assertNotNull("Expression " + getTestName() + "("+fileName+") resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + getTestName() + "("+fileName+") resulted in wrong value", expectedValue, expressionResult.getValue());
+    }
+
+    protected void evaluateAndAssertBooleanScalarExpressions(List<String> fileNames,
+            VariablesMap variables, Boolean expectedValue)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        for(var fileName : fileNames) {
+            evaluateAndAssertBooleanScalarExpression(fileName, variables, expectedValue);
+        }
     }
 
     protected void evaluateAndAssertQNameScalarExpression(String fileName,
