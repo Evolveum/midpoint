@@ -67,6 +67,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
             .enableShortCircuiting(true)
             .enableEasyNull(true)
             .build();
+    private final MelRuntimeEquality runtimeEquality = new MelRuntimeEquality(celOptions);
 
     private CelTypeProvider typeProvider = null;
 
@@ -82,7 +83,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
-                basicExpressionFunctions, midpointExpressionFunctions, celOptions);
+                basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality);
         functionLibraryProcessor = new FunctionLibraryProcessor();
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
@@ -251,7 +252,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
         builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getExpressionProfile()));
-        builder.setRuntimeEquality(new MelRuntimeEquality(celOptions));
+        builder.setRuntimeEquality(runtimeEquality);
         addFunctionLibraryImplementations(builder, context);
         return builder.build();
     }

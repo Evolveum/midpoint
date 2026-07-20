@@ -831,6 +831,43 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionListContainsTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of("expression-foo-contains-bar.xml",
+                        "expression-foo-containsignorecase-bar.xml"),
+                createVariables(
+                        "foo", userJack.asObjectable().getOrganizationalUnit(), List.class,
+                        "bar", "Leaders", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
+    public void testExpressionListContainsFalse() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of("expression-foo-contains-bar.xml",
+                        "expression-foo-containsignorecase-bar.xml"),
+                createVariables(
+                        "foo", userJack.asObjectable().getOrganizationalUnit(), List.class,
+                        "bar", "Bar", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testExpressionListContainsIgnoreCaseTrue() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression("expression-foo-containsignorecase-bar.xml",
+                createVariables(
+                        "foo", userJack.asObjectable().getOrganizationalUnit(), List.class,
+                        "bar", "leaders", PrimitiveType.STRING
+                ),
+                true);
+    }
+
+    @Test
     public void testExpressionFooDefaultString() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-foo-default.xml",
@@ -1862,13 +1899,20 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testUserAssignmentFirstRelation() throws Exception {
-        VariablesMap variables = createUserScriptVariables();
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-user-assignment-first-relation.xml");
-        OperationResult opResult = createOperationResult();
-        List<PrismPropertyValue<QName>> expressionResultList = evaluateExpression(scriptType, DOMUtil.XSD_QNAME, true, variables, getTestName(), opResult);
-        PrismPropertyValue<QName> expressionResult = asScalar(expressionResultList, getTestName());
-        displayValue("Expression result", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value", SchemaConstants.ORG_OWNER, expressionResult.getValue());
+        evaluateAndAssertQNameScalarExpression(
+                "expression-user-assignment-first-relation.xml",
+                createUserScriptVariables(),
+                SchemaConstants.ORG_OWNER
+        );
+    }
+
+    @Test
+    public void testUserAssignmentFirstTargetType() throws Exception {
+        evaluateAndAssertQNameScalarExpression(
+                "expression-user-assignment-first-targettype.xml",
+                createUserScriptVariables(),
+                RoleType.COMPLEX_TYPE
+        );
     }
 
     @Test
@@ -1910,6 +1954,114 @@ public class TestMelExpressions extends AbstractScriptTest {
                 createUserScriptVariables(),
                 "c0c010c0-d34d-b33f-f00d-001111111112", "c0c010c0-d34d-b33f-f00d-001111111111");
     }
+
+    @Test
+    public void testUserAssignmentTargetOids() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-user-assignment-targetoid.xml",
+                createUserScriptVariables(),
+                null, "c0c010c0-d34d-b33f-f00d-001111111112", "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetTypeRole() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                    "expression-user-assignment-filter-roles-targettype.xml",
+                    "expression-user-assignment-filter-roles-istarget.xml",
+                    "expression-user-assignment-filter-roles-istargetrole.xml"
+                ),
+                createUserScriptVariables(
+                        "ttype", "RoleType", PrimitiveType.STRING
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetTypeOrg() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targettype.xml",
+                        "expression-user-assignment-filter-roles-istarget.xml",
+                        "expression-user-assignment-filter-roles-istargetorg.xml"
+                ),
+                createUserScriptVariables(
+                        "ttype", OrgType.COMPLEX_TYPE, PrimitiveType.QNAME
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111112");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetTypeService() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targettype.xml",
+                        "expression-user-assignment-filter-roles-istarget.xml",
+                        "expression-user-assignment-filter-roles-istargetservice.xml"
+                ),
+                createUserScriptVariables(
+                        "ttype", ServiceType.COMPLEX_TYPE, PrimitiveType.QNAME
+                )
+                /* empty list */
+                );
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationOwnerString() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasownerrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", "owner", PrimitiveType.STRING
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationOwnerQName() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasownerrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", SchemaConstants.ORG_OWNER, PrimitiveType.QNAME
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111111");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationDefaultString() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasdefaultrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", "default", PrimitiveType.STRING
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111112");
+    }
+
+    @Test
+    public void testUserAssignmentFilterRolesTargetRelationDefaultQName() throws Exception {
+        evaluateAndAssertStringListExpressions(
+                List.of(
+                        "expression-user-assignment-filter-roles-targetrelation.xml",
+                        "expression-user-assignment-filter-roles-hasrelation.xml",
+                        "expression-user-assignment-filter-roles-hasdefaultrelation.xml"
+                ),
+                createUserScriptVariables(
+                        "relation", SchemaConstants.ORG_DEFAULT, PrimitiveType.QNAME
+                ),
+                "c0c010c0-d34d-b33f-f00d-001111111112");
+    }
+
 
     @Test
     public void testUserLinkRefFirstOid() throws Exception {
@@ -2775,22 +2927,21 @@ public class TestMelExpressions extends AbstractScriptTest {
 
     @Test
     public void testTimestampLongAgo() throws Exception {
-
-        // WHEN
-        ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-timestamp-long-ago.xml");
-        List<PrismPropertyValue<XMLGregorianCalendar>> expressionResultList =
-                evaluateExpression(scriptType, DOMUtil.XSD_DATETIME, true,
-                        createVariables(),
-                        getTestName(), createOperationResult());
-
-        // THEN
-        PrismPropertyValue<XMLGregorianCalendar> expressionResult = asScalar(expressionResultList, getTestName());
-        displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + getTestName() + " resulted in null value)", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value",
-                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("1970-01-01T00:00:00.000Z"), expressionResult.getValue());
+        evaluateAndAssertDateTimeScalarExpression(
+                "expression-timestamp-long-ago.xml",
+                createVariables(),
+                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("1970-01-01T00:00:00.000Z")
+        );
     }
 
+    @Test
+    public void testTimestampFarAhead() throws Exception {
+        evaluateAndAssertDateTimeScalarExpression(
+                "expression-timestamp-far-ahead.xml",
+                createVariables(),
+                XmlTypeConverter.createXMLGregorianCalendarFromIso8601("9999-12-31T23:59:59.000Z")
+        );
+    }
 
     @Test
     public void testTimestampFormatParse() throws Exception {

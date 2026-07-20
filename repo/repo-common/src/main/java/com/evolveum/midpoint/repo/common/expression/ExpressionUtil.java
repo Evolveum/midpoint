@@ -1419,10 +1419,9 @@ public class ExpressionUtil {
     /**
      * Converts whatever it gets to a string. But it does it in a sensitive way.
      * E.g. it tries to detect collections and returns the first element (if there is only one).
-     * Never returns null. Returns string representation of null instead.
      */
-    @NotNull
-    public static String stringify(@Nullable Object whatever, @NotNull String nullRepresentation) {
+    @Nullable
+    public static String stringify(@Nullable Object whatever, @Nullable String nullRepresentation) {
 
         if (whatever == null) {
             return nullRepresentation;

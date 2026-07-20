@@ -337,7 +337,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -353,7 +353,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 

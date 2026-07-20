@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
@@ -489,17 +490,25 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         }
     }
 
-    protected String evaluateStringScalarExpression(
+    protected XMLGregorianCalendar evaluateDateTimeScalarExpression(
             String fileName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_STRING, true, variables);
-        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
+        List<PrismPropertyValue<XMLGregorianCalendar>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_DATETIME, true, variables);
+        PrismPropertyValue<XMLGregorianCalendar> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         if (expressionResult == null) {
             return null;
         }
         return expressionResult.getValue();
+    }
+
+    protected void evaluateAndAssertDateTimeScalarExpression(
+            String fileName, VariablesMap variables, XMLGregorianCalendar expectedValue)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        XMLGregorianCalendar expressionResult = evaluateDateTimeScalarExpression(fileName, variables);
+        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult);
     }
 
     protected void evaluateAndAssertStringScalarExpressionRestricted(
@@ -524,19 +533,62 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         List<PrismPropertyValue<String>> expressionResultList =
                 evaluateExpression(scriptType, DOMUtil.XSD_STRING, false, variables, testName, opResult);
         displayValue("Expression result", expressionResultList);
-        TestUtil.assertSetEquals("Expression " + getTestName() + " resulted in wrong values",
-                PrismValueCollectionsUtil.getValues(expressionResultList), expectedValues);
+        TestUtil.assertSetEquals("Expression " + getTestName() + "("+fileName+") resulted in wrong values",
+                getPropertyValues(expressionResultList), expectedValues);
     }
 
-    protected void evaluateAndAssertBooleanScalarExpression(String fileName,
+    protected String evaluateStringScalarExpression(
+            String fileName, VariablesMap variables)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_STRING, true, variables);
+        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
+        displayValue("Expression result", expressionResult);
+        if (expressionResult == null) {
+            return null;
+        }
+        return expressionResult.getValue();
+    }
+
+    public static <T> Collection<T> getPropertyValues(Collection<PrismPropertyValue<T>> pvals) {
+        Collection<T> realValues = new ArrayList<>(pvals.size());
+        for (PrismPropertyValue<T> pval: pvals) {
+            if (pval == null) {
+                realValues.add(null);
+            } else {
+                realValues.add(pval.getValue());
+            }
+        }
+        return realValues;
+    }
+
+    protected void evaluateAndAssertStringListExpressions(
+            List<String> fileNames, VariablesMap variables, String... expectedValues)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        for(String fileName : fileNames) {
+            evaluateAndAssertStringListExpression(fileName, variables, expectedValues);
+        }
+    }
+
+        protected void evaluateAndAssertBooleanScalarExpression(String fileName,
             VariablesMap variables, Boolean expectedValue)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
         List<PrismPropertyValue<Boolean>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_BOOLEAN, true, variables);
         PrismPropertyValue<Boolean> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
-        assertNotNull("Expression " + getTestName() + " resulted in null value (expected '" + expectedValue + "')", expressionResult);
-        assertEquals("Expression " + getTestName() + " resulted in wrong value", expectedValue, expressionResult.getValue());
+        assertNotNull("Expression " + getTestName() + "("+fileName+") resulted in null value (expected '" + expectedValue + "')", expressionResult);
+        assertEquals("Expression " + getTestName() + "("+fileName+") resulted in wrong value", expectedValue, expressionResult.getValue());
+    }
+
+    protected void evaluateAndAssertBooleanScalarExpressions(List<String> fileNames,
+            VariablesMap variables, Boolean expectedValue)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        for(var fileName : fileNames) {
+            evaluateAndAssertBooleanScalarExpression(fileName, variables, expectedValue);
+        }
     }
 
     protected void evaluateAndAssertQNameScalarExpression(String fileName,

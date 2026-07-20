@@ -376,6 +376,9 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (javaValue instanceof PolyString polyString) {
             return PolyStringCelValue.create(polyString);
         }
+        if (javaValue instanceof PolyStringType polyString) {
+            return PolyStringCelValue.create(polyString.toPolyString());
+        }
         if (javaValue instanceof QName qname) {
             return QNameCelValue.create(qname);
         }
@@ -393,6 +396,9 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
         if (javaValue instanceof PrismReferenceValue rval) {
             return ReferenceCelValue.create(rval);
+        }
+        if (javaValue instanceof List l) {
+            return l.stream().map(CelTypeMapper::toCelValue).toList();
         }
         return javaValue;
     }
