@@ -932,7 +932,7 @@ The following list contains a description of changes to the initial objects in t
 The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.8/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
+For more information see xrefv:/midpoint/reference/support-4.8/upgrade/upgrade-with-ninja/#initial-objects-update[here].
 
 * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
