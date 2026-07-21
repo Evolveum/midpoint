@@ -31,6 +31,8 @@ export default class MidPointTheme {
             $(window, ".app-wrapper").resize(function () {
                 self.fixContentHeight();
             });
+
+            self.removeAdminLteSkipLinks();
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
@@ -1122,6 +1124,13 @@ export default class MidPointTheme {
         if (window_height < sidebar_height) {
             $(".app-main, .right-side").css('min-height', sidebar_height + 10); // footer size
         }
+    }
+
+    removeAdminLteSkipLinks() {
+        // AdminLTE's accessibility module auto-injects its own skip links
+        // (hardcoded to #main / #navigation), which duplicates
+        // midPoint's own working #skip-link and leads to WCAG incompatibility
+        document.querySelector('.skip-links')?.remove();
     }
 
     clickFuncWicket6(eventData) {
