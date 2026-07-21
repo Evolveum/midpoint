@@ -76,6 +76,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
 * Implemented new configuration options for processing uploaded images.
 * bug:MID-8802[] Added displayName and preferredName to UserType.
+* Upgraded AdminLTE to 4.1. See bug:MID-11538[].
 
 === Major Bugfixes
 
@@ -159,6 +160,16 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed default login redirect to home page. See bug:MID-10269[]
 * Updated spring boot to 4.1. See bug:MID-11547[]
 * Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
+* Fixed merging of the resource capabilities without id. See bug:MID-11218[]
+* Fixed download report file extension. See bug:MID-11312[]
+* Fixed reference value update in search panel. See bug:MID-11400[]
+* Fixed Role catalog query for Roles of teammates. See bug:MID-11221[]
+* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11412[]
+* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11413[]
+* Fixed custom relation translation. See bug:MID-11523[]
+* Fixed CSV export for Tasks table. See bug:MID-11652[]
+* Fixed breaking too long labels into lines. See bug:MID-11711[]
+* Fixed breaking too long labels into lines. See bug:MID-11714[]
 
 === Releases Of Other Components
 
