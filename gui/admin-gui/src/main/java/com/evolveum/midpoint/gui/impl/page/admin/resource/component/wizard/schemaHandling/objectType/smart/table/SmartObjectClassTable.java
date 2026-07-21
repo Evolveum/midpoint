@@ -94,6 +94,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
     String resourceOid;
     Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache;
+    Map<QName, String> objectClassDescriptionCache;
 
     private final IModel<String> searchTextModel = Model.of("");
 
@@ -102,11 +103,13 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
             UserProfileStorage.@NotNull TableId tableId,
             @NotNull IModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> model,
             @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedModel,
-            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache) {
+            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache,
+            Map<QName, String> objectClassDescriptionCache) {
         super(id, tableId, model);
         this.selectedTileModel = selectedModel;
         this.resourceOid = resourceOid;
         this.objectClassSizeEstimationCache = objectClassSizeEstimationCache;
+        this.objectClassDescriptionCache = objectClassDescriptionCache;
         setDefaultPagingSize(tableId);
     }
 
@@ -255,7 +258,12 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         ComplexTypeDefinitionType realValue = object.getRealValue();
 
         ObjectClassSizeEstimationType sizeEstimation = objectClassSizeEstimationCache.get(realValue.getName());
-        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation);
+        String description = getObjectClassDescription(realValue.getName());
+        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation, description);
+    }
+
+    private @Nullable String getObjectClassDescription(@NotNull QName objectClassName) {
+        return objectClassDescriptionCache != null ? objectClassDescriptionCache.get(objectClassName) : null;
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
@@ -439,8 +447,8 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
                     Item<ICellPopulator<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> item,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> rowModel) {
-                String description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
-                item.add(new Label(componentId, description));
+                String description = getObjectClassDescription(rowModel.getObject().getRealValue().getName());
+                item.add(new Label(componentId, description != null ? description : ""));
             }
 
             @Override
