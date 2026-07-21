@@ -265,8 +265,8 @@ export default class MidPointTheme {
                 $(document).on("focusin mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     const titleText = $el.attr("title");
-                    if (!$el.attr("data-tooltip-content") && titleText) {
-                        $el.attr("data-tooltip-content", titleText);
+                    if (!$el.attr("data-original-title") && titleText) {
+                        $el.attr("data-original-title", titleText);
                         $el.removeAttr("title");
                     }
                 });
@@ -324,8 +324,8 @@ export default class MidPointTheme {
                     checkHide($(this));
                 });
 
-                $(document).on("keydown", "[data-bs-toggle='tooltip']", function () {
-                    if (event.key === 'Enter') {
+                $(document).on("keydown", "[data-bs-toggle='tooltip']", function (e) {
+                    if (e.key === 'Enter') {
                         isEnterPressedOnTooltipIcon = true;
                     }
                 });
@@ -371,7 +371,7 @@ export default class MidPointTheme {
 
                     $el.tooltip({
                         html: true,
-                        title: $el.attr('data-tooltip-content') || '',
+                        title: $el.attr('data-original-title') || '',
                         allowList: wl,
                         container: container,
                         trigger: 'manual'
@@ -380,6 +380,7 @@ export default class MidPointTheme {
                     // "tooltipShowDelayTimer" is used to prevent tooltip from showing when user quickly moves mouse
                     // over multiple icons with tooltips or quickly tabs through them. Tooltip will be shown only for
                     // the last hovered/focused element after 1 second delay.
+                    const delay = setFocus ? 0 : 1000;
                     clearTimeout($el.data("tooltipShowDelayTimer"));
                     $el.data("tooltipShowDelayTimer", setTimeout(() => {
                         $el.tooltip("show");
@@ -433,7 +434,7 @@ export default class MidPointTheme {
                             $tooltipInner.focus();
                             lastTooltipTrigger = $el;
                         }
-                    }, 1000));
+                    }, delay));
                 }
             };
 
