@@ -74,19 +74,22 @@ public abstract class ResourceObjectClassTableWizardPanel<P extends Containerabl
         String resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
         Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations =
                 loadObjectClassesSizeEstimations(resourceOid, getPageBase());
+        Map<QName, String> objectClassDescriptions = loadObjectClassDescriptions(resourceOid, getPageBase());
 
         List<QName> qNamesSerialized = new ArrayList<>(objectClassSizeEstimations.keySet());
         SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> table = buildTable(
                 resourceOid,
                 qNamesSerialized,
-                objectClassSizeEstimations);
+                objectClassSizeEstimations,
+                objectClassDescriptions);
         add(table);
     }
 
     private @NotNull SmartObjectClassTable<PrismContainerValueWrapper<ComplexTypeDefinitionType>> buildTable(
             String resourceOid,
             List<QName> qNamesSerialized,
-            Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations) {
+            Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimations,
+            Map<QName, String> objectClassDescriptions) {
         LoadableModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> objectClassDefinitions =
                 getComplexTypeDefinitionTypes(qNamesSerialized);
 
@@ -96,7 +99,8 @@ public abstract class ResourceObjectClassTableWizardPanel<P extends Containerabl
                 objectClassDefinitions,
                 selectedModel,
                 resourceOid,
-                objectClassSizeEstimations){
+                objectClassSizeEstimations,
+                objectClassDescriptions){
             @Override
             public void onSelectionRefresh(@NotNull AjaxRequestTarget target) {
                 super.onSelectionRefresh(target);
@@ -129,6 +133,14 @@ public abstract class ResourceObjectClassTableWizardPanel<P extends Containerabl
         }
 
         return objectClassSizeEstimationCache;
+    }
+
+    /** Returns the connector-provided descriptions of object classes, keyed by object class name. */
+    private @NotNull Map<QName, String> loadObjectClassDescriptions(
+            @NotNull String resourceOid, @NotNull PageBase pageBase) {
+        Task task = pageBase.createSimpleTask(OP_DETERMINE_STATUS);
+        OperationResult result = task.getResult();
+        return SmartIntegrationUtils.getObjectClassDescriptions(resourceOid, pageBase, task, result);
     }
 
     /** Selects only allowed types, e.g. standalone structural object classes. We assume all QNames are qualified. */

@@ -12,12 +12,15 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
@@ -116,6 +119,33 @@ public class SmartIntegrationUtils {
                 .filter(def -> !def.isEmbedded() && !def.isAuxiliary())
                 .map(def -> new QName(NS_RI, def.getName())) // def.getQName is buggy now
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns the connector-provided (native) descriptions of object classes for the given resource, keyed by the
+     * object class name. Object classes for which the connector did not provide any description are not present
+     * in the returned map.
+     */
+    public static @NotNull Map<QName, String> getObjectClassDescriptions(
+            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+        NativeResourceSchema schema;
+        try {
+            var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
+            schema = Resource.of(resource).getNativeResourceSchemaRequired();
+        } catch (Exception e) {
+            result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
+            LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
+            return Map.of();
+        }
+        Map<QName, String> descriptions = new HashMap<>();
+        for (var def : schema.getObjectClassDefinitions()) {
+            String description = def.getDescription();
+            if (StringUtils.isNotBlank(description)) {
+                // TODO: This is a workaround for the fact that def.getQName don't return NS_RI prefix
+                descriptions.put(new QName(NS_RI, def.getName()), description);
+            }
+        }
+        return descriptions;
     }
 
     /**
