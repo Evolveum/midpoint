@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 /**
  * Multithreaded (single-node, worker threads) flavor of {@link TestFocusPolicyHrScenario}: each
  * reconciliation child runs with worker threads. The shared delete counter may momentarily overshoot the
- * threshold, which the base assertion's bound already tolerates.
+ * threshold by {@link #threads()}-1 value, which the base assertion's bound already tolerates.
  */
 public class TestFocusPolicyHrScenarioMultithreaded extends TestFocusPolicyHrScenario {
 
@@ -29,5 +29,10 @@ public class TestFocusPolicyHrScenarioMultithreaded extends TestFocusPolicyHrSce
                 ActivityDefinitionUtil.findOrCreateDistribution(child).setWorkerThreads(THREADS);
             }
         };
+    }
+
+    @Override
+    protected int threads() {
+        return THREADS;
     }
 }

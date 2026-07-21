@@ -185,14 +185,14 @@ public class ActivityPolicyRulesProcessor {
                     "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName }, defaultMessage);
 
             if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
-                LOGGER.debug("Aborting activity because of policy violation, rule: {}", rule);
+                LOGGER.debug("Going to abort the activity because of policy violation, rule: {}", rule);
                 var abortInfo = new ActivityAbortingInformationType()
                         .activityPath(rule.getActivityPath().toBean())
                         .policyAction(action.clone());
                 var cause = new ActivityPolicyBasedAbortException(message, defaultMessage, abortInfo);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
             } else if (action instanceof SuspendTaskPolicyActionType) {
-                LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
+                LOGGER.debug("Going to suspend the task because of policy violation, rule: {}", rule);
                 var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, cause);
             } else {

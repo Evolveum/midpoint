@@ -21,4 +21,9 @@ public class TestFocusPolicyHrScenarioSimple extends TestFocusPolicyHrScenario {
         return t -> {
         }; // no distribution
     }
+
+    @Override
+    protected int threads() {
+        return 1;
+    }
 }

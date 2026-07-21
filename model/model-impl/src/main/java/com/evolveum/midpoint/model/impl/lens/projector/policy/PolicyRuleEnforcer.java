@@ -210,14 +210,14 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                     if (action instanceof SuspendTaskPolicyActionType) {
                         enforceNotificationAction(policyRule, "suspend task", task, result);
 
-                        LOGGER.debug("Suspending task because of policy violation, rule: {}", policyRule);
+                        LOGGER.debug("Going to suspend the task because of policy violation, rule: {}", policyRule);
                         var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
 
                         throw new ThresholdPolicyViolationException(message, defaultMessage, cause);
                     } else if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
                         enforceNotificationAction(policyRule, "skip/restart activity", task, result);
 
-                        LOGGER.debug("Aborting activity because of policy violation, rule: {}", policyRule);
+                        LOGGER.debug("Going to abort the activity because of policy violation, rule: {}", policyRule);
 
                         var activityPath = getActivityPath(policyRule);
 
