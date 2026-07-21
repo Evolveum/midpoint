@@ -2,58 +2,56 @@
 
 Use the `export` command to export repository objects.
 
-Export objects either to the standard output or to a file (`-o`, `--output`) and compress them using ZIP if needed (`-z`, `--zip`).
+Export objects either to the system output (to the console) or to a file by using the option `-o`, `--output`, and compress them using ZIP if needed by using the option `-z`, `--zip`.
 Use the `-O` (`--overwrite`) option to overwrite an existing output file.
 
 // TODO If you wish to have a separate file for each object, use `-sf`, `--split-files`.
 
 Use the `-l` (`--multi-thread`) option to process the export using multiple threads.
-Visit xref:/midpoint/reference/deployment/ninja#how-multithreading-works[How multithreading works] to learn more about multithreading.
+See xref:/midpoint/reference/deployment/ninja#how-multithreading-works[how multithreading works].
 
-.Example of export to compressed zip file using 4 threads:
+.Example of export to a ZIP file using 4 threads:
 [source,bash]
 ----
 ./bin/ninja.sh export -o export.zip -z -l 4
 ----
 
-Objects exported from midPoint can be filtered in several ways:
+Objects exported from midPoint can be filtered by:
 
-* by oid (`--oid`)
-* by type (`-t, --type`) - e.g. `./bin/ninja.sh export -t user`
-* with filter (`-f, --filter`)
-+
-Prefix the filter with `%` to interpret it as an MidPoint Query Language (MQL) query or with `@` to load it from a file.
+* OID (`--oid`)
+* Type (`-t, --type`) - For example, `./bin/ninja.sh export -t user`
+* Filter (`-f, --filter`) - Prefix the filter with `%` to interpret it as a MidPoint Query Language (MQL) query, or with `@` to load it from a file.
 
-.Use an MQL query
+.Example use of an MQL query
 [source, bash]
 ----
 ./bin/ninja.sh export -f '%name = "administrator" and familyName = "Administrator"'
 ----
 
-.Load the filter from a file
+.Example loading a filter from a file
 [source, bash]
 ----
 ./bin/ninja.sh export -f @filter.txt
 ----
 
-When loading a filter from a file, prefix MQL queries with `%`, just as you would when specifying them directly on the command line.
+If you choose to load a filter from a file, prefix MQL queries with `%`, just as you would when specifying them directly on the command line.
 
 Use the following options to modify exported objects before they are written to the output:
 
-* `-ni` (`--no-container-ids`) removes container IDs from the exported objects.
-* `-ei` (`--exclude-item`) excludes selected object items from the export.
-The option accepts item paths and can be specified multiple times or as a comma-separated list.
+* `-ni` (`--no-container-ids`) - Removes container IDs from the exported objects.
+* `-ei` (`--exclude-item`) - Excludes selected object items from the export.
+This option accepts item paths and can be specified multiple times or as a comma-separated list.
 
 The `-r` (`--raw`) option exports objects in their raw repository representation.
 This preserves all repository data required to correctly restore the objects during import.
-Default value of this option is `false`.
+The default value of this option is `false`.
 
 [WARNING]
 ====
 When exporting objects that will be imported back into midPoint, use the `-r` (`--raw`) option.
 
 This is particularly important for shadow objects.
-With the `--raw` option, ninja includes the schema definitions required to correctly interpret shadow attributes during import.
+With the `--raw` option, Ninja includes the schema definitions required to correctly interpret shadow attributes during import.
 
 Without `--raw`, shadow attributes are exported without their schema definitions for backward compatibility.
 Such exports may not be suitable for re-import.
