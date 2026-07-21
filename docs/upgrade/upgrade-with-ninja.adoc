@@ -56,8 +56,6 @@ All steps mentioned above are described in the following sections.
 .. <<Initial objects update>>
 .. <<Start midPoint>>
 
-== Upgrade procedure examples
-
 ////
 === Example setup
 
