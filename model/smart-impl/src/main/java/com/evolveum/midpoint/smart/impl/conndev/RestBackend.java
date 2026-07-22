@@ -246,7 +246,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     "native-schema", "native schema script", body, skipCache);
             case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "connid", "ConnID mapping script", body, skipCache);
-            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint(), body, skipCache);
+            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, body, skipCache);
             case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
                     "search by ID script", body, skipCache);
@@ -272,6 +272,14 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         var errors = JSON_FACTORY.arrayNode();
         input.getMidpointError().forEach(errors::add);
         body.set("midpointErrors", errors);
+        var preferredEndpoints = JSON_FACTORY.arrayNode();
+        for (var endpoint : input.getEndpoint()) {
+            var jsonEndpoint = JSON_FACTORY.objectNode();
+            jsonEndpoint.set("method", JSON_FACTORY.textNode(ConnDevJsonMapper.toValue(endpoint.getOperation())));
+            jsonEndpoint.set("path", JSON_FACTORY.textNode(endpoint.getUri()));
+            preferredEndpoints.add(jsonEndpoint);
+        }
+        body.set("preferredEndpoints", preferredEndpoints);
         return body;
     }
 
@@ -286,8 +294,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
 
 
-    private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints, ObjectNode body, boolean skipCache) {
-        // TODO: In future when endpoints are editable ensure synchronization of endpoints
+    private String generateSearchAll(ConnDevArtifactType artifactSpec, ObjectNode body, boolean skipCache) {
         return generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
                 "search script", body, skipCache);
     }
