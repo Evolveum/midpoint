@@ -54,5 +54,5 @@ Returns list of OIDs of all assignments of the focus that have owner relation.
 == See Also
 
 * xref:../specification/[MEL Specification]
-* xref:../tip/[MEL Tips]
+* xref:../tips/[MEL Tips]
 * xref:../troubleshooting/[MEL Troubleshooting]
