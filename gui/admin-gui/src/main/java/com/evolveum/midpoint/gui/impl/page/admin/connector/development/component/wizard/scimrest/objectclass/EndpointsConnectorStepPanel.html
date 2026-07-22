@@ -15,7 +15,7 @@
         <div class="d-flex flex-column" wicket:id="panel">
             <div class="d-flex flex-row w-100">
                 <div class="h-100 m-auto pe-3">
-                    <input wicket:id="radio" type="radio"/>
+                    <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
                 </div>
                 <div class="h-100 m-auto border rounded px-2">
                     <div wicket:id="operation"/>
