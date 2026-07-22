@@ -84,6 +84,11 @@
   color: #737373;
 }
 
+.mp-error-page {
+  max-width: 600px;
+  margin-inline: auto;
+}
+
 @media (min-width: 992px) {
   .layout-fixed.sidebar-expand-lg .app-sidebar {
     // The inner sidebar wrapper owns vertical scrolling.
