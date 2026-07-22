@@ -1864,7 +1864,14 @@ export default class MidPointTheme {
 
     hideModal(modalId) {
         const dialog = document.getElementById(modalId);
-        Modal.getOrCreateInstance(dialog).hide();
+        const modal = dialog ? Modal.getInstance(dialog) : null;
+        if (modal) {
+            modal.hide();
+            return;
+        }
+
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {
