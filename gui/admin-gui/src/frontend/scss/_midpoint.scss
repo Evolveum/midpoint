@@ -2338,7 +2338,7 @@ footer.app-footer a {
   box-shadow: 0 0 0 2px #ffa836;
 }
 
-.form-select-sm ~ .select2-container--bootstrap-5 {
+.select2-container--bootstrap-5 {
   .select2-selection--multiple {
     display: flex;
     flex-wrap: wrap;
@@ -2352,22 +2352,19 @@ footer.app-footer a {
       margin-bottom: 0.375rem;
     }
 
-    .select2-selection__rendered {
-      min-width: 0;
-    }
+.select2-selection__rendered {
+  min-width: 0;
 
-    .select2-selection__choice {
-      min-width: 0;
-      max-width: 100%;
+  .select2-selection__choice {
+    min-width: 0;
+    max-width: 100%;
 
-      padding: 0 0.35rem 0 0;
-      margin-top: calc(0.375rem - 2px);
-      margin-bottom: 0;
+    padding: 0 0.5rem 0 0.65rem;
+    margin: 2px 4px 2px 0;
 
-      color: var(--bs-white);
-      background-color: var(--bs-primary);
-      border-color: var(--bs-primary);
-    }
+    color: var(--bs-white);
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
 
     .select2-selection__choice__display {
       flex: 1 1 auto;
@@ -2375,9 +2372,10 @@ footer.app-footer a {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-
       color: var(--bs-white);
     }
+  }
+}
 
     .select2-selection__rendered
     .select2-selection__choice
