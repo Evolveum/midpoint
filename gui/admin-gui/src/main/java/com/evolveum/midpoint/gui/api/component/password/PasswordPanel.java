@@ -214,6 +214,8 @@ public class PasswordPanel extends InputPanel {
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         password2.add(AttributeAppender.append("placeholder", getRepeatPasswordFieldPlaceholderValue()));
+        password2.add(AttributeAppender.append("aria-labelledby",
+                arePasswordInputFieldsAssociatedWithLabels() ? "repeatPasswordLabelId" : null));
         password2.add(new VisibleEnableBehaviour(() -> !showOneLinePasswordPanel, this::canEditPassword));
         inputContainer.add(password2);
 

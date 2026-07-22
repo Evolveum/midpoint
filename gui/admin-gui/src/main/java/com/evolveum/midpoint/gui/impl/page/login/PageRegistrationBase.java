@@ -219,4 +219,8 @@ public class PageRegistrationBase extends PageAdminLTE {
     protected Label getDescription() {
         return (Label) get(ID_DESCRIPTION);
     }
+
+    protected Label getFormTitle() {
+        return (Label) get(ID_TITLE);
+    }
 }
