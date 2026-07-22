@@ -1447,6 +1447,10 @@ public class ExpressionUtil {
             return ps.getOrig();
         }
 
+        if (whatever instanceof QName q) {
+            return QNameUtil.qNameToUri(q);
+        }
+
         if (whatever instanceof Collection<?> collection) {
             if (collection.isEmpty()) {
                 return "";
@@ -1483,6 +1487,10 @@ public class ExpressionUtil {
 
         if (whatever instanceof PolyStringType) {
             return ((PolyStringType) whatever).getOrig();
+        }
+
+        if (whatever instanceof QName q) {
+            return QNameUtil.qNameToUri(q);
         }
 
         if (whatever instanceof Element element) {

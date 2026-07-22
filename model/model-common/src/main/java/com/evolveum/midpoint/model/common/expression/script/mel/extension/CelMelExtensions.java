@@ -7,10 +7,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.AbstractContainerValueCelValue;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.MidPointValueProducer;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -125,6 +122,33 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::polystringAddPolystring)
             ),
 
+            // string + path
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            Operator.ADD.getFunction(),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-add-path",
+                                    "String concatenation of string and item path",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("string-add-path", String.class, ItemPathCelValue.class,
+                            CelMelExtensions::stringAddItemPath)
+            ),
+
+            // path + string
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            Operator.ADD.getFunction(),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "path-add-string",
+                                    "String concatenation of item path and string",
+                                    SimpleType.STRING,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE),
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("path-add-string", ItemPathCelValue.class, String.class,
+                            CelMelExtensions::itemPathAddString)
+            ),
 
             // string + int
             new Function(
@@ -1287,22 +1311,42 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionDecl.newFunctionDeclaration(
                             "size",
                             CelOverloadDecl.newMemberOverload(
-                                    "polystring_size",
+                                    "polystring-size",
                                     "Returns size of the orig part of polystring.",
                                     SimpleType.INT,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE)),
                             CelOverloadDecl.newGlobalOverload(
-                                    "polystring_size",
+                                    "polystring-size",
                                     "Returns size of the orig part of polystring.",
                                     SimpleType.INT,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
-                            "polystring_size",
+                            "polystring-size",
                             PolyStringCelValue.class,
                             polystring -> ((Integer)polystring.getOrig().length()).longValue(),
                             NullabilityProperties.NULLABLE_ZERO)),
 
-            // string.split(separator [, limit])
+            // size(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "size",
+                            CelOverloadDecl.newMemberOverload(
+                                    "path-size",
+                                    "Returns number of segments of item path.",
+                                    SimpleType.INT,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "path-size",
+                                    "Returns number of segments of item path.",
+                                    SimpleType.INT,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from(
+                            "path-size",
+                            ItemPathCelValue.class,
+                            path -> ((Integer)path.getJavaValue().size()).longValue(),
+                            NullabilityProperties.NULLABLE_ZERO)),
+
+                // string.split(separator [, limit])
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "split",
@@ -1387,14 +1431,41 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "string",
                             CelOverloadDecl.newGlobalOverload(
                                     "string-polystring",
-                                    "Converts its argument to string. " +
-                                            "This function is not nullable, it cannot be called with null or optional value.",
+                                    "Converts its argument to string.",
                                     SimpleType.STRING,
-                                    PolyStringCelValue.CEL_TYPE)),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
-                            "string-polystring", PolyStringCelValue.class,
+                            "string-polystring", Object.class,
                             CelMelExtensions::string,
-                            NullabilityProperties.NOT_NULLABLE)),
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // string(qname)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "string",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-qname",
+                                    "Converts its argument to string.",
+                                    SimpleType.STRING,
+                                    NullableType.create(QNameCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from(
+                            "string-qname", Object.class,
+                            CelMelExtensions::string,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+                // string(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "string",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-path",
+                                    "Converts its argument to string.",
+                                    SimpleType.STRING,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from(
+                            "string-path", Object.class,
+                            CelMelExtensions::string,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // stringify(any)
             new Function(
@@ -2416,6 +2487,32 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
             return true;
         }
         return celPolystring.getOrig().isEmpty();
+    }
+
+    public static Object stringAddItemPath(String s, ItemPathCelValue pathValue) {
+        if (s == null && pathValue == null) {
+            return NullValue.NULL_VALUE;
+        }
+        if (s == null) {
+            return pathValue.getJavaValue().toString();
+        }
+        if (pathValue == null) {
+            return s;
+        }
+        return s + pathValue.getJavaValue().toString();
+    }
+
+    public static Object itemPathAddString(ItemPathCelValue pathValue, String s) {
+        if (s == null && pathValue == null) {
+            return NullValue.NULL_VALUE;
+        }
+        if (s == null) {
+            return pathValue.getJavaValue().toString();
+        }
+        if (pathValue == null) {
+            return s;
+        }
+        return pathValue.getJavaValue().toString() + s;
     }
 
     // Taken from CelStringExtensions, modified for Polystring

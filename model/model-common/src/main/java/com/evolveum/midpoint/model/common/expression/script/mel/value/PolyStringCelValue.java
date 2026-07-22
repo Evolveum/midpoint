@@ -5,10 +5,8 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.MelComparable;
 
@@ -16,22 +14,18 @@ import com.google.common.collect.ImmutableSet;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import dev.cel.common.types.StructType;
-import dev.cel.common.values.CelValue;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Radovan Semancik
  */
-public class PolyStringCelValue extends CelValue implements Map<String,String>, MidPointValueProducer<PolyString>, MelComparable {
+public class PolyStringCelValue extends AbstractStructuredCelValue<String> implements MidPointValueProducer<PolyString>, MelComparable {
 
     public static final String POLYSTRING_PACKAGE_NAME = PolyString.class.getTypeName();
     private static final String F_ORIG = PolyString.F_ORIG.getLocalPart();
     private static final String F_NORM = PolyString.F_NORM.getLocalPart();
-    public static final CelType CEL_TYPE = createPolystringType();
+    public static final CelType CEL_TYPE = createCelType();
 
     private final PolyString polystring;
 
@@ -43,19 +37,16 @@ public class PolyStringCelValue extends CelValue implements Map<String,String>, 
         return new PolyStringCelValue(polystring);
     }
 
-    public Map<String, String> value() {
-        return Map.of(F_ORIG, polystring.getOrig(),
-                F_NORM, polystring.getNorm());
+    protected Map<String, String> createMapValue() {
+        return Map.of(
+                F_ORIG, polystring.getOrig(),
+                F_NORM, polystring.getNorm()
+        );
     }
 
     @Override
     public PolyString getJavaValue() {
         return polystring;
-    }
-
-    @Override
-    public boolean isZeroValue() {
-        return isEmpty();
     }
 
     @Override
@@ -75,67 +66,7 @@ public class PolyStringCelValue extends CelValue implements Map<String,String>, 
         return polystring.getNorm();
     }
 
-    @Override
-    public int size() {
-        return value().size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return value().isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return value().containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return value().containsValue(value);
-    }
-
-    @Override
-    public String get(Object key) {
-        return value().get(key);
-    }
-
-    @Override
-    public @Nullable String put(String key, String value) {
-        return value().put(key,value);
-    }
-
-    @Override
-    public String remove(Object key) {
-        return value().remove(key);
-    }
-
-    @Override
-    public void putAll(@NotNull Map<? extends String, ? extends String> m) {
-        value().putAll(m);
-    }
-
-    @Override
-    public void clear() {
-        value().clear();
-    }
-
-    @Override
-    public @NotNull Set<String> keySet() {
-        return value().keySet();
-    }
-
-    @Override
-    public @NotNull Collection<String> values() {
-        return value().values();
-    }
-
-    @Override
-    public @NotNull Set<Entry<String, String>> entrySet() {
-        return value().entrySet();
-    }
-
-    private static CelType createPolystringType() {
+    private static CelType createCelType() {
         ImmutableSet<String> fieldNames = ImmutableSet.of(F_ORIG, F_NORM);
         StructType.FieldResolver fieldResolver = fieldName -> {
             if (F_ORIG.equals(fieldName) || F_NORM.equals(fieldName)) {
@@ -162,4 +93,3 @@ public class PolyStringCelValue extends CelValue implements Map<String,String>, 
     }
 
 }
-

@@ -457,6 +457,10 @@ Format strings according to specified template, filling in data from the argumen
 
 Format specification follows https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html[Java formatter conventions].
 
+The `format()` function is null-safe in the Java way.
+I.e. the `format()` function will not fail if a null argument is provided as input.
+However, the null values of are rendered as string `null`.
+
 .Example
 [source,mel]
 ----
@@ -465,8 +469,12 @@ Format specification follows https://docs.oracle.com/en/java/javase/21/docs/api/
 format('%s has %d apples', ['Jack', 3])
 ----
 
-It is recommended to use `format()` function instead of add operator (`\+`) for complex string formatting.
-Unlike the add operator (`+`), the `format()` function can work reliably with all data types and values, including `null` values.
+.Example
+[source,mel]
+----
+// Returns 'null has null apples'
+'%s has %d apples'.format([null, null])
+----
 
 === has
 
