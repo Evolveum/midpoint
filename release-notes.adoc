@@ -486,7 +486,7 @@ Following database engines are supported:
 
 PostgreSQL 16 is recommended.
 
- * if you are migrating from older PostgreSQL versions to 16, please see xref:/midpoint/guides/updating-to-pg16/[Guides: Upgrading PostgreSQL Database] for details.
+ * if you are migrating from older PostgreSQL versions to 16, please see xref:/midpoint/guides/updating-native-db/updating-to-pg16/[Guides: Upgrading PostgreSQL Database] for details.
 
 ==== Generic Database Support (deprecated)
 
