@@ -131,6 +131,9 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
             OnBeforeClickHandler<T> beforeClickHandler) {
         T itemObject = model.getObject();
 
+        if (itemObject instanceof ComponentInlineMenuItem componentItem) {
+            return componentItem.createComponent(componentId);
+        }
 
         if (itemObject != null && itemObject.isDivider()) {
             return new MenuDividerPanel(componentId);

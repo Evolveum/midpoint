@@ -92,3 +92,5 @@ expect4j.Expect4j.level = ALL
 
 * xref:syslog-logging.adoc[]
 
+* xref:configure-logging-howto.adoc[]
+
