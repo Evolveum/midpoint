@@ -50,7 +50,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
         final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(maxExamples);
         final CorrelationDefinitionType correlationDef =
-                new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
+                new ResourceCorrelationDefinitionProvider(ctx.resource).definitionFor(ctx.getTypeIdentification());
         ctx.b.modelService.searchObjectsIterative(
                 ShadowType.class,
                 Resource.of(ctx.resource)
