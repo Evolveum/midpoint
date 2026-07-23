@@ -140,3 +140,5 @@ See also xref:useful-loggers.adoc[].
 
 * xref:/midpoint/reference/concepts/system-configuration-object.adoc[System Configuration Object]
 
+* xref:configure-logging-howto.adoc[]
+
