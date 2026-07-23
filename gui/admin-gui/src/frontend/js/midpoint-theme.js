@@ -545,7 +545,13 @@ export default class MidPointTheme {
     initWindowId(shouldReloadOnFirstLoad) {
         let isFirstLoad = false;
         if (!sessionStorage.getItem('w')) {
-            const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
+            // crypto.randomUUID() is only available in secure contexts (HTTPS/localhost);
+            // fall back to crypto.getRandomValues() for plain HTTP deployments
+            const windowId = encodeURIComponent(
+                (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                    ? crypto.randomUUID().substring(0, 8)
+                    : Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('')
+            );
             console.log('windowId initialized:', windowId);
             isFirstLoad = true;
             sessionStorage.setItem('w', windowId);
