@@ -17,11 +17,8 @@ import com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Provides correlation definition for a specific resource object type.
@@ -36,23 +33,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 public class ResourceCorrelationDefinitionProvider implements CorrelationDefinitionProvider {
     private final ResourceType resource;
-    private final ResourceObjectTypeIdentification objectTypeId;
 
-    public ResourceCorrelationDefinitionProvider(ResourceType resource, ResourceObjectTypeIdentification objectTypeId) {
+    public ResourceCorrelationDefinitionProvider(ResourceType resource) {
         this.resource = resource;
-        this.objectTypeId = objectTypeId;
     }
 
     @Override
-    public CorrelationDefinitionType get() throws SchemaException, ObjectNotFoundException, ConfigurationException {
+    public CorrelationDefinitionType definitionFor(ResourceObjectTypeIdentification objectTypeId)
+            throws SchemaException, ConfigurationException {
         final ResourceObjectTypeDefinition objectTypeDefinition = Resource.of(resource)
-                .getCompleteSchemaRequired().getObjectTypeDefinitionRequired(this.objectTypeId);
+                .getCompleteSchemaRequired().getObjectTypeDefinitionRequired(objectTypeId);
 
         final ObjectSynchronizationType objectSynchronization =
                 Optional.ofNullable(resource.getSynchronization())
                         .flatMap(synchronization -> synchronization.getObjectSynchronization()
                                 .stream()
-                                .filter(this::matchKindAndIntent)
+                                .filter(objSynchronization -> matchKindAndIntent(objSynchronization, objectTypeId))
                                 .findFirst())
                         .orElse(null);
 
@@ -60,9 +56,10 @@ public class ResourceCorrelationDefinitionProvider implements CorrelationDefinit
                 resource);
     }
 
-    private boolean matchKindAndIntent(ObjectSynchronizationType synchronizationType) {
-        return Objects.equals(this.objectTypeId.getKind(), ShadowUtil.resolveDefault(synchronizationType.getKind()))
-                && Objects.equals(this.objectTypeId.getIntent(),
+    private boolean matchKindAndIntent(ObjectSynchronizationType synchronizationType,
+            ResourceObjectTypeIdentification objectTypeId) {
+        return Objects.equals(objectTypeId.getKind(), ShadowUtil.resolveDefault(synchronizationType.getKind()))
+                && Objects.equals(objectTypeId.getIntent(),
                         ShadowUtil.resolveDefault(synchronizationType.getIntent()));
     }
 
