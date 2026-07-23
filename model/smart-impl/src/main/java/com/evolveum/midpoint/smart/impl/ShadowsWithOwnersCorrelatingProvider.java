@@ -61,7 +61,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         final CorrelationDefinitionType correlationDef =
-                new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
+                new ResourceCorrelationDefinitionProvider(ctx.resource).definitionFor(ctx.getTypeIdentification());
 
         // Set expected progress based on total sample size (llm + validation)
         int expectedSampleSize = samplerProvider.getExpectedMappingSampleSize(ctx.typeDefinition);
