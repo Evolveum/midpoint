@@ -9,8 +9,10 @@ package com.evolveum.midpoint.gui.impl.component.wizard.collapse;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -37,8 +39,12 @@ public class OperationResultCollapsedItem extends CollapsedItem {
     }
 
     public void addOperationResult(String panelId, String fixPanelId, OperationResult result) {
+        addOperationResult(panelId, fixPanelId, result, null);
+    }
+
+    public void addOperationResult(String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
         removeOperationResult(panelId);
-        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId);
+        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction);
         results.put(panelId, resultWrapper);
     }
 
