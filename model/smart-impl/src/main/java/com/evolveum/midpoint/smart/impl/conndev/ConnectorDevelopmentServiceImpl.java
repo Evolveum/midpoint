@@ -8,10 +8,12 @@ package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -24,17 +26,25 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -48,6 +58,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
     @Autowired private ModelService modelService;
+    @Autowired private ClusterExecutionHelper clusterExecutionHelper;
 
     private static ConnectorDevelopmentServiceImpl instance;
 
@@ -78,6 +89,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     new WorkDefinitionsType().createConnector(new ConnDevCreateConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .baseTemplateUrl(connectorTemplateFor(stateObject.getConnector().getIntegrationType()))
+                    ), task, result);
+        }
+
+        public String submitExportConnector(Task task, OperationResult result) {
+            return submitTask("Exporting connector for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().exportConnector(new ConnDevExportConnectorWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
 
@@ -400,5 +418,48 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverConnectivityEndpointResultType.class
         );
+    }
+
+    @Override
+    public StatusInfo<ConnDevExportConnectorResultType> getExportConnectorStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevExportConnectorWorkStateType.F_RESULT,
+                ConnDevExportConnectorResultType.class
+        );
+    }
+
+    @Override
+    public InputStream getExportedConnectorFileStream(String fileName, String nodeOid, Task task, OperationResult result)
+            throws CommonException, IOException {
+        var localFile = new File(ReportSupportUtil.getExportDir(), fileName);
+        if (localFile.exists()) {
+            return FileUtils.openInputStream(localFile);
+        }
+
+        Holder<InputStream> inputStreamHolder = new Holder<>();
+        clusterExecutionHelper.executeWithFallback(nodeOid,
+                (client, node, result1) -> {
+                    client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
+                    client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
+                    client.accept(MediaType.APPLICATION_OCTET_STREAM);
+                    var response = client.get();
+                    var statusInfo = response.getStatusInfo();
+                    if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {
+                        Object entity = response.getEntity();
+                        if (entity == null || entity instanceof InputStream) {
+                            inputStreamHolder.setValue((InputStream) entity);
+                            // do NOT close the response; input stream will be closed later by the caller(s)
+                        } else {
+                            response.close();
+                        }
+                    } else {
+                        result1.recordFatalError("Could not retrieve exported connector file '" + fileName + "': Got "
+                                + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
+                        response.close();
+                    }
+                }, new ClusterExecutionOptions().tryNodesInTransition().skipDefaultAccept(), "get exported connector file", result);
+
+        return inputStreamHolder.getValue();
     }
 }

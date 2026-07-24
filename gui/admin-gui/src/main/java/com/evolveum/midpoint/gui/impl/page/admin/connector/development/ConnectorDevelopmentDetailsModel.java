@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevExportConnectorResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -19,6 +20,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 public class ConnectorDevelopmentDetailsModel extends AssignmentHolderDetailsModel<ConnectorDevelopmentType> {
 
     private LoadableDetachableModel<ConnectorDevelopmentOperation> developmentOperationModel;
+
+    /**
+     * Result of a connector export that finished while the wizard was still on the waiting step.
+     * The waiting step is replaced by the summary panel in the same AJAX response as the download
+     * behavior initiation, which would invalidate a behavior attached to the (now removed) waiting
+     * step. Stashing the result here lets the summary panel trigger the download itself, once it is
+     * part of the component tree.
+     */
+    private ConnDevExportConnectorResultType pendingExportResult;
 
     public ConnectorDevelopmentDetailsModel(LoadableDetachableModel<PrismObject<ConnectorDevelopmentType>> prismObjectModel, ModelServiceLocator serviceLocator) {
         super(prismObjectModel, serviceLocator);
@@ -47,5 +57,13 @@ public class ConnectorDevelopmentDetailsModel extends AssignmentHolderDetailsMod
 
     public ModelServiceLocator getServiceLocator() {
         return super.getModelServiceLocator();
+    }
+
+    public ConnDevExportConnectorResultType getPendingExportResult() {
+        return pendingExportResult;
+    }
+
+    public void setPendingExportResult(ConnDevExportConnectorResultType pendingExportResult) {
+        this.pendingExportResult = pendingExportResult;
     }
 }

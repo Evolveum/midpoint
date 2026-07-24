@@ -4,6 +4,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorExportService;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
@@ -48,6 +49,7 @@ public class ConnDevBeans {
     @Autowired public RepositoryService repositoryService;
     @Autowired public CacheDispatcher cacheDispatcher;
     @Autowired public ConnectorInstallationService connectorService;
+    @Autowired public ConnectorExportService connectorExportService;
     @Autowired public ProvisioningService provisioningService;
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public MidpointConfiguration configuration;
