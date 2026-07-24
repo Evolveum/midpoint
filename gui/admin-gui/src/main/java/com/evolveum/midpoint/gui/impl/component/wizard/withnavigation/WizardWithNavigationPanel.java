@@ -176,6 +176,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getController());
         collapsedInfoPanel.setOutputMarkupId(true);
+        collapsedInfoPanel.setOutputMarkupPlaceholderTag(true);
         form.add(collapsedInfoPanel);
     }
 

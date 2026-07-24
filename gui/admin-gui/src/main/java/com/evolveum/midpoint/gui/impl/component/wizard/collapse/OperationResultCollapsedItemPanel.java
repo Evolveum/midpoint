@@ -135,12 +135,18 @@ public class OperationResultCollapsedItemPanel extends BasePanel<OperationResult
                         createStringResource("OperationResultCollapsedItemPanel.fixButton")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        if (resultWrapper.getFixAction() != null) {
+                            resultWrapper.getFixAction().accept(target);
+                            target.add(OperationResultCollapsedItemPanel.this);
+                            return;
+                        }
                         wizardModel.setActiveStepById(resultWrapper.getFixPanelId());
                         wizardModel.fireActiveStepChanged();
                         target.add(wizardModel.getPanel());
                     }
                 };
-                fixButton.add(new VisibleBehaviour(() -> !Strings.CS.equals(wizardModel.getActiveStep().getStepId(), resultWrapper.getFixPanelId())));
+                fixButton.add(new VisibleBehaviour(() -> resultWrapper.getFixAction() != null
+                        || !Strings.CS.equals(wizardModel.getActiveStep().getStepId(), resultWrapper.getFixPanelId())));
                 fixButton.setOutputMarkupId(true);
                 fixButton.showTitleAsLabel(true);
                 return fixButton;
