@@ -1,4 +1,5 @@
 = Connector Setup
+:page-moved-from: /midpoint/reference/resources/connector-setup/
 :page-wiki-name: Connector Setup
 :page-wiki-id: 21889086
 :page-wiki-metadata-create-user: semancik

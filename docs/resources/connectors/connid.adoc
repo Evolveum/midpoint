@@ -1,4 +1,5 @@
 = Using ConnId Connectors in MidPoint
+:page-moved-from: /midpoint/reference/resources/connid/
 :page-nav-title: Using ConnId Connectors
 :page-wiki-name: ConnId
 :page-wiki-id: 20086811
