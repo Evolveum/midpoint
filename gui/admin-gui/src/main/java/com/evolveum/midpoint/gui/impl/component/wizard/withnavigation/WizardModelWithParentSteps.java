@@ -15,10 +15,12 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +78,10 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
 
     public void addOperationResult(String panelId, String fixPanelId, OperationResult result) {
         operationResultCollapsedItem.addOperationResult(panelId, fixPanelId, result);
+    }
+
+    public void addOperationResult(String panelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        operationResultCollapsedItem.addOperationResult(panelId, null, result, fixAction);
     }
 
     public void removeOperationResult(String panelId) {
