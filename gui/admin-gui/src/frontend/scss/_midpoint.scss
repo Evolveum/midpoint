@@ -2555,6 +2555,10 @@ footer.app-footer a {
   margin-bottom: .25rem;
 }
 
+.right-sidebar-layout {
+  margin-bottom: -$lte-app-main-padding-bottom;
+}
+
 .right-sidebar-help {
   @extend .bg-white;
   @extend .border-start;
