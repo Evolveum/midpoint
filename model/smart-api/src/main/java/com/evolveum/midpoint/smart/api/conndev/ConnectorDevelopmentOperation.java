@@ -178,6 +178,8 @@ public interface ConnectorDevelopmentOperation {
 
     void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
 
+    ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result);
+
 
     default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
