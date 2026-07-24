@@ -59,9 +59,9 @@ public class CertHelper {
             case IN_REMEDIATION:
                 return "Remediation in progress" + i;
             case CLOSED:
-                return "Closed + i";
+                return "Closed" + i;
             default:
-                return "" + i;      // should not occur
+                return i; // should not occur
         }
     }
 
