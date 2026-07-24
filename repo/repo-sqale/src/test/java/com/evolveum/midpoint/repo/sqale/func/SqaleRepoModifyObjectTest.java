@@ -4262,7 +4262,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         when("password value is marked as incomplete");
 
         // TODO we should be able to set the incomplete flag more intelligently (by using replace delta on the leaf property)
-        //  See MID-10161.
+        //  See #10161/#10201.
         var password = new PasswordType();
         ShadowUtil.setPasswordIncomplete(password);
         repositoryService.modifyObject(ShadowType.class, shadow1Oid,
