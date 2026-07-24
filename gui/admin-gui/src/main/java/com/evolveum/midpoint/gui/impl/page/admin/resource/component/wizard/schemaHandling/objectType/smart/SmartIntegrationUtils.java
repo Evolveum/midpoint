@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
 import java.util.Collections;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
@@ -105,19 +105,19 @@ public class SmartIntegrationUtils {
      * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
      */
     public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
-            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+            String resourceOid, PageBase pageBase, Task task, OperationResult result) {
         NativeResourceSchema schema;
         try {
             var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
             schema = Resource.of(resource).getNativeResourceSchemaRequired();
-        } catch (Exception e) {
+        } catch (CommonException e) {
             result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
             LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
             return Set.of();
         }
         return schema.getObjectClassDefinitions().stream()
                 .filter(def -> !def.isEmbedded() && !def.isAuxiliary())
-                .map(def -> new QName(NS_RI, def.getName())) // def.getQName is buggy now
+                .map(def -> ResourceSchema.nativeToMidPointClassName(def.getName()))
                 .collect(Collectors.toSet());
     }
 
@@ -127,12 +127,12 @@ public class SmartIntegrationUtils {
      * in the returned map.
      */
     public static @NotNull Map<QName, String> getObjectClassDescriptions(
-            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+            String resourceOid, PageBase pageBase, Task task, OperationResult result) {
         NativeResourceSchema schema;
         try {
             var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
             schema = Resource.of(resource).getNativeResourceSchemaRequired();
-        } catch (Exception e) {
+        } catch (CommonException e) {
             result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
             LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
             return Map.of();
@@ -141,8 +141,7 @@ public class SmartIntegrationUtils {
         for (var def : schema.getObjectClassDefinitions()) {
             String description = def.getDescription();
             if (StringUtils.isNotBlank(description)) {
-                // TODO: This is a workaround for the fact that def.getQName don't return NS_RI prefix
-                descriptions.put(new QName(NS_RI, def.getName()), description);
+                descriptions.put(ResourceSchema.nativeToMidPointClassName(def.getName()), description);
             }
         }
         return descriptions;

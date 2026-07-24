@@ -104,7 +104,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
             @NotNull IModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> model,
             @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedModel,
             @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache,
-            Map<QName, String> objectClassDescriptionCache) {
+            @NotNull Map<QName, String> objectClassDescriptionCache) {
         super(id, tableId, model);
         this.selectedTileModel = selectedModel;
         this.resourceOid = resourceOid;
@@ -262,8 +262,8 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation, description);
     }
 
-    private @Nullable String getObjectClassDescription(@NotNull QName objectClassName) {
-        return objectClassDescriptionCache != null ? objectClassDescriptionCache.get(objectClassName) : null;
+    private @NotNull String getObjectClassDescription(@NotNull QName objectClassName) {
+        return objectClassDescriptionCache.getOrDefault(objectClassName, "");
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
@@ -448,7 +448,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
                     String componentId,
                     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> rowModel) {
                 String description = getObjectClassDescription(rowModel.getObject().getRealValue().getName());
-                item.add(new Label(componentId, description != null ? description : ""));
+                item.add(new Label(componentId, description));
             }
 
             @Override
