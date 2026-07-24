@@ -121,7 +121,7 @@ public class SqaleRepositoryBeanConfig {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext = new SqaleRepoContext(
                 repositoryConfiguration, dataSource, schemaService, mappingRegistry,
-                SqaleUtils.SCHEMA_CHANGE_NUMBER, SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
+                SqaleUtils.VersionedComponent.REPOSITORY);
 
         // logger on com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger
         // DEBUG = show query, TRACE = add parameter values too (bindings)
