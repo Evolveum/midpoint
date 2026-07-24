@@ -2154,10 +2154,6 @@
                     <groupId>io.github.git-commit-id </groupId>
                     <artifactId>git-commit-id-maven-plugin</artifactId>
                     <version>10.0.0</version>
-                    <configuration>
-                        <!-- A workaround to make build work in a Git worktree, see https://github.com/git-commit-id/git-commit-id-maven-plugin/issues/215 -->
-                        <useNativeGit>true</useNativeGit>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.owasp</groupId>
