@@ -594,7 +594,13 @@ export default class MidPointTheme {
 
         sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
             var menuItemEl = $(this).get(0);
-            if (menuItemEl !== document.activeElement && !menuItemEl.classList.contains('active')) {
+            var directLink = $(this).children("a").get(0);
+
+            var isRelevantFocus = menuItemEl === document.activeElement
+                || directLink === document.activeElement
+                || menuItemEl.classList.contains('active');
+
+            if (!isRelevantFocus) {
                 return;
             }
 
@@ -606,6 +612,7 @@ export default class MidPointTheme {
                     $(this).click();
                 }
                 e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -620,7 +627,8 @@ export default class MidPointTheme {
                         focusableElement.scrollIntoView({block: "center"});
                     }
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -632,7 +640,8 @@ export default class MidPointTheme {
                     parent.get(0).focus();
                     parent.get(0).scrollIntoView({block: "center"});
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -663,7 +672,8 @@ export default class MidPointTheme {
             if (focusItem) {
                 focusItem.focus();
                 focusItem.scrollIntoView({block: "center"});
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
     }
