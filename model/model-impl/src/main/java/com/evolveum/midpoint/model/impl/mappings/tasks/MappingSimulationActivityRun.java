@@ -8,10 +8,8 @@
 package com.evolveum.midpoint.model.impl.mappings.tasks;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
@@ -23,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.correlation.ResourceCorrelationDefinitionProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
@@ -31,8 +28,6 @@ import com.evolveum.midpoint.model.impl.simulation.MappingSimulationData;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -53,7 +48,6 @@ import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowType, MappingWorkDefinition, MappingSimulationActivityHandler,
                 AbstractActivityWorkStateType> {
@@ -72,7 +66,6 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
 
     private ResourceType resource;
     private ResourceObjectTypeDefinition objectTypeDefinition;
-    private CorrelationDefinitionType correlationDefinition;
     private @Nullable SystemConfigurationType systemConfigurationBean;
 
     public MappingSimulationActivityRun(
@@ -108,9 +101,7 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
 
         this.resource = this.provisioningService.getObject(ResourceType.class, this.resourceOid, null, getRunningTask(),
                 result).asObjectable();
-        this.correlationDefinition = new ResourceCorrelationDefinitionProvider(this.resource, this.objectTypeId).get();
-        this.objectTypeDefinition = adjustObjectTypeDefinition(this.resource, this.objectTypeId,
-                this.correlationDefinition);
+        this.objectTypeDefinition = adjustObjectTypeDefinition(this.resource, this.objectTypeId);
         this.systemConfigurationBean = this.systemObjectCache.getSystemConfigurationBean(result);
         return true;
     }
@@ -122,8 +113,7 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
         final FocusType targetFocus;
         try {
             targetFocus = this.correlationService
-                    .findLinkedOrCorrelatedFocus(shadow, this.resource, this.objectTypeDefinition,
-                            this.correlationDefinition, task, result)
+                    .findLinkedOrCorrelatedFocus(shadow, this.resource, task, result)
                     .orElseGet(emptyFocusSupplier(shadow));
         } catch (TunnelException e) {
             throw new SchemaException(e.getMessage(), e.getCause());
@@ -141,7 +131,8 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
                 objectDelta = null;
             }
         } catch (CommonException e) {
-            // Result must be closed before writing simulation data because close() calls computeStatus() which propagates error message from subresults to root result
+            // Result must be closed before writing simulation data because close() calls computeStatus() which
+            // propagates error message from subresults to root result
             evaluationResult.close();
             final SimulationTransaction failSimulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
                     "Required simulation transaction does not exist.");
@@ -160,8 +151,8 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
 
         final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
                 "Required simulation transaction does not exist.");
-        simulationTransaction.writeSimulationData(new MappingSimulationData(targetFocus, objectDelta,
-                evaluationResult), task, result);
+        simulationTransaction.writeSimulationData(new MappingSimulationData(targetFocus, objectDelta, evaluationResult),
+                task, result);
 
         return true;
     }
@@ -213,18 +204,10 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
     }
 
     private @NotNull ResourceObjectTypeDefinition adjustObjectTypeDefinition(@NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeIdentification objectTypeId, CorrelationDefinitionType correlationDefinition)
+            @NotNull ResourceObjectTypeIdentification objectTypeId)
             throws ConfigurationException, SchemaException {
 
-        final List<ItemPath> correlatorsItems = Optional.ofNullable(correlationDefinition.getCorrelators())
-                .map(correlators -> correlators.getItems().stream()
-                        .flatMap(items -> items.getItem().stream())
-                        .map(CorrelationItemType::getRef)
-                        .map(ItemPathType::getItemPath)
-                        .toList())
-                .orElse(Collections.emptyList());
-
-        final ResourceType resourceWithWantedMappings = excludeExistingMappingsIfNeeded(resource, correlatorsItems);
+        final ResourceType resourceWithWantedMappings = excludeExistingMappingsIfNeeded(resource);
         final ResourceSchemaExtender resourceSchemaExtender = ResourceSchemaFactory.schemaExtenderFor(
                 resourceWithWantedMappings);
 
@@ -245,23 +228,18 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
      * whole object type inheritance hierarchy (if present).
      *
      * @param resource The resource from which you want to exclude existing mappings.
-     * @param doNotRemoveThese The list of items, inbound mappings of which should not be removed.
      *
      * @return The clone of the provided resource with excluded mappings, or the same instance as was provided if the
      *         exclusion is not desired.
      */
-    private ResourceType excludeExistingMappingsIfNeeded(@NotNull ResourceType resource,
-            List<ItemPath> doNotRemoveThese) {
+    private ResourceType excludeExistingMappingsIfNeeded(@NotNull ResourceType resource) {
         if (!this.excludeExistingMappings) {
             return resource;
         } else {
             final ResourceType clonedResource = resource.clone();
             clonedResource.getSchemaHandling().getObjectType().stream()
                     .flatMap(objectType -> objectType.getAttribute().stream())
-                    .forEach(attr -> {
-                        attr.getInbound().removeIf(inbound -> !ItemPathCollectionsUtil.containsEquivalent(
-                                doNotRemoveThese, inbound.getTarget().getPath().getItemPath()));
-                    });
+                    .forEach(attr -> attr.getInbound().clear());
             return clonedResource;
         }
     }

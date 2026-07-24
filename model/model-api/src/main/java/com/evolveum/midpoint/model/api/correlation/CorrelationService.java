@@ -120,14 +120,11 @@ public interface CorrelationService {
      *
      * @param shadow The shadow, whose linked or correlated focus you want to find.
      * @param resource The resource, which will be used for correlation if there is no linked or correlated focus yet.
-     * @param typeDef The object type definition for the purposes of correlation.
-     * @param correlationDef The definition of correlation for the purposes of correlation.
      *
      * @return The found focus or empty Optional if no linked/correlated focus was found.
      */
-    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
-            @NotNull Task task, OperationResult result)
+    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, ResourceType resource, @NotNull Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 

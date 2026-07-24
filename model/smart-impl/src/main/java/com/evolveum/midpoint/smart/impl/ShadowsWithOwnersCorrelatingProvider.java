@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
-import com.evolveum.midpoint.model.impl.correlation.ResourceCorrelationDefinitionProvider;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -25,8 +24,7 @@ import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Default implementation that fetches owned shadows via ModelService from the resource.
@@ -49,27 +47,23 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(maxExamples);
-        final CorrelationDefinitionType correlationDef =
-                new ResourceCorrelationDefinitionProvider(ctx.resource).definitionFor(ctx.getTypeIdentification());
         ctx.b.modelService.searchObjectsIterative(
                 ShadowType.class,
                 Resource.of(ctx.resource)
                         .queryFor(ctx.typeDefinition.getTypeIdentification())
                         .build(),
-                addOwnerOrOwnerCandidate(correlationDef, ctx, state, maxExamples, ownedShadows),
+                addOwnerOrOwnerCandidate(ctx, state, maxExamples, ownedShadows),
                 null, ctx.task, result);
         return ownedShadows;
     }
 
-    private @NotNull ResultHandler<ShadowType> addOwnerOrOwnerCandidate(CorrelationDefinitionType correlationDef,
-            TypeOperationContext ctx, OperationContext.StateHolder state, int maxExamples,
-            ArrayList<ShadowWithOwner> shadowWithOwners) {
+    private @NotNull ResultHandler<ShadowType> addOwnerOrOwnerCandidate(TypeOperationContext ctx,
+            OperationContext.StateHolder state, int maxExamples, ArrayList<ShadowWithOwner> shadowWithOwners) {
         return (shadow, lResult) -> {
             state.flushIfNeeded(lResult);
             try {
                 this.correlationService
-                        .findLinkedOrCorrelatedFocus(shadow.asObjectable(), ctx.resource, ctx.typeDefinition,
-                                correlationDef, ctx.task, lResult)
+                        .findLinkedOrCorrelatedFocus(shadow.asObjectable(), ctx.resource, ctx.task, lResult)
                         .ifPresent(focus -> {
                             shadowWithOwners.add(new ShadowWithOwner(shadow.asObjectable(), focus));
                             state.incrementProgress(lResult);
