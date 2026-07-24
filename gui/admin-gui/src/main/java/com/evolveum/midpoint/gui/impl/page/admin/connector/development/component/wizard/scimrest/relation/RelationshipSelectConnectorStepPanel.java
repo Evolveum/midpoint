@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -165,6 +166,15 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
                 Label objectAttribute = new Label(ID_OBJECT_ATTRIBUTE, () -> listItem.getModelObject().getRealValue().getObjectAttribute());
                 objectAttribute.setOutputMarkupId(true);
                 listItem.add(objectAttribute);
+
+                listItem.add(AttributeAppender.append("style", "cursor: pointer;"));
+                listItem.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        radioGroupModel.setObject(listItem.getModelObject().getRealValue().getName());
+                        target.add(radioGroup);
+                    }
+                });
             }
         };
         panel.setOutputMarkupId(true);
