@@ -8,6 +8,7 @@ package com.evolveum.midpoint.common;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.Collator;
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -244,30 +245,35 @@ public class AvailableLocale {
             return Objects.hash(name, flag, locale, def);
         }
 
+        /**
+         * Sort by display name as it appears in the GUI language selector. The previous
+         * implementation sorted by locale identifier (country, then language, then variant),
+         * which produced the surprising result that any locale with a country code (e.g.
+         * {@code en_US}, {@code pt_BR}, {@code zh_CN}) was pushed below every language-only
+         * entry (e.g. {@code de}, {@code fr}) regardless of how it read in the selector. Sorting
+         * by the configured {@code .name} matches what users see and works for the bare
+         * language entries and the country-suffixed entries side by side.
+         *
+         * <p>Uses the JVM's default locale for the {@link Collator}, so accents and
+         * non-Latin scripts collate sensibly for the server's environment. Null names are
+         * treated as sorting first; in practice every descriptor loaded from
+         * {@code locale.properties} has a non-null name (the loader skips entries without
+         * {@code .name}).
+         */
         @Override
         public int compareTo(@NotNull LocaleDescriptor o) {
-            Locale other = o.getLocale();
-
-            int val = compareStrings(locale.getCountry(), other.getCountry());
-            if (val != 0) {
-                return val;
-            }
-
-            val = compareStrings(locale.getLanguage(), other.getLanguage());
-            if (val != 0) {
-                return val;
-            }
-
-            val = compareStrings(locale.getVariant(), other.getVariant());
-            return val;
-        }
-
-        private int compareStrings(String s1, String s2) {
-            if (s1 == null || s2 == null) {
+            if (name == null && o.name == null) {
                 return 0;
             }
-
-            return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+            if (name == null) {
+                return -1;
+            }
+            if (o.name == null) {
+                return 1;
+            }
+            return NAME_COLLATOR.compare(name, o.name);
         }
+
+        private static final Collator NAME_COLLATOR = Collator.getInstance();
     }
 }
