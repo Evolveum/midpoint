@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButt
 import com.evolveum.midpoint.gui.impl.page.admin.component.OperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
+import com.evolveum.midpoint.gui.impl.util.PendingObjectPreviewUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -95,6 +97,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private final boolean isAdd;
     private boolean isShowedByWizard;
     private boolean isDetailsNavigationPanelVisible = true;
+    private boolean pendingObjectTransientPreview;
+    private boolean pendingObjectUnavailable;
+    private PendingObjectPreviewUtil.ApprovalState pendingObjectApprovalState =
+            PendingObjectPreviewUtil.ApprovalState.UNKNOWN;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -191,6 +197,22 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected DetailsFragment createDetailsFragment() {
+        if (isPendingObjectPreview()) {
+            O previewObject = objectDetailsModels.getObjectType();
+            if (previewObject == null || pendingObjectUnavailable) {
+                return new DetailsFragment(ID_DETAILS_VIEW, ID_ERROR_VIEW, AbstractPageObjectDetails.this) {
+                    @Override
+                    protected void initFragmentLayout() {
+                        add(new ErrorPanel(ID_ERROR,
+                                createStringResource("PagePendingObjectPreview.objectNotAvailable")));
+                    }
+                };
+            }
+            if (isPendingObjectTransientPreview()) {
+                showPendingObjectPreviewMessages(previewObject);
+            }
+        }
+
         if (!supportGenericRepository() && !isNativeRepo()) {
             return new DetailsFragment(ID_DETAILS_VIEW, ID_ERROR_VIEW, AbstractPageObjectDetails.this) {
                 @Override
@@ -886,6 +908,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         OperationResult result = task.getResult();
         PrismObject<O> prismObject = null;
         try {
+            if (isPendingObjectPreview()) {
+                return loadPendingObjectPreview(task, result);
+            }
+
             if (!isEditObject()) {
                 prismObject = getPrismContext().createObject(getType());
             } else {
@@ -915,7 +941,77 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     public boolean isEditObject() {
-        return getObjectOidParameter() != null;
+        return isPendingObjectTransientPreview()
+                || getObjectOidParameter() != null;
+    }
+
+    protected boolean isPendingObjectPreview() {
+        return DetailsPageUtil.isPendingObjectPreview(getPageParameters());
+    }
+
+    protected boolean isPendingObjectTransientPreview() {
+        return pendingObjectTransientPreview;
+    }
+
+    /**
+     * Loads an object for pending-preview navigation.
+     *
+     * The repository object is preferred when it already exists. Otherwise, the
+     * object is reconstructed from the authorized source case and marked as a
+     * transient read-only preview.
+     *
+     * @return the persisted or reconstructed object, or {@code null} if the preview
+     *         parameters or source case cannot provide a matching object
+     */
+    private PrismObject<O> loadPendingObjectPreview(Task task, OperationResult result) {
+        pendingObjectTransientPreview = false;
+        pendingObjectUnavailable = false;
+        pendingObjectApprovalState = PendingObjectPreviewUtil.ApprovalState.UNKNOWN;
+
+        String expectedType = DetailsPageUtil.getPendingObjectPreviewType(getPageParameters());
+        if (StringUtils.isNotBlank(expectedType)
+                && !WebComponentUtil.classToQName(getType()).getLocalPart().equals(expectedType)) {
+            pendingObjectUnavailable = true;
+            return null;
+        }
+
+        String expectedOid = getObjectOidParameter();
+        if (StringUtils.isNotBlank(expectedOid)) {
+            PrismObject<O> prismObject = WebModelServiceUtils.loadObject(
+                    getType(), expectedOid, getOperationOptions(), true, this, task, result);
+            if (prismObject != null) {
+                return prismObject;
+            }
+        }
+
+        String caseOid = DetailsPageUtil.getPendingObjectPreviewCaseOid(getPageParameters());
+        PrismObject<CaseType> caseObject = StringUtils.isNotBlank(caseOid)
+                ? WebModelServiceUtils.loadObject(CaseType.class, caseOid, null, true, this, task, result)
+                : null;
+        PrismObject<O> prismObject = WebComponentUtil.getPendingObjectFromAddCase(
+                caseObject != null ? caseObject.asObjectable() : null, getType(), expectedOid);
+        if (prismObject == null) {
+            pendingObjectUnavailable = true;
+            return null;
+        }
+
+        pendingObjectTransientPreview = true;
+        pendingObjectApprovalState = PendingObjectPreviewUtil.determineApprovalState(
+                caseObject.asObjectable(), getType(), expectedOid, this, result);
+        return prismObject;
+    }
+
+    private void showPendingObjectPreviewMessages(O previewObject) {
+        String objectTypeLabel = WebComponentUtil.getLabelForType(previewObject.getClass(), false);
+        switch (pendingObjectApprovalState) {
+            case AWAITING_APPROVAL ->
+                    info(createStringResource("PagePendingObjectPreview.awaitingApproval", objectTypeLabel).getString());
+            case REJECTED ->
+                    info(createStringResource("PagePendingObjectPreview.rejected", objectTypeLabel).getString());
+            default -> {
+            }
+        }
+        info(createStringResource("PagePendingObjectPreview.readOnly").getString());
     }
 
     protected String getObjectOidParameter() {

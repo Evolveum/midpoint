@@ -169,6 +169,20 @@ public interface ModelInteractionService {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException;
 
+    /**
+     * Variant of {@link #getEditObjectDefinition(PrismObject, AuthorizationPhaseType, Task, OperationResult)}
+     * for an object that has already passed through authorization/security processing.
+     *
+     * The supplied object is used directly and is not reloaded from the repository solely because it has an OID.
+     * The caller must ensure that the object was obtained through an authorized path and does not contain data
+     * the current user is not allowed to access. An arbitrary or unfiltered object must not be passed here, as
+     * incorrect use could expose security-sensitive definitions/items to GUI/wrapper processing.
+     */
+    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForPreauthorizedObject(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException;
+
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(
             ResourceShadowCoordinates coordinates,
             AuthorizationPhaseType phase,

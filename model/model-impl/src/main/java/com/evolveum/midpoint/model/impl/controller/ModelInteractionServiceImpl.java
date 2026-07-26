@@ -240,13 +240,28 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException {
+        return getEditObjectDefinition(object, phase, task, parentResult, true);
+    }
+
+    @Override
+    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForPreauthorizedObject(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
+        return getEditObjectDefinition(object, phase, task, parentResult, false);
+    }
+
+    private <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult, boolean reloadByOid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
         try {
             // Re-read the object from the repository to make sure we have all the properties.
             // the object from method parameters may be already processed by the security code
             // and properties needed to evaluate authorizations may not be there
             // MID-3126, see also MID-3435
-            PrismObject<O> fullObject = getFullObjectReadWrite(object, result);
+            PrismObject<O> fullObject = reloadByOid ? getFullObjectReadWrite(object, result) : object;
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints =

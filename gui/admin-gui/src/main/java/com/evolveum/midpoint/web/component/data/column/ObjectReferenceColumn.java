@@ -46,6 +46,11 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
                 protected boolean useNameAsLabel() {
                     return ObjectReferenceColumn.this.useNameAsLabel();
                 }
+
+                @Override
+                protected String getPendingObjectPreviewCaseOid() {
+                    return ObjectReferenceColumn.this.getPendingObjectPreviewCaseOid(ref, rowModel);
+                }
             });
         }
         item.add(view);
@@ -70,7 +75,7 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
 
     public abstract IModel<List<ObjectReferenceType>> extractDataModel(IModel<T> rowModel);
 
-
-
-
+    protected String getPendingObjectPreviewCaseOid(ObjectReferenceType ref, IModel<T> rowModel) {
+        return null;
+    }
 }

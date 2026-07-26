@@ -93,7 +93,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     @Override
     protected void initLayout() {
-        if (isApplicableTemplate()) {
+        if (!isPendingObjectPreview() && isApplicableTemplate()) {
             if (isAdd() && existMoreApplicableTemplate()) {
                 Fragment templateFragment = createTemplateFragment();
                 add(templateFragment);
@@ -115,7 +115,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
 
     protected DetailsFragment createDetailsFragment() {
-        if (canShowWizard()) {
+        if (!isPendingObjectPreview() && canShowWizard()) {
             setShowedByWizard(true);
             return createWizardFragment();
         }
@@ -496,13 +496,17 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 saveOrPreviewPerformed(target, result, false);
                 if (!result.isError()) {
                     if (!isEditObject()) {
-                        removeLastBreadcrumb();
-                        String oid = getPrismObject().getOid();
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                        Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
-                        navigateToNext(page, parameters);
-                        WebComponentUtil.createToastForCreateObject(target, getType());
+                        if (WebComponentUtil.isOperationSubmittedForApproval(result)) {
+                            WebComponentUtil.createToastForCreateObjectSubmittedForApproval(target, getType());
+                        } else {
+                            removeLastBreadcrumb();
+                            String oid = getPrismObject().getOid();
+                            PageParameters parameters = new PageParameters();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+                            Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
+                            navigateToNext(page, parameters);
+                            WebComponentUtil.createToastForCreateObject(target, getType());
+                        }
                     } else {
                         WebComponentUtil.createToastForUpdateObject(target, getType());
                     }
@@ -554,7 +558,11 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 saveOrPreviewPerformed(target, result, false);
                 if (!result.isError()) {
                     if (isCreated) {
-                        WebComponentUtil.createToastForCreateObject(target, getType());
+                        if (WebComponentUtil.isOperationSubmittedForApproval(result)) {
+                            WebComponentUtil.createToastForCreateObjectSubmittedForApproval(target, getType());
+                        } else {
+                            WebComponentUtil.createToastForCreateObject(target, getType());
+                        }
                     } else {
                         WebComponentUtil.createToastForUpdateObject(target, getType());
                     }

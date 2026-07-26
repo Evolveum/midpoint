@@ -35,6 +35,9 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.9.8
+* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
+
 == Changes with Respect To Version 4.9.7
 
 * Updated multiple libraries, mainly spring boot to 4.1 and hibernate to 7.4.1, cxf to 4.2.2. See bug:MID-11547[], bug:MID-11002[], bug:MID-11948[]

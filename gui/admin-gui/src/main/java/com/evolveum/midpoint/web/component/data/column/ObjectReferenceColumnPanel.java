@@ -91,7 +91,14 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(), ObjectReferenceColumnPanel.this, false);
+                String caseOid = ObjectReferenceColumnPanel.this.getPendingObjectPreviewCaseOid();
+                if (StringUtils.isNotBlank(caseOid)) {
+                    DetailsPageUtil.dispatchToPendingObjectPreview(
+                            ObjectReferenceColumnPanel.this.getModelObject(), caseOid, ObjectReferenceColumnPanel.this);
+                    return;
+                }
+                DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(),
+                        ObjectReferenceColumnPanel.this, false);
             }
         };
         name.setVisible(labelModel.getObject() != null);
@@ -112,7 +119,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             PrismObject<? extends ObjectType> object = ref.getObject();
 
-            if (object == null) {
+            if (object == null && !isPendingObjectPreviewRequested()) {
                 object = target.getObject();
             }
             if (object != null) {
@@ -137,7 +144,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             PrismObject<? extends ObjectType> object = ref.getObject();
 
-            if (object == null) {
+            if (object == null && !isPendingObjectPreviewRequested()) {
                 object = target.getObject();
             }
 
@@ -150,6 +157,18 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
             iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
             return iconBuilder.build();
         };
+    }
+
+    /**
+     * Returns the source case OID for pending-object preview navigation.
+     * A {@code null} value keeps ordinary object-reference navigation.
+     */
+    protected String getPendingObjectPreviewCaseOid() {
+        return null;
+    }
+
+    private boolean isPendingObjectPreviewRequested() {
+        return StringUtils.isNotBlank(getPendingObjectPreviewCaseOid());
     }
 
     @Override

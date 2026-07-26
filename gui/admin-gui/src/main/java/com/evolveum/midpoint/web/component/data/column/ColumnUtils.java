@@ -70,6 +70,7 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -86,6 +87,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -637,57 +639,24 @@ public class ColumnUtils {
             }
         });
         if (!showOnlyWorkItemData) {
-            columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
-                private static final long serialVersionUID = 1L;
+            columns.add(new ObjectReferenceColumn<>(
+                    createStringResource("WorkItemsPanel.object"), "") {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
-                protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                public IModel<List<ObjectReferenceType>> extractDataModel(
+                        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
+                    return () -> Collections.singletonList(getCaseObjectRef(caseType).ref());
                 }
 
                 @Override
-                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                protected String getPendingObjectPreviewCaseOid(
+                        ObjectReferenceType ref, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-
-                    dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
-                }
-
-                @Override
-                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-                    if (object == null) {
-                        super.populateItem(cellItem, componentId, rowModel);
-                    } else {
-                        IModel model = createLinkModel(rowModel);
-                        cellItem.add(new Label(componentId, model));
-                    }
-
-                    Component c = cellItem.get(componentId);
-
-                    String descriptionValue = "";
-                    ObjectReferenceType objectRef = caseType.getObjectRef();
-                    if (objectRef != null) {
-                        PrismReferenceValue refVal = objectRef.asReferenceValue();
-                        if (refVal.getObject() != null) {
-                            descriptionValue = refVal.getObject().asObjectable().getDescription();
-                        }
-                    }
-
-                    c.add(new AttributeAppender("title", descriptionValue));
-                }
-
-                @Override
-                public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
-                            Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
+                    return getCaseObjectRef(caseType).sourceCaseOid();
                 }
             });
             columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
@@ -1384,39 +1353,22 @@ public class ColumnUtils {
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);
 
-        columns.add(new AjaxLinkColumn<>(createStringResource("pageCases.table.objectRef")) {
-            private static final long serialVersionUID = 1L;
+        columns.add(new ObjectReferenceColumn<>(
+                createStringResource("pageCases.table.objectRef"), "") {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+            public IModel<List<ObjectReferenceType>> extractDataModel(
+                    IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseModelObject = rowModel.getObject().getValue();
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseModelObject.getObjectRef(), true, pageBase));
+                return () -> Collections.singletonList(getCaseObjectRef(caseModelObject).ref());
             }
 
             @Override
-            protected IModel<String> createLinkModel(IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseType = rowModel.getObject().getValue();
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseType = rowModel.getObject().getValue();
-
-                dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
-            }
-
-            @Override
-            public boolean isEnabled(IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType caseType = rowModel.getObject().getValue();
-                if (caseType.getObjectRef() == null) {
-                    return false;
-                }
-
-                PrismObject object = caseType.getObjectRef().getObject();
-                // Do not generate link if the object has not been created yet.
-                // Check the version to see if it has not been created.
-                return object != null && object.getVersion() != null;
+            protected String getPendingObjectPreviewCaseOid(
+                    ObjectReferenceType ref, IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseModelObject = rowModel.getObject().getValue();
+                return getCaseObjectRef(caseModelObject).sourceCaseOid();
             }
         });
 
@@ -1542,6 +1494,45 @@ public class ColumnUtils {
         }
 
         return columns;
+    }
+
+    @VisibleForTesting
+    record CaseObjectRef(ObjectReferenceType ref, String sourceCaseOid) {
+    }
+
+    @VisibleForTesting
+    static CaseObjectRef getCaseObjectRef(CaseType caseType) {
+        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
+        if (object != null && !ApprovalUtils.isExplicitlyApprovedOutcome(caseType.getOutcome())) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.asReferenceValue().setObject(object.asPrismObject());
+            ref.setOid(object.getOid());
+            ref.setType(WebComponentUtil.classToQName(object.getClass()));
+            return new CaseObjectRef(ref, caseType.getOid());
+        }
+
+        ObjectReferenceType ref = caseType != null ? caseType.getObjectRef() : null;
+        String sourceCaseOid = supportsCaseBasedPreview(caseType, ref)
+                ? caseType.getOid()
+                : null;
+
+        return new CaseObjectRef(ref, sourceCaseOid);
+    }
+
+    /**
+     * Returns whether the case reference contains enough context to open a pending-object preview.
+     *
+     * The embedded object is required because the preview loader does not resolve it from child cases.
+     */
+    private static boolean supportsCaseBasedPreview(
+            CaseType caseType, ObjectReferenceType objectRef) {
+        return caseType != null
+                && StringUtils.isNotBlank(caseType.getOid())
+                && ObjectTypeUtil.hasArchetypeRef(
+                caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+                && objectRef != null
+                && objectRef.getType() != null
+                && objectRef.asReferenceValue().getObject() != null;
     }
 
     private static String createCaseClosedTimestampLabel(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {

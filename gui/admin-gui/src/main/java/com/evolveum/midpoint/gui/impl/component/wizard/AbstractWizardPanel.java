@@ -44,6 +44,7 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
 
     private final WizardPanelHelper<C, AHD> helper;
     private final boolean startWithChoiceTemplate;
+    private OperationResult lastSaveResult;
 
     public AbstractWizardPanel(
             String id,
@@ -121,7 +122,12 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
     }
 
     protected OperationResult onSavePerformed(AjaxRequestTarget target) {
-        return helper.onSaveObjectPerformed(target);
+        lastSaveResult = getHelper().onSaveObjectPerformed(target);
+        return lastSaveResult;
+    }
+
+    protected OperationResult getLastSaveResult() {
+        return lastSaveResult;
     }
 
     public WizardPanelHelper<C, AHD> getHelper() {
