@@ -86,6 +86,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -650,15 +651,15 @@ public class ColumnUtils {
                         IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-                    if (object != null) {
-                        ObjectReferenceType ort = new ObjectReferenceType();
-                        ort.asReferenceValue().setObject(object.asPrismObject());
-                        ort.setOid(object.getOid());
-                        ort.setType(WebComponentUtil.classToQName(object.getClass()));
-                        return () -> Collections.singletonList(ort);
-                    }
-                    return () -> Collections.singletonList(caseType.getObjectRef());
+                    return () -> Collections.singletonList(getCaseObjectRef(caseType).ref());
+                }
+
+                @Override
+                protected boolean isLinkEnabled(
+                        ObjectReferenceType ref, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    return !getCaseObjectRef(caseType).pendingAdd();
                 }
 
                 @Override
@@ -1351,7 +1352,13 @@ public class ColumnUtils {
             public IModel<List<ObjectReferenceType>> extractDataModel(
                     IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseModelObject = rowModel.getObject().getValue();
-                return () -> Collections.singletonList(caseModelObject.getObjectRef());
+                return () -> Collections.singletonList(getCaseObjectRef(caseModelObject).ref());
+            }
+
+            @Override
+            protected boolean isLinkEnabled(ObjectReferenceType ref, IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseModelObject = rowModel.getObject().getValue();
+                return !getCaseObjectRef(caseModelObject).pendingAdd();
             }
 
             @Override
@@ -1482,6 +1489,21 @@ public class ColumnUtils {
         }
 
         return columns;
+    }
+
+    private record CaseObjectRef(ObjectReferenceType ref, boolean pendingAdd) {
+    }
+
+    private static CaseObjectRef getCaseObjectRef(CaseType caseType) {
+        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
+        if (object != null && (caseType == null || !ApprovalUtils.isApproved(caseType.getOutcome()))) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.asReferenceValue().setObject(object.asPrismObject());
+            ort.setOid(object.getOid());
+            ort.setType(WebComponentUtil.classToQName(object.getClass()));
+            return new CaseObjectRef(ort, true);
+        }
+        return new CaseObjectRef(caseType != null ? caseType.getObjectRef() : null, false);
     }
 
     private static String createCaseClosedTimestampLabel(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {

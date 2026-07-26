@@ -59,6 +59,11 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
                 protected boolean showDisplayNameAndName() {
                     return ObjectReferenceColumn.this.showDisplayNameAndName();
                 }
+
+                @Override
+                protected boolean isLinkEnabled() {
+                    return ObjectReferenceColumn.this.isLinkEnabled(ref, rowModel) && super.isLinkEnabled();
+                }
             });
         }
         item.add(view);
@@ -93,5 +98,9 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
 
     protected boolean showDisplayNameAndName() {
         return false;
+    }
+
+    protected boolean isLinkEnabled(ObjectReferenceType ref, IModel<T> rowModel) {
+        return true;
     }
 }

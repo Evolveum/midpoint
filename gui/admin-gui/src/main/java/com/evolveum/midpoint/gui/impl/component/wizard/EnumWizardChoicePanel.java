@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -38,14 +39,20 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
         extends WizardChoicePanel<T, AHD> {
 
     private final Class<T> tileTypeClass;
+    private final OperationResult lastSaveResult;
 
     /**
     * @param tileTypeClass have to be Enum class
     **/
     public EnumWizardChoicePanel(String id, AHD resourceModel, Class<T> tileTypeClass) {
+        this(id, resourceModel, tileTypeClass, null);
+    }
+
+    public EnumWizardChoicePanel(String id, AHD resourceModel, Class<T> tileTypeClass, OperationResult lastSaveResult) {
         super(id, resourceModel);
         Validate.isAssignableFrom(Enum.class, tileTypeClass);
         this.tileTypeClass = tileTypeClass;
+        this.lastSaveResult = lastSaveResult;
     }
 
     protected LoadableModel<List<Tile<T>>> loadTilesModel() {
@@ -79,7 +86,11 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected boolean addDefaultTile() {
-        return true;
+        return !WebComponentUtil.isOperationSubmittedForApproval(lastSaveResult);
+    }
+
+    protected OperationResult getLastSaveResult() {
+        return lastSaveResult;
     }
 
     @Override
@@ -142,9 +153,22 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
             return;
         }
 
+        String oid = getObjectOid();
+        if (StringUtils.isBlank(oid)) {
+            getPageBase().warn(
+                    getPageBase().createStringResource("WizardChoicePanel.objectNotAvailable")
+                            .getString());
+            return;
+        }
+
         getPageBase().removeLastBreadcrumb();
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, getAssignmentHolderDetailsModel().getObjectType().getOid());
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         getPageBase().navigateToNext(detailPage, parameters);
+    }
+
+    private String getObjectOid() {
+        ObjectType object = getAssignmentHolderDetailsModel().getObjectType();
+        return object != null ? object.getOid() : null;
     }
 }

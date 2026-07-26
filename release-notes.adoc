@@ -176,6 +176,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed saving dynamic extension attributes. See bug:MID-11716[]
 * Fixed recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts. See bug:MID-11201[]
 * Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
+* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
 
 === Releases Of Other Components
 

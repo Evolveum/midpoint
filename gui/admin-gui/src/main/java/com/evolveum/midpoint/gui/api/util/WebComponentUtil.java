@@ -4049,6 +4049,24 @@ public final class WebComponentUtil {
         createToastForObject("AbstractWizardPanel.createObject", classToQName(type), target);
     }
 
+    public static void createToastForCreateObjectSubmittedForApproval(
+            AjaxRequestTarget target, Class<? extends ObjectType> type) {
+        createToastForObject("AbstractWizardPanel.createObject.submittedForApproval", classToQName(type), target);
+    }
+
+    /**
+     * Checks whether the operation was submitted for workflow approval.
+     *
+     * An in-progress status alone is not approval-specific. The workflow approval
+     * path additionally stores the root approval case OID in the operation result,
+     * which distinguishes it from other currently supported asynchronous operations.
+     */
+    public static boolean isOperationSubmittedForApproval(OperationResult result) {
+        return result != null
+                && result.isInProgress()
+                && StringUtils.isNotBlank(result.findCaseOid());
+    }
+
     public static void createToastForUpdateObject(AjaxRequestTarget target, QName type) {
         createToastForObject("AbstractWizardPanel.updateObject", type, target);
     }

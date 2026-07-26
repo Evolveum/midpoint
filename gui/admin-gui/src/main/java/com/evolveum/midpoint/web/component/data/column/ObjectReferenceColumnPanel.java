@@ -103,7 +103,11 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
             }
 
             @Override
-            protected @NotNull String getNavigationUrl() {
+            protected String getNavigationUrl() {
+                if (!ObjectReferenceColumnPanel.this.isLinkEnabled()) {
+                    return null;
+                }
+
                 ObjectReferenceType rowValue = getModelObject();
                 String url = DetailsPageUtil.getObjectDetailsLinkNavigationUrl(rowValue);
                 if (url == null) {
