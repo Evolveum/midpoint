@@ -20,6 +20,8 @@ import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfigurationForCorrelation;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ShadowSamplingService;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,9 +35,11 @@ import java.util.List;
 class CorrelationSuggestionOperation {
 
     private final TypeOperationContext ctx;
+    private final ShadowSamplingService shadowSamplingService;
 
-    CorrelationSuggestionOperation(TypeOperationContext ctx) {
+    CorrelationSuggestionOperation(TypeOperationContext ctx, ShadowSamplingService shadowSamplingService) {
         this.ctx = ctx;
+        this.shadowSamplingService = shadowSamplingService;
     }
 
     /**
@@ -60,8 +64,10 @@ class CorrelationSuggestionOperation {
         var excludedPaths = mergeExcludedPaths(existingCorrelationPaths, targetPathsToIgnore);
         var suggestions = suggestCorrelationMappings(schemaMatch, correlators, excludedPaths);
 
-        var allScores = new CorrelatorEvaluator(ctx, suggestions)
-                .evaluateSuggestions(result);
+        SamplingConfigurationForCorrelation config = SamplingConfigurationForCorrelation.create(ctx.typeDefinition);
+
+        var allScores = new CorrelatorEvaluator(ctx, suggestions, shadowSamplingService)
+                .evaluateSuggestions(result, config);
 
         // For each correlator, select the attribute with highest score
         var bestSuggestionsMap = new java.util.HashMap<ItemPath, CorrelatedSuggestionWithScore>();

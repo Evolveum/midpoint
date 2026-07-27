@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
+import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfiguration;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
@@ -23,7 +24,7 @@ interface ShadowsWithOwnersProvider {
             TypeOperationContext ctx,
             OperationContext.StateHolder state,
             OperationResult result,
-            int maxExamples)
+            SamplingConfiguration config)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException;
 }

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
+import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfigurationForMappings;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
@@ -70,8 +71,6 @@ class MappingsSuggestionOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
-    private static final int LLM_EXAMPLES_COUNT = 20;
-    private static final int VALIDATION_EXAMPLES_COUNT = 200;
     private static final float MISSING_DATA_THRESHOLD = 0.05f;
     private static final float MINIMUM_QUALITY_THRESHOLD = 0.1f;
 
@@ -154,12 +153,17 @@ class MappingsSuggestionOperation {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
 
-        var ownedShadows = collectOwnedShadows(result);
-        int llmDataCount = Math.min(LLM_EXAMPLES_COUNT, ownedShadows.size());
-        int validationDataCount = Math.min(VALIDATION_EXAMPLES_COUNT, ownedShadows.size());
+        SamplingConfigurationForMappings config = SamplingConfigurationForMappings.create(ctx.typeDefinition);
+
+        var ownedShadows = collectOwnedShadows(result, config);
+        int llmDataCount = Math.min(config.getLlmSampleSize(), ownedShadows.size());
+        int validationDataCount = Math.min(config.getValidationSampleSize(), ownedShadows.size());
+
         var shadowsForLLM = ownedShadows.subList(0, llmDataCount);
         var shadowsForValidation = ownedShadows.subList(ownedShadows.size() - validationDataCount, ownedShadows.size());
-        LOGGER.trace("LLM data count = {}, Validation data count={}, Total={}.", llmDataCount, validationDataCount, ownedShadows.size());
+
+        LOGGER.info("Using {} shadows for LLM, {} for validation, total {} sampled",
+                llmDataCount, validationDataCount, ownedShadows.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -348,14 +352,14 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private List<ShadowWithOwner> collectOwnedShadows(OperationResult result)
+    private List<ShadowWithOwner> collectOwnedShadows(OperationResult result, SamplingConfigurationForMappings config)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
-        state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
+        state.setExpectedProgress(config.getSampleSize());
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return shadowsWithOwnersProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
+            return shadowsWithOwnersProvider.fetch(ctx, state, result, config);
         } catch (Exception e) {
             state.recordException(e);
             throw e;

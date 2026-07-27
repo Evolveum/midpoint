@@ -11,15 +11,15 @@ package com.evolveum.midpoint.smart.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.impl.correlation.ResourceCorrelationDefinitionProvider;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
+import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfiguration;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ShadowSamplingService;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -33,15 +33,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Default implementation that fetches owned shadows via ModelService from the resource.
+ * Implementation that fetches owned shadows using random sampling strategy.
+ * First samples shadows randomly, then finds owners for the sampled shadows.
  */
 @Component
 class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider {
     private static final Trace LOGGER = TraceManager.getTrace(ShadowsWithOwnersCorrelatingProvider.class);
     private final CorrelationService correlationService;
+    private final ShadowSamplingService shadowSamplingService;
 
-    public ShadowsWithOwnersCorrelatingProvider(CorrelationService correlationService) {
+    public ShadowsWithOwnersCorrelatingProvider(
+            CorrelationService correlationService,
+            ShadowSamplingService shadowSamplingService) {
         this.correlationService = correlationService;
+        this.shadowSamplingService = shadowSamplingService;
     }
 
     @Override
@@ -49,45 +54,53 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             TypeOperationContext ctx,
             OperationContext.StateHolder state,
             OperationResult result,
-            int maxExamples)
+            SamplingConfiguration config)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(maxExamples);
+
+        List<PrismObject<ShadowType>> sampledShadows = shadowSamplingService.sampleShadows(
+                ctx.resource,
+                ctx.typeDefinition,
+                config,
+                ctx.task,
+                result);
+
+        LOGGER.debug("Sampled {} shadows, now finding owners for them", sampledShadows.size());
+
+        final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>();
         final CorrelationDefinitionType correlationDef =
                 new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
-        ctx.b.modelService.searchObjectsIterative(
-                ShadowType.class,
-                Resource.of(ctx.resource)
-                        .queryFor(ctx.typeDefinition.getTypeIdentification())
-                        .build(),
-                addOwnerOrOwnerCandidate(correlationDef, ctx, state, maxExamples, ownedShadows),
-                null, ctx.task, result);
-        return ownedShadows;
-    }
 
-    private @NotNull ResultHandler<ShadowType> addOwnerOrOwnerCandidate(CorrelationDefinitionType correlationDef,
-            TypeOperationContext ctx, OperationContext.StateHolder state, int maxExamples,
-            ArrayList<ShadowWithOwner> shadowWithOwners) {
-        return (shadow, lResult) -> {
-            state.flushIfNeeded(lResult);
+        for (PrismObject<ShadowType> shadow : sampledShadows) {
+            if (!ctx.canRun()) {
+                break;
+            }
+
+            OperationResult subResult = result.createSubresult("findOwnerForShadow");
+            subResult.addParam("shadow", shadow.getOid());
+
+            state.flushIfNeeded(subResult);
             try {
-                this.correlationService
+                correlationService
                         .findLinkedOrCorrelatedFocus(shadow.asObjectable(), ctx.resource, ctx.typeDefinition,
-                                correlationDef, ctx.task, lResult)
+                                correlationDef, ctx.task, subResult)
                         .ifPresent(focus -> {
-                            shadowWithOwners.add(new ShadowWithOwner(shadow.asObjectable(), focus));
-                            state.incrementProgress(lResult);
+                            ownedShadows.add(new ShadowWithOwner(shadow.asObjectable(), focus));
+                            state.incrementProgress(subResult);
                         });
             } catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, shadow);
+            } finally {
+                subResult.computeStatusIfUnknown();
+                subResult.setSummarizeSuccesses(true);
+                subResult.summarize();
             }
-            finally {
-                lResult.computeStatusIfUnknown();
-                lResult.setSummarizeSuccesses(true);
-                lResult.summarize();
-            }
-            return ctx.canRun() && shadowWithOwners.size() < maxExamples;
-        };
+        }
+
+        LOGGER.info("Found {} shadows with owners out of {} sampled shadows",
+                ownedShadows.size(), sampledShadows.size());
+
+        return ownedShadows;
     }
 
 }
