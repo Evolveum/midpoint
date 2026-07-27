@@ -1478,15 +1478,20 @@ CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
 CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 $aa$);
 
+-- @change: Adds `ALLOWED_CONNECTORS_LIST` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `ALLOWED_CONNECTORS_LIST`.
+call apply_change(59, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ALLOWED_CONNECTORS_LIST' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
+$aa$);
+
 -- @change: Adds allowed connectors list object table and triggers.
 -- @since: 4.11
 -- @affects: table m_allowed_connectors_list | New table | Stores allowed connectors list objects.
 -- @affects: trigger m_allowed_connectors_list_oid_insert_tr | New trigger | Reserves OID rows for inserted allowed connectors list objects.
 -- @affects: trigger m_allowed_connectors_list_update_tr | New trigger | Maintains update metadata for allowed connectors list objects.
 -- @affects: trigger m_allowed_connectors_list_oid_delete_tr | New trigger | Releases OID rows for deleted allowed connectors list objects.
-call apply_change(59, $aa$
-ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ALLOWED_CONNECTORS_LIST' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
-
+call apply_change(60, $aa$
 CREATE TABLE m_allowed_connectors_list (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ALLOWED_CONNECTORS_LIST') STORED

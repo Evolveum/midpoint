@@ -31,7 +31,7 @@ public class SqaleUtils {
     public enum VersionedComponent {
 
         /** This is the main repository database, containing `m_xxx` tables, defined in `postgres.sql`. */
-        REPOSITORY("schemaChangeNumber", "repository data", 59),
+        REPOSITORY("schemaChangeNumber", "repository data", 60),
 
         /** This is the main repository database, containing `ma_xxx` tables, defined in `postgres-audit.sql`. */
         AUDIT("schemaAuditChangeNumber", "audit data", 12);
