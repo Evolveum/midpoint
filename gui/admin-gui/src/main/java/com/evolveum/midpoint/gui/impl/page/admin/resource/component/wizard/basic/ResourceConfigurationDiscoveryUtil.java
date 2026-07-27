@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -29,8 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 /**
  * Utility methods for discovering and applying connector configuration suggestions
@@ -206,7 +205,7 @@ public final class ResourceConfigurationDiscoveryUtil {
         }
 
         return schema.getObjectClassDefinitions().stream()
-                .map(def -> new QName(NS_RI, def.getName()))
+                .map(def -> ResourceSchema.nativeToMidPointClassName(def.getName()))
                 .collect(Collectors.toSet());
     }
 

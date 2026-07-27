@@ -75,7 +75,7 @@ public class TransportUtil {
             throw new IllegalArgumentException("Couldn't use more than one choice from 'blackList', 'whiteList' and 'recipientFilterExpression'");
         }
         ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
-        if (filter != null) {
+        if (isNotEmptyExpression(filter)) {
             VariablesMap variables = new VariablesMap();
             variables.put("recipientAddress", recipient, String.class);
             try {
@@ -116,7 +116,7 @@ public class TransportUtil {
     public static int optionsForFilteringRecipient(
             NotificationTransportConfigurationType transportConfigurationType) {
         int choices = 0;
-        if (transportConfigurationType.getRecipientFilterExpression() != null) {
+        if (isNotEmptyExpression(transportConfigurationType.getRecipientFilterExpression())) {
             choices++;
         }
         if (!transportConfigurationType.getBlackList().isEmpty()) {
@@ -177,7 +177,7 @@ public class TransportUtil {
             throw new IllegalArgumentException("Couldn't use more than one choice from 'blackList', 'whiteList' and 'recipientFilterExpression'");
         }
         ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
-        if (filter != null) {
+        if (isNotEmptyExpression(filter)) {
             VariablesMap variables = new VariablesMap();
             variables.put("recipientAddress", recipient, String.class);
             try {
@@ -241,7 +241,7 @@ public class TransportUtil {
     public static int optionsForFilteringRecipient(
             GeneralTransportConfigurationType transportConfigurationType) {
         int choices = 0;
-        if (transportConfigurationType.getRecipientFilterExpression() != null) {
+        if (isNotEmptyExpression(transportConfigurationType.getRecipientFilterExpression())) {
             choices++;
         }
         if (!transportConfigurationType.getBlackList().isEmpty()) {
@@ -263,5 +263,9 @@ public class TransportUtil {
             }
         }
         return nonBlank;
+    }
+
+    private static boolean isNotEmptyExpression(ExpressionType expression) {
+        return expression != null && !expression.getExpressionEvaluator().isEmpty();
     }
 }

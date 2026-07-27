@@ -64,5 +64,5 @@ Use the `--overwrite` option as the file already exists.
 .Importing the updated user object
 [source,bash]
 ----
-./bin/ninja.sh import --input admin.xml --overwrite
+ninja.sh import --input admin.xml --overwrite
 ----

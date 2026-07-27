@@ -149,7 +149,7 @@ public class SmartSuggestButtonWithConfirmation<T extends Describable>
         final BlockingActionButtonWithConfirmationOptionsDialog<DataAccessPermission> button =
                 new BlockingActionButtonWithConfirmationOptionsDialog<>(id, () -> buttonConfig, clickHandlers,
                         new ActivityIndicationInteractionsPair(activityIndicationIcon, activityIndicationTitle, true));
-        button.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+        button.add(AttributeModifier.append("class", "btn btn-purple"));
         return button;
     }
 }

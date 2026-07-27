@@ -11,7 +11,7 @@
     <div wicket:id="mainPopup"/>
     <div class="app-wrapper">
         <div id="skip-link">
-            <a href="#main-content" tabindex="1" class="btn-sm">
+            <a href="#main" tabindex="1" class="btn-sm">
                 <wicket:message key="Accessibility.PageBase.skiplink.title"/>
             </a>
         </div>
@@ -87,22 +87,24 @@
         </nav>
 
         <wicket:enclosure child="sidebarMenu">
-            <aside class="app-sidebar" wicket:id="sidebarMenu"/>
+            <aside class="app-sidebar" id="navigation" wicket:id="sidebarMenu"/>
         </wicket:enclosure>
 
-        <main class="app-main d-flex" id="main-content" role="main" style="min-height: 916px;">
-            <div class="app-content py-3 flex-grow-1">
-                <wicket:enclosure child="contentVisible">
-                    <div wicket:id="contentVisible"/>
-                    <div class="container-fluid">
-                        <div wicket:id="feedbackContainer" class="feedbackContainer">
-                            <div wicket:id="feedback" class="messagePanel"/>
+        <main class="app-main d-flex" id="main" role="main" style="min-height: 916px;">
+            <div class="d-flex flex-grow-1">
+                <div class="app-content py-3 flex-grow-1">
+                    <wicket:enclosure child="contentVisible">
+                        <div wicket:id="contentVisible"/>
+                        <div class="container-fluid">
+                            <div wicket:id="feedbackContainer" class="feedbackContainer">
+                                <div wicket:id="feedback" class="messagePanel"/>
+                            </div>
+                            <wicket:child/>
                         </div>
-                        <wicket:child/>
-                    </div>
-                </wicket:enclosure>
+                    </wicket:enclosure>
+                </div>
+                <div wicket:id="rightSidebar" class="right-sidebar-layout" />
             </div>
-            <div wicket:id="rightSidebar" />
         </main>
         <footer wicket:id="footerContainer" class="app-footer d-flex flex-column">
             <div class="d-flex flex-wrap" wicket:id="legalFooter">

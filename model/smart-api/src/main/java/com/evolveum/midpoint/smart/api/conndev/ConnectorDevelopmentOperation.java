@@ -39,6 +39,8 @@ public interface ConnectorDevelopmentOperation {
 
     String submitCreateConnector(Task task, OperationResult result);
 
+    String submitExportConnector(Task task, OperationResult result);
+
     // Midpoint local (+ download framework)
 
     String submitDiscoverObjectClasses(Task task, OperationResult result);

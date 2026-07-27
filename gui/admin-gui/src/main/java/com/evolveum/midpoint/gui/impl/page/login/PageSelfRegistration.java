@@ -136,6 +136,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
     @Override
     protected WebMarkupContainer initStaticLayout() {
         WebMarkupContainer staticRegistrationForm = new WebMarkupContainer(ID_STATIC_FORM);
+        staticRegistrationForm.add(AttributeAppender.append("aria-labelledby",
+                getFormTitle() != null ? getFormTitle().getMarkupId() : null));
         staticRegistrationForm.setOutputMarkupId(true);
         staticRegistrationForm.add(new VisibleBehaviour(() -> !isSubmitted));
         add(staticRegistrationForm);

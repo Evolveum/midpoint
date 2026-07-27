@@ -31,6 +31,8 @@ export default class MidPointTheme {
             $(window, ".app-wrapper").resize(function () {
                 self.fixContentHeight();
             });
+
+            self.removeAdminLteSkipLinks();
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
@@ -263,8 +265,8 @@ export default class MidPointTheme {
                 $(document).on("focusin mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     const titleText = $el.attr("title");
-                    if (!$el.attr("data-tooltip-content") && titleText) {
-                        $el.attr("data-tooltip-content", titleText);
+                    if (!$el.attr("data-original-title") && titleText) {
+                        $el.attr("data-original-title", titleText);
                         $el.removeAttr("title");
                     }
                 });
@@ -322,8 +324,8 @@ export default class MidPointTheme {
                     checkHide($(this));
                 });
 
-                $(document).on("keydown", "[data-bs-toggle='tooltip']", function () {
-                    if (event.key === 'Enter') {
+                $(document).on("keydown", "[data-bs-toggle='tooltip']", function (e) {
+                    if (e.key === 'Enter') {
                         isEnterPressedOnTooltipIcon = true;
                     }
                 });
@@ -369,7 +371,7 @@ export default class MidPointTheme {
 
                     $el.tooltip({
                         html: true,
-                        title: $el.attr('data-tooltip-content') || '',
+                        title: $el.attr('data-original-title') || '',
                         allowList: wl,
                         container: container,
                         trigger: 'manual'
@@ -378,6 +380,7 @@ export default class MidPointTheme {
                     // "tooltipShowDelayTimer" is used to prevent tooltip from showing when user quickly moves mouse
                     // over multiple icons with tooltips or quickly tabs through them. Tooltip will be shown only for
                     // the last hovered/focused element after 1 second delay.
+                    const delay = setFocus ? 0 : 1000;
                     clearTimeout($el.data("tooltipShowDelayTimer"));
                     $el.data("tooltipShowDelayTimer", setTimeout(() => {
                         $el.tooltip("show");
@@ -431,7 +434,7 @@ export default class MidPointTheme {
                             $tooltipInner.focus();
                             lastTooltipTrigger = $el;
                         }
-                    }, 1000));
+                    }, delay));
                 }
             };
 
@@ -542,7 +545,13 @@ export default class MidPointTheme {
     initWindowId(shouldReloadOnFirstLoad) {
         let isFirstLoad = false;
         if (!sessionStorage.getItem('w')) {
-            const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
+            // crypto.randomUUID() is only available in secure contexts (HTTPS/localhost);
+            // fall back to crypto.getRandomValues() for plain HTTP deployments
+            const windowId = encodeURIComponent(
+                (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                    ? crypto.randomUUID().substring(0, 8)
+                    : Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('')
+            );
             console.log('windowId initialized:', windowId);
             isFirstLoad = true;
             sessionStorage.setItem('w', windowId);
@@ -585,7 +594,13 @@ export default class MidPointTheme {
 
         sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
             var menuItemEl = $(this).get(0);
-            if (menuItemEl !== document.activeElement && !menuItemEl.classList.contains('active')) {
+            var directLink = $(this).children("a").get(0);
+
+            var isRelevantFocus = menuItemEl === document.activeElement
+                || directLink === document.activeElement
+                || menuItemEl.classList.contains('active');
+
+            if (!isRelevantFocus) {
                 return;
             }
 
@@ -597,6 +612,7 @@ export default class MidPointTheme {
                     $(this).click();
                 }
                 e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -611,7 +627,8 @@ export default class MidPointTheme {
                         focusableElement.scrollIntoView({block: "center"});
                     }
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -623,7 +640,8 @@ export default class MidPointTheme {
                     parent.get(0).focus();
                     parent.get(0).scrollIntoView({block: "center"});
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -654,7 +672,8 @@ export default class MidPointTheme {
             if (focusItem) {
                 focusItem.focus();
                 focusItem.scrollIntoView({block: "center"});
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
     }
@@ -1122,6 +1141,13 @@ export default class MidPointTheme {
         if (window_height < sidebar_height) {
             $(".app-main, .right-side").css('min-height', sidebar_height + 10); // footer size
         }
+    }
+
+    removeAdminLteSkipLinks() {
+        // AdminLTE's accessibility module auto-injects its own skip links
+        // (hardcoded to #main / #navigation), which duplicates
+        // midPoint's own working #skip-link and leads to WCAG incompatibility
+        document.querySelector('.skip-links')?.remove();
     }
 
     clickFuncWicket6(eventData) {
@@ -1854,7 +1880,14 @@ export default class MidPointTheme {
 
     hideModal(modalId) {
         const dialog = document.getElementById(modalId);
-        Modal.getOrCreateInstance(dialog).hide();
+        const modal = dialog ? Modal.getInstance(dialog) : null;
+        if (modal) {
+            modal.hide();
+            return;
+        }
+
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {

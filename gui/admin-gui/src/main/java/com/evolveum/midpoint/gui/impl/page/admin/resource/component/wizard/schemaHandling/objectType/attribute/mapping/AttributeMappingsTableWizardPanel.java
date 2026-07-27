@@ -330,7 +330,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                         };
                         showSuggestionsButton.add(new VisibleBehaviour(() -> displayNoValuePanel()
                                 && isSuggestionExists(loadSuggestion(resourceOid).getObject())));
-                        showSuggestionsButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+                        showSuggestionsButton.add(AttributeModifier.append("class", "btn btn-purple"));
                         showSuggestionsButton.setOutputMarkupId(true);
                         showSuggestionsButton.showTitleAsLabel(true);
 

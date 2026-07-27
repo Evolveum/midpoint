@@ -173,7 +173,6 @@ public class PasswordPanel extends InputPanel {
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
-        password1.add(AttributeAppender.append("aria-describedby", validationPanel.getMarkupId()));
         password1.add(AttributeAppender.append("aria-labelledby", getPasswordPanelLabelComponentId()));
         password1.add(AttributeAppender.append("placeholder", getPasswordFieldPlaceholderValue()));
         inputContainer.add(password1);
@@ -184,7 +183,9 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(validationProgressBar);
 
         final WebMarkupContainer passwordStrengthMeter = new WebMarkupContainer(ID_PASSWORD_STRENGTH_METER);
+        passwordStrengthMeter.setOutputMarkupId(true);
         validationProgressBar.add(passwordStrengthMeter);
+        password1.add(AttributeAppender.append("aria-describedby", passwordStrengthMeter.getMarkupId()));
 
         if (isPasswordStrengthBarVisible()) {
             password1.add(AttributeAppender.append(
@@ -213,6 +214,8 @@ public class PasswordPanel extends InputPanel {
         password2.setRequired(false);
         password2.setOutputMarkupId(true);
         password2.add(AttributeAppender.append("placeholder", getRepeatPasswordFieldPlaceholderValue()));
+        password2.add(AttributeAppender.append("aria-labelledby",
+                arePasswordInputFieldsAssociatedWithLabels() ? "repeatPasswordLabelId" : null));
         password2.add(new VisibleEnableBehaviour(() -> !showOneLinePasswordPanel, this::canEditPassword));
         inputContainer.add(password2);
 

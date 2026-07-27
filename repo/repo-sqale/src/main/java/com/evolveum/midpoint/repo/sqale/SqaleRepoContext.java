@@ -63,9 +63,8 @@ public class SqaleRepoContext extends SqlRepoContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepoContext.class);
 
-    private final String schemaChangeNumberLabel;
-
-    private final int schemaChangeNumberValue;
+    /** Component whose version should be checked at startup. */
+    private final SqaleUtils.VersionedComponent versionedComponent;
 
     private final UriCache uriCache;
     private final ExtItemCache extItemCache;
@@ -76,11 +75,11 @@ public class SqaleRepoContext extends SqlRepoContext {
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
             SchemaService schemaService,
-            QueryModelMappingRegistry mappingRegistry, String schemaChangeNumberLabel, int schemaChangeNumberValue) {
+            QueryModelMappingRegistry mappingRegistry,
+            SqaleUtils.VersionedComponent versionedComponent) {
         super(jdbcRepositoryConfiguration, dataSource, schemaService, mappingRegistry);
 
-        this.schemaChangeNumberLabel = schemaChangeNumberLabel;
-        this.schemaChangeNumberValue = schemaChangeNumberValue;
+        this.versionedComponent = versionedComponent;
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(AccessCertificationCampaignStateType.class));
@@ -143,16 +142,24 @@ public class SqaleRepoContext extends SqlRepoContext {
         try (JdbcSession session = this.newJdbcSession().startReadOnlyTransaction()) {
             MGlobalMetadata metadata = session.newQuery().from(QGlobalMetadata.DEFAULT)
                     .select(QGlobalMetadata.DEFAULT)
-                    .where(QGlobalMetadata.DEFAULT.name.eq(schemaChangeNumberLabel))
+                    .where(QGlobalMetadata.DEFAULT.name.eq(versionedComponent.label))
                     .limit(1)
                     .fetchOne();
-            String current = metadata != null ? metadata.value : null;
-            Integer currentAsInt = current != null ? Integer.valueOf(current) : null;
+            String currentVersion = metadata != null ? metadata.value : null;
+            Integer currentVersionAsInt = currentVersion != null ? Integer.valueOf(currentVersion) : null;
 
-            if (!Objects.equals(currentAsInt, schemaChangeNumberValue)) {
-                throw new SystemException("Can't initialize sqale repository context, database schema version (" + current
-                        + ") doesn't match expected value (" + schemaChangeNumberValue + ") for label '" + schemaChangeNumberLabel
-                        + "'. Seems like mismatch between midPoint executable version and DB schema version. Maybe DB schema was not updated?");
+            if (!Objects.equals(currentVersionAsInt, versionedComponent.expectedVersion)) {
+                throw new SystemException(
+                        String.format(
+                                "Cannot use the database. The version of the schema in the database (%s) doesn't match "
+                                        + "the version expected by midPoint executable (%d) for the %s "
+                                        + "(guarded by '%s' in the global metadata). "
+                                        + "Seems like mismatch between midPoint executable version and DB schema version. "
+                                        + "Maybe DB schema was not updated?",
+                                currentVersion,
+                                versionedComponent.expectedVersion,
+                                versionedComponent.humanReadableName,
+                                versionedComponent.label));
             }
 
             LOGGER.debug("DB schema version check OK.");
