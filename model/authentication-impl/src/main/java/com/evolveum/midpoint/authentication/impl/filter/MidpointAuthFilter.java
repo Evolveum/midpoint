@@ -170,23 +170,23 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private void resolveErrorWithWrongConfigurationOfModules(
+    private boolean resolveErrorWithWrongConfigurationOfModules(
             MidpointAuthentication mpAuthentication,
             int indexOfProcessingModule,
             HttpServletRequest httpRequest,
-            ServletResponse response) {
+            ServletResponse response) throws IOException {
         if (mpAuthentication == null) {
-            return;
+            return false;
         }
 
         if (mpAuthentication.getAuthModules().stream()
                 .noneMatch(module ->
                         AuthenticationModuleState.FAILURE_CONFIGURATION == module.getBaseModuleAuthentication().getState())) {
-            return;
+            return false;
         }
 
         if (indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
-            return;
+            return false;
         }
 
         if (AuthenticationModuleState.FAILURE_CONFIGURATION ==
@@ -199,15 +199,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
             }
 
             if (indexOfProcessingModule == 0) {
-                try {
-                    ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                } catch (IOException e) {
-                    //ignore it end throw authentication exception
-                }
-                throw ex;
-
+                // Stop the broken authentication flow after returning the 401 response.
+                ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return true;
             }
         }
+        return false;
     }
 
     private void executeAuthenticationFilter(
@@ -234,7 +231,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
             originalIndexOfProcessingModule = indexOfProcessingModule;
         }
 
-        resolveErrorWithWrongConfigurationOfModules(mpAuthentication, originalIndexOfProcessingModule, httpRequest, response);
+        // Do not continue with the authentication filter after the configuration error was handled.
+        if (resolveErrorWithWrongConfigurationOfModules(
+                mpAuthentication, originalIndexOfProcessingModule, httpRequest, response)) {
+            return;
+        }
 
         setAuthenticationChanel(mpAuthentication, authWrapper);
 
