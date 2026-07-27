@@ -587,6 +587,32 @@ export default class MidPointTheme {
         }
     }
 
+    fixEmptyTableHeaders () {
+        document.querySelectorAll('th[scope="col"]').forEach(function (th) {
+            if (th.hasAttribute('aria-label')) {
+                return; // already labeled
+            }
+
+            var accessibleText = th.textContent.trim();
+            if (accessibleText) {
+                return; // has visible/hidden text content already, nothing to fix
+            }
+
+            // Try to inherit a label from an embedded checkbox/input
+            var input = th.querySelector('input[aria-label]');
+            if (input) {
+                th.setAttribute('aria-label', input.getAttribute('aria-label'));
+                return;
+            }
+
+            // Fallback: look for a title attribute on any descendant icon
+            var titled = th.querySelector('[title]');
+            if (titled) {
+                th.setAttribute('aria-label', titled.getAttribute('title'));
+            }
+        });
+    };
+
     keydownForMenuItems(sideBar, self) {
         if (!sideBar.length) {
             return;
