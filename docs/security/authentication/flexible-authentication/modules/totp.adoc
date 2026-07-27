@@ -9,10 +9,17 @@
 This page describes how to use the TOTP module in midPoint.
 
 The TOTP module is used for multi-factor authentication (MFA) of users based on the Time-based One-Time Password (TOTP) algorithm.
-Configuration consists of two parts: module definition and authentication sequence configuration.
-Both have to be defined in a security policy.
+Configuration consists of two parts and one optional:
+
+. Module definition
+. Authentication sequence
+. Optional credential policy
+
+All of them have to be defined in a security policy.
 
 == Security policy configuration
+
+=== Module definition
 
 WARNING: The `totp` module cannot be the first module in the sequence.
 Before the `totp` module, midPoint needs to use an authentication module that identifies users, for example, `loginForm` or `focusIdentification`.
@@ -82,6 +89,8 @@ Some authenticator apps ignore this parameter and support only 30 seconds (e.g.,
 </totp>
 ----
 
+=== Authentication sequence configuration
+
 The authentication sequence has to contain at least one module before the `totp` module that selects the correct focus (user) for TOTP authentication.
 This can be:
 
@@ -106,8 +115,11 @@ For others, TOTP authentication will be skipped.
 *** `necessity`: `requisite`
 *** `acceptEmpty`: `true`
 
+=== Optional credential policy configuration
 
-.Example of a complete TOTP authentication configuration
+#TODO#
+
+.Example of a complete TOTP authentication configuration with lockout policy
 [source, xml]
 ----
 <authentication>
@@ -138,6 +150,16 @@ For others, TOTP authentication will be skipped.
         </module>
     </sequence>
 </authentication>
+<credentials>
+    <!-- other parts of credentials omitted for brevity -->
+    <otp>
+        <!-- credential policy that locks out user after 3 failed attempts to validate TOTP code for 15 minutes -->
+        <minOccurs>0</minOccurs>
+        <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+        <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+        <lockoutDuration>PT15M</lockoutDuration>
+    </otp>
+</credentials>
 ----
 
 == Use cases
