@@ -1485,6 +1485,8 @@ $aa$);
 -- @affects: trigger m_allowed_connectors_list_update_tr | New trigger | Maintains update metadata for allowed connectors list objects.
 -- @affects: trigger m_allowed_connectors_list_oid_delete_tr | New trigger | Releases OID rows for deleted allowed connectors list objects.
 call apply_change(59, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ALLOWED_CONNECTORS_LIST' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
+
 CREATE TABLE m_allowed_connectors_list (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ALLOWED_CONNECTORS_LIST') STORED
