@@ -117,7 +117,45 @@ For others, TOTP authentication will be skipped.
 
 === Optional credential policy configuration
 
-#TODO#
+TOTP secrets stored in user objects are treated as `otp` credentials.
+Their handling can be customized by a credential policy defined in the `credentials/otp` section of the security policy.
+The policy is optional, but it is strongly recommended to define at least the lockout parameters, so that TOTP codes cannot be guessed by brute force.
+Parameters not defined in `credentials/otp` are inherited from the `credentials/default` policy, if present.
+
+.Credential policy parameters relevant to TOTP
+[cols="3",options="header"]
+|===
+| Parameter
+| Description
+| Default value
+
+| `minOccurs`
+| Minimal number of TOTP secrets the user must have.
+Use `0` to make the TOTP credential optional.
+| `0`
+
+| `lockoutMaxFailedAttempts`
+| Maximum number of failed attempts to validate a TOTP code before the credential is locked out.
+| No lockout
+
+| `lockoutFailedAttemptsDuration`
+| The duration in which the failed attempts must happen for the credential to be locked out.
+The failed attempt counter is reset after this duration (counted from the last failed attempt).
+| Failed attempt counter is never reset
+
+| `lockoutDuration`
+| The duration for which the credential remains locked out.
+The credential is automatically unlocked after this duration.
+| No automatic unlock (manual unlock by administrator required)
+
+| `maxAge`
+| Maximum age of the TOTP secret, counted from its last update.
+Authentication with an older secret fails and the user has to set up TOTP again.
+| Unlimited
+|===
+
+NOTE: Do not configure `storageMethod` with hashing for the `otp` credential.
+midPoint has to decrypt the shared secret to validate TOTP codes, therefore the secret must stay encrypted (the default).
 
 .Example of a complete TOTP authentication configuration with lockout policy
 [source, xml]
