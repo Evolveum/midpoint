@@ -6,21 +6,27 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
+
+import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -38,6 +44,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -87,6 +94,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     @Autowired ApplicationContext springContext;
     @Autowired private PrismContext prismContext;
     @Autowired CacheRegistry cacheRegistry;
+    @Autowired private SubscriptionStateCache subscriptionStateCache;
 
     @PostConstruct
     public void register() {
@@ -369,7 +377,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             connector.initialize(
                     ResourceSchemaFactory.getNativeSchema(resource),
                     fetchCapabilities ? null : connectorSpec.getNativeCapabilities(),   // fix for #10676 and #10644
-                                                                    //we want to fetch the capabilities during first connector initialization
+                    //we want to fetch the capabilities during first connector initialization
                     result);
         }
     }
@@ -403,6 +411,74 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         PrismObject<ConnectorType> connector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
         ConnectorType connectorBean = connector.asObjectable();
 
+        boolean startChecking = getSubscriptionState().isGenericRepoWithoutSubscription()
+                || (getSubscriptionState().isProductionEnvironment() && !getSubscriptionState().isActive());
+
+        if (startChecking) {
+            LOGGER.debug(
+                    "Production environment detected. Verifying connector '{}' version '{}' from bundle '{}' against the list of allowed signed connectors.",
+                    connectorBean.getNamespace(),
+                    connectorBean.getVersion(),
+                    connectorBean.getConnectorBundle());
+
+            boolean found = false;
+            @NotNull SearchResultList<PrismObject<AllowedConnectorsListType>> allowedConnectorsLists =
+                    repositoryService.searchObjects(AllowedConnectorsListType.class, null, null, result);
+            for (PrismObject<AllowedConnectorsListType> allowedConnectorsList : allowedConnectorsLists) {
+                if (found) {
+                    break;
+                }
+
+                ClassPathResource resource =
+                        new ClassPathResource("certs/integration-catalog.crt");
+
+                try (InputStream is = resource.getInputStream()) {
+
+                    CertificateFactory factory = CertificateFactory.getInstance("X.509");
+
+                    X509Certificate certificate =
+                            (X509Certificate) factory.generateCertificate(is);
+
+                    PublicKey publicKey = certificate.getPublicKey();
+                    found = allowedConnectorsList.asObjectable().getSignedConnector().stream()
+                            .filter(signedConnectorBean -> {
+                                ConnectorIdentifierType allowedConnectorBean = signedConnectorBean.getConnector();
+                                return allowedConnectorBean.getClassName().equals(connectorBean.getConnectorType())
+                                        && allowedConnectorBean.getBundle().equals(connectorBean.getConnectorBundle());
+                            })
+                            .anyMatch(signedConnectorBean -> {
+                                ConnectorIdentifierType allowedConnectorBean = signedConnectorBean.getConnector();
+
+                                try {
+                                    byte[] payload = toJson(allowedConnectorBean);
+
+                                    Signature verifier = Signature.getInstance("Ed25519");
+                                    verifier.initVerify(publicKey);
+                                    verifier.update(payload);
+
+                                    return verifier.verify(Base64.getUrlDecoder().decode(signedConnectorBean.getSignature()));
+
+                                } catch (JsonProcessingException | InvalidKeyException | NoSuchAlgorithmException |
+                                        SignatureException e) {
+                                    throw new IllegalStateException("Unable to verify the connector signature for connector '%s' version '%s' from bundle '%s'."
+                                            .formatted(allowedConnectorBean.getClassName(), allowedConnectorBean.getVersion(), allowedConnectorBean.getBundle()), e); //TODO
+                                }
+                            });
+                } catch (IOException | CertificateException e) {
+                    throw new IllegalStateException("Unable to verify the connector signature for connector '%s' version '%s' from bundle '%s'."
+                            .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()), e); //TODO
+                }
+            }
+
+            if (!found) {
+                //TODO change URL for IC
+                throw new IllegalStateException("Connector '%s' version '%s' from bundle '%s' is not present in the current list of allowed signed connectors."
+                        .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle())
+                        + " Download the latest allowed connectors list from '%s', import it into midPoint, and try again."
+                        .formatted("integrationCatalog.evolveum.com"));
+            }
+        }
+
         if (connectorBean.getConnectorHostRef() != null) {
             // We need to resolve the connector host
             String connectorHostOid = connectorBean.getConnectorHostRef().getOid();
@@ -423,6 +499,26 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         connectorBeanCache.put(connOid, connectorWithSchema);
         return connectorWithSchema;
+    }
+
+    private SubscriptionState getSubscriptionState() {
+        return subscriptionStateCache.getSubscriptionState();
+    }
+
+    private byte[] toJson(ConnectorIdentifierType connectorIdentifierType) throws JsonProcessingException {
+        ActiveConnectorDto dto = new ActiveConnectorDto(
+                connectorIdentifierType.getClassName(),
+                connectorIdentifierType.getVersion(),
+                connectorIdentifierType.getBundle());
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.writeValueAsBytes(dto);
+    }
+
+    private record ActiveConnectorDto(
+            String className,
+            String version,
+            String bundle
+    ) {
     }
 
     public Set<ConnectorType> discoverLocalConnectors(OperationResult result) {
@@ -711,7 +807,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task ignored) {
-        for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+        for (ConnectorFactory connectorFactory : getConnectorFactories()) {
             connectorFactory.selfTest(parentTestResult);
         }
     }
@@ -733,7 +829,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             // initialized. This should not happen under normal circumstances.
             // Generally, do not call getConnectorFactories() from here. This is
             // spring "destroy" method. We should not work with spring context here.
-            for (ConnectorFactory connectorFactory: connectorFactories) {
+            for (ConnectorFactory connectorFactory : connectorFactories) {
                 connectorFactory.shutdown();
             }
         }

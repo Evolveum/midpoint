@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.allowedconnectorslist.QAllowedConnectorsListMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorDevelopmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterDetectedPatternMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierMapping;
@@ -209,6 +210,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
                 .register(ApplicationType.COMPLEX_TYPE, QApplicationMapping.init(repositoryContext))
                 .register(ConnectorDevelopmentType.COMPLEX_TYPE, QConnectorDevelopmentMapping.init(repositoryContext))
+                .register(AllowedConnectorsListType.COMPLEX_TYPE, QAllowedConnectorsListMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;
