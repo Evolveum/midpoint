@@ -461,7 +461,7 @@ public class TestLdap extends AbstractLongTest {
         assertOpenDjAccountShadows(1, false, task, result);
     }
 
-    private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws CommonException {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
                 RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"));

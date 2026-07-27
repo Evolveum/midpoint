@@ -243,7 +243,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
             }
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             Certificate certificate = cf.generateCertificate(new ByteArrayInputStream(certBytes));
-            keystore.setCertificateEntry("cert", certificate);
+            keystore.setCertificateEntry("certs", certificate);
 
             File file = new File(pathToKeystore);
             file.deleteOnExit();

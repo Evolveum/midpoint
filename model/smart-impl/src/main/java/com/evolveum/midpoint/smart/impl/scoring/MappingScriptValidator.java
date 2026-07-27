@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +31,6 @@ import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -107,7 +103,7 @@ public class MappingScriptValidator {
             Task task,
             OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException, SchemaException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         final String description = "Mapping expression evaluation";
         final VariablesMap variables = new VariablesMap();

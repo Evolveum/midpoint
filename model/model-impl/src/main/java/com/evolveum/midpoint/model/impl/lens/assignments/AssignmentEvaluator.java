@@ -143,7 +143,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, RestrictedObjectException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .addArbitraryObjectAsParam("primaryAssignmentMode", primaryAssignmentMode)

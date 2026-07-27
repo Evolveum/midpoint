@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 public interface ReportService {
 
     PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     Collection<? extends PrismValue> evaluateScript(
             @NotNull PrismObject<ReportType> report,
@@ -31,13 +31,13 @@ public interface ReportService {
             String shortDesc,
             Task task,
             OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, RestrictedObjectException;
 }

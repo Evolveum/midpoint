@@ -65,8 +65,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
         List<PrismObject<RoleType>> availableRoles;
         try {
             availableRoles = getPageBase().getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             task.getResult().recordFatalError(e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load roles", e);
             availableRoles = new ArrayList<>();

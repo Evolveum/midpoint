@@ -100,7 +100,7 @@ abstract public class ValueMetadataComputation {
 
     public @NotNull ValueMetadataType execute(OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         result = parentResult.createMinorSubresult(OP_EXECUTE);
         try {
             logStart();
@@ -142,7 +142,7 @@ abstract public class ValueMetadataComputation {
 
     private void processCustomMappings()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         for (MetadataMappingConfigItem mappingCI : processingSpec.getMappings()) {
             if (!env.task.canSee(mappingCI.value())) {
                 LOGGER.trace("Mapping {} is not visible for the current task, ignoring", mappingCI);

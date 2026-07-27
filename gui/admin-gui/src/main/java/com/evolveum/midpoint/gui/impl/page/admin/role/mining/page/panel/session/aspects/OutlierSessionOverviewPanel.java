@@ -546,8 +546,7 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
         try {
             modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, handler, null,
                     task, task.getResult());
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             throw new SystemException("Couldn't count anomalies", e);
         }
         return assignmentAnomalyCount;

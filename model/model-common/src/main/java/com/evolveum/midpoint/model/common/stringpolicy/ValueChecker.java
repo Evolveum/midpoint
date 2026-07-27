@@ -86,14 +86,14 @@ class ValueChecker {
 
     boolean checkExpressionsAndProhibitions(@NotNull String value, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         return new Operation(value)
                 .executeForExpressionsAndProhibitions(result);
     }
 
     List<StringLimitationResult> checkFully(@NotNull String value, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         return new Operation(value)
                 .executeFully(result);
     }
@@ -117,7 +117,7 @@ class ValueChecker {
 
         boolean executeForExpressionsAndProhibitions(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException, SecurityViolationException {
+                CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
             if (!checkExpressions(result)) {
                 LOGGER.trace("Check expression returned false for value in {}", shortDesc);
                 return false;
@@ -131,7 +131,7 @@ class ValueChecker {
 
         List<StringLimitationResult> executeFully(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
             testLength();
             testMinimalUniqueCharacters();
@@ -145,7 +145,7 @@ class ValueChecker {
         private <R extends ObjectType> boolean checkProhibitedValues(
                 Consumer<ProhibitedValueItemType> failAction, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException, SecurityViolationException {
+                CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
             if (prohibitedValues == null || originResolver == null) {
                 return true;
@@ -276,7 +276,7 @@ class ValueChecker {
 
         private void testProhibitedValues(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException, SecurityViolationException {
+                CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
             if (prohibitedValues == null || originResolver == null) {
                 return;
@@ -305,7 +305,7 @@ class ValueChecker {
 
         private void testCheckExpression(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
             for (CheckExpressionType checkExpression : stringPolicy.getCheckExpressions()) {
                 ExpressionType expression = checkExpression.getExpression();
@@ -344,7 +344,7 @@ class ValueChecker {
 
         private boolean checkExpressions(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException, SecurityViolationException {
+                CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
             for (CheckExpressionType checkExpression : stringPolicy.getCheckExpressions()) {
                 if (!checkExpression(checkExpression.getExpression(), result)) {
                     return false;
@@ -357,7 +357,7 @@ class ValueChecker {
         private boolean checkExpression(
                 ExpressionType expression, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, RestrictedObjectException {
             VariablesMap variables = new VariablesMap();
 
             PrismPropertyDefinition<Object> inputDef = PrismContext.get().definitionFactory().newPropertyDefinition(

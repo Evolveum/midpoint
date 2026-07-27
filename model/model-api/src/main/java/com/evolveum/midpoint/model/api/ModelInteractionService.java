@@ -121,7 +121,8 @@ public interface ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
         return previewChanges(deltas, options, task, Collections.emptyList(), result);
     }
 
@@ -133,11 +134,11 @@ public interface ModelInteractionService {
             Collection<ProgressListener> listeners,
             OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException;
+            CommunicationException, ExpressionEvaluationException, RestrictedObjectException;
 
     /**
      * <p>
@@ -166,14 +167,14 @@ public interface ModelInteractionService {
     <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException;
+            CommunicationException, SecurityViolationException, RestrictedObjectException;
 
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(
             ResourceShadowCoordinates coordinates,
             AuthorizationPhaseType phase,
             Task task,
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * Returns an object definition that reflects edit-ability of the resource object in terms of midPoint schema limitations
@@ -187,7 +188,7 @@ public interface ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * Returns specification of processing of given metadata item (e.g. provenance).
@@ -197,7 +198,7 @@ public interface ModelInteractionService {
     @Experimental
     <O extends ObjectType> MetadataItemProcessingSpec getMetadataItemProcessingSpec(ItemPath metadataItemPath, PrismObject<O> object,
             Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * <p>
@@ -224,7 +225,7 @@ public interface ModelInteractionService {
             Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * Returns filter for lookup of donors of power of attorney. The donors are the users that have granted
@@ -247,7 +248,7 @@ public interface ModelInteractionService {
             Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction,
             Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * Returns a filter for lookup of users which are allowed to be objects during assign operation.
@@ -263,7 +264,7 @@ public interface ModelInteractionService {
     <T extends ObjectType> ObjectFilter getAccessibleForAssignmentObjectsFilter(    // TODO better name? getAssignOperationObjectsFilter?
             Class<T> searchResultType, ObjectFilter origFilter, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
@@ -275,7 +276,7 @@ public interface ModelInteractionService {
     <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
             PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
 
     <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
             PrismObject<F> user,
@@ -360,7 +361,7 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     @NotNull
-    CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
 
     /**
      * @return list of logged in users with at least 1 active session (clusterwide)
@@ -417,19 +418,19 @@ public interface ModelInteractionService {
     Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
     List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, RestrictedObjectException;
 
     <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, RestrictedObjectException;
 
     <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     /**
      * TEMPORARY. Need to find out better way how to deal with generated values
@@ -443,15 +444,15 @@ public interface ModelInteractionService {
      * @throws ExpressionEvaluationException
      */
     <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
-            PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+            PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     <O extends ObjectType> void generateValue(
             PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
 
     <O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task,
             OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, RestrictedObjectException;
 
     /**
      * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
@@ -474,13 +475,13 @@ public interface ModelInteractionService {
     ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 
     MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
 
     MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     <T> T runUnderPowerOfAttorney(Producer<T> producer, PrismObject<? extends FocusType> donor, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
 
     default <T> T runUnderPowerOfAttorneyChecked(CheckedProducer<T> producer, PrismObject<? extends FocusType> donor, Task task, OperationResult result)
             throws CommonException {
@@ -492,12 +493,12 @@ public interface ModelInteractionService {
     LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
             VariablesMap variables, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, RestrictedObjectException;
 
     ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user,
             ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
 
     void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -508,14 +509,14 @@ public interface ModelInteractionService {
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
 
     /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
     @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
 
     /**
      * Submits a task from template (pointed to by `templateOid`).
@@ -595,17 +596,17 @@ public interface ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     @Experimental
     @NotNull
     CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collection, @Nullable Class<? extends Containerable> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException;
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException;
 
     @Experimental
     @NotNull CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException;
 
     /**
      * Applying all GuiObjectListViewsType to CompiledObjectCollectionView
@@ -620,11 +621,11 @@ public interface ModelInteractionService {
             CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     @Experimental
     <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     /**
      * TODO document and clean up the interface
@@ -632,7 +633,7 @@ public interface ModelInteractionService {
     @Experimental
     <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
-            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException, RestrictedObjectException;
 
 
     class SearchSpec<T> {
@@ -645,13 +646,13 @@ public interface ModelInteractionService {
     List<? extends Serializable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
             CompiledObjectCollectionView compiledView, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     @Experimental
     Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
             CompiledObjectCollectionView compiledView, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     /**
      * See {@link ProvisioningService#expandConfigurationObject(PrismObject, Task, OperationResult)} for the description.
@@ -662,7 +663,7 @@ public interface ModelInteractionService {
     void expandConfigurationObject(
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     /**
      * Executes specified activity.
@@ -727,7 +728,7 @@ public interface ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     /**
      * Returns Container Definition of Assignment Type with target type of assignment replaced by more concrete situation
@@ -774,7 +775,7 @@ public interface ModelInteractionService {
      * Not sure about correctness of the method place and if even should be needed.
      */
     void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     /**
      * Determines if the object is of the specified archetype considering also archetypes hierarchy.
@@ -793,7 +794,7 @@ public interface ModelInteractionService {
     boolean updateAllActivityPoliciesEnabledStatus(
             @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
 
     /**
      * Clears all activity policy states and related counters recursively inside
@@ -804,5 +805,5 @@ public interface ModelInteractionService {
     boolean clearAllActivityPolicyStates(
             @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
 }

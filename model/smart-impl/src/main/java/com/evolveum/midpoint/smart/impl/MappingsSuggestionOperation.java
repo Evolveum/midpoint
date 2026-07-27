@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,13 +44,6 @@ import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.scoring.ScriptValidationException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -151,7 +146,7 @@ class MappingsSuggestionOperation {
             SchemaMatchResultType schemaMatch,
             @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, RestrictedObjectException {
         ctx.checkIfCanRun();
 
         var ownedShadows = collectOwnedShadows(result);
@@ -350,7 +345,7 @@ class MappingsSuggestionOperation {
 
     private List<ShadowWithOwner> collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, RestrictedObjectException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
         state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         state.flush(result); // because finding an owned shadow can take a while

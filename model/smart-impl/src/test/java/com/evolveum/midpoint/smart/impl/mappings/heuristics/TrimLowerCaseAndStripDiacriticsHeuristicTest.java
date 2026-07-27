@@ -13,17 +13,13 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends MappingScriptTestBase {
@@ -49,8 +45,7 @@ public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends MappingScriptT
 
     @Test
     void inputContainsWhitespaceUppercaseAndDiacritics_inboundScriptIsEvaluated_outputShouldBeTrimmedLowercaseAndWithoutDiacritics()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final TrimLowerCaseAndStripDiacriticsHeuristic heuristic = new TrimLowerCaseAndStripDiacriticsHeuristic();
 
         final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
@@ -61,8 +56,7 @@ public class TrimLowerCaseAndStripDiacriticsHeuristicTest extends MappingScriptT
 
     @Test
     void propertyContainsWhitespaceUppercaseAndDiacritics_outboundScriptIsEvaluated_outputShouldBeTrimmedLowercaseAndWithoutDiacritics()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final String focusProperty = "name";
         final TrimLowerCaseAndStripDiacriticsHeuristic heuristic = new TrimLowerCaseAndStripDiacriticsHeuristic();
 

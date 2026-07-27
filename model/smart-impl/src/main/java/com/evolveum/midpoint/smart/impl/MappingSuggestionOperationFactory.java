@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -13,12 +15,6 @@ import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 
 @Component
@@ -52,7 +48,7 @@ public class MappingSuggestionOperationFactory {
             int retryCount,
             Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         return MappingsSuggestionOperation.init(
                 TypeOperationContext.init(client, resourceOid, typeIdentification, activityState, task, parentResult),
                 this.mappingsQualityAssessor,

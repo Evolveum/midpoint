@@ -47,7 +47,7 @@ public class ExpressionEvaluationHelper {
             VariablesMap variables, String contextDescription,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         List<ObjectReferenceType> retval = new ArrayList<>();
         for (ExpressionType expression : expressions) {
             retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
@@ -59,7 +59,7 @@ public class ExpressionEvaluationHelper {
             ExpressionType expressionType, VariablesMap variables,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         return evaluateExpression(
                 expressionType, variables, contextDescription, ObjectReferenceType.class,
                 ObjectReferenceType.COMPLEX_TYPE, false,
@@ -72,7 +72,7 @@ public class ExpressionEvaluationHelper {
             String contextDescription, Class<T> clazz, QName typeName,
             boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         ItemDefinition<?> resultDef;
         ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
         if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {

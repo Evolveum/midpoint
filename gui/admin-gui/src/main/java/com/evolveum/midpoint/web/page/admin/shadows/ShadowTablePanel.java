@@ -674,9 +674,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                         status);
                 getPageBase().getModelService().executeChanges(
                         MiscUtil.createCollection(deleteDelta), null, task, result);
-            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                    | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
+            } catch (CommonException e) {
                 result.recordPartialError(
                         createStringResource(
                                 "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,13 +36,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomNotifierType;
@@ -129,7 +124,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
                     "message expression",
                     ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
             throw new SystemException("Couldn't evaluate custom notifier expression: " + e.getMessage(), e);
         }
         if (messages == null || messages.isEmpty()) {
@@ -146,8 +141,8 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
             VariablesMap VariablesMap,
             String shortDesc,
             EventProcessingContext<?> ctx,
-            OperationResult result) throws ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");

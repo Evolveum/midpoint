@@ -87,7 +87,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     public @NotNull CorrelationResult correlate(
             @NotNull CorrelationContext correlationContext, @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         OperationResult result = parentResult.subresult(getClass().getName() + OP_CORRELATE_SUFFIX)
                 .build();
@@ -112,7 +112,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     protected abstract @NotNull CorrelationResult correlateInternal(
             @NotNull CorrelationContext correlationContext, @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException;
 
     @Override
     public @NotNull CorrelationExplanation explain(
@@ -120,7 +120,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull FocusType candidate,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         OperationResult result = parentResult.subresult(getClass().getName() + OP_EXPLAIN_SUFFIX)
                 .build();
@@ -150,7 +150,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
         @NotNull Confidence confidence;
         try {
             confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
@@ -168,7 +168,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         OperationResult result = parentResult.subresult(getClass().getName() + OP_CHECK_CANDIDATE_OWNER_SUFFIX)
                 .build();
@@ -197,7 +197,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException;
 
     protected @NotNull String getDefaultContextDescription(@NotNull CorrelationContext correlationContext) {
         String prefix =
@@ -232,7 +232,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         return CorrelationResult.of(
                 createCandidateOwnersMap(candidates, confidenceValueProvider, task, result));
     }
@@ -243,7 +243,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         CandidateOwners candidateOwners = new CandidateOwners();
         for (var candidate : candidates) {
             candidateOwners.put(
@@ -260,7 +260,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
         var customConfidence = determineConfidenceUsingExpression(candidate, task, result);
         if (customConfidence != null) {
             return Confidence.of(customConfidence);
@@ -276,7 +276,7 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
 
     private Double determineConfidenceUsingExpression(Containerable candidate, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
         CorrelationConfidenceDefinitionType confidenceDef = correlatorContext.getConfigurationBean().getConfidence();
         if (confidenceDef == null) {
             return null;
@@ -312,6 +312,6 @@ public abstract class BaseCorrelator<CCB extends AbstractCorrelatorType> impleme
     protected interface ConfidenceValueProvider {
         @Nullable Confidence getConfidence(Containerable candidate, Task task, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException;
+                SecurityViolationException, ObjectNotFoundException, RestrictedObjectException;
     }
 }

@@ -148,7 +148,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
 
     public @Nullable PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         if (context.getExpressionProfile() == null) {
             context.setExpressionProfile(expressionProfile);
@@ -234,7 +234,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     private @Nullable PrismValueDeltaSetTriple<V> runExpressionEvaluator(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         context.setExpressionEvaluatorProfile(
                 determineExpressionEvaluatorProfile(context));
@@ -372,7 +372,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     private VariablesMap processActorAndInnerVariables(
             VariablesMap variables, String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         if (expressionCI == null) {
             return variables; // no expression, no need to deal with variables
         }

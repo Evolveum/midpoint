@@ -610,8 +610,7 @@ public class AssignmentsUtil {
             if (adminGuiConfig.getRoleManagement() != null) {
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();
             }
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException ex) {
+        } catch (CommonException ex) {
             LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
         }
         return assignmentsLimit;

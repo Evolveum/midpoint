@@ -70,7 +70,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
 
     public void refresh(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
 
         if (deadProjectionContext.isDelete()) {
             // This is OK: shadow was deleted, but we will continue in processing with the old shadow.
@@ -111,7 +111,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
 
     private boolean reloadFocusAndFindMatchingLink(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         PrismObject<F> reloadedFocusObject = reloadFocus(result);
         if (reloadedFocusObject == null) {
             return false; // reason already logged
@@ -172,7 +172,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
                     e, linkRef.getOid(), reloadedFocus);
             swallowUnlinkDelta(linkRef);
             return null;
-        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException e) {
+        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException | RestrictedObjectException e) {
             throw SystemException.unexpected(e, "while getting shadow with OID " + linkRef.getOid() + " (no fetch mode)");
         }
 

@@ -56,7 +56,7 @@ public class CredentialsProcessor implements ProjectorProcessor {
     public <F extends FocusType> void processFocusCredentials(
             LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -70,28 +70,32 @@ public class CredentialsProcessor implements ProjectorProcessor {
 
     private <F extends FocusType> void processFocusPassword(LensContext<F> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
         createEvaluator(new PasswordPolicyEvaluator.Builder<>(), context, now, task, result)
                 .process();
     }
 
     private <F extends FocusType> void processFocusNonce(LensContext<F> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
         createEvaluator(new NoncePolicyEvaluator.Builder<>(), context, now, task, result)
                 .process();
     }
 
     private <F extends FocusType> void processFocusSecurityQuestions(LensContext<F> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
         createEvaluator(new SecurityQuestionsPolicyEvaluator.Builder<>(), context, now, task, result)
                 .process();
     }
 
     private <F extends FocusType> void processOtps(LensContext<F> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
         createEvaluator(new OtpPolicyEvaluator.Builder<>(), context, now, task, result)
                 .process();
     }

@@ -41,7 +41,7 @@ public interface Correlator {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     /**
      * Explains how the correlator came to a given candidate owner (and the specific confidence value of it).
@@ -55,7 +55,7 @@ public interface Correlator {
             @NotNull FocusType candidate,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     /**
      * Checks whether the provided candidate focus object is the owner for given resource object.
@@ -72,7 +72,7 @@ public interface Correlator {
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
     /**
      * Updates the internal state of the correlator with the "fresh" data from the resource.
@@ -103,7 +103,7 @@ public interface Correlator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException {
+            ExpressionEvaluationException, ConfigurationException, RestrictedObjectException {
         // Nothing to do by default.
     }
 

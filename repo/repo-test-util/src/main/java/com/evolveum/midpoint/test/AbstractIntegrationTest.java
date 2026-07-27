@@ -4746,7 +4746,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @Override
     public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, RestrictedObjectException {
         throw new UnsupportedOperationException("'Test resource' operation is not available here");
     }
 

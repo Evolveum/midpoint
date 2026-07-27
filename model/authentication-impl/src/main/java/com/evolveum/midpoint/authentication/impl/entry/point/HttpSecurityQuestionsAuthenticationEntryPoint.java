@@ -161,7 +161,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
                 users = model.searchObjects(
                         UserType.class, ObjectQueryUtil.createNameQuery(userName), null, task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                    | CommunicationException | ConfigurationException | ExpressionEvaluationException | RestrictedObjectException e) {
                 return null;
             }
             return users;

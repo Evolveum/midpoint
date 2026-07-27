@@ -254,7 +254,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     public void computeItemDeltas() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, RestrictedObjectException {
 
         LOGGER.trace("Applying object template {} to {} (target {}), iteration {} ({}), phase {}",
                 template, focusContext.getObjectNew(), targetSpecification.getTargetObject(), iteration, iterationToken, phase);
@@ -265,7 +265,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private void evaluateMappings() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, RestrictedObjectException {
 
         mappingSetEvaluation = new FocalMappingSetEvaluationBuilder<F, T>()
                 .context(context)
@@ -283,7 +283,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         DeltaSetTripleIvwoMap outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
 
@@ -306,7 +306,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private void collectDefinitionsAndMappings() throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         collectItemDefinitionsFromTemplate();
         collectMappingsFromTemplate();
         beans.autoAssignMappingCollector.collectAutoassignMappings(context, mappings, result);
@@ -314,7 +314,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void collectItemDefinitionsFromTemplate() throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
                     .processThisAndIncludedTemplates(template, env.contextDescription, env.task, result,
@@ -337,7 +337,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void collectMappingsFromTemplate()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, RestrictedObjectException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
                     .processThisAndIncludedTemplates(

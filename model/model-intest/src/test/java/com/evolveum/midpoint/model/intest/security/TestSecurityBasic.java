@@ -852,7 +852,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGlobalStateUntouched();
     }
 
-    private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws CommonException {
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
         displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
@@ -3964,7 +3964,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 (task, result) -> addTask(oid, name, ownerOid, handlerUri, task, result));
     }
 
-    private void addTask(String oid, String name, String ownerOid, String handlerUri, Task execTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void addTask(String oid, String name, String ownerOid, String handlerUri, Task execTask, OperationResult result) throws CommonException {
         PrismObject<TaskType> task = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class).instantiate();
         task.setOid(oid);
         TaskType taskType = task.asObjectable();

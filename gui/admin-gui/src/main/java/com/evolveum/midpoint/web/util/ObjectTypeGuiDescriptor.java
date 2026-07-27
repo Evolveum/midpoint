@@ -96,7 +96,9 @@ public enum ObjectTypeGuiDescriptor {
 
     APPLICATION(ObjectTypes.APPLICATION, "ObjectType.ApplicationType", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON),
 
-    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", "");
+    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", ""),
+
+    ALLOWED_CONNECTORS_LIST(ObjectTypes.ALLOWED_CONNECTORS_LIST, "ObjectType.AllowedConnectorsListType", "", "");
 
     public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 

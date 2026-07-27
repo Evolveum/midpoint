@@ -43,7 +43,7 @@ public class OutboundProcessor {
     <AH extends AssignmentHolderType>
     void processOutbound(LensContext<AH> context, LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         ProjectionContextKey key = projCtx.getKey();
         if (projCtx.isDelete()) {

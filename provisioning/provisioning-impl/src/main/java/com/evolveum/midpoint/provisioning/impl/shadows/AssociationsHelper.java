@@ -60,7 +60,8 @@ class AssociationsHelper {
      */
     void provideObjectsIdentifiersToSubject(
             ProvisioningContext ctx, ResourceObjectShadow objectToAdd, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         provideObjectsIdentifiersToAssociations(
                 ctx,
                 ShadowAssociationsCollection.ofShadow(objectToAdd.getBean()),
@@ -82,7 +83,8 @@ class AssociationsHelper {
             Collection<? extends ItemDelta<?, ?>> modifications,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         for (ItemDelta<?, ?> modification : modifications) {
             provideObjectsIdentifiersToAssociations(
                     ctx,
@@ -102,7 +104,8 @@ class AssociationsHelper {
             ShadowAssociationsCollection associationsCollection,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         for (var iterableAssocValue : associationsCollection.getAllIterableValues()) {
             var assocValue = iterableAssocValue.associationValue();
@@ -116,7 +119,8 @@ class AssociationsHelper {
             ShadowReferenceAttributesCollection referenceAttributesCollection,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         for (var iterableRefAttrValue : referenceAttributesCollection.getAllIterableValues()) {
             var refAttrValue = iterableRefAttrValue.value();

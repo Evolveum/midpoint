@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,12 +35,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.impl.scoring.FilterValidationException;
 import com.evolveum.midpoint.smart.impl.scoring.ObjectTypeFiltersValidator;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
@@ -90,7 +86,8 @@ class ObjectTypesSuggestionOperation {
     ObjectTypesSuggestionType suggestObjectTypes(
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
             OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException {
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
         Collection<ObjectTypeWithFilters> suggestedObjectTypes = null;
         List<SiValidationErrorFeedbackEntryType> validationFeedback = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
@@ -181,7 +178,8 @@ class ObjectTypesSuggestionOperation {
     private Collection<ObjectTypeWithFilters> parseAndValidateFilters(
             List<SiSuggestedObjectTypeType> objectTypes,
             OperationResult parentResult)
-            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException {
+            throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
 
         final List<ObjectTypeWithFilters> objectTypesWithFilters = new ArrayList<>();
         boolean hasAnyErrors = false;

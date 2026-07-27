@@ -116,7 +116,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
     public static <F extends ObjectType> void authorizeContextRequest(
             LensContext<F> context, boolean fullInformationAvailable, Task task, OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, RestrictedObjectException {
         OperationResult result = parentResult.createMinorSubresult(OP_AUTHORIZE_REQUEST);
         LOGGER.trace("Authorizing request for context");
         try {
@@ -143,7 +143,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
 
     private void authorize()
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, RestrictedObjectException {
 
         LOGGER.trace("Authorizing request for element context {}", ctxHumanReadableName);
 
@@ -215,7 +215,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
 
         void authorize()
                 throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException {
+                CommunicationException, ConfigurationException, RestrictedObjectException {
             if (isFocus) {
                 // Process assignments/inducements first. If the assignments/inducements are allowed then we
                 // have to ignore the assignment item in subsequent security checks
@@ -249,7 +249,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
 
         private void authorizeAssignmentsOrInducementsOperation(@NotNull AssignmentOrInducement type)
                 throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException {
+                CommunicationException, ConfigurationException, RestrictedObjectException {
 
             // TODO is this check correct? Currently, it would not match e.g. delta for assignment[1]/targetRef
             //  But this probably does not matter; we simply catch this using generic "authorize" call later.
@@ -310,7 +310,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                 boolean consideringCreation,
                 boolean prohibitPolicies)
                 throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, ConfigurationException {
+                CommunicationException, ConfigurationException, RestrictedObjectException {
             ContainerDelta<AssignmentType> focusItemDelta = primaryDeltaClone.findContainerDelta(type.itemName);
             if (focusItemDelta == null) {
                 return;
@@ -349,7 +349,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
 
             void authorize()
                     throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                    CommunicationException, ConfigurationException {
+                    CommunicationException, ConfigurationException, RestrictedObjectException {
                 ObjectReferenceType targetRef = changedAssignment.getTargetRef();
                 var oid = Referencable.getOid(targetRef);
                 if (oid == null) {

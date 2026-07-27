@@ -1341,9 +1341,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     }
 
     @SuppressWarnings("unchecked")
-    private void checkPassword(PipelineItem item, String userOid)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private void checkPassword(PipelineItem item, String userOid) throws CommonException, EncryptionException {
         PrismProperty<ProtectedStringType> returnedPassword = (PrismProperty<ProtectedStringType>)
                 item.getValue().find(SchemaConstants.PATH_PASSWORD_VALUE);
         ProtectedStringType returnedRealValue = returnedPassword.getRealValue();

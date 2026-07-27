@@ -955,9 +955,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
     }
 
     private <AH extends AssignmentHolderType> void evaluateConstructions(EvaluatedAssignmentImpl<AH> evaluatedAssignment,
-            ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws CommonException {
         evaluatedAssignment.evaluateConstructions(focusOdo, null, task, result);
     }
 }

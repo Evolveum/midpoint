@@ -460,7 +460,9 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException {
         ConnDevDocumentationSourceType openApi = null;
         var byScrapper = developmentObject().getDocumentationSource();
 

@@ -85,8 +85,8 @@ public class TransportUtil {
                     throw new IllegalArgumentException("Return value from expression for filtering recipient is null");
                 }
                 return allowedRecipient.getValue();
-            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                    | ConfigurationException | SecurityViolationException e) {
+            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                    ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
                 LoggingUtils.logUnexpectedException(logger, "Couldn't execute filter for recipient", e);
             }
         }
@@ -187,8 +187,8 @@ public class TransportUtil {
                     throw new IllegalArgumentException("Return value from expression for filtering recipient is null");
                 }
                 return allowedRecipient.getValue();
-            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                    | ConfigurationException | SecurityViolationException e) {
+            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                    ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
                 LoggingUtils.logUnexpectedException(logger, "transportConfigurationType Couldn't execute filter for recipient", e);
             }
         }

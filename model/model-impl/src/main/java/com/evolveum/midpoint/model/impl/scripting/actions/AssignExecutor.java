@@ -75,7 +75,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
     AssignParameters parseParameters(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         AssignParameters parameters = new AssignParameters();
 
@@ -147,7 +147,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
 
     private Collection<ObjectReferenceType> resolve(Collection<ObjectReferenceType> targetRefs, QName relationOverride, Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         Collection<ObjectReferenceType> rv = new ArrayList<>();
         for (ObjectReferenceType ref : targetRefs) {
             rv.addAll(resolve(ref, relationOverride, task, result));
@@ -157,7 +157,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
 
     private Collection<ObjectReferenceType> resolve(ObjectReferenceType ref, QName relationOverride, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         if (ref.getFilter() != null) {
             Class<? extends ObjectType> clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(ref.getType());
             if (clazz == null) {

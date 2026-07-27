@@ -36,7 +36,7 @@ class FilterExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<
     }
 
     List<V> evaluate(OperationResult result) throws ExpressionEvaluationException, SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         var eeCtx = vtCtx.getExpressionEvaluationContext();
         PrismObject<?> object = determineObject();
         boolean match = false;

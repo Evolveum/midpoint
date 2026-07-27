@@ -102,7 +102,7 @@ public class LibraryFunctionExecutor {
                     outputTriple, outputDefinition, functionEvaluationContext.getContextDescription());
 
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException e) {
+                ConfigurationException | RestrictedObjectException e) {
             throw new ExpressionEvaluationException(e.getMessage(), e);
         }
     }

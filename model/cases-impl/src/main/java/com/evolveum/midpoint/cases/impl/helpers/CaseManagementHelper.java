@@ -56,14 +56,14 @@ public class CaseManagementHelper {
 
     public void cancelCase(String caseOid, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         TreeNode<CaseType> caseTree = getCaseTree(caseOid, result);
         cancelCaseTree(caseTree, task, result);
     }
 
     private void cancelCaseTree(TreeNode<CaseType> caseTree, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
-            SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException {
         CaseType rootCase = caseTree.getUserObject();
         securityEnforcer.authorize(
                 ModelAuthorizationAction.CANCEL_CASE.getUrl(), null,
@@ -127,7 +127,7 @@ public class CaseManagementHelper {
 
     public void deleteCase(String caseOid, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         TreeNode<CaseType> caseTree = getCaseTree(caseOid, result);
         cancelCaseTree(caseTree, task, result); // if this fails, deletion will not be tried
         deleteCaseTree(caseTree, true, task, result);
@@ -135,7 +135,7 @@ public class CaseManagementHelper {
 
     private void deleteCaseTree(TreeNode<CaseType> caseTree, boolean isRoot, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         CaseType aCase = caseTree.getUserObject();
         if (!isRoot) {
             securityEnforcer.authorize(

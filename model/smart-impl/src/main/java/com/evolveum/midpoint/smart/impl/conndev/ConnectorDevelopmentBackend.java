@@ -133,7 +133,8 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    protected void reload() throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    protected void reload() throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         development = beans.modelService.getObject(ConnectorDevelopmentType.class, development.getOid(), null, task, result).asObjectable();
     }
 
@@ -383,7 +384,9 @@ public abstract class ConnectorDevelopmentBackend {
         return ret;
     }
 
-    public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
+            ObjectAlreadyExistsException, RestrictedObjectException {
         if (skipConfigurationPropsUpgrade) {
             return;
         }
@@ -422,9 +425,13 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
-    public abstract void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    public abstract void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
 
-    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
+            ObjectAlreadyExistsException, RestrictedObjectException {
         if (development.getProcessedDocumentation().isEmpty()) {
             processDocumentation(false);
             reload();
@@ -446,7 +453,9 @@ public abstract class ConnectorDevelopmentBackend {
 
     public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache);
 
-    public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
+            ObjectAlreadyExistsException, RestrictedObjectException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_DETECTED_SCHEMA, ConnDevSchemaType.F_RELATION).replaceRealValues(relations)
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());

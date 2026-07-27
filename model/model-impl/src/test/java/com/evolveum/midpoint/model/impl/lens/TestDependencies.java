@@ -67,9 +67,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
     }
 
     private void initDummy(String name, Task initTask, OperationResult initResult)
-            throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ConnectException, SchemaViolationException,
-            ConflictException, ExpressionEvaluationException, InterruptedException {
+            throws FileNotFoundException, CommonException,
+            ConnectException, SchemaViolationException,
+            ConflictException, InterruptedException {
         String resourceOid = getDummyOid(name);
         DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
         resourceCtl.extendSchemaPirate();
@@ -379,8 +379,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
     private LensProjectionContext fillContextWithDummyElaineAccount(
             LensContext<UserType> context, String dummyName, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
+            throws CommonException, IOException {
         String resourceOid = getDummyOid(dummyName);
         String accountOid = getDummyAccountOid(dummyName, "e");
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_ELAINE_TEMPLATE_FILE);

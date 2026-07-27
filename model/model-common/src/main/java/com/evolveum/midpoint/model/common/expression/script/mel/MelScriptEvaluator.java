@@ -137,7 +137,8 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
 
     @Override
     protected CelScriptCacheKey getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         Map<String,CelType> celTypeMap = new HashMap<>();
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
@@ -151,7 +152,9 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     }
 
 
-    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, RestrictedObjectException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
         builder.setOptions(celOptions);
         builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
@@ -163,7 +166,9 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         return builder.build();
     }
 
-    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
         for (var varEntry : variables.entrySet()) {
             builder.addVar(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
@@ -267,7 +272,9 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         }
     }
 
-    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
         // Variable nil mimics nil/null literal.

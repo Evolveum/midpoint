@@ -43,7 +43,7 @@ public class TestSchemaContext extends AbstractInternalModelIntegrationTest {
             new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens"), "role-judge.xml", "12345111-1111-2222-1111-121212111111");
 
     @Test
-    public void testResourceObjectContextResolver() throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    public void testResourceObjectContextResolver() throws CommonException {
         PrismObject<ResourceType> resourceObj = getObject(ResourceType.class, RESOURCE_DUMMY_OID);
         Item<?, ?> objectItem = resourceObj.findItem(ItemPath.create(new QName("schemaHandling"), new QName("objectType")));
         PrismValue objectPrismValue = objectItem.getAnyValue();

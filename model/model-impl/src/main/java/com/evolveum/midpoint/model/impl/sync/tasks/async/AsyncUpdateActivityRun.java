@@ -75,7 +75,7 @@ public final class AsyncUpdateActivityRun
     @Override
     public void iterateOverItemsInBucket(OperationResult opResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         AsyncUpdateEventHandler handler = (event, hResult) -> {
             SyncItemProcessingRequest<AsyncUpdateEvent> request =

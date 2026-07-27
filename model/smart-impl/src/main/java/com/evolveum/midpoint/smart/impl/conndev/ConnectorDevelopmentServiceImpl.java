@@ -254,7 +254,10 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        public void resetResourceSchema(Task task, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+                RestrictedObjectException {
             if (stateObject.getTesting() != null && stateObject.getTesting().getTestingResource() != null) {
                 var resource = stateObject.getTesting().getTestingResource();
                 ResourceUtils.deleteSchema(resource.getOid(), modelService, task, result);
@@ -262,7 +265,10 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        public void authenticationSelectionUpdated(Task task, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+                RestrictedObjectException {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .updateConfigurationOverride();
         }

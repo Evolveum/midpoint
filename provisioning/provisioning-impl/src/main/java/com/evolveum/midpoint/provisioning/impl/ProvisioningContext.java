@@ -261,7 +261,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      */
     private @NotNull ShadowMarksComputerConfiguration getShadowMarksComputerConfiguration(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
         if (shadowMarksComputerConfiguration == null) {
             shadowMarksComputerConfiguration = ShadowMarksComputerConfiguration.create(this, result);
         }
@@ -306,7 +306,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public <T extends CapabilityType> @NotNull ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
         if (connector != null) {
             return connector;
@@ -450,7 +450,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     private <T extends CapabilityType> @NotNull ConnectorInstance getConnectorInstance(
             Class<T> operationCapabilityClass, OperationResult parentResult)
-            throws CommunicationException, ConfigurationException {
+            throws CommunicationException, ConfigurationException, RestrictedObjectException {
         OperationResult result =
                 parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
         try {
@@ -463,7 +463,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             // (shadow) is missing. But that's wrong. We do not have connector therefore we do not know anything about the shadow. We cannot
             // throw ObjectNotFoundException here.
             throw new ConfigurationException(e.getMessage(), e);
-        } catch (CommunicationException | ConfigurationException | RuntimeException e) {
+        } catch (CommunicationException | ConfigurationException | RuntimeException | RestrictedObjectException e) {
             result.recordPartialError("Could not get connector instance " + getDesc() + ": " + e.getMessage(), e);
             throw e;
         } finally {
@@ -900,7 +900,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     public EffectiveMarksAndPolicies computeAndUpdateEffectiveMarksAndPolicies(
             @NotNull AbstractShadow shadow, @NotNull ShadowState shadowState, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         var computer = createShadowMarksComputer(shadow, shadowState, result);
         var marksAndPolicies =
                 ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
@@ -915,7 +915,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             @NotNull ExistingResourceObjectShadow resourceObject,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
         return ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
                 repoShadowWithState.getBean(),
                 createShadowMarksComputer(resourceObject, repoShadowWithState.state(), result),
@@ -928,7 +928,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             @NotNull ShadowState shadowState,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         return getShadowMarksComputerConfiguration(result)
                 .computerFor(shadow, shadowState);
     }

@@ -48,14 +48,14 @@ class EntitlementReader {
             @NotNull ProvisioningContext subjectCtx,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         new EntitlementReader(subject, subjectCtx)
                 .doRead(result);
     }
 
     private void doRead(OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         LOGGER.trace("Starting simulated references read operation");
         for (var refAttrDef : subjectCtx.getReferenceAttributeDefinitions()) {
@@ -144,7 +144,7 @@ class EntitlementReader {
             @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         var searchOp = new EntitlementObjectSearch<>(subjectCtx, simulationDefinition, primaryBinding, subject.getBean());
         if (searchOp.getSubjectAttrValue() == null) {

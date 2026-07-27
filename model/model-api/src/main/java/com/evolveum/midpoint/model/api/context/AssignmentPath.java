@@ -92,7 +92,7 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable,
 
     static ExtensionType collectExtensions(AssignmentPathType path, int startAt, ModelService modelService, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
     }
 

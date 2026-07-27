@@ -83,7 +83,7 @@ class ConstructionResourceResolver {
                         throw new IllegalStateException("Unsupported referential integrity: "
                                 + resourceRef.getReferentialIntegrity());
                     }
-                } catch (SecurityViolationException | CommunicationException | ConfigurationException e) {
+                } catch (SecurityViolationException | CommunicationException | ConfigurationException | RestrictedObjectException e) {
                     throw new SystemException("Couldn't fetch the resource in account construction in "
                             + construction.source + ": " + e.getMessage(), e);
                 } catch (ExpressionEvaluationException e) {
@@ -111,7 +111,7 @@ class ConstructionResourceResolver {
     @NotNull
     private ResourceType resolveResourceRefFilter(String sourceDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         VariablesMap variables = ModelImplUtils
                 .getDefaultVariablesMap(
                         construction.getFocusOdoAbsolute().getNewObject().asObjectable(),

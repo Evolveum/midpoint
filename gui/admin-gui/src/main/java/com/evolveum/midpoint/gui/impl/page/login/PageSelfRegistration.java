@@ -386,8 +386,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                         try {
                             userDelta = prepareUserDelta(task, lResult);
                             userDelta.setPrismContext(getPrismContext());
-                        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException |
-                                CommunicationException | ConfigurationException | SecurityViolationException e) {
+                        } catch (CommonException e) {
                             lResult.recordFatalError(getString("PageSelfRegistration.message.createDelta.fatalError", e.getMessage()), e);
                             return null;
                         }
@@ -410,7 +409,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return userDelta;
     }
 
-    private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private UserType prepareUserToSave(Task task, OperationResult result) throws CommonException {
 
         SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
         UserType userType = getUserModel().getObject();
@@ -464,7 +463,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     }
 
-    protected NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws CommonException {
         ProtectedStringType nonceCredentials = new ProtectedStringType();
         nonceCredentials.setClearValue(generateNonce(noncePolicy, task, result));
 
@@ -478,7 +477,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         getCredentials(user).setPassword(createPassword());
     }
 
-    private void applyNonce(UserType user, NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void applyNonce(UserType user, NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws CommonException {
         getCredentials(user).setNonce(createNonce(noncePolicy, task, result));
     }
 
@@ -502,8 +501,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
             Task task, OperationResult result)
-            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            throws CommonException {
         ValuePolicyType policy = null;
 
         if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {

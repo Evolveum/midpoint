@@ -934,8 +934,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 //    }
 
     private <O extends ObjectType> PrismObject<O> getTargetObject(AssignmentEditorDto dto)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         PrismContainerValue<AssignmentType> assignment = dto.getOldValue();
 
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
@@ -1027,8 +1026,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         try {
             return pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(
                     operationObject, targetRefObject, task, result);
-        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException ex) {
+        } catch (CommonException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
             return null;
         }

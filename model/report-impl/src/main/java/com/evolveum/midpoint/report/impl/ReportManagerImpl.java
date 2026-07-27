@@ -389,7 +389,7 @@ public class ReportManagerImpl implements ReportManager {
         }
     }
 
-    private String remoteFileName(ReportDataType reportOutput, String reportType, File file, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private String remoteFileName(ReportDataType reportOutput, String reportType, File file, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         String localFileName = checkFileName(file, result);
         if (localFileName == null) {
             return null;
@@ -423,13 +423,15 @@ public class ReportManagerImpl implements ReportManager {
 
     @Override
     public CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         return reportService.createCompiledView(collectionConfig, useDefaultView, task, result);
     }
 
     @Override
     public Object evaluateScript(PrismObject<ReportType> report, @NotNull ExpressionType expression, VariablesMap variables, String shortDesc, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         return reportService.evaluateScript(report, expression, variables, shortDesc, task, result);
     }
 
