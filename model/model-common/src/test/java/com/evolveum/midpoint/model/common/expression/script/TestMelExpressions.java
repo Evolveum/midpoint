@@ -22,8 +22,13 @@ import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluat
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -32,9 +37,12 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.google.common.collect.ImmutableList;
@@ -2281,6 +2289,19 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testExpressionQNameAsString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of(
+                    "expression-foo.xml",
+                    "expression-string-foo.xml"
+                ),
+                createVariables(
+                        "foo", new QName("http://example.com/q/ns", "foo"), PrimitiveType.QNAME
+                ),
+                "http://example.com/q/ns#foo");
+    }
+
+    @Test
     public void testExpressionQNameParts() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-qname-parts.xml",
@@ -2289,7 +2310,6 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 "http://example.com/q/ns - foo");
     }
-
 
     @Test
     public void testExpressionQNameNs() throws Exception {
@@ -3429,6 +3449,344 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 false);
     }
+
+    // PATH
+
+    static private final ItemPath PATH_ASSIGNMENT_3_TARGET_REF = ItemPath.create(UserType.F_ASSIGNMENT, new IdItemPathSegment(3L), AssignmentType.F_TARGET_REF);
+    static private final String PATH_ASSIGNMENT_3_TARGET_REF_STRING = "assignment[3]/targetRef";
+
+    @Test
+    public void testPathAsString() throws Exception {
+        evaluateAndAssertStringScalarExpressions(
+                List.of(
+                    "expression-foo.xml",
+                    "expression-string-foo.xml"
+                ),
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE
+                ),
+                PATH_ASSIGNMENT_3_TARGET_REF_STRING);
+    }
+
+    @Test
+    public void testPathPlusString() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+        "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE,
+                        "bar", "BAR", PrimitiveType.STRING
+                ),
+                PATH_ASSIGNMENT_3_TARGET_REF_STRING + "BAR");
+    }
+
+    @Test
+    public void testStringPlusPath() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-foo-plus-bar.xml",
+                createVariables(
+                        "foo", "FOO", PrimitiveType.STRING,
+                        "bar", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE
+                ),
+                "FOO" + PATH_ASSIGNMENT_3_TARGET_REF_STRING);
+    }
+
+    @Test
+    public void testPathEqualsStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE,
+                        "bar", PATH_ASSIGNMENT_3_TARGET_REF_STRING, PrimitiveType.STRING
+                ),
+                 true);
+    }
+
+    @Test
+    public void testPathEqualsStringFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE,
+                        "bar", "nah", PrimitiveType.STRING
+                ),
+                false);
+    }
+
+    @Test
+    public void testStringEqualsPathTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF_STRING, PrimitiveType.STRING,
+                        "bar", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE
+                ),
+                true);
+    }
+
+    @Test
+    public void testStringEqualsPathFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF_STRING, PrimitiveType.STRING,
+                        "bar", "nah", ItemPathType.COMPLEX_TYPE
+                ),
+                false);
+    }
+
+    @Test
+    public void testQNameEqualsPathTrueFull() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", UserType.F_NAME, PrimitiveType.QNAME,
+                        "bar", ItemPath.create(UserType.F_NAME), ItemPathType.COMPLEX_TYPE
+                ),
+                true);
+    }
+
+    @Test
+    public void testQNameEqualsPathTruePartial() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", UserType.F_NAME, PrimitiveType.QNAME,
+                        "bar", ItemPath.create(UserType.F_NAME.getLocalPart()), ItemPathType.COMPLEX_TYPE
+                ),
+                true);
+    }
+
+    @Test
+    public void testQNameEqualsPathFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", UserType.F_NAME, PrimitiveType.QNAME,
+                        "bar", ItemPath.create(UserType.F_TITLE), ItemPathType.COMPLEX_TYPE
+                ),
+                false);
+    }
+
+    @Test
+    public void testPathEqualsQNameTrueFull() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", ItemPath.create(UserType.F_NAME), ItemPathType.COMPLEX_TYPE,
+                        "bar", UserType.F_NAME, PrimitiveType.QNAME
+                ),
+                true);
+    }
+
+    @Test
+    public void testPathEqualsQNameTruePartial() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", ItemPath.create(UserType.F_NAME.getLocalPart()), ItemPathType.COMPLEX_TYPE,
+                        "bar", UserType.F_NAME, PrimitiveType.QNAME
+                ),
+                true);
+    }
+
+    @Test
+    public void testPathEqualsQNameFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", ItemPath.create(UserType.F_NAME), ItemPathType.COMPLEX_TYPE,
+                        "bar", UserType.F_HONORIFIC_PREFIX, PrimitiveType.QNAME
+                ),
+                false);
+    }
+
+    @Test
+    public void testPathEqualsPathTruePartial() throws Exception {
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-equals-bar.xml",
+                createVariables(
+                        "foo", ItemPath.create(UserType.F_NAME.getLocalPart()), ItemPathType.COMPLEX_TYPE,
+                        "bar", ItemPath.create(UserType.F_NAME), ItemPathType.COMPLEX_TYPE
+                ),
+                true);
+    }
+
+    @Test
+    public void testPathSize() throws Exception {
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-size.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE
+                ),
+                3);
+    }
+
+    @Test
+    public void testPathSegments() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-path-segments.xml",
+                createVariables(
+                        "foo", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE
+                ),
+                QNameUtil.qNameToUri(UserType.F_ASSIGNMENT), "3", QNameUtil.qNameToUri(AssignmentType.F_TARGET_REF));
+    }
+
+    // AUDIT & DELTAS
+
+    @Test
+    public void testAuditTargetOid() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-target-oid.xml",
+                createAuditVariables(this::produceAddDelta),
+                USER_JACK_OID);
+    }
+
+    @Test
+    public void testAuditDeltaObejctOid() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-object-oid.xml",
+                createAuditVariables(this::produceAddDelta),
+                USER_JACK_OID);
+    }
+
+    @Test
+    public void testAuditDeltaDeltaOid() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-delta-oid.xml",
+                createAuditVariables(this::produceAddDelta),
+                USER_JACK_OID);
+    }
+
+    @Test
+    public void testAuditDeltaDeltaObjectAddName() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-delta-object-add-name.xml",
+                createAuditVariables(this::produceAddDelta),
+                "jack");
+    }
+
+    @Test
+    public void testAuditDeltaDeltaObjectAddMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-delta-object-add-mix.xml",
+                createAuditVariables(this::produceAddDelta),
+                "ADD jack(c0c010c0-d34d-b33f-f00d-111111111111): success");
+    }
+
+    @Test
+    public void testAuditDeltaDeltaObjectDeleteMix() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-delta-object-add-mix.xml",
+                createAuditVariables(this::produceDeleteDelta),
+                "DELETE [none](c0c010c0-d34d-b33f-f00d-111111111111): success");
+    }
+
+    @Test
+    public void testAuditDeltaDeltaItemDeltaSizeAdd() throws Exception {
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-audit-delta-delta-item-delta-size.xml",
+                createAuditVariables(this::produceAddDelta),
+                0);
+    }
+
+    @Test
+    public void testAuditDeltaDeltaItemDeltaSizeModify() throws Exception {
+        evaluateAndAssertIntegerScalarExpression(
+                "expression-audit-delta-delta-item-delta-size.xml",
+                createAuditVariables(this::produceModifyDelta),
+                2);
+    }
+
+    @Test
+    public void testAuditDeltaDeltaItemDelta0Path() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-delta-item-delta-0-path.xml",
+                createAuditVariables(this::produceModifyDelta),
+                UserType.F_TITLE.getLocalPart());
+    }
+
+    @Test
+    public void testAuditDeltaDeltaItemDelta0ValuesToReplace() throws Exception {
+        evaluateAndAssertStringListExpression(
+                "expression-audit-delta-delta-item-delta-0-replace.xml",
+                createAuditVariables(this::produceModifyDelta),
+                "Captain");
+    }
+
+    @Test
+    public void testAuditDeltaExecutionResultStatus() throws Exception {
+        evaluateAndAssertStringScalarExpression(
+                "expression-audit-delta-result-status.xml",
+                createAuditVariables(this::produceAddDelta),
+                OperationResultStatusType.SUCCESS.value());
+    }
+
+    @FunctionalInterface
+    public interface DeltaProducer<O extends ObjectType> {
+        ObjectDelta<O> produce(PrismObject<? extends ObjectType> object) throws SchemaException;
+    }
+
+    protected <O extends ObjectType> VariablesMap createAuditVariables(DeltaProducer<O> deltaProducer) throws SchemaException, IOException {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        PrismContainerValue<AuditEventRecordType> auditEventRecord = createAuditEventRecord(userJack);
+        fillDeltaOperation(auditEventRecord, (PrismObject<O>)userJack, deltaProducer);
+        return createVariables(
+                ExpressionConstants.VAR_OBJECT, auditEventRecord, auditEventRecord.getDefinition(),
+                ExpressionConstants.VAR_ACTOR, userJack, userJack.getDefinition()
+        );
+    }
+
+    private <O extends ObjectType> void fillDeltaOperation(
+            PrismContainerValue<AuditEventRecordType> auditEventRecord,
+            PrismObject<O> object,
+            DeltaProducer<O> deltaProducer) throws SchemaException {
+        ObjectDelta<O> delta = deltaProducer.produce(object);
+        auditEventRecord.asContainerable()
+                .beginDelta()
+                    .objectOid(object.getOid())
+                    .objectName(object.getName().getOrig())
+                    .objectDelta(DeltaConvertor.toObjectDeltaType(delta))
+                    .beginExecutionResult()
+                        .message("Success")
+                        .operation("foo.bar.op")
+                        .status(OperationResultStatusType.SUCCESS);
+    }
+
+    private <O extends ObjectType> ObjectDelta<O> produceAddDelta(PrismObject<O> object) throws SchemaException {
+        ObjectDelta<O> delta = prismContext.deltaFor(object.getCompileTimeClass()).asObjectDelta(object.getOid());
+        delta.setOid(object.getOid());
+        delta.setChangeType(ChangeType.ADD);
+        delta.setObjectToAdd(object);
+        return delta;
+    }
+
+    private <O extends ObjectType> ObjectDelta<O> produceModifyDelta(PrismObject<O> object) throws SchemaException {
+        ObjectDelta<O> delta = prismContext.deltaFor(object.getCompileTimeClass()).asObjectDelta(object.getOid());
+        delta.setOid(object.getOid());
+        delta.setChangeType(ChangeType.MODIFY);
+        delta.addModificationReplaceProperty(UserType.F_TITLE, PolyString.fromOrig("Captain"));
+        delta.addModificationAddProperty(UserType.F_ORGANIZATION, PolyString.fromOrig("Brethren of the Coast"));
+        return delta;
+    }
+
+    private <O extends ObjectType> ObjectDelta<O> produceDeleteDelta(PrismObject<O> object) throws SchemaException {
+        ObjectDelta<O> delta = prismContext.deltaFor(object.getCompileTimeClass()).asObjectDelta(object.getOid());
+        delta.setOid(object.getOid());
+        delta.setChangeType(ChangeType.DELETE);
+        return delta;
+    }
+
+    protected <T extends ObjectType> PrismContainerValue<AuditEventRecordType> createAuditEventRecord(PrismObject<T> target) throws SchemaException {
+        PrismContainerDefinition<AuditEventRecordType> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(AuditEventRecordType.COMPLEX_TYPE);
+        PrismContainer<AuditEventRecordType> container = def.instantiate();
+        PrismContainerValue<AuditEventRecordType> auditEventRecordPCV = container.createNewValue();
+        AuditEventRecordType auditEventRecord = auditEventRecordPCV.asContainerable();
+        auditEventRecord
+                .targetRef(target.getOid(), target.getDefinition().getTypeName());
+        return auditEventRecordPCV;
+    }
+
+    // CACHING
 
     @Test
     public void testCaching() throws Exception {
