@@ -494,6 +494,10 @@ public class GuiProfileCompiler {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
 
+        if (adminGuiConfiguration.getFileUploadConfiguration() != null) {
+            mergeFileUploadConfiguration(composite, adminGuiConfiguration.getFileUploadConfiguration());
+        }
+
         if (adminGuiConfiguration.getHomePage() != null) {
             QName principalType = null;
             if (principal != null) {
@@ -635,6 +639,15 @@ public class GuiProfileCompiler {
 
         if (accessRequest.getCheckout() != null) {
             ar.setCheckout(accessRequest.getCheckout().clone());
+        }
+    }
+
+    private void mergeFileUploadConfiguration(CompiledGuiProfile composite, FileUploadConfigurationType fileUploadConfiguration)
+            throws ConfigurationException {
+        for (EffectiveFileUploadPolicy newPolicy : FileUploadConfigurationResolver.compileConfiguredPolicies(fileUploadConfiguration)) {
+            composite.getFileUploadPolicies().removeIf(existingPolicy ->
+                    existingPolicy.getPath().equivalent(newPolicy.getPath()));
+            composite.getFileUploadPolicies().add(newPolicy);
         }
     }
 

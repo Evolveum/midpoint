@@ -27,6 +27,8 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
+import com.evolveum.midpoint.model.api.authentication.EffectiveFileUploadPolicy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
@@ -54,15 +56,20 @@ public class UploadDownloadPanel extends InputPanel {
 
     private final boolean isReadOnly;
 
-    private List<String> allowedUploadContentTypes = new ArrayList<>();
+    private ItemPath uploadItemPath;
+    private byte[] validatedUploadedFile;
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
         this.isReadOnly = isReadOnly;
     }
 
-    public List<String> getAllowedUploadContentTypes() {
-        return allowedUploadContentTypes;
+    public ItemPath getUploadItemPath() {
+        return uploadItemPath;
+    }
+
+    public void setUploadItemPath(ItemPath uploadItemPath) {
+        this.uploadItemPath = uploadItemPath;
     }
 
     public void setAllowedUploadContentTypes(List<String> allowedUploadContentTypes) {
@@ -112,55 +119,38 @@ public class UploadDownloadPanel extends InputPanel {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 super.onError(target);
-                UploadDownloadPanel.this.uploadFilePerformed(target);
+                UploadDownloadPanel.this.uploadFileFailed(target);
             }
         });
         fileUpload.add(new VisibleBehaviour(() -> !isReadOnly));
         fileUpload.add((IValidator<List<FileUpload>>) validatable -> {
 
             List<FileUpload> list = validatable.getValue();
-            if (list == null) {
+            validatedUploadedFile = null;
+            if (list == null || list.isEmpty()) {
                 return;
             }
 
-            if (getAllowedUploadContentTypes().isEmpty()) {
-                return;
-            }
-
-            String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
+            final String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
 
             try {
-                List<MimeType> allowedTypes = getAllowedUploadContentTypes().stream()
-                        .map(s -> {
-                            try {
-                                return new MimeType(s);
-                            } catch (MimeTypeParseException ex) {
-                                return null;
-                            }
-                        })
-                        .filter(m -> m != null)
-                        .toList();
+                EffectiveFileUploadPolicy policy = getEffectiveFileUploadPolicy();
 
                 for (FileUpload fu : list) {
-                    String contentType = fu.getContentType();
-                    MimeType mime = new MimeType(contentType);
+                    byte[] uploadedBytes = fu.getBytes();
 
-                    boolean matched = false;
-                    for (MimeType allowed : allowedTypes) {
-                        if (allowed.match(mime)) {
-                            matched = true;
-                            break;
-                        }
+                    if (policy.isContentTypeCheckEnabled()) {
+                        FileValidatorUtil.validateUploadContent(
+                                uploadedBytes,
+                                fu.getContentType(),
+                                policy.getAllowedContentTypes());
                     }
 
-                    if (!matched) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
-                        validatable.error(new ValidationError(msg));
-                    }
+                    validatedUploadedFile = sanitizeUploadedFile(uploadedBytes, policy);
                 }
-            } catch (MimeTypeParseException ex) {
-                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
-                validatable.error(new ValidationError(msg));
+            } catch (ImageSanitizationException ex) {
+                validatedUploadedFile = null;
+                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage()));
             }
         });
         fileUpload.setOutputMarkupId(true);
@@ -212,22 +202,28 @@ public class UploadDownloadPanel extends InputPanel {
         return getInputFile();
     }
 
-    private FileUpload getFileUpload() {
-        FileUploadField file = getInputFile();
-        return file.getFileUpload();
-    }
-
     public void uploadFilePerformed(AjaxRequestTarget target) {
         Component input = getInputFile();
         try {
-            FileUpload uploadedFile = getFileUpload();
-            updateValue(uploadedFile.getBytes());
+            updateValue(validatedUploadedFile);
+
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
-            input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
+            final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
+            input.error(errorMessage);
+        } finally {
+            validatedUploadedFile = null;
         }
+    }
+
+    protected byte[] sanitizeUploadedFile(byte[] uploadedBytes, EffectiveFileUploadPolicy policy)
+            throws ImageSanitizationException {
+        return ImageSanitizationUtil.sanitizeImage(
+                uploadedBytes,
+                policy.getConvertImageTo(),
+                policy.isStripMetadata());
     }
 
     public void removeFilePerformed(AjaxRequestTarget target) {
@@ -244,6 +240,17 @@ public class UploadDownloadPanel extends InputPanel {
 
     public void uploadFileFailed(AjaxRequestTarget target) {
         LOGGER.trace("Upload file validation failed.");
+    }
+
+    /**
+     * Resolves the effective upload policy for the item represented by this panel.
+     *
+     * @return resolved upload validation and processing policy
+     */
+    protected EffectiveFileUploadPolicy getEffectiveFileUploadPolicy() {
+        return getParentPage()
+                .getCompiledGuiProfile()
+                .getFileUploadPolicy(uploadItemPath);
     }
 
     public void updateValue(byte[] file) {
@@ -276,6 +283,8 @@ public class UploadDownloadPanel extends InputPanel {
 
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,
             AjaxRequestTarget target) {
+        downloadBehavior.setContentType(getDownloadContentType());
+        downloadBehavior.setFileName(getDownloadFileName());
         downloadBehavior.initiate(target);
     }
 
