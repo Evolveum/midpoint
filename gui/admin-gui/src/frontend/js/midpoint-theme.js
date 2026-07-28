@@ -33,6 +33,7 @@ export default class MidPointTheme {
             });
 
             self.removeAdminLteSkipLinks();
+            self.labelHoneypotFields();
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
@@ -1174,6 +1175,29 @@ export default class MidPointTheme {
         // (hardcoded to #main / #navigation), which duplicates
         // midPoint's own working #skip-link and leads to WCAG incompatibility
         document.querySelector('.skip-links')?.remove();
+    }
+
+    //honeypot behavior (e.g. on the Registration page) generates
+    //the invisible input field. We need to add aria label to it
+    labelHoneypotFields() {
+        const apply = (el) => {
+            if (!el.hasAttribute('aria-label')) {
+                el.setAttribute('aria-label', 'Do not fill out this field');
+            }
+        };
+
+        document.querySelectorAll('input.hpb-f, input[name="hpb-id"]').forEach(apply);
+
+        const observer = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                m.addedNodes.forEach((node) => {
+                    if (node.nodeType !== 1) return;
+                    if (node.matches?.('input.hpb-f, input[name="hpb-id"]')) apply(node);
+                    node.querySelectorAll?.('input.hpb-f, input[name="hpb-id"]').forEach(apply);
+                });
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     clickFuncWicket6(eventData) {
