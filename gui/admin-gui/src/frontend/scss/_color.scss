@@ -141,3 +141,8 @@
 .col-form-label {
   color: var(--bs-body-color);
 }
+
+.sidebar-light-primary,
+.sidebar-light-lightblue {
+  --lte-sidebar-submenu-color: #595959;
+}
