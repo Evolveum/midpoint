@@ -186,6 +186,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             CelObjectExtensions::assignmentIsTarget,
                             NullabilityProperties.NULLABLE_FALSE)),
 
+            // assignment.isTarget*()
             createIsTargetFunction("Role", RoleType.COMPLEX_TYPE),
             createIsTargetFunction("Org", OrgType.COMPLEX_TYPE),
             createIsTargetFunction("Service", ServiceType.COMPLEX_TYPE),
