@@ -2724,7 +2724,7 @@ focus.find('activation/administrativeStatus')
 MEL brings support for several midPoint-specific data structures, such as assignments and deltas.
 These data structures are represented by structured objects in MEL.
 
-TODO: containers and objects: ref to midPoint schema
+MidPoint objects and containers defined by xref:/midpoint/reference/schema/[midPoint schema] are represented in MEL in the same form as they are defined in the schema (see xref:/midpoint/reference/schema/schemadoc/[SchemaDoc]).
 
 === Object Reference
 
