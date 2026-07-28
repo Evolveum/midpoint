@@ -39,6 +39,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -62,10 +63,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUser;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReference;
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.MService;
+import com.evolveum.midpoint.repo.sqale.qmodel.role.QRole;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QService;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
@@ -90,6 +93,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
     private static final long CAMPAIGN_1_CASE_2_ID = 55L;
+    private static final ItemName MID_11716_EXTENSION =
+            new ItemName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "extension");
+    private static final QName MID_11716_TEST_ATTRIBUTE =
+            new QName("http://idm.test.com/xml/ns/test/extension", "testAttribute");
 
     private String user1Oid; // typical object
     private String task1Oid; // task has more item type variability
@@ -3428,6 +3435,30 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.ext).isNull();
     }
 
+    @Test(description = "MID-11716")
+    public void test508AddingDynamicExtensionContainerWithSameItemNameToUser() throws Exception {
+        assertAddingDynamicExtensionContainerWithSameItemName(
+                UserType.class,
+                new UserType().name("mid-11716-user-" + getTestNumber()),
+                QUser.class);
+    }
+
+    @Test(description = "MID-11716")
+    public void test508AddingDynamicExtensionContainerWithSameItemNameToRole() throws Exception {
+        assertAddingDynamicExtensionContainerWithSameItemName(
+                RoleType.class,
+                new RoleType().name("mid-11716-role-" + getTestNumber()),
+                QRole.class);
+    }
+
+    @Test(description = "MID-11716")
+    public void test508AddingDynamicExtensionContainerWithSameItemNameToService() throws Exception {
+        assertAddingDynamicExtensionContainerWithSameItemName(
+                ServiceType.class,
+                new ServiceType().name("mid-11716-service-" + getTestNumber()),
+                QService.class);
+    }
+
     @Test(description = "MID-8258")
     public void test510TwoExtensionItemsDifferentOneMissingNamespace() throws Exception {
         OperationResult result = createOperationResult();
@@ -3459,6 +3490,102 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(Jsonb.toMap(row.ext))
                 .containsEntry(extensionKey(extensionContainer, "int"), 510)
                 .containsEntry(extensionKey(extensionContainer, "string"), "510");
+    }
+
+    private <O extends ObjectType, R extends MObject, Q extends QObject<R>>
+    void assertAddingDynamicExtensionContainerWithSameItemName(
+            Class<O> objectType, O object, Class<Q> queryType) throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("object without extension value");
+        String oid = repositoryService.addObject(object.asPrismObject(), null, result);
+        assertThatOperationResult(result).isSuccess();
+
+        MObject originalRow = selectObjectByOid(queryType, oid);
+        assertThat(originalRow.ext).isNull();
+
+        and("dynamic extension container delta with same item QName used for multiple object types");
+        ContainerDelta<Containerable> extensionDelta =
+                createMid11716ExtensionContainerDelta(objectType, "test");
+
+        when("modifyObject is called with the whole extension container add delta");
+        repositoryService.modifyObject(objectType, oid, List.of(extensionDelta), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form contains the extension item");
+        O storedObject = repositoryService.getObject(objectType, oid, null, result).asObjectable();
+        assertThat(storedObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertMid11716ExtensionValue(storedObject, "test");
+
+        and("indexed extension column contains the extension item");
+        MObject row = selectObjectByOid(queryType, oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext)).containsValue("test");
+
+        when("the extension item is modified again using nested extension item path");
+        ObjectDelta<O> nestedDelta = prismContext.deltaFor(objectType)
+                .item(MID_11716_EXTENSION, MID_11716_TEST_ATTRIBUTE)
+                .replace("test2")
+                .asObjectDelta(oid);
+        repositoryService.modifyObject(objectType, oid, nestedDelta.getModifications(), result);
+
+        then("the changed value is readable and indexed");
+        O modifiedObject = repositoryService.getObject(objectType, oid, null, result).asObjectable();
+        assertMid11716ExtensionValue(modifiedObject, "test2");
+        MObject modifiedRow = selectObjectByOid(queryType, oid);
+        assertThat(Jsonb.toMap(modifiedRow.ext)).containsValue("test2");
+    }
+
+    private <O extends ObjectType> ContainerDelta<Containerable> createMid11716ExtensionContainerDelta(
+            Class<O> objectType, String value) throws SchemaException {
+        PrismObjectDefinition<O> objectDefinition =
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+        assertThat(objectDefinition.getCompileTimeClass()).isEqualTo(objectType);
+
+        PrismContainerDefinition<Containerable> extensionDefinition = null;
+        PrismPropertyDefinition<String> attributeDefinition = null;
+        for (ItemDefinition<?> itemDefinition : objectDefinition.getDefinitions()) {
+            if (!(itemDefinition instanceof PrismContainerDefinition<?> candidate)
+                    || !MID_11716_EXTENSION.equals(candidate.getItemName())) {
+                continue;
+            }
+            PrismPropertyDefinition<String> candidateAttributeDefinition =
+                    candidate.<String>findPropertyDefinition(ItemPath.create(MID_11716_TEST_ATTRIBUTE));
+            if (candidateAttributeDefinition != null) {
+                @SuppressWarnings("unchecked")
+                PrismContainerDefinition<Containerable> matchingDefinition =
+                        (PrismContainerDefinition<Containerable>) candidate;
+                extensionDefinition = matchingDefinition;
+                attributeDefinition = candidateAttributeDefinition;
+                break;
+            }
+        }
+        assertThat(extensionDefinition).isNotNull();
+        assertThat(attributeDefinition).isNotNull();
+
+        PrismContainerValue<Containerable> extensionValue =
+                extensionDefinition.createValue().applyDefinition(extensionDefinition);
+        PrismProperty<String> attribute = attributeDefinition.instantiate();
+        attribute.setRealValue(value);
+        extensionValue.add(attribute);
+
+        assertThat(extensionValue.getComplexTypeDefinition()).isSameAs(extensionDefinition.getComplexTypeDefinition());
+        assertThat(attribute.getDefinition()).isSameAs(attributeDefinition);
+
+        ContainerDelta<Containerable> extensionDelta = extensionDefinition.createEmptyDelta(MID_11716_EXTENSION);
+        extensionDelta.addValueToAdd(extensionValue);
+        assertThat(extensionDelta.getDefinition()).isSameAs(extensionDefinition);
+        return extensionDelta;
+    }
+
+    private void assertMid11716ExtensionValue(ObjectType object, String expectedValue) {
+        PrismProperty<?> property = object.asPrismObject()
+                .findProperty(ItemPath.create(MID_11716_EXTENSION, MID_11716_TEST_ATTRIBUTE));
+        assertThat(property).isNotNull();
+        assertThat(property.getRealValue()).isEqualTo(expectedValue);
     }
 
     @Test
