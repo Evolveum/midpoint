@@ -128,7 +128,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     @PostConstruct
     public void initialize() {
         // skip version check if option was defined or option value is "true" (equals ignore case)
-        String skipVersionCheck = System.getProperty(MidpointConfiguration.MIDPOINT_SKIP_VERSION_CHECK + "1");
+        String skipVersionCheck = System.getProperty(MidpointConfiguration.MIDPOINT_SKIP_VERSION_CHECK);
         if (BooleanUtils.isNotTrue(Boolean.parseBoolean(skipVersionCheck))) {
             checkDBSchemaVersion();
         }
