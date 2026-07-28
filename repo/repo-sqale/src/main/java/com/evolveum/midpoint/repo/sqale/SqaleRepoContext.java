@@ -153,9 +153,7 @@ public class SqaleRepoContext extends SqlRepoContext {
                         String.format(
                                 "Cannot use the database. The version of the schema in the database (%s) doesn't match "
                                         + "the version expected by midPoint executable (%d) for the %s "
-                                        + "(guarded by '%s' in the global metadata). "
-                                        + "Seems like mismatch between midPoint executable version and DB schema version. "
-                                        + "Maybe DB schema was not updated?",
+                                        + "(guarded by '%s' in the global metadata). Maybe DB schema was not updated?",
                                 currentVersion,
                                 versionedComponent.expectedVersion,
                                 versionedComponent.humanReadableName,
