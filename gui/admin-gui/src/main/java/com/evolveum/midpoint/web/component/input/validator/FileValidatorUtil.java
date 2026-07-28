@@ -6,75 +6,162 @@
 
 package com.evolveum.midpoint.web.component.input.validator;
 
+import java.util.*;
+
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HexFormat;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.web.component.input.ImageSanitizationException;
 
 import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.CONTENT_TYPES_TO_MAGIC_NUMBERS;
 
 /**
- * Contains methods for file validation.
- * E.g. compares file contentType with list of allowed ones or checks if given file starts with magic number of expected contentType.
+ * Contains utility methods for validating uploaded file content.
+ *
+ * Validation compares the content type detected from the file magic bytes
+ * with both the declared content type and the configured allowed MIME types.
  *
  * @author matisovaa
- *
  */
 public final class FileValidatorUtil {
 
     /**
-     * Converts list of String mime type names (e.g. "image/jpeg") to list of MimeType objects.
+     * Validates uploaded file content against its declared content type and the
+     * configured allowed MIME types.
      *
-     * @param stringMimeTypes list of String mime type names (e.g. "image/jpeg")
-     * @return list of MimeType objects creates from input list of String mime type names (e.g. "image/jpeg")
+     * The actual content type is detected from the file magic bytes. Currently,
+     * JPEG and PNG content is recognized. Configured allowed types support MIME
+     * wildcards, for example {@code image/*}.
+     *
+     * @param bytes uploaded file content
+     * @param declaredContentType content type declared by the upload request;
+     *                            may be {@code null} or blank
+     * @param allowedContentTypes MIME types allowed by the effective upload policy
+     * @throws ImageSanitizationException if the content type cannot be recognized,
+     *         a MIME type is malformed, the detected type is not allowed, or the
+     *         declared type does not match the detected type
      */
-    public static List<MimeType> getMimeTypes(final List<String> stringMimeTypes) {
-        return stringMimeTypes.stream()
-                .map(s -> {
-                    try {
-                        return new MimeType(s);
-                    } catch (MimeTypeParseException ex) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toList();
+    public static void validateUploadContent(
+            byte[] bytes,
+            String declaredContentType,
+            List<String> allowedContentTypes)
+            throws ImageSanitizationException {
+
+        String detectedContentType = detectContentType(bytes);
+        if (detectedContentType == null) {
+            throw new ImageSanitizationException(
+                    "Uploaded content type is not recognized.");
+        }
+
+        if (!isAllowedContentType(detectedContentType, allowedContentTypes)) {
+            throw new ImageSanitizationException(
+                    "Uploaded content type " + detectedContentType + " is not allowed.");
+        }
+
+        String normalizedDeclaredContentType = normalizeMimeType(declaredContentType);
+        if (normalizedDeclaredContentType != null
+                && !Objects.equals(normalizedDeclaredContentType, detectedContentType)) {
+            throw new ImageSanitizationException(
+                    "Declared content type " + normalizedDeclaredContentType
+                            + " does not match uploaded content type "
+                            + detectedContentType + ".");
+        }
     }
 
     /**
-     * Validates if given content type name is in the list of allowed MimeTypes.
+     * Determines whether the detected content type matches one of the configured
+     * allowed MIME types.
      *
-     * @param contentType to check if it is allowed
-     * @param allowedTypes the list of allowed MimeTypes
-     * @return true if given contentType is in the list of allowed MimeTypes, false otherwise
-     * @throws MimeTypeParseException if it is not possible to convert given contentType to MimeType
+     * @param detectedContentType content type detected from the uploaded data
+     * @param allowedContentTypes configured allowed MIME types
+     * @return {@code true} if one of the allowed types matches the detected type
+     * @throws ImageSanitizationException if an allowed MIME type is malformed
      */
-    public static boolean isValidContentType(final String contentType, final List<MimeType> allowedTypes) throws MimeTypeParseException {
-        final MimeType fileMime = new MimeType(contentType);
+    private static boolean isAllowedContentType(
+            String detectedContentType,
+            List<String> allowedContentTypes)
+            throws ImageSanitizationException {
 
-        for (MimeType allowed : allowedTypes) {
-            if (allowed.match(fileMime)) {
+        MimeType detectedMimeType = parseMimeType(detectedContentType);
+
+        for (String allowedContentType : allowedContentTypes) {
+            if (allowedContentType == null || allowedContentType.isBlank()) {
+                continue;
+            }
+
+            MimeType allowedMimeType = parseMimeType(allowedContentType);
+            if (allowedMimeType.match(detectedMimeType)) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * Validates if given inputStream begins with magic number of given contentType.
+     * Normalizes a MIME type to its lowercase {@code type/subtype} form,
+     * omitting any parameters.
      *
-     * @param contentType expected contentType of data in given inputStream
-     * @param inputStream stream of data to check contentType based on its magic number
-     * @return true if given inputStream begins with magic number of given contentType, false otherwise
-     * @throws IOException if there is problem to read bytes from given inputStream
+     * @param mimeType MIME type to normalize; may be {@code null} or blank
+     * @return normalized MIME type, or {@code null} for a missing value
+     * @throws ImageSanitizationException if the value is not a valid MIME type
      */
-    public static boolean isValidMagicNumber(final String contentType, final InputStream inputStream) throws IOException {
-        final String magicNumberForContentType = CONTENT_TYPES_TO_MAGIC_NUMBERS.get(contentType);
-        final String magicNumberOfFile = HexFormat.of().formatHex(inputStream.readNBytes(magicNumberForContentType.length() / 2));
-        return Objects.equals(magicNumberForContentType, magicNumberOfFile);
+    private static String normalizeMimeType(String mimeType)
+            throws ImageSanitizationException {
+        if (mimeType == null || mimeType.isBlank()) {
+            return null;
+        }
+
+        MimeType parsed = parseMimeType(mimeType);
+        return parsed.getPrimaryType().toLowerCase(Locale.ROOT)
+                + "/"
+                + parsed.getSubType().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Parses a MIME type and converts parsing errors to the exception used by
+     * the upload validation flow.
+     *
+     * @param mimeType MIME type to parse
+     * @return parsed MIME type
+     * @throws ImageSanitizationException if the MIME type is malformed
+     */
+    private static MimeType parseMimeType(String mimeType)
+            throws ImageSanitizationException {
+        try {
+            return new MimeType(mimeType);
+        } catch (MimeTypeParseException e) {
+            throw new ImageSanitizationException(
+                    "Malformed MIME type: " + mimeType, e);
+        }
+    }
+
+    /**
+     * Detects the MIME type of uploaded content from its magic number.
+     *
+     * The method compares the beginning of the uploaded content with the
+     * configured magic numbers for supported MIME types.
+     *
+     * @param bytes uploaded file content
+     * @return detected MIME type, or {@code null} if the content type is not recognized
+     */
+    private static String detectContentType(byte[] bytes) {
+        for (Map.Entry<String, String> entry : CONTENT_TYPES_TO_MAGIC_NUMBERS.entrySet()) {
+            String expectedMagicNumber = entry.getValue();
+            int magicNumberLength = expectedMagicNumber.length() / 2;
+
+            if (bytes.length < magicNumberLength) {
+                continue;
+            }
+
+            String actualMagicNumber =
+                    HexFormat.of().formatHex(bytes, 0, magicNumberLength);
+
+            if (expectedMagicNumber.equals(actualMagicNumber)) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 }

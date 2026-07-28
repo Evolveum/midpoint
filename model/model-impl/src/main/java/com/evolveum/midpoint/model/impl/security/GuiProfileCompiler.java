@@ -496,8 +496,8 @@ public class GuiProfileCompiler {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
         }
 
-        if (adminGuiConfiguration.getImageUploadProcessing() != null) {
-            mergeImageUploadProcessingConfiguration(composite, adminGuiConfiguration.getImageUploadProcessing());
+        if (adminGuiConfiguration.getFileUploadConfiguration() != null) {
+            mergeFileUploadConfiguration(composite, adminGuiConfiguration.getFileUploadConfiguration());
         }
 
         if (adminGuiConfiguration.getHomePage() != null) {
@@ -644,22 +644,12 @@ public class GuiProfileCompiler {
         }
     }
 
-    private void mergeImageUploadProcessingConfiguration(CompiledGuiProfile composite, ImageUploadProcessingType imageUploadProcessing) {
-        if (composite.getImageUploadProcessing() == null) {
-            composite.setImageUploadProcessing(imageUploadProcessing.cloneWithoutId());
-        }
-
-        ImageUploadProcessingType iup = composite.getImageUploadProcessing();
-        if (imageUploadProcessing.getProcessing() != null) {
-            iup.setProcessing(imageUploadProcessing.getProcessing());
-        }
-
-        if (imageUploadProcessing.getFormat() != null) {
-            iup.setFormat(imageUploadProcessing.getFormat());
-        }
-
-        if (imageUploadProcessing.getStripExifData() != null) {
-            iup.setStripExifData(imageUploadProcessing.getStripExifData());
+    private void mergeFileUploadConfiguration(CompiledGuiProfile composite, FileUploadConfigurationType fileUploadConfiguration)
+            throws ConfigurationException {
+        for (EffectiveFileUploadPolicy newPolicy : FileUploadConfigurationResolver.compileConfiguredPolicies(fileUploadConfiguration)) {
+            composite.getFileUploadPolicies().removeIf(existingPolicy ->
+                    existingPolicy.getPath().equivalent(newPolicy.getPath()));
+            composite.getFileUploadPolicies().add(newPolicy);
         }
     }
 

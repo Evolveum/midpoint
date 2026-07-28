@@ -13,7 +13,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.activation.MimeTypeParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -26,7 +25,8 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.EffectiveFileUploadPolicy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
@@ -34,8 +34,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * @author shood
@@ -57,15 +55,20 @@ public class UploadDownloadPanel extends InputPanel {
 
     private final boolean isReadOnly;
 
-    private List<String> allowedUploadContentTypes = new ArrayList<>();
+    private ItemPath uploadItemPath;
+    private byte[] validatedUploadedFile;
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
         this.isReadOnly = isReadOnly;
     }
 
-    public List<String> getAllowedUploadContentTypes() {
-        return allowedUploadContentTypes;
+    public ItemPath getUploadItemPath() {
+        return uploadItemPath;
+    }
+
+    public void setUploadItemPath(ItemPath uploadItemPath) {
+        this.uploadItemPath = uploadItemPath;
     }
 
     @Override
@@ -108,39 +111,37 @@ public class UploadDownloadPanel extends InputPanel {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 super.onError(target);
-                UploadDownloadPanel.this.uploadFilePerformed(target);
+                UploadDownloadPanel.this.uploadFileFailed(target);
             }
         });
         fileUpload.add(new VisibleBehaviour(() -> !isReadOnly));
         fileUpload.add((IValidator<List<FileUpload>>) validatable -> {
 
             List<FileUpload> list = validatable.getValue();
+            validatedUploadedFile = null;
             if (list == null || list.isEmpty()) {
-                return;
-            }
-
-            if (getAllowedUploadContentTypes().isEmpty()) {
                 return;
             }
 
             final String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
 
             try {
+                EffectiveFileUploadPolicy policy = getEffectiveFileUploadPolicy();
+
                 for (FileUpload fu : list) {
-                    final String contentType = fu.getContentType();
+                    byte[] uploadedBytes = fu.getBytes();
 
-                    if (!FileValidatorUtil.isValidContentType(contentType, FileValidatorUtil.getMimeTypes(getAllowedUploadContentTypes()))) {
-                        validatable.error(createValidationError("UploadDownloadPanel.validationContentNotAllowed", label, contentType));
-                        continue;
+                    if (policy.isContentTypeCheckEnabled()) {
+                        FileValidatorUtil.validateUploadContent(
+                                uploadedBytes,
+                                fu.getContentType(),
+                                policy.getAllowedContentTypes());
                     }
 
-                    if (isMagicNumberValidationEnabled() && !FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
-                        validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType));
-                    }
+                    validatedUploadedFile = sanitizeUploadedFile(uploadedBytes, policy);
                 }
-            } catch (MimeTypeParseException ex) {
-                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage()));
-            } catch (IOException ex) {
+            } catch (ImageSanitizationException ex) {
+                validatedUploadedFile = null;
                 validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage()));
             }
         });
@@ -198,48 +199,28 @@ public class UploadDownloadPanel extends InputPanel {
         return getInputFile();
     }
 
-    private FileUpload getFileUpload() {
-        FileUploadField file = getInputFile();
-        return file.getFileUpload();
-    }
-
-    /**
-     * Checks if ImageUploadProcessing is set to fixedFormat.
-     * In case of fixedFormat the magic number check is performed in ImageSanitization.
-     * Moreover, potential change of image format performed in ImageSanitization incorrectly trigger FileValidatorUtil.isValidMagicNumber
-     *
-     * @return if ImageUploadProcessing is set to fixedFormat
-     */
-    private boolean isMagicNumberValidationEnabled() {
-        final ImageUploadProcessingType config = getCompiledGuiProfile().getImageUploadProcessing();
-        return config == null || !ImageProcessingType.FIXED.equals(config.getProcessing());
-    }
-
-    private CompiledGuiProfile getCompiledGuiProfile() {
-        return getParentPage().getCompiledGuiProfile();
-    }
-
     public void uploadFilePerformed(AjaxRequestTarget target) {
         Component input = getInputFile();
         try {
-            FileUpload uploadedFile = getFileUpload();
-            updateValue(
-                    ImageSanitizationUtil.sanitizeImage(
-                            uploadedFile.getBytes(),
-                            getCompiledGuiProfile().getImageUploadProcessing()
-                    )
-            );
+            updateValue(validatedUploadedFile);
+
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
-        } catch (ImageSanitizationException e) {
-            LOGGER.trace("Sanitization of upload file error.", e);
-            final String errorMessage = getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage();
-            input.error(errorMessage);
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
             final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
             input.error(errorMessage);
+        } finally {
+            validatedUploadedFile = null;
         }
+    }
+
+    protected byte[] sanitizeUploadedFile(byte[] uploadedBytes, EffectiveFileUploadPolicy policy)
+            throws ImageSanitizationException {
+        return ImageSanitizationUtil.sanitizeImage(
+                uploadedBytes,
+                policy.getConvertImageTo(),
+                policy.isStripMetadata());
     }
 
     public void removeFilePerformed(AjaxRequestTarget target) {
@@ -256,6 +237,17 @@ public class UploadDownloadPanel extends InputPanel {
 
     public void uploadFileFailed(AjaxRequestTarget target) {
         LOGGER.trace("Upload file validation failed.");
+    }
+
+    /**
+     * Resolves the effective upload policy for the item represented by this panel.
+     *
+     * @return resolved upload validation and processing policy
+     */
+    protected EffectiveFileUploadPolicy getEffectiveFileUploadPolicy() {
+        return getParentPage()
+                .getCompiledGuiProfile()
+                .getFileUploadPolicy(uploadItemPath);
     }
 
     public void updateValue(byte[] file) {
@@ -288,6 +280,8 @@ public class UploadDownloadPanel extends InputPanel {
 
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,
             AjaxRequestTarget target) {
+        downloadBehavior.setContentType(getDownloadContentType());
+        downloadBehavior.setFileName(getDownloadFileName());
         downloadBehavior.initiate(target);
     }
 

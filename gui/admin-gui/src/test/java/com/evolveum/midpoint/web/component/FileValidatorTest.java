@@ -6,58 +6,102 @@
 
 package com.evolveum.midpoint.web.component;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
+import static com.evolveum.midpoint.web.component.FileTestConstants.XML_START_ARRAY;
+import static com.evolveum.midpoint.web.component.FileTestConstants.jpegBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.pngBytes;
+import static org.testng.Assert.assertThrows;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.*;
-import static com.evolveum.midpoint.web.component.FileTestConstants.*;
+import java.util.List;
 
-import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.web.component.input.ImageSanitizationException;
 import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 
 /**
- * Tests of methods for file validation.
- * E.g. if contentType is from allowed list or if inputStream begins with magic number of expected contentType.
- *
- * @author matisovaa
+ * Tests upload content validation based on magic bytes, declared MIME type,
+ * and configured allowed MIME types.
  */
-@ActiveProfiles("test")
 public class FileValidatorTest {
 
     @Test
-    public void test4299ContentTypeFileValidator_validJPEG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidContentType(MIME_IMAGE_JPEG, MIME_TYPE_LIST));
+    public void testValidJpegDeclaredAsJpeg() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_JPEG, List.of(MIME_IMAGE_JPEG));
     }
 
     @Test
-    public void test4299ContentTypeFileValidator_validPNG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidContentType(MIME_IMAGE_PNG, MIME_TYPE_LIST));
+    public void testValidPngDeclaredAsPng() throws Exception {
+        FileValidatorUtil.validateUploadContent(pngBytes(), MIME_IMAGE_PNG, List.of(MIME_IMAGE_PNG));
     }
 
     @Test
-    public void test4299ContentTypeFileValidator_invalid() throws Exception {
-        assertFalse(FileValidatorUtil.isValidContentType(MIME_APPLICATION_XML, MIME_TYPE_LIST));
+    public void testDeclaredMimeTypeDoesNotMatchDetectedMagicBytes() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_PNG, List.of(MIME_IMAGE_JPEG)));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_validJPEG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_JPEG, JPG_STREAM1));
+    public void testDetectedTypeIsNotAllowed() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(pngBytes(), MIME_IMAGE_PNG, List.of(MIME_IMAGE_JPEG)));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_validPNG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_PNG, PNG_STREAM));
+    public void testWildcardImageAllowsJpegAndPng() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_JPEG, List.of("image/*"));
+        FileValidatorUtil.validateUploadContent(pngBytes(), MIME_IMAGE_PNG, List.of("image/*"));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_invalidXML() throws Exception {
-        assertFalse(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_JPEG, XML_STREAM));
+    public void testMalformedDeclaredMimeTypeIsRejected() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(jpegBytes(), "image", List.of(MIME_IMAGE_JPEG)));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_invalidJPNG() throws Exception {
-        assertFalse(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_PNG, JPG_STREAM2));
+    public void testMalformedConfiguredAllowedMimeTypeIsRejected() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_JPEG, List.of("image")));
+    }
+
+    @Test
+    public void testUnsupportedBytesAreRejected() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(XML_START_ARRAY, "text/xml", List.of("text/xml")));
+    }
+
+    @Test
+    public void testNullDeclaredMimeTypeIsAcceptedWhenDetectedTypeIsAllowed() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), null, List.of(MIME_IMAGE_JPEG));
+    }
+
+    @Test
+    public void testBlankDeclaredMimeTypeIsAcceptedWhenDetectedTypeIsAllowed() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), " ", List.of(MIME_IMAGE_JPEG));
+    }
+
+    @Test
+    public void testDeclaredMimeTypeParametersAreIgnored() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), "IMAGE/JPEG; charset=binary", List.of(MIME_IMAGE_JPEG));
+    }
+
+    @Test
+    public void testEmptyAllowedTypesRejectsDetectedContent() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(
+                        jpegBytes(),
+                        MIME_IMAGE_JPEG,
+                        List.of()));
+    }
+
+    private void assertRejected(ThrowingRunnable runnable) {
+        assertThrows(ImageSanitizationException.class, runnable::run);
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
     }
 }
