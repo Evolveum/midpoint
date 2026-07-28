@@ -20,6 +20,7 @@ Objects exported from midPoint can be filtered by:
 
 * OID (`--oid`)
 * Type (`-t, --type`) - For example, `./bin/ninja.sh export -t user`
+** Full list of supported types can be found in link:https://evolveum.com/downloads/midpoint/4.10/midpoint-4.10-schemadoc/http---midpoint-evolveum-com-xml-ns-public-common-common-3/index.html[Midpoint schema reference].
 * Filter (`-f, --filter`) - Prefix the filter with `%` to interpret it as a MidPoint Query Language (MQL) query, or with `@` to load it from a file.
 
 .Example use of an MQL query
