@@ -240,6 +240,9 @@
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.0</log4j2.version>
         <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+        <!-- remove whole dependency tools.jackson.core:jackson-databind dependency
+            definition when its above 3.1.4 (around L296) -->
+        <jackson-databind.version>3.1.5</jackson-databind.version>
         <logback.version>1.5.38</logback.version>
         <postgresql.version>42.7.12</postgresql.version>
         <netty.version>4.2.16.Final</netty.version>
@@ -290,6 +293,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+                <scope>compile</scope>
+            </dependency>
 
             <!-- Prism libraries with versions pre-declared (no need to use versions in other POMs) -->
             <dependency>
