@@ -103,6 +103,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 
+    private static final int MAX_FATAL_ERROR_OUTPUT_LENGTH = 350;
+
     private static ConfigurableApplicationContext applicationContext = null;
     private Context tomcatContext;
 
@@ -135,8 +137,6 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             }
         }
     }
-
-    private static final int MAX_FATAL_ERROR_OUTPUT_LENGTH = 300;
 
     private static void reportFatalErrorToStdErr(Throwable e) {
         System.err.println("ERROR initializing midPoint: "
