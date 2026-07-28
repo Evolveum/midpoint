@@ -2104,7 +2104,7 @@ midpoint.searchShadowOwner('3699defe-8133-11f1-b274-5b07c17a83bc')
 ----
 
 
-== Timestamps and Durations
+== Timestamp and Duration
 
 Timestamps can be constructed by using the `timestamp()` function.
 The `timestamp()` constructor expect a string argument, specifying a timestamp formatted according to RFC 3339/ISO8601 format.
@@ -2424,7 +2424,7 @@ timestamp.longAgo()    // Returns timestamp 1970-01-01T00:00:00Z
 ----
 
 
-== Polystrings
+== Polystring
 
 xref:/midpoint/reference/concepts/polystring/[Polystrings] are midPoint data structured used to store string values, together with their normalized and localized variants.
 
@@ -2456,7 +2456,7 @@ If the normalized part of polystring is to be used, it must be explicitly refere
 
 NOTE: The localization functionality of polystrings is not available in MEL at this time.
 
-== Protected Strings
+== Protected String
 
 xref:/midpoint/reference/concepts/protectedstring/[Protected strings] are midPoint data structure meant to provide extra protection to string data.
 They are usually used to contain passwords, API keys and similar sensitive data.
@@ -2492,7 +2492,7 @@ Encrypts a string value, creating protected string.
 Works with strings as well as polystrings.
 
 
-== QNames
+== QName
 
 MEL can work with QNames as simple structured objects.
 QNames can be constructed using `qname()` function:
@@ -2542,13 +2542,66 @@ qname('http://example.com/ns', 'ship') == qname(null, 'ship')    // Returns true
 Creates a qname value.
 When namespace is not specified, qname with unspecified (null) namespace is created.
 
-=== encrypt
 
-`string.encrypt()` -> protectedString
+== Item Path
 
-Encrypts a string value, creating protected string.
-Works with strings as well as polystrings.
+// TODO
 
+xref:/midpoint/reference/concepts/item-path/[Item path] is a simple syntax for addressing properties, containers, references, attributes and similar items in data structures used in midPoint.
+Simply speaking, item path is a sequence of item names (QNames) and optionally container identifiers.
+
+In MEL, item path is part of some data structures (e.g. item delta), or it can be used as a parameter to some functions (e.g. `object.findItem()`).
+Item path can be constructed using the `itemPath()` function:
+
+// TODO: itemPath() constructor: NOT IMPLEMENTED YET
+
+WARNING: NOT IMPLEMENTED YET
+
+[source,mel]
+----
+itemPath(['activation', 'effectiveStatus'])
+----
+
+Segments of the item path can be accessed as `segments` field using the _dot notation_:
+
+[source,mel]
+----
+path.segments
+----
+
+Item path can be used to access specific part of midPoint objects using the `findItem()` function:
+
+// TODO: NOT IMPLEMENTED YET
+
+WARNING: NOT IMPLEMENTED YET
+
+[source,mel]
+----
+object.findItem[itemPath(['activation', 'effectiveStatus'])]
+----
+
+Item path can be compared with strings and QNames.
+
+[source,mel]
+----
+itemPath(['activation', 'effectiveStatus']) == 'activation/effectiveStatus'    // Returns true
+----
+
+=== itemPath
+
+// TODO: NOT IMPLEMENTED YET
+
+WARNING: NOT IMPLEMENTED YET
+
+`itemPath(list(any))` -> itemPath +
+`itemPath(string)` -> itemPath
+
+Creates an item path value.
+
+When list parameter is specified, item path is created from the list of segments provided as parameter.
+The segments representing item names may be specified as strings or QNames, the container identifier segments are specified as integers.
+
+When string parameter is used, the item path is constructed from its string representation.
 
 == Structured Data
 
@@ -2667,6 +2720,386 @@ xref:/midpoint/reference/concepts/item-path/[Item path] can be used to locate an
 ----
 focus.find('activation/administrativeStatus')
 ----
+
+== Data Structures
+
+MEL brings support for several midPoint-specific data structures, such as assignments and deltas.
+These data structures are represented by structured objects in MEL.
+
+TODO: containers and objects: ref to midPoint schema
+
+=== Object Reference
+
+Object reference MEL data structure corresponds to the `ObjectReferenceType` of midPoint schema.
+It is used to reference one object from another object.
+Following table summarizes the most frequently used fields.
+
+.Object Reference Data Structure Fields
+|===
+| Field | Type | Description
+
+| `oid`
+| string
+| OID of an object which is the target of the reference.
+
+| `type`
+| qname
+| Type of an object which is the target of the reference.
+
+| `relation`
+| qname
+| The relation or a "role" of this reference.
+It may further specify the meaning of the reference.
+See xref:/midpoint/reference/concepts/relation/[relation page] for more details.
+
+|===
+
+
+=== Assignment
+
+Fields of _assignment_ data structure in MEL are given by `AssignmentType` midPoint type, as specified in midPoint schema.
+Following table summarizes the most frequently used fields.
+
+.Assignment Data Structure Fields
+|===
+| Field | Type | Description
+
+| `identifier`
+| string
+| Identifier of assignment, unique to the object.
+
+| `description`
+| string
+| TODO
+
+| `targetRef`
+| Object reference
+| TODO
+
+|===
+
+==== Assignment Functions
+
+===== hasRelation
+
+`assignment.hasRelation(any)` -> boolean
+
+Returns true if `targetRef` of the assignment has specified xref:/midpoint/reference/concepts/relation/[relation].
+String or QName representation of the relation can be used.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasRelation('owner')
+----
+
+===== hasDefaultRelation
+
+`assignment.hasDefaultRelation()` -> boolean
+
+Returns true is the assignment has default xref:/midpoint/reference/concepts/relation/[relation].
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasDefaultRelation()
+----
+
+===== has*Relation
+
+`assignment.hasApproverRelation()` -> boolean +
+`assignment.hasConsentRelation()` -> boolean +
+`assignment.hasDeputyRelation()` -> boolean +
+`assignment.hasMetaRelation()` -> boolean +
+`assignment.hasOwnerRelation()` -> boolean +
+`assignment.hasRelatedRelation()` -> boolean
+
+Returns true if `targetRef` of the assignment has specified xref:/midpoint/reference/concepts/relation/[relation].
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasOwnerRelation()
+----
+
+===== isTarget
+
+`assignment.isTarget(any)` -> boolean
+
+Returns true if `targetRef` of the assignment is of specified type.
+String or QName representation of the type can be used.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTarget('RoleType')
+----
+
+===== isTarget*
+
+`assignment.isTargetRole()` -> boolean +
+`assignment.isTargetOrg()` -> boolean +
+`assignment.isTargetService()` -> boolean +
+`assignment.isTargetPolicy()` -> boolean +
+`assignment.isTargetUser()` -> boolean
+
+Returns true if `targetRef` of the assignment is of specified type.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTargetRole()
+----
+
+===== targetOid
+
+`assignment.targetOid()` -> string
+
+Returns OID of targetRef of the assignment.
+This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetOid()   // Returns '847ab384-8a63-11f1-ad15-9c6b00360713'
+----
+
+===== targetRelation
+
+`assignment.targetRelation()` -> qname
+
+Returns relation of targetRef of the assignment in QName form.
+
+As QNames can be safely compared with strings, string representation of relations can be used in comparisons.
+This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetRelation() == 'owner'
+----
+
+===== targetType
+
+`assignment.targetType()` -> qname
+
+Returns relation of targetRef of the assignment in QName form.
+
+As QNames can be safely compared with strings, string representation of the type can be used in comparisons.
+This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetType() == 'RoleType'
+----
+
+
+=== Object Delta
+
+xref:/midpoint/devel/prism/concepts/deltas/[Object delta] data structure represents a change of an midPoint object.
+The MEL _object delta_ data structure represents xref:/midpoint/devel/prism/concepts/deltas/[internal representation of object delta] used by midPoint (or more exactly the xref:/midpoint/devel/prism/[Prism] data representation library).
+It roughly corresponds to `ObjectDeltaType` from Prism schema.
+
+.Object Delta Structure Fields
+|===
+| Field | Type | Description
+
+| `oid`
+| string
+| OID of object which is modified or deleted by the delta.
+
+| `objectType`
+| qname
+| Type of object which is modified or deleted by the delta.
+
+| `changeType`
+| string
+| Type of change described by the delta:
+
+* `add`: new object is added
+* `modify`: existing object is modified
+* `delete`: existing object is deleted
+
+| `objectToAdd`
+| object
+| Object being added.
+
+The value is provided only if `changeType` of the delta is `add`.
+
+| `itemDelta`
+| list(Item Delta)
+| List of item deltas, specifying changes of individual items of the object.
+
+The value is provided only if `changeType` of the delta is `modify`.
+
+|===
+
+// ==== Object Delta Functions
+
+// TODO: later, when implemented
+
+=== Item Delta
+
+xref:/midpoint/devel/prism/concepts/deltas/[Item delta] data structure represents a change of one individual item of an midPoint object.
+The MEL _item delta_ data structure represents xref:/midpoint/devel/prism/concepts/deltas/[internal representation of item delta] used by midPoint (or more exactly the xref:/midpoint/devel/prism/[Prism] data representation library).
+It very roughly corresponds to `ItemDeltaType` from Prism schema, although the MEL data structure has a slightly different fields.
+
+.Item Delta Structure Fields
+|===
+| Field | Type | Description
+
+| `path`
+| Item Path
+| Path of the item (container of property) being changed.
+
+| `valuesToAdd`
+| list(any)
+| List of values that are added to this item.
+New values are added to the existing values of the object.
+Existing values of the object are not affected.
+
+Contains `null` value if no values are added.
+
+| `valuesToDelete`
+| list(any)
+| List of values that are deleted from this item.
+Existing values not specified by this field are not affected.
+
+Contains `null` value if no values are deleted.
+
+| `valuesToReplace`
+| list(any)
+| List of values that are set to this item.
+Existing values of the item are discarded, and replaced by the values provided in this field.
+
+Contains `null` value if no values are replaced.
+
+| `estimatedOldValues`
+| list(any)
+| List of values that are estimated to be present in the item before the delta was applied.
+
+Contains empty list if it is estimated that the item had no value.
+Contains `null` value if the old values are unknown.
+
+|===
+
+The item delta can contain either added/deleted values, or replaced values, but not both.
+
+// ==== Item Delta Functions
+
+// TODO: later, when implemented
+
+
+
+=== Audit Event Record
+
+TODO `AuditEventRecordType`
+
+=== Object Delta Operation
+
+_Object delta operation_ data structure represents an executed change of an midPoint object.
+Simply speaking, it describes an xref:/midpoint/devel/prism/concepts/deltas/[object delta] that was already applied, including results of the operation that applied the delta.
+_Object delta operation_ data structure is mostly used in midPoint xref:/midpoint/reference/security/audit/[audit records].
+It roughly corresponds to `ObjectDeltaOperationType` from MidPoint schema.
+
+.Object Delta Operation Structure Fields
+|===
+| Field | Type | Description
+
+| `objectOid`
+| string
+| OID of object which was added, modified or deleted by the delta.
+
+| `objectDelta`
+| Object Delta
+| Delta that was applied to the object.
+
+| `executionResult`
+| Operation Result
+| Result of the operation that applied the delta.
+
+| `objectName`
+| string
+| Name of the object that was the target of this delta, if known.
+Useful for informational purposes, typically in audit records.
+
+| `resourceOid`
+| string
+| OID of the resource that is related to this operation - typically
+if the object being processed is a shadow of a resource object.
+
+| `resourceName`
+| polystring
+| Name of the resource that is related to this operation - typically
+if the object being processed is a shadow of a resource object.
+Useful for informational purposes, typically in audit records.
+
+| `shadowKind`
+| string
+| Shadow kind of the shadow, that is related to this operation.
+Useful for informational purposes, typically in audit records.
+
+| `shadowIntent`
+| string
+| Shadow intent of the shadow, that is related to this operation.
+Useful for informational purposes, typically in audit records.
+
+|===
+
+// ==== Object Delta Functions
+
+// TODO: later, when implemented
+
+
+=== Operation Result
+
+xref:/midpoint/architecture/concepts/operation-result/[_Operation result_] data structure provides rich information about an operation being executed, primarily for recording, error reporting and troubleshooting.
+It is also used in xref:/midpoint/reference/security/audit/[audit records] as part of _object delta operation_ data structure.
+It roughly corresponds to `OperationResultType` from MidPoint schema.
+
+.Operation Result Structure Fields
+|===
+| Field | Type | Description
+
+| `operation`
+| string
+| Operation identifier.
+
+| `status`
+| string
+| Type of change described by the delta:
+
+* `success`: Operation was executed successfully.
+* `warning`: Operation was executed successfully, but there were warnings.
+* `partial_error`: Operation was executed with partial error. Some parts of the operation were successful, other parts have failed.
+* `fatal_error`: Operation was not executed, it ended up in an error that prohibited completion of operation.
+* `handled_error`: Execution of an operation caused an error, which was successfully handled. Effects of the operation are equivalent to successful operation.
+* `not_applicable`: Result does not make any sense for the operation. E.g. unsupported operation which was skipped.
+* `in_progress`: The operation is still being executed.
+* `unknown`: No information about operation is present, which usually means programming bug.
+
+| `message`
+| string
+| Error or warning message.
+This is optional, as some statuses do not need a message (e.g. success).
+
+|===
+
+// ==== Operation Result Functions
+
+// TODO: later, when implemented
+
 
 == Null and Optional Values
 
