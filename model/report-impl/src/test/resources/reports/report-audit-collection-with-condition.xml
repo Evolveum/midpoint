@@ -12,7 +12,9 @@
             <collectionRef oid="00000000-0000-0000-0001-000000001234" type="ObjectCollectionType"/>
         </collection>
         <condition>
+            <trace>true</trace>
             <script>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>object.targetRef.oid == 'c0c010c0-d34d-b33f-f00d-111111111122'</code>
             </script>
         </condition>

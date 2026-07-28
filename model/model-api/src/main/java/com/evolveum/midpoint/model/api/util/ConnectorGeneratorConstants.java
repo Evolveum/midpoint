@@ -2,6 +2,8 @@ package com.evolveum.midpoint.model.api.util;
 
 public class ConnectorGeneratorConstants {
 
+    public static final String RPC_START_FROM_NEW = "/rpc/startFromNew";
+
     public static final String RPC_CONTINUE_FROM = "/rpc/continueFrom";
 
     public static final String RPC_CREATE_CONNECTOR_SUBMIT_OPERATION = "/rpc/createConnectorSubmitOperation";
