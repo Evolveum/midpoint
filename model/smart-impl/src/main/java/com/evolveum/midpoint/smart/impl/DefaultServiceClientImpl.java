@@ -62,8 +62,6 @@ public class DefaultServiceClientImpl implements ServiceClient {
     private static final int DEFAULT_THREAD_POOL_SIZE = 20;
 
     DefaultServiceClientImpl(@Nullable SmartIntegrationConfigurationType configurationBean) throws ConfigurationException {
-        // FIXME temporary hack to force CXF to use HTTP/1.1 (remove it eventually, because it influences all HTTP communication).
-        System.setProperty("org.apache.cxf.transport.http.forceVersion", "1.1");
         webClient = WebClient.create(getServiceUrl(configurationBean), true);
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
