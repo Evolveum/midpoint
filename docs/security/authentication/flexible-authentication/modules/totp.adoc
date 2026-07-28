@@ -89,6 +89,9 @@ Some authenticator apps ignore this parameter and support only 30 seconds (e.g.,
 </totp>
 ----
 
+IMPORTANT: For secure configuration, be sure to define a credential policy for TOTP secrets, limiting the number of failed attempts and specifying lockout durations.
+(See below.)
+
 === Authentication sequence configuration
 
 The authentication sequence has to contain at least one module before the `totp` module that selects the correct focus (user) for TOTP authentication.
