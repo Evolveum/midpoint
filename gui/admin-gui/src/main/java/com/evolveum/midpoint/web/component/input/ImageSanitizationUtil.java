@@ -18,20 +18,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.function.Supplier;
+
 import javax.imageio.ImageIO;
 
 import com.evolveum.midpoint.common.MimeTypeUtil;
-
-import org.apache.commons.lang3.BooleanUtils;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageFormatType;
 
 /**
- * Handle sanitization if images. Sanitization is configurable by input ImageUploadProcessingType configuration.
- * Possible sanitization options are e.g. remove EXIF data or convert to fixed format.
+ * Provides optional image sanitization, including format conversion and
+ * metadata removal.
+ *
+ * Sanitization rewrites the image using {@link ImageIO}. The rewrite does
+ * not preserve the original image metadata.
  *
  * @author matisovaa
  *
@@ -41,6 +41,9 @@ public final class ImageSanitizationUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ImageSanitizationUtil.class);
 
     private static final Color BACKGROUND_COLOR = Color.WHITE;
+
+    private ImageSanitizationUtil() {
+    }
 
     /**
      * Determines file extension by comparing first bytes of file byte array with known magic numbers.
@@ -73,71 +76,79 @@ public final class ImageSanitizationUtil {
     }
 
     /**
-     * Sanitize image based on ImageUploadProcessingType configuration.
+     * Applies the requested image processing.
      *
-     * @param originalBytes image to sanitize
-     * @param config configuration what conversion is needed with input image
-     * e.g. remove EXIF data or convert to fixed format
-     * @return image updated based on given configuration
-     * @throws ImageSanitizationException if there was error during sanitization process
+     * If neither conversion nor metadata stripping is requested, the
+     * original byte array is returned unchanged. Otherwise, the image is read
+     * and written again. When no target format is specified, the original
+     * format detected from the magic number is preserved.
+     *
+     * @param originalBytes image content to process
+     * @param convertImageTo requested output format, or {@code null} to preserve
+     *        the detected original format
+     * @param stripMetadata whether the image should be rewritten to remove metadata
+     * @return processed image content, original content if processing is not
+     *         requested, or {@code null} if the input is {@code null}
+     * @throws ImageSanitizationException if the image format cannot be determined
+     *         or the image cannot be read or written
      */
-    public static byte[] sanitizeImage(byte[] originalBytes, ImageUploadProcessingType config)
+    public static byte[] sanitizeImage(
+            byte[] originalBytes,
+            ImageFormatType convertImageTo,
+            boolean stripMetadata)
             throws ImageSanitizationException {
-        if (config == null) {
-            LOGGER.debug("There are no sanitization configured.");
-            return originalBytes;
-        }
 
         if (originalBytes == null) {
-            LOGGER.debug("There are no file for sanitization.");
+            LOGGER.debug("There is no image for sanitization.");
             return null;
         }
 
-        if (ImageProcessingType.FIXED != config.getProcessing() && BooleanUtils.isNotTrue(config.getStripExifData())) {
-            LOGGER.debug("There are no sanitization enabled in configuration.");
+        if (convertImageTo == null && !stripMetadata) {
+            LOGGER.debug("There is no image sanitization enabled.");
             return originalBytes;
         }
 
-        final String imageFormatName = getOutputImageFormatName(originalBytes, config);
-        if (imageFormatName == null) {
+        String outputFormatName = getOutputImageFormatName(originalBytes, convertImageTo);
+
+        if (outputFormatName == null) {
             throw new ImageSanitizationException("File format for sanitization is not recognized.");
         }
 
-        // Read image (ImageIO automatically excludes metadata)
+        // ImageIO reading and writing excludes the original metadata.
         BufferedImage image = readImage(originalBytes);
-
-        // Write image to given format (no metadata)
-        return writeImage(image, imageFormatName);
+        return writeImage(image, outputFormatName);
     }
 
-    private static String getOutputImageFormatName(byte[] originalBytes, ImageUploadProcessingType config) {
-        if (ImageProcessingType.FIXED == config.getProcessing()) {
-            if (config.getFormat() != null) {
-                return config.getFormat().value();
-            }
-            return getExtension(MIME_IMAGE_JPEG);
+    /**
+     * Determines the format in which the processed image should be written.
+     */
+    private static String getOutputImageFormatName(
+            byte[] originalBytes,
+            ImageFormatType convertImageTo) {
+
+        if (convertImageTo != null) {
+            return convertImageTo.value();
         }
         return getFileExtensionFromFileMagicNumber(originalBytes);
     }
 
     /**
-     * Reads input byte array to BufferedImage
+     * Reads an image into a {@link BufferedImage}.
      *
-     * @param imageBytes to convert to BufferedImage
-     * @return image as BufferedImage
-     * @throws ImageSanitizationException if read of image ends with error
+     * @param imageBytes image content
+     * @return decoded image
+     * @throws ImageSanitizationException if the image cannot be read
      */
     private static BufferedImage readImage(byte[] imageBytes) throws ImageSanitizationException {
-        BufferedImage image;
         try {
-            image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (image == null) {
                 throw new ImageSanitizationException("Failed to read image for sanitization.");
             }
+            return image;
         } catch (IOException e) {
             throw new ImageSanitizationException("Failed to read image for sanitization.", e);
         }
-        return image;
     }
 
     /**
