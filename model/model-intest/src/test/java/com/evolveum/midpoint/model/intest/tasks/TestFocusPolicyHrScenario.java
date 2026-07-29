@@ -33,7 +33,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -62,10 +62,10 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
             COMMON_DIR, "resource-dummy-source.xml", "c1a70000-0000-0000-0000-000000000001", "fpc-source",
             DummyResourceContoller::populateWithDefaultSchema);
 
-    private static final TestObject<TaskType> TASK_HR =
-            TestObject.file(TEST_DIR, "hr-reconciliation.xml", "e4f00000-0000-0000-0000-000000000001");
-    private static final TestObject<TaskType> TASK_HR_IMPORT =
-            TestObject.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
+    private static final TestTask TASK_HR =
+            TestTask.file(TEST_DIR, "hr-reconciliation.xml", "e4f00000-0000-0000-0000-000000000001");
+    private static final TestTask TASK_HR_IMPORT =
+            TestTask.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
 
     private static final int ACCOUNTS = 20;
     private static final String PATTERN = "a%02d";
@@ -92,6 +92,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         super.initSystem(initTask, initResult);
         initDummyResource(RESOURCE, initTask, initResult);
         createAccounts();
+        TASK_HR_IMPORT.init(this, initTask, initResult);
 
         // clockwork (focus) policy-rule notifier, redirected to a dummy transport
         SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
@@ -144,11 +145,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
     /** Imports all accounts (plain import, no policy), linking users to shadows — the state the scenario prunes. */
     private void importAllAndLink(OperationResult result) throws Exception {
-        deleteIfPresent(TASK_HR_IMPORT, result);
-        addObject(TASK_HR_IMPORT, getTestTask(), result);
-        waitForTaskCloseOrSuspend(TASK_HR_IMPORT.oid, 5 * TIMEOUT);
-        assertTaskTree(TASK_HR_IMPORT.oid, "after import").assertClosed().assertSuccess();
-        deleteIfPresent(TASK_HR_IMPORT, result);
+        TASK_HR_IMPORT.rerun(result);
     }
 
     private void deleteAccounts(int from, int to) throws Exception {
