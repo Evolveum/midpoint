@@ -4,15 +4,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
+import java.io.UncheckedIOException;
 import java.util.function.Function;
 
 public class ConnectorManifestWriter {
 
     private static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
+    private static final YAMLMapper YAML = new YAMLMapper();
     private final ObjectNode application;
     private final ObjectNode connector;
     private ObjectNode root;
@@ -107,8 +111,12 @@ public class ConnectorManifestWriter {
         }
     }
 
+    /** Serializes the manifest as YAML — connectors also accept JSON, but the wizard writes YAML. */
     public String serialize() {
-        return root.toPrettyString();
-
+        try {
+            return YAML.writeValueAsString(root);
+        } catch (JsonProcessingException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

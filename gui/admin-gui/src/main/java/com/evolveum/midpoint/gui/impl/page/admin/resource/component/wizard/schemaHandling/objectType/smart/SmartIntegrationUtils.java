@@ -268,17 +268,17 @@ public class SmartIntegrationUtils {
     }
 
     public enum SuggestionUiStyle {
-        FATAL("bg-light-danger", "info-badge danger", "border border-danger",
+        FATAL("table-danger", "info-badge danger", "border border-danger",
                 "SuggestionUiStyle.fatal"),
-        IN_PROGRESS("bg-light-info", "info-badge text-info", "border border-info",
+        IN_PROGRESS("table-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
-        UNKNOWN("bg-light-info", "info-badge text-info", "border border-info",
+        UNKNOWN("table-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
-        NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
+        NOT_APPLICABLE("table-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai border-start-2",
+        DEFAULT_AI("table-ai", "info-badge purple", "border border-ai border-start-2",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system border-start-2",
+        DEFAULT_SYSTEM("table-primary", "info-badge primary", "border border-system border-start-2",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;
