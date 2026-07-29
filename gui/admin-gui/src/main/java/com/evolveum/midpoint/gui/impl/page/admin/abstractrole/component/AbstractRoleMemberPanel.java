@@ -335,7 +335,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected CollectionPanelType getPanelType() {
-        String panelId = getPanelConfiguration().getIdentifier();
+        ContainerPanelConfigurationType panelConfig = getPanelConfiguration();
+        String panelId = panelConfig != null ? panelConfig.getIdentifier() : null;
         return CollectionPanelType.getPanelType(panelId);
     }
 
@@ -824,9 +825,20 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return search.getAllowedTypeList();
     }
 
-    private boolean isAuthorized(String action) {
-        Map<String, String> memberAuthz = getAuthorizations(getComplexTypeQName());
+    protected boolean isAuthorized(String action) {
+        Map<String, String> memberAuthz = isGovernancePanel()
+                ? GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS
+                : getAuthorizations(getComplexTypeQName());
         return WebComponentUtil.isAuthorized(memberAuthz.get(action));
+    }
+
+    /**
+     * Governance flavors of the member panel (e.g. `roleGovernance`, `orgGovernance`) are driven
+     * by governance member authorizations, not by the authorizations of the object type members.
+     */
+    protected boolean isGovernancePanel() {
+        CollectionPanelType panelType = getPanelType();
+        return panelType != null && panelType.isGovernance();
     }
 
     private List<AssignmentObjectRelation> loadMemberRelationsList() {

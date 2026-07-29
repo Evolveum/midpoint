@@ -49,6 +49,15 @@ public enum CollectionPanelType {
         return memberPanel;
     }
 
+    public boolean isGovernance() {
+        return this == ROLE_MEMBER_GOVERNANCE
+                || this == SERVICE_MEMBER_GOVERNANCE
+                || this == POLICY_MEMBER_GOVERNANCE
+                || this == ARCHETYPE_MEMBER_GOVERNANCE
+                || this == ORG_MEMBER_GOVERNANCE
+                || this == CARDS_GOVERNANCE;
+    }
+
     public static CollectionPanelType getPanelType(String panelInstance) {
         if (panelInstance == null) {
             return null;
