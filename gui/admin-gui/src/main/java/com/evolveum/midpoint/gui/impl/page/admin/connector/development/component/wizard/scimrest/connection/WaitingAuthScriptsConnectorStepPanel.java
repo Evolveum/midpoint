@@ -98,7 +98,7 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
 
     @Override
     public boolean isCompleted() {
-        if (ConnectorDevelopmentWizardUtil.existReferenceValue(
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(
                 getDetailsModel().getObjectWrapper(),
                 ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTHENTICATION_SCRIPT))) {
             return true;
