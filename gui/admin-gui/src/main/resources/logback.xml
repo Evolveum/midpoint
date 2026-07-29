@@ -7,7 +7,10 @@
 
 <configuration>
 
-    <condition class="com.evolveum.midpoint.common.AlternativeLoggingPropertyCondition"/>
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>midpoint.logging.alt.enabled</key>
+        <value>true</value>
+    </condition>
     <if>
         <then>
             <include resource="logback-alt.xml"/>
@@ -67,7 +70,10 @@
         <appender-ref ref="MIDPOINT_PROFILE_LOG"/>
     </logger>
 
-    <condition class="com.evolveum.midpoint.common.AlternativeLoggingPropertyCondition"/>
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>midpoint.logging.alt.enabled</key>
+        <value>true</value>
+    </condition>
     <if>
         <then>
             <root level="WARN">
