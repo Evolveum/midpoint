@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -126,6 +127,13 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(CollectionPanelType.CARDS_GOVERNANCE);
         return ctx;
+    }
+
+    @Override
+    protected boolean isGovernancePanel() {
+        // this panel is always a governance one, regardless of the (possibly custom
+        // or missing) identifier of its panel configuration
+        return true;
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {
@@ -375,7 +383,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                 GovernanceCardsPanel.this.getPageBase().showMainPopup(choose, target);
             }
         });
-        newMemberTile.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().size() > 0));
+        newMemberTile.add(new VisibleBehaviour(() ->
+                isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)
+                        && getMemberTileTable().getTilesModel().getObject().size() > 0));
 
         Label label =  new Label(
                 ID_NEW_MEMBER_TILE_LABEL,
@@ -388,7 +398,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private WebMarkupContainer createRelationTilesForAssignMembers() {
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATIONS_CONTAINER);
-        relationContainer.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().isEmpty()));
+        relationContainer.add(new VisibleBehaviour(() ->
+                isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)
+                        && getMemberTileTable().getTilesModel().getObject().isEmpty()));
 
         ListView<QName> relations = new ListView<>(ID_RELATIONS, getSupportedRelations()) {
             @Override
@@ -476,6 +488,14 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             @Override
             protected String getCssForUnassignButton() {
                 return getCssForCardUnassignButton(super.getCssForUnassignButton());
+            }
+
+            @Override
+            protected Component createUnassignButton(String id) {
+                Component unassign = super.createUnassignButton(id);
+                unassign.add(new VisibleBehaviour(() ->
+                        isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)));
+                return unassign;
             }
         };
     }
