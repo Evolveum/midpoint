@@ -44,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  * See {@code docs/tasks/focus-policies-in-activities.adoc}.
  *
- * Fixed context (not axes here): single-node, single-thread, FULL execution mode.
+ * Fixed context (no axes here): single-node, single-thread, FULL execution mode.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -53,11 +53,9 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
     private static final File TEST_DIR = new File("src/test/resources/tasks/policy-contribution");
     private static final File COMMON_DIR = new File("src/test/resources/tasks/common");
 
-    private static final String RESOURCE_OID = "c1a70000-0000-0000-0000-000000000001";
-
     /** Shared dummy source resource, initialized per class (see {@code tasks/common}). */
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(
-            COMMON_DIR, "resource-dummy-source.xml", RESOURCE_OID, "fpc-source",
+            COMMON_DIR, "resource-dummy-source.xml", "c1a70000-0000-0000-0000-000000000001", "fpc-source",
             DummyResourceContoller::populateWithDefaultSchema);
 
     private static final TestObject<TaskType> TASK_FPC_IMPORT =
@@ -176,7 +174,7 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
 
         // delete shadows for the resource (so re-import creates fresh, unmatched accounts)
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class,
-                prismContext.queryFor(ShadowType.class).item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OID).build(),
+                prismContext.queryFor(ShadowType.class).item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_SOURCE.oid).build(),
                 null, result);
         for (PrismObject<ShadowType> shadow : shadows) {
             repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);

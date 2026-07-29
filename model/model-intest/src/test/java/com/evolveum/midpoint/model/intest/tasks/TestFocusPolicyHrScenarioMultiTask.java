@@ -16,11 +16,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySubtaskDefin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
- * Multi-node flavor of {@link TestFocusPolicyHrScenario}: the composition is distributed into subtasks (each
- * reconciliation child runs in its own subtask) and each child additionally uses worker threads. The simulate
- * reconciliation therefore suspends in its own subtask, so the initial-suspend assertion is overridden.
+ * "Multi-task" flavor of {@link TestFocusPolicyHrScenario}: the composition is distributed into subtasks (each
+ * reconciliation child runs in its own subtask) and each child additionally uses worker threads; note that NOT workers
+ * (in that case we'd call this class "multi-node").
+ *
+ * The simulate reconciliation therefore suspends in its own subtask, so the initial-suspend assertion is overridden.
  */
-public class TestFocusPolicyHrScenarioMultiNode extends TestFocusPolicyHrScenario {
+public class TestFocusPolicyHrScenarioMultiTask extends TestFocusPolicyHrScenario {
 
     private static final int THREADS = 3;
 
@@ -36,9 +38,14 @@ public class TestFocusPolicyHrScenarioMultiNode extends TestFocusPolicyHrScenari
     }
 
     @Override
-    protected void assertSimulateSuspended(String taskOid, String counterId) throws Exception {
+    protected int threads() {
+        return THREADS;
+    }
+
+    @Override
+    protected int assertSimulateSuspended(String taskOid, String counterId, int min) throws Exception {
         // @formatter:off
-        assertTaskTree(taskOid, "after run")
+        return assertTaskTree(taskOid, "after run")
                 .display()
                 .assertSuspended()
                 .subtask("simulate", false)
@@ -47,7 +54,8 @@ public class TestFocusPolicyHrScenarioMultiNode extends TestFocusPolicyHrScenari
                     .assertSuspended()
                     .activityState(SIMULATE)
                         .previewModePolicyRulesCounters()
-                            .assertCounterMinMax(counterId, DELETE_THRESHOLD, DELETE_THRESHOLD + 3);
+                            .assertCounterMinMax(counterId, min, min + threads() - 1)
+                            .getCounterValue(counterId);
         // @formatter:on
     }
 
