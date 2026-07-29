@@ -2551,10 +2551,6 @@ Simply speaking, item path is a sequence of item names (QNames) and optionally c
 In MEL, item path is part of some data structures (e.g. item delta), or it can be used as a parameter to some functions (e.g. `object.findItem()`).
 Item path can be constructed using the `itemPath()` function:
 
-// TODO: itemPath() constructor: NOT IMPLEMENTED YET
-
-WARNING: NOT IMPLEMENTED YET
-
 [source,mel]
 ----
 itemPath(['activation', 'effectiveStatus'])
@@ -2569,10 +2565,6 @@ path.segments
 
 Item path can be used to access specific part of midPoint objects using the `findItem()` function:
 
-// TODO: NOT IMPLEMENTED YET
-
-WARNING: NOT IMPLEMENTED YET
-
 [source,mel]
 ----
 object.findItem[itemPath(['activation', 'effectiveStatus'])]
@@ -2586,10 +2578,6 @@ itemPath(['activation', 'effectiveStatus']) == 'activation/effectiveStatus'    /
 ----
 
 === itemPath
-
-// TODO: NOT IMPLEMENTED YET
-
-WARNING: NOT IMPLEMENTED YET
 
 `itemPath(list(any))` -> itemPath +
 `itemPath(string)` -> itemPath

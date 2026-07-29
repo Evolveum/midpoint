@@ -541,8 +541,15 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
             String fileName, VariablesMap variables)
             throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
             SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
-        List<PrismPropertyValue<String>> expressionResultList = evaluateExpression(fileName, DOMUtil.XSD_STRING, true, variables);
-        PrismPropertyValue<String> expressionResult = asScalar(expressionResultList, getTestName());
+        return evaluateScalarExpression(fileName, variables, DOMUtil.XSD_STRING);
+    }
+
+    protected <T> T evaluateScalarExpression(
+            String fileName, VariablesMap variables, QName expectedType)
+            throws ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            SchemaException, IOException, ExpressionEvaluationException, ConfigurationException {
+        List<PrismPropertyValue<T>> expressionResultList = evaluateExpression(fileName, expectedType, true, variables);
+        PrismPropertyValue<T> expressionResult = asScalar(expressionResultList, getTestName());
         displayValue("Expression result", expressionResult);
         if (expressionResult == null) {
             return null;
