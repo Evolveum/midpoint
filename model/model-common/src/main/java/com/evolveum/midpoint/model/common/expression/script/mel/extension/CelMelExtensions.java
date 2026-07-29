@@ -716,6 +716,20 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE)
             ),
 
+            // itemPath(qname)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-qname",
+                                    "Creates a item path value from QName.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("mel-itemPath-qname", QNameCelValue.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
             // itemPath(list)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -1906,8 +1920,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return ItemPathCelValue.create(ItemPath.fromString(stringPath));
     }
 
+    private static ItemPathCelValue itemPath(QNameCelValue qPath) {
+        return ItemPathCelValue.create(ItemPath.create(qPath.getJavaValue()));
+    }
+
     private static ItemPathCelValue itemPath(List<Object> segments) {
-        return ItemPathCelValue.create(ItemPath.create(segments));
+        return ItemPathCelValue.create(ItemPath.create(CelTypeMapper.toCelValues(segments)));
     }
 
     private static Object prefix(Object s, Object prefix) {

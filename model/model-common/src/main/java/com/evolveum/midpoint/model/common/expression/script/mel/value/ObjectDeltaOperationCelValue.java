@@ -6,8 +6,14 @@
 package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.MelComparable;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelException;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -81,6 +87,18 @@ public class ObjectDeltaOperationCelValue extends AbstractStructuredCelValue<Obj
     @Override
     public ObjectDeltaOperationType getJavaValue() {
         return objectDeltaOperation;
+    }
+
+    public <T extends Objectable> ObjectDelta<T> getObjectDelta() {
+        ObjectDeltaType objectDeltaType = objectDeltaOperation.getObjectDelta();
+        if (objectDeltaType == null) {
+            return null;
+        }
+        try {
+            return DeltaConvertor.createObjectDelta(objectDeltaType, PrismContext.get());
+        } catch (SchemaException e) {
+            throw new MelException(e.getMessage(), e);
+        }
     }
 
     @Override
