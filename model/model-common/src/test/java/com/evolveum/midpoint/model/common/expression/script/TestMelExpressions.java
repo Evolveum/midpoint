@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.common.Clock;
@@ -3745,19 +3747,58 @@ public class TestMelExpressions extends AbstractScriptTest {
                 OperationResultStatusType.SUCCESS.value());
     }
 
+    @Test
+    public void testAuditDeltaDeltaHasDeltaForPathFalse() throws Exception {
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of(
+                    "expression-audit-delta-delta-hasdeltafor.xml",
+                    "expression-audit-delta-hasdeltafor.xml"
+                ),
+                createAuditVariables(this::produceModifyDelta,
+                        "path", PATH_ASSIGNMENT_3_TARGET_REF, ItemPathType.COMPLEX_TYPE),
+                false);
+    }
+
+    @Test
+    public void testAuditDeltaDeltaHasDeltaForStringTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of(
+                        "expression-audit-delta-delta-hasdeltafor.xml",
+                        "expression-audit-delta-hasdeltafor.xml"
+                ),
+                createAuditVariables(this::produceModifyDelta,
+                        "path", UserType.F_TITLE.getLocalPart(), PrimitiveType.STRING),
+                true);
+    }
+
+    @Test
+    public void testAuditDeltaDeltaHasDeltaForQNameTrue() throws Exception {
+        evaluateAndAssertBooleanScalarExpressions(
+                List.of(
+                        "expression-audit-delta-delta-hasdeltafor.xml",
+                        "expression-audit-delta-hasdeltafor.xml"
+                ),
+                createAuditVariables(this::produceModifyDelta,
+                        "path", UserType.F_TITLE, PrimitiveType.QNAME),
+                true);
+    }
+
+
     @FunctionalInterface
     public interface DeltaProducer<O extends ObjectType> {
         ObjectDelta<O> produce(PrismObject<? extends ObjectType> object) throws SchemaException;
     }
 
-    protected <O extends ObjectType> VariablesMap createAuditVariables(DeltaProducer<O> deltaProducer) throws SchemaException, IOException {
+    protected <O extends ObjectType> VariablesMap createAuditVariables(DeltaProducer<O> deltaProducer, Object... additionalVariables) throws SchemaException, IOException {
         PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
         PrismContainerValue<AuditEventRecordType> auditEventRecord = createAuditEventRecord(userJack);
         fillDeltaOperation(auditEventRecord, (PrismObject<O>)userJack, deltaProducer);
-        return createVariables(
+        ArrayList<Object> vars = new ArrayList<>(Arrays.asList(additionalVariables));
+        vars.addAll(List.of(
                 ExpressionConstants.VAR_OBJECT, auditEventRecord, auditEventRecord.getDefinition(),
                 ExpressionConstants.VAR_ACTOR, userJack, userJack.getDefinition()
-        );
+        ));
+        return createVariables(vars.toArray());
     }
 
     private <O extends ObjectType> void fillDeltaOperation(

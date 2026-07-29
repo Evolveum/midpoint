@@ -429,6 +429,10 @@ public class CelTypeMapper implements CelTypeProvider  {
         return javaValue;
     }
 
+    public static List<Object> toCelValues(List<?> celValues) {
+        return celValues.stream().map(CelTypeMapper::toCelValue).toList();
+    }
+
     public static boolean isCelNull(@Nullable Object object) {
         return object == null || object instanceof NullValue
                 || object instanceof com.google.protobuf.NullValue
