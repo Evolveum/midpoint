@@ -2545,8 +2545,6 @@ When namespace is not specified, qname with unspecified (null) namespace is crea
 
 == Item Path
 
-// TODO
-
 xref:/midpoint/reference/concepts/item-path/[Item path] is a simple syntax for addressing properties, containers, references, attributes and similar items in data structures used in midPoint.
 Simply speaking, item path is a sequence of item names (QNames) and optionally container identifiers.
 
@@ -2726,7 +2724,7 @@ focus.find('activation/administrativeStatus')
 MEL brings support for several midPoint-specific data structures, such as assignments and deltas.
 These data structures are represented by structured objects in MEL.
 
-TODO: containers and objects: ref to midPoint schema
+MidPoint objects and containers defined by xref:/midpoint/reference/schema/[midPoint schema] are represented in MEL in the same form as they are defined in the schema (see xref:/midpoint/reference/schema/schemadoc/[SchemaDoc]).
 
 === Object Reference
 
@@ -3004,7 +3002,176 @@ The item delta can contain either added/deleted values, or replaced values, but 
 
 === Audit Event Record
 
-TODO `AuditEventRecordType`
+_Audit event record_ data structure describes a single event (usually data change) in a format suitable for xref:/midpoint/reference/security/audit/[auditing].
+
+It roughly corresponds to `AuditEventRecordType` from MidPoint schema, which is a representation of one record in midPoint xref:/midpoint/reference/security/audit/[audit log].
+
+.Audit Event Record Structure Fields
+|===
+| Field | Type | Description
+
+| `timestamp`
+| timestamp
+| Timestamp when the event occurred.
+
+| `eventIdentifier`
+| string
+| Unique identification of the event.
+Every record should have unique event identifier.
+
+| `sessionIdentifier`
+| string
+| Identification of (interactive) session in which the event occurred.
+
+| `requestIdentifier`
+| string
+| Identifier of a request (operation). All the records that are result of
+processing of a single request should have the same identifier.
+
+| `taskIdentifier`
+| string
+| Task identifier. Operations are executed in a context of a task.
+This field is an identifier of the task.
+
+| `resourceName`
+| polystring
+| Name of the resource that is related to this operation - typically
+if the object being processed is a shadow of a resource object.
+Useful for informational purposes, typically in audit records.
+
+| `taskOID`
+| string
+| Task OID. This field is used for records that are executed in the context
+of a persistent task.
+
+| `hostIdentifier`
+| string
+| Identifier of a host that generated the audit record.
+This is the host name corresponding to a network interface that accepted the HTTP request.
+
+| `nodeIdentifier`
+| string
+| Identifier of a node in a midPoint cluster that generated the audit record.
+
+| `remoteHostAddress`
+| string
+| Network address of a remote host that originated the request causing this event.
+
+| `initiatorRef`
+| Object Reference
+| Initiator is the (legal) entity on behalf of whom is the action executed.
+It is the subject of the operation. Authorizations of the initiator are
+used to evaluate access to the operation.
+
+| `attorneyRef`
+| Object Reference
+| Attorney is the (physical) user who have executed the action.
+This is the user that have logged-in to the user interface. This is the
+user that pressed the button to execute the action.
+
+| `effectivePrincipalRef`
+| Object Reference
+| The effective principal that was used to execute the action.
+This is the subject whose authorizations were evaluated to determine whether the action is allowed or not.
+
+| `effectivePrivilegesModification`
+| structured(EffectivePrivilegesModificationType)
+| resent if the effective privileges used to execute the operation differ or may differ from the regular
+(declared) privileges of the "effectivePrincipalRef".
+This is usually the case e.g. when "runPrivileged" mechanism is used for expression evaluation.
+
+| `targetRef`
+| Object Reference
+| Object that is a primary target of an operation (if applicable).
+In case that operation targets more than one object, the "primary" or the most important is recorded (e.g. the user object)
+
+| `targetOwnerRef`
+| Object Reference
+| Owner of the object that is a target of this operation (if applicable).
+E.g. a owner of a task that is being stopped, owner of an account that is being modified, etc.
+
+| `eventType`
+| string
+| TODO
+
+* `getObject`: todo
+* `addObject`: todo
+* `modifyObject`: todo
+* `deleteObject`: todo
+* `executeChangesRaw`: todo
+* `synchronization`: todo
+* `createSession`: todo
+* `terminateSession`: todo
+* `workItem`: todo
+* `workflowProcessInstance`: todo
+* `reconciliation`: todo
+* `suspendTask`: todo
+* `resumeTask`: todo
+* `runTaskImmediately`: todo
+* `discoverObject`: todo
+* `informationDisclosure`: todo
+
+
+| `delta`
+| Object Delta Operation
+| Data structure describing the changes (delta) and results of application of the changes (operation result).
+
+| `channel`
+| string
+| The channel that was the source of the operation that the record describes.
+
+| `outcome`
+| string
+| Type of result of the operation:
+
+* `success`: Operation was executed successfully.
+* `warning`: Operation was executed successfully, but there were warnings.
+* `partial_error`: Operation was executed with partial error. Some parts of the operation were successful, other parts have failed.
+* `fatal_error`: Operation was not executed, it ended up in an error that prohibited completion of operation.
+* `handled_error`: Execution of an operation caused an error, which was successfully handled. Effects of the operation are equivalent to successful operation.
+* `not_applicable`: Result does not make any sense for the operation. E.g. unsupported operation which was skipped.
+* `in_progress`: The operation is still being executed.
+* `unknown`: No information about operation is present, which usually means programming bug.
+
+| `result`
+| string
+| Result of the operation (e.g. number of entries, returned object, business result of workflow task or process instance - approved, rejected).
+
+| `parameter`
+| string
+| Parameter string, the usage depends on the event type.
+E.g. username for session start/stop, etc.
+
+| `message`
+| string
+| Optional human readable message, if necessary, e.g. an error message.
+
+| `changedItem`
+| list(itemPath)
+| Represents searchable list of changed item paths related to this audit record.
+
+| `property`
+| list(AuditEventRecordPropertyType)
+| Represents additional information for which specific property is not available.
+
+| `reference`
+| list(AuditEventRecordReferenceType)
+| Represents additional reference information for which specific property is not available.
+
+| `resourceOid`
+| string
+| Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+
+| `customColumnProperty`
+| list(AuditEventRecordCustomColumnPropertyType)
+| Field of custom column for audit record table.
+
+|===
+
+// ==== Object Delta Functions
+
+// TODO: later, when implemented
+
 
 === Object Delta Operation
 
@@ -3078,7 +3245,7 @@ It roughly corresponds to `OperationResultType` from MidPoint schema.
 
 | `status`
 | string
-| Type of change described by the delta:
+| Type of result of the operation:
 
 * `success`: Operation was executed successfully.
 * `warning`: Operation was executed successfully, but there were warnings.
