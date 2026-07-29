@@ -92,7 +92,7 @@ public class MappingUtil {
         }
     }
 
-    private static @Nullable MappingWorkDefinitionType findMappingWorkDefinition(
+    private static @Nullable InboundMappingsSimulationWorkDefType findMappingWorkDefinition(
             @NotNull PageBase page, @NotNull SimulationResultType result) {
 
         PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
@@ -101,7 +101,7 @@ public class MappingUtil {
             return null;
         }
 
-        MappingWorkDefinitionType mappingWorkDefinition = findMappingWorkDefinition(task);
+        InboundMappingsSimulationWorkDefType mappingWorkDefinition = findMappingWorkDefinition(task);
         if (mappingWorkDefinition == null) {
             LOGGER.debug("No mapping work definition found in task {}", task.getOid());
             return null;
@@ -109,14 +109,14 @@ public class MappingUtil {
         return mappingWorkDefinition;
     }
 
-    private static @Nullable MappingWorkDefinitionType findMappingWorkDefinition(
+    private static @Nullable InboundMappingsSimulationWorkDefType findMappingWorkDefinition(
             @NotNull PrismObject<TaskType> task) {
 
-        PrismContainer<MappingWorkDefinitionType> container =
+        PrismContainer<InboundMappingsSimulationWorkDefType> container =
                 task.findContainer(ItemPath.create(
                         TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_MAPPINGS
+                        WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION
                 ));
         return container != null ? container.getRealValue() : null;
     }
@@ -130,14 +130,14 @@ public class MappingUtil {
     }
 
     //Support only one mapping
-    private static @Nullable InlineMappingDefinitionType findInlineMappingDefinition(@NotNull MappingWorkDefinitionType mappingWorkDefinition) {
-        List<InlineMappingDefinitionType> inlineMappings = mappingWorkDefinition.getInlineMappings();
+    private static @Nullable InlineInboundMappingsDefinitionType findInlineMappingDefinition(@NotNull InboundMappingsSimulationWorkDefType mappingWorkDefinition) {
+        List<InlineInboundMappingsDefinitionType> inlineMappings = mappingWorkDefinition.getInlineMappings();
         if (inlineMappings == null || inlineMappings.isEmpty()) {
             LOGGER.debug("No inline mapping definitions found in mapping work definition");
             return null;
         }
 
-        InlineMappingDefinitionType inlineMappingDefinitionType = inlineMappings.get(0);
+        InlineInboundMappingsDefinitionType inlineMappingDefinitionType = inlineMappings.get(0);
         if (inlineMappingDefinitionType == null) {
             LOGGER.debug("No inline mapping definition found in mapping work definition");
             return null;
@@ -145,7 +145,7 @@ public class MappingUtil {
         return inlineMappingDefinitionType;
     }
 
-    private static @Nullable MappingInfo extractMappingInfo(@NotNull InlineMappingDefinitionType inlineMappingDefinition) {
+    private static @Nullable MappingInfo extractMappingInfo(@NotNull InlineInboundMappingsDefinitionType inlineMappingDefinition) {
         ItemPathType ref = inlineMappingDefinition.getRef();
 
         List<InboundMappingType> inbound = inlineMappingDefinition.getInbound();
@@ -159,27 +159,16 @@ public class MappingUtil {
             );
         }
 
-        List<OutboundMappingType> outbound = inlineMappingDefinition.getOutbound();
-        if (outbound != null && !outbound.isEmpty()) {
-            OutboundMappingType outboundMappingType = outbound.get(0);
-            return new MappingInfo(
-                    outboundMappingType.getName(),
-                    ref != null ? ref.getItemPath().toString() : null,
-                    outboundMappingType.getTarget() != null ? outboundMappingType.getTarget().getPath().toString() : null,
-                    outboundMappingType.getStrength()
-            );
-        }
-        LOGGER.debug("No inbound or outbound mapping definitions found in inline mapping definition");
         return null;
     }
 
     public static @Nullable MappingInfo extractMappingInfo(PageBase page, SimulationResultType result) {
-        MappingWorkDefinitionType mappingWorkDefinition = findMappingWorkDefinition(page, result);
+        InboundMappingsSimulationWorkDefType mappingWorkDefinition = findMappingWorkDefinition(page, result);
         if (mappingWorkDefinition == null) {
             return null;
         }
 
-        InlineMappingDefinitionType inlineMappingDefinition = findInlineMappingDefinition(mappingWorkDefinition);
+        InlineInboundMappingsDefinitionType inlineMappingDefinition = findInlineMappingDefinition(mappingWorkDefinition);
         if (inlineMappingDefinition == null) {
             return null;
         }

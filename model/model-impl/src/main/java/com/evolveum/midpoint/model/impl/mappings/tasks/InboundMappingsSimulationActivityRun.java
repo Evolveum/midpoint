@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.mappings.tasks;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.model.impl.simulation.MappingSimulationData;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -49,17 +51,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowType, MappingWorkDefinition, MappingSimulationActivityHandler,
-                AbstractActivityWorkStateType> {
+/**
+ * Activity run for the simulation of inbound mappings.
+ *
+ * NOTE: In order to simulate the mappings against correct shadow - owner pairs, this activity runs a correlation
+ * process for each of the processed items.
+ *
+ * If the processed shadow does not have any owner, nor correlated focus, we simulate the mappings with an empty
+ * "fake" focus object.
+ */
+public class InboundMappingsSimulationActivityRun extends
+        SearchBasedActivityRun<ShadowType, MappingSimulationWorkDef<InboundMappingType>,
+                InboundMappingsSimulationActivityHandler, AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappingSimulationActivityRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(InboundMappingsSimulationActivityRun.class);
 
     private final ProvisioningService provisioningService;
     private final CorrelationService correlationService;
     private final SystemObjectCache systemObjectCache;
     private final PrismContext prismContext;
 
-    private final List<InlineMappingDefinitionType> mappings;
+    private final Map<ItemPath, List<InboundMappingType>> mappings;
     private final boolean excludeExistingMappings;
     private final String resourceOid;
     private final ResourceObjectTypeIdentification objectTypeId;
@@ -68,8 +80,9 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
     private ResourceObjectTypeDefinition objectTypeDefinition;
     private @Nullable SystemConfigurationType systemConfigurationBean;
 
-    public MappingSimulationActivityRun(
-            ActivityRunInstantiationContext<MappingWorkDefinition, MappingSimulationActivityHandler> ctx,
+    public InboundMappingsSimulationActivityRun(
+            ActivityRunInstantiationContext<MappingSimulationWorkDef<InboundMappingType>,
+                    InboundMappingsSimulationActivityHandler> ctx,
             ProvisioningService provisioningService, CorrelationService correlationService,
             SystemObjectCache systemObjectCache, PrismContext prismContext) {
         super(ctx, "Mapping Simulation");
@@ -78,7 +91,7 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
         this.systemObjectCache = systemObjectCache;
         this.prismContext = prismContext;
 
-        final MappingWorkDefinition workDefinition = ctx.getActivity().getWorkDefinition();
+        final MappingSimulationWorkDef<InboundMappingType> workDefinition = ctx.getActivity().getWorkDefinition();
         this.mappings = workDefinition.provideMappings();
         this.excludeExistingMappings = workDefinition.excludeExistingMappings();
         this.resourceOid = workDefinition.resourceOid();
@@ -203,19 +216,29 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
                 .toList();
     }
 
+    /**
+     * Adjust the object type definition to contain only relevant mappings.
+     *
+     * The inbound mappings evaluation which is utilized by this simulation does not allow to explicitly define the
+     * mappings which should be evaluated. Instead, it takes those from the object type definition. Thus, we need to
+     * make sure that the definitions will only contain mappings which we want to simulate. This method does that.
+     *
+     * @param resource The resource which contains the object type definition.
+     * @param objectTypeId The ID of the object type definition.
+     * @return The object type definition with just those mappings, which we want to simulate.
+     */
     private @NotNull ResourceObjectTypeDefinition adjustObjectTypeDefinition(@NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeIdentification objectTypeId)
-            throws ConfigurationException, SchemaException {
+            @NotNull ResourceObjectTypeIdentification objectTypeId) throws ConfigurationException, SchemaException {
 
         final ResourceType resourceWithWantedMappings = excludeExistingMappingsIfNeeded(resource);
         final ResourceSchemaExtender resourceSchemaExtender = ResourceSchemaFactory.schemaExtenderFor(
                 resourceWithWantedMappings);
 
-        for (InlineMappingDefinitionType mapping : this.mappings) {
-            final ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType().ref(
-                    mapping.getRef());
+        for (Map.Entry<ItemPath, List<InboundMappingType>> entry : this.mappings.entrySet()) {
+            final ItemPath path = entry.getKey();
+            final ResourceAttributeDefinitionType attrDef = new ResourceAttributeDefinitionType().ref(path.toBean());
             // Without the cloning it throws exception about resetting parent of a value.
-            CloneUtil.cloneMembersToCollection(attrDef.getInbound(), mapping.getInbound());
+            CloneUtil.cloneMembersToCollection(attrDef.getInbound(), entry.getValue());
             resourceSchemaExtender.addAttributeDefinition(objectTypeId, attrDef);
         }
         return resourceSchemaExtender.extend().getObjectTypeDefinitionRequired(objectTypeId);

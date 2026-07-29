@@ -6,6 +6,24 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.component;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
+import static java.util.Objects.requireNonNull;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -41,27 +59,7 @@ import com.evolveum.midpoint.web.component.dialog.steper.step.SmartTaskProgressS
 import com.evolveum.midpoint.web.component.dialog.steper.step.ThreadSetupPopupStepPanel;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
-
-import static java.util.Objects.requireNonNull;
 
 public class SimulationActionFlow<T> implements Serializable {
 
@@ -116,24 +114,19 @@ public class SimulationActionFlow<T> implements Serializable {
         }
 
         T config = context.workDefinitionConfiguration();
-        if (config instanceof InlineMappingDefinitionType mappingDefinition) {
+        if (config instanceof InlineInboundMappingsDefinitionType mappingDefinition) {
             return hasProposedMapping(mappingDefinition);
         }
 
         return false;
     }
 
-    private boolean hasProposedMapping(@NotNull InlineMappingDefinitionType mappingDefinition) {
+    private boolean hasProposedMapping(@NotNull InlineInboundMappingsDefinitionType mappingDefinition) {
         List<InboundMappingType> inbound = mappingDefinition.getInbound() != null
                 ? mappingDefinition.getInbound()
                 : Collections.emptyList();
 
-        List<OutboundMappingType> outbound = mappingDefinition.getOutbound() != null
-                ? mappingDefinition.getOutbound()
-                : Collections.emptyList();
-
-        return inbound.stream().anyMatch(this::isProposed)
-                || outbound.stream().anyMatch(this::isProposed);
+        return inbound.stream().anyMatch(this::isProposed);
     }
 
     private boolean isProposed(MappingType mapping) {
