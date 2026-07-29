@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OperationResultCollapsedItem extends CollapsedItem {
+public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithParentSteps> {
 
     private Map<String, OperationResultWrapper> results = new HashMap<>();
 

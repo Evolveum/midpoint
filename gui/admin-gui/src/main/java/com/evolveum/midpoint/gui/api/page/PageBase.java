@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcess;
@@ -34,7 +35,6 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -62,7 +62,6 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
-import com.evolveum.midpoint.gui.impl.component.menu.RightSidebarHelpPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
@@ -92,7 +91,6 @@ import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -507,43 +505,76 @@ public abstract class PageBase extends PageAdminLTE {
 
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
 
-        add(new RightSidebarHelpPanel(ID_RIGHT_SIDEBAR));
+        DrawerInfoPanel<HelpDrawerInfoModel> rightSidebar =
+                new DrawerInfoPanel<>(
+                        ID_RIGHT_SIDEBAR,
+                        new HelpDrawerInfoModel()){
+                    @Override
+                    protected String getMinWidth() {
+                        return "30vw";
+                    }
+                };
+
+        rightSidebar.setOutputMarkupId(true);
+        rightSidebar.setOutputMarkupPlaceholderTag(true);
+
+        add(rightSidebar);
 
         initTimerBehavior();
     }
 
-    private RightSidebarHelpPanel getRightSidebarPanel() {
-        return (RightSidebarHelpPanel) get(ID_RIGHT_SIDEBAR);
+    private DrawerInfoPanel<?> getRightSidebarPanel() {
+        return (DrawerInfoPanel<?>) get(ID_RIGHT_SIDEBAR);
     }
 
-    public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> helpContent) {
-        showRightSidebarHelp(target, createStringResource("PageBase.rightSidebarDefaultHelpTitle"), helpContent);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public <M extends DrawerDescriptor<M>> void replaceRightSidebarModel(
+            @NotNull M drawerModel,
+            @NotNull AjaxRequestTarget target) {
+
+        DrawerInfoPanel panel = getRightSidebarPanel();
+        panel.replaceModel(drawerModel, target);
     }
 
-    public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> titleModel, IModel<String> helpContent) {
-        replaceRightSidebarContent(titleModel, id -> {
-            MultiLineLabel label = new MultiLineLabel(id, helpContent);
-            // todo make sure this is ok
-            label.setEscapeModelStrings(false);
-
-            return label;
-        });
-        openRightSidebar(target);
+    public void hideDrawer(AjaxRequestTarget target) {
+        DrawerInfoPanel<?> panel = getRightSidebarPanel();
+        panel.getDrawerModel().clearSelection();
+        target.add(panel);
     }
 
-    public void replaceRightSidebarContent(IModel<String> titleModel, SerializableFunction<String, Component> componentProvider) {
-        RightSidebarHelpPanel panel = getRightSidebarPanel();
-        panel.replaceContent(titleModel, componentProvider);
+    public <M extends DrawerDescriptor<M>> void showRightSidebar(
+            @NotNull M drawerModel,
+            @NotNull AjaxRequestTarget target) {
+
+        replaceRightSidebarModel(drawerModel, target);
     }
 
-    public void openRightSidebar(AjaxRequestTarget target) {
-        RightSidebarHelpPanel panel = getRightSidebarPanel();
-        panel.open(target);
+    public void showRightSidebarHelp(
+            AjaxRequestTarget target,
+            IModel<String> helpContent) {
+
+        showRightSidebarHelp(
+                target,
+                createStringResource("PageBase.rightSidebarDefaultHelpTitle"),
+                helpContent);
     }
 
-    public void closeRightSidebar(AjaxRequestTarget target) {
-        RightSidebarHelpPanel panel = getRightSidebarPanel();
-        panel.close(target);
+    public void showRightSidebarHelp(
+            AjaxRequestTarget target,
+            IModel<String> titleModel,
+            IModel<String> helpContent) {
+
+        HelpDrawerInfoModel drawerModel =
+                new HelpDrawerInfoModel(titleModel, helpContent);
+
+        showRightSidebar(drawerModel, target);
+    }
+
+    public void closeRightSidebar(@NotNull AjaxRequestTarget target) {
+        DrawerInfoPanel<?> panel = getRightSidebarPanel();
+
+        panel.getDrawerModel().clearSelection();
+        target.add(panel);
     }
 
     private void updateAccessibilityLogo(String logoId) {

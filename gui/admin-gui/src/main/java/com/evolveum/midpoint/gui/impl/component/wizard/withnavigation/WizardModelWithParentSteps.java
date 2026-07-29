@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerDescriptor;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class WizardModelWithParentSteps extends WizardModel {
+public abstract class WizardModelWithParentSteps extends WizardModel implements DrawerDescriptor {
 
     private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
 

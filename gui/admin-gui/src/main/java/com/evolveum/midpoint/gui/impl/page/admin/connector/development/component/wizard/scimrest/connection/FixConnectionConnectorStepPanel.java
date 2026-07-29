@@ -27,7 +27,9 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -69,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.fixConnection", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> {
+public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardListener {
 
     public static final String PANEL_TYPE = "cdw-fix-connection";
 
@@ -100,7 +102,16 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     public void init(WizardModel wizard) {
         super.init(wizard);
+        wizard.addWizardListener(this);
         initModels();
+    }
+
+    @Override
+    public void onStepChanged(WizardStep newStep) {
+        if (!this.equals(newStep)) {
+            return;
+        }
+        authScriptModel.reset();
     }
 
     private void initModels() {
@@ -400,8 +411,8 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
 
     private boolean saveAuthScript(AjaxRequestTarget target) {
         ConnDevArtifactType artifact = authScriptModel.getObject();
-        if (artifact == null || StringUtils.isBlank(artifact.getContent())) {
-            return true;
+        if (artifact == null) {
+            artifact = ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION.create();
         }
         Task task = getPageBase().createSimpleTask("saveAuthScript");
         try {

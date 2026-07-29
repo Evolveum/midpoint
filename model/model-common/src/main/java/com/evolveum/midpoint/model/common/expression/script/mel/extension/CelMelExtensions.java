@@ -10,6 +10,7 @@ import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -701,7 +702,50 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::isPresent,
                             NullabilityProperties.NULLABLE)),
 
-            // join(list)
+            // itemPath(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-string",
+                                    "Creates a item path value from string representation.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-itemPath-string", String.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+            // itemPath(qname)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-qname",
+                                    "Creates a item path value from QName.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("mel-itemPath-qname", QNameCelValue.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+            // itemPath(list)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-list",
+                                    "Creates a item path value from string representation.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    ListType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from("mel-itemPath-list", List.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+
+                // join(list)
             // join(list, separator)
             // list.join()
             // list.join(separator)
@@ -1870,6 +1914,18 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             NullabilityProperties.NULLABLE_NULL))
 
         );
+    }
+
+    private static ItemPathCelValue itemPath(String stringPath) {
+        return ItemPathCelValue.create(ItemPath.fromString(stringPath));
+    }
+
+    private static ItemPathCelValue itemPath(QNameCelValue qPath) {
+        return ItemPathCelValue.create(ItemPath.create(qPath.getJavaValue()));
+    }
+
+    private static ItemPathCelValue itemPath(List<Object> segments) {
+        return ItemPathCelValue.create(ItemPath.create(CelTypeMapper.toCelValues(segments)));
     }
 
     private static Object prefix(Object s, Object prefix) {
