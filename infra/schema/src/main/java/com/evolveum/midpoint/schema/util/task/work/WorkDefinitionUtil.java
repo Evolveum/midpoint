@@ -72,7 +72,8 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getAssociationsSuggestion());
         addTypedParameters(values, definitions.getSchemaMatchPreload());
         addTypedParameters(values, definitions.getCorrelation());
-        addTypedParameters(values, definitions.getMappings());
+        addTypedParameters(values, definitions.getInboundMappingsSimulation());
+        addTypedParameters(values, definitions.getOutboundMappingsSimulation());
         addTypedParameters(values, definitions.getObjectClassStatisticsComputation());
         addTypedParameters(values, definitions.getObjectTypeStatisticsComputation());
         addTypedParameters(values, definitions.getFocusObjectStatisticsComputation());

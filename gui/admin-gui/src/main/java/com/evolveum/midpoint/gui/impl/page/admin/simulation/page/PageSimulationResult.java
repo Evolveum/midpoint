@@ -179,7 +179,7 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
                 task.findContainer(ItemPath.create(
                         TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_MAPPINGS));
+                        WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION));
 
         return container != null && !container.isEmpty();
     }
