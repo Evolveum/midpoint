@@ -2866,7 +2866,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 new AssignmentType().order(5))
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid delta path assignment/5."
+                .hasMessage("Invalid delta path assignment[5]."
                         + " Delta path must always point to item, not to value");
     }
 
@@ -2879,7 +2879,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                                 new AssignmentType().order(5))
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid delta path assignment/5."
+                .hasMessage("Invalid delta path assignment[5]."
                         + " Delta path must always point to item, not to value");
     }
 
@@ -2891,7 +2891,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                         .item(UserType.F_ASSIGNMENT, 5).delete()
                         .asObjectDelta(user1Oid))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid delta path assignment/5."
+                .hasMessage("Invalid delta path assignment[5]."
                         + " Delta path must always point to item, not to value");
     }
 
