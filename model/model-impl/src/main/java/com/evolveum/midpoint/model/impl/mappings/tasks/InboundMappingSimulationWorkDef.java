@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.mappings.tasks;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -22,24 +25,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Work definition for mapping simulation activity.
+ * Work definition for inbound mappings simulation activity.
  */
-public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
-    private static final Trace LOGGER = TraceManager.getTrace(MappingSimulationActivityRun.class);
+class InboundMappingSimulationWorkDef extends ResourceSetTaskWorkDefinition
+        implements MappingSimulationWorkDef<InboundMappingType> {
+    private static final Trace LOGGER = TraceManager.getTrace(InboundMappingSimulationWorkDef.class);
 
-    private final MappingWorkDefinitionType workDefinition;
+    private final InboundMappingsSimulationWorkDefType workDefinition;
 
-    public MappingWorkDefinition(WorkDefinitionFactory.WorkDefinitionInfo info) {
+    InboundMappingSimulationWorkDef(WorkDefinitionFactory.WorkDefinitionInfo info,
+            InboundMappingsSimulationWorkDefType workDef) {
         super(info);
 
-        final var workDefBean = info.getBean();
-        if (!(workDefBean instanceof MappingWorkDefinitionType workDef)) {
-            throw new IllegalArgumentException("Expected " + MappingWorkDefinitionType.class.getSimpleName()
-                    + " but got: " + workDefBean.getClass());
-        }
-
         if (workDef.getResourceObjects().getObjectclass() != null) {
-            throw new IllegalArgumentException("Filtering by object class is not supported by this activity.");
+            throw new IllegalArgumentException("Filtering by object class is not supported.");
         }
 
         final String intent = workDef.getResourceObjects().getIntent();
@@ -52,20 +51,27 @@ public class MappingWorkDefinition extends ResourceSetTaskWorkDefinition {
         this.workDefinition = workDef;
     }
 
-    public List<InlineMappingDefinitionType> provideMappings() {
-        return this.workDefinition.getInlineMappings();
+    @Override
+    public Map<ItemPath, List<InboundMappingType>> provideMappings() {
+        return this.workDefinition.getInlineMappings().stream()
+                .filter(item -> !item.getInbound().isEmpty())
+                .collect(Collectors.toMap(
+                        item -> item.getRef().getItemPath(), InlineInboundMappingsDefinitionType::getInbound));
     }
 
+    @Override
     public boolean excludeExistingMappings() {
         return !Boolean.TRUE.equals(this.workDefinition.isIncludeExistingMappings());
     }
 
+    @Override
     public String resourceOid() {
-        return this.workDefinition.getResourceObjects().getResourceRef().getOid();
+        return getResourceObjectSetSpecification().getResourceRef().getOid();
     }
 
+    @Override
     public ResourceObjectTypeIdentification resolveObjectTypeId() {
-        final ResourceObjectSetType resourceObjects = workDefinition.getResourceObjects();
+        final ResourceObjectSetType resourceObjects = getResourceObjectSetSpecification();
         return ResourceObjectTypeIdentification.of(
                 ShadowUtil.resolveDefault(resourceObjects.getKind()),
                 ShadowUtil.resolveDefault(resourceObjects.getIntent()));
