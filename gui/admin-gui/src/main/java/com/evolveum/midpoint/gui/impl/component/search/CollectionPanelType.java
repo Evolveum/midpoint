@@ -52,7 +52,6 @@ public enum CollectionPanelType {
     public boolean isGovernance() {
         return this == ROLE_MEMBER_GOVERNANCE
                 || this == SERVICE_MEMBER_GOVERNANCE
-                || this == POLICY_MEMBER_GOVERNANCE
                 || this == ARCHETYPE_MEMBER_GOVERNANCE
                 || this == ORG_MEMBER_GOVERNANCE
                 || this == CARDS_GOVERNANCE;
