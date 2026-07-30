@@ -289,6 +289,7 @@
         <qrcodegen.version>1.8.0</qrcodegen.version>
         <java-otp.version>1.7.1</java-otp.version>
         <byte-buddy.version>1.17.8</byte-buddy.version>
+        <antlr.version>4.13.2</antlr.version>
     </properties>
 
     <dependencyManagement>
@@ -1593,7 +1594,7 @@
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
-                <version>4.13.2</version>
+                <version>${antlr.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.ttddyy</groupId>
