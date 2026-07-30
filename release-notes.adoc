@@ -77,6 +77,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Implemented new configuration options for processing uploaded images.
 * bug:MID-8802[] Added displayName and preferredName to UserType.
 * Upgraded AdminLTE to 4.1. See bug:MID-11538[].
+* Added support for "null" expression. See bug:MID-11867[].
 
 === Major Bugfixes
 

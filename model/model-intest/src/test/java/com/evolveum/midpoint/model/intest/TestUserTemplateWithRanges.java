@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * User template with "mapping range" features.
@@ -54,6 +55,11 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
     private static final String SUBTYPE_MID_5953 = "mid-5953"; // range application in inactive (condition false->false) mappings
 
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_MID_11867 = TestObject.file(
+            TEST_DIR, "user-template-mid-11867.xml", "82ccd985-52a3-4bd0-b4f4-d067b2ef38c8");
+
+    private static final String SUBTYPE_MID_11867 = "mid-11867"; // "null" expression evaluator with "all" range
+
     private static final String BLOODY_ASSIGNMENT_SUBTYPE = "bloody";
 
     private static final XMLGregorianCalendar GUYBRUSH_FUNERAL_DATE_123456_CAL =
@@ -77,9 +83,11 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLOODY_NOSE_FILE, initResult);
         repoAdd(USER_TEMPLATE_MID_5953, initResult);
+        repoAdd(USER_TEMPLATE_MID_11867, initResult);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5953, USER_TEMPLATE_MID_5953.oid, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_11867, USER_TEMPLATE_MID_11867.oid, initResult);
 
         changeEmployeeIdRaw("EM100", initTask, initResult);
     }
@@ -616,6 +624,35 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
         assertUserAfter(user.getOid())
                 .assertAssignments(0);
+    }
+
+    /**
+     * MID-11867: "null" expression evaluator combined with the "all" range clears all values of the target item.
+     */
+    @Test
+    public void test360NullMappingWithRangeAll() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test360")
+                .subtype(SUBTYPE_MID_11867)
+                .organization(PolyStringType.fromOrig("OrgA"))
+                .organization(PolyStringType.fromOrig("OrgB"));
+        repoAddObject(user.asPrismObject(), result);
+
+        assertUserBefore(user.getOid())
+                .assertOrganizations("OrgA", "OrgB");
+
+        when();
+        recomputeUser(user.getOid(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(user.getOid())
+                .assertOrganizations();
     }
 
     private void changeManagerRaw(String id, Task task, OperationResult result) throws CommonException {
