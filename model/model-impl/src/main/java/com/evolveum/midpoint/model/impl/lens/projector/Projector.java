@@ -83,7 +83,7 @@ public class Projector {
             @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, RestrictedObjectException {
         context.setStartedIfNotYet(); // This is for cases where we start the projector "from the outside" (e.g. in tests)
         context.normalize();
         context.resetProjectionWave();
@@ -97,7 +97,7 @@ public class Projector {
             OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, RestrictedObjectException {
         assert context.getProjectionWave() == context.getExecutionWave();
         assert context.isFresh();
         projectInternal(context, activityDescription, false, task, parentResult);
@@ -111,7 +111,7 @@ public class Projector {
             @NotNull OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, RestrictedObjectException {
 
         context.checkAbortRequested();
         context.inspectProjectorStart();
@@ -220,7 +220,7 @@ public class Projector {
 
         } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
                 ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException |
-                ConflictDetectedException e) {
+                ConflictDetectedException | RestrictedObjectException e) {
             recordException(e, now, result);
             throw e;
         } catch (RuntimeException e) {
@@ -379,8 +379,9 @@ public class Projector {
             // This should not occur when projecting a projection! (The exception is related to modification of a focal object.)
             throw new SystemException("Unexpected conflict detected exception: " + e.getMessage(), e);
 
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException
-                | PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
+                SecurityViolationException | PolicyViolationException | ExpressionEvaluationException |
+                ObjectAlreadyExistsException | RuntimeException | Error | RestrictedObjectException e) {
 
             projectionContext.setBroken();
             ModelImplUtils.handleConnectorErrorCriticality(projectionContext.getResource(), e, result);

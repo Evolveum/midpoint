@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -190,7 +191,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 }
             }
             onTemplateSelectionPerformed(obj, target);
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+        } catch (CommonException ex) {
             getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }

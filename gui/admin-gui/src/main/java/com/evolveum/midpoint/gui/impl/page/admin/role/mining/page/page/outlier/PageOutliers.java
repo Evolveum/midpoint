@@ -174,8 +174,7 @@ public class PageOutliers extends PageAdmin {
                         PrismObject<UserType> userObject;
                         try {
                             userObject = modelService.getObject(UserType.class, userOid, options, task, result);
-                        } catch (ExpressionEvaluationException | SecurityViolationException | CommunicationException |
-                                ConfigurationException | ObjectNotFoundException | SchemaException e) {
+                        } catch (CommonException e) {
                             throw new SystemException("Cannot create wrapper for " + userOid, e);
 
                         }

@@ -235,7 +235,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     //region Mappings evaluation
     public NextRecompute evaluate(Task task, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         if (constructionEvaluation != null) {
             throw new IllegalStateException("Attempting to evaluate an EvaluatedResourceObjectConstruction twice: " + this);
         }
@@ -342,7 +342,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      */
     ObjectDeltaObject<ShadowType> loadFullShadow(String reason, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         construction.loadFullShadow(projectionContext, reason, task, result);
         return projectionContext.getObjectDeltaObject();
     }

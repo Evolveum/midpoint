@@ -22,5 +22,5 @@ interface ShadowsWithOwnersProvider {
             OperationContext.StateHolder state,
             OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException;
 }

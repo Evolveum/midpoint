@@ -95,7 +95,7 @@ public class ResourceObjectConverter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         return ResourceObjectFetchOperation.execute(
                 ctx, primaryIdentification, fetchAssociations, shadowItemsToReturn, result);
     }
@@ -110,7 +110,7 @@ public class ResourceObjectConverter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         return ResourceObjectCompleter.completeResourceObject(ctx, rawObject, fetchAssociations, result);
     }
@@ -134,7 +134,7 @@ public class ResourceObjectConverter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
+            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, RestrictedObjectException {
         if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return ResourceObjectFetchOperation.execute(
                     ctx, primary, fetchAssociations,
@@ -155,7 +155,7 @@ public class ResourceObjectConverter {
             @Nullable FetchErrorReportingMethodType errorReportingMethod,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         return ResourceObjectSearchOperation.execute(
                 ctx, resultHandler, query, fetchAssociations, errorReportingMethod, result);
     }
@@ -165,7 +165,7 @@ public class ResourceObjectConverter {
             @Nullable ObjectQuery query,
             @NotNull OperationResult parentResult)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         return new ResourceObjectCountOperation(ctx, query)
                 .execute(parentResult);
     }
@@ -178,7 +178,8 @@ public class ResourceObjectConverter {
             boolean skipExplicitUniquenessCheck,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
         try {
@@ -206,7 +207,7 @@ public class ResourceObjectConverter {
             ConnectorOperationOptions connOptions,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE_RESOURCE_OBJECT);
         try {
@@ -225,7 +226,7 @@ public class ResourceObjectConverter {
             ResourceObjectOperationResult aResult,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, result);
         if (readConnector != connectorUsedForOperation) {
             // Writing by different connector that we are going to use for reading: danger of quantum effects
@@ -247,7 +248,7 @@ public class ResourceObjectConverter {
             XMLGregorianCalendar now,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.subresult(OPERATION_MODIFY_RESOURCE_OBJECT)
                 .addParam("repoShadow", repoShadow.getBean())
@@ -269,7 +270,7 @@ public class ResourceObjectConverter {
     public LiveSyncToken fetchCurrentToken(
             ProvisioningContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         LOGGER.trace("Fetching current sync token for {}", ctx);
@@ -298,7 +299,7 @@ public class ResourceObjectConverter {
             ResourceObjectLiveSyncChangeListener outerListener,
             OperationResult gResult)
             throws SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
+            SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException, RestrictedObjectException {
 
         LOGGER.trace("START fetch changes from {}, objectClass: {}", initialToken, ctx.getObjectClassDefinition());
         ShadowItemsToReturn attrsToReturn;
@@ -381,7 +382,8 @@ public class ResourceObjectConverter {
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectAsyncChangeListener outerListener,
             @NotNull OperationResult parentResult) throws SchemaException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         LOGGER.trace("Listening for async updates in {}", ctx);
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
@@ -399,7 +401,7 @@ public class ResourceObjectConverter {
     public @Nullable OperationResultStatus refreshOperationStatus(
             ProvisioningContext ctx, RepoShadow shadow, String asyncRef, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_OPERATION_STATUS);
         try {

@@ -1075,13 +1075,13 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         }
     }
 
-    private void singleRandomModify(int iteration, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void singleRandomModify(int iteration, Task task, OperationResult result) throws CommonException {
         int i = rnd.nextInt(ants.size());
         CarefulAnt<ResourceType> ant = ants.get(i);
         singleModify(ant, iteration, task, result);
     }
 
-    private void singleModify(CarefulAnt<ResourceType> ant, int iteration, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void singleModify(CarefulAnt<ResourceType> ant, int iteration, Task task, OperationResult result) throws CommonException {
 
         given();
         ItemDelta<?, ?> itemDelta = ant.createDelta(iteration);

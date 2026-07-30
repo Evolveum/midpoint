@@ -175,3 +175,8 @@ li.nav-item > a.active > div > span.badge {
 .progress {
   height:.75rem;
 }
+
+//override for midPoint logo in the header
+.brand-link.logo:focus-visible {
+  outline-offset: -3px;
+}

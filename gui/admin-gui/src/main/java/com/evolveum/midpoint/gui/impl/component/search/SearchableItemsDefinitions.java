@@ -407,8 +407,7 @@ public class SearchableItemsDefinitions {
                 return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
                         empty, AuthorizationPhaseType.REQUEST, task, result);
             }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | SecurityViolationException ex) {
+        } catch (CommonException ex) {
             result.recordFatalError(ex.getMessage());
             throw new SystemException(ex);
         }

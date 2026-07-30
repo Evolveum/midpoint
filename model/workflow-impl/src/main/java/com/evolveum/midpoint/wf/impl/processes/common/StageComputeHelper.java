@@ -165,7 +165,7 @@ public class StageComputeHelper {
     }
 
     public String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, VariablesMap variables,
-            Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         List<String> outcomes = evaluationHelper.evaluateExpression(
                 stageDef.getAutomaticallyCompleted(), variables,
                 "automatic completion expression", String.class,

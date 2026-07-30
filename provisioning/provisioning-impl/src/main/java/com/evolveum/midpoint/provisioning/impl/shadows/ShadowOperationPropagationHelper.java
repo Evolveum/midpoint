@@ -52,7 +52,7 @@ class ShadowOperationPropagationHelper {
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
-            SecurityViolationException, PolicyViolationException, EncryptionException {
+            SecurityViolationException, PolicyViolationException, EncryptionException, RestrictedObjectException {
 
         Duration operationGroupingInterval = getGroupingInterval(resource);
         if (operationGroupingInterval == null) {

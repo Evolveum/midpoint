@@ -1460,7 +1460,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     public static <T extends ObjectType> LensContext<T> fromLensContextBean(LensContextType bean, Task task,
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "fromLensContextType");
 
@@ -1541,7 +1541,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private void fixProvisioningTypeInDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, RestrictedObjectException {
         if (delta != null && delta.getObjectTypeClass() != null
                 && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
                 || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {

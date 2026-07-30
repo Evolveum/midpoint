@@ -27,6 +27,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.RestrictedObjectException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -188,7 +189,7 @@ public abstract class SearchBasedActivityRun<
      */
     private @NotNull SearchSpecification<C> createSearchSpecificationFromObjectSetSpec(
             @NotNull ObjectSetSpecification objectSetSpecification, OperationResult result)
-            throws SchemaException, ActivityRunException, ConfigurationException {
+            throws SchemaException, ActivityRunException, ConfigurationException, RestrictedObjectException {
         if (objectSetSpecification instanceof ResourceObjectSetSpecificationImpl resourceObjectSetSpecification) {
             //noinspection unchecked
             return (SearchSpecification<C>)

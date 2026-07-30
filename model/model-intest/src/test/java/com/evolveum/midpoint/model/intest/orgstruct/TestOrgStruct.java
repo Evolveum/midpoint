@@ -814,10 +814,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         executeDeleteJack();
     }
 
-    protected void executeDeleteJack()
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+    protected void executeDeleteJack() throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -1681,7 +1678,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
     }
 
-    private void assertManager(String userOid, String managerOid, String orgType, boolean allowSelf, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertManager(String userOid, String managerOid, String orgType, boolean allowSelf, OperationResult result) throws CommonException {
         PrismObject<UserType> user = getUser(userOid);
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(getTestTask(), result);
         Collection<UserType> managers = libraryMidpointFunctions.getManagers(user.asObjectable(), orgType, allowSelf);

@@ -340,7 +340,7 @@ public class TestUniversity extends AbstractStoryTest {
         assertNoGroupMembers(vc);
     }
 
-    private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws CommonException, DirectoryException {
         PrismObject<OrgType> org = getOrg(orgName);
         PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, "functional");
         assertAssignedRole(org, ROLE_META_ORG_OID);

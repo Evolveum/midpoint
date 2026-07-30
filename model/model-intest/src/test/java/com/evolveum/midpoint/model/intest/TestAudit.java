@@ -497,8 +497,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     private String assertObjectAuditRecords(String oid, int expectedNumberOfRecords)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws CommonException {
         List<AuditEventRecordType> auditRecords = getObjectAuditRecords(oid);
         display("Object records", auditRecords);
         assertEquals("Wrong number of jack audit records", expectedNumberOfRecords, auditRecords.size());
@@ -507,8 +506,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
     private void assertRecordsFromPrevious(
             XMLGregorianCalendar from, XMLGregorianCalendar to, int expectedNumberOfRecords)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         List<AuditEventRecordType> auditRecords = getAuditRecordsFromTo(from, to, task, result);
@@ -517,8 +515,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     }
 
     private void assertRecordsFromInitial(XMLGregorianCalendar to, int expectedNumberOfRecords)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         List<AuditEventRecordType> auditRecordsSincePrevious =

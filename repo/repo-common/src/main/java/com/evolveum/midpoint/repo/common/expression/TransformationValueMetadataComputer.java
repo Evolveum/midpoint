@@ -28,7 +28,7 @@ public interface TransformationValueMetadataComputer {
 
     @NotNull ValueMetadataType compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     boolean supportsProvenance() throws SchemaException, ConfigurationException;
 

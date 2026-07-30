@@ -150,8 +150,8 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
         BOOMED_FLAG.assertNotSet();
     }
 
-    void assertAliceBaseline()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException, ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+    void assertAliceBaseline() throws CommonException, ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
         assertUserAfter(USER_ALICE.oid)
                 .display()
                 .assertAssignments(2)
@@ -200,7 +200,8 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
     }
 
     private void runNegativeAssignAliceTest(TestObject<RoleType> role, String expectedMessage)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException, IOException, PolicyViolationException, ObjectAlreadyExistsException, ConflictException, SchemaViolationException, InterruptedException, SecurityViolationException {
+            throws CommonException, ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException,
+            ConnectException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         resetBoomed();
@@ -241,7 +242,7 @@ public class TestExpressionProfileSemiSafe extends AbstractEmptyModelIntegration
     }
 
     private <O extends ObjectType> void runNegativeAddObjectTest(TestObject<O> testObject, String expectedMessage)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException, IOException, PolicyViolationException, ObjectAlreadyExistsException, ConflictException, SchemaViolationException, InterruptedException, SecurityViolationException {
+            throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         resetBoomed();

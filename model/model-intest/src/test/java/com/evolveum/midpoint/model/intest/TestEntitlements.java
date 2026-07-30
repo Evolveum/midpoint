@@ -2518,14 +2518,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(ROLE_CHESS.getNameOrig(), userName, RESOURCE_DUMMY_WILD_ASSOCIATIONS.getDummyResource());
     }
 
-    private void assertJackClean() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, InterruptedException {
+    private void assertJackClean() throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
 
-    private void assertJackJustAccount() throws SchemaViolationException, ConflictException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ConnectException, FileNotFoundException, InterruptedException {
+    private void assertJackJustAccount() throws CommonException, ConflictException, SchemaViolationException, InterruptedException,
+            FileNotFoundException, ConnectException {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
@@ -2584,9 +2585,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private PrismObject<UserType> dumpUserAndAccounts(String userOid)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    private PrismObject<UserType> dumpUserAndAccounts(String userOid) throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> user = getUser(userOid);
@@ -2594,9 +2593,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         return user;
     }
 
-    private void dumpUserAndAccounts(PrismObject<UserType> user, Task task, OperationResult result)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    private void dumpUserAndAccounts(PrismObject<UserType> user, Task task, OperationResult result) throws CommonException {
         display("user", user);
         for (ObjectReferenceType linkRef : user.asObjectable().getLinkRef()) {
             PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, linkRef.getOid(), null, task, result);

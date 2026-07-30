@@ -84,7 +84,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
             LensContext<AH> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
-            ConflictDetectedException {
+            ConflictDetectedException, RestrictedObjectException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
         PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();

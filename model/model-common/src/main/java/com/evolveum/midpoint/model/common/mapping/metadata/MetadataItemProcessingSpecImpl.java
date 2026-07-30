@@ -77,7 +77,7 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
 
     public void populateFromObjectTemplate(ObjectReferenceType templateRef, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         if (templateRef == null) {
             LOGGER.trace("No object template, no metadata handling");
         } else {
@@ -90,7 +90,7 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
     private void addFromObjectTemplate(ObjectTemplateType rootTemplate, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         LOGGER.trace("Obtaining metadata handling instructions from {}", rootTemplate);
 

@@ -545,8 +545,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException |
-                ConfigurationException | CommunicationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();

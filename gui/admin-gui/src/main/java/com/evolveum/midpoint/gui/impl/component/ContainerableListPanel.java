@@ -1405,9 +1405,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
             compiledView.setCollection(collectionSpec);
             return compiledView;
-        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException |
-                ExpressionEvaluationException
-                | ObjectNotFoundException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't compile collection " + collectionSpec, e);
             return null;
         }

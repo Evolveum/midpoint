@@ -99,7 +99,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList, boolean preAuthorized)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         Set<String> rv = new HashSet<>();
         for (ObjectReferenceType ref : userRefList) {
             UserType user = getObject(UserType.class, ref.getOid(), preAuthorized);
@@ -211,7 +212,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             return getObject(OrgType.class, oid, preAuthorized);
         } catch (ObjectNotFoundException|SecurityViolationException e) {
             return null;
-        } catch (CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+        } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | RestrictedObjectException e) {
             throw new SystemException("Couldn't get org: " + e.getMessage(), e);        // really shouldn't occur
         }
     }
@@ -301,7 +302,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                 LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
                 // but do not rethrow, just skip this
                 continue;
-            } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+            } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | RestrictedObjectException e) {
                 // This should not happen.
                 throw new SystemException(e.getMessage(), e);
             }
@@ -359,8 +360,9 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         return false;
     }
 
-    public <T extends ObjectType> T getObject(Class<T> type, String oid, boolean preAuthorized) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <T extends ObjectType> T getObject(Class<T> type, String oid, boolean preAuthorized)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         PrismObject<T> prismObject;
         if (preAuthorized) {
             prismObject = repositoryService.getObject(type, oid, null, midpointFunctions.getCurrentResult());
@@ -379,7 +381,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             try {
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
                 return modelService.searchObjects(clazz, query, options, midpointFunctions.getCurrentTask(), result);
-            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                    RestrictedObjectException e) {
                 throw new SystemException("Couldn't search objects: " + e.getMessage(), e);
             }
         }

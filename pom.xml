@@ -240,13 +240,18 @@
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.0</log4j2.version>
         <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+        <!-- remove whole dependency tools.jackson.core:jackson-databind dependency
+            definition when its above 3.1.4 (around L296) -->
+        <jackson-databind.version>3.1.5</jackson-databind.version>
         <logback.version>1.5.38</logback.version>
+        <postgresql.version>42.7.12</postgresql.version>
+        <netty.version>4.2.16.Final</netty.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
         <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
-        <wicket.version>10.9.1</wicket.version>
+        <wicket.version>10.10.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
@@ -288,6 +293,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+                <scope>compile</scope>
+            </dependency>
 
             <!-- Prism libraries with versions pre-declared (no need to use versions in other POMs) -->
             <dependency>
@@ -2151,9 +2162,9 @@
                     <version>3.6.0</version>
                 </plugin>
                 <plugin>
-                    <groupId>pl.project13.maven</groupId>
-                    <artifactId>git-commit-id-plugin</artifactId>
-                    <version>4.9.10</version>
+                    <groupId>io.github.git-commit-id </groupId>
+                    <artifactId>git-commit-id-maven-plugin</artifactId>
+                    <version>10.0.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.owasp</groupId>

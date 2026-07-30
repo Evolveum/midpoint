@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCo
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -469,9 +471,7 @@ public class ProvisioningObjectsUtil {
 
             pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
 
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource administrative operational state", e);
             parentResult.recordFatalError(pageBase.createStringResource("pageResource.setMaintenance.failed").getString(), e);
         }
@@ -504,7 +504,7 @@ public class ProvisioningObjectsUtil {
             pageBase.getModelService().testResource(resource.getOid(), task, result); // try to load fresh schema
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
+                | PolicyViolationException | SecurityViolationException | RestrictedObjectException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.refreshResourceSchema.fatalError").getString(), e);
         }
@@ -518,7 +518,7 @@ public class ProvisioningObjectsUtil {
     public static void partialConfigurationTest(@NotNull PrismObject<ResourceType> resource, PageBase pageBase, Task task, OperationResult result) {
         try {
             pageBase.getModelService().testResourcePartialConfiguration(resource, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ConfigurationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error partial configuration of resource", e);
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.partialConfigurationTest.fatalError").getString(), e);
         }
@@ -534,6 +534,13 @@ public class ProvisioningObjectsUtil {
             LoggingUtils.logUnexpectedException(LOGGER, "Error getting native capabilities", e);
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.gettingNativeCapabilities.fatalError").getString(), e);
             return new CapabilityCollectionType();
+        } catch (RestrictedObjectException e) {
+            //TODO change URL for IC and add location
+            String message = "Connector is not allowed. Download the latest allowed connectors list from '%s', import it into midPoint, and try again."
+                    .formatted("integrationCatalog.evolveum.com");
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.restrictedObjectException.fatalError").getString(), e);
+            throw new RestartResponseException(pageBase.getApplication().getHomePage());
         }
     }
 

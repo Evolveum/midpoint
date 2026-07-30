@@ -304,13 +304,13 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
     private ObjectFilter evaluateExpressionAssertFilter(String filename,
             String input, Class<? extends ObjectFilter> expectedType,
-            Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, IOException, PrismQuerySerialization.NotSupportedException {
+            Task task, OperationResult result) throws CommonException, IOException, PrismQuerySerialization.NotSupportedException {
         return evaluateExpressionAssertFilter(filename, input, expectedType, task, result, null);
     }
 
     private ObjectFilter evaluateExpressionAssertFilter(String filename,
             String input, Class<? extends ObjectFilter> expectedType,
-            Task task, OperationResult result, String axiomExpected) throws SchemaException, IOException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, PrismQuerySerialization.NotSupportedException {
+            Task task, OperationResult result, String axiomExpected) throws CommonException, IOException, PrismQuerySerialization.NotSupportedException {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         SearchFilterType filterType = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
@@ -344,7 +344,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
         return evaluatedFilter;
     }
 
-    private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PrismQuerySerialization.NotSupportedException {
+    private void executeFilter(ObjectFilter filter, int expectedNumberOfResults, Task task, OperationResult result) throws CommonException {
         ObjectQuery query = prismContext.queryFactory().createQuery(filter);
 
         SearchResultList<PrismObject<UserType>> objects = modelService.searchObjects(UserType.class, query, null, task, result);

@@ -55,7 +55,7 @@ public class CorrelationCaseEngineExtension extends DefaultEngineExtension {
             @NotNull CaseEngineOperation operation,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException {
+            CommunicationException, SecurityViolationException, ConfigurationException, RestrictedObjectException {
         correlationService.prepareCorrelationCaseClosing(
                 operation.getCurrentCase(),
                 operation.getTask(),

@@ -392,7 +392,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
         logger.debug("Starting evaluation of expression: {}", expression);
@@ -403,7 +403,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, QName outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
@@ -413,14 +413,14 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, PrimitiveType outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
     }
 
     protected <V extends PrismValue, D extends ItemDefinition<?>> void evaluateExpressionRestricted(
             ExpressionType expressionType, D outputDefinition,
             ExpressionEvaluationContext expressionContext, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         Expression<V, D> expression;
         try {
 
@@ -449,7 +449,7 @@ public class TestExpression extends AbstractModelCommonTest {
     protected <T> void evaluatePropertyExpressionRestricted(ExpressionType expressionType,
             QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, RestrictedObjectException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext, result);
@@ -459,7 +459,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, PrimitiveType outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, RestrictedObjectException {
         evaluatePropertyExpressionRestricted(expressionType, outputType.getQname(), expressionContext, result);
     }
 

@@ -2522,6 +2522,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="exportConnector" type="tns:ConnDevExportConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -11171,6 +11179,66 @@
 
     <xsd:complexType name="ConnDevDownloadConnectorResultType">
         <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Export connector -->
+
+    <xsd:complexType name="ConnDevExportConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="version" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Explicit version for the exported connector bundle. If not specified,
+                                the current connector version is used as-is.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevExportConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevExportConnectorResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevExportConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="fileName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the exported connector bundle jar file, relative to the midPoint home
+                        "export" directory on the node identified by nodeRef.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nodeRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node where the exported connector bundle jar file is stored.
+                    </xsd:documentation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>NodeType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="version" type="xsd:string"/>
             <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
                     <xas:appinfo>

@@ -300,7 +300,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         try {
             return evaluateExpression(expressionType, VariablesMap, false, shortDesc, ctx, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -314,7 +314,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         try {
             return evaluateExpression(expressionType, VariablesMap, true, shortDesc, ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -327,7 +327,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
             ExpressionType expressionType, VariablesMap variablesMap,
             boolean multipleValues, String shortDesc, SendingContext ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         if (expressionType == null) {
             return multipleValues ? emptyList() : singletonList(null);
         }

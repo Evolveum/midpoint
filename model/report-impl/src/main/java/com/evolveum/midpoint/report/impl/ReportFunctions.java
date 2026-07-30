@@ -322,7 +322,7 @@ public class ReportFunctions {
 
     public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
+            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException, RestrictedObjectException {
         return searchApprovalWorkItems(0, null);
     }
 
@@ -332,7 +332,7 @@ public class ReportFunctions {
      */
     public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
+            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException, RestrictedObjectException {
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(AbstractWorkItemType.class).build();
@@ -368,7 +368,7 @@ public class ReportFunctions {
      */
     public Collection<PrismObject<AccessCertificationDefinitionForReportType>> searchCertificationDefinitions()
             throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();

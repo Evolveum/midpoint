@@ -2033,6 +2033,7 @@ div > a > div > i.fas {
 *:focus-visible,
 a:focus-visible,
 .btn:focus-visible,
+a.nav-link:focus-visible,
 button:focus-visible,
 div[role="button"]:focus-visible,
 .nav-header[role="separator"]:focus-visible,
@@ -2574,6 +2575,10 @@ footer.app-footer a {
 }
 
 //Wizard stepper button navigation scaling
+.popup-stepper-close {
+  font-size: .75rem;
+}
+
 .wizard-actions-strip {
   .wizard-actions-container {
     flex-shrink: 1;

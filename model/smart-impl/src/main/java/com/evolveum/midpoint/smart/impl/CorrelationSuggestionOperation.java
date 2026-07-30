@@ -57,7 +57,7 @@ class CorrelationSuggestionOperation {
             SchemaMatchResultType schemaMatch,
             @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
         var existingCorrelationPaths = collectExistingCorrelationPaths();
         var excludedPaths = mergeExcludedPaths(existingCorrelationPaths, targetPathsToIgnore);

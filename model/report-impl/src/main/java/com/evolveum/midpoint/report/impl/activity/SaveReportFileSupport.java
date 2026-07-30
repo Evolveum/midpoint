@@ -275,7 +275,7 @@ class SaveReportFileSupport {
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), timestampSuffix, randomStringSuffix);
 
@@ -303,7 +303,7 @@ class SaveReportFileSupport {
 
     private String putReportDataObjectToRepository(ReportDataType reportDataObject, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException {
         ModelService model = reportService.getModelService();
         String oid = reportDataObject.getOid();
         if (oid != null) {
@@ -339,7 +339,7 @@ class SaveReportFileSupport {
      */
     private ObjectReferenceType getCurrentNodeRef(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         String nodeId = runningTask.getNode();
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(
                 NodeType.class,

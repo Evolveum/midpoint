@@ -78,7 +78,8 @@ public class Clockwork {
 
     public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
 
         OperationResultBuilder builder = parentResult.subresult(OP_RUN);
         boolean tracingRequested = startTracingIfRequested(context, task, builder, parentResult);
@@ -124,7 +125,7 @@ public class Clockwork {
     <F extends ObjectType> @NotNull HookOperationMode runWithConflictDetection(
             LensContext<F> context, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(OP_RUN_WITH_CONFLICT_DETECTION);
         try {
@@ -292,7 +293,7 @@ public class Clockwork {
     private <F extends ObjectType> boolean startTracingIfRequested(
             LensContext<F> context, Task task, OperationResultBuilder builder, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
         if (tracingProfile != null) {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_TRACE.getUrl(), task, parentResult);
@@ -380,7 +381,7 @@ public class Clockwork {
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConflictDetectedException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
-            ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException, RestrictedObjectException {
         return new ClockworkClick<>(context, beans, task)
                 .click(result);
     }

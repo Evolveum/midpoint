@@ -49,7 +49,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         return new ResourceObjectFetchOperation(ctx, identification, fetchAssociations)
                 .execute(shadowItemsToReturn, result);
     }
@@ -66,7 +66,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         return new ResourceObjectFetchOperation(ctx, identification, false)
                 .executeRaw(null, result);
     }
@@ -74,7 +74,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
     private @NotNull CompleteResourceObject execute(
             ShadowItemsToReturn shadowItemsToReturn, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         var resourceObject = executeRaw(shadowItemsToReturn, result);
         return complete(resourceObject, result);
     }
@@ -87,7 +87,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         checkFullReadCapability();
 

@@ -1478,6 +1478,35 @@ CREATE INDEX m_user_displayNameOrig_idx ON m_user (displayNameOrig);
 CREATE INDEX m_user_preferredNameOrig_idx ON m_user (preferredNameOrig);
 $aa$);
 
+-- @change: Adds `ALLOWED_CONNECTORS_LIST` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `ALLOWED_CONNECTORS_LIST`.
+call apply_change(59, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ALLOWED_CONNECTORS_LIST' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
+$aa$);
+
+-- @change: Adds allowed connectors list object table and triggers.
+-- @since: 4.11
+-- @affects: table m_allowed_connectors_list | New table | Stores allowed connectors list objects.
+-- @affects: trigger m_allowed_connectors_list_oid_insert_tr | New trigger | Reserves OID rows for inserted allowed connectors list objects.
+-- @affects: trigger m_allowed_connectors_list_update_tr | New trigger | Maintains update metadata for allowed connectors list objects.
+-- @affects: trigger m_allowed_connectors_list_oid_delete_tr | New trigger | Releases OID rows for deleted allowed connectors list objects.
+call apply_change(60, $aa$
+CREATE TABLE m_allowed_connectors_list (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ALLOWED_CONNECTORS_LIST') STORED
+        CHECK (objectType = 'ALLOWED_CONNECTORS_LIST')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_allowed_connectors_list_oid_insert_tr BEFORE INSERT ON m_allowed_connectors_list
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_allowed_connectors_list_update_tr BEFORE UPDATE ON m_allowed_connectors_list
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_allowed_connectors_list_oid_delete_tr AFTER DELETE ON m_allowed_connectors_list
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

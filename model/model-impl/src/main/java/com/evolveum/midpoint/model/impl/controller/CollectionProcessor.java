@@ -84,7 +84,7 @@ public class CollectionProcessor {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         ObjectCollectionType collectionBean = collection.asObjectable();
         CompiledObjectCollectionView collectionView;
         if (preCompiledCollectionView != null) {
@@ -123,7 +123,7 @@ public class CollectionProcessor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException, ExpressionEvaluationException {
+            ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException {
         AssignmentPathImpl assignmentPath = new AssignmentPathImpl();
         AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
                 .source(collection.asObjectable())
@@ -230,7 +230,7 @@ public class CollectionProcessor {
         return true;
     }
 
-    <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException {
         CollectionStats stats = new CollectionStats();
         Class<O> targetClass = collectionView.getTargetClass();
         stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
@@ -238,7 +238,10 @@ public class CollectionProcessor {
         return stats;
     }
 
-    private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException,
+            CommunicationException, ExpressionEvaluationException, RestrictedObjectException {
         if (filter == null) {
             return null;
         }
@@ -248,7 +251,7 @@ public class CollectionProcessor {
     CompiledObjectCollectionView compileObjectCollectionView(CollectionRefSpecificationType collectionRef,
             Class<? extends Containerable> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
         CompiledObjectCollectionView view = new CompiledObjectCollectionView();
         compileObjectCollectionView(view, collectionRef, targetTypeClass, task, result);
         return view;
@@ -261,7 +264,7 @@ public class CollectionProcessor {
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
 
         ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
 
@@ -364,7 +367,9 @@ public class CollectionProcessor {
             String collectionRefOid,
             CollectionRefSpecificationType baseCollectionRef,
             Task task,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         RefFilter archetypeFilter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRefOid)
                 .buildFilter();
@@ -426,7 +431,7 @@ public class CollectionProcessor {
     private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType baseCollectionSpec,
             @NotNull ObjectCollectionType objectCollectionType, Class<?> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
 
         if (targetTypeClass == null) {
             if (existingView.getContainerType() == null) {
@@ -508,7 +513,7 @@ public class CollectionProcessor {
             Task task,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
         mergeCollectionFilterAndOptions(objectFilter, existingView, options);
     }
@@ -521,7 +526,7 @@ public class CollectionProcessor {
             Task task,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         if (explicitTargetTypeClass != null) {
             ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, explicitTargetTypeClass);
             compileBaseCollectionSpec(
@@ -552,14 +557,14 @@ public class CollectionProcessor {
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
         compileView(existingView, objectListViewType);
         compileCollection(existingView, objectListViewType, task, result);
     }
 
     private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
         CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
         if (collectionSpec == null) {
             return;
@@ -574,7 +579,7 @@ public class CollectionProcessor {
 
     private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
 
         QName targetObjectType = existingView.getContainerType();
         Class<?> targetTypeClass = ObjectType.class;
@@ -615,7 +620,7 @@ public class CollectionProcessor {
     @Nullable
     private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         VariablesMap variables = new VariablesMap(); // do we want to put any variables here?
         return ExpressionUtil.evaluateFilterExpressions(
                 filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),

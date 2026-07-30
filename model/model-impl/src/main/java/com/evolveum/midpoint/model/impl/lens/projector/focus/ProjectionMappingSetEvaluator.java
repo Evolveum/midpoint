@@ -87,7 +87,7 @@ public class ProjectionMappingSetEvaluator {
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException,
-            MappingLoader.NotLoadedException {
+            MappingLoader.NotLoadedException, RestrictedObjectException {
 
         String mappingDesc = params.getMappingDesc();
         LensElementContext<T> targetContext = params.getTargetContext();

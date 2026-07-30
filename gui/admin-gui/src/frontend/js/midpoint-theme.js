@@ -33,6 +33,7 @@ export default class MidPointTheme {
             });
 
             self.removeAdminLteSkipLinks();
+            self.labelHoneypotFields();
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
@@ -587,6 +588,32 @@ export default class MidPointTheme {
         }
     }
 
+    fixEmptyTableHeaders () {
+        document.querySelectorAll('th[scope="col"]').forEach(function (th) {
+            if (th.hasAttribute('aria-label')) {
+                return; // already labeled
+            }
+
+            var accessibleText = th.textContent.trim();
+            if (accessibleText) {
+                return; // has visible/hidden text content already, nothing to fix
+            }
+
+            // Try to inherit a label from an embedded checkbox/input
+            var input = th.querySelector('input[aria-label]');
+            if (input) {
+                th.setAttribute('aria-label', input.getAttribute('aria-label'));
+                return;
+            }
+
+            // Fallback: look for a title attribute on any descendant icon
+            var titled = th.querySelector('[title]');
+            if (titled) {
+                th.setAttribute('aria-label', titled.getAttribute('title'));
+            }
+        });
+    };
+
     keydownForMenuItems(sideBar, self) {
         if (!sideBar.length) {
             return;
@@ -594,7 +621,13 @@ export default class MidPointTheme {
 
         sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
             var menuItemEl = $(this).get(0);
-            if (menuItemEl !== document.activeElement && !menuItemEl.classList.contains('active')) {
+            var directLink = $(this).children("a").get(0);
+
+            var isRelevantFocus = menuItemEl === document.activeElement
+                || directLink === document.activeElement
+                || menuItemEl.classList.contains('active');
+
+            if (!isRelevantFocus) {
                 return;
             }
 
@@ -606,6 +639,7 @@ export default class MidPointTheme {
                     $(this).click();
                 }
                 e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -620,7 +654,8 @@ export default class MidPointTheme {
                         focusableElement.scrollIntoView({block: "center"});
                     }
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -632,7 +667,8 @@ export default class MidPointTheme {
                     parent.get(0).focus();
                     parent.get(0).scrollIntoView({block: "center"});
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -663,7 +699,8 @@ export default class MidPointTheme {
             if (focusItem) {
                 focusItem.focus();
                 focusItem.scrollIntoView({block: "center"});
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
     }
@@ -1138,6 +1175,29 @@ export default class MidPointTheme {
         // (hardcoded to #main / #navigation), which duplicates
         // midPoint's own working #skip-link and leads to WCAG incompatibility
         document.querySelector('.skip-links')?.remove();
+    }
+
+    //honeypot behavior (e.g. on the Registration page) generates
+    //the invisible input field. We need to add aria label to it
+    labelHoneypotFields() {
+        const apply = (el) => {
+            if (!el.hasAttribute('aria-label')) {
+                el.setAttribute('aria-label', 'Do not fill out this field');
+            }
+        };
+
+        document.querySelectorAll('input.hpb-f, input[name="hpb-id"]').forEach(apply);
+
+        const observer = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                m.addedNodes.forEach((node) => {
+                    if (node.nodeType !== 1) return;
+                    if (node.matches?.('input.hpb-f, input[name="hpb-id"]')) apply(node);
+                    node.querySelectorAll?.('input.hpb-f, input[name="hpb-id"]').forEach(apply);
+                });
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     clickFuncWicket6(eventData) {

@@ -1898,10 +1898,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     @SuppressWarnings("SameParameterValue")
     private PrismObject<UserType> assignRolePolicyFailure(
-            String userOid, String roleOid, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            SecurityViolationException {
+            String userOid, String roleOid, Task task, OperationResult result) throws CommonException {
         try {
             // WHEN
 

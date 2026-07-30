@@ -4946,6 +4946,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="discoveryTimestamp" type="t:ProtectedStringType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the protected timestamp until which the connector may be used without being present in the list of allowed connectors.
+
+                                The value is initialized when the ConnectorType object is created during connector import.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

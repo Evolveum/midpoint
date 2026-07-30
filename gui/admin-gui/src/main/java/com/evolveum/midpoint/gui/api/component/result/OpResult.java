@@ -202,8 +202,7 @@ public class OpResult implements Serializable, Visitable {
                 backgroundTaskVisible = true;
                 return;
             }
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             backgroundTaskVisible = false;
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
             return;
@@ -213,8 +212,7 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
             backgroundTaskVisible = true;
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
             backgroundTaskVisible = false;
         }
@@ -233,8 +231,7 @@ public class OpResult implements Serializable, Visitable {
                 caseVisible = true;
                 return;
             }
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             caseVisible = false;
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine case visibility", e);
             return;
@@ -244,8 +241,7 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(CaseType.class, caseOid, null, task, task.getResult());
             caseVisible = true;
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LOGGER.debug("Case {} is not visible by the current user: {}: {}", caseOid, e.getClass(), e.getMessage());
             caseVisible = false;
         }
@@ -265,8 +261,7 @@ public class OpResult implements Serializable, Visitable {
                 processedObjectVisible = true;
                 return;
             }
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             processedObjectVisible = false;
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine processed object visible", e);
             return;
@@ -276,8 +271,7 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(ObjectType.class, processedObjectOid, null, task, task.getResult());
             processedObjectVisible = true;
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LOGGER.debug("Processed object {} is not visible by the current user: {}: {}", processedObjectOid, e.getClass(), e.getMessage());
             processedObjectVisible = false;
         }

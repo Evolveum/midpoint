@@ -81,7 +81,7 @@ public class AssignmentPolicyAspectPart {
 
     void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<? extends FocusType> requester,
             List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, RestrictedObjectException {
 
         OperationResult result = parentResult.subresult(OP_EXTRACT_ASSIGNMENT_BASED_INSTRUCTIONS)
                 .setMinor()

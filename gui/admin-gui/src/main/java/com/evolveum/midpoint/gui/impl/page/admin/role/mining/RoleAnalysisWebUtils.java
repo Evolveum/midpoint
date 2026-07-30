@@ -219,8 +219,7 @@ public class RoleAnalysisWebUtils {
                     ctx.setCreateIfEmpty(true);
 
                     return factory.createObjectWrapper(userObject, ItemStatus.NOT_CHANGED, ctx);
-                } catch (ExpressionEvaluationException | SecurityViolationException | CommunicationException |
-                        ConfigurationException | ObjectNotFoundException | SchemaException e) {
+                } catch (CommonException e) {
                     throw new SystemException("Cannot create wrapper for " + userOid, e);
 
                 }

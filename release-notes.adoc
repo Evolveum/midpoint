@@ -170,6 +170,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed CSV export for Tasks table. See bug:MID-11652[]
 * Fixed breaking too long labels into lines. See bug:MID-11711[]
 * Fixed breaking too long labels into lines. See bug:MID-11714[]
+* Fixed empty recipient filter expressions bypassing notification redirection to file. See bug:MID-11828[]
 
 === Releases Of Other Components
 

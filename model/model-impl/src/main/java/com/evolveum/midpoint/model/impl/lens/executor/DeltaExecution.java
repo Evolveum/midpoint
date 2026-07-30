@@ -153,7 +153,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Main
     public void execute(OperationResult parentResult) throws SchemaException, CommunicationException,
             ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException,
+            RestrictedObjectException {
 
         elementContext.resolveTemporaryContainerIds(delta);
 
@@ -454,7 +455,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Addition
     private void executeAddition(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         stateCheck(!delta.isImmutable(), "Immutable delta? In %s", elementContext);
 
@@ -520,7 +522,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private String executeRealAddition(PrismObject<E> objectToAdd, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            RestrictedObjectException {
         E objectBeanToAdd = objectToAdd.asObjectable();
         String oid;
         if (objectBeanToAdd instanceof TaskType) {
@@ -557,7 +560,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private String addProvisioningObject(PrismObject<E> object, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            RestrictedObjectException {
 
         OperationProvisioningScriptsType scripts;
         if (object.canRepresent(ShadowType.class)) {
@@ -597,7 +601,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void executeModification(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            ConflictDetectedException {
+            ConflictDetectedException, RestrictedObjectException {
 
         Class<E> objectClass = delta.getObjectTypeClass();
 
@@ -688,7 +692,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void executeRealModification(Class<E> objectClass, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, RestrictedObjectException {
         if (TaskType.class.isAssignableFrom(objectClass)) {
             b.taskManager.modifyTask(
                     deltaForExecution.getOid(), deltaForExecution.getModifications(), result);
@@ -718,7 +722,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private String modifyProvisioningObject(OperationResult result) throws ObjectNotFoundException, CommunicationException,
             SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException, PolicyViolationException {
+            ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException {
 
         Class<E> objectClass = deltaForExecution.getObjectTypeClass();
         String oid = deltaForExecution.getOid();
@@ -808,7 +812,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Deletion
     private void executeDeletion(OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         String oid = delta.getOid();
         Class<E> objectTypeClass = delta.getObjectTypeClass();
@@ -845,7 +849,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private void executeRealDeletion(Class<E> objectTypeClass, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException,
+            RestrictedObjectException {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             b.taskManager.deleteTask(oid, result);
         } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
@@ -889,7 +894,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private PrismObject<E> deleteProvisioningObject(Class<E> type, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, RestrictedObjectException {
 
         ProvisioningOperationOptions options = getProvisioningOptions();
         ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
@@ -1023,7 +1028,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private OperationProvisioningScriptsType prepareScripts(
             PrismObject<E> object, ProvisioningOperationTypeType operation, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         if (resource == null) {
             LOGGER.warn("Resource does not exist. Skipping processing scripts.");

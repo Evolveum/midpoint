@@ -142,7 +142,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     }
 
     void onIterationStart(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         reIterationReason = null;
         initializeIterationSpecificationIfNeeded();
         variablesPreIteration = null;
@@ -153,7 +153,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
 
     private void computeIterationTokenIfNeeded(Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         if (iterationToken == null) {
             createVariablesPreIterationIfNeeded();
             iterationToken = LensUtil.formatIterationToken(
@@ -196,7 +196,8 @@ class IterationHelper<AH extends AssignmentHolderType> {
     }
 
     boolean doesPreIterationConditionHold(Task task, OperationResult result) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException, RestrictedObjectException {
         if (iterationSpecification != null) {
             createVariablesPreIterationIfNeeded();
             if (!LensUtil.evaluateIterationCondition(context, focusContext, iterationSpecification, iteration,
@@ -249,7 +250,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
 
     boolean isIterationOk(PrismObject<AH> objectNew, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         checkNamePresence(context, this, objectNew);
         FocusConstraintsChecker<AH> checker = createChecker(context);
         if (!shouldCheckConstraints() || checker.check(objectNew, result)) {

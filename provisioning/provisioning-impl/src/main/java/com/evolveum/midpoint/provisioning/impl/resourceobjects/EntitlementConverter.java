@@ -354,7 +354,7 @@ class EntitlementConverter {
     @NotNull EntitlementObjectsOperations transformToObjectOpsOnSubjectDelete(
             @NotNull RepoShadow subjectRepoShadow, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
 

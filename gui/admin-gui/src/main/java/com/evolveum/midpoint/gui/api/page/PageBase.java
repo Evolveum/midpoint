@@ -245,8 +245,7 @@ public abstract class PageBase extends PageAdminLTE {
             String operationUrl, AuthorizationPhaseType phase,
             PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target,
             OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            throws CommonException {
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)
                 .delta(delta)

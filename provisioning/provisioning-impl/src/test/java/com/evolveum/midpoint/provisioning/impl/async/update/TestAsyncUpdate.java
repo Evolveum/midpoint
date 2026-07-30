@@ -504,9 +504,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     }
 
     @Contract("false,_,_ -> !null")
-    private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+    private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result) throws CommonException {
         var repoShadow = findAccountShadowByUsername("banderson", resource, result);
         assertNotNull("No Anderson shadow in repo", repoShadow);
         Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()

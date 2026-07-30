@@ -88,14 +88,16 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
             boolean skipExplicitUniquenessCheck,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         return new ResourceObjectAddOperation(ctx, objectToAdd, scripts, connOptions, skipExplicitUniquenessCheck)
                 .doExecute(result);
     }
 
     private @NotNull ResourceObjectAddReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         LOGGER.trace("Adding resource object {}", workingObject);
 
@@ -164,7 +166,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     private Collection<ShadowAttribute<?, ?, ?, ?>> fetchVolatileAttributes(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, SecurityViolationException {
+            ObjectNotFoundException, SecurityViolationException, RestrictedObjectException {
 
         var volatileAttributesDefinitions = ctx.getObjectDefinitionRequired().getAttributesVolatileOnAddOperation();
         if (volatileAttributesDefinitions.isEmpty()) {
@@ -227,7 +229,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
      */
     private void checkForAddConflictsForMultiConnectors(OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         LOGGER.trace("Checking for add conflicts for {}", workingObject.shortDumpLazily());
         UcfResourceObject existingObject;
         ConnectorInstance readConnector = null;

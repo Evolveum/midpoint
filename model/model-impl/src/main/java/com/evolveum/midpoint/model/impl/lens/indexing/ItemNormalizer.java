@@ -43,7 +43,7 @@ class ItemNormalizer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         //noinspection unchecked
         PrismProperty<String> normalizedItem =
                 prismContext.itemFactory().createProperty(

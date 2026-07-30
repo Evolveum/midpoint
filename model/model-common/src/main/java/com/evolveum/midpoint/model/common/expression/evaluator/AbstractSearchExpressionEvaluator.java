@@ -102,7 +102,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     protected @NotNull List<V> transformSingleValue(@NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         return createEvaluation(vtCtx, result)
                 .execute();
     }
@@ -154,7 +154,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         protected @NotNull List<V> execute()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-                CommunicationException, ConfigurationException, SecurityViolationException {
+                CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
             // Deltas to be applied on the newly-created value (assuming the value is an assignment value)
             List<ItemDelta<V, D>> newValueDeltas = createNewValueDeltas();
@@ -209,7 +209,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         private @Nullable List<ItemDelta<V, D>> createNewValueDeltas()
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, RestrictedObjectException {
             PopulateType valuePopulationDef = expressionEvaluatorBean.getPopulate();
             if (valuePopulationDef != null) {
                 if (outputDefinition instanceof PrismContainerDefinition<?> pcd) {
@@ -226,7 +226,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         protected @NotNull List<ObjectQuery> createQueries()
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
             var filterBeans = expressionEvaluatorBean.getFilter();
             configCheck(!filterBeans.isEmpty(), "No filters in %s", lazy(() -> shortDebugDump()));
@@ -389,14 +389,15 @@ public abstract class AbstractSearchExpressionEvaluator<
                 throw new SchemaException(e.getMessage() + " in " + vtCtx, e);
             } catch (SystemException e) {
                 throw new SystemException(e.getMessage() + " in " + vtCtx, e);
-            } catch (CommunicationException | ConfigurationException | SecurityViolationException e) {
+            } catch (CommunicationException | ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
                 if (searchOnResource && tryAlsoRepository) {
                     var retryOptions = createNoFetchReadOnlyCollection();
                     try {
                         return executeSearch(query, retryOptions, additionalAttributeDeltas);
                     } catch (SchemaException e1) {
                         throw new SchemaException(e1.getMessage() + " in " + vtCtx, e1);
-                    } catch (CommunicationException | ConfigurationException | SecurityViolationException e1) {
+                    } catch (CommunicationException | ConfigurationException | SecurityViolationException
+                            | RestrictedObjectException e1) {
                         // TODO improve handling of exception.. we do not want to
                         //  stop whole projection computation, but what to do if the
                         //  shadow for group doesn't exist? (MID-2107)
@@ -413,7 +414,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 Collection<SelectorOptions<GetOperationOptions>> options,
                 List<ItemDelta<V, D>> additionalAttributeDeltas)
                 throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-                SecurityViolationException, ExpressionEvaluationException {
+                SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
             // TODO: perhaps we should limit query to some reasonably high number of results?
             LOGGER.trace("Looking for objects using query:\n{}", query.debugDumpLazily(1));
             var objects = objectResolver.searchObjects(targetTypeClass, query, options, getTask(), result);
@@ -455,7 +456,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         protected abstract @NotNull V createResultValue(
                 String oid, @NotNull QName typeName, PrismObject<O> object, List<ItemDelta<V, D>> newValueDeltas)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException;
+                ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
 
         /** Useful method called from subclasses producing references. */
         @NotNull PrismReferenceValue createReferenceValue(
@@ -477,7 +478,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         @Nullable
         QName determineRelation(QName relation, ExpressionType relationExpression)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
             configCheck(relation == null || relationExpression == null,
                     "Both relation and relationExpression are present in %s", lazy(() -> shortDebugDump()));
             if (relationExpression != null) {
@@ -496,7 +497,7 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         private PrismObject<O> createOnDemand()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-                ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+                ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, RestrictedObjectException {
 
             var eeCtx = vtCtx.getExpressionEvaluationContext();
             var variables = vtCtx.getVariablesMap();

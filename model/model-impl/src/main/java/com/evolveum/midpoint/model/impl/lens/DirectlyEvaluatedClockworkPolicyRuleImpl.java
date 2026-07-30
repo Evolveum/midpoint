@@ -336,7 +336,7 @@ public class DirectlyEvaluatedClockworkPolicyRuleImpl
     public void computeEnabledActions(
             @Nullable PolicyRuleEvaluationContext<?> rctx, PrismObject<?> object, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         stateCheck(!enabledActionsComputed, "Enabled actions already computed in %s", this);
         assert enabledActions.isEmpty();

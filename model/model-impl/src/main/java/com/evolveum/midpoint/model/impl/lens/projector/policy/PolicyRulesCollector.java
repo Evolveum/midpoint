@@ -87,7 +87,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     /** Collects "object rules" (i.e. for focus and assignments) from all sources: assignments and global config, incl. marks. */
     @NotNull List<DirectlyEvaluatedClockworkPolicyRuleImpl> collectObjectRules(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, RestrictedObjectException {
         List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = new ArrayList<>();
         collectActivityRules(rules);
         collectObjectRulesFromAssignments(rules);
@@ -140,7 +140,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     /** [EP:M:PRC] DONE rules are from {@link #rulesWithIds} only */
     private void collectGlobalObjectRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, RestrictedObjectException {
         PrismObject<O> focus = getFocusForSelection();
         List<GlobalRuleWithId> ruleMatchingFocus = getGlobalRulesMatchingFocus(focus);
         int globalRulesFound = 0;
@@ -163,7 +163,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     void collectAllAssignmentRules(
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, RestrictedObjectException {
 
         collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
         collectActivityAssignmentRules(evaluatedAssignmentTriple);
@@ -173,7 +173,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     private void collectGlobalAssignmentRules(
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, RestrictedObjectException {
 
         PrismObject<O> focus = getFocusForSelection();
 
@@ -281,7 +281,7 @@ class PolicyRulesCollector<O extends ObjectType> {
      */
     private List<GlobalRuleWithId> getGlobalRulesMatchingFocus(@Nullable PrismObject<O> focus)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         checkInitialized();
         List<GlobalRuleWithId> matching = new ArrayList<>();
         LOGGER.trace("Checking {} global policy rules for use with the object or assignments", rulesWithIds.size());
@@ -360,7 +360,7 @@ class PolicyRulesCollector<O extends ObjectType> {
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, RestrictedObjectException {
         GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
         MappingConfigItem condition = ruleCI.getCondition();
         if (condition == null) {

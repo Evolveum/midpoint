@@ -191,7 +191,8 @@ public class RoleAnalysisUtils {
 
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
+                RestrictedObjectException e) {
             logger.error("Couldn't add operation status {}", cluster.getOid(), e);
         }
     }
@@ -223,7 +224,8 @@ public class RoleAnalysisUtils {
 
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
+                RestrictedObjectException e) {
             logger.error("Couldn't add operation status {}", cluster.getOid(), e);
         }
     }

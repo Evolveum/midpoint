@@ -39,7 +39,7 @@ public class LensMetadataUtil {
             MappingEvaluationEnvironment env,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, itemDefinition, lensContext, beans, env, result);
         LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
@@ -58,7 +58,7 @@ public class LensMetadataUtil {
             @NotNull ItemPath itemPath, ItemDefinition<?> itemDefinition,  LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(CONSOLIDATION);
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
         processingSpec.populateFromCurrentFocusTemplate(lensContext, itemPath, itemDefinition, beans.modelObjectResolver,

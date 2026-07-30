@@ -758,7 +758,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
             @NotNull Trace logger,
             @NotNull String logMessagePrefix)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         var value = object != null ? object.getValue() : null;
         return ObjectSelectorMatcher.selectorMatches(
                 objectSelector, value, filterEvaluator, logger, logMessagePrefix, this);

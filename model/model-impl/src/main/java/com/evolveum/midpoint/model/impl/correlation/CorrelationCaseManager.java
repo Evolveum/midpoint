@@ -305,7 +305,7 @@ public class CorrelationCaseManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         recordCorrelationOutcomeInShadow(aCase, result);
 
         correlationService.resolve(aCase, task, result);

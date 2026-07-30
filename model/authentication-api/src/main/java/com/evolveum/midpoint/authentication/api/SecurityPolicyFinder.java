@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.authentication.api;
 
+import com.evolveum.midpoint.util.exception.RestrictedObjectException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;

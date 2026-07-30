@@ -132,7 +132,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(oid, "oid");
@@ -172,7 +172,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         Validate.notNull(object, "Object to add must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
@@ -226,7 +227,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, RestrictedObjectException {
 
         Validate.notNull(coordinates, "Coordinates must not be null.");
         String resourceOid = coordinates.getResourceOid();
@@ -253,7 +254,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
-                ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+                ConfigurationException | RestrictedObjectException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             result.summarize(true);
             throw e;
@@ -276,7 +277,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     public void processAsynchronousUpdates(@NotNull ResourceOperationCoordinates coordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         String resourceOid = coordinates.getResourceOid();
         Validate.notNull(resourceOid, "Resource oid must not be null.");
 
@@ -288,7 +289,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             LOGGER.trace("Starting processing async updates for {}", coordinates);
             asyncUpdater.processAsynchronousUpdates(coordinates, handler, task, result);
             result.recordSuccess();
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
+                RestrictedObjectException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         } finally {
@@ -308,7 +310,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(task, "task");
@@ -345,7 +347,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(task, "task");
@@ -386,7 +388,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            RestrictedObjectException {
 
         Validate.notNull(oid, "OID must not be null.");
         Validate.notNull(modifications, "Modifications must not be null.");
@@ -451,7 +454,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts, ProvisioningOperationContext context, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
 
         Validate.notNull(oid, "Oid of object to delete must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
@@ -498,7 +501,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, RestrictedObjectException {
 
         try {
 
@@ -539,7 +542,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         Validate.notNull(resourceOid, "Oid of object for script execution must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -570,7 +573,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, RestrictedObjectException {
         Validate.notNull(resourceOid, "Resource OID to test is null.");
 
         OperationResult result = parentResult.subresult(OP_TEST_RESOURCE)
@@ -596,7 +599,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, RestrictedObjectException {
         OperationResult result = parentResult.subresult(OP_TEST_RESOURCE)
                 .addParam(OperationResult.PARAM_RESOURCE, resource)
                 .addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options)
@@ -623,7 +626,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     private OperationResult testResourceInternal(
             @NotNull ResourceType resource, @Nullable ResourceTestOptions options, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         LOGGER.trace("Starting testing {}", resource);
         OperationResult testResult = resourceManager.testResource(resource, options, task, result);
         LOGGER.debug("Finished testing {}, result: {}", resource, testResult.getStatus());
@@ -682,7 +685,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, RestrictedObjectException {
         OperationResult result = parentResult.createSubresult(OP_REFRESH_SHADOW);
 
         LOGGER.debug("Refreshing shadow {}", shadow);
@@ -716,7 +719,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(handler, "handler");
@@ -773,7 +776,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName()
                 + ".getConnectorOperationalStatus");
         result.addParam("resourceOid", resourceOid);
@@ -805,14 +808,14 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         applyDefinition(delta, null, task, parentResult);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
         result.addParam("delta", delta);
@@ -841,7 +844,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     @SuppressWarnings("unchecked")
     public <T extends ObjectType> void applyDefinition(PrismObject<T> object, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
         result.addParam(OperationResult.PARAM_OBJECT, object);
@@ -871,7 +874,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".determineShadowState");
         result.addParam("shadow", shadow);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -890,7 +893,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void updateShadowMarksAndPolicies(PrismObject<ShadowType> shadow, boolean isNew, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".updateShadowMarksAndPolicies");
         result.addParam("shadow", shadow);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -911,7 +914,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
         result.addParam(OperationResult.PARAM_TYPE, type);
@@ -1000,7 +1003,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException,
-            ObjectNotFoundException, ExpressionEvaluationException {
+            ObjectNotFoundException, ExpressionEvaluationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
         try {
@@ -1042,7 +1045,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     public <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path,
             T expectedValue, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException, RestrictedObjectException {
         Validate.notNull(oid, "Oid of object to get must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1102,7 +1105,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         return resourceObjectClassifier.classify(combinedObject, resource, existingSorterResult, task, result);
     }
 
@@ -1113,7 +1116,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull ResourceObjectDefinition definition,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         return shadowTagGenerator.generateTag(combinedObject, resource, definition, task, result);
     }
 
@@ -1121,7 +1124,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     public void expandConfigurationObject(
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         OperationResult result = parentResult.subresult(OP_EXPAND_CONFIGURATION_OBJECT)
                 .addParam("configurationObject", configurationObject)
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
@@ -1145,7 +1148,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
     @Override
     public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         OperationResult result = parentResult.subresult(OP_GET_NATIVE_CAPABILITIES)
                 .addParam("connectorOid", connOid)
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
@@ -1172,7 +1175,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         var resource = getObject(ResourceType.class, resourceOid, null, task, result);
         var objectDef = ResourceSchemaFactory
                 .getCompleteSchemaRequired(resource)

@@ -45,7 +45,7 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         P parameters = parseParameters(action, input, context, globalResult);
         parameters.options = operationsHelper.getOptions(action, input, context, globalResult);
@@ -68,12 +68,13 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
     abstract P parseParameters(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
 
     private void apply(
             AssignmentHolderType object, PipelineItem item, P parameters, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         ObjectDelta<? extends ObjectType> delta = createDelta(object, item, parameters, context, result);
         if (!delta.isEmpty()) {
             operationsHelper.applyDelta(delta, parameters.options, parameters.dryRun, context, result);
@@ -83,7 +84,7 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
 
     abstract ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, PipelineItem item, P parameters,
             ExecutionContext context, OperationResult result) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
 
     @Override
     protected Class<AssignmentHolderType> getObjectType() {
@@ -93,7 +94,8 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
     @NotNull Collection<ObjectReferenceType> getRolesParameter(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         ActionParameterValueType roleParameterValue = expressionHelper.getArgument(
                 action.getParameter(), PARAM_ROLE, false, false, getName());
         if (roleParameterValue != null) {
@@ -108,7 +110,8 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
     @NotNull Collection<ObjectReferenceType> getResourcesParameter(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(
                 action.getParameter(), PARAM_RESOURCE, false, false, getName());
         if (resourceParameterValue != null) {
@@ -123,7 +126,8 @@ abstract class AssignmentOperationsExecutor<P extends AssignmentOperationsExecut
     @NotNull Collection<QName> getRelationsParameter(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            RestrictedObjectException {
         Collection<String> relationSpecificationUris = expressionHelper.getArgumentValues(action.getParameter(), PARAM_RELATION,
                 false, false, getName(), input, context, String.class, globalResult);
         return relationSpecificationUris.stream()

@@ -81,7 +81,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     public <F extends FocusType> void process(LensContext<F> context, LensProjectionContext projectionContext,
             String activityDescription, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            RestrictedObjectException {
         processProjectionValues(context, projectionContext, activityDescription, task, result);
         context.checkConsistenceIfNeeded();
     }
@@ -89,7 +90,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     private <F extends FocusType> void processProjectionValues(LensContext<F> context,
             LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            RestrictedObjectException {
 
         RememberedElementState<ShadowType> rememberedProjectionState = projContext.rememberElementState();
         LOGGER.trace("Remembered projection state:\n{}", DebugUtil.debugDumpLazily(rememberedProjectionState));
@@ -338,7 +340,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult iterationResult)
             throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, RestrictedObjectException {
 
         ResourceType resource = projContext.getResourceRequired();
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -520,7 +522,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
             return LensUtil.formatIterationTokenDefault(iteration, 0);
@@ -549,7 +551,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
             return true;

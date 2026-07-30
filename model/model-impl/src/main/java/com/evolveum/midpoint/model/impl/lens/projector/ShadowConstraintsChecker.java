@@ -84,7 +84,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
     public void check(Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
         if (projectionNew == null) {

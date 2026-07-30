@@ -1102,9 +1102,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
     }
 
-    private PrismObject<OrgType> assertOnDemandOrgExists(String orgName)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws CommonException {
         PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
         assertNotNull("The org " + orgName + " is missing!", org);
         display("Org " + orgName, org);
@@ -1112,9 +1110,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         return org;
     }
 
-    private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws CommonException {
         PrismObject<OrgType> org = assertOnDemandOrgExists(orgName);
         PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user " + user.asObjectable().getName());
         assertAssignedOrg(user, org.getOid());

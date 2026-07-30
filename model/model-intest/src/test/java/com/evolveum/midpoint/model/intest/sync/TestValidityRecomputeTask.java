@@ -488,7 +488,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     }
 
     @SuppressWarnings("SameParameterValue")
-    private AssignmentType getJudgeAssignment(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private AssignmentType getJudgeAssignment(String userOid) throws CommonException {
         PrismObject<UserType> user = getUser(userOid);
         List<AssignmentType> assignments = user.asObjectable().getAssignment();
         assertEquals("Wrong num ass", 1, assignments.size());

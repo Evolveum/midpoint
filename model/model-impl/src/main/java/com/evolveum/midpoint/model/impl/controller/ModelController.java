@@ -194,7 +194,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
         Validate.notNull(clazz, "Object class must not be null.");
@@ -262,7 +262,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
             Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException,
+            RestrictedObjectException {
 
         enterModelMethod();
 
@@ -342,7 +343,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task,
             Collection<ProgressListener> statusListeners, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ExpressionEvaluationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
+            RestrictedObjectException {
 
         LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
@@ -440,7 +442,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private void authorizeExecutionStart(
             LensContext<? extends ObjectType> context, ModelExecuteOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         if (ModelExecuteOptions.isOperationStartPreAuthorized(options)) {
             argCheck(!task.isExecutionFullyPersistent(), "operationStartPreAuthorized option can be used only for simulations");
@@ -510,7 +512,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public <F extends ObjectType> void recompute(
             Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            RestrictedObjectException {
 
         OperationResult result = parentResult.subresult(RECOMPUTE)
                 .setMinor()
@@ -549,7 +552,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ObjectNotFoundException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
+            RestrictedObjectException {
         LOGGER.debug("Recomputing {}", object);
 
         if (object.asObjectable() instanceof ShadowType shadow) {
@@ -572,7 +576,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private void applyDefinitions(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             applyDefinition(delta, options, task, result);
         }
@@ -581,7 +585,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private <O extends ObjectType> void applyDefinition(
             ObjectDelta<O> delta, ModelExecuteOptions options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         Class<O> type = delta.getObjectTypeClass();
         if (delta.hasCompleteDefinition()) {
             return;
@@ -616,7 +620,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Task task,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
@@ -800,7 +804,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         ContainerSearchLikeOpContext(
                 Class<T> type, ObjectQuery origQuery, ParsedGetOperationOptions options, Task task, OperationResult result)
                 throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-                ExpressionEvaluationException, CommunicationException, ConfigurationException {
+                ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
 
             var isAssignment = AssignmentType.class.equals(type);
             var isProcessedObject = SimulationResultProcessedObjectType.class.equals(type);
@@ -830,7 +834,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @Nullable Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            RestrictedObjectException {
 
         Validate.notNull(type, "Container value type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -912,7 +917,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Validate.notNull(type, "Container type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1012,7 +1017,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
 
         Validate.notNull(type, "Container value type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1100,7 +1105,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1221,7 +1226,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery origQuery,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, CommunicationException, ExpressionEvaluationException {
+            SecurityViolationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException {
 
         // see MID-6115
         ObjectQuery query = origQuery != null ? origQuery.clone() : null;
@@ -1267,7 +1272,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public PrismObject<? extends FocusType> searchShadowOwner(
             String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException,
-            ConfigurationException, ExpressionEvaluationException, CommunicationException {
+            ConfigurationException, ExpressionEvaluationException, CommunicationException, RestrictedObjectException {
         Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
         Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -1317,7 +1322,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public SearchResultList<ObjectReferenceType> searchReferences(
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            RestrictedObjectException {
 
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1367,7 +1373,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public Integer countReferences(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
 
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1419,7 +1425,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull ObjectQuery query, @NotNull ObjectHandler<ObjectReferenceType> handler,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            RestrictedObjectException {
 
         Objects.requireNonNull(query, "Query must be provided for reference search");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -1481,7 +1488,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public OperationResult testResource(String resourceOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, RestrictedObjectException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         LOGGER.trace("Testing resource OID: {}", resourceOid);
 
@@ -1505,7 +1512,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull ModelAuthorizationAction action, @NotNull String resourceOid,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         // Retrieved in full in order to evaluate the authorization
         var fullResource = provisioning.getObject(ResourceType.class, resourceOid, readOnly(), task, result);
         securityEnforcer.authorize(
@@ -1518,7 +1525,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public OperationResult testResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, RestrictedObjectException {
         Validate.notNull(resource, "Resource must not be null.");
         LOGGER.trace("Testing resource: {}", resource);
 
@@ -1535,7 +1542,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, RestrictedObjectException {
         Validate.notNull(resource, "Resource must not be null.");
         LOGGER.trace("Testing partial configuration of resource: {}", resource);
 
@@ -1590,7 +1597,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         Validate.notNull(connOid, "ConnOid must not be null.");
         LOGGER.trace("Getting native capabilities by connector oid: {}", connOid);
 
@@ -1612,7 +1619,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         Validate.notNull(objectClass, "Object class must not be null.");
         Validate.notNull(task, "Task must not be null.");
@@ -1654,7 +1661,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         Validate.notNull(shadowOid, "Shadow OID must not be null.");
         Validate.notNull(task, "Task must not be null.");
         enterModelMethod();
@@ -1811,7 +1818,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,
             @NotNull List<? extends ItemPath> ignoreItems, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         Validate.notNull(provided, "Object must not be null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1888,7 +1895,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<SelectorOptions<GetOperationOptions>> readOptions, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
 
         if (readOptions == null) {
             readOptions = new ArrayList<>();
@@ -1926,7 +1933,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private @NotNull ParsedGetOperationOptions preProcessOptionsSecurity(
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         if (GetOperationOptions.isAttachDiagData(rootOptions)
                 && !securityEnforcer.isAuthorizedAll(task, result)) {
@@ -1941,7 +1948,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private <T> ObjectQuery preProcessQuerySecurity(
             Class<T> objectType, ObjectQuery origQuery, GetOperationOptions rootOptions, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
         ObjectFilter origFilter = origQuery != null ? origQuery.getFilter() : null;
         AuthorizationPhaseType phase =
                 GetOperationOptions.isExecutionPhase(rootOptions) ? AuthorizationPhaseType.EXECUTION : null;
@@ -1969,7 +1976,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(
                 taskOids, ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
 
@@ -1991,7 +1998,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
                 ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
 
@@ -2014,7 +2021,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
                 ModelAuthorizationAction.SUSPEND_TASK, AuditEventType.SUSPEND_TASK, operationTask, parentResult);
 
@@ -2038,7 +2045,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public void suspendAndDeleteTasks(Collection<String> taskOids,
             long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
                 ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
         List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, parentResult);
@@ -2064,7 +2071,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public void suspendAndDeleteTask(String taskOid,
             long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
                 ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
         List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, parentResult);
@@ -2105,7 +2112,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
                 ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
 
@@ -2126,7 +2133,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void resumeTask(String taskOid, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
                 ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
 
@@ -2147,7 +2154,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void resumeTaskTree(String coordinatorOid, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(coordinatorOid,
                 ModelAuthorizationAction.RESUME_TASK, AuditEventType.RESUME_TASK, operationTask, parentResult);
 
@@ -2168,7 +2175,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
                 ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
 
@@ -2189,7 +2196,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
                 ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, AuditEventType.RUN_TASK_IMMEDIATELY, operationTask, parentResult);
 
@@ -2211,7 +2218,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public PrismObject<TaskType> getTaskByIdentifier(String identifier,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task operationTask, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, CommunicationException {
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException, RestrictedObjectException {
         var parsedOptions = preProcessOptionsSecurity(rawOptions, operationTask, parentResult);
         var options = parsedOptions.getCollection();
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
@@ -2221,7 +2228,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.STOP_SERVICE_THREADS.getUrl(), operationTask, parentResult);
         return taskManager.deactivateServiceThreads(timeToWait, parentResult);
@@ -2230,7 +2237,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void reactivateServiceThreads(Task operationTask, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.START_SERVICE_THREADS.getUrl(), operationTask, parentResult);
         taskManager.reactivateServiceThreads(parentResult);
@@ -2244,7 +2251,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         taskManager.stopSchedulers(nodeIdentifiers, parentResult);
     }
@@ -2253,7 +2260,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public boolean stopSchedulersAndTasks(
             Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         authorizeNodeCollectionOperation(ModelAuthorizationAction.STOP_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         return taskManager.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
     }
@@ -2261,7 +2268,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         authorizeNodeCollectionOperation(ModelAuthorizationAction.START_TASK_SCHEDULER, nodeIdentifiers, operationTask, parentResult);
         taskManager.startSchedulers(nodeIdentifiers, parentResult);
     }
@@ -2269,7 +2276,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void synchronizeTasks(Task operationTask, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.SYNCHRONIZE_TASKS.getUrl(), operationTask, parentResult);
         taskManager.synchronizeTasks(parentResult);
@@ -2278,7 +2285,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public void reconcileWorkers(String oid, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         securityEnforcer.authorizeAll(opTask, result); // temporary
         activityManager.reconcileWorkers(oid, result);
     }
@@ -2287,7 +2294,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     public void deleteActivityStateAndWorkers(String rootTaskOid,
             boolean deleteWorkers, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         securityEnforcer.authorizeAll(operationTask, parentResult); // temporary
         activityManager.deleteActivityStateAndWorkers(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
     }
@@ -2295,14 +2302,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private List<PrismObject<TaskType>> preprocessTaskOperation(
             String oid, ModelAuthorizationAction action, AuditEventType event, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         return preprocessTaskCollectionOperation(singletonList(oid), action, event, task, result);
     }
 
     private List<PrismObject<TaskType>> preprocessTaskCollectionOperation(Collection<String> oids,
             ModelAuthorizationAction action, AuditEventType eventType, Task task, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         List<PrismObject<TaskType>> tasks = createTaskList(oids, parentResult);
         authorizeResolvedTaskCollectionOperation(action, tasks, task, parentResult);
         auditTaskCollectionOperation(tasks, eventType, AuditEventStage.REQUEST, task, parentResult, null);
@@ -2318,7 +2325,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private void authorizeResolvedTaskCollectionOperation(ModelAuthorizationAction action,
             Collection<PrismObject<TaskType>> existingTasks, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         if (securityEnforcer.isAuthorizedAll(task, parentResult) && !securityEnforcer.isAuthorizationDenied(action.getUrl())) {
             return;
         }
@@ -2332,7 +2339,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private void authorizeNodeCollectionOperation(
             ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         if (securityEnforcer.isAuthorizedAll(task, parentResult)) {
             return;
         }
@@ -2410,7 +2417,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         AbstractWorkItemOutputType outputToUse;
         if (additionalDelta != null && ApprovalUtils.isApproved(output)) {
             ObjectDeltaType additionalDeltaBean = DeltaConvertor.toObjectDeltaType(additionalDelta);
@@ -2436,35 +2443,35 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, RestrictedObjectException {
         getCaseManagerRequired().completeWorkItem(workItemId, output, null, task, parentResult);
     }
 
     @Override
     public void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectAlreadyExistsException, RestrictedObjectException {
         getCaseManagerRequired().cancelCase(caseOid, task, parentResult);
     }
 
     @Override
     public void claimWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         getCaseManagerRequired().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void releaseWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         getCaseManagerRequired().releaseWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void delegateWorkItem(@NotNull WorkItemId workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
             @NotNull Task task, @NotNull OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCaseManagerRequired().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
     }
 
@@ -2478,7 +2485,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull BulkActionExecutionOptions options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, ObjectAlreadyExistsException {
+            CommunicationException, ConfigurationException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException {
         // Authorization checking was moved to bulk action executor.
         ExecutionContext executionContext =
                 bulkActionsExecutor.execute(
@@ -2493,7 +2500,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     //region Certification
 
     @Override
-    public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly,
+            Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         return getCertificationManagerRequired().getCampaignStatistics(campaignOid, currentStageOnly, task, parentResult);
     }
 
@@ -2512,7 +2521,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCertificationManagerRequired().recordDecision(
                 AccessCertificationWorkItemId.of(campaignOid, caseId, workItemId),
                 response, comment, false, task, parentResult);
@@ -2527,7 +2536,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException {
+            ConfigurationException, RestrictedObjectException {
         return searchContainers(
                 AccessCertificationWorkItemType.class,
                 QueryUtils.createQueryForOpenWorkItems(
@@ -2548,7 +2557,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, RestrictedObjectException {
         return countContainers(
                 AccessCertificationWorkItemType.class,
                 QueryUtils.createQueryForOpenWorkItems(
@@ -2561,39 +2570,53 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void closeCampaign(String campaignOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
 //        getCertificationManagerRequired().closeCampaignTask(campaignOid, task, result);
         getCertificationManagerRequired().closeCampaign(campaignOid, task, result);
     }
 
     @Override
-    public void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void reiterateCampaign(String campaignOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCertificationManagerRequired().reiterateCampaignTask(campaignOid, task, result);
     }
 
     @Override
-    public void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void startRemediation(String campaignOid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCertificationManagerRequired().startRemediation(campaignOid, task, result);
     }
 
     @Override
-    public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCertificationManagerRequired().closeCurrentStageTask(campaignOid, task, parentResult);
     }
 
     @Override
-    public void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void openNextStage(String campaignOid, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCertificationManagerRequired().createNextStageTask(campaignOid, task, parentResult);
     }
 
     @Override
-    public void openNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public void openNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         getCertificationManagerRequired().createNextStageTask(campaign, task, parentResult);
     }
 
 
     @Override
-    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException {
         return getCertificationManagerRequired().createCampaign(definitionOid, task, parentResult);
     }
     //endregion
@@ -2603,7 +2626,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException,
             ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
-            PolicyViolationException, SecurityViolationException {
+            PolicyViolationException, SecurityViolationException, RestrictedObjectException {
 
         OperationResult result = parentResult.createSubresult(MERGE_OBJECTS);
         result.addParam("leftOid", leftOid);
@@ -2616,7 +2639,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             return objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
         } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException |
                 ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException |
-                RuntimeException | Error e) {
+                RuntimeException | Error | RestrictedObjectException e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
         } finally {
@@ -2653,7 +2676,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return MiscUtil.takeThreadDump(null);
@@ -2662,7 +2685,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public String getRunningTasksThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return taskManager.getRunningTasksThreadsDump(parentResult);
@@ -2671,7 +2694,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public String recordRunningTasksThreadsDump(String cause, @NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return taskManager.recordRunningTasksThreadsDump(cause, parentResult);
@@ -2680,7 +2703,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Override
     public String getTaskThreadsDump(@NotNull String taskOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         securityEnforcer.authorize(
                 ModelAuthorizationAction.READ_THREADS.getUrl(), task, parentResult);
         return taskManager.getTaskThreadsDump(taskOid, parentResult);
@@ -2780,7 +2803,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private PrismObject<ShadowType> getOldRepoShadow(
             ResourceObjectShadowChangeDescriptionType change, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         var shadowOrOid = determineShadowOrOid(change, task, result);
         if (shadowOrOid == null) {
             return null;
@@ -2796,7 +2819,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     /** Returns either the complete shadow (must be fresh from the repository) or the shadow OID (or nothing). */
     private ShadowOrOid determineShadowOrOid(ResourceObjectShadowChangeDescriptionType change, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         LOGGER.trace("Trying to determine shadow OID from {}", change);
         var explicit = change.getOldShadowOid();
         if (explicit != null) {

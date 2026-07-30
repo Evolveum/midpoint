@@ -1167,7 +1167,7 @@ public class TestProjector extends AbstractLensTest {
         assertSerializable(context);
     }
 
-    private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertNoJackShadow() throws CommonException {
         PrismObject<ShadowType> jackAccount = findAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceObject());
         assertNull("Found jack's shadow!", jackAccount);
     }

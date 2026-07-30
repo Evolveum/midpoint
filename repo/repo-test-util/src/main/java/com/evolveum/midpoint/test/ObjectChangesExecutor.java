@@ -8,14 +8,7 @@
 package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -29,7 +22,5 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * moved e.g. to provisioning module.
  */
 public interface ObjectChangesExecutor {
-    void executeChanges(ObjectDelta<? extends ObjectType> delta) throws SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            PolicyViolationException, ObjectAlreadyExistsException;
+    void executeChanges(ObjectDelta<? extends ObjectType> delta) throws CommonException;
 }

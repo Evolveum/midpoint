@@ -78,7 +78,7 @@ abstract class PolicyRuleEvaluator {
     void evaluateRules(
             List<? extends PolicyRuleEvaluationContext<?>> contexts, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
         for (PolicyRuleEvaluationContext<?> ctx : contexts) {
             if (!ctx.policyRule.hasSituationConstraint()) {
                 evaluateRule(ctx, result);
@@ -97,7 +97,7 @@ abstract class PolicyRuleEvaluator {
     private <O extends ObjectType> void evaluateRule(
             @NotNull PolicyRuleEvaluationContext<O> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, RestrictedObjectException {
 
         DirectlyEvaluatedClockworkPolicyRuleImpl rule = ctx.policyRule;
         String ruleShortString = rule.toShortString();

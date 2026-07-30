@@ -234,7 +234,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 Task task = createSimpleTask("getCompiledGuiProfile");
                 try {
                     return getModelInteractionService().getCompiledGuiProfile(task, task.getResult());
-                } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+                } catch (CommonException e) {
                     throw new SystemException(e.getMessage(), e);
                 }
             }

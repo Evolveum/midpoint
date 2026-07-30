@@ -39,6 +39,8 @@ public interface ConnectorDevelopmentOperation {
 
     String submitCreateConnector(Task task, OperationResult result);
 
+    String submitExportConnector(Task task, OperationResult result);
+
     // Midpoint local (+ download framework)
 
     String submitDiscoverObjectClasses(Task task, OperationResult result);
@@ -197,7 +199,7 @@ public interface ConnectorDevelopmentOperation {
         saveArtifact(artifact, task, result);
         resetResourceSchema(task, result);
     }
-    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
@@ -213,7 +215,7 @@ public interface ConnectorDevelopmentOperation {
 
     List<ConnDevHttpEndpointType> suggestedEndpointsFor(String objectClass, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType);
 
-    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
 
     String submitRefreshSchema(Task task, OperationResult result);
 }

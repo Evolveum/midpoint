@@ -1617,7 +1617,7 @@ public final class WebComponentUtil {
                     pageBase.getExpressionFactory(),
                     "collection filter", pageBase.createSimpleTask(result.getOperation()), result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException ex) {
+                ConfigurationException | SecurityViolationException | RestrictedObjectException ex) {
             result.recordPartialError("Unable to evaluate filter exception, ", ex);
             pageBase.error("Unable to evaluate filter exception, " + ex.getMessage());
         }
@@ -1991,9 +1991,7 @@ public final class WebComponentUtil {
 
             pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
 
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource lifecycle state", e);
             parentResult.recordFatalError(
                     pageBase.createStringResource("OperationalButtonsPanel.changeLifecycleState.failed").getString(), e);
@@ -3214,8 +3212,8 @@ public final class WebComponentUtil {
             caseService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
-                ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+                ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                RestrictedObjectException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {
@@ -3245,8 +3243,8 @@ public final class WebComponentUtil {
             caseService.releaseWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
-                ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+                ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                RestrictedObjectException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {

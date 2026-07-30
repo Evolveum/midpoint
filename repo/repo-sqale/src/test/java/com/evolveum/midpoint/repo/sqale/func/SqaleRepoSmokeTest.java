@@ -108,7 +108,9 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
                 .isNotNull()
                 .isNotEmpty();
 
-        LabeledString schemaChangeNumber = details.stream().filter(ls -> SqaleUtils.SCHEMA_CHANGE_NUMBER.equals(ls.getLabel())).findFirst().orElse(null);
+        LabeledString schemaChangeNumber = details.stream()
+                .filter(ls -> SqaleUtils.VersionedComponent.REPOSITORY.label.equals(ls.getLabel()))
+                .findFirst().orElse(null);
         assertThat(schemaChangeNumber)
                 .isNotNull();
     }

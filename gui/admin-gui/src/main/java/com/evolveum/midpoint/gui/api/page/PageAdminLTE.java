@@ -1136,8 +1136,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
             }
 
             return OperationResult.createOperationResult(newResultType);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             topResult.recordFatalError(e);
             if (StringUtils.isEmpty(result.getMessage())) {
                 topResult.setMessage("Couldn't process operation result script hook.");
@@ -1156,21 +1155,19 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         try {
             return isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null)
                     || isAuthorized(action.getUrl(), null, object, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine authorization for {}", e, action);
             return true;            // it is only GUI thing
         }
     }
 
-    public boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public boolean isAuthorized(String operationUrl) throws CommonException {
         return isAuthorized(operationUrl, null, null, null, null);
     }
 
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(
             String operationUrl, AuthorizationPhaseType phase, PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            throws CommonException {
         Task task = getPageTask();
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)

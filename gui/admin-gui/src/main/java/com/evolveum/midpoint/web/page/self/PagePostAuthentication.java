@@ -101,8 +101,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 try {
                     PrismObjectDefinition<UserType> userDef = getModelInteractionService().getEditObjectDefinition(user, null, task, task.getResult());
                     user.applyDefinition(userDef, true);
-                } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-                        | CommunicationException | SecurityViolationException e) {
+                } catch (CommonException e) {
                     //TODO: nothing critical even by the error. for now just log it
                     LoggingUtils.logException(LOGGER, "Cannot apply edited object definition", e);
                 }

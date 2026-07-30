@@ -67,14 +67,14 @@ public class ModelCrudService {
 
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         return modelService.getObject(clazz, oid, options, task, parentResult);
     }
 
     public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         return modelService.searchObjects(type, query, options, task, parentResult);
     }
 
@@ -135,7 +135,7 @@ public class ModelCrudService {
     public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,
             OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+            PolicyViolationException, SecurityViolationException, RestrictedObjectException {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(parentResult, "Result type must not be null.");
 
@@ -175,7 +175,8 @@ public class ModelCrudService {
             result.computeStatus();
             result.cleanup();
 
-        } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
+        } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
+                SecurityViolationException | ConfigurationException | RuntimeException | RestrictedObjectException ex) {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {
@@ -214,7 +215,7 @@ public class ModelCrudService {
     public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
             OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
-            SecurityViolationException {
+            SecurityViolationException, RestrictedObjectException {
         Validate.notNull(clazz, "Class must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(parentResult, "Result type must not be null.");
@@ -235,7 +236,8 @@ public class ModelCrudService {
 
             result.recordSuccess();
 
-        } catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException ex) {
+        } catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException |
+                RestrictedObjectException ex) {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } catch (ObjectAlreadyExistsException | ExpressionEvaluationException ex) {
@@ -292,7 +294,7 @@ public class ModelCrudService {
             Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException {
+            PolicyViolationException, SecurityViolationException, RestrictedObjectException {
 
         Validate.notNull(modifications, "Object modification must not be null.");
         Validate.notEmpty(oid, "Change oid must not be null or empty.");
@@ -323,7 +325,8 @@ public class ModelCrudService {
             LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
             result.recordFatalError(ex);
             throw ex;
-        } catch (SchemaException | ConfigurationException | SecurityViolationException | RuntimeException ex) {
+        } catch (SchemaException | ConfigurationException | SecurityViolationException | RuntimeException |
+                RestrictedObjectException ex) {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {

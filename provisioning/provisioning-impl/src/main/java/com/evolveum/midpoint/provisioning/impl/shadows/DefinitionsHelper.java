@@ -44,7 +44,7 @@ class DefinitionsHelper {
             @Nullable ShadowType repoShadow,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         ShadowType shadow;
         ResourceShadowCoordinates coordinates;
         if (delta.isAdd()) {
@@ -83,7 +83,7 @@ class DefinitionsHelper {
 
     public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         ctxFactory
                 .createForShadow(shadow, task, result)
                 .applyCurrentDefinition(shadow);
@@ -91,7 +91,7 @@ class DefinitionsHelper {
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         ProvisioningContext ctx = ctxFactory.createForShadowCoordinates(
                 ObjectQueryUtil.getShadowCoordinates(query),
                 task,

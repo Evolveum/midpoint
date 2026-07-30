@@ -74,7 +74,7 @@ class ShadowPostProcessor {
 
     ExistingResourceObjectShadow execute(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, EncryptionException {
+            ConfigurationException, ObjectNotFoundException, EncryptionException, RestrictedObjectException {
 
         // Classifies the object if needed. Applies the current definition (in all cases).
         classifyIfNeededAndApplyTheDefinition(result);
@@ -100,7 +100,7 @@ class ShadowPostProcessor {
 
     private void classifyIfNeededAndApplyTheDefinition(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
 
         var oldClassification = ResourceObjectClassification.of(repoShadow.shadow());
 
@@ -166,7 +166,7 @@ class ShadowPostProcessor {
 
     private void postProcessShadowsInReferenceValues(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, EncryptionException {
+            ConfigurationException, ObjectNotFoundException, EncryptionException, RestrictedObjectException {
         for (var refAttrValue : ShadowReferenceAttributesCollection.ofShadow(resourceObject.getBean()).getAllReferenceValues()) {
             postProcessEmbeddedShadowIfPresent(refAttrValue, result);
         }
@@ -178,7 +178,7 @@ class ShadowPostProcessor {
     private void postProcessEmbeddedShadowIfPresent(
             @NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, EncryptionException, ObjectNotFoundException {
+            SecurityViolationException, EncryptionException, ObjectNotFoundException, RestrictedObjectException {
 
         var shadow = refAttrValue.getShadowIfPresent();
         if (shadow == null) {
@@ -198,7 +198,7 @@ class ShadowPostProcessor {
      */
     private void postProcessComplexAttributeValue(AbstractShadow shadow, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         var classification = b.classifier.classify(
                 shadow.getBean(), ctx.getResource(), null, ctx.getTask(), result);
         if (classification.isKnown()) {
@@ -214,7 +214,7 @@ class ShadowPostProcessor {
     private void postProcessEmbeddedShadow(
             AbstractShadow shadow, ShadowReferenceAttributeValue refAttrValue, OperationResult result)
             throws SchemaException, ConfigurationException, CommunicationException, ExpressionEvaluationException,
-            SecurityViolationException, EncryptionException, ObjectNotFoundException {
+            SecurityViolationException, EncryptionException, ObjectNotFoundException, RestrictedObjectException {
         var shadowCtx = ctx.spawnForShadow(shadow.getBean());
         var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, shadowCtx, result);
         if (updatedShadow != null) {
@@ -233,7 +233,7 @@ class ShadowPostProcessor {
             @NotNull ProvisioningContext shadowCtx,
             @NotNull OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
-            EncryptionException, ObjectNotFoundException, SchemaException {
+            EncryptionException, ObjectNotFoundException, SchemaException, RestrictedObjectException {
 
         // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
         //  (If yes, maybe we should retrieve also the associations below?)
@@ -298,7 +298,7 @@ class ShadowPostProcessor {
     private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessEmbeddedShadow(
             ProvisioningContext ctxEntitlement, ExistingResourceObjectShadow existingResourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
         var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, true, result);
         var shadowPostProcessor = new ShadowPostProcessor(
                 ctxEntitlement, repoShadow, existingResourceObject, null);

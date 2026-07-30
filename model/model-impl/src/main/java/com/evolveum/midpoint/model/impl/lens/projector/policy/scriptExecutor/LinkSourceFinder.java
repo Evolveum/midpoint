@@ -59,7 +59,7 @@ class LinkSourceFinder implements AutoCloseable {
     }
 
     List<PrismObject<? extends ObjectType>> getSourcesAsObjects() throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         try {
             return searchForSources(getSourcesAsQuery());
         } catch (Throwable t) {
@@ -69,7 +69,7 @@ class LinkSourceFinder implements AutoCloseable {
     }
 
     List<PrismReferenceValue> getSourcesAsReferences() throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         try {
             return searchForSourceReferences(getSourcesAsQuery());
         } catch (Throwable t) {
@@ -80,7 +80,7 @@ class LinkSourceFinder implements AutoCloseable {
 
     @NotNull
     CompleteQuery<?> getSourcesAsQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         ObjectQuery query = createQuery();
         Class<? extends AssignmentHolderType> objectType = getSourceType();
         CompleteQuery<? extends AssignmentHolderType> completeQuery = new CompleteQuery<>(objectType, query, null);
@@ -146,7 +146,7 @@ class LinkSourceFinder implements AutoCloseable {
     }
 
     private ObjectQuery createQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
         List<LinkedObjectSelectorType> sourceSelectors = collectSourceSelectors();
         List<ObjectFilter> convertedSelectors = new ArrayList<>(sourceSelectors.size());
         for (LinkedObjectSelectorType sourceSelector : sourceSelectors) {
@@ -158,7 +158,7 @@ class LinkSourceFinder implements AutoCloseable {
 
     private ObjectFilter createFilter(@NotNull LinkedObjectSelectorType sourceSelector) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, RestrictedObjectException {
         SelectorToFilterTranslator translator =
                 new SelectorToFilterTranslator(
                         sourceSelector, AssignmentHolderType.class,

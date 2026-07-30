@@ -9,6 +9,8 @@ package com.evolveum.midpoint.authentication.impl.otp;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.util.exception.RestrictedObjectException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

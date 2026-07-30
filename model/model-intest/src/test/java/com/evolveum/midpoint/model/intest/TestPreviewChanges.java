@@ -361,10 +361,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     }
 
     private void doPreviewFail(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
-            throws PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws CommonException {
         display("Input deltas: ", deltas);
 
         try {

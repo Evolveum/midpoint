@@ -14,6 +14,8 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -34,12 +36,6 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
@@ -83,8 +79,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
     @Test
     void melExpressionIsValid_validateScript_expressionPassValidation()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final ExpressionType expression = createExpression(MEL, "input.replace('-', '')");
 
         final Collection<String> result = new MappingScriptValidator(this.expressionFactory)
@@ -110,8 +105,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
      */
     @Test
     void melExpressionUsesXmlGregorianCalendarMethod_validateScript_expressionPassValidation()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final ExpressionType expression = createExpression(MEL, "input.formatDateTime('yyyy')");
         final XMLGregorianCalendar dateTime =
                 XmlTypeConverter.createXMLGregorianCalendar(2024, 5, 17, 10, 30, 0);

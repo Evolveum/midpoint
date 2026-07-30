@@ -83,6 +83,7 @@ CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
     'ACCESS_CERTIFICATION_CAMPAIGN',
     'ACCESS_CERTIFICATION_DEFINITION',
+    'ALLOWED_CONNECTORS_LIST',
     'APPLICATION',
     'ARCHETYPE',
     'ASSIGNMENT_HOLDER',
@@ -4134,6 +4135,31 @@ CREATE TRIGGER m_schema_oid_delete_tr AFTER DELETE ON m_schema
 
 -- endregion
 
+-- @region: allowed-connectors-list
+-- @regionTitle: Allowed connectors list
+-- Represents AllowedConnectorsListType
+-- @description: Stores allowed connectors list definitions.
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#AllowedConnectorsListType
+CREATE TABLE m_allowed_connectors_list (
+    -- @description: Allowed connectors list object identifier.
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('ALLOWED_CONNECTORS_LIST') STORED
+        CHECK (objectType = 'ALLOWED_CONNECTORS_LIST')
+)
+    INHERITS (m_assignment_holder);
+
+-- @description: Maintains the object OID registry when rows are inserted into `m_allowed_connectors_list`.
+CREATE TRIGGER m_allowed_connectors_list_oid_insert_tr BEFORE INSERT ON m_allowed_connectors_list
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+-- @description: Maintains object update metadata before rows are updated in `m_allowed_connectors_list`.
+CREATE TRIGGER m_allowed_connectors_list_update_tr BEFORE UPDATE ON m_allowed_connectors_list
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+-- @description: Removes the object OID registry entry when rows are deleted from `m_allowed_connectors_list`.
+CREATE TRIGGER m_allowed_connectors_list_oid_delete_tr AFTER DELETE ON m_allowed_connectors_list
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+-- endregion
+
 -- @region: extension-items
 -- @regionTitle: Extension items
 -- @regionDescription: Extension item catalog and indexed extension value storage support.
@@ -4224,4 +4250,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(58, $$ SELECT 1 $$, true);
+call apply_change(60, $$ SELECT 1 $$, true);

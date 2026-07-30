@@ -52,7 +52,7 @@ public class ImportFromResourceLauncher {
 
     public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
         OperationResult result = parentResult.createSubresult(OP_IMPORT_SINGLE_SHADOW);
         try {
             ShadowType shadow = provisioningService
