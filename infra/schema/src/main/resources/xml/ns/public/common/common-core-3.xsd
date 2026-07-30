@@ -8039,6 +8039,9 @@
              <xsd:appinfo>
                  <a:container/>
                  <a:since>3.7</a:since>
+                 <a:schemaContext>
+                     <a:typePath>selector/type</a:typePath>
+                 </a:schemaContext>
              </xsd:appinfo>
          </xsd:annotation>
          <xsd:sequence>
