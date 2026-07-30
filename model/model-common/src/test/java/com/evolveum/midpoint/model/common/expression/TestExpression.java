@@ -67,6 +67,9 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final File EXPRESSION_VALUE_FILE = new File(TEST_DIR, "expression-value.xml");
     protected static final String EXPRESSION_VALUE_OUTPUT = "GARBAGE OUT";
 
+    protected static final File EXPRESSION_NULL_FILE = new File(TEST_DIR, "expression-null.xml");
+    protected static final File EXPRESSION_NULL_ALLOW_EMPTY_FILE = new File(TEST_DIR, "expression-null-allow-empty.xml");
+
     protected static final File EXPRESSION_CONST_FILE = new File(TEST_DIR, "expression-const.xml");
 
     protected static final File EXPRESSION_SCRIPT_GROOVY_SIMPLE_FILE = new File(TEST_DIR, "expression-script-groovy-simple.xml");
@@ -182,6 +185,62 @@ public class TestExpression extends AbstractModelCommonTest {
                 .assertEmptyPlus()
                 .zeroSet()
                 .assertSinglePropertyValue(EXPRESSION_VALUE_OUTPUT);
+
+        assertScriptExecutionIncrement(0);
+    }
+
+    @Test
+    public void test125Null() throws Exception {
+        // GIVEN
+        OperationResult result = createOperationResult();
+
+        rememberScriptExecutionCount();
+
+        ExpressionType expressionType = parseExpression(EXPRESSION_NULL_FILE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
+        VariablesMap variables = prepareBasicVariables();
+        ExpressionEvaluationContext expressionContext =
+                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        // THEN
+        assertOutputTriple(outputTriple)
+                .assertEmptyZero()
+                .assertEmptyPlus()
+                .assertEmptyMinus();
+
+        assertScriptExecutionIncrement(0);
+    }
+
+    /**
+     * Unlike nil/empty static value (which is an empty string removed by the empty value stripping),
+     * the "null" evaluator must return no values even when empty values are explicitly allowed.
+     */
+    @Test
+    public void test126NullAllowEmptyValues() throws Exception {
+        // GIVEN
+        OperationResult result = createOperationResult();
+
+        rememberScriptExecutionCount();
+
+        ExpressionType expressionType = parseExpression(EXPRESSION_NULL_ALLOW_EMPTY_FILE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
+        VariablesMap variables = prepareBasicVariables();
+        ExpressionEvaluationContext expressionContext =
+                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        // THEN
+        assertOutputTriple(outputTriple)
+                .assertEmptyZero()
+                .assertEmptyPlus()
+                .assertEmptyMinus();
 
         assertScriptExecutionIncrement(0);
     }

@@ -33,7 +33,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -58,16 +58,14 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
     private static final File TEST_DIR = new File("src/test/resources/tasks/hr-scenario");
     private static final File COMMON_DIR = new File("src/test/resources/tasks/common");
 
-    private static final String RESOURCE_OID = "c1a70000-0000-0000-0000-000000000001";
-
     private static final DummyTestResource RESOURCE = new DummyTestResource(
-            COMMON_DIR, "resource-dummy-source.xml", RESOURCE_OID, "fpc-source",
+            COMMON_DIR, "resource-dummy-source.xml", "c1a70000-0000-0000-0000-000000000001", "fpc-source",
             DummyResourceContoller::populateWithDefaultSchema);
 
-    private static final TestObject<TaskType> TASK_HR =
-            TestObject.file(TEST_DIR, "hr-reconciliation.xml", "e4f00000-0000-0000-0000-000000000001");
-    private static final TestObject<TaskType> TASK_HR_IMPORT =
-            TestObject.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
+    private static final TestTask TASK_HR =
+            TestTask.file(TEST_DIR, "hr-reconciliation.xml", "e4f00000-0000-0000-0000-000000000001");
+    private static final TestTask TASK_HR_IMPORT =
+            TestTask.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
 
     private static final int ACCOUNTS = 20;
     private static final String PATTERN = "a%02d";
@@ -86,11 +84,15 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
      */
     protected abstract Consumer<PrismObject<TaskType>> topology();
 
+    /** How many threads are there. This is the maximum tolerance for the policy rule trigger counter value. */
+    protected abstract int threads();
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         initDummyResource(RESOURCE, initTask, initResult);
         createAccounts();
+        TASK_HR_IMPORT.init(this, initTask, initResult);
 
         // clockwork (focus) policy-rule notifier, redirected to a dummy transport
         SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
@@ -126,7 +128,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
             }
         }
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class,
-                prismContext.queryFor(ShadowType.class).item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OID).build(),
+                prismContext.queryFor(ShadowType.class).item(ShadowType.F_RESOURCE_REF).ref(RESOURCE.oid).build(),
                 null, result);
         for (PrismObject<ShadowType> shadow : shadows) {
             repositoryService.deleteObject(ShadowType.class, shadow.getOid(), result);
@@ -143,12 +145,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
     /** Imports all accounts (plain import, no policy), linking users to shadows — the state the scenario prunes. */
     private void importAllAndLink(OperationResult result) throws Exception {
-        deleteIfPresent(TASK_HR_IMPORT, result);
-        addObject(TASK_HR_IMPORT, getTestTask(), result, (Consumer<PrismObject<TaskType>>) t -> {
-        });
-        waitForTaskCloseOrSuspend(TASK_HR_IMPORT.oid, 5 * TIMEOUT);
-        assertTaskTree(TASK_HR_IMPORT.oid, "after import").assertClosed().assertSuccess();
-        deleteIfPresent(TASK_HR_IMPORT, result);
+        TASK_HR_IMPORT.rerun(result);
     }
 
     private void deleteAccounts(int from, int to) throws Exception {
@@ -173,7 +170,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
             String name = String.format(PATTERN, i);
             List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class,
                     prismContext.queryFor(ShadowType.class)
-                            .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_OID)
+                            .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE.oid)
                             .and().item(ShadowType.F_NAME).eqPoly(name).matchingNorm()
                             .build(), null, result);
             for (PrismObject<ShadowType> shadow : shadows) {
@@ -243,23 +240,31 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
     }
 
     /**
-     * Asserts the initial suspension: the simulate (preview) reconciliation tripped the max-deleted threshold
-     * and suspended, execute never started, and the (preview) counter is at the threshold. Overridden by the
-     * subtask-distributed flavor, where the simulate activity runs in its own subtask.
+     * Asserts the initial suspension:
+     *
+     * * the simulate (preview) reconciliation tripped the max-deleted threshold and suspended,
+     * * execute never started,
+     * * and the (preview) counter is at the given value; plus threads-based tolerance
+     * ** i.e. firing in at least in one thread (counted already in "min" value), at most in all threads
+     *
+     * Overridden by the subtask-distributed flavor, where the simulate activity runs in its own subtask.
+     *
+     * @param min Expected minimal value of the counter
+     * @return the value of the preview delete counter at the time of suspension
      */
-    protected void assertSimulateSuspended(String taskOid, String counterId) throws Exception {
+    protected int assertSimulateSuspended(String taskOid, String counterId, int min) throws Exception {
         // @formatter:off
-        assertTaskTree(taskOid, "after run")
+        return assertTaskTree(taskOid, "after run")
                 .display()
                 .assertSuspended()
-                .activityState(SIMULATE)
-                .assertFatalError()
-                .previewModePolicyRulesCounters()
-                .assertCounterMinMax(counterId, DELETE_THRESHOLD, DELETE_THRESHOLD + 3)
-                .end()
-                .end()
                 .activityState(EXECUTE)
-                .assertRealizationState(null);
+                    .assertRealizationState(null)
+                .end()
+                .activityState(SIMULATE)
+                    .assertFatalError()
+                    .previewModePolicyRulesCounters()
+                        .assertCounterMinMax(counterId, min, min + threads() - 1)
+                        .getCounterValue(counterId);
         // @formatter:on
     }
 
@@ -389,7 +394,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
         then("the simulate activity suspends on the delete threshold; nothing is really deleted");
         String id = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
-        assertSimulateSuspended(TASK_HR.oid, id);
+        assertSimulateSuspended(TASK_HR.oid, id, DELETE_THRESHOLD);
         assertThat(countUsers()).as("preview did not delete").isEqualTo(ACCOUNTS);
         assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
 
@@ -446,7 +451,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
         then("the simulate activity suspends on the delete threshold, having processed some objects");
         String id = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
-        assertSimulateSuspended(TASK_HR.oid, id);
+        int counterAfterFirst = assertSimulateSuspended(TASK_HR.oid, id, DELETE_THRESHOLD);
         assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
         int processedAtFirstSuspend = simulateItemsProcessed(TASK_HR.oid);
         assertThat(processedAtFirstSuspend).as("some objects processed before first trip").isGreaterThan(0);
@@ -456,8 +461,9 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         taskManager.resumeTaskTree(TASK_HR.oid, result);
         waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
-        then("it re-suspends in simulate — the persisted counter trips again after barely any new work");
-        assertSimulateSuspended(TASK_HR.oid, id);
+        then("it re-suspends in simulate — the persisted counter trips again after barely any new work; "
+                + "and only 'threads()' new rule violations");
+        assertSimulateSuspended(TASK_HR.oid, id, counterAfterFirst + 1);
         int processedAfterPlainResume = simulateItemsProcessed(TASK_HR.oid);
         assertThat(processedAfterPlainResume)
                 .as("plain resume re-trips almost at once, so it makes hardly any progress")
@@ -477,7 +483,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
         then("the reconciliation processes further objects before tripping again — processed count incremented");
-        assertSimulateSuspended(TASK_HR.oid, id);
+        assertSimulateSuspended(TASK_HR.oid, id, DELETE_THRESHOLD);
         int processedAfterClear = simulateItemsProcessed(TASK_HR.oid);
         assertThat(processedAfterClear)
                 .as("clearing the counter let the reconciliation process more objects before re-tripping")

@@ -11,7 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityAbortingInformationType;
 
-/** An exception indicating that an activity should be aborted because of a policy rule. */
+/**
+ * An exception indicating that an activity should be aborted because of a policy rule.
+ * Eventually results in {@link ActivityRunResultStatus#ABORTED} being reported.
+ */
 public class ActivityPolicyBasedAbortException extends ActivityPolicyViolationException implements AbortingInformationAware {
 
     private final @NotNull ActivityAbortingInformationType abortingInformation;

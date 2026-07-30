@@ -6468,6 +6468,9 @@
                 set of values should be constructed. E.g. setting
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
+                However, this behavior is not reliable (e.g. it changes when
+                empty values are explicitly allowed). Please use the "null"
+                evaluator to construct an empty set of values instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:rawType/>
@@ -6484,6 +6487,22 @@
     </xsd:complexType>
 
     <xsd:element name="asIs" type="tns:AsIsExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="NullExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Returns no value. The result of the evaluation is an empty set of values.
+
+                Combined with a target set (range) definition, e.g. the predefined "all" range,
+                it can be used to remove all values of the target item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:element name="null" type="tns:NullExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
     <!-- Here we use complexType to create a Java class named ConstExpressionEvaluatorType -->
     <xsd:complexType name="ConstExpressionEvaluatorType">
@@ -8020,6 +8039,9 @@
              <xsd:appinfo>
                  <a:container/>
                  <a:since>3.7</a:since>
+                 <a:schemaContext>
+                     <a:typePath>selector/type</a:typePath>
+                 </a:schemaContext>
              </xsd:appinfo>
          </xsd:annotation>
          <xsd:sequence>

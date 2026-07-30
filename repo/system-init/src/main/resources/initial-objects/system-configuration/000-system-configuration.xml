@@ -2225,6 +2225,10 @@
                 <type>proportional</type>
                 <decision>allow</decision>
             </evaluator>
+            <evaluator id="309">
+                <type>null</type>
+                <decision>allow</decision>
+            </evaluator>
             <bulkActionsProfile>prohibitive</bulkActionsProfile>
             <privilegeElevation>deny</privilegeElevation>
         </expressionProfile>
