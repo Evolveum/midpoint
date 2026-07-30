@@ -600,7 +600,7 @@ Therefore, midPoint does not overwrite existing objects when they are already in
 This may result in upgrade problems if the existing object contains configuration that is no longer supported in a new version.
 
 The following list contains a description of changes to the initial objects in this midPoint release.
-The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
+The complete new set of initial objects is in the `repo/system-init/src/main/resources/initial-objects` directory in the source distribution and in the `doc/config/initial-objects` directory in the binary distribution.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
 For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-with-ninja/#initial-objects-update[here].
@@ -662,10 +662,10 @@ For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-
 * 899-dashboard-compliance.xml: a new one.
 * 910-task-recompute-all-users.xml: a new one.
 
-Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
+Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
-TIP: Copies of initial object files are located in `config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
-On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
+TIP: Copies of initial object files are located in `doc/config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
+On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/repo/system-init/src/main/resources/initial-objects[midPoint source code].
 
 === Schema Changes Since 4.9
 
