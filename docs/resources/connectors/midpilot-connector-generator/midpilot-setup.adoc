@@ -138,8 +138,6 @@ Recommended values ::
 
 == Smart resource integration microservice
 
-=== Service functionality summary
-
 The smart resource integration microservice (`midpilot-smart-resource-integration`) provides AI-assisted suggestions for:
 
 * Resource object type configuration
@@ -186,8 +184,6 @@ Beside the link:#required-config-vars[required configuration variables] and the 
 
 == Connector generator microservice
 
-=== Service purpose summary
-
 The connector generator microservice (`midpilot-connector-gen`) generates connector code for target applications by:
 
 . Searching for and downloading API documentation of the target application
@@ -207,7 +203,7 @@ The connector generator microservice (`midpilot-connector-gen`) generates connec
 Deploy the `midpilot-connector-gen` container (e.g., via Kubernetes, Docker Compose, Nomad job, etc.).
 The service listens on *port 8090* by default.
 MidPoint communicates with the microservice using REST API over HTTP.
-Additionally, ensure the dedicated PostgreSQL database is running and accessible before starting the service (see the <<postgresql,Prerequisites>> section).
+Additionally, ensure the dedicated PostgreSQL database is running and accessible before starting the service (see the <<prerequisites,Prerequisites>> section).
 
 === Components
 
@@ -248,7 +244,7 @@ a|Search provider:
 === Connector framework JAR
 
 The connector generator requires a connector framework JAR file (one layer above ConnId) that serves as a template during connector generation.
-This file is referenced by the `connectorFrameworkUrl` element in link:#configuring-midpoint[midPoint System configuration object].
+This file is referenced by the `connectorFrameworkUrl` element in link:#midpoint-configuration[midPoint System configuration object].
 
 You have two options to get the connector framework JAR:
 
@@ -383,6 +379,6 @@ Use these checklists after deployment to confirm everything works correctly.
 * link:https://github.com/Evolveum/midpoint/tags[GitHub repository: midPoint milestone tags]
 * link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/demo/smart-resource-integration[Demo code samples: smart resource integration]
 * link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/demo/codegen-openproject[Demo code samples: connector generator (OpenProject)]
-* xref:/midpoint/projects/midPilot/[midPilot project page]
+* xref:/midpoint/projects/midPilot/[MidPilot project page]
 * xref:/midpoint/guides/trying-out-the-connector-generator/[]
 
