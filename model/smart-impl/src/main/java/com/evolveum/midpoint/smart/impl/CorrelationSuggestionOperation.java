@@ -20,8 +20,7 @@ import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
-import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfigurationForCorrelation;
-import com.evolveum.midpoint.smart.impl.shadowsampling.ShadowSamplingService;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,11 +34,11 @@ import java.util.List;
 class CorrelationSuggestionOperation {
 
     private final TypeOperationContext ctx;
-    private final ShadowSamplingService shadowSamplingService;
+    private final ObjectsSamplerProvider samplerProvider;
 
-    CorrelationSuggestionOperation(TypeOperationContext ctx, ShadowSamplingService shadowSamplingService) {
+    CorrelationSuggestionOperation(TypeOperationContext ctx, ObjectsSamplerProvider samplerProvider) {
         this.ctx = ctx;
-        this.shadowSamplingService = shadowSamplingService;
+        this.samplerProvider = samplerProvider;
     }
 
     /**
@@ -64,10 +63,8 @@ class CorrelationSuggestionOperation {
         var excludedPaths = mergeExcludedPaths(existingCorrelationPaths, targetPathsToIgnore);
         var suggestions = suggestCorrelationMappings(schemaMatch, correlators, excludedPaths);
 
-        SamplingConfigurationForCorrelation config = SamplingConfigurationForCorrelation.create(ctx.typeDefinition);
-
-        var allScores = new CorrelatorEvaluator(ctx, suggestions, shadowSamplingService)
-                .evaluateSuggestions(result, config);
+        var allScores = new CorrelatorEvaluator(ctx, suggestions, samplerProvider)
+                .evaluateSuggestions(result);
 
         // For each correlator, select the attribute with highest score
         var bestSuggestionsMap = new java.util.HashMap<ItemPath, CorrelatedSuggestionWithScore>();

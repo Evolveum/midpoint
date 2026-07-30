@@ -12,8 +12,7 @@ import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
-import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfigurationForCorrelation;
-import com.evolveum.midpoint.smart.impl.shadowsampling.ShadowSamplingService;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -48,7 +47,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     private static OperationResult result;
 
     @Autowired
-    private ShadowSamplingService shadowSamplingService;
+    private ObjectsSamplerProvider samplerProvider;
 
     private static final TestObject<UserType> USER1 = TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-990000000001");
     private static final TestObject<UserType> USER2 = TestObject.file(TEST_DIR, "user2.xml", "00000000-0000-0000-0000-990000000002");
@@ -151,9 +150,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 ctx,
                 List.of(suggestion),
-                shadowSamplingService
+                samplerProvider
         );
-        List<Double> scores = evaluator.evaluateSuggestions(result, SamplingConfigurationForCorrelation.create(ctx.typeDefinition));
+        List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
@@ -176,9 +175,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 ctx,
                 List.of(suggestion),
-                shadowSamplingService
+                samplerProvider
         );
-        List<Double> scores = evaluator.evaluateSuggestions(result, SamplingConfigurationForCorrelation.create(ctx.typeDefinition));
+        List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
@@ -206,9 +205,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 ctx,
                 List.of(suggestion),
-                shadowSamplingService
+                samplerProvider
         );
-        List<Double> scores = evaluator.evaluateSuggestions(result, SamplingConfigurationForCorrelation.create(ctx.typeDefinition));
+        List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
         double score = scores.get(0);
@@ -228,9 +227,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 ctx,
                 List.<CorrelatorSuggestion>of(),
-                shadowSamplingService
+                samplerProvider
         );
-        List<Double> scores = evaluator.evaluateSuggestions(result, SamplingConfigurationForCorrelation.create(ctx.typeDefinition));
+        List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores)
                 .as("No suggestions should yield empty score list")
@@ -248,9 +247,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
                 ctx,
                 Arrays.asList(new CorrelatorSuggestion(null, null, null, false)),
-                shadowSamplingService
+                samplerProvider
         );
-        List<Double> scores = evaluator.evaluateSuggestions(result, SamplingConfigurationForCorrelation.create(ctx.typeDefinition));
+        List<Double> scores = evaluator.evaluateSuggestions(result);
 
         assertThat(scores).hasSize(1);
         assertThat(scores.get(0))

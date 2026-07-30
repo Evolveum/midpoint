@@ -13,8 +13,7 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
-import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfigurationForCorrelation;
-import com.evolveum.midpoint.smart.impl.shadowsampling.ShadowSamplingService;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,7 +35,7 @@ class CorrelatorEvaluator {
 
     private final TypeOperationContext ctx;
     private final List<CorrelatorSuggestion> suggestions;
-    private final ShadowSamplingService shadowSamplingService;
+    private final ObjectsSamplerProvider samplerProvider;
     private final SmartIntegrationBeans b = SmartIntegrationBeans.get();
     private final Statistics focusStatistics;
     private final Statistics resourceStatistics;
@@ -49,12 +48,12 @@ class CorrelatorEvaluator {
      *
      * @param ctx         The context of the correlation operation.
      * @param suggestions The list of correlator suggestions to evaluate.
-     * @param shadowSamplingService Service for sampling shadows
+     * @param samplerProvider Provider for selecting appropriate sampler
      */
-    CorrelatorEvaluator(TypeOperationContext ctx, List<CorrelatorSuggestion> suggestions, ShadowSamplingService shadowSamplingService) {
+    CorrelatorEvaluator(TypeOperationContext ctx, List<CorrelatorSuggestion> suggestions, ObjectsSamplerProvider samplerProvider) {
         this.ctx = ctx;
         this.suggestions = suggestions;
-        this.shadowSamplingService = shadowSamplingService;
+        this.samplerProvider = samplerProvider;
         this.focusStatistics = new Statistics(
                 suggestions.stream()
                         .map(s -> s.focusItemPath())
@@ -80,7 +79,7 @@ class CorrelatorEvaluator {
      * @param result OperationResult for operation logging/auditing.
      * @return List of scores (one per suggestion), in the same order as the input suggestions.
      */
-    List<Double> evaluateSuggestions(OperationResult result, SamplingConfigurationForCorrelation config)
+    List<Double> evaluateSuggestions(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
@@ -98,11 +97,10 @@ class CorrelatorEvaluator {
                 },
                 null, ctx.task, result);
 
-        // Use ShadowSamplingService for random shadow sampling
-        List<PrismObject<ShadowType>> shadowSamples = shadowSamplingService.sampleShadows(
+        // Use correlation sampler for random shadow sampling
+        List<PrismObject<ShadowType>> shadowSamples = samplerProvider.getCorrelationSampler().sample(
                 ctx.resource,
                 ctx.typeDefinition,
-                config,
                 ctx.task,
                 result);
 

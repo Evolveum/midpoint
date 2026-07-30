@@ -30,7 +30,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
-import com.evolveum.midpoint.smart.impl.shadowsampling.SamplingConfigurationForMappings;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
+import com.evolveum.midpoint.smart.impl.shadowsampling.MappingSampleResult;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
 import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
+import com.evolveum.midpoint.smart.impl.mappings.ShadowsWithOwnerSampleResult;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
@@ -80,6 +82,7 @@ class MappingsSuggestionOperation {
     private final MappingsQualityAssessor qualityAssessor;
     private final MappingScriptValidator scriptValidator;
     private final ShadowsWithOwnersProvider shadowsWithOwnersProvider;
+    private final ObjectsSamplerProvider samplerProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final HeuristicRuleMatcher heuristicRuleMatcher;
     private final CategoricalAttributeRegistry categoricalAttributeRegistry;
@@ -92,6 +95,7 @@ class MappingsSuggestionOperation {
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             ShadowsWithOwnersProvider shadowsWithOwnersProvider,
+            ObjectsSamplerProvider samplerProvider,
             MappingScriptValidator scriptValidator,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
@@ -104,6 +108,7 @@ class MappingsSuggestionOperation {
         this.qualityAssessor = qualityAssessor;
         this.scriptValidator = scriptValidator;
         this.shadowsWithOwnersProvider = shadowsWithOwnersProvider;
+        this.samplerProvider = samplerProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.heuristicRuleMatcher = heuristicRuleMatcher;
         this.categoricalAttributeRegistry = categoricalAttributeRegistry;
@@ -118,6 +123,7 @@ class MappingsSuggestionOperation {
             MappingsQualityAssessor qualityAssessor,
             MappingScriptValidator scriptValidator,
             ShadowsWithOwnersProvider shadowsWithOwnersProvider,
+            ObjectsSamplerProvider samplerProvider,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
             CategoricalAttributeRegistry categoricalAttributeRegistry,
@@ -131,6 +137,7 @@ class MappingsSuggestionOperation {
                 ctx,
                 qualityAssessor,
                 shadowsWithOwnersProvider,
+                samplerProvider,
                 scriptValidator,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -153,17 +160,16 @@ class MappingsSuggestionOperation {
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         ctx.checkIfCanRun();
 
-        SamplingConfigurationForMappings config = SamplingConfigurationForMappings.create(ctx.typeDefinition);
+        var sampleResult = collectOwnedShadows(result);
+        var ownedShadows = sampleResult.samples();
 
-        var ownedShadows = collectOwnedShadows(result, config);
-        int llmDataCount = Math.min(config.getLlmSampleSize(), ownedShadows.size());
-        int validationDataCount = Math.min(config.getValidationSampleSize(), ownedShadows.size());
-
-        var shadowsForLLM = ownedShadows.subList(0, llmDataCount);
-        var shadowsForValidation = ownedShadows.subList(ownedShadows.size() - validationDataCount, ownedShadows.size());
+        var shadowsForLLM = ownedShadows.subList(0, sampleResult.llmSampleSize());
+        var shadowsForValidation = ownedShadows.subList(
+                ownedShadows.size() - sampleResult.validationSampleSize(),
+                ownedShadows.size());
 
         LOGGER.info("Using {} shadows for LLM, {} for validation, total {} sampled",
-                llmDataCount, validationDataCount, ownedShadows.size());
+                sampleResult.llmSampleSize(), sampleResult.validationSampleSize(), ownedShadows.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -352,14 +358,13 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private List<ShadowWithOwner> collectOwnedShadows(OperationResult result, SamplingConfigurationForMappings config)
+    private ShadowsWithOwnerSampleResult collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
-        state.setExpectedProgress(config.getSampleSize());
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return shadowsWithOwnersProvider.fetch(ctx, state, result, config);
+            return shadowsWithOwnersProvider.fetch(ctx, state, result);
         } catch (Exception e) {
             state.recordException(e);
             throw e;

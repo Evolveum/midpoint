@@ -58,7 +58,7 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.api.synchronization.SourceSynchronizationAnswers;
 import com.evolveum.midpoint.smart.api.synchronization.SynchronizationConfigurationScenario;
 import com.evolveum.midpoint.smart.api.synchronization.TargetSynchronizationAnswers;
-import com.evolveum.midpoint.smart.impl.shadowsampling.ShadowSamplingService;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -128,7 +128,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private final StatisticsService statisticsService;
     private final SchemaMatchService schemaMatchService;
     private final SystemObjectCache systemObjectCache;
-    private final ShadowSamplingService shadowSamplingService;
+    private final ObjectsSamplerProvider samplerProvider;
 
     public SmartIntegrationServiceImpl(ModelService modelService,
             TaskService taskService, ModelInteractionServiceImpl modelInteractionService, TaskManager taskManager,
@@ -136,7 +136,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             ServiceClientFactory clientFactory, MappingSuggestionOperationFactory mappingSuggestionOperationFactory,
             ObjectTypesSuggestionOperationFactory objectTypesSuggestionOperationFactory,
             StatisticsService statisticsService, SchemaMatchService schemaMatchService,
-            SystemObjectCache systemObjectCache, ShadowSamplingService shadowSamplingService) {
+            SystemObjectCache systemObjectCache, ObjectsSamplerProvider samplerProvider) {
         this.modelService = modelService;
         this.taskService = taskService;
         this.modelInteractionService = modelInteractionService;
@@ -148,7 +148,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         this.statisticsService = statisticsService;
         this.schemaMatchService = schemaMatchService;
         this.systemObjectCache = systemObjectCache;
-        this.shadowSamplingService = shadowSamplingService;
+        this.samplerProvider = samplerProvider;
     }
 
     @Override
@@ -739,7 +739,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = this.clientFactory.getServiceClient(result)) {
             var correlation = new CorrelationSuggestionOperation(
                     TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result),
-                    shadowSamplingService)
+                    samplerProvider)
                     .suggestCorrelation(result, schemaMatch, targetPathsToIgnore);
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
