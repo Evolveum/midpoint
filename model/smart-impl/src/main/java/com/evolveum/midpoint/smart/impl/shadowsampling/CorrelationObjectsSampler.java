@@ -24,12 +24,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -60,7 +55,7 @@ public class CorrelationObjectsSampler implements ObjectsSampler {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         boolean useNoFetch = typeDefinition.isCachingEnabled();
         int sampleSize = useNoFetch ? CACHED_SAMPLE_SIZE : DEFAULT_SAMPLE_SIZE;
@@ -111,7 +106,7 @@ public class CorrelationObjectsSampler implements ObjectsSampler {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
 
         boolean useNoFetch = typeDefinition.isCachingEnabled();
         int sampleSize = useNoFetch ? CACHED_SAMPLE_SIZE : DEFAULT_SAMPLE_SIZE;
