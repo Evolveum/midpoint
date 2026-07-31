@@ -281,19 +281,24 @@ export default class MidPointTheme {
                             $el.showTooltip(true);
                         }
                     }
+                });
 
+                document.addEventListener("keydown", function (e) {
                     if (e.key === "Escape") {
-                        $("[data-bs-toggle='tooltip']").each(function () {
-                            const $tooltip = $("#" + $(this).attr("data-tooltip-id"));
-                            $(this).tooltip('hide');
-                        });
-
-                        if (lastTooltipTrigger) {
-                            $(lastTooltipTrigger).focus();
-                            lastTooltipTrigger = null;
+                        const $visibleTooltips = $(".tooltip:visible");
+                        if ($visibleTooltips.length > 0) {
+                            e.stopImmediatePropagation();
+                            e.preventDefault();
+                            $("[data-bs-toggle='tooltip']").each(function () {
+                                $(this).tooltip('hide');
+                            });
+                            if (lastTooltipTrigger) {
+                                $(lastTooltipTrigger).focus();
+                                lastTooltipTrigger = null;
+                            }
                         }
                     }
-                });
+                }, true);
 
                 $(document).on("mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
