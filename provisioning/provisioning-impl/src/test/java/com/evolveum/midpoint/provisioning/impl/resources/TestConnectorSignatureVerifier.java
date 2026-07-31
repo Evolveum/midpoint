@@ -27,7 +27,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -235,7 +234,7 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
         }
     }
 
-    private @NonNull BiConsumer<AtomicReference<String>, OperationResult> processSuccess() {
+    private @NotNull BiConsumer<AtomicReference<String>, OperationResult> processSuccess() {
         return (lastConnectorOid, result) -> {
             try {
                 connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid.get(), result);
@@ -245,7 +244,7 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
         };
     }
 
-    private @NonNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithSuffix(String prefix) {
+    private @NotNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithSuffix(String prefix) {
         return (lastConnectorOid, result) -> {
             SubscriptionComplianceException exception = checkException(lastConnectorOid, result);
 
@@ -253,7 +252,7 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
         };
     }
 
-    private @NonNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithPrefix(String prefix) {
+    private @NotNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithPrefix(String prefix) {
         return (lastConnectorOid, result) -> {
             SubscriptionComplianceException exception = checkException(lastConnectorOid, result);
 
