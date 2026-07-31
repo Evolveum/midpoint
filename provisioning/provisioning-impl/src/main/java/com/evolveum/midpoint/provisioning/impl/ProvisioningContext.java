@@ -64,10 +64,25 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
- * Context for provisioning operations. Contains key information like resolved resource,
- * object type and/or object class definitions, and so on.
+ * Context for provisioning operations. Contains key information that is needed for almost all operations,
+ * mainly:
  *
- * @author semancik
+ * - {@link #task}
+ * - {@link #resource}: resolved resource object - fresh enough
+ * - {@link #resourceObjectDefinition}: what object type and/or object class we deal with
+ *
+ * The context is determined as soon as possible, e.g. when we obtain the shadow from the repository and learn its
+ * resource, kind, intent, and object class. Or it can be gradually refined, like when we obtain a new object from the
+ * resource (knowning its class), and then classifying it, learning about kind + intent.
+ *
+ * Special class is {@link #isWildcard()} context: not knowing the object class/type.
+ *
+ * Provisioning context can be switched, e.g. when dealing with account entitlements after the main account is fetched.
+ * (We switch the object type from e.g. `account/default` to `entitlement/group` at that time.)
+ *
+ * NOTE: Some of fields in this class are dubious and should be reconsidered if they really belong here.
+ *
+ * @see ProvisioningOperationContext
  */
 public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider {
 
@@ -317,6 +332,10 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return newConnector;
     }
 
+    /**
+     * Wildcard context is used e.g. for class-less livesync operations (i.e. "give me all changes for all object classes").
+     * It should be bound to specific class/type as soon as possible.
+     */
     public boolean isWildcard() {
         return resourceObjectDefinition == null;
     }
