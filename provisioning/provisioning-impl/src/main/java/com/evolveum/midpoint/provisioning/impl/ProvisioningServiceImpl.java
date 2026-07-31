@@ -8,16 +8,20 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -36,6 +40,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagG
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,6 +123,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Autowired private ResourceObjectClassifier resourceObjectClassifier;
     @Autowired private ShadowTagGenerator shadowTagGenerator;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private Protector protector;
 
     private volatile SynchronizationSorterEvaluator synchronizationSorterEvaluator;
     private volatile SystemConfigurationType systemConfiguration;
@@ -429,7 +435,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 result.computeStatus();
             }
 
-        } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException
+        } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException |
+                SecurityViolationException
                 | PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
@@ -556,7 +563,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             scriptResult = resourceManager.executeScript(resourceOid, script, task, result);
 
-        } catch (CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+        } catch (CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException |
+                RuntimeException | Error e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;
         }
@@ -966,7 +974,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         OperationResult result = parentResult.subresult(OP_INITIALIZE)
                 .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
                 .build();
+
         try {
+            addDiscoveryTimestampToConnectors(result);
+
             Set<ConnectorType> discoveredConnectors = connectorManager.discoverLocalConnectors(result);
             for (ConnectorType connector : discoveredConnectors) {
                 LOGGER.info("Discovered local connector {}", ObjectTypeUtil.toShortString(connector));
@@ -977,6 +988,44 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } finally {
             result.close();
             result.cleanup();
+        }
+    }
+
+    private void addDiscoveryTimestampToConnectors(OperationResult result) {
+        try {
+            repositoryService.searchObjectsIterative(
+                    ConnectorType.class,
+                    null,
+                    (connector, searchResult) -> {
+                        ConnectorType connectorBean = (ConnectorType) connector.asObjectable();
+                        if (connectorBean.getDiscoveryTimestamp() == null
+                                || connectorBean.getDiscoveryTimestamp().isEmpty()) {
+
+                            long discoverTimestamp = Instant.now().toEpochMilli();
+
+                            try {
+                                ProtectedStringType discoverTimestampBean = new ProtectedStringType()
+                                        .clearValue(
+                                                String.valueOf(discoverTimestamp));
+                                protector.encrypt(discoverTimestampBean);
+
+                                repositoryService.modifyObject(ConnectorType.class, connector.getOid(),
+                                        prismContext.deltaFor(ConnectorType.class)
+                                                .item(ConnectorType.F_DISCOVERY_TIMESTAMP)
+                                                .replace(discoverTimestampBean)
+                                                .asItemDeltas(), result);
+                            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException |
+                                    EncryptionException e) {
+                                LOGGER.error("Couldn't store discovery timestamp to connector '%s'".formatted(connectorBean.getName()), e);
+                            }
+                        }
+                        return true;
+                    },
+                    null,
+                    false,
+                    result);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't search connectors because of storing discovery timestamp to connectors.", e);
         }
     }
 

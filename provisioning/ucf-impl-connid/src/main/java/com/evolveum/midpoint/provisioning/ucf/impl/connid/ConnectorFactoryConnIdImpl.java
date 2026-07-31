@@ -21,6 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.security.Key;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -35,6 +37,8 @@ import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 
 import com.evolveum.midpoint.task.api.Tracer;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
@@ -307,6 +311,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 localConnectorTypes.add(connectorType);
             } catch (SchemaException e) {
                 LOGGER.error("Schema error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
+            } catch (EncryptionException e) {
+                LOGGER.error("Encryption error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return localConnectorTypes;
@@ -322,6 +328,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 connectorTypes.add(connectorType);
             } catch (SchemaException e) {
                 LOGGER.error("Schema error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
+            } catch (EncryptionException e) {
+                LOGGER.error("Encryption error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return connectorTypes;
@@ -338,9 +346,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      *
      * @param hostType host that this connector runs on or null for local connectors
      */
-    private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
+    private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType)
+            throws SchemaException, EncryptionException {
         ConnectorType connectorType = new ConnectorType();
         ConnectorKey key = cinfo.getConnectorKey();
+
+        addDiscoveryTimestamp(connectorType);
 
         var displayName = cinfo.getConnectorDisplayName();
         displayName = displayName == null ? key.getConnectorName() : displayName;
@@ -368,6 +379,25 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         UcfUtil.setConnectorSchema(connectorType, connectorSchema);
 
         return connectorType;
+    }
+
+    /**
+     * Add discovery timestamp to ICF connector.
+     */
+    private void addDiscoveryTimestamp(ConnectorType connectorType) throws EncryptionException {
+
+        long timestamp = Instant.now().toEpochMilli();
+        if (connectorType.getMetadata() != null
+                && connectorType.getMetadata().getCreateTimestamp() != null) {
+            timestamp = connectorType.getMetadata().getCreateTimestamp()
+                    .toGregorianCalendar().getTimeInMillis();
+        }
+
+        connectorType.discoveryTimestamp(
+                new ProtectedStringType()
+                        .clearValue(String.valueOf(timestamp)));
+
+        protector.encrypt(connectorType.getDiscoveryTimestamp());
     }
 
     /**
