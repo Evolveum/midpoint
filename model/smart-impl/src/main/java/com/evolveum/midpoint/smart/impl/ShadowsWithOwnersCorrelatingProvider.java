@@ -47,7 +47,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             OperationResult result,
             int maxExamples)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(maxExamples);
         final CorrelationDefinitionType correlationDef =
                 new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();

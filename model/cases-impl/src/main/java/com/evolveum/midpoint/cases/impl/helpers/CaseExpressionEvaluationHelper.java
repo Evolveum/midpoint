@@ -51,7 +51,7 @@ public class CaseExpressionEvaluationHelper {
     public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
             VariablesMap variables, String contextDescription,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<ObjectReferenceType> retval = new ArrayList<>();
         for (ExpressionType expression : expressions) {
             retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
@@ -62,7 +62,7 @@ public class CaseExpressionEvaluationHelper {
     private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, VariablesMap variables,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,
                 ObjectReferenceType.COMPLEX_TYPE, false, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
     }
@@ -74,7 +74,7 @@ public class CaseExpressionEvaluationHelper {
             boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ItemDefinition<?> resultDef;
         ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
         if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
@@ -113,7 +113,7 @@ public class CaseExpressionEvaluationHelper {
     public boolean evaluateBooleanExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Collection<Boolean> values = evaluateExpression(expressionType, VariablesMap, contextDescription,
                 Boolean.class, DOMUtil.XSD_BOOLEAN, false, null, task, result);
         return MiscUtil.getSingleValue(values, false, contextDescription);
@@ -122,7 +122,7 @@ public class CaseExpressionEvaluationHelper {
     String evaluateStringExpression(ExpressionType expressionType, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Collection<String> values = evaluateExpression(expressionType, VariablesMap, contextDescription,
                 String.class, DOMUtil.XSD_STRING, false, null, task, result);
         return MiscUtil.getSingleValue(values, null, contextDescription);

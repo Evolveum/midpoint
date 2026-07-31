@@ -110,7 +110,7 @@ class PathExpressionResolver {
      * Main entry point.
      */
     TypedValue<?> resolve(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         TypedValue<?> root;
         String topVarDesc;
         if (variableName != null) {
@@ -194,7 +194,7 @@ class PathExpressionResolver {
     private TypedValue<?> determineTypedValue(PrismContainer<?> rootContainer, boolean objectAlreadyFetched,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Object value;
         PartiallyResolvedItem<PrismValue, ItemDefinition<?>> partiallyResolvedItem = rootContainer.findPartial(relativePath);
         if (partiallyResolvedItem == null) {

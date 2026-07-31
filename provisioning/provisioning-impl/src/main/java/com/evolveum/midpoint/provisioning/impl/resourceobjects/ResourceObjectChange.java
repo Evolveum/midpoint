@@ -166,7 +166,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
      */
     private @Nullable CompleteResourceObject processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, NotApplicableException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
 //        if (ucfResourceObject != null) {
 //            effectiveCtx = effectiveCtx.applyDefinitionInNewCtx(ucfResourceObject.getPrismObject());
@@ -227,7 +227,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
 
     private @Nullable CompleteResourceObject fetchResourceObject(ShadowItemsToReturn shadowItemsToReturn, OperationResult result)
             throws CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, NotApplicableException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, NotApplicableException, SubscriptionComplianceException {
         if (!effectiveCtx.hasRealReadCapability()) {
             getLogger().trace("NOT fetching object {} because the resource does not support it", identifiers);
             return null;

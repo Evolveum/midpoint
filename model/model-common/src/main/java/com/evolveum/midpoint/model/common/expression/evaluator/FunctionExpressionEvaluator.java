@@ -79,7 +79,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         checkEvaluatorProfile(context);
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
@@ -112,7 +112,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             FunctionInLibrary functionInLibrary, @NotNull ExpressionProfile functionExpressionProfile,
             ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
         VariablesMap functionVariables = new VariablesMap();
 
@@ -163,7 +163,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
     private PrismValueDeltaSetTriple<V> evaluateFunctionExpression(Expression<V, D> functionExpression,
             ExpressionEvaluationContext functionContext, OperationResult parentResult) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, RestrictedObjectException {
+            SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_FUNCTION);
         try {
             return functionExpression.evaluate(functionContext, parentResult);

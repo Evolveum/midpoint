@@ -72,7 +72,7 @@ public class ContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         CategorizedDeltas<F> categorizedDeltas = new CategorizedDeltas<>(deltas);
 
@@ -166,7 +166,7 @@ public class ContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         Class<O> typeClass = Objects.requireNonNull(object.getCompileTimeClass(), "no object class");
         LensContext<F> context;
         if (AssignmentHolderType.class.isAssignableFrom(typeClass)) {
@@ -196,7 +196,7 @@ public class ContextFactory {
     private <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
             @NotNull ShadowType shadow, ModelExecuteOptions options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
         LensContext<F> lensContext = new LensContext<>(null, task.getExecutionMode());
         LensProjectionContext projectionContext =

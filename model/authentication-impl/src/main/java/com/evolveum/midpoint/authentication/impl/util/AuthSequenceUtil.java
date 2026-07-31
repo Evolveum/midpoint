@@ -359,8 +359,8 @@ public class AuthSequenceUtil {
 
                 users = modelService.searchObjects(UserType.class, query, null, task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                    | CommunicationException | ConfigurationException | ExpressionEvaluationException
-                    | RestrictedObjectException e) {
+                     | CommunicationException | ConfigurationException | ExpressionEvaluationException
+                     | SubscriptionComplianceException e) {
                 LoggingUtils.logException(LOGGER, "failed to search user", e);
                 return null;
             }

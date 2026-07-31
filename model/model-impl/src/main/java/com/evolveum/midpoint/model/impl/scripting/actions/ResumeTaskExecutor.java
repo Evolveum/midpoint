@@ -43,7 +43,7 @@ public class ResumeTaskExecutor extends AbstractObjectBasedActionExecutor<TaskTy
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) -> {

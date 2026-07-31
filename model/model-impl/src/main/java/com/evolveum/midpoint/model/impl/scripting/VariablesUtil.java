@@ -58,7 +58,7 @@ public class VariablesUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         VariablesMap rv = new VariablesMap();
         addProvidedVariables(rv, initialVariables, task);
         addDerivedVariables(rv, derivedVariables, expressionProfile, task, result);
@@ -78,7 +78,7 @@ public class VariablesUtil {
             ScriptingVariablesDefinitionType definitions, ExpressionProfile expressionProfile,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (definitions == null) {
             return;
         }
@@ -104,7 +104,7 @@ public class VariablesUtil {
     private static TypedValue<?> variableFromPathExpression(VariablesMap resultingVariables,
             JAXBElement<?> expressionEvaluator, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!(expressionEvaluator.getValue() instanceof ItemPathType)) {
             throw new IllegalArgumentException("Path expression: expected ItemPathType but got " + expressionEvaluator.getValue());
         }
@@ -133,7 +133,7 @@ public class VariablesUtil {
             String shortDesc,
             Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, shortDesc);
         ExpressionFactory expressionFactory = ModelBeans.get().expressionFactory;
         Expression<PrismValue, ItemDefinition<?>> expression = expressionFactory

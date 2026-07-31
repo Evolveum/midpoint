@@ -146,7 +146,7 @@ class MappingsSuggestionOperation {
             SchemaMatchResultType schemaMatch,
             @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, SubscriptionComplianceException {
         ctx.checkIfCanRun();
 
         var ownedShadows = collectOwnedShadows(result);
@@ -345,7 +345,7 @@ class MappingsSuggestionOperation {
 
     private List<ShadowWithOwner> collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, RestrictedObjectException {
+            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
         state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         state.flush(result); // because finding an owned shadow can take a while

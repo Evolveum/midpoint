@@ -49,7 +49,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
     }
 
     PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         recordEvaluationStart(ValueTransformationEvaluationModeType.SINGLE_SHOT);
 
@@ -69,7 +69,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
 
     private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpressionWithDeltas() throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         Collection<V> outputForOldState = context.isSkipEvaluationMinus() ? null : evaluateExpressionInState(false);
         Collection<V> outputForNewState = context.isSkipEvaluationPlus() ? null : evaluateExpressionInState(true);
@@ -80,7 +80,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
     @NotNull
     private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpressionWithoutDeltas() throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         // No need to execute twice. There is no change.
         Collection<V> outputForNewState = evaluateExpressionInState(true);
 
@@ -88,7 +88,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
     }
 
     private Collection<V> evaluateExpressionInState(boolean useNewValues) throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE_EXPRESSION)
                 .setMinor()
@@ -178,7 +178,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
     }
 
     private void addValueMetadata(@NotNull Collection<V> output) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
 
         if (valueMetadataComputer == null) {

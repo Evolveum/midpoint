@@ -78,7 +78,7 @@ class AsynchronousScriptExecutor {
     private void submitTask(TaskType newTask, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =
                 actx.beans.modelService.executeChanges(
                         List.of(DeltaFactory.Object.createAddDelta(newTask.asPrismObject())),

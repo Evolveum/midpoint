@@ -180,7 +180,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             @Override
             public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object)
                     throws CommunicationException, ConfigurationException, SecurityViolationException,
-                    ExpressionEvaluationException, RestrictedObjectException {
+                    ExpressionEvaluationException, SubscriptionComplianceException {
                 return focusProfileService.resolveOwner(object);
             }
 

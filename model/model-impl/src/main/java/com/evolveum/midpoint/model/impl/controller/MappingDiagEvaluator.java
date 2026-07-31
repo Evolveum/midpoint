@@ -47,7 +47,7 @@ public class MappingDiagEvaluator {
     public MappingEvaluationResponseType evaluateMapping(
             @NotNull MappingEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException, RestrictedObjectException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         MappingBuilder<?,?> builder = mappingFactory.createMappingBuilder();
 
@@ -109,7 +109,7 @@ public class MappingDiagEvaluator {
 
     private <O extends Objectable> ObjectDeltaObject<O> createSourceContext(MappingEvaluationRequestType request, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (request.getSourceContext() == null) {
             return null;
         }

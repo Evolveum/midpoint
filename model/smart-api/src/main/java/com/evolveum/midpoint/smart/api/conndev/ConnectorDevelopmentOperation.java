@@ -199,7 +199,7 @@ public interface ConnectorDevelopmentOperation {
         saveArtifact(artifact, task, result);
         resetResourceSchema(task, result);
     }
-    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
+    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
@@ -215,7 +215,7 @@ public interface ConnectorDevelopmentOperation {
 
     List<ConnDevHttpEndpointType> suggestedEndpointsFor(String objectClass, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType);
 
-    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
+    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     String submitRefreshSchema(Task task, OperationResult result);
 }

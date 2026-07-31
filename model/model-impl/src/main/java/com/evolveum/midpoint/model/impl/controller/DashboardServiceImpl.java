@@ -222,7 +222,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private String generateNumberMessageForObject(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectType object = getObjectFromObjectRef(widget, task, result);
         if (object == null) {
             return null;
@@ -293,7 +293,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> combineAuditOption(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         List<SelectorOptions<GetOperationOptions>> collectionOptions = null;
         if (collection != null) {
@@ -315,7 +315,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private ObjectFilter combineAuditFilter(CollectionRefSpecificationType collectionRef, SearchFilterType baseFilter, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         SearchFilterType filter = baseFilter;
         if (filter == null) {
             if (collectionRef.getCollectionRef() != null) {
@@ -349,7 +349,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private String generateNumberMessageForCollection(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         CollectionRefSpecificationType collectionSpec = getCollectionRefSpecificationType(widget, task, result);
         if (collectionSpec != null) {
 
@@ -512,7 +512,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (isCollectionRefOfCollectionNull(widget)) {
             return null;
         }
@@ -533,7 +533,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     private ObjectType getObjectFromObjectRef(DashboardWidgetType widget, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (isDataNull(widget)) {
             return null;
         }
@@ -553,7 +553,7 @@ public class DashboardServiceImpl implements DashboardService {
                 contentTypeList = ExpressionUtil.evaluateStringExpression(
                         variables, expression, null, expressionFactory, shortDes, task, result);
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                    | ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                     | ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                 LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);
             }
             if (contentTypeList == null || contentTypeList.isEmpty()) {

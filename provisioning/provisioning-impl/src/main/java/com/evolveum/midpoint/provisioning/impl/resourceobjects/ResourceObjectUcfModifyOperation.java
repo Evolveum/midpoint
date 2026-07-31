@@ -106,7 +106,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             ConnectorOperationOptions connOptions)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         return new ResourceObjectUcfModifyOperation(ctx, repoShadow, preReadObject, identification, operations, scripts, connOptions)
                 .doExecuteModify(result);
     }
@@ -114,7 +114,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
     private @NotNull UcfModifyReturnValue doExecuteModify(OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         // Should include known side effects. May include also executed requested changes. See ConnectorInstance.modifyObject.
         Collection<PropertyModificationOperation<?>> knownExecutedChanges = new HashSet<>();
@@ -270,7 +270,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             ResourceObjectDefinition objectDefinition,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
         var readReplaceAttributes = determineReadReplaceAttributes(ctx, operationsWave, objectDefinition);
         LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
         if (!readReplaceAttributes.isEmpty()) {

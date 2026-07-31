@@ -45,7 +45,7 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
@@ -68,7 +68,7 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
             TriggerCreationType triggerCreation, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         AssignmentHolderType objectable = object.asObjectable();
         if (triggerCreation == null) {

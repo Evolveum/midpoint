@@ -56,7 +56,7 @@ public class ObjectTypeFiltersValidator {
             SearchFilterType filterBean,
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException, SubscriptionComplianceException {
 
         var result = parentResult.subresult(ID_IS_FILTER_RUNNABLE)
                 .addParam("resourceOid", resourceOid)
@@ -94,7 +94,7 @@ public class ObjectTypeFiltersValidator {
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         var result = parentResult.subresult(ID_IS_BASE_CONTEXT_FILTER_RUNNABLE)
                 .addParam("resourceOid", resourceOid)

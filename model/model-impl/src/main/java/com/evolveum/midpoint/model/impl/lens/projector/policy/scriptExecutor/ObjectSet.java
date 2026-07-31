@@ -60,7 +60,7 @@ abstract class ObjectSet<IO extends PrismValue> {
     }
 
     void collect() throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         checkNotCollected();
 
         if (objectSpec == null) {
@@ -112,11 +112,11 @@ abstract class ObjectSet<IO extends PrismValue> {
      */
     abstract void collectLinkSources()
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     private boolean currentObjectMatches(@NotNull PrismObject<?> object, @NotNull ObjectSelectorType selector)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return SelectorMatcher.forSelector(selector)
                 .withLogging(LOGGER, "current object")
                 .matches(object);

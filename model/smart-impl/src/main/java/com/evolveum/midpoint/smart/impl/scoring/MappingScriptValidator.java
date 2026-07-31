@@ -86,7 +86,7 @@ public class MappingScriptValidator {
             Task task,
             OperationResult parentResult)
             throws ExpressionEvaluationException, SecurityViolationException, SchemaException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         final String description = "Mapping expression evaluation";
         final VariablesMap variables = new VariablesMap();

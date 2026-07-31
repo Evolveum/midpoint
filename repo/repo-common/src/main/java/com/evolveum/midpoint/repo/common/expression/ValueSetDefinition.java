@@ -101,7 +101,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
 
     public boolean contains(IV pval)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (!extraSetSpecification.matches(pval)) {
             return false;
         }
@@ -118,7 +118,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
 
     private boolean containsYield(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         return yieldCondition == null || evalYieldCondition(pval, metadata);
     }
 
@@ -152,7 +152,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         try {
             return contains(pval);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             throw new TunnelException(e);
         }
     }
@@ -166,13 +166,13 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
                     (ValueMetadataType) metadataValue.asContainerable() : null;
             return containsYield(pval, metadataBean);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             throw new TunnelException(e);
         }
     }
 
     private boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         VariablesMap variables = new VariablesMap();
         Object value = getInputValue(pval);
         variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
@@ -199,7 +199,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     // TODO deduplicate with evalCondition
     private boolean evalYieldCondition(IV pval, ValueMetadataType metadata) throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         VariablesMap variables = new VariablesMap();
         Object value = getInputValue(pval);
         variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);

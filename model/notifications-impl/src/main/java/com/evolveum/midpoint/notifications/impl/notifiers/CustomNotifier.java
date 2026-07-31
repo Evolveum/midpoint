@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
 
 @Component
@@ -124,7 +123,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
                     "message expression",
                     ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't evaluate custom notifier expression: " + e.getMessage(), e);
         }
         if (messages == null || messages.isEmpty()) {
@@ -142,7 +141,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
             String shortDesc,
             EventProcessingContext<?> ctx,
             OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");

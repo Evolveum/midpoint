@@ -7065,7 +7065,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                     //noinspection unchecked
                     return (PrismObject<O>) modelObjectResolver.getObject(type, oid, options, getTestTask(), result).asPrismObject();
                 } catch (CommunicationException | ConfigurationException | SecurityViolationException |
-                        ExpressionEvaluationException | RestrictedObjectException e) {
+                         ExpressionEvaluationException | SubscriptionComplianceException e) {
                     throw new SystemException(e);
                 }
             }
@@ -7106,7 +7106,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, RestrictedObjectException, ObjectNotFoundException {
+            ConfigurationException, SubscriptionComplianceException, ObjectNotFoundException {
         return modelService.testResource(oid, task, result);
     }
 

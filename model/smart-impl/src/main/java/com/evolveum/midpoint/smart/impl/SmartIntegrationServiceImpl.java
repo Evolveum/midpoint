@@ -209,7 +209,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return schemaMatchService.computeSchemaMatch(resourceOid, typeIdentification, useAiService, task, parentResult);
     }
 
@@ -217,7 +217,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public ObjectClassSizeEstimationType estimateObjectClassSize(
             String resourceOid, QName objectClassName, int maxSizeForEstimation, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var result = parentResult.subresult(OP_ESTIMATE_OBJECT_CLASS_SIZE)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
@@ -636,7 +636,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
         var result = parentResult.subresult(OP_SUGGEST_OBJECT_TYPES)
                 .addParam("resourceOid", resourceOid)
@@ -661,7 +661,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid, ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, SubscriptionComplianceException {
         LOGGER.debug("Suggesting focus type for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_FOCUS_TYPE)
                 .addParam("resourceOid", resourceOid)
@@ -688,7 +688,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid, ResourceObjectTypeDefinitionType typeDefBean,
             List<DataAccessPermissionType> permissions, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, SubscriptionComplianceException {
         LOGGER.debug("Suggesting focus type for resourceOid {}, typeDefinition {}", resourceOid, typeDefBean);
         var result = parentResult.subresult(OP_SUGGEST_FOCUS_TYPE)
                 .addParam("resourceOid", resourceOid)
@@ -720,7 +720,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.debug("Suggesting correlation for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_CORRELATION)
                 .addParam("resourceOid", resourceOid)
@@ -753,7 +753,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, SubscriptionComplianceException {
         LOGGER.debug("Suggesting mappings for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_MAPPINGS)
                 .addParam("resourceOid", resourceOid)
@@ -1121,7 +1121,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var result = parentResult.subresult(OP_SUGGEST_ASSOCIATIONS)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -1230,7 +1230,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public boolean cancelRequest(String token, long timeToWait, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, CommunicationException, RestrictedObjectException {
+            SecurityViolationException, CommunicationException, SubscriptionComplianceException {
         return taskService.suspendTask(token, timeToWait, task, result);
     }
 }

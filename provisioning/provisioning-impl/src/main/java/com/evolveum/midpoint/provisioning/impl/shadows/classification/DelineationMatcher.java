@@ -85,7 +85,7 @@ class DelineationMatcher {
 
     public boolean matches(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("Matching {}", delineation);
         if (!objectClassMatches()) {
             LOGGER.trace("Object class does not match");
@@ -273,7 +273,7 @@ class DelineationMatcher {
     private boolean conditionMatches(
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionType classificationConditionBean = delineation.getClassificationCondition();
         if (classificationConditionBean == null) {
             return true;

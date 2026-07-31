@@ -95,7 +95,7 @@ public class GuiProfileCompiler {
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
@@ -113,7 +113,7 @@ public class GuiProfileCompiler {
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (options == null) {
             options = ProfileCompilerOptions.create();
@@ -321,14 +321,14 @@ public class GuiProfileCompiler {
     public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         return compileFocusProfile(adminGuiConfigurations, systemConfiguration, null, task, result);
     }
 
     public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, GuiProfiledPrincipal principal, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (principal != null) {
             LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
@@ -383,7 +383,7 @@ public class GuiProfileCompiler {
 
     private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, GuiProfiledPrincipal principal, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (adminGuiConfiguration == null) {
             return;
         }
@@ -693,7 +693,7 @@ public class GuiProfileCompiler {
 
             composit.getConfigurableDashboards().add(compiledDashboard);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException | RestrictedObjectException e) {
+                 SecurityViolationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
             LOGGER.warn("Failed to resolve dashboard {}", configurableUserDashboard);
             // probably we should not fail here, just log warn and continue as if there is no dashboard specification
         }
@@ -701,7 +701,7 @@ public class GuiProfileCompiler {
 
     private void applyViews(CompiledGuiProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (viewsType == null) {
             return;
         }
@@ -789,7 +789,7 @@ public class GuiProfileCompiler {
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         collectionProcessor.compileView(existingView, objectListViewType, task, result);
     }
 
@@ -950,7 +950,7 @@ public class GuiProfileCompiler {
 
     public CompiledGuiProfile getGlobalCompiledGuiProfile(Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
         if (systemConfiguration == null) {
             return null;

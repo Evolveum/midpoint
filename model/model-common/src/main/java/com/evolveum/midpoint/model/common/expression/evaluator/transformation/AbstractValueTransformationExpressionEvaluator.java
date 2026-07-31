@@ -73,7 +73,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .addContext("context", context.getContextDescription())
@@ -135,5 +135,5 @@ public abstract class AbstractValueTransformationExpressionEvaluator
             @NotNull ValueTransformationContext valueTransformationContext,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 }

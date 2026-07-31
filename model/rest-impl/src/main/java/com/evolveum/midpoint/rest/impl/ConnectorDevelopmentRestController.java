@@ -512,7 +512,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             SecurityViolationException,
             CommunicationException,
             ConfigurationException,
-            ObjectNotFoundException, RestrictedObjectException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         PrismObject<ConnectorDevelopmentType> connectorDevelopmentType = modelService.getObject(
                 ConnectorDevelopmentType.class,
                 oid,

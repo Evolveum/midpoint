@@ -20,6 +20,6 @@ public interface ObjectFilterExpressionEvaluator {
 
     ObjectFilter evaluate(ObjectFilter filter)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
 }

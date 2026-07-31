@@ -98,7 +98,7 @@ public class TaskOperationUtils {
 
     private static boolean suspendPlainTasks(TaskService taskService, List<TaskType> plainTasks, OperationResult result, Task opTask)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         //noinspection SimplifiableIfStatement
         if (!plainTasks.isEmpty()) {
             return taskService.suspendTasks(ObjectTypeUtil.getOids(plainTasks), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
@@ -109,7 +109,7 @@ public class TaskOperationUtils {
 
     private static boolean suspendTrees(TaskService taskService, List<TaskType> roots, OperationResult result, Task opTask)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         boolean suspended = true;
         if (!roots.isEmpty()) {
             for (TaskType root : roots) {

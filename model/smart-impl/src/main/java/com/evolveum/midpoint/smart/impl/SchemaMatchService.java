@@ -107,7 +107,7 @@ public class SchemaMatchService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var result = parentResult.subresult("computeSchemaMatch")
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
@@ -141,7 +141,7 @@ public class SchemaMatchService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var result = parentResult.subresult("computeSchemaMatchByObjectClass")
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)

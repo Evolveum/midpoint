@@ -87,7 +87,7 @@ class ObjectTypesSuggestionOperation {
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
             OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
         Collection<ObjectTypeWithFilters> suggestedObjectTypes = null;
         List<SiValidationErrorFeedbackEntryType> validationFeedback = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
@@ -179,7 +179,7 @@ class ObjectTypesSuggestionOperation {
             List<SiSuggestedObjectTypeType> objectTypes,
             OperationResult parentResult)
             throws SuggestObjectTypesValidationException, CommunicationException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, SecurityViolationException, RestrictedObjectException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
 
         final List<ObjectTypeWithFilters> objectTypesWithFilters = new ArrayList<>();
         boolean hasAnyErrors = false;

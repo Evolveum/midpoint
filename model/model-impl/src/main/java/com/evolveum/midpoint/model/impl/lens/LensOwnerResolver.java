@@ -48,7 +48,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
     @Override
     public <FO extends FocusType, O extends ObjectType> List<PrismObject<FO>> resolveOwner(PrismObject<O> object)
             throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (object == null) {
             return null;
         }

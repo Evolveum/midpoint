@@ -45,7 +45,7 @@ public class AccCertExpressionHelper {
             Class<T> resultClass, ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
 
@@ -82,7 +82,7 @@ public class AccCertExpressionHelper {
     private List<ObjectReferenceType> evaluateRefExpression(
             ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismReferenceDefinition resultDef =
@@ -109,7 +109,7 @@ public class AccCertExpressionHelper {
     public boolean evaluateBooleanExpression(
             ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<Boolean> exprResult = evaluateExpression(Boolean.class, expressionType, VariablesMap, shortDesc, task, result);
         if (exprResult.size() == 0) {
             return false;

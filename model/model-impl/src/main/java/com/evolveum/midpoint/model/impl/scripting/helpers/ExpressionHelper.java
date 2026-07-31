@@ -70,7 +70,7 @@ public class ExpressionHelper {
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         ActionParameterValueType parameterValue =
                 getArgument(arguments, argumentName, false, false, contextName);
         if (parameterValue != null) {
@@ -107,7 +107,7 @@ public class ExpressionHelper {
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         List<ActionParameterValueType> arguments = action.getParameter();
         ActionParameterValueType dynamicValue =
                 getArgument(arguments, dynamicName, false, false, contextName);
@@ -141,7 +141,7 @@ public class ExpressionHelper {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         String stringValue = getArgumentAsString(arguments, argumentName, input, context, null, contextName, result);
         if (stringValue == null) {
             return defaultValue;
@@ -162,7 +162,7 @@ public class ExpressionHelper {
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         Validate.notNull(parameter, "parameter");
         if (parameter.getScriptingExpression() != null) {
             return bulkActionsExecutor.execute(
@@ -187,7 +187,7 @@ public class ExpressionHelper {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         ActionParameterValueType paramValue = getArgument(arguments, parameterName, required, requiredNonNull, context);
         if (paramValue == null) {
             return null;
@@ -226,7 +226,7 @@ public class ExpressionHelper {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         List<T> rv = new ArrayList<>();
         for (ActionParameterValueType paramValue : arguments) {
             if (parameterName.equals(paramValue.getName())) {

@@ -86,7 +86,7 @@ public class TransportUtil {
                 }
                 return allowedRecipient.getValue();
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                    ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                     ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                 LoggingUtils.logUnexpectedException(logger, "Couldn't execute filter for recipient", e);
             }
         }
@@ -188,7 +188,7 @@ public class TransportUtil {
                 }
                 return allowedRecipient.getValue();
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                    ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                     ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                 LoggingUtils.logUnexpectedException(logger, "transportConfigurationType Couldn't execute filter for recipient", e);
             }
         }

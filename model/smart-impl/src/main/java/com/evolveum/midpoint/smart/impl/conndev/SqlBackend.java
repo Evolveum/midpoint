@@ -88,7 +88,7 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     @Override
     public void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException {
+            PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
         LOGGER.warn(NOT_YET_IMPLEMENTED);
     }

@@ -230,7 +230,7 @@ class ShadowIntegrityCheckItemProcessor {
         try {
             getProvisioningService().applyDefinition(shadow, workerTask, result);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException | RestrictedObjectException e) {
+                 ExpressionEvaluationException | SubscriptionComplianceException e) {
             checkResult.recordError(
                     ShadowStatistics.OTHER_FAILURE, new SystemException("Couldn't apply definition to shadow from repo", e));
             return;
@@ -313,7 +313,8 @@ class ShadowIntegrityCheckItemProcessor {
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
                     task, result);
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error | RestrictedObjectException e) {
+                 SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error |
+                 SubscriptionComplianceException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_FETCH_RESOURCE_OBJECT,
                     new SystemException("The resource object couldn't be fetched", e));
             return null;

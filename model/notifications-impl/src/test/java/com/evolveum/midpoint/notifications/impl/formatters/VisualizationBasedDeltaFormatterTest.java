@@ -396,7 +396,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     void shadowIsModified_formatVisualizationIsCalled_shadowShouldBeProperlyFormatted()
             throws SchemaException, ObjectAlreadyExistsException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            PolicyViolationException, RestrictedObjectException {
+            PolicyViolationException, SubscriptionComplianceException {
         final PrismObject<ShadowType> accountRudy = Resource.of(this.resource)
                 .shadow(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "HR Account"))
                 .withSimpleAttribute(SchemaConstants.ICFS_NAME, "Rudy")

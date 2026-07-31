@@ -51,7 +51,7 @@ class ConditionEvaluator {
             String description,
             OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!ctx.task.canSee(condition)) {
             LOGGER.trace("Condition is not visible for the current task");
             return ConditionState.allTrue();
@@ -80,7 +80,7 @@ class ConditionEvaluator {
             boolean absolute,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException, RestrictedObjectException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 ctx.ae.mappingFactory.createMappingBuilder();
         ObjectDeltaObject<?> focusOdo = absolute ? ctx.ae.focusOdoAbsolute : ctx.ae.focusOdoRelative;

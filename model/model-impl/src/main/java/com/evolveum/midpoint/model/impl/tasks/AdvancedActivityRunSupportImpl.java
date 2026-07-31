@@ -80,7 +80,7 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     @Override
     public @NotNull SearchSpecification<?> createSearchSpecificationFromResourceObjectSetSpec(
             @NotNull ResourceObjectSetSpecificationImpl objectSetSpecification, @NotNull RunningTask task, OperationResult result)
-            throws SchemaException, ActivityRunException, RestrictedObjectException {
+            throws SchemaException, ActivityRunException, SubscriptionComplianceException {
         return syncTaskHelper.createSearchSpecification(
                 objectSetSpecification.getResourceObjectSetBean(),
                 task, result);

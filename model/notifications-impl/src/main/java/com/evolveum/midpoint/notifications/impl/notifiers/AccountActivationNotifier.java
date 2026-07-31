@@ -113,7 +113,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
                 try {
                     resource = modelService.getObject(ResourceType.class, resourceOid, null, ctx.task(), result);
                 } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException |
-                        ExpressionEvaluationException | SchemaException | RestrictedObjectException e) {
+                         ExpressionEvaluationException | SchemaException | SubscriptionComplianceException e) {
                     getLogger().error("Couldn't get Resource with oid " + resourceOid, e);
                     throw new SystemException("Couldn't get resource " + resourceOid, e);
                 }

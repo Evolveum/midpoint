@@ -275,7 +275,7 @@ public class ObjectImporter {
             recordError(objectResult, object, "Policy violation", e);
         } catch (SecurityViolationException e) {
             recordError(objectResult, object, "Security violation", e);
-        } catch (RestrictedObjectException e) {
+        } catch (SubscriptionComplianceException e) {
             recordError(objectResult, object, "Restricted object", e);
         }
 
@@ -301,7 +301,7 @@ public class ObjectImporter {
 
     private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, Task task,
             OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException, RestrictedObjectException {
+            ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
@@ -386,7 +386,8 @@ public class ObjectImporter {
                 throw e;
             }
         } catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException |
-                PolicyViolationException | SecurityViolationException | SchemaException | RestrictedObjectException e) {
+                 PolicyViolationException | SecurityViolationException | SchemaException |
+                 SubscriptionComplianceException e) {
             result.recordFatalError("Cannot import " + object + ": " + e.getMessage(), e);
             throw e;
         } catch (RuntimeException ex) {
@@ -403,7 +404,7 @@ public class ObjectImporter {
             OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(object);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);

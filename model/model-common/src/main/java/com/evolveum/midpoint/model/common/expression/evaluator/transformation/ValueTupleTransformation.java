@@ -250,7 +250,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
 
     private boolean evaluateCondition(VariablesMap staticVariables)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (combinatorialEvaluation.conditionExpression != null) {
             ExpressionEvaluationContext conditionCtx = new ExpressionEvaluationContext(null, staticVariables,
                     "condition in " + context.getContextDescription(), context.getTask());
@@ -266,7 +266,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     @NotNull
     private List<V> evaluateTransformation(VariablesMap staticVariables) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         var vtCtx = new ValueTransformationContext(
                 context, staticVariables,
                 outputSet != PlusMinusZero.MINUS,
@@ -277,7 +277,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     }
 
     private void computeAndApplyOutputValueMetadata(List<V> output) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
         if (valueMetadataComputer == null) {
             // TODO clear existing metadata?

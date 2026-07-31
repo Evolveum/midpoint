@@ -100,7 +100,7 @@ public class DummyResourceCollection {
             File resourceFile, TestObject<ResourceType> testObject, String resourceOid, DummyResourceContoller controller,
             Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         // deduplicate, clean up this code (eventually)
         if (resourceFile != null) {
             LOGGER.info("Importing file {}", resourceFile);

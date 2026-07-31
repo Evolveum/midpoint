@@ -48,7 +48,7 @@ public class LinkedSelectorToFilterTranslator {
 
     @NotNull
     public ObjectFilter createFilter(OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return PrismContext.get().queryFactory().createAndOptimized(
                 objectSelectorTranslator.createFilter(result),
                 PrismContext.get().queryFor(AssignmentHolderType.class)

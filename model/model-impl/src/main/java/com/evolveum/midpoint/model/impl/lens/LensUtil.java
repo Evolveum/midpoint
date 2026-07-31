@@ -85,7 +85,7 @@ public class LensUtil {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceType cached = context.getResource(resourceOid);
         if (cached != null) {
             return cached;
@@ -250,7 +250,7 @@ public class LensUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (iterationSpec == null) {
             return formatIterationTokenDefault(iteration, 0);
         }
@@ -329,7 +329,7 @@ public class LensUtil {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (iterationSpecification == null) {
             return true;
         }
@@ -396,7 +396,7 @@ public class LensUtil {
             LifecycleStateModelType lifecycleModel, String stateName,
             ObjectResolver objectResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // We intentionally do not use DISTINCT option here, as it causes cache pass - at least in 4.8.
         // Instead, we do the deduplication by using a set, hoping it will work well enough

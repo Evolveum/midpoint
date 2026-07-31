@@ -76,7 +76,7 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
 
     public void execute(OperationResult parentResult) throws SchemaException,
             ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ConflictDetectedException, RestrictedObjectException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ConflictDetectedException, SubscriptionComplianceException {
 
         focusDelta = applyPendingPolicyStateModifications();
 
@@ -246,7 +246,7 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
     private void executeDeltaWithConflictResolution(OperationResult result) throws SchemaException,
             CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            ConflictDetectedException, RestrictedObjectException {
+            ConflictDetectedException, SubscriptionComplianceException {
         DeltaExecution<O, O> deltaExecution =
                 new DeltaExecution<>(focusContext, focusDelta, task, changeExecutionResult);
         deltaExecution.execute(result);

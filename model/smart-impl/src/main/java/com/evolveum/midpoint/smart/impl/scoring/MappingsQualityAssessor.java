@@ -100,7 +100,7 @@ public class MappingsQualityAssessor {
             }
             return transformedInput.iterator().next();
         } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             throw new MappingEvaluationException("Failed to evaluate suggested expression.", e);
         }
     }

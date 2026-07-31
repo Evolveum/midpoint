@@ -28,7 +28,6 @@ import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ReferenceModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -354,7 +353,7 @@ class EntitlementConverter {
     @NotNull EntitlementObjectsOperations transformToObjectOpsOnSubjectDelete(
             @NotNull RepoShadow subjectRepoShadow, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
 

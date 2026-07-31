@@ -65,7 +65,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         Validate.notNull(rawRepoShadow, "Object to delete must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -114,7 +114,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         var opState = ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
@@ -133,7 +133,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         var opState = ProvisioningOperationState.fromPropagatedPendingOperations(repoShadow, sortedOperations);
         new ShadowDeleteOperation(ctx, opState, null, null, true)
                 .execute(result);
@@ -142,7 +142,7 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
     private RepoShadow execute(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         if (!inRefreshOrPropagation && checkAndRecordPendingOperationBeforeExecution(result)) {
             return opState.getRepoShadow();

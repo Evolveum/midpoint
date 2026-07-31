@@ -114,7 +114,7 @@ public class RoleAnalysisServiceUtils {
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             logger.error("Couldn't update lifecycle state of object RoleType {}", roleObject, e);
         }
     }

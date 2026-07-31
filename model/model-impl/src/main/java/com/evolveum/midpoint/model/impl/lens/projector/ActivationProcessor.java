@@ -128,7 +128,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     <F extends ObjectType> void processProjectionsActivation(LensContext<F> context, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
-            SecurityViolationException, RestrictedObjectException {
+            SecurityViolationException, SubscriptionComplianceException {
         OperationResult activationResult = result.subresult(OP_ACTIVATION)
                 .setMinor()
                 .build();
@@ -154,7 +154,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_PROJECTION_ACTIVATION)
                 .addParam("resourceOid", projectionContext.getResourceOid())
                 .addParam("resourceName", projectionContext.getResourceName())
@@ -224,7 +224,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
             CommunicationException, ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         assert context.hasFocusContext();
 
@@ -595,7 +595,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         assert context.hasFocusContext();
 
@@ -671,7 +671,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             XMLGregorianCalendar now, MappingTimeEval evaluationTime,
             Task task, final OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         final String projCtxDesc = projCtx.toHumanReadableString();
 
         final Boolean legal = projCtx.isLegal();
@@ -897,7 +897,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         LOGGER.trace("Evaluating '{}' of projection {} ({})", projectionPropertyPath, projCtx, evaluationTime);
 
@@ -990,7 +990,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         if (bidirectionalMappingBean == null) {
             LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
@@ -1221,7 +1221,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     <F extends FocusType> void processLifecycle(LensContext<F> context, LensProjectionContext projCtx,
             @SuppressWarnings("unused") String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         ResourceBidirectionalMappingType purposeMappings = getPurposeMappings(projCtx); // [EP:M:OM] DONE
         if (purposeMappings == null) {

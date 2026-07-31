@@ -187,7 +187,7 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
     private Collection<ItemDelta<?, ?>> evaluateMappings(ShadowType shadow, FocusType targetFocus,
             OperationResult result, RunningTask task)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final MappingEvaluationEnvironment evaluationEnvironment = new MappingEvaluationEnvironment(
                 "simulating inbounds processing of " + shadow,
                 ModelBeans.get().clock.currentTimeXMLGregorianCalendar(), task);

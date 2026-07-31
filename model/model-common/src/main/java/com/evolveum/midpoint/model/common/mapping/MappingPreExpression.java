@@ -18,6 +18,6 @@ public interface MappingPreExpression {
 
     void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException, RestrictedObjectException;
+            SecurityViolationException, SubscriptionComplianceException;
 
 }

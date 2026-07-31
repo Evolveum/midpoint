@@ -156,7 +156,7 @@ public class ClockworkMedic {
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (shouldExecute(componentName, processor, context, projectionContext)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -175,7 +175,7 @@ public class ClockworkMedic {
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (shouldExecute(componentName, processor, context, null)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -193,7 +193,7 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, RestrictedObjectException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, SubscriptionComplianceException {
         if (shouldExecute(componentName, processor, context, null)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -286,7 +286,7 @@ public class ClockworkMedic {
             Supplier<PartialProcessingTypeType> optionSupplier,
             Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult initialParentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, RestrictedObjectException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, SubscriptionComplianceException {
 
         context.checkAbortRequested();
 
@@ -347,7 +347,7 @@ public class ClockworkMedic {
             } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
                     SecurityViolationException | PolicyViolationException | ExpressionEvaluationException |
                     ObjectAlreadyExistsException | ConflictDetectedException | RuntimeException | Error |
-                    RestrictedObjectException e) {
+                     SubscriptionComplianceException e) {
                 LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
                 result.recordException(e);
                 throw e;

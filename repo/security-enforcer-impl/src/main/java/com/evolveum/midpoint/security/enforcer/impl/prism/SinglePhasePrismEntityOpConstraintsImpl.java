@@ -165,7 +165,7 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
         public void applyAuthorization(
                 @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
             var authorization = evaluation.getAuthorization();
             if (authorization.matchesPhase(phase)) {
                 PrismValueCoverageInformation coverageIncrement =

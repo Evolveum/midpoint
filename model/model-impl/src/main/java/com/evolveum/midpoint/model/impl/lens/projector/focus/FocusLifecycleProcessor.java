@@ -59,7 +59,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
     public <F extends AssignmentHolderType> void process(LensContext<F> context, XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
         LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -99,7 +99,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
             String targetLifecycleState,
             Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionType conditionExpressionType = transitionType.getCondition();
         if (conditionExpressionType == null) {
             return false;

@@ -221,7 +221,7 @@ public class ClusteringActionExecutor extends BaseAction {
                     task, result);
 
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             LOGGER.error("Couldn't search  search and load cluster object iterative for session: {}", session, e);
         }
     }
@@ -290,7 +290,7 @@ public class ClusteringActionExecutor extends BaseAction {
                     task, result);
 
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             LOGGER.error("Couldn't search  search and load cluster object iterative for session: {}", session, e);
         }
 

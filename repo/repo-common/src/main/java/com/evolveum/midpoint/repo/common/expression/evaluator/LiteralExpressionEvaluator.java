@@ -46,7 +46,7 @@ public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefi
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 

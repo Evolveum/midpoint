@@ -27,6 +27,6 @@ public interface SimplifiedProcessorMethodRef<X extends ObjectType> {
 
     void run(LensContext<X> lensContext, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, RestrictedObjectException;
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
 }

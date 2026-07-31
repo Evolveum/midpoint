@@ -237,7 +237,7 @@ public class AuditHelper {
 
     private boolean targetSelectorMatches(List<ObjectSelectorType> targetSelectors,
             PrismObject<? extends ObjectType> primaryObject) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (targetSelectors.isEmpty()) {
             return true;
         }

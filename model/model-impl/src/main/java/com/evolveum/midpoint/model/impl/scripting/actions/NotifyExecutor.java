@@ -65,7 +65,7 @@ public class NotifyExecutor extends BaseActionExecutor {
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         String subtype = expressionHelper.getActionArgument(String.class, action,
                 NotifyActionExpressionType.F_SUBTYPE, PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, globalResult);

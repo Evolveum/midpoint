@@ -123,7 +123,7 @@ class ShadowGetOperation {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, EncryptionException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, EncryptionException, SubscriptionComplianceException {
         var rawRepoShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
         var ctx = createProvisioningContext(rawRepoShadow, options, context, task, result);
         var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
@@ -134,7 +134,7 @@ class ShadowGetOperation {
     private Shadow executeInternal(OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         Preconditions.checkArgument(!isRaw(), "Raw mode is not supported here");
 
@@ -234,7 +234,7 @@ class ShadowGetOperation {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, RestrictedObjectException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         ProvisioningContext ctx = b().ctxFactory.createForShadow(repositoryShadow.getBean(), task, result);
         ctx.setGetOperationOptions(options);
         ctx.setOperationContext(operationContext);
@@ -251,7 +251,7 @@ class ShadowGetOperation {
     }
 
     private void refreshBeforeReading(@NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (isForceRefresh(rootOptions)
                 || isForceRetry(rootOptions)
                 || ResourceTypeUtil.isRefreshOnRead(ctx.getResource())) {
@@ -277,7 +277,7 @@ class ShadowGetOperation {
     }
 
     private void doFullShadowRefresh(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
         var refreshedShadow =
                 ShadowRefreshOperation
@@ -357,7 +357,7 @@ class ShadowGetOperation {
     private @NotNull CompleteResourceObject getResourceObject(
             ResourceObjectIdentification.WithPrimary identification, OperationResult result)
             throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ReturnCachedException, ObjectNotFoundException, RestrictedObjectException {
+            ExpressionEvaluationException, ReturnCachedException, ObjectNotFoundException, SubscriptionComplianceException {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         try {
@@ -441,7 +441,7 @@ class ShadowGetOperation {
      */
     private @NotNull Shadow returnCached(String reason, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
         if (ctx.isFetchAssociations()) {
@@ -459,7 +459,7 @@ class ShadowGetOperation {
     private @NotNull Shadow returnRetrieved(
             @NotNull ExistingResourceObjectShadow shadowedObject, boolean error, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         assert repoShadow != null;
         ResourceObjectShadow futurized =
                 ProvisioningUtil.isFuturePointInTime(options) ?
@@ -475,7 +475,7 @@ class ShadowGetOperation {
             ShadowContentDescriptionType contentDescription,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var bean = resourceObject.getBean();
         bean.setContentDescription(contentDescription);
         validateShadow(bean, true);

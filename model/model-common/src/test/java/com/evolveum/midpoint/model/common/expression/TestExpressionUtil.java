@@ -164,21 +164,21 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     private <T> T resolvePath(String path, final String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VariablesMap variables = createVariables();
         return resolvePath(path, variables, exprShortDesc);
     }
 
     private <T> T resolvePathOdo(String path, final String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VariablesMap variables = createVariablesOdo();
         return resolvePath(path, variables, exprShortDesc);
     }
 
     private <T> T resolvePath(String path, VariablesMap variables, String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createOperationResult();
         ItemPath itemPath = toItemPath(path);
 

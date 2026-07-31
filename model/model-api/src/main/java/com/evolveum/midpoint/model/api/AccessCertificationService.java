@@ -50,7 +50,7 @@ public interface AccessCertificationService {
      * @return Object for the created campaign. It will be stored in the repository as well.
      */
     AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * Opens the next review stage in the certification campaign.
@@ -62,7 +62,7 @@ public interface AccessCertificationService {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+    void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
             * Opens the next review stage in the certification campaign.
@@ -74,7 +74,7 @@ public interface AccessCertificationService {
             * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
             */
-    void openNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+    void openNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
 
 
@@ -88,23 +88,23 @@ public interface AccessCertificationService {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+    void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * Starts the remediation phase for the campaign.
      * The campaign has to be in the last stage and that stage has to be already closed.
      */
-    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException;
+    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Closes a campaign.
      */
-    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException;
+    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Reiterates a closed campaign.
      */
-    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException;
+    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * TODO update description
@@ -137,7 +137,7 @@ public interface AccessCertificationService {
             Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            CommunicationException, ExpressionEvaluationException, RestrictedObjectException;
+            CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     default List<AccessCertificationWorkItemType> searchOpenWorkItems(
             ObjectQuery baseWorkItemsQuery,
@@ -146,17 +146,17 @@ public interface AccessCertificationService {
             Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            CommunicationException, ExpressionEvaluationException, RestrictedObjectException {
+            CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
     }
 
     int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     default int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException {
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, false, options, task, parentResult);
     }
 
@@ -172,7 +172,7 @@ public interface AccessCertificationService {
      * @param parentResult Result for the operations.
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment,
-                        Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException;
+                        Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Provides statistical information about outcomes of cases in a given campaign.
@@ -185,7 +185,7 @@ public interface AccessCertificationService {
      */
 
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Cleans up closed certification campaigns. The authorizations are checked by the method implementation.

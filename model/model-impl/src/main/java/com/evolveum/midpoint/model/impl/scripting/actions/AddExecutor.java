@@ -44,7 +44,7 @@ public class AddExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
@@ -67,7 +67,7 @@ public class AddExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         ObjectDelta<? extends ObjectType> addDelta = DeltaFactory.Object.createAddDelta(object);
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =
                 operationsHelper.applyDelta(addDelta, options, dryRun, context, result);

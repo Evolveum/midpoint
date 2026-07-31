@@ -112,7 +112,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
     static @Nullable PrismValueCoverageInformation forAuthorization(
             @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         Collection<TieredSelectorWithItems> tieredSelectors = TieredSelectorWithItems.forAutzAndValue(value, evaluation);
         if (!tieredSelectors.isEmpty()) {
@@ -135,7 +135,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             @NotNull TieredSelectorWithItems tieredSelector,
             @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         ValueSelector valueSelector = tieredSelector.getSelector();
         assert valueSelector.getParentClause() == null;
@@ -166,7 +166,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             PrismValue rootValue,
             AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, RestrictedObjectException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!(parentValue instanceof PrismContainerValue<?> pcv)) {
             return PrismValueCoverageInformation.noCoverage(false);
         }

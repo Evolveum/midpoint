@@ -71,7 +71,7 @@ public interface SmartIntegrationService {
     ObjectClassSizeEstimationType estimateObjectClassSize(
             String resourceOid, QName objectClassName, int maxSizeForEstimation, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Returns the object holding last known statistics for the given resource and object class. */
     GenericObjectType getLatestObjectClassStatistics(
@@ -142,7 +142,7 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Submits "suggest object types" request. Returns a token used to query the status. */
     String submitSuggestObjectTypesOperation(
@@ -201,21 +201,21 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Suggests a discrete focus type for the application (resource) object type. */
     FocusTypeSuggestionType suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification,
             List<DataAccessPermissionType> permissions, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, SubscriptionComplianceException;
 
     /** Suggests a discrete focus type for the application (resource) object type which is not yet defined in the resource. */
     FocusTypeSuggestionType suggestFocusType(
             String resourceOid, ResourceObjectTypeDefinitionType typeDefBean,
             List<DataAccessPermissionType> permissions, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, InsufficientPermissionsException, SubscriptionComplianceException;
 
     /**
      * Suggests correlation rules for the given resource object type and focus type.
@@ -234,7 +234,7 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Submits "suggest correlation" request. Returns a token used to query the status.
@@ -289,7 +289,7 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, SubscriptionComplianceException;
 
     /**
      * Submits a "suggest mappings" request.
@@ -347,7 +347,7 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Submits "suggest associations" request. Returns a token used to query the status.
@@ -384,7 +384,7 @@ public interface SmartIntegrationService {
      */
     boolean cancelRequest(String token, long timeToWait, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, CommunicationException, RestrictedObjectException;
+            SecurityViolationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Returns predefined synchronization reactions for the given direction scenario.

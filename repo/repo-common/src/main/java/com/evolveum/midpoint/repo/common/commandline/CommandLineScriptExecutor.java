@@ -54,7 +54,7 @@ public class CommandLineScriptExecutor {
 
     public void executeScript(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult parentResult)
             throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
 
@@ -80,7 +80,7 @@ public class CommandLineScriptExecutor {
 
     private String expandMacros(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, RestrictedObjectException {
+            SecurityViolationException, SubscriptionComplianceException {
         String code = scriptType.getCode();
         for (ProvisioningScriptArgumentType macroDef: scriptType.getMacro()) {
 

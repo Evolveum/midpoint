@@ -78,7 +78,7 @@ public class AssociationFromLinkExpressionEvaluator
     public PrismValueDeltaSetTriple<ShadowAssociationValue> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -224,7 +224,7 @@ public class AssociationFromLinkExpressionEvaluator
     private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg, List<String> candidateShadowsOidList,
             Collection<SelectorOptions<GetOperationOptions>> options, String desc, ExpressionEvaluationContext context,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
             OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, context.getTask(), result);

@@ -93,7 +93,7 @@ public class ConstraintsChecker {
 
     public ConstraintsCheckingResult check(OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(ConstraintsChecker.class.getName() + ".check")
                 .setMinor()
                 .build();
@@ -141,7 +141,7 @@ public class ConstraintsChecker {
 
     private boolean checkAttributeUniqueness(PrismProperty<?> identifier, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         ResourceType resource = provisioningContext.getResource();
         ResourceObjectDefinition definition = provisioningContext.getObjectDefinitionRequired();
@@ -177,7 +177,7 @@ public class ConstraintsChecker {
             ObjectQuery query,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ResourceObjectDefinition resourceObjectDefinition = provisioningContext.getObjectDefinitionRequired();
 

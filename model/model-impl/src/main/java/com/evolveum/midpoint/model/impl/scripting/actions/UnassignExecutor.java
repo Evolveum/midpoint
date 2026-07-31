@@ -70,7 +70,7 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     UnassignParameters parseParameters(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         UnassignParameters parameters = new UnassignParameters();
         parameters.dynamicResourceRefs.addAll(getResourcesParameter(action, input, context, result));
         parameters.dynamicRoleRefs.addAll(getRolesParameter(action, input, context, result));
@@ -105,7 +105,7 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     protected ObjectDelta<? extends ObjectType> createDelta(AssignmentHolderType object, PipelineItem item,
             UnassignParameters parameters, ExecutionContext context, OperationResult result) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         ObjectFilter resolvedFilter = resolveFilter(object, item, parameters, context, result);
 
@@ -126,7 +126,7 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
     private ObjectFilter resolveFilter(AssignmentHolderType object, PipelineItem item, UnassignParameters parameters,
             ExecutionContext context, OperationResult result) throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (parameters.staticFilter != null) {
             return ExpressionUtil.evaluateFilterExpressions(
                     parameters.staticFilter,

@@ -66,7 +66,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -88,7 +88,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     private String generateStringValue(
             ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         GenerateExpressionEvaluatorModeType mode = defaultIfNull(expressionEvaluatorBean.getMode(), POLICY);
         // TODO: generate value based on stringPolicyType (if not null)
         return switch (mode) {
@@ -126,7 +126,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     private String generateStringValueFromPolicy(
             ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ObjectBasedValuePolicyOriginResolver<?> originResolver = getOriginResolver(context);
         String generatedValue = valuePolicyProcessor.generate(
                 outputPath, valuePolicy, DEFAULT_LENGTH, originResolver,
@@ -142,7 +142,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     @Nullable
     private ValuePolicyType getValuePolicy(ExpressionEvaluationContext context, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectReferenceType specifiedValuePolicyRef = expressionEvaluatorBean.getValuePolicyRef();
         if (specifiedValuePolicyRef != null) {
             return objectResolver.resolve(

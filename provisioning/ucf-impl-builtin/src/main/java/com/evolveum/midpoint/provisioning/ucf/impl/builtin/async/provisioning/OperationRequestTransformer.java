@@ -87,7 +87,7 @@ public class OperationRequestTransformer {
             }
         } catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException |
                 CommunicationException | ConfigurationException | ExpressionEvaluationException | IOException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
         }
     }

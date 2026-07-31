@@ -115,7 +115,7 @@ public class PipelineData implements DebugDumpable {
     public List<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
             ExecutionContext context, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         List<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (PipelineItem item : data) {
             PrismValue value = item.getValue();
@@ -155,7 +155,7 @@ public class PipelineData implements DebugDumpable {
     private Collection<ObjectReferenceType> resolveQuery(Class<? extends ObjectType> type, QueryType queryBean,
             ExecutionContext context, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectQuery query = context.getQueryConverter().createObjectQuery(type, queryBean);
         SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
                 .searchObjects(type, query, readOnly(), context.getTask(), result);

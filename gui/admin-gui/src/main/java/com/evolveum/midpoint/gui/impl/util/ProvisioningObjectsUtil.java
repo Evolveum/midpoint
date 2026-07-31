@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -503,8 +502,8 @@ public class ProvisioningObjectsUtil {
             ResourceUtils.deleteSchema(resource, pageBase.getModelService(), task, result);
             pageBase.getModelService().testResource(resource.getOid(), task, result); // try to load fresh schema
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException | RestrictedObjectException e) {
+                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                 | PolicyViolationException | SecurityViolationException | SubscriptionComplianceException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.refreshResourceSchema.fatalError").getString(), e);
         }
@@ -534,7 +533,7 @@ public class ProvisioningObjectsUtil {
             LoggingUtils.logUnexpectedException(LOGGER, "Error getting native capabilities", e);
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.gettingNativeCapabilities.fatalError").getString(), e);
             return new CapabilityCollectionType();
-        } catch (RestrictedObjectException e) {
+        } catch (SubscriptionComplianceException e) {
             //TODO change URL for IC and add location
             String message = "Connector is not allowed. Download the latest allowed connectors list from '%s', import it into midPoint, and try again."
                     .formatted("integrationCatalog.evolveum.com");

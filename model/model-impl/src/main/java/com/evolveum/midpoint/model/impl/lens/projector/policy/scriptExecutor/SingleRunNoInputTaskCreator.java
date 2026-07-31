@@ -25,7 +25,7 @@ class SingleRunNoInputTaskCreator extends AbstractSingleRunTaskCreator {
     @Override
     TaskType createTask(ExecuteScriptType executeScript, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // Nothing special here. Creates task for the script "as is".
         return createTaskForSingleRunScript(executeScript, result);
     }

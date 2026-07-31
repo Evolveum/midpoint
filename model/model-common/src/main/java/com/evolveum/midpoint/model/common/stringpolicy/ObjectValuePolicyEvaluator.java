@@ -173,13 +173,13 @@ public class ObjectValuePolicyEvaluator {
     // Beware: minOccurs is not checked here; it has to be done globally over all values. See validateMinOccurs method.
     public OperationResult validateProtectedStringValue(ProtectedStringType value, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return validateStringValue(getClearValue(value), parentResult);
     }
 
     // Beware: minOccurs is not checked here; it has to be done globally over all values. See validateMinOccurs method.
     public OperationResult validateStringValue(String clearValue, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(OPERATION_VALIDATE_VALUE);
         try {
             List<LocalizableMessage> messages = new ArrayList<>();
@@ -277,7 +277,7 @@ public class ObjectValuePolicyEvaluator {
 
     private void validateStringPolicy(String clearValue, List<LocalizableMessage> messages, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (clearValue == null) {
             return; // should be checked elsewhere

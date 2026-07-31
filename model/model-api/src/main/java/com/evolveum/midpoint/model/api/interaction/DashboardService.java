@@ -24,7 +24,7 @@ public interface DashboardService {
             throws CommonException;
 
     ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     CollectionRefSpecificationType getCollectionRefSpecificationType(DashboardWidgetType widget, Task task, OperationResult result);
 

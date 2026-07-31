@@ -46,7 +46,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
             PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         // TODO what if AccessCertificationObjectBasedScopeType?
         AccessCertificationAssignmentReviewScopeType assignmentScope =
@@ -78,7 +78,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType();
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
@@ -128,7 +128,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object,
             AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, RestrictedObjectException {
+            SecurityViolationException, SubscriptionComplianceException {
         AccessCertificationObjectBasedScopeType objectBasedScope =
                 campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType scope ? scope : null;
         ExpressionType selectionExpression = objectBasedScope != null ? objectBasedScope.getItemSelectionExpression() : null;
@@ -188,7 +188,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     public void doRevoke(
             AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult result)
             throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         revokeAssignmentCase(
                 MiscUtil.castSafely(aCase, AccessCertificationAssignmentCaseType.class),
                 campaign, result, task);

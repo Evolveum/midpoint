@@ -56,7 +56,7 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         ScriptExpressionEvaluatorType script = expressionHelper.getActionArgument(
                 ScriptExpressionEvaluatorType.class, action,

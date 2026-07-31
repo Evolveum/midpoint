@@ -61,7 +61,7 @@ class AssociationsHelper {
     void provideObjectsIdentifiersToSubject(
             ProvisioningContext ctx, ResourceObjectShadow objectToAdd, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         provideObjectsIdentifiersToAssociations(
                 ctx,
                 ShadowAssociationsCollection.ofShadow(objectToAdd.getBean()),
@@ -84,7 +84,7 @@ class AssociationsHelper {
             String desc,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         for (ItemDelta<?, ?> modification : modifications) {
             provideObjectsIdentifiersToAssociations(
                     ctx,
@@ -105,7 +105,7 @@ class AssociationsHelper {
             String desc,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         for (var iterableAssocValue : associationsCollection.getAllIterableValues()) {
             var assocValue = iterableAssocValue.associationValue();
@@ -120,7 +120,7 @@ class AssociationsHelper {
             String desc,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         for (var iterableRefAttrValue : referenceAttributesCollection.getAllIterableValues()) {
             var refAttrValue = iterableRefAttrValue.value();

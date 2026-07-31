@@ -43,7 +43,7 @@ public class DeleteExecutor extends AbstractObjectBasedActionExecutor<ObjectType
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
@@ -62,7 +62,7 @@ public class DeleteExecutor extends AbstractObjectBasedActionExecutor<ObjectType
             ObjectType object, boolean dryRun, ModelExecuteOptions options, ExecutionContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         ObjectDelta<? extends ObjectType> deleteDelta = prismContext.deltaFactory().object()
                 .createDeleteDelta(object.getClass(), object.getOid());
         operationsHelper.applyDelta(deleteDelta, options, dryRun, context, result);

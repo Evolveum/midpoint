@@ -142,7 +142,7 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
     @Override
     protected void recomputeIfNeeded(String changedOrgOid)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         reconcileAllOrgs();
         reconcileAllUsers();
     }

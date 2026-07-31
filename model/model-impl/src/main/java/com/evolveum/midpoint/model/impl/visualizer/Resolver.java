@@ -75,7 +75,8 @@ public class Resolver {
                     try {
                         provisioningService.applyDefinition(object, task, result);
                     } catch (
-                            ObjectNotFoundException | CommunicationException | ConfigurationException | RestrictedObjectException e) {
+                            ObjectNotFoundException | CommunicationException | ConfigurationException |
+                            SubscriptionComplianceException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
                                 ObjectTypeUtil.toShortString(object));
                     }
@@ -90,7 +91,7 @@ public class Resolver {
                     } catch (ObjectNotFoundException e) {
                         //ignore when object doesn't exist
                     } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                            SecurityViolationException | RestrictedObjectException e) {
+                             SecurityViolationException | SubscriptionComplianceException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                         warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                     }
@@ -151,7 +152,7 @@ public class Resolver {
                             result.recordHandledError(e);
                             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
                         } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                                SecurityViolationException | RestrictedObjectException e) {
+                                 SecurityViolationException | SubscriptionComplianceException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                             warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                         }

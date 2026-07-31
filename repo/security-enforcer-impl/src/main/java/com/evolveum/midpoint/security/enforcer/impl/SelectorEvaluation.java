@@ -67,7 +67,7 @@ class SelectorEvaluation implements SubjectedEvaluationContext {
 
     boolean isSelectorApplicable()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var ctx = new MatchingContext(
                 createFilterEvaluator(),

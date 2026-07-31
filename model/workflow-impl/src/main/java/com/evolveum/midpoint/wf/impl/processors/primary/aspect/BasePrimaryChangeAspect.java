@@ -112,7 +112,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                 new ModelExpressionEnvironment.ExpressionEnvironmentBuilder<PrismValue, ItemDefinition<?>>()

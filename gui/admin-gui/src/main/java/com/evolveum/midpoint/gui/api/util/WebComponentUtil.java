@@ -1617,7 +1617,7 @@ public final class WebComponentUtil {
                     pageBase.getExpressionFactory(),
                     "collection filter", pageBase.createSimpleTask(result.getOperation()), result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException ex) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException ex) {
             result.recordPartialError("Unable to evaluate filter exception, ", ex);
             pageBase.error("Unable to evaluate filter exception, " + ex.getMessage());
         }
@@ -3213,7 +3213,7 @@ public final class WebComponentUtil {
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
                 ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {
@@ -3244,7 +3244,7 @@ public final class WebComponentUtil {
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
                 ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {

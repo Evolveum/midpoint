@@ -30,7 +30,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
         void process(PrismObject<? extends T> object, PipelineItem item, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
                 PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-                RestrictedObjectException;
+                SubscriptionComplianceException;
     }
 
     @FunctionalInterface
@@ -45,7 +45,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
             ConsoleFailureMessageWriter<T> writer)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
             OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
@@ -79,7 +79,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
     private PrismObject<T> castToObject(PrismValue value, Class<T> expectedType, ExecutionContext context)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (value instanceof PrismObjectValue<?> objectValue) {
             Class<? extends Objectable> realType = objectValue.asObjectable().getClass();
             if (expectedType.isAssignableFrom(realType)) {

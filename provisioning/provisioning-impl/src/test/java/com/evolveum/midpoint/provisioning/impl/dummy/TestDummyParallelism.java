@@ -852,7 +852,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     private void messResource(int threadIndex, int i)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException, RestrictedObjectException {
+            ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException {
         Task task = createPlainTask("mess-" + threadIndex + "-" + i);
         OperationResult result = task.getResult();
         List<ItemDelta<?, ?>> deltas = deltaFor(ResourceType.class)

@@ -22,7 +22,7 @@ public class ModelContextUtil {
             try {
                 return modelInteractionService.unwrapModelContext(lensContextType, opTask, result);
             } catch (SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
-                    RestrictedObjectException e) {   // todo treat appropriately
+                     SubscriptionComplianceException e) {   // todo treat appropriately
                 throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
             }
         } else {

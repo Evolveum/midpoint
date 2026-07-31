@@ -60,7 +60,7 @@ class ContextLoadOperation<F extends ObjectType> {
     public void load(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
         createTraceIfNeeded(result);
@@ -127,7 +127,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
     private void updateProjection(LensProjectionContext projectionContext, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         new ProjectionUpdateOperation<>(context, projectionContext, task)
                 .update(result);
     }
@@ -135,7 +135,7 @@ class ContextLoadOperation<F extends ObjectType> {
     private void loadProjections(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         //noinspection unchecked
         new ProjectionsLoadOperation<>((LensContext<? extends FocusType>) context, task)
                 .load(result); // this also removes the accountRef deltas (???)
@@ -143,7 +143,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
     private void loadFocusContext(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         new FocusLoadOperation<>(context, task)
                 .load(result);
     }
@@ -178,7 +178,7 @@ class ContextLoadOperation<F extends ObjectType> {
      */
     private void updatePolicies(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         // maybe not really needed; the update is also done at the beginning of the clockwork run
         context.updateSystemConfiguration(result);

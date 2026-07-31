@@ -211,7 +211,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
     @Test
     public void test122SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -424,7 +424,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
     @Test
     public void test521SearchAccounts() throws SchemaException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();

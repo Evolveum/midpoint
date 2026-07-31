@@ -43,7 +43,7 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -64,7 +64,7 @@ public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<Reso
             ExecutionContext context,
             OperationResult result)
             throws ObjectNotFoundException, ExpressionEvaluationException, SchemaException, ConfigurationException,
-            SecurityViolationException, CommunicationException, RestrictedObjectException {
+            SecurityViolationException, CommunicationException, SubscriptionComplianceException {
         String oid = object.getOid();
         OperationResult testResult = modelService.testResource(oid, context.getTask(), result);
         context.println("Tested " + object + ": " + testResult.getStatus());

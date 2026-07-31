@@ -125,7 +125,7 @@ class ConstraintReferenceMatcher<O extends ObjectType> {
                         expressionFactory, contextDescription,
                         evalContext.task, operationResult);
             } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException | CommunicationException |
-                    ExpressionEvaluationException | RestrictedObjectException e) {
+                     ExpressionEvaluationException | SubscriptionComplianceException e) {
                 throw new SystemException("Error occurred during expression evaluation", e);
             } finally {
                 ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();

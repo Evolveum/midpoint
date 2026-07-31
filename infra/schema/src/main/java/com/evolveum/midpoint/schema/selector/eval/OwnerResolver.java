@@ -25,6 +25,6 @@ public interface OwnerResolver {
      * Returns the owner of the provided object. The meaning of "owner" is different for, e.g., shadows, tasks, and so on.
      */
     <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object)
-            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
 }

@@ -37,7 +37,7 @@ public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExe
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
@@ -63,7 +63,7 @@ public abstract class EnableDisableExecutor extends AbstractObjectBasedActionExe
             ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (object instanceof FocusType || object instanceof ShadowType) {
             ObjectDelta<? extends ObjectType> delta = createEnableDisableDelta(object);
             operationsHelper.applyDelta(delta, options, dryRun, context, result);

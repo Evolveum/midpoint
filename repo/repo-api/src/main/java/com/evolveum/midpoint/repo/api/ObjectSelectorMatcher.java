@@ -37,7 +37,7 @@ class ObjectSelectorMatcher {
             @NotNull String logMessagePrefix,
             @NotNull RepositoryService repositoryService)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (selectorBean == null) {
             logger.trace("{} null object specification", logMessagePrefix);

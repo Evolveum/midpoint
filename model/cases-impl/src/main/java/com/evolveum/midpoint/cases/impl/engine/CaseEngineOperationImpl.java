@@ -107,7 +107,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     void executeRequest(@NotNull Request request, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, PreconditionViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         Action action = beans.actionFactory.create(request, this);
         while (action != null) {
             action = action.execute(result);
@@ -118,7 +118,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     private void commit(OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
             ExpressionEvaluationException, ConfigurationException, CommunicationException, SecurityViolationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_COMMIT)
                 .setMinor()
                 .build();
@@ -183,7 +183,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
 
     private void closeTheCase(OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException,
-            ConfigurationException, CommunicationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
         // Invoking post-commit finalization specific to the case type.
         engineExtension.finishCaseClosing(this, result);

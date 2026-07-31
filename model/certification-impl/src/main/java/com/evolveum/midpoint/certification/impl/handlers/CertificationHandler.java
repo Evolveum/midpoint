@@ -26,7 +26,7 @@ public interface CertificationHandler {
     <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object,
             AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Implements the automated REVOKE for a given certification case.
@@ -34,7 +34,7 @@ public interface CertificationHandler {
     void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task,
             OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Returns the default objectType to search for when preparing a list of certification cases.

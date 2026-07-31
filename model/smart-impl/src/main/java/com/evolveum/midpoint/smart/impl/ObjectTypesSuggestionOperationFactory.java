@@ -34,7 +34,7 @@ public class ObjectTypesSuggestionOperationFactory {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var ctx = OperationContext.init(client, resourceOid, objectClassName, task, parentResult);
         return new ObjectTypesSuggestionOperation(ctx, filtersValidator, regenerateMode, previousObjectTypes);
     }

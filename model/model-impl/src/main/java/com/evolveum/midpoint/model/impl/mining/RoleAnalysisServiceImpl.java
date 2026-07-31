@@ -405,7 +405,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(singleton(objectDelta), null, task, result);
         } catch (ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't import RoleAnalysisClusterType object {}", clusterPrismObject, e);
         }
     }
@@ -425,7 +425,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(singleton(delta), null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't update role analysis session statistic {}", session, e);
         }
     }
@@ -519,7 +519,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", clusterOid, e);
         }
     }
@@ -671,7 +671,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't delete RoleAnalysisClusterType {}", clusterOid, e);
         }
 
@@ -715,7 +715,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionOid, e);
         }
     }
@@ -893,7 +893,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(singleton(deleteDelta), null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType {}", sessionOid, e);
         }
     }
@@ -912,7 +912,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't delete RoleAnalysisOutlierType {}", outlierOid, e);
         }
     }
@@ -962,7 +962,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't recompute RoleAnalysisClusterDetectionOptions {}", clusterOid, e);
             result.recordPartialError(e);
         } finally {
@@ -1488,8 +1488,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     modelService.executeChanges(deltasAdd, null, task, result);
 
                 } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
-                        ExpressionEvaluationException | CommunicationException | ConfigurationException |
-                        PolicyViolationException | SecurityViolationException | RestrictedObjectException e) {
+                         ExpressionEvaluationException | CommunicationException | ConfigurationException |
+                         PolicyViolationException | SecurityViolationException | SubscriptionComplianceException e) {
                     LOGGER.warn("Couldn't modify RoleAnalysisClusterType {}", cluster.getOid(), e);
                 }
             }
@@ -1537,7 +1537,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                     CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                    RestrictedObjectException e) {
+                     SubscriptionComplianceException e) {
                 LOGGER.error("Couldn't modify RoleAnalysisSessionType {}", session.getOid(), e);
             }
 
@@ -1686,7 +1686,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", clusterPrism.getOid(), e);
         }
     }
@@ -1728,7 +1728,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't delete candidate role container {}", clusterPrism.getOid(), e);
         }
     }
@@ -1811,7 +1811,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
         }
     }
@@ -2132,7 +2132,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             return modelService.countObjects(type, query, options, task, parentResult);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-                CommunicationException | ExpressionEvaluationException | RestrictedObjectException e) {
+                 CommunicationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't count objects of type " + type + ": " + e.getMessage(), e);
         }
     }
@@ -2796,7 +2796,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.executeChanges(singleton(deleteDelta), null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", sessionOid, e);
         }
     }
@@ -3133,7 +3133,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             return prismObjects.get(0);
         } catch (SchemaException | ConfigurationException | CommunicationException | SecurityViolationException |
-                ExpressionEvaluationException | RestrictedObjectException e) {
+                 ExpressionEvaluationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't search outlier object associated for user with oid: " + userOid, e);
         } catch (ObjectNotFoundException e) {
             return null;
@@ -3253,7 +3253,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             searchResultList = modelService.searchObjects(
                     RoleAnalysisClusterType.class, null, null, task, result);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException | RestrictedObjectException e) {
+                 ConfigurationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
             LOGGER.error("Couldn't search RoleAnalysisClusterType objects", e);
         }
 
@@ -3350,7 +3350,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 }
             }
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-                ConfigurationException | ExpressionEvaluationException | RestrictedObjectException e) {
+                 ConfigurationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
             LOGGER.error("Couldn't search RoleAnalysisClusterType objects", e);
         }
         return clusters;
@@ -3424,7 +3424,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             modelService.searchReferencesIterative(membershipQuery, handler, options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
-                ExpressionEvaluationException | CommunicationException | RestrictedObjectException e) {
+                 ExpressionEvaluationException | CommunicationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't search assignments for role analysis", e);
         }
 
@@ -3495,7 +3495,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler,
                     options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
-                ExpressionEvaluationException | CommunicationException | RestrictedObjectException e) {
+                 ExpressionEvaluationException | CommunicationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't search assignments", e);
         }
         //TODO clean up
@@ -3674,7 +3674,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.searchContainersIterative(AssignmentType.class, query, handler,
                     options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
-                ExpressionEvaluationException | CommunicationException | RestrictedObjectException e) {
+                 ExpressionEvaluationException | CommunicationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't search assignments", e);
         }
         if (roleAsKey) {
@@ -3781,7 +3781,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             modelService.searchContainersIterative(AssignmentType.class, query, handler, options, task, result);
         } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
-                ExpressionEvaluationException | CommunicationException | RestrictedObjectException e) {
+                 ExpressionEvaluationException | CommunicationException | SubscriptionComplianceException e) {
             throw new SystemException("Couldn't search assignments", e);
         }
 

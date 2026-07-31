@@ -62,7 +62,7 @@ class OperationContext {
     static OperationContext init(
             ServiceClient serviceClient, String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return init(serviceClient, resourceOid, objectClassName, null, task, result);
     }
 
@@ -70,7 +70,7 @@ class OperationContext {
             ServiceClient serviceClient, String resourceOid, QName objectClassName,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var resource = SmartIntegrationBeans.get().modelService
                 .getObject(ResourceType.class, resourceOid, options, task, result)
                 .asObjectable();

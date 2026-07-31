@@ -18,7 +18,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.RestrictedObjectException;
+import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -239,7 +239,7 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
         return (lastConnectorOid, result) -> {
             try {
                 connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid.get(), result);
-            } catch (ObjectNotFoundException | SchemaException | RestrictedObjectException e) {
+            } catch (ObjectNotFoundException | SchemaException | SubscriptionComplianceException e) {
                 throw new RuntimeException(e);
             }
         };
@@ -247,7 +247,7 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
 
     private @NonNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithSuffix(String prefix) {
         return (lastConnectorOid, result) -> {
-            RestrictedObjectException exception = checkException(lastConnectorOid, result);
+            SubscriptionComplianceException exception = checkException(lastConnectorOid, result);
 
             assertTrue(exception.getMessage().endsWith(prefix));
         };
@@ -255,15 +255,15 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
 
     private @NonNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithPrefix(String prefix) {
         return (lastConnectorOid, result) -> {
-            RestrictedObjectException exception = checkException(lastConnectorOid, result);
+            SubscriptionComplianceException exception = checkException(lastConnectorOid, result);
 
             assertTrue(exception.getMessage().startsWith(prefix));
         };
     }
 
-    private RestrictedObjectException checkException(AtomicReference<String> lastConnectorOid, OperationResult result) {
+    private SubscriptionComplianceException checkException(AtomicReference<String> lastConnectorOid, OperationResult result) {
         return expectThrows(
-                RestrictedObjectException.class,
+                SubscriptionComplianceException.class,
                 () -> connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid.get(), result));
     }
 

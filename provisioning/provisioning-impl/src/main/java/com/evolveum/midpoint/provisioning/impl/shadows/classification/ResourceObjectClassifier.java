@@ -93,7 +93,7 @@ public class ResourceObjectClassifier {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_CLASSIFY)
                 .addParam("combinedObject", combinedObject)
@@ -131,7 +131,7 @@ public class ResourceObjectClassifier {
 
         ResourceObjectClassification execute(OperationResult result) throws SchemaException, ExpressionEvaluationException,
                 CommunicationException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
-                RestrictedObjectException {
+                SubscriptionComplianceException {
 
             // Just in case the definition is missing (normally it's already present). See MID-7236.
             // Note that even if we usually don't know the type (kind/intent), we know the object class,
@@ -173,7 +173,7 @@ public class ResourceObjectClassifier {
 
         private ObjectSynchronizationDiscriminatorType evaluateSorterIfNeeded(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             if (existingSorterResult != null) {
                 return existingSorterResult;
             } else {
@@ -190,7 +190,7 @@ public class ResourceObjectClassifier {
          */
         private @Nullable ResourceObjectTypeDefinition classifyResourceObject(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             ShadowType shadow = context.getShadowedResourceObject();
             LOGGER.debug("Classifying {}", shadow);
 
@@ -247,7 +247,7 @@ public class ResourceObjectClassifier {
 
         private boolean matches(SynchronizationPolicy policy, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             DelineationMatcher matcher = new DelineationMatcher(policy.getDelineation(), context);
             return matcher.matches(result);
         }

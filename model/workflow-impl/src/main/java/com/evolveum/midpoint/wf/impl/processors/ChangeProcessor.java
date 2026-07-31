@@ -63,7 +63,7 @@ public interface ChangeProcessor {
     @Nullable
     HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Handles the result of case processing. The case manager calls us when it finished its work on an approval case.
@@ -75,7 +75,7 @@ public interface ChangeProcessor {
      */
     void finishCaseClosing(CaseEngineOperation operation, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException, RestrictedObjectException;
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Adds approval-specific information to the case-level audit record.

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.util.exception.RestrictedObjectException;
+import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +91,7 @@ class ResourceExpansionOperation {
      * Executes the expansion operation. Fails hard if e.g. `connectorRef` cannot be resolved.
      */
     public void execute(OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(OP_EXPAND);
         try {
             resolveConnectorsOnly(result);
@@ -105,7 +105,7 @@ class ResourceExpansionOperation {
     }
 
     private void resolveConnectorsOnly(OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         ResourceType resourceForConnectors = createLimitedCopy(expandedResource);
         new ExpansionPass(resourceForConnectors, true)
@@ -137,7 +137,7 @@ class ResourceExpansionOperation {
     }
 
     private void obtainConnectorSchemas(ResourceType resourceForConnectors, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resourceForConnectors)) {
             var connectorWithSchema = beans.connectorManager.getConnectorWithSchema(connectorSpec, result);
             LOGGER.trace("Stored configuration definition for {}", connectorSpec);

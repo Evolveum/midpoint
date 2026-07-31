@@ -60,7 +60,7 @@ public class OperationsHelper {
     public boolean getDryRun(ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         return expressionHelper.getActionArgument(Boolean.class, action,
                 AbstractExecutionActionExpressionType.F_DRY_RUN, PARAM_DRY_RUN,
                 input, context, false, PARAM_DRY_RUN, result);
@@ -71,7 +71,7 @@ public class OperationsHelper {
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         ModelExecuteOptions options = getRawOptions(action, input, context, result);
 
         // raw and skipApprovals are not part of static schema
@@ -97,7 +97,7 @@ public class OperationsHelper {
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         ModelExecuteOptionsType optionsBean = expressionHelper.getActionArgument(ModelExecuteOptionsType.class, action,
                 AbstractExecutionActionExpressionType.F_EXECUTE_OPTIONS, PARAM_OPTIONS, input, context, null,
                 "executeOptions", result);
@@ -113,7 +113,7 @@ public class OperationsHelper {
             ObjectDelta delta, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         return applyDelta(delta, null, context, result);
     }
 
@@ -121,7 +121,7 @@ public class OperationsHelper {
             ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         //noinspection unchecked
         return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
     }
@@ -134,7 +134,7 @@ public class OperationsHelper {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         LOGGER.debug("Going to execute delta (raw={}):\n{}", dryRun, delta.debugDumpLazily());
         if (dryRun) {
             modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
@@ -168,7 +168,7 @@ public class OperationsHelper {
             ExecutionContext context,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result); // TODO readOnly?
     }
 

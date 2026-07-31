@@ -53,7 +53,7 @@ public class SchemaFetcher {
             boolean productionMode,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-            SchemaException, RestrictedObjectException {
+            SchemaException, SubscriptionComplianceException {
         var connectorSpec = resourceConnectorsManager.selectConnector(resource, capabilityMap, SchemaCapabilityType.class);
         if (connectorSpec == null) {
             LOGGER.debug("No connector has schema capability, cannot fetch resource schema");

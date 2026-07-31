@@ -161,7 +161,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
     private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(ShadowType.class)

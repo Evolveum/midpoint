@@ -31,7 +31,7 @@ class CancelCaseAction extends RequestedAction<CancelCaseRequest> {
     @Override
     public @Nullable Action executeInternal(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         beans.securityEnforcer.authorize(
                 ModelAuthorizationAction.CANCEL_CASE.getUrl(),

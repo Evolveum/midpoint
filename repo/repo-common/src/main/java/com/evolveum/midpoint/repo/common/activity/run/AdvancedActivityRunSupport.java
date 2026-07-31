@@ -48,7 +48,7 @@ public interface AdvancedActivityRunSupport {
     @NotNull SearchSpecification<?> createSearchSpecificationFromResourceObjectSetSpec(
             @NotNull ResourceObjectSetSpecificationImpl resourceObjectSetSpecification, @NotNull RunningTask task,
             OperationResult result)
-            throws SchemaException, ActivityRunException, RestrictedObjectException;
+            throws SchemaException, ActivityRunException, SubscriptionComplianceException;
 
     /** Assuming that query has expressions. */
     ObjectQuery evaluateQueryExpressions(

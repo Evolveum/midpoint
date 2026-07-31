@@ -16,9 +16,7 @@ import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.RestrictedObjectException;
+import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,7 +26,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,12 +110,12 @@ public class ConnectorSignatureVerifier {
      * @param connectorBean connector to verify
      * @param connOid connector OID
      * @param result operation result
-     * @throws RestrictedObjectException if the connector cannot be used because
+     * @throws SubscriptionComplianceException if the connector cannot be used because
      * of a failed signature verification or an invalid discovery timestamp
      * @throws SchemaException if repository access fails
      */
     public void verifyConnectorInProduction(ConnectorType connectorBean, String connOid, OperationResult result)
-            throws RestrictedObjectException, SchemaException {
+            throws SubscriptionComplianceException, SchemaException {
         LOGGER.debug(
                 "Production environment detected. Verifying connector '{}' version '{}' from bundle '{}' against the list of allowed signed connectors.",
                 connectorBean.getNamespace(),
@@ -126,7 +123,7 @@ public class ConnectorSignatureVerifier {
                 connectorBean.getConnectorBundle());
 
         if (publicKeys.isEmpty()) {
-            throw new RestrictedObjectException("Unable to find any public key for verification connector signature.");
+            throw new SubscriptionComplianceException("Unable to find any public key for verification connector signature.");
         }
 
         if (isConnectorInGracePeriod(connectorBean)) {
@@ -148,7 +145,7 @@ public class ConnectorSignatureVerifier {
                     }).toList();
 
             if (matchedContainers.isEmpty()) {
-                throw new RestrictedObjectException("No signature found for connector '%s' version '%s' from bundle '%s'."
+                throw new SubscriptionComplianceException("No signature found for connector '%s' version '%s' from bundle '%s'."
                         .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()));
             }
 
@@ -164,7 +161,7 @@ public class ConnectorSignatureVerifier {
                 try {
                     payload = toJson(allowedConnectorBean);
                 } catch (JsonProcessingException e) {
-                    throw new RestrictedObjectException("Unable to create json payload for verifying the connector signature for connector '%s' version '%s' from bundle '%s'."
+                    throw new SubscriptionComplianceException("Unable to create json payload for verifying the connector signature for connector '%s' version '%s' from bundle '%s'."
                             .formatted(allowedConnectorBean.getClassName(), allowedConnectorBean.getVersion(), allowedConnectorBean.getBundle()), e);
                 }
 
@@ -187,7 +184,7 @@ public class ConnectorSignatureVerifier {
                         found = verifier.verify(Base64.getUrlDecoder().decode(signatureBean.getValue()));
                     } catch (InvalidKeyException | NoSuchAlgorithmException |
                             SignatureException e) {
-                        throw new RestrictedObjectException("Unable to verify the connector signature for connector '%s' version '%s' from bundle '%s'."
+                        throw new SubscriptionComplianceException("Unable to verify the connector signature for connector '%s' version '%s' from bundle '%s'."
                                 .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()), e);
                     }
                 }
@@ -195,7 +192,7 @@ public class ConnectorSignatureVerifier {
         }
 
         if (!found) {
-            throw new RestrictedObjectException("Connector '%s' version '%s' from bundle '%s' is not present in the current list of allowed signed connectors."
+            throw new SubscriptionComplianceException("Connector '%s' version '%s' from bundle '%s' is not present in the current list of allowed signed connectors."
                     .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()));
         }
     }
@@ -226,23 +223,23 @@ public class ConnectorSignatureVerifier {
         return SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorBean.getFramework());
     }
 
-    private boolean isConnectorInGracePeriod(ConnectorType connectorBean) throws RestrictedObjectException {
+    private boolean isConnectorInGracePeriod(ConnectorType connectorBean) throws SubscriptionComplianceException {
         Long discoverTimestamp;
         if (connectorBean.getDiscoveryTimestamp() == null || connectorBean.getDiscoveryTimestamp().isEmpty()) {
-            throw new RestrictedObjectException("Discovery timestamp for the connector '%s' is empty."
+            throw new SubscriptionComplianceException("Discovery timestamp for the connector '%s' is empty."
                     .formatted(connectorBean.getName()));
         } else {
             ProtectedStringType discoverTimestampBean = connectorBean.getDiscoveryTimestamp();
             try {
                 discoverTimestamp = Long.valueOf(protector.decryptString(discoverTimestampBean));
             } catch (EncryptionException e) {
-                throw new RestrictedObjectException("Couldn't encrypt discovery timestamp of the connector '%s'."
+                throw new SubscriptionComplianceException("Couldn't encrypt discovery timestamp of the connector '%s'."
                         .formatted(connectorBean.getName()));
             }
         }
 
         if (discoverTimestamp > Instant.now().toEpochMilli()) {
-            throw new RestrictedObjectException("A discovery timestamp of the connector '%s' is in the future."
+            throw new SubscriptionComplianceException("A discovery timestamp of the connector '%s' is in the future."
                     .formatted(connectorBean.getName()));
         }
 

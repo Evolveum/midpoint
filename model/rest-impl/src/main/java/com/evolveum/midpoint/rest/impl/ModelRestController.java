@@ -285,7 +285,7 @@ public class ModelRestController extends AbstractRestController {
 
     private PrismObject<? extends ObjectType> getCurrentNodeObject(Collection<SelectorOptions<GetOperationOptions>> getOptions,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String nodeId = taskManager.getNodeId();
         ObjectQuery query = prismContext.queryFor(NodeType.class)
                 .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
@@ -536,7 +536,7 @@ public class ModelRestController extends AbstractRestController {
 
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
-                RestrictedObjectException e
+                 SubscriptionComplianceException e
         ) {
             return handleException(result, e);
         }

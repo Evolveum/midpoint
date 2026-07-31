@@ -45,7 +45,7 @@ public interface CertificationManager {
      * @return Object for the created campaign. It will be stored in the repository as well.
      */
     AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Close current stage in the certification campaign via task in background.
@@ -57,7 +57,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void closeCurrentStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void closeCurrentStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Opens the next review stage in the certification campaign via task in background.
@@ -69,7 +69,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void createNextStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void createNextStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Opens the next review stage in the certification campaign via task in background.
@@ -81,7 +81,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void createNextStageTask(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void createNextStageTask(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
     /**
      * Opens the next stage in the certification campaign.
      *
@@ -93,18 +93,18 @@ public interface CertificationManager {
      * @param parentResult Result for the operations.
      *
      */
-    void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Starts the remediation phase for the campaign.
      * The campaign has to be in the last stage and that stage has to be already closed.
      */
-    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Closes a campaign.
      */
-    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
 //    /**
 //     * Closes a campaign.
@@ -114,13 +114,13 @@ public interface CertificationManager {
     /**
      * Reiterates a closed campaign.
      */
-    void reiterateCampaignTask(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void reiterateCampaignTask(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Reiterates a closed campaign.
      * //TODO is here just because the ceritficaion trigger task. Do not use otherwise
      */
-    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Records a particular decision of a reviewer.
@@ -139,7 +139,7 @@ public interface CertificationManager {
             boolean preAuthorized,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Provides statistical information about outcomes of cases in a given campaign.
@@ -153,7 +153,7 @@ public interface CertificationManager {
      * @return filled-in statistics object
      */
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, RestrictedObjectException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     void registerCertificationEventListener(AccessCertificationEventListener listener);
 

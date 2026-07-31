@@ -29,5 +29,5 @@ public interface PolicyConstraintEvaluator<C extends AbstractPolicyConstraintTyp
             @NotNull PolicyRuleEvaluationContext<O> ctx,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 }

@@ -44,7 +44,7 @@ public class ApplyDefinitionExecutor extends AbstractObjectBasedActionExecutor<O
             ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) ->
@@ -58,7 +58,7 @@ public class ApplyDefinitionExecutor extends AbstractObjectBasedActionExecutor<O
 
     private void applyDefinition(ObjectType object, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         if (object instanceof ShadowType || object instanceof ResourceType) {
             provisioningService.applyDefinition(object.asPrismObject(), context.getTask(), result);
             context.println("Applied definition to " + object);

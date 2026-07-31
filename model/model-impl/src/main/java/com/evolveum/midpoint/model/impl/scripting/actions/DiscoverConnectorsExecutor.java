@@ -61,7 +61,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         boolean rebind = expressionHelper.getArgumentAsBoolean(
                 action.getParameter(), PARAM_REBIND_RESOURCES, input, context, false,
@@ -123,7 +123,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
     private void rebindConnectors(Set<ConnectorType> newConnectors, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         Map<String,String> rebindMap = new HashMap<>();
         for (ConnectorType connectorType : newConnectors) {
             determineConnectorMappings(rebindMap, connectorType, result);
@@ -135,7 +135,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
     private void rebindResources(Map<String, String> rebindMap, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         List<PrismObject<ResourceType>> resources;
         resources = modelService.searchObjects(ResourceType.class, null, null, null, result);
         for (PrismObject<ResourceType> resource : resources) {
@@ -158,7 +158,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
 
     private void determineConnectorMappings(Map<String,String> rebindMap, ConnectorType connectorType, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Finding obsolete versions for connector: {}", connectorType.asPrismObject().debugDump());

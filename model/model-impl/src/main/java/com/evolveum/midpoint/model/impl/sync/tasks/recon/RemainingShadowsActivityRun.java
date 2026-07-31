@@ -204,7 +204,7 @@ final class RemainingShadowsActivityRun
             ObjectNotFoundException e,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException, SubscriptionComplianceException {
         if (!shadow.getOid().equals(e.getOid())) {
             LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: {}", e.getMessage(), e);
             throw e;
@@ -229,7 +229,7 @@ final class RemainingShadowsActivityRun
             ShadowType originalShadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         // We reload e.g. to get current "gone" status. Otherwise the clockwork is confused.
         PrismObject<ShadowType> shadow = reloadShadow(originalShadow, task, result);
@@ -251,7 +251,7 @@ final class RemainingShadowsActivityRun
 
     private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         //noinspection CaughtExceptionImmediatelyRethrown
         try {
             // 1. not read-only because we modify the shadow afterwards
@@ -279,7 +279,7 @@ final class RemainingShadowsActivityRun
                     originalShadow.asPrismObject(), false, task, result);
             return originalShadow.asPrismObject();
         } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException | ConfigurationException |
-                RestrictedObjectException e) {
+                 SubscriptionComplianceException e) {
             // These shouldn't occur, because we are going in NO FETCH mode. But they can; so let's just propagate them upwards.
             throw e;
         }

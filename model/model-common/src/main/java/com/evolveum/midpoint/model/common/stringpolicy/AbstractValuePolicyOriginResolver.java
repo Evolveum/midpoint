@@ -65,7 +65,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
             String contextDescription,
             Task task,
             OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ValuePolicyOriginType origin = defaultIfNull(prohibitedValueItem.getOrigin(), OBJECT);
         switch (origin) {
             case OBJECT:
@@ -89,7 +89,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         handler.handle((PrismObject<R>) object, result);
     }
 
-    private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+    private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!object.canRepresent(UserType.class)) {
             return;
         }
@@ -107,7 +107,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // Not very efficient. We will usually read the shadows again, as they are already in model context.
         // It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
         // But this is good enough for now.
@@ -137,7 +137,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
                 }
                 focus = MiscUtil.extractSingleton(objects).asObjectable();
             } catch (CommunicationException | ConfigurationException | SecurityViolationException |
-                    ExpressionEvaluationException | RestrictedObjectException e) {
+                     ExpressionEvaluationException | SubscriptionComplianceException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else {
@@ -160,7 +160,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
 
     private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectQuery ownerQuery = getOwnerQuery();
         if (ownerQuery != null) {
             objectResolver.searchIterative(getOwnerClass(), ownerQuery, readOnly(), handler, task, result);

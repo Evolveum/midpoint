@@ -440,7 +440,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         assertSubOrgs(orgVysneVlkodlakyOid, 0);
     }
 
-    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // nothing to do by default
     }
 
@@ -556,7 +556,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = (object, parentResult) -> {
@@ -573,7 +573,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     }
 
     protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<OrgType> handler = (object, parentResult) -> {

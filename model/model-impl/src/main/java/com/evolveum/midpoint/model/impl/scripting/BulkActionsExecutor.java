@@ -69,7 +69,7 @@ public class BulkActionsExecutor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         var executeScriptBean = executeScript.value();
         try {
             //todo should we parse from initialVariables and create BulkActionExecutionOptions here? e.g. parse runPrivileged?
@@ -99,7 +99,7 @@ public class BulkActionsExecutor {
     public PipelineData execute(JAXBElement<? extends ScriptingExpressionType> expression, PipelineData input,
             ExecutionContext context, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         return execute(expression.getValue(), input, context, parentResult);
     }
 
@@ -107,7 +107,7 @@ public class BulkActionsExecutor {
     public PipelineData execute(
             ScriptingExpressionType value, PipelineData input, ExecutionContext context, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         context.checkTaskStop();
         OperationResult globalResult = parentResult.createMinorSubresult(DOT_CLASS + "evaluate");
         try {
@@ -142,7 +142,7 @@ public class BulkActionsExecutor {
             @NotNull AbstractActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Executing action {} on {}", getActionType(action), input.debugDump());
         } else if (LOGGER.isDebugEnabled()) {
@@ -161,7 +161,7 @@ public class BulkActionsExecutor {
             ExpressionPipelineType pipeline, PipelineData data, ExecutionContext context, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         for (JAXBElement<? extends ScriptingExpressionType> expressionType : pipeline.getScriptingExpression()) {
             data = execute(expressionType, data, context, result);
         }
@@ -172,7 +172,7 @@ public class BulkActionsExecutor {
             ExpressionSequenceType sequence, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         PipelineData lastOutput = null;
         List<JAXBElement<? extends ScriptingExpressionType>> scriptingExpression = sequence.getScriptingExpression();
         for (int i = 0; i < scriptingExpression.size(); i++) {
@@ -218,7 +218,7 @@ public class BulkActionsExecutor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         MidPointPrincipal midPointPrincipal = securityEnforcer.getMidPointPrincipal();
 

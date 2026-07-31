@@ -48,7 +48,7 @@ public class MappingSuggestionOperationFactory {
             int retryCount,
             Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return MappingsSuggestionOperation.init(
                 TypeOperationContext.init(client, resourceOid, typeIdentification, activityState, task, parentResult),
                 this.mappingsQualityAssessor,

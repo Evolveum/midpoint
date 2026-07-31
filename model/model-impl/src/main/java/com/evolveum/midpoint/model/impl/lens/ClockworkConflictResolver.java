@@ -158,7 +158,7 @@ public class ClockworkConflictResolver {
     <F extends ObjectType> @NotNull HookOperationMode resolveFocusConflictIfPresent(
             LensContext<F> context, HookOperationMode finalMode, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         var conflictContext = context.getFocusConflictResolutionContext();
         if (conflictContext == null || !conflictContext.wasConflictDetected()) {
             return finalMode;

@@ -49,7 +49,7 @@ public class SecurityQuestionsPolicyEvaluator<F extends FocusType> extends
     @Override
     protected void validateCredentialContainerValues(PrismContainerValue<SecurityQuestionsCredentialsType> cVal)
             throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<SecurityQuestionAnswerType> questionAnswers = cVal.asContainerable().getQuestionAnswer();
         for (SecurityQuestionAnswerType questionAnswer : questionAnswers) {
             ProtectedStringType answer = questionAnswer.getQuestionAnswer();

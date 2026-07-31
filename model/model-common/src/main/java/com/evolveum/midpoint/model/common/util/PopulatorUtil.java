@@ -52,7 +52,7 @@ public class PopulatorUtil {
             ExpressionEvaluationContext context,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (targetContainerDefinition == null) {
             return null;
@@ -77,7 +77,7 @@ public class PopulatorUtil {
             ExpressionEvaluationContext context,
             PrismContainerDefinition<C> targetContainerDefinition,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionType expressionType = populateItem.getExpression();
         if (expressionType == null) {
             LOGGER.warn("No expression in populateObject in assignment expression in {}, "

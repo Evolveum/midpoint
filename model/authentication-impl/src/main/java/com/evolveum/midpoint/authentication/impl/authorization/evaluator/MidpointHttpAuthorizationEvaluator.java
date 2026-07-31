@@ -126,7 +126,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
         try {
             decision = decideAccess(principal, requiredActions, parameters, task, task.getResult());
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException | RestrictedObjectException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
             LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ERROR {}",
                     authentication, object, requiredActions, e.getMessage());
@@ -152,7 +152,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
             try {
                 user = model.getObject(FocusType.class, oid, null, task, task.getResult());
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-                    ConfigurationException | ExpressionEvaluationException | RestrictedObjectException e) {
+                     ConfigurationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
                 return null;
             }
             return user;

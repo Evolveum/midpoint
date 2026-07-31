@@ -81,7 +81,7 @@ class CorrelationItems implements DebugDumpable {
             @NotNull Set<String> candidateOids,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         assert !items.isEmpty();
 

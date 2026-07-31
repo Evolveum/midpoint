@@ -89,7 +89,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
         return new ResourceObjectAddOperation(ctx, objectToAdd, scripts, connOptions, skipExplicitUniquenessCheck)
                 .doExecute(result);
     }
@@ -97,7 +97,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
     private @NotNull ResourceObjectAddReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            RestrictedObjectException {
+            SubscriptionComplianceException {
 
         LOGGER.trace("Adding resource object {}", workingObject);
 
@@ -166,7 +166,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     private Collection<ShadowAttribute<?, ?, ?, ?>> fetchVolatileAttributes(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, SecurityViolationException, RestrictedObjectException {
+            ObjectNotFoundException, SecurityViolationException, SubscriptionComplianceException {
 
         var volatileAttributesDefinitions = ctx.getObjectDefinitionRequired().getAttributesVolatileOnAddOperation();
         if (volatileAttributesDefinitions.isEmpty()) {
@@ -229,7 +229,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
      */
     private void checkForAddConflictsForMultiConnectors(OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.trace("Checking for add conflicts for {}", workingObject.shortDumpLazily());
         UcfResourceObject existingObject;
         ConnectorInstance readConnector = null;

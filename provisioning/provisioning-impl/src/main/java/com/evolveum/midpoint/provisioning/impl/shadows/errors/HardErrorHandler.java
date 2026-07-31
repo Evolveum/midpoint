@@ -48,7 +48,7 @@ abstract class HardErrorHandler extends ErrorHandler {
             OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         throwException(operation, cause, result);
         return OperationResultStatus.FATAL_ERROR; // not reached
@@ -62,7 +62,7 @@ abstract class HardErrorHandler extends ErrorHandler {
             @NotNull OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         throwException(operation, cause, result);
         return OperationResultStatus.FATAL_ERROR; // not reached

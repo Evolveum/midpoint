@@ -82,7 +82,7 @@ public class NotificationExpressionHelper {
             VariablesMap variablesMap, String shortDesc,
             EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -129,7 +129,7 @@ public class NotificationExpressionHelper {
             @NotNull ConfigurationItemOrigin origin,
             VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef =
@@ -170,7 +170,7 @@ public class NotificationExpressionHelper {
             @NotNull ConfigurationItemOrigin origin,
             VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         PrismPropertyDefinition<RecipientExpressionResultType> resultDef =
                 prismContext.definitionFactory().newPropertyDefinition(
@@ -241,7 +241,7 @@ public class NotificationExpressionHelper {
             @NotNull ExpressionType expressionBean,
             @NotNull ConfigurationItemOrigin origin,
             VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");

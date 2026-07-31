@@ -144,7 +144,7 @@ public interface MidpointFunctions {
     <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Resolves specified reference, returning an object that the reference references.
@@ -153,7 +153,7 @@ public interface MidpointFunctions {
     <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
             throws SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -193,7 +193,7 @@ public interface MidpointFunctions {
      *             state
      */
     <T extends ObjectType> T getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -231,7 +231,7 @@ public interface MidpointFunctions {
      *             state
      */
     <T extends ObjectType> T getObject(Class<T> type, String oid)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -304,7 +304,7 @@ public interface MidpointFunctions {
      */
     void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -375,7 +375,7 @@ public interface MidpointFunctions {
      */
     void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -447,39 +447,39 @@ public interface MidpointFunctions {
     @SuppressWarnings("unchecked")
     void executeChanges(ObjectDelta<? extends ObjectType>... deltas)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> String addObject(PrismObject<T> newObject, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> String addObject(PrismObject<T> newObject)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> String addObject(T newObject, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> String addObject(T newObject)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> void modifyObject(ObjectDelta<T> modifyDelta, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> void modifyObject(ObjectDelta<T> modifyDelta)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     <T extends ObjectType> void deleteObject(Class<T> type, String oid)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
@@ -489,7 +489,7 @@ public interface MidpointFunctions {
      * @param oid OID of the object to recompute
      */
     <F extends FocusType> void recompute(Class<F> type, String oid)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, RestrictedObjectException;
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -501,7 +501,7 @@ public interface MidpointFunctions {
      */
     <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException, CommunicationException, RestrictedObjectException;
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -549,7 +549,7 @@ public interface MidpointFunctions {
      */
     <T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -594,7 +594,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -639,7 +639,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> List<T> searchObjects(Class<T> type, String filter) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
 
     /**
@@ -680,7 +680,7 @@ public interface MidpointFunctions {
     <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, RestrictedObjectException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -716,7 +716,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -750,7 +750,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> T searchObjectByName(Class<T> type, String name) throws SecurityViolationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -784,7 +784,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) throws SecurityViolationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -818,7 +818,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) throws SecurityViolationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -854,7 +854,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -888,7 +888,7 @@ public interface MidpointFunctions {
      *             wrong query format
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, RestrictedObjectException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -917,7 +917,7 @@ public interface MidpointFunctions {
      *             wrong OID format
      */
     OperationResult testResource(String resourceOid) throws ObjectNotFoundException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, CommunicationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     List<String> toList(String... s);
 
@@ -962,7 +962,7 @@ public interface MidpointFunctions {
      */
     Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ExpressionEvaluationException,
-            ConfigurationException, RestrictedObjectException;
+            ConfigurationException, SubscriptionComplianceException;
 
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
@@ -1088,7 +1088,7 @@ public interface MidpointFunctions {
 
     ModelContext<?> unwrapModelContext(LensContextType lensContextType)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException;
 
@@ -1114,7 +1114,7 @@ public interface MidpointFunctions {
      */
     boolean isCurrentProjectionActivated()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
@@ -1135,7 +1135,7 @@ public interface MidpointFunctions {
      */
     boolean isCurrentProjectionDeactivated()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Returns `true` if `focus` has a `assignment` with `targetRef.OID` being equal to `targetOid`.
@@ -1155,7 +1155,7 @@ public interface MidpointFunctions {
      */
     default ShadowType getLinkedShadow(FocusType focus, String resourceOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return getLinkedShadow(focus, resourceOid, false);
     }
 
@@ -1165,7 +1165,7 @@ public interface MidpointFunctions {
     @NotNull
     default List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return getLinkedShadows(focus, resourceOid, false);
     }
 
@@ -1179,7 +1179,7 @@ public interface MidpointFunctions {
      */
     default ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         List<ShadowType> shadows = getLinkedShadows(focus, resourceOid, repositoryObjectOnly);
         if (shadows.isEmpty()) {
             return null;
@@ -1191,17 +1191,17 @@ public interface MidpointFunctions {
     @NotNull
     List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     default ShadowType getLinkedShadow(FocusType focus, ResourceType resource)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return getLinkedShadow(focus, resource.getOid());
     }
 
     default ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return getLinkedShadow(focus, resource.getOid(), repositoryObjectOnly);
     }
 
@@ -1211,7 +1211,7 @@ public interface MidpointFunctions {
      */
     default ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return getLinkedShadow(focus, resourceOid, kind, intent, false);
     }
 
@@ -1225,7 +1225,7 @@ public interface MidpointFunctions {
     ShadowType getLinkedShadow(
             FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Returns aggregated delta that is to be executed on a given resource.
@@ -1269,7 +1269,7 @@ public interface MidpointFunctions {
     // Should be perhaps renamed to getOrgMembers?
     List<UserType> getMembers(String orgOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Returns list of references to memebers of an organization, specified by OID.
@@ -1278,21 +1278,21 @@ public interface MidpointFunctions {
     // Should be perhaps renamed to getOrgMembersAsReferences?
     List<ObjectReferenceType> getMembersAsReferences(String orgOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Lists all user members of a role (specified by OID), with respect to specified relation.
      * This method is suitable for listing role owners, approvers and similar "governance" users.
      */
     List<UserType> getRoleMemberUsers(String roleOid, QName relation) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Lists all user members of a service (specified by OID), with respect to specified relation.
      * This method is suitable for listing owners, approvers and similar "governance" users of a service (e.g.an application).
      */
     List<UserType> getServiceMemberUsers(String serviceOid, QName relation) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
     /**
      * Default function used to compute projection purpose. It is provided here so it can be explicitly
      * invoked from a custom expression and then the result can be changed for special cases.
@@ -1346,19 +1346,19 @@ public interface MidpointFunctions {
 
     ExtensionType collectExtensions(AssignmentPathType path, int startAt)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization)} instead. */
     @Deprecated
     TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization)} instead. */
     @Deprecated
     TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * Submits a task from template (pointed to by `templateOid`), customizing it according to given
@@ -1370,11 +1370,11 @@ public interface MidpointFunctions {
     @NotNull String submitTaskFromTemplate(@NotNull String templateOid, @NotNull ActivityCustomization customization)
             throws CommonException;
 
-    TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+    TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
             String templateTaskOid, Task opTask,
-            OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, RestrictedObjectException;
+            OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     String translate(String key, Objects... args);
 
@@ -1409,17 +1409,17 @@ public interface MidpointFunctions {
      */
     <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** A variant of {@link #countAccounts(String, QName, Object)}. */
     <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** A variant of {@link #countAccounts(String, QName, Object)}. Attribute name is assumed to be in the `ri:` namespace. */
     <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Checks uniqueness of property value.
@@ -1434,7 +1434,7 @@ public interface MidpointFunctions {
      */
     <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Returns a list of objects that are conflicting with the specified object on specified property.
@@ -1448,7 +1448,7 @@ public interface MidpointFunctions {
     <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString,
             T propertyValue, boolean getAllConflicting)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Checks if the value `attributeValue` of `attributeName` in given shadow is unique on given resource.
@@ -1462,7 +1462,7 @@ public interface MidpointFunctions {
      */
     <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName,
             T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <F extends ObjectType> ModelContext<F> getModelContext();
 
@@ -1475,12 +1475,12 @@ public interface MidpointFunctions {
     Object executeAdHocProvisioningScript(ResourceType resource, String language, String code)
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
+            SecurityViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     Object executeAdHocProvisioningScript(String resourceOid, String language, String code)
             throws SchemaException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ObjectAlreadyExistsException, RestrictedObjectException;
+            SecurityViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     /**
      * Returns indication whether a script code is evaluating a new value.
@@ -1538,7 +1538,7 @@ public interface MidpointFunctions {
                     Objects.requireNonNullElse(kind, ShadowKindType.ACCOUNT),
                     Objects.requireNonNullElse(intent, SchemaConstants.INTENT_DEFAULT));
         } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException | ConfigurationException |
-                ObjectNotFoundException | RestrictedObjectException e) {
+                 ObjectNotFoundException | SubscriptionComplianceException e) {
             LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't find focus objects by correlation rule", e);
             return null;
         }
@@ -1568,17 +1568,17 @@ public interface MidpointFunctions {
             @NotNull ShadowKindType kind,
             @NotNull String intent)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
             ModelExecuteOptions options)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
             ModelExecuteOptions options, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, RestrictedObjectException;
+            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     PrismContext getPrismContext();
 
@@ -1586,7 +1586,7 @@ public interface MidpointFunctions {
 
     <T extends ObjectType> void applyDefinition(T object)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, RestrictedObjectException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
@@ -1683,23 +1683,23 @@ public interface MidpointFunctions {
     <T> PreparedQuery<T> preparedQueryFor(Class<T> type, String query) throws SchemaException;
 
     <T extends ObjectType> List<T> searchObjects(TypedQuery<T> query) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, RestrictedObjectException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     default <T extends ObjectType> List<T> searchObjects(TypedQuery<T> query, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return searchObjects(query.getType(), query.toObjectQuery(), options);
     }
 
     default <T extends ObjectType> void searchObjectsIterative(TypedQuery<T> query, ResultHandler<T> handler)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         searchObjectsIterative(query.getType(), query.toObjectQuery(), handler);
     }
 
     default <T extends ObjectType> void searchObjectsIterative(TypedQuery<T> query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, RestrictedObjectException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         searchObjectsIterative(query.getType(), query.toObjectQuery(), handler, options);
     }
 
@@ -1724,7 +1724,7 @@ public interface MidpointFunctions {
      * of these activities.
      */
     String describeResourceObjectSetLong(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Short version of {@link #describeResourceObjectSetLong(ResourceObjectSetType)}:
@@ -1733,11 +1733,11 @@ public interface MidpointFunctions {
      * . object class is omitted when type is present
      */
     String describeResourceObjectSetShort(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException;
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Synonym for {@link #describeResourceObjectSetShort(ResourceObjectSetType)}, mainly for compatibility reasons. */
     default String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, RestrictedObjectException {
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return describeResourceObjectSetShort(set);
     }
 
