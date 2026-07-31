@@ -29,6 +29,7 @@ import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -63,8 +64,8 @@ public class TestCustomPolicyReconciliationMultiNode extends AbstractEmptyModelI
 
     private static final TestObject<TaskType> TASK_CUSTOM =
             TestObject.file(TEST_DIR, "custom-policy-reconciliation.xml", "e4f00000-0000-0000-0000-000000000002");
-    private static final TestObject<TaskType> TASK_IMPORT =
-            TestObject.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
+    private static final TestTask TASK_IMPORT =
+            TestTask.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
 
     private static final int ACCOUNTS = 20;
     private static final String PATTERN = "a%02d";
@@ -84,6 +85,7 @@ public class TestCustomPolicyReconciliationMultiNode extends AbstractEmptyModelI
         super.initSystem(initTask, initResult);
         initDummyResource(RESOURCE, initTask, initResult);
         createAccounts();
+        TASK_IMPORT.init(this, initTask, initResult);
 
         // clockwork (focus) policy-rule notifier, redirected to a dummy transport
         SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
@@ -136,11 +138,7 @@ public class TestCustomPolicyReconciliationMultiNode extends AbstractEmptyModelI
 
     /** Imports all accounts (plain import, no policy), linking users to shadows — the state the scenario prunes. */
     private void importAllAndLink(OperationResult result) throws Exception {
-        deleteIfPresent(TASK_IMPORT, result);
-        addObject(TASK_IMPORT, getTestTask(), result, NO_CUSTOMIZATION);
-        waitForTaskCloseOrSuspend(TASK_IMPORT.oid, 5 * TIMEOUT);
-        assertTaskTree(TASK_IMPORT.oid, "after import").assertClosed().assertSuccess();
-        deleteIfPresent(TASK_IMPORT, result);
+        TASK_IMPORT.rerun(result);
     }
 
     private void deleteAccounts(int from, int to) throws Exception {

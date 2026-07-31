@@ -141,3 +141,14 @@
 .col-form-label {
   color: var(--bs-body-color);
 }
+
+.sidebar-light-primary,
+.sidebar-light-lightblue {
+  --lte-sidebar-submenu-color: #595959;
+}
+
+.login-card-body, .register-card-body {
+  .col-12.p-0.pt-4.fw-bold {
+    color: var(--bs-body-color);
+  }
+}

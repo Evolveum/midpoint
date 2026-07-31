@@ -112,6 +112,18 @@ public class ConnDevBeans {
         return null;
     }
 
+    public String getSqlFrameworkUrl(OperationResult result) {
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            if (systemConfiguration != null && systemConfiguration.getSmartIntegration() != null) {
+                return systemConfiguration.getSmartIntegration().getConnectorSqlFrameworkUrl();
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Could not get system configuration.", e);
+        }
+        return null;
+    }
+
     public ServiceClient client(String sessionId, ServiceClient.SessionRestoration restoration, ServiceClient.SessionRestoration synchronization, OperationResult result) {
         var apiBase = getServiceUrl(result);
         if (apiBase == null) {

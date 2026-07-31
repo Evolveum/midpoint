@@ -14,6 +14,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -214,6 +215,11 @@ public class PrismContainerWrapperImpl<C extends Containerable>
 
             PrismContainerWrapperImpl containerWrapperImpl = (PrismContainerWrapperImpl) containerWrapper;
             if (ItemPath.isId(last)) {
+
+                if(last instanceof IdItemPathSegment) {
+                    last = ((IdItemPathSegment) last).getId();
+                }
+
                 return containerWrapperImpl.findValue((Long) last);
             } else {
                 if (isSingleValue()) {

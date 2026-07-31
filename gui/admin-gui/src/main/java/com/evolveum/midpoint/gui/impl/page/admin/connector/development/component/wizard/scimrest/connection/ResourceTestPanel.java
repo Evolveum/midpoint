@@ -93,9 +93,7 @@ public class ResourceTestPanel extends BasePanel<String> {
                     try {
                         getPageBase().getModelService().testResource(getModelObject(), task, result);
                     } catch (Throwable t) {
-                        state = State.FAILED;
-                        stop(target);
-                        return;
+                        result.recordFatalError(t);
                     }
 
                     result.computeStatus();

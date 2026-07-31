@@ -564,6 +564,15 @@ body.custom-hold-transition {
   width: 20px;
 }
 
+.summary-tag.icon-style-disabled {
+  color: $text-toned-color;
+
+  .summary-tag-label,
+  .summary-tag-icon {
+    color: $text-toned-color;
+  }
+}
+
 // form input for binary data upload (used e.g. for photo)
 
 .form-object-value-binary-box {
@@ -2625,4 +2634,8 @@ footer.app-footer a {
     .table-responsive:not([class*="overflow"]) {
         overflow: visible !important;
     }
+}
+
+.min-width-0 {
+  min-width: 0 !important;
 }

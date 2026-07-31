@@ -94,16 +94,16 @@
             <div class="d-flex flex-grow-1">
                 <div class="app-content py-3 flex-grow-1">
                     <wicket:enclosure child="contentVisible">
-                        <div wicket:id="contentVisible"/>
+                        <div wicket:id="contentVisible"></div>
                         <div class="container-fluid">
                             <div wicket:id="feedbackContainer" class="feedbackContainer">
-                                <div wicket:id="feedback" class="messagePanel"/>
+                                <div wicket:id="feedback" class="messagePanel"></div>
                             </div>
                             <wicket:child/>
                         </div>
                     </wicket:enclosure>
                 </div>
-                <div wicket:id="rightSidebar" class="right-sidebar-layout" />
+                <div wicket:id="rightSidebar" class="position-absolute top-0 end-0 bottom-0 d-flex z-4"></div>
             </div>
         </main>
         <footer wicket:id="footerContainer" class="app-footer d-flex flex-column">

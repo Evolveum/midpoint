@@ -63,6 +63,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="connectorSqlFrameworkUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the SQL connector framework template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="statisticsTtl" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

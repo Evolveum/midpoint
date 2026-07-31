@@ -39,10 +39,9 @@ public class OtpServiceFactoryImpl implements OtpServiceFactory {
         OtpAlgorithm algorithm = OtpAlgorithm.fromValue(config.getAlgorithm());
         Integer secretLength = config.getSecretLength();
         Integer digits = config.getDigits();
-        Integer window = config.getWindow();
 
         if (config instanceof TOtpAuthenticationModuleType totp) {
-            return new TOtpServiceImpl(clock, issuer, algorithm, secretLength, digits, window, totp.getPeriod());
+            return new TOtpServiceImpl(clock, issuer, algorithm, secretLength, digits, totp.getPeriod());
         }
 
         throw new IllegalArgumentException("Unsupported OTP type: " + config.getClass());

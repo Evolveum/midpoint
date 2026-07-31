@@ -234,19 +234,24 @@
         <!-- Groovy 4.0.x supports Java 25 class files (major version 69). -->
         <groovy.version>4.0.31</groovy.version>
 
-        <cel.version>0.13.1e-SNAPSHOT</cel.version>
+        <cel.version>0.13.1e-M1</cel.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.0</log4j2.version>
         <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+        <!-- remove whole dependency tools.jackson.core:jackson-databind dependency
+            definition when its above 3.1.4 (around L296) -->
+        <jackson-databind.version>3.1.5</jackson-databind.version>
         <logback.version>1.5.38</logback.version>
+        <postgresql.version>42.7.12</postgresql.version>
+        <netty.version>4.2.16.Final</netty.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
         <commons.fileupload2.version>2.0.0-M5</commons.fileupload2.version>
 
-        <wicket.version>10.9.1</wicket.version>
+        <wicket.version>10.10.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6</wicket.chartjs.version>
 
@@ -284,10 +289,17 @@
         <qrcodegen.version>1.8.0</qrcodegen.version>
         <java-otp.version>1.7.1</java-otp.version>
         <byte-buddy.version>1.17.8</byte-buddy.version>
+        <antlr.version>4.13.2</antlr.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+                <scope>compile</scope>
+            </dependency>
 
             <!-- Prism libraries with versions pre-declared (no need to use versions in other POMs) -->
             <dependency>
@@ -1582,7 +1594,7 @@
             <dependency>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-runtime</artifactId>
-                <version>4.13.2</version>
+                <version>${antlr.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.ttddyy</groupId>
@@ -1664,24 +1676,8 @@
             <dependency>
                 <groupId>org.springframework.retry</groupId>
                 <artifactId>spring-retry</artifactId>
-                <version>2.0.12</version>
+                <version>2.0.13</version>
             </dependency>
-            <!--<dependency>-->
-            <!--    <groupId>org.springframework.boot</groupId>-->
-            <!--    <artifactId>spring-boot-loader</artifactId>-->
-            <!--    <version>3.4.0</version>-->
-            <!--</dependency>-->
-            <!--<dependency>-->
-            <!--    <groupId>org.springframework.boot</groupId>-->
-            <!--    <artifactId>spring-boot-loader-tools</artifactId>-->
-            <!--    <version>3.4.0</version>-->
-            <!--    <exclusions>-->
-            <!--        <exclusion>-->
-            <!--            <groupId>org.apache.commons</groupId>-->
-            <!--            <artifactId>commons-compress</artifactId>-->
-            <!--        </exclusion>-->
-            <!--    </exclusions>-->
-            <!--</dependency>-->
             <dependency>
                 <!-- security fix for CVE-2025-48976 2.0.0-M4 -->
                 <groupId>org.apache.commons</groupId>

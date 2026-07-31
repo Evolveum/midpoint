@@ -11,6 +11,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -19,6 +20,8 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -132,7 +135,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,
                             this::secondaryIdentifiers)),
 
-            // Assignment functions
+            // ASSIGNMENT FUNCTIONS
 
             // assignment.hasRelation(any)
             new Function(
@@ -186,6 +189,7 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             CelObjectExtensions::assignmentIsTarget,
                             NullabilityProperties.NULLABLE_FALSE)),
 
+            // assignment.isTarget*()
             createIsTargetFunction("Role", RoleType.COMPLEX_TYPE),
             createIsTargetFunction("Org", OrgType.COMPLEX_TYPE),
             createIsTargetFunction("Service", ServiceType.COMPLEX_TYPE),
@@ -236,10 +240,105 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("assignment-targettype",
                             Object.class,
                             CelObjectExtensions::assignmentTargetType,
-                            NullabilityProperties.NULLABLE_NULL))
+                            NullabilityProperties.NULLABLE_NULL)),
 
+            // DELTA FUNCTIONS
+
+            // objectDelta.hasDeltaFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "hasDeltaFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-hasdeltafor",
+                                    "Returns true if the delta has delta for specified item.",
+                                    SimpleType.BOOL,
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-hasdeltafor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::hasDeltaFor,
+                            NullabilityProperties.NULLABLE_FALSE)),
+
+            // objectDeltaOperation.hasDeltaFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "hasDeltaFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdeltaoperation-hasdeltafor",
+                                    "Returns true if the delta has delta for specified item.",
+                                    SimpleType.BOOL,
+                                    ObjectDeltaOperationCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdeltaoperation-hasdeltafor",
+                            ObjectDeltaOperationCelValue.class, Object.class,
+                            CelObjectExtensions::hasDeltaFor,
+                            NullabilityProperties.NULLABLE_FALSE))
+
+// TODO: more complex that it seems
+//            // objectDelta.isValueChanged(path)
+//            new Function(
+//                    CelFunctionDecl.newFunctionDeclaration(
+//                            "isValueChanged",
+//                            CelOverloadDecl.newMemberOverload(
+//                                    "objectdelta-isvaluechanged",
+//                                    "Returns true if the delta has delta for specified item.",
+//                                    SimpleType.BOOL,
+//                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+//                    CelFunctionBinding.from("objectdelta-isvaluechanged",
+//                            ObjectDeltaCelValue.class, Object.class,
+//                            CelObjectExtensions::isValueChanged,
+//                            NullabilityProperties.NULLABLE_FALSE))
         );
 
+    }
+
+    private static Object hasDeltaFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        return objectDeltaCelValue.getJavaValue().hasItemOrSubitemDelta(toPath(path));
+    }
+
+    private static Object hasDeltaFor(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        ObjectDelta<?> objectDelta = objectDeltaOperationCelValue.getObjectDelta();
+        if (objectDelta == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return objectDelta.hasItemOrSubitemDelta(toPath(path));
+    }
+
+//    TODO: more complex that it seems
+//    private static Object isValueChanged(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+//        if (isCelNull(path)) {
+//            return NullValue.NULL_VALUE;
+//        }
+//        return objectDeltaCelValue.getJavaValue().isValueChanged(toPath(path));
+//    }
+//
+//    private static Object isValueChanged(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
+//        if (isCelNull(path)) {
+//            return NullValue.NULL_VALUE;
+//        }
+//        ObjectDelta<?> objectDelta = objectDeltaOperationCelValue.getObjectDelta();
+//        if (objectDelta == null) {
+//            return NullValue.NULL_VALUE;
+//        }
+//        return objectDelta.isValueChanged(toPath(path));
+//    }
+
+    @NotNull
+    private static ItemPath toPath(@NotNull Object path) {
+        if (path instanceof ItemPathCelValue celPath) {
+            return celPath.getJavaValue();
+        } else if (path instanceof String s) {
+            return ItemPath.fromString(s);
+        } else if (path instanceof QNameCelValue celQName) {
+            return ItemPath.create(celQName.getJavaValue());
+        } else if (path instanceof List<?> segments) {
+            return ItemPath.create(CelTypeMapper.toCelValues(segments));
+        }
+        throw new IllegalArgumentException("Unexpected type of path "+path+" ("+path.getClass().getName()+")");
     }
 
     private Function createHasRelationFunction(String name, final QName relation) {

@@ -9,7 +9,7 @@
         oid="e4f00000-0000-0000-0000-0000000000ff">
     <name>hr-import</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState>
     <activity>
         <work>
             <import>

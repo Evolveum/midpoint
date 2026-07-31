@@ -42,7 +42,8 @@ import java.util.function.BooleanSupplier;
 public abstract class ConnectorDevelopmentBackend {
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
-    private static final String CONNECTOR_MANIFEST = "connector.manifest.json";
+    private static final String CONNECTOR_MANIFEST = "connector.manifest.yaml";
+    private static final String CONNECTOR_MANIFEST_JSON_LEGACY = "connector.manifest.json";
     private static final String CONFIGURATION_OVERRIDE = "configurationOverride.properties";
     private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
     private static final String CONNDEV_OBJECT_CLASS = "conndev_ObjectClass";
@@ -97,6 +98,7 @@ public abstract class ConnectorDevelopmentBackend {
         return switch (integrationType) {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
+            case SQL -> new SqlBackend(beans, connDev, task, result);
             //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
@@ -240,7 +242,7 @@ public abstract class ConnectorDevelopmentBackend {
         var manifest = new ConnectorManifestWriter(development).serialize();
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
-
+        editableConnector().deleteFileIfExists(CONNECTOR_MANIFEST_JSON_LEGACY);
     }
 
     private EditableConnector editableConnector() {
