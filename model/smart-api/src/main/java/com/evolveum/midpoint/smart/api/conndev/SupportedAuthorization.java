@@ -167,6 +167,7 @@ public enum SupportedAuthorization {
         return (List) switch (integration) {
             case SCIM -> scimProperties;
             case REST -> restProperties;
+            case SQL -> List.of();
         };
     }
 

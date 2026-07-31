@@ -606,6 +606,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="sql">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Integration using SQL database connectivity
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SQL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <!-- Dummy integration is hidden, will be replaced by multitable
             <xsd:enumeration value="dummy">
                 <xsd:annotation>
