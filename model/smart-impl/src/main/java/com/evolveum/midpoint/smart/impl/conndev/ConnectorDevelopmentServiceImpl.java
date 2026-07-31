@@ -320,8 +320,12 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
-        // FIXME: Dispatch to IntegrationType specific handler
-        return ConnDevBeans.get().getFrameworkUrl(new OperationResult("Empty"));
+        var beans = ConnDevBeans.get();
+        var result = new OperationResult("Empty");
+        return switch (integrationType) {
+            case REST, SCIM -> beans.getFrameworkUrl(result);
+            case SQL -> beans.getSqlFrameworkUrl(result);
+        };
     }
 
     private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {
