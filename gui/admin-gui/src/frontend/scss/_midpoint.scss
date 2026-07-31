@@ -2639,3 +2639,9 @@ footer.app-footer a {
 .min-width-0 {
   min-width: 0 !important;
 }
+
+.row > .composited-button-item {
+  width: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
