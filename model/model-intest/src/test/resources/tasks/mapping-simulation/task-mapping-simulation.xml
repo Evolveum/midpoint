@@ -20,7 +20,7 @@
     <activity>
         <identifier>simulation-of-existing-mappings</identifier>
         <work>
-            <mappings>
+            <inboundMappingsSimulation>
                 <resourceObjects>
                     <resourceRef oid="f499e126-f235-4141-82eb-15df1d9c2adc" />
                     <kind>account</kind>
@@ -35,7 +35,7 @@
                         </target>
                     </inbound>
                 </inlineMappings>
-            </mappings>
+            </inboundMappingsSimulation>
         </work>
         <execution>
             <mode>preview</mode>
