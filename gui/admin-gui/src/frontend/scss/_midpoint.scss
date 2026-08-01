@@ -2054,6 +2054,7 @@ select:focus-visible {
   outline: 2px #ffa836;
   outline-style: auto;
   outline-offset: 3px;
+  position: relative;
   z-index: 1001;
   @include smooth-transition(0.03s);
 }
@@ -2301,6 +2302,8 @@ footer.app-footer a {
 .navbar-nav .dropdown-menu {
   max-height: calc(100vh - 64px);
   overflow-y: auto;
+   padding-left: 5px;
+    padding-right: 5px;
 }
 
 // MID-10513 fix for issue with backdrop and modal in safari, where modal is displayed behind the backdrop.
