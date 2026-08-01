@@ -81,7 +81,7 @@ If your deployment environment restricts Internet access, see the link:#corporat
 === PostgreSQL
 
 The connector generator microservice requires a *dedicated PostgreSQL database* for storing indexed documentation chunks and LLM query optimization metadata.
-The database must exist and be accessible before the service starts because the service runs Alembic database migrations on startup.
+The database must exist and be accessible before the service starts because you have to run Python Alembic database migration before launching the API server.
 
 [NOTE]
 ====
@@ -173,7 +173,7 @@ Beside the link:#required-config-vars[required configuration variables] and the 
 |Environment variable |Default |Description
 |`LOGGING__LEVEL`
 |info
-|Logging level (e.g., `info`, `trace`, `debug`)
+|Logging level (e.g., `debug`, `info`, `error`, `warning`, `critical`)
 |===
 
 === Recommended pre-deployment checks
@@ -200,7 +200,8 @@ The connector generator microservice (`midpilot-connector-gen`) generates connec
 
 === Deployment
 
-Deploy the `midpilot-connector-gen` container (e.g., via Kubernetes, Docker Compose, Nomad job, etc.).
+Deploy the `midpilot-connector-gen` container (e.g., via Kubernetes, Docker Compose, Nomad job, etc.) and run `alembic upgrade head` to perform the initial PostgreSQL database migration.
+
 The service listens on *port 8090* by default.
 MidPoint communicates with the microservice using REST API over HTTP.
 Additionally, ensure the dedicated PostgreSQL database is running and accessible before starting the service (see the <<prerequisites,Prerequisites>> section).
@@ -222,7 +223,7 @@ Beside the link:#required-config-vars[required configuration variables] and the 
 |`LOGGING__LEVEL`
 |`info`
 |no
-|Logging level (e.g., `info`, `trace`, `debug`)
+|Logging level (e.g., `debug`, `info`, `error`, `warning`, `critical`)
 |`SEARCH__METHOD_NAME`
 |none
 |yes
@@ -260,7 +261,7 @@ You have two options to get the connector framework JAR:
 The connector generator service starts by running *Python Alembic database migrations* before launching the API server.
 This is why the PostgreSQL database must already exist and be accessible at startup.
 
-At runtime, `uvicorn` (ASGI web server implementation for Python, used internally by the microservice) may *attempt to download or verify Python dependencies*.
+At runtime, `hypercorn` (ASGI web server implementation for Python, used internally by the microservice) may *attempt to download or verify Python dependencies*.
 If your deployment environment has restricted Internet access, you can prevent this using either of the following approaches:
 
 Use `--no-sync` flags ::
