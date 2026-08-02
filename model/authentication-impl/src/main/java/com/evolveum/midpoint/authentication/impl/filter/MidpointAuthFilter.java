@@ -38,6 +38,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -170,7 +171,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private boolean resolveErrorWithWrongConfigurationOfModules(
+    @VisibleForTesting
+    boolean resolveErrorWithWrongConfigurationOfModules(
             MidpointAuthentication mpAuthentication,
             int indexOfProcessingModule,
             HttpServletRequest httpRequest,

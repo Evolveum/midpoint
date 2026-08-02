@@ -11,7 +11,6 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.springframework.security.web.WebAttributes;
@@ -30,8 +29,6 @@ import java.util.stream.Collectors;
         },
         permitAll = true, authModule = AuthenticationModuleNameConstants.HTTP_HEADER)
 public class PageError401 extends PageError {
-
-    private static final String ID_ERROR_MESSAGE = "errorMessage";
 
     public PageError401() {
         super(401);
@@ -64,7 +61,6 @@ public class PageError401 extends PageError {
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
         // Replace the generic 401 text with the translated authentication error.
-        get(ID_ERROR_MESSAGE)
-                .replaceWith(new Label(ID_ERROR_MESSAGE, exMessage));
+        setErrorMessage(exMessage);
     }
 }

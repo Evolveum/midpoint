@@ -4,16 +4,13 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.authentication;
+package com.evolveum.midpoint.authentication.impl.filter;
 
 import static org.testng.AssertJUnit.*;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -24,7 +21,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.impl.filter.MidpointAuthFilter;
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.test.AbstractHigherUnitTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
@@ -55,8 +51,12 @@ public class TestMidpointAuthFilterFailureConfiguration extends AbstractHigherUn
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        boolean handled =
-                resolveErrorWithWrongConfigurationOfModules(authentication, request, response);
+        boolean handled = new MidpointAuthFilter(Map.of())
+                .resolveErrorWithWrongConfigurationOfModules(
+                        authentication,
+                        0,
+                        request,
+                        response);
 
         assertTrue("First module configuration failure should be terminal", handled);
         assertEquals(
@@ -97,25 +97,5 @@ public class TestMidpointAuthFilterFailureConfiguration extends AbstractHigherUn
         authentication.addAuthentication(failedModule.getBaseModuleAuthentication());
 
         return authentication;
-    }
-
-    private static boolean resolveErrorWithWrongConfigurationOfModules(
-            MidpointAuthentication authentication,
-            HttpServletRequest request,
-            ServletResponse response) throws Exception {
-        Method method = MidpointAuthFilter.class.getDeclaredMethod(
-                "resolveErrorWithWrongConfigurationOfModules",
-                MidpointAuthentication.class,
-                int.class,
-                HttpServletRequest.class,
-                ServletResponse.class);
-        method.setAccessible(true);
-
-        return (boolean) method.invoke(
-                new MidpointAuthFilter(Map.of()),
-                authentication,
-                0,
-                request,
-                response);
     }
 }
