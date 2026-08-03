@@ -2054,7 +2054,6 @@ select:focus-visible {
   outline: 2px #ffa836;
   outline-style: auto;
   outline-offset: 3px;
-  position: relative;
   z-index: 1001;
   @include smooth-transition(0.03s);
 }
@@ -2472,6 +2471,11 @@ footer.app-footer a {
 .multiselect-native-select .dropdown .dropdown-menu {
   padding-top: 0px !important;
   padding-bottom: 0px !important;
+}
+
+.dropdown-menu .dropdown-item:focus-visible {
+  position: relative;
+  z-index: 2;
 }
 
 .help-icon-after-label {
