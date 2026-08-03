@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable.createChangeNameColumnAction;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeMappingTypeSuggestionNew;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.SuggestionUiStyle;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.bySuggestion;
@@ -28,6 +29,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -67,7 +70,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -112,7 +114,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("MappingSuggestionGroupColumnTilePanel.legendAi")) {
             @Override
             protected @NotNull String getIconCssClass() {
-                return "fa fa-circle text-purple mr-1";
+                return "fa fa-circle text-purple me-1";
             }
         });
 
@@ -120,7 +122,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("MappingSuggestionGroupColumnTilePanel.legendSystem")) {
             @Override
             protected @NotNull String getIconCssClass() {
-                return "fa fa-circle text-primary mr-1";
+                return "fa fa-circle text-primary me-1";
             }
         });
 
@@ -141,7 +143,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.getString("InboundAttributeMappingsTable.allMappings"));
 
         dropdown.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px;"));
-        dropdown.getBaseFormComponent().add(AttributeModifier.replace("class", "form-control"));
+        dropdown.getBaseFormComponent().add(AttributeModifier.replace("class", "form-select"));
         dropdown.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -472,16 +474,16 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     @NotNull InlineMenuItem createAcceptItemMenu() {
         return createSuggestActionMenuBuilder()
                 .label(table.createStringResource("SmartMappingTable.apply"))
-                .icon("fa fa-check mr-2")
+                .icon("fa fa-check me-2")
                 .action(createAcceptSuggestionColumnAction())
-                .additionalCssClass("btn-link text-primary rounded border-primary mr-2")
+                .additionalCssClass("btn-link text-primary rounded border-primary me-2")
                 .buildButtonMenu();
     }
 
     @NotNull InlineMenuItem createDiscardItemMenu() {
         return createSuggestActionMenuBuilder()
                 .label(table.createStringResource("SmartMappingTable.dismiss"))
-                .icon("fa fa-times mr-2")
+                .icon("fa fa-times me-2")
                 .action(createDiscardColumnAction())
                 .additionalCssClass("btn-link text-danger")
                 .buildButtonMenu();
@@ -683,8 +685,8 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 .confirmationOptions(options)
                 .build();
 
-        ConfirmationWithOptionsPanel<Describable> dialog =
-                new ConfirmationWithOptionsPanel<>(table.getPageBase().getMainPopupBodyId(), () -> dto) {
+        ConfirmationWithOptionsPopupPanel<Describable> dialog =
+                new ConfirmationWithOptionsPopupPanel<>(table.getPageBase().getMainPopupBodyId(), () -> dto) {
                     @Override
                     public void confirmationPerformed(
                             AjaxRequestTarget target,
@@ -815,7 +817,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 StatusInfo<?> statusInfo = table.getStatusInfo(mappingWrapper.getObject());
                 if (statusInfo != null) {
                     AjaxIconButton discard = buildDiscardButton(repeater, mappingWrapper);
-                    discard.add(AttributeModifier.replace("class", "btn btn-link text-danger ml-auto"));
+                    discard.add(AttributeModifier.replace("class", "btn btn-link text-danger ms-auto"));
                     repeater.add(discard);
 
                     AjaxIconButton accept = buildAcceptInGroupButton(repeater, mappingWrapper);
@@ -832,7 +834,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
         AjaxIconButton button = new AjaxIconButton(
                 repeater.newChildId(),
-                Model.of("fa fa-check mr-2"),
+                Model.of("fa fa-check me-2"),
                 table.createStringResource("SmartMappingTable.apply.suggestion")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -873,7 +875,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
         AjaxIconButton button = new AjaxIconButton(
                 repeater.newChildId(),
-                Model.of("fa fa-times mr-2"),
+                Model.of("fa fa-times me-2"),
                 table.createStringResource("SmartMappingTable.dismiss")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -936,7 +938,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     @NotNull InlineMenuItem createSuggestionOperationInlineMenu() {
-        return StatusInfoTableUtil.createSuggestionOperationInlineMenu(
+        return StatusInfoTableUtil.createSuggestionStopGeneratingInlineMenu(
                 table.getPageBase(),
                 table::getStatusInfo,
                 table::refreshAndDetach);

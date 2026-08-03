@@ -25,8 +25,10 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectTypeIfPossible;
 
@@ -66,6 +68,11 @@ public class OrgRelationClause extends SelectorClause {
         }
         var principalFocus = ctx.getPrincipalFocus();
         if (principalFocus != null) {
+            // ALL_DESCENDANTS is the default used by the existing org-relation matching logic.
+            OrgScopeType scope = Objects.requireNonNullElse(bean.getScope(), OrgScopeType.ALL_DESCENDANTS);
+            if (scope == OrgScopeType.ALL_DESCENDANTS) {
+                return matchesAllDescendants(object, principalFocus, ctx);
+            }
             for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
                 if (matchesOrgRelation(object, subjectParentOrgRef, ctx)) {
                     traceApplicable(ctx, "subject org matches: %s", subjectParentOrgRef.getOid());
@@ -73,6 +80,36 @@ public class OrgRelationClause extends SelectorClause {
                 }
             }
         }
+        traceNotApplicable(ctx, "none of the subject orgs match");
+        return false;
+    }
+
+    private boolean matchesAllDescendants(
+            ObjectType object, FocusType principalFocus, @NotNull SelectorProcessingContext ctx)
+            throws SchemaException {
+        Set<String> ancestorOrgOids = new LinkedHashSet<>();
+        for (ObjectReferenceType subjectParentOrgRef : principalFocus.getParentOrgRef()) {
+            if (PrismContext.get().relationMatches(bean.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
+                String subjectOrgOid = subjectParentOrgRef.getOid();
+                if (BooleanUtils.isTrue(bean.isIncludeReferenceOrg())
+                        && subjectOrgOid.equals(object.getOid())) {
+                    traceApplicable(ctx, "subject org matches by includeReferenceOrg: %s", subjectOrgOid);
+                    return true;
+                }
+                ancestorOrgOids.add(subjectOrgOid);
+            }
+        }
+
+        if (ancestorOrgOids.isEmpty()) {
+            traceNotApplicable(ctx, "none of the subject orgs match subject relation");
+            return false;
+        }
+
+        if (ctx.orgTreeEvaluator.isDescendantOfAny(object.asPrismObject(), ancestorOrgOids)) {
+            traceApplicable(ctx, "subject org matches one of: %s", ancestorOrgOids);
+            return true;
+        }
+
         traceNotApplicable(ctx, "none of the subject orgs match");
         return false;
     }

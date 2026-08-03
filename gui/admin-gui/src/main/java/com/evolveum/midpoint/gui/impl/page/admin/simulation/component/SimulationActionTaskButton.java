@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,13 +108,22 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
                         getExecutionMode()
                 );
 
-                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params){
+                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params) {
                     @Override
                     public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
                         SimulationActionTaskButton.this.onShowResultProcess(target, task, pageBase);
                     }
+
+                    @Override
+                    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+                        StringResourceModel titleModel = SimulationActionTaskButton.this.getTitleModel(pageBase);
+                        if (titleModel != null) {
+                            return titleModel;
+                        }
+                        return super.getTitleModel(pageBase);
+                    }
                 };
-                if(isSamplingEnabled()){
+                if (isSamplingEnabled()) {
                     flow.enableSampling();
                 }
                 flow.start(target);
@@ -133,6 +143,9 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         return simulationButton;
     }
 
+    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+        return null;
+    }
 
     protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
         ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
@@ -143,7 +156,7 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         }
     }
 
-    protected boolean isSamplingEnabled(){
+    protected boolean isSamplingEnabled() {
         return false;
     }
 

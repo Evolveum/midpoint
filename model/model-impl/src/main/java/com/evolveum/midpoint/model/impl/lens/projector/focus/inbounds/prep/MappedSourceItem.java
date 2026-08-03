@@ -136,7 +136,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
      */
     void createMappings(@NotNull MappingEvaluationRequestsMap evaluationRequestsBeingCollected, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (!isLoaded()) {
             if (effectiveItemDelta != null) {

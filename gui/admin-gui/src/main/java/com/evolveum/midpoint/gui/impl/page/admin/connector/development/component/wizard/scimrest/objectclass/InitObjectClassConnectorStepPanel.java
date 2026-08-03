@@ -21,12 +21,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchByIdConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterEndpointsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchFilterConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterScriptConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchFilterObjectsConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.model.IModel;
 
@@ -73,11 +70,7 @@ public class InitObjectClassConnectorStepPanel extends AbstractObjectClassConnec
                 new SearchByIdEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingSearchByIdConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new SearchByIdScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingSearchFilterConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterObjectsConnectorStepPanel(getHelper(), getObjectClassModel()));
+                new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()));
     }
 
     @Override

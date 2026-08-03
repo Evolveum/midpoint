@@ -6,31 +6,17 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.metadata;
 
-import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType.F_STORAGE;
 
-import java.util.Objects;
-
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedBy;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StorageMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignmentReferenceMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
-import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 
 public abstract class QValueMetadataMapping<OR, M extends MValueMetadata, Q extends QValueMetadata<M, OR>>

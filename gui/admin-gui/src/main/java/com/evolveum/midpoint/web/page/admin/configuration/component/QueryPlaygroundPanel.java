@@ -80,7 +80,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.RepoQueryDto;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -160,8 +159,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         try {
             admin = getPageBase()
                     .isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException
-                | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
             admin = false;
         }
@@ -594,8 +592,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
     }
 
     private List<?> performModelSearch(RepositoryQueryDiagRequest request, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         if (ObjectType.class.isAssignableFrom(request.getType())) {
             return getPageBase().getModelService().searchObjects(
                     (Class<? extends ObjectType>) request.getType(), request.getQuery(), createRawCollection(), task, result);
@@ -621,8 +618,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             boolean distinct,
             ExpressionType midPointQueryScript,
             Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PrismQuerySerialization.NotSupportedException {
+            throws CommonException, PrismQuerySerialization.NotSupportedException {
         PrismContext prismContext = getPrismContext();
         if (objectType == null) {
             objectType = ObjectType.COMPLEX_TYPE;

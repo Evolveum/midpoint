@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.shadows.*;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowDeleteOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -68,18 +71,18 @@ public abstract class ErrorHandler {
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             OperationResult result)
-                throws SchemaException, GenericFrameworkException, CommunicationException,
-                ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     public abstract OperationResultStatus handleModifyError(
             @NotNull ShadowModifyOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
-                throws SchemaException, GenericFrameworkException, CommunicationException,
-                ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     public abstract OperationResultStatus handleDeleteError(
             @NotNull ShadowDeleteOperation operation,

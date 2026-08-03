@@ -16,10 +16,13 @@ import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsPr
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -81,7 +84,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
             LensContext<AH> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException,
-            ConflictDetectedException {
+            ConflictDetectedException, SubscriptionComplianceException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
         PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();

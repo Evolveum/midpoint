@@ -19,7 +19,8 @@ They are defined per activity, so different activities in the same task may have
 If a policy has to evaluate an object that is being processed by clockwork (like provisioning, reconciliation, etc.), then
 xref:./thresholds[thresholds] or xref:/midpoint/reference/roles-policies/policies/policy-rules/[global policy rules] with proper constraints should be used instead.
 
-Currently, focus policy rule constraints cannot be used in activity policies.
+Since midPoint 4.11, focus policy rule constraints can also be applied to objects processed by an activity.
+See xref:./focus-policies-in-activities[Focus policies in activities] for details.
 
 Policies are collected during activity initialization from the activity definition and its parent activity definitions (in case of composite activities).
 Policies are evaluated after each item in an iterative activity is processed.
@@ -115,6 +116,9 @@ See xref:#_limitations[Limitations] for more details.
 Logical constraints are implemented to help you combine multiple constraints into one.
 By default, `and` is used to combine constraints defined directly under the `policyConstraints` element.
 
+Activity-based constraints (such as `executionTime`) and focus-based constraints (see xref:./focus-policies-in-activities[Focus policies in activities]) cannot be combined within a single constraint.
+They are evaluated in different places, so each policy must use only one of the two kinds.
+
 == Policy actions
 
 Policy actions are the configured reactions that the system executes when a policy constraint is triggered.
@@ -166,6 +170,10 @@ The _notification_ policy action uses the standard notification mechanism, so it
 The _suspend task_ policy action will immediately suspend the whole task or task tree that executes the activity.
 Task will be suspended with `FATAL_ERROR` result.
 
+Suspending preserves the activity state, including policy triggers and threshold counters.
+When the task is resumed, they continue from where they were.
+It might be suspended right away if policy threshold were hit previously.
+
 [[restartactivity]]
 === Restart activity
 
@@ -177,6 +185,8 @@ Restarting of the activity happens in two steps:
 
 . The current activity execution is stopped by suspending the task.
 . The task is resumed, which causes the activity to start from the beginning.
+
+When the activity is restarted, its policy triggers and threshold counters are reset along with the rest of the activity state, so counting starts fresh.
 
 Restarting of the task may be delayed by using the `delay` parameter, which is specified as an XML duration.
 The default delay parameter value is 5 seconds.
@@ -217,14 +227,35 @@ If a task is suspended and resumed later, the skipped activity is not executed a
 </policyActions>
 ----
 
+== Reusable policies via policyRef
+
+Instead of defining policies inline, an activity can reference a reusable policy object using `policyRef`.
+The referenced object must be an `AbstractRoleType` (preferably a `PolicyType`), and the policy rules are taken from its inducements (`inducement/policyRule`).
+
+This is useful when the same set of policies should be shared across multiple activities or tasks and managed in a single place.
+
+.Activity referencing a reusable policy object
+[source,xml]
+----
+<policies>
+    <policyRef oid="11111111-2222-3333-4444-555555555555" type="PolicyType"/>
+</policies>
+----
+
+Inducement-based policy rules used via `policyRef` must not define `order` or `condition`; otherwise a configuration exception is thrown.
+
+For applying focus policy rules to processed objects (including via `policyRef` and virtual assignments), see xref:./focus-policies-in-activities[Focus policies in activities].
+
 == User interface
 
 Activity policies are configured in the activity definition XML only.
 
-All activity policies may be enabled or disabled via the user interface in task details.
+Inline activity policies may be enabled or disabled via the user interface in task details.
 This is useful when you want to force a task to finish even when some policies prevent it from happening (e.g., there is a triggered policy that suspends the task).
+Policies contributed via `policyRef` or virtual assignments are not affected by this action and remain enabled.
 
-The task details UI also allows users to clear all activity policy triggers and counters, while keeping the policies and activity state untouched.
+The task details UI also allows users to clear activity policy triggers and counters, while keeping the policies and activity state untouched.
+Triggers are cleared for all policies.
 
 .Activity policies options in task details
 image::activity-policies/activity-policies-gui.png[Activity policies in task details UI, width=600]
@@ -240,7 +271,6 @@ Activity policies are not supported in:
     ** Repartition
     ** Cleanup
     ** Custom composite activities
-* Focus policy constraints currently cannot be used in activity policies.
 * User interface support is limited to XML configuration only.
 * Activity policies are not able to catch, evaluate, and process the following exceptions:
 ** Exceptions thrown _in the connector implementation_ during search operation when executing the search query, e.g., because the resource is unreachable or the query cannot be interpreted.
@@ -250,6 +280,9 @@ This is a real limitation, steming from the current architecture and ConnId Conn
 Such exceptions are reported from ConnId as failures of the whole search operation, and can be seen in midPoint as such.
 They usually cause halting the whole activity.
 //** When shadow object is being initialized after connector object was returned from the connector.
+* When a threshold-based policy suspends the task, the threshold counters (stored in the task's activity state) are preserved.
+Simply resuming the task will re-trigger the policy and suspend it again.
+To resume, first disable the policy or clear its state via the <<User interface>>.
 
 == Examples
 
@@ -273,6 +306,7 @@ include::activity-policies/02-policy-network-error-restart.xml[]
 
 == See also
 
+* xref:./focus-policies-in-activities[Focus policies in activities]
 * xref:/midpoint/reference/tasks/thresholds[]
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 * xref:/midpoint/architecture/concepts/task/[Task]

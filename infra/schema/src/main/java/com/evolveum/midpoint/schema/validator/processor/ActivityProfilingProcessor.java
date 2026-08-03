@@ -13,7 +13,6 @@ import com.evolveum.midpoint.schema.validator.UpgradePhase;
 import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProfilingDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTracingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @SuppressWarnings("unused")

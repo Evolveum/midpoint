@@ -6,15 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
-import java.util.Collection;
-
 //todo no need to have boolean wrapper right now, while using 3-state Boolean gui component,
 // should be finished later, in 4.7 or 4.8
 public class BooleanWrapperImpl {}

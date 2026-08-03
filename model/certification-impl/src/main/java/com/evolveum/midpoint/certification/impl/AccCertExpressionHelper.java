@@ -9,7 +9,10 @@ package com.evolveum.midpoint.certification.impl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,7 +45,7 @@ public class AccCertExpressionHelper {
             Class<T> resultClass, ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName xsdType = XsdTypeMapper.toXsdType(resultClass);
 
@@ -79,7 +82,7 @@ public class AccCertExpressionHelper {
     private List<ObjectReferenceType> evaluateRefExpression(
             ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismReferenceDefinition resultDef =
@@ -106,7 +109,7 @@ public class AccCertExpressionHelper {
     public boolean evaluateBooleanExpression(
             ExpressionType expressionType, VariablesMap VariablesMap, String shortDesc, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<Boolean> exprResult = evaluateExpression(Boolean.class, expressionType, VariablesMap, shortDesc, task, result);
         if (exprResult.size() == 0) {
             return false;

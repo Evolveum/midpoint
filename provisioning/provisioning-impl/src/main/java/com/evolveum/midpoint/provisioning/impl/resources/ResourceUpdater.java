@@ -133,6 +133,15 @@ class ResourceUpdater {
                             .item(ResourceType.F_SCHEMA)
                             .replace(createSchemaUpdateValue(schema))
                             .asItemDelta());
+            // When the schema is modified, the cached shadows may contain attributes, definition of which is no more
+            // compatible with it. It is for example the case when you add `managedAssociationPairs` to the connector
+            // configuration, what may cause the change of the `member` attribute definition. To avoid issues with
+            // application of the schema to such attributes, we invalidate the shadow cache.
+            modifications.add(
+                    PrismContext.get().deltaFor(ResourceType.class)
+                            .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
+                            .replace(beans.clock.currentTimeXMLGregorianCalendar())
+                            .asItemDelta());
         }
         if (updateInMemory) {
             resource.schema(createSchemaUpdateValue(schema));

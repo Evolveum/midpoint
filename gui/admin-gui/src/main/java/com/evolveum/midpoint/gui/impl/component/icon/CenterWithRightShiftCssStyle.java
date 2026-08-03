@@ -18,7 +18,7 @@ public class CenterWithRightShiftCssStyle implements LayeredIconCssStyle {
 
     @Override
     public String getBasicLayerCssClass() {
-        return "center-with-right-shift-layer";
+        return "center-with-end-shift-layer";
     }
 
     @Override

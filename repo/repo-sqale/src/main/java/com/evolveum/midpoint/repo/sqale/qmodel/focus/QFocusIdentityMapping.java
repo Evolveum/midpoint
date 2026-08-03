@@ -15,7 +15,6 @@ import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerType;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.resource.QResourceMapping;
 
@@ -26,7 +25,6 @@ import com.querydsl.core.types.OrderSpecifier;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;

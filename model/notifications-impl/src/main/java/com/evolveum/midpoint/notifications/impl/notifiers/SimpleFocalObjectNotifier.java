@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.Date;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -123,7 +123,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         AssignmentHolderType focus = focusObject.asObjectable();
         String oid = focusContext.getOid();
 
-        String fullName = emptyIfNull(getFullName(focus));
+        String displayName = emptyIfNull(getDisplayName(focus));
 
         ObjectDelta<AssignmentHolderType> delta = ObjectDeltaCollectionsUtil.summarize(event.getFocusDeltas());
 
@@ -133,7 +133,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
         body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
-        body.append(typeName).append(": ").append(fullName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
+        body.append(typeName).append(": ").append(displayName).append(" (").append(focus.getName()).append(", oid ").append(oid).append(")\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
         boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
@@ -163,17 +163,14 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         return body.toString();
     }
 
-    @Nullable
-    private String getFullName(AssignmentHolderType focus) {
-        String fullName;
-        if (focus instanceof UserType) {
-            fullName = PolyString.getOrig(((UserType) focus).getFullName());
-        } else if (focus instanceof AbstractRoleType) {
-            fullName = PolyString.getOrig(((AbstractRoleType) focus).getDisplayName());
+    private String getDisplayName(AssignmentHolderType focus) {
+        if (focus instanceof UserType user) {
+            return PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(user));
+        } else if (focus instanceof AbstractRoleType role) {
+            return PolyString.getOrig(role.getDisplayName());
         } else {
-            fullName = "";          // TODO
+            return "";
         }
-        return fullName;
     }
 
     @Override

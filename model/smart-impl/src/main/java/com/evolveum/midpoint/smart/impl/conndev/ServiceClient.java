@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -54,15 +55,15 @@ public class ServiceClient {
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
     }
 
-    public Job postJob(String endpoint) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postJob(String endpoint, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         job.startJob(request);
         return job;
     }
 
-    public Job postJob(String endpoint, ObjectNode body) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postJob(String endpoint, ObjectNode body, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(new StringEntity(body.toPrettyString(), ContentType.APPLICATION_JSON));
         job.startJob(request);
@@ -73,48 +74,48 @@ public class ServiceClient {
         return base.replace(SESSION_PATTERN, sessionId);
     }
 
-    public Job postDocumentationJob(String endpoint, InputStream documentation, ObjectNode body) throws IOException {
+    public Job postDocumentationJob(String endpoint, InputStream documentation, ObjectNode body, boolean skipCache) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.EXTENDED);
         builder.addBinaryBody("documentation", documentation, ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
 
-        var job = new Job(apiBase+endpoint);
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = job.postBuilder();
         request.setEntity(builder.build());
         job.startJob(request);
         return job;
     }
 
-    public Job postDocumentationObjectClassJob(String endpoint, String objectClass, InputStream documentation, ObjectNode body) throws IOException {
+    public Job postDocumentationObjectClassJob(String endpoint, String objectClass, InputStream documentation, ObjectNode body, boolean skipCache) throws IOException {
         final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.EXTENDED);
         builder.addBinaryBody("documentation", documentation, ContentType.create("application/yaml", StandardCharsets.UTF_8), "spec.yml");
 
-        var job = new Job(apiBase+endpoint);
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(builder.build());
         job.startJob(request);
         return job;
     }
 
-    public Job postEntityJob(String endpoint, HttpEntity entity) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postEntityJob(String endpoint, HttpEntity entity, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint);
         request.setEntity(entity);
         job.startJob(request);
         return job;
     }
 
-    public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity) throws IOException {
-        var job = new Job(apiBase+endpoint);
+    public Job postEntityJob(String endpoint, String objectClass, HttpEntity entity, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, skipCache);
         var request = new HttpPost(apiBase+endpoint + "?objectClass=" + objectClass);
         request.setEntity(entity);
         job.startJob(request);
         return job;
     }
 
-    public RestorationClient synchronizationClient() {
-        return new RestorationClient();
+    public SynchronizationClient synchronizationClient() {
+        return new SynchronizationClient();
     }
 
 
@@ -128,13 +129,22 @@ public class ServiceClient {
     public class Job implements AutoCloseable {
 
         private final String uri;
+        private final boolean skipCache;
         private String jobId = null;
 
         private JobStatus status = JobStatus.NEW;
         private ObjectNode latestResult;
 
-        public Job(String uri) {
+        public Job(String uri, boolean skipCache) {
             this.uri = appendSession(uri);
+            this.skipCache =skipCache;
+        }
+
+        private String appendSkipCache(String uri) {
+            if (!skipCache) {
+                return uri;
+            }
+            return uri + ( !uri.contains("?") ? "?" : "&" ) + "skipCache=true";
         }
 
         @Override
@@ -143,7 +153,7 @@ public class ServiceClient {
         }
 
         public HttpPost postBuilder() {
-            return new HttpPost(uri);
+            return new HttpPost(appendSkipCache(uri));
         }
 
         public void startJob(HttpPost request) throws IOException {
@@ -217,16 +227,49 @@ public class ServiceClient {
                 try {
                     Thread.sleep(sleepTime);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
+                    throw new SystemException("Interrupted while waiting for the connector generation service", e);
                 }
                 if (!canRun.getAsBoolean()) {
-                    throw new RuntimeException("Task interrupted");
+                    throw new SystemException("Operation was cancelled while waiting for the connector generation service");
                 }
             }
-            if (isFinished()) {
+            if (status == JobStatus.FAILED) {
+                var errors = extractErrors();
+                throw new SystemException("The connector generation service reported a failure"
+                        + (errors != null ? ":\n" + errors : ""));
+            }
+            if (status == JobStatus.COMPLETED) {
                 return transform.apply(getResult());
             }
-            throw new IllegalStateException("Job has been finished");
+            throw new SystemException("The connector generation service job did not finish successfully");
+        }
+
+        /**
+         * Extracts the {@code errors} array (if present) from the latest job response, so that
+         * service-side failures are surfaced in the exception message shown in the GUI instead of
+         * a generic, contextless error.
+         */
+        private String extractErrors() {
+            if (latestResult == null) {
+                return null;
+            }
+            var errorsNode = latestResult.get("errors");
+            if (errorsNode == null || errorsNode.isNull()) {
+                var resultNode = latestResult.get("result");
+                errorsNode = resultNode != null ? resultNode.get("errors") : null;
+            }
+            if (errorsNode == null || !errorsNode.isArray() || errorsNode.isEmpty()) {
+                return null;
+            }
+            var sb = new StringBuilder();
+            for (var error : errorsNode) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(error.asText());
+            }
+            return sb.length() == 0 ? null : sb.toString();
         }
     }
 
@@ -294,6 +337,89 @@ public class ServiceClient {
                 return;
             }
             put(apiUri, entitySupplier);
+        }
+
+    }
+
+    /**
+     * Client for the documentation synchronization direction: upload dev documentation to the generation
+     * service, wait for it to be processed, and pull the processed result back. The service is the source
+     * of truth for processed documentation, so callers push with {@link #postDocumentation}, then, once
+     * {@link #awaitDocumentation} confirms processing, read the result with {@link #getDocumentation}.
+     */
+    public class SynchronizationClient {
+
+        private String documentationUri(String docId) {
+            return appendSession(apiBase + "session/{sessionId}/documentation/" + docId);
+        }
+
+        /**
+         * Uploads a single documentation file (multipart {@code documentation} part). The endpoint does
+         * not merely store it but hands it to the LLM, chunking it into {@code DocumentationItem}s (source
+         * {@code upload}, {@code doc_id == docId}) as an asynchronous job. Returns immediately; use
+         * {@link #awaitDocumentation} to wait for the job and {@link #getDocumentation} to pull the result.
+         */
+        public void postDocumentation(String docId, InputStream documentation, ContentType contentType, String filename) throws IOException {
+            ensureSessionExists();
+
+            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setMode(HttpMultipartMode.EXTENDED);
+            builder.addBinaryBody("documentation", documentation, contentType, filename);
+
+            var uri = documentationUri(docId);
+            var request = new HttpPost(uri);
+            request.setEntity(builder.build());
+            try (var response = client.execute(request)) {
+                if (response.getCode() < 200 || response.getCode() >= 300) {
+                    throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code " + response.getCode());
+                }
+            }
+        }
+
+        /**
+         * Waits until an uploaded documentation has finished processing, by polling {@code HEAD
+         * documentation/{docId}}. Unlike the module job endpoints, the documentation endpoint has no
+         * {@code ?jobId=} status envelope; the HEAD status is the contract instead: {@code 204} once the
+         * chunks are persisted, {@code 202} while the upload job is still running, and {@code 404} when
+         * neither items nor a pending job exist (i.e. the upload failed).
+         */
+        public void awaitDocumentation(String docId, long sleepTime, BooleanSupplier canRun) throws IOException {
+            var uri = documentationUri(docId);
+            while (true) {
+                int code;
+                try (var response = client.execute(new HttpHead(uri))) {
+                    code = response.getCode();
+                }
+                if (code == HttpStatus.SC_NO_CONTENT || code == HttpStatus.SC_OK) {
+                    return;
+                }
+                if (code != HttpStatus.SC_ACCEPTED) {
+                    throw new IOException("Documentation " + docId + " was not processed. Status code " + code);
+                }
+                if (!canRun.getAsBoolean()) {
+                    throw new IOException("Cancelled while waiting for documentation " + docId + " to be processed");
+                }
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting for documentation " + docId, e);
+                }
+            }
+        }
+
+        /**
+         * Fetches a single processed documentation bundle ({@code docId} + its chunks) as raw JSON. Only
+         * call this once {@link #awaitDocumentation} has confirmed processing has finished.
+         */
+        public String getDocumentation(String docId) throws IOException {
+            var uri = documentationUri(docId);
+            try (var response = client.execute(new HttpGet(uri))) {
+                if (HttpStatus.SC_OK == response.getCode()) {
+                    return new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+                }
+                throw new IOException("Could not fetch documentation " + docId + " from " + uri + ". Status code " + response.getCode());
+            }
         }
 
     }

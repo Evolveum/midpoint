@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,7 +64,7 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitCreateConnector(task, result);
     }
 

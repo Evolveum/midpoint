@@ -23,7 +23,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.*;
+import org.apache.wicket.request.resource.IResource;
 
 import java.io.Serial;
 import java.util.List;

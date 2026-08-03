@@ -37,7 +37,8 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
-import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.*;
+import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.EMAIL;
+import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.PERSONAL_NUMBER;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.on;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.testng.AssertJUnit;

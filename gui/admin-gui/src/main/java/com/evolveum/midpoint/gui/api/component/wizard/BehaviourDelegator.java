@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;

@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
@@ -15,8 +16,11 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.quartzimpl.LocalNodeState;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
+import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.tasks.TaskRetriever;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -25,7 +29,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

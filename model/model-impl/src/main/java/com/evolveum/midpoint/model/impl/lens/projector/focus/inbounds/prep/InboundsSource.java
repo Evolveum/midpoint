@@ -10,7 +10,9 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,7 +142,7 @@ public abstract class InboundsSource implements DebugDumpable {
     <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
             Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // Currently relevant only for clockwork processing. Otherwise, it's a no-op.
     }
 

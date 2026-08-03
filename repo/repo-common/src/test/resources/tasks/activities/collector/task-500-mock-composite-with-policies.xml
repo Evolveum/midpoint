@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension"
+        oid="5e6a0f9c-4b1d-4a3e-9c2b-7f0d1a2b3c40">
+    <name>task-500-mock-composite-with-policies</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <extension>
+                <ext:compositeMock>
+                    <ext:message>id1</ext:message>
+                    <ext:delay>0</ext:delay>
+                    <ext:steps>1</ext:steps>
+                </ext:compositeMock>
+            </extension>
+        </work>
+        <!--
+            Policies are declared on the root activity only. The embedded "opening" and "closing" children must not
+            inherit them into their own definitions, so that the collector reports each rule exactly once.
+        -->
+        <policies>
+            <policy>
+                <name>Execution time</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT8S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+            </policy>
+        </policies>
+    </activity>
+</task>

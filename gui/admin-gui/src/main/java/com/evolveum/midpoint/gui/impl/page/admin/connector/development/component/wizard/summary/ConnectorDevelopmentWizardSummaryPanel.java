@@ -191,7 +191,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
 
                 @Override
                 public boolean isEditButtonVisible() {
-                    return ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel);
+                    return ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
                 }
             }.setStatusCssIcon(() -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel) ?
                     "fa fa-circle-check" : "fa fa-circle-xmark"));

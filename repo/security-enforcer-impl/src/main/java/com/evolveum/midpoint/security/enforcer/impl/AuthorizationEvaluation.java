@@ -255,7 +255,7 @@ public class AuthorizationEvaluation {
 
     boolean isApplicableToParameters(@NotNull AbstractAuthorizationParameters params)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (params instanceof AuthorizationParameters<?, ?> objectParams) {
             return isApplicableToRelation(objectParams.getRelation())
                     && isApplicableToOrderConstraints(objectParams.getOrderConstraints())
@@ -280,7 +280,7 @@ public class AuthorizationEvaluation {
 
     private boolean isApplicableToObjectOperation(ObjectDeltaObject<? extends ObjectType> odo)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         var applicability = isApplicableToObjectDeltaObjectInternal(odo);
         var anyObject = odo != null ? odo.getAnyObject() : null;
         traceAutzApplicabilityToObjectOrTarget("object", anyObject, applicability);
@@ -289,7 +289,7 @@ public class AuthorizationEvaluation {
 
     private <O extends ObjectType> SelectorApplicabilityResult isApplicableToObjectDeltaObjectInternal(ObjectDeltaObject<O> odo)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<ValueSelector> objectSelectors = authorization.getParsedObjectSelectors();
         if (!objectSelectors.isEmpty()) {
             if (odo == null) {
@@ -315,14 +315,14 @@ public class AuthorizationEvaluation {
     private <O extends ObjectType> SelectorApplicabilityResult areSelectorsApplicable(
             @NotNull List<ValueSelector> selectors, @Nullable PrismObject<O> object, @NotNull String desc)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return areSelectorsApplicable(selectors, getValue(object), desc);
     }
 
     private SelectorApplicabilityResult areSelectorsApplicable(
             @NotNull List<ValueSelector> selectors, @Nullable PrismValue value, @NotNull String desc)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (!selectors.isEmpty()) {
             if (value == null) {
                 return SelectorApplicabilityResult.negative("null object but selector(s) defined");
@@ -341,7 +341,7 @@ public class AuthorizationEvaluation {
 
     boolean isApplicableToObject(PrismObject<? extends ObjectType> object)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var applicability = areSelectorsApplicable(authorization.getParsedObjectSelectors(), object, "object");
         traceAutzApplicabilityToObjectOrTarget("object", object, applicability);
         return applicability.value;
@@ -349,7 +349,7 @@ public class AuthorizationEvaluation {
 
     private boolean isApplicableToObjectValue(@Nullable PrismValue value)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var applicability = areSelectorsApplicable(authorization.getParsedObjectSelectors(), value, "object");
         traceAutzApplicabilityToObjectValue(value, applicability);
         return applicability.value;
@@ -357,7 +357,7 @@ public class AuthorizationEvaluation {
 
     <T extends ObjectType> boolean isApplicableToTarget(PrismObject<T> target)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var applicability = areSelectorsApplicable(authorization.getParsedTargetSelectors(), target, "target");
         traceAutzApplicabilityToObjectOrTarget("target", target, applicability);
         return applicability.value;
@@ -472,8 +472,8 @@ public class AuthorizationEvaluation {
             @NotNull ValueSelector selector,
             @NotNull PrismValue value,
             @NotNull String desc)
-            throws SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return new SelectorEvaluation(id, selector, value, desc, this, result)
                 .isSelectorApplicable();
     }

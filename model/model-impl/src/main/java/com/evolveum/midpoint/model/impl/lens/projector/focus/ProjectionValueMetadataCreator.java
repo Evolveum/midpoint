@@ -66,7 +66,8 @@ public class ProjectionValueMetadataCreator {
     public <V extends PrismValue, D extends ItemDefinition<?>>
     void setValueMetadata(@NotNull Item<V, D> resourceObjectItem, @NotNull LensProjectionContext projectionCtx,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         apply(
                 resourceObjectItem.getValues(),
                 () -> createMetadata(projectionCtx, resourceObjectItem, env, result),
@@ -76,14 +77,16 @@ public class ProjectionValueMetadataCreator {
     public <D extends ItemDefinition<?>, V extends PrismValue>
     void setValueMetadata(@NotNull ItemDelta<V, D> itemDelta, @NotNull LensProjectionContext projectionCtx,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         apply(itemDelta.getValuesToAdd(), () -> createMetadata(projectionCtx, itemDelta, env, result), () -> "ADD set of" + itemDelta);
         apply(itemDelta.getValuesToReplace(), () -> createMetadata(projectionCtx, itemDelta, env, result), () -> "REPLACE set of " + itemDelta);
     }
 
     private <V extends PrismValue> void apply(Collection<V> values, MetadataSupplier metadataSupplier,
             Supplier<Object> descSupplier) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         ValueMetadataType metadata = null;
         if (CollectionUtils.isNotEmpty(values)) {
             int changed = 0;
@@ -110,13 +113,13 @@ public class ProjectionValueMetadataCreator {
     private interface MetadataSupplier {
         ValueMetadataType get() throws CommunicationException,
                 ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-                ExpressionEvaluationException;
+                ExpressionEvaluationException, SubscriptionComplianceException;
     }
 
     private ValueMetadataType createMetadata(@NotNull LensProjectionContext projectionCtx, Object desc,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (projectionCtx.getCachedValueMetadata() != null) {
             return projectionCtx.getCachedValueMetadata().clone();
@@ -219,7 +222,7 @@ public class ProjectionValueMetadataCreator {
     private ValueMetadataType populateValueMetadata(ProvenanceFeedDefinitionType provenanceFeed,
             LensProjectionContext projectionCtx, MappingEvaluationEnvironment env,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ValueMetadataType valueMetadataBean = new ValueMetadataType();
         if (provenanceFeed == null || provenanceFeed.getAcquisitionItemPopulator().isEmpty() && provenanceFeed.getMetadataItemPopulator().isEmpty()) {
             return valueMetadataBean;

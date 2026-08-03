@@ -7,15 +7,12 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.CUSTOM;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import jakarta.xml.bind.JAXBElement;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.EvaluatedCustomConstraintTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,9 +59,9 @@ public class CustomConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedCustomConstraintTrigger> evaluate(
             @NotNull JAXBElement<CustomPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -82,7 +80,6 @@ public class CustomConstraintEvaluator
                 boolean onAssignment = rctx instanceof AssignmentPolicyRuleEvaluationContext;
                 String keyPrefix = onAssignment ? ASSIGNMENT_CONSTRAINT_KEY_PREFIX : OBJECT_CONSTRAINT_KEY_PREFIX;
                 return List.of(new EvaluatedCustomConstraintTrigger(
-                        CUSTOM,
                         constraintValue,
                         createMessage(keyPrefix, constraint, rctx, onAssignment, result),
                         createShortMessage(keyPrefix, constraint, rctx, onAssignment, result)));
@@ -106,7 +103,7 @@ public class CustomConstraintEvaluator
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage =
                 createBuiltInMessage(
                         SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix,
@@ -125,7 +122,7 @@ public class CustomConstraintEvaluator
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         CustomPolicyConstraintType constraint = constraintElement.getValue();
         List<Object> args = new ArrayList<>();
         args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
@@ -165,7 +162,7 @@ public class CustomConstraintEvaluator
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage =
                 createBuiltInMessage(
                         SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKeyPrefix,

@@ -38,7 +38,9 @@ import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 

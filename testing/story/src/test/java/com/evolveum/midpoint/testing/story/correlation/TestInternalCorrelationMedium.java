@@ -15,7 +15,6 @@ import java.io.File;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 
 import java.util.Set;
 
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -46,5 +48,10 @@ public class ExecutionAttemptsConstraintEvaluator
     @Override
     public Set<DataNeed> getDataNeeds(JAXBElement<NumericThresholdPolicyConstraintType> constraint) {
         return Set.of(DataNeed.EXECUTION_ATTEMPTS);
+    }
+
+    @Override
+    protected PolicyConstraintKind getPolicyConstraintKind() {
+        return PolicyConstraintKind.EXECUTION_ATTEMPTS;
     }
 }

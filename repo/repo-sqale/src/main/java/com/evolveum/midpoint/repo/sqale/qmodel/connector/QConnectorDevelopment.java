@@ -6,15 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
-
-import com.querydsl.core.types.dsl.*;
-import com.querydsl.sql.ColumnMetadata;
-
-import java.sql.Types;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.

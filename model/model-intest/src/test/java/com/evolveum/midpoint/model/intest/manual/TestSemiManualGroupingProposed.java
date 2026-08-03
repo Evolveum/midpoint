@@ -14,7 +14,6 @@ import java.io.File;
 
 import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

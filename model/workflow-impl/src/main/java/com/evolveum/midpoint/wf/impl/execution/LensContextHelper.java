@@ -51,7 +51,7 @@ public class LensContextHelper {
 
     LensContext<?> collectApprovedDeltasToModelContext(CaseType rootCase, List<CaseType> subcases, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         LensContext<?> rootContext = miscHelper.getModelContext(rootCase, task, result);
         List<ObjectTreeDeltas<?>> deltasToMerge = new ArrayList<>();
 
@@ -81,7 +81,7 @@ public class LensContextHelper {
     void mergeDeltasToModelContext(
             LensContext<?> rootContext, List<ObjectTreeDeltas<?>> deltasToMerge, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         for (ObjectTreeDeltas<?> deltaToMerge : deltasToMerge) {
             LensFocusContext<?> focusContext = rootContext.getFocusContext();
             //noinspection rawtypes

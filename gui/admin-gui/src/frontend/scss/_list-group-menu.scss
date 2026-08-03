@@ -33,8 +33,8 @@ $max-levels: 10;
 @mixin list-group-menu-item() {
   display: flex;
   flex-direction: column;
-  color: $list-group-color;
-  background-color: $list-group-bg;
+  color: var(--bs-list-group-color);
+  background-color: var(--bs-list-group-bg);
 
   & > .item {
     display: flex;
@@ -68,31 +68,33 @@ $max-levels: 10;
       color: inherit;
     }
 
-    @include hover-focus() {
-      z-index: 1; // Place hover/focus items above their siblings for proper border styling
-      color: $list-group-action-hover-color;
-      text-decoration: none;
-      background-color: $list-group-hover-bg;
+    &:not(.active) {
+      &:hover,
+      &:focus {
+        z-index: 1; // Place hover/focus items above their siblings for proper border styling
+        color: var(--bs-list-group-action-hover-color);
+        text-decoration: none;
+        background-color: var(--bs-list-group-action-hover-bg);
+      }
+
+      &:active {
+        color: var(--bs-list-group-action-active-color);
+        background-color: var(--bs-list-group-action-active-bg);
+      }
     }
 
     &.disabled,
     &:disabled {
-      color: $list-group-disabled-color;
+      color: var(--bs-list-group-disabled-color);
       pointer-events: none;
-      background-color: $list-group-disabled-bg;
+      background-color: var(--bs-list-group-disabled-bg);
     }
 
-    // Include both here for `<a>`s and `<button>`s
     &.active {
       z-index: 2; // Place active items above their siblings for proper border styling
-      color: $list-group-active-color;
-      background-color: $list-group-active-bg;
-      border-color: $list-group-active-border-color;
-    }
-
-    &:active {
-      color: $list-group-action-active-color;
-      background-color: $list-group-action-active-bg;
+      color: var(--bs-list-group-active-color);
+      background-color: var(--bs-list-group-active-bg);
+      border-color: var(--bs-list-group-active-border-color);
     }
   }
 
@@ -103,13 +105,25 @@ $max-levels: 10;
 }
 
 .list-group-menu {
+  --bs-list-group-color: #{$list-group-color};
+  --bs-list-group-bg: #{$list-group-bg};
+  --bs-list-group-border-color: #{$list-group-border-color};
+  --bs-list-group-border-width: #{$list-group-border-width};
+  --bs-list-group-active-color: #{$list-group-active-color};
+  --bs-list-group-active-bg: #{$list-group-active-bg};
+  --bs-list-group-active-border-color: #{$list-group-active-border-color};
+  --bs-list-group-action-hover-color: #{$list-group-action-hover-color};
+  --bs-list-group-action-hover-bg: #{$list-group-hover-bg};   // ← fixed: was $list-group-action-hover-bg
+  --bs-list-group-disabled-color: #{$list-group-disabled-color};
+  --bs-list-group-disabled-bg: #{$list-group-disabled-bg};
+
   @include list-group-menu();
 }
 
 .list-group-menu-item {
   @include list-group-menu-item;
 
-  border: $list-group-border-width solid $list-group-border-color;
+  border: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
 
   &:first-child {
     @include border-top-radius(inherit);
@@ -131,8 +145,8 @@ $max-levels: 10;
     border-top-width: 0;
 
     &.active {
-      margin-top: -$list-group-border-width;
-      border-top-width: $list-group-border-width;
+      margin-top: -var(--bs-list-group-border-width);
+      border-top-width: var(--bs-list-group-border-width);
     }
   }
 
@@ -177,6 +191,6 @@ a.item-link > .form-control {
   }
 }
 
-@include dark-mode() {
+[data-bs-theme="dark"] {
   // todo dark mode
 }

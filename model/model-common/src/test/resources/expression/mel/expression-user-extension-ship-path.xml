@@ -9,6 +9,6 @@
         xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        focus.find('declare namespace ext="http://midpoint.evolveum.com/xml/ns/test/extension"; extension/ext:ship')
+        focus.findItem('declare namespace ext="http://midpoint.evolveum.com/xml/ns/test/extension"; extension/ext:ship')
     </code>
 </script>

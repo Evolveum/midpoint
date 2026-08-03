@@ -45,7 +45,8 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
             ActionExpressionType action, PipelineData input, ExecutionContext context,
             OperationResult globalResult, Function<Parameters, P> function)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         ItemDefinition<?> outputDefinition;
         String outputItemUri = expressionHelper.getSingleArgumentValue(
@@ -130,7 +131,8 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
     @NotNull PipelineData executeInternal(
             PipelineData input, P parameters, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, PolicyViolationException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         PipelineData output = PipelineData.createEmpty();
         if (parameters.forWholeInput) {
             executeForWholeInput(input, output, parameters, context, globalResult);
@@ -148,7 +150,8 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
     private void executeForWholeInput(
             PipelineData input, PipelineData output, P parameters, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         context.checkTaskStop();
         OperationResult result = operationsHelper.createActionResult(null, this, globalResult);
         try {
@@ -180,7 +183,7 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
             ExecutionContext context, P parameters,
             PipelineData output, PipelineItem item, PrismValue value, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         // Hack. TODO: we need to add definitions to Pipeline items.
         @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -203,7 +206,7 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
     abstract <I> Object doSingleExecution(P parameters, TypedValue<I> inputTypedValue,
             VariablesMap externalVariables, ExecutionContext context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     private void addToData(@NotNull Object outObject, @NotNull OperationResult result, PipelineData output) {
         if (outObject instanceof Collection<?> objects) {

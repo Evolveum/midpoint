@@ -127,7 +127,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
             }
         };
         refresh.add(new VisibleBehaviour(isShowingPreview::getObject));
-        refresh.add(AttributeAppender.append("class", "btn-default"));
+        refresh.add(AttributeAppender.append("class", "btn-light border"));
         refresh.setOutputMarkupId(true);
         repeatingView.add(refresh);
 
@@ -165,7 +165,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         };
         showPreview.titleAsLabel(true);
         showPreview.add(new VisibleBehaviour(this::isCollectionReport));
-        showPreview.add(AttributeAppender.append("class", "btn-default"));
+        showPreview.add(AttributeAppender.append("class", "btn-light border"));
         showPreview.setOutputMarkupId(true);
         repeatingView.add(showPreview);
 
@@ -192,7 +192,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         };
         showPreviewInPopup.titleAsLabel(true);
         showPreviewInPopup.add(new VisibleBehaviour(() -> isCollectionReport() && !isShowingPreview.getObject()));
-        showPreviewInPopup.add(AttributeAppender.append("class", "btn-default"));
+        showPreviewInPopup.add(AttributeAppender.append("class", "btn-light border"));
         showPreviewInPopup.setOutputMarkupId(true);
         repeatingView.add(showPreviewInPopup);
 
@@ -208,7 +208,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
         };
         runReport.titleAsLabel(true);
         runReport.add(new VisibleBehaviour(() -> isEditObject() && !WebComponentUtil.isImportReport(getOriginalReport().asObjectable())));
-        runReport.add(AttributeAppender.append("class", "btn-default"));
+        runReport.add(AttributeAppender.append("class", "btn-light border"));
         runReport.setOutputMarkupId(true);
         repeatingView.add(runReport);
 
@@ -223,7 +223,7 @@ public abstract class ReportOperationalButtonsPanel extends AssignmentHolderOper
             }
         };
         importReport.add(new VisibleBehaviour(() -> isEditObject() && WebComponentUtil.isImportReport(getOriginalReport().asObjectable())));
-        importReport.add(AttributeAppender.append("class", "btn-default"));
+        importReport.add(AttributeAppender.append("class", "btn-light border"));
         importReport.setOutputMarkupId(true);
         repeatingView.add(importReport);
     }

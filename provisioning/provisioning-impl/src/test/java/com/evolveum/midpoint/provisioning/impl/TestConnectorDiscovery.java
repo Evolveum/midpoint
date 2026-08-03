@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 
 import java.util.List;
 

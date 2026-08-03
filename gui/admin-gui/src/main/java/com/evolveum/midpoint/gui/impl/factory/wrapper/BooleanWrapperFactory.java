@@ -6,20 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.BooleanWrapperImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import org.springframework.stereotype.Component;
-
-import jakarta.annotation.PostConstruct;
-
 //@Component
 //todo no need to have boolean wrapper factory right now, while using 3-state Boolean gui component,
 // should be finished later, in 4.7 or 4.8

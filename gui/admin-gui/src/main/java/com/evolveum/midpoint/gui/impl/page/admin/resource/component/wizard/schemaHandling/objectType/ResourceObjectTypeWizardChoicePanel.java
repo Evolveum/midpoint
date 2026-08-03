@@ -21,6 +21,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +70,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(AttributeAppender.append("class", "col-xxl-10 col-12 choice-tiles-container-8 gap-3 m-auto"));
+        add(AttributeAppender.append("class", "col-3xl-10 col-12 choice-tiles-container-8 gap-3 m-auto"));
     }
 
     public enum ResourceObjectTypePreviewTileType implements TileEnum {
@@ -176,7 +177,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeAppender.append("class", "btn btn-default"));
+        button.add(AttributeAppender.append("class", "btn btn-light border"));
         return button;
     }
 
@@ -211,6 +212,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         parameters.add(PARAM_PANEL_ID, resolvePanelId(kind));
 
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(ResourceType.class);
+        getPageBase().removeLastBreadcrumb();
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
@@ -247,6 +249,10 @@ public abstract class ResourceObjectTypeWizardChoicePanel
                 buttons.newChildId(),
                 this::getResourceObjectDefinition,
                 () -> getAssignmentHolderDetailsModel().getObjectType()) {
+            @Override
+            protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+                return pageBase.createStringResource("ResourceObjectTypeWizardChoicePanel.simulation");
+            }
 
             @Override
             protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {

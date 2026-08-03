@@ -9,7 +9,8 @@ package com.evolveum.icf.dummy.connector;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
-import org.identityconnectors.framework.common.objects.*;
+import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.ScriptContext;
 
 import java.io.FileNotFoundException;
 

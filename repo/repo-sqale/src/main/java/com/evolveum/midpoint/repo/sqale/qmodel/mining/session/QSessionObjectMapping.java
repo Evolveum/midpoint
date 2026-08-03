@@ -6,8 +6,7 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.mining.session;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObjectMapping;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -16,8 +15,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
 import java.util.Objects;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType.*;
 
 public class QSessionObjectMapping
         extends QAssignmentHolderMapping<RoleAnalysisSessionType, QSessionData, MSessionObject> {

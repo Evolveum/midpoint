@@ -10,7 +10,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 

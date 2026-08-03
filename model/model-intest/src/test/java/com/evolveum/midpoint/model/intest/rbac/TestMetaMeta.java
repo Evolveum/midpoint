@@ -449,9 +449,9 @@ public class TestMetaMeta extends AbstractRbacTest {
     }
 
     private PrismObject<UserType> readAndAssertGreekGroupMember(String userOid, String... roleNames)
-            throws ObjectNotFoundException, ExpressionEvaluationException, SchemaViolationException,
-            ConflictException, CommunicationException, SchemaException, SecurityViolationException,
-            ConnectException, ConfigurationException, FileNotFoundException, InterruptedException {
+            throws CommonException, SchemaViolationException,
+            ConflictException,
+            ConnectException, FileNotFoundException, InterruptedException {
         PrismObject<UserType> user = getUser(userOid);
         display("User after", user);
         List<String> roleOids = Arrays.stream(roleNames).map(this::getGroupRoleOid).collect(Collectors.toList());
@@ -479,27 +479,27 @@ public class TestMetaMeta extends AbstractRbacTest {
         return groupRoleOidMap.get(roleName);
     }
 
-    private void assignGroupRole(String userOid, String roleName, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    private void assignGroupRole(String userOid, String roleName, Task task, OperationResult result) throws CommonException {
         assignRole(userOid, getGroupRoleOid(roleName), task, result);
     }
 
     private void unassignGroupRole(String userOid, String roleName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+            throws CommonException {
         unassignRole(userOid, getGroupRoleOid(roleName), task, result);
     }
 
     private PrismObject<RoleType> readAndAssertGreekGroupRole(String roleOid, String groupName)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+            throws CommonException, SchemaViolationException, ConflictException, InterruptedException {
         return readAndAssertGroupRole(roleOid, ROLE_META_GREEK_GROUP_OID, groupName);
     }
 
     private PrismObject<RoleType> readAndAssertLatinGroupRole(String roleOid, String groupName)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+            throws CommonException, SchemaViolationException, ConflictException, InterruptedException {
         return readAndAssertGroupRole(roleOid, ROLE_META_LATIN_GROUP_OID, groupName);
     }
 
     private PrismObject<RoleType> readAndAssertGroupRole(String roleOid, String metaroleOid, String groupName)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+            throws CommonException, SchemaViolationException, ConflictException, InterruptedException {
         PrismObject<RoleType> role = getObject(RoleType.class, roleOid);
         display("Role after", role);
         new PrismObjectAsserter<>(role).assertSanity();
@@ -523,7 +523,7 @@ public class TestMetaMeta extends AbstractRbacTest {
     }
 
     private PrismObject<RoleType> assertMetaRole(String metaroleOid, String metaroleName)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
+            throws CommonException, SchemaViolationException, ConflictException, InterruptedException {
         PrismObject<RoleType> role = getObject(RoleType.class, metaroleOid);
         display("Metarole after", role);
 

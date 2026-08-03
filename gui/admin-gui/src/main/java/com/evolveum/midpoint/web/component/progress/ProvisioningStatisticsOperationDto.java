@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.model.StringResourceModel;

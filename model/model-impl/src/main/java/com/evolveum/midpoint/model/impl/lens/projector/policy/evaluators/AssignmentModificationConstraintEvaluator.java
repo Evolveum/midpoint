@@ -14,9 +14,9 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.List;
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -52,9 +52,9 @@ public class AssignmentModificationConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedAssignmentModificationTrigger> evaluate(
             @NotNull JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -65,7 +65,7 @@ public class AssignmentModificationConstraintEvaluator
             }
             AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
-            if(!isConstraintApplicable(ctx, constraint)) {
+            if (!isConstraintApplicable(ctx, constraint)) {
                 LOGGER.trace("Assignment directness does not match constraint scope ({}) => not triggering", constraint.getScope());
                 return List.of();
             }
@@ -80,8 +80,8 @@ public class AssignmentModificationConstraintEvaluator
 
             // TODO check modifications
             EvaluatedAssignmentModificationTrigger rv = new EvaluatedAssignmentModificationTrigger(
-                    PolicyConstraintKindType.ASSIGNMENT_MODIFICATION,
-                    constraint, ctx.evaluatedAssignment.getTarget(),
+                    constraint,
+                    ctx.evaluatedAssignment.getTarget(),
                     createMessage(constraintElement, ctx, result),
                     createShortMessage(constraintElement, ctx, result));
             result.addReturn("trigger", rv.toDiagShortcut());
@@ -110,7 +110,7 @@ public class AssignmentModificationConstraintEvaluator
             JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage relationMessage = relation != null ?
@@ -141,7 +141,7 @@ public class AssignmentModificationConstraintEvaluator
 
     private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage builtInMessage;
@@ -154,8 +154,8 @@ public class AssignmentModificationConstraintEvaluator
                     .build();
         } else { //non-default relation = print relation to short message
             LocalizableMessage relationMessage = new LocalizableMessageBuilder()
-                            .key("relation." + relation.getLocalPart())
-                            .build();
+                    .key("relation." + relation.getLocalPart())
+                    .build();
 
             builtInMessage = new LocalizableMessageBuilder()
                     .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_REL_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)

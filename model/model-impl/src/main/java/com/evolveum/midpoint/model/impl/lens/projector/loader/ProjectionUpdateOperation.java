@@ -92,7 +92,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
     public void update(OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // TODO: not perfect. Practically, we want loadProjection operation (in context load operation) to contain
         //  all the projection results. But for that we would need code restructure.
@@ -112,7 +112,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
     private void updateInternal(OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
             LOGGER.trace("Not updating broken context {}", projectionContext.getHumanReadableName());
@@ -145,7 +145,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
      */
     private boolean loadCurrentObjectIfNeeded(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, SecurityViolationException {
+            ObjectNotFoundException, SecurityViolationException, SubscriptionComplianceException {
 
         projectionObject = asObjectable(projectionContext.getObjectCurrent());
 
@@ -265,7 +265,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
     private void loadResourceInContext(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (projectionContext.getResource() != null) {
             return;
@@ -287,7 +287,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
      */
     private boolean loadCurrentObject(LoadingDepth loadingDepth, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, SecurityViolationException {
+            ObjectNotFoundException, SecurityViolationException, SubscriptionComplianceException {
 
         LOGGER.trace("Trying to load current object");
 
@@ -545,7 +545,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     private void refreshContextAfterShadowNotFound(Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         new MissingShadowContextRefresher<>(context, projectionContext, options, task)
                 .refresh(result);
     }

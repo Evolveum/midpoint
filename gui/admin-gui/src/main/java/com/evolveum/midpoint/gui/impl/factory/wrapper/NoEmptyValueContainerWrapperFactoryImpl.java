@@ -6,15 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPredefinedActivationMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 
 /**

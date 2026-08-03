@@ -7,12 +7,10 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.AbstractContainerValueCelValue;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.MidPointValueProducer;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
-import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelValue;
+import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -25,6 +23,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import dev.cel.common.CelFunctionDecl;
 import dev.cel.common.CelOptions;
 import dev.cel.common.CelOverloadDecl;
@@ -33,17 +33,19 @@ import dev.cel.common.types.*;
 import dev.cel.common.values.NullValue;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.common.Operator;
-import dev.cel.runtime.CelEvaluationException;
-import dev.cel.runtime.CelEvaluationExceptionBuilder;
-import dev.cel.runtime.CelFunctionBinding;
-import dev.cel.runtime.RuntimeHelpers;
+import dev.cel.runtime.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
+import static java.io.File.separator;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -59,48 +61,25 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private final CelOptions celOptions;
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final Protector protector;
+    private final RuntimeEquality runtimeEquality;
 
-    public CelMelExtensions(CelOptions celOptions, Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
+    public CelMelExtensions(
+            CelOptions celOptions,
+            Protector protector,
+            BasicExpressionFunctions basicExpressionFunctions,
+            RuntimeEquality runtimeEquality) {
         this.celOptions = celOptions;
         this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
+        this.runtimeEquality = runtimeEquality;
         initialize();
     }
 
     @Override
     protected ImmutableSet<Function> initializeFunctions() {
         final TypeParamType paramTypeV = TypeParamType.create("V");
-        final OptionalType optionalTypeV = OptionalType.create(paramTypeV);
 
         return ImmutableSet.of(
-
-            // string == polystring
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            Operator.EQUALS.getFunction(),
-                            CelOverloadDecl.newGlobalOverload(
-                                    "string-equals-polystring",
-                                    "Equality operator string = polystring",
-                                    SimpleType.BOOL,
-                                    SimpleType.STRING,
-                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
-                    CelFunctionBinding.from("string-equals-polystring", String.class, PolyStringCelValue.class,
-                            CelMelExtensions::stringEqualsPolyString)
-            ),
-
-            // polystring == string
-            new Function(
-                    CelFunctionDecl.newFunctionDeclaration(
-                            Operator.EQUALS.getFunction(),
-                            CelOverloadDecl.newGlobalOverload(
-                                    "polystring-equals-string",
-                                    "Equality operator polystring = string",
-                                    SimpleType.BOOL,
-                                    NullableType.create(PolyStringCelValue.CEL_TYPE),
-                                    SimpleType.STRING)),
-                    CelFunctionBinding.from("polystring-equals-string", PolyStringCelValue.class, String.class,
-                            (polystring, string) -> stringEqualsPolyString(string,polystring))
-            ),
 
             // string + polystring
             new Function(
@@ -144,6 +123,33 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             CelMelExtensions::polystringAddPolystring)
             ),
 
+            // string + path
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            Operator.ADD.getFunction(),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-add-path",
+                                    "String concatenation of string and item path",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("string-add-path", String.class, ItemPathCelValue.class,
+                            CelMelExtensions::stringAddItemPath)
+            ),
+
+            // path + string
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            Operator.ADD.getFunction(),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "path-add-string",
+                                    "String concatenation of item path and string",
+                                    SimpleType.STRING,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE),
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("path-add-string", ItemPathCelValue.class, String.class,
+                            CelMelExtensions::itemPathAddString)
+            ),
 
             // string + int
             new Function(
@@ -186,8 +192,37 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-ascii", Object.class,
-                            this::ascii)
+                            this::ascii,
+                            NullabilityProperties.NULLABLE)
 
+            ),
+
+            // str.capitalize()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "capitalize",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-capitalize",
+                                    "Converts first character of a string to upper case.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from("mel-capitalize", String.class,
+                            CelMelExtensions::capitalize,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polystring.capitalize()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "capitalize",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring-capitalize",
+                                    "Converts first character of orig part of polystring to upper case.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("polystring-capitalize", PolyStringCelValue.class,
+                            CelMelExtensions::capitalize,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // string.charAt()
@@ -203,7 +238,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ImmutableList.of(SimpleType.STRING, SimpleType.INT))),
                     CelFunctionBinding.from(
                             "mel_string_char_at_int", String.class, Long.class,
-                            CelMelExtensions::charAt)),
+                            CelMelExtensions::charAt,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // polystring.charAt()
             new Function(
@@ -218,22 +254,55 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT))),
                     CelFunctionBinding.from(
                             "polystring_char_at_int", PolyStringCelValue.class, Long.class,
-                            CelMelExtensions::charAt)),
+                            CelMelExtensions::charAt,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // string.contains(substring) is a CEL built-in function
+
+            // contains(any, string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "contains",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-contains-any",
+                                    "Returns true if string contains specified substring.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.ANY), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "mel-contains-any", Object.class, String.class,
+                            CelMelExtensions::containsAny,
+                            NullabilityProperties.NULLABLE)),
 
             // polystring.contains(string)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "contains",
                             CelOverloadDecl.newMemberOverload(
-                                    "polystring_contains",
-                                    "Returns true if orig part of polystring contains specified string.",
+                                    "polystring-contains",
+                                    "Returns true if orig part of polystring contains specified substring.",
                                     SimpleType.BOOL,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
-                            "polystring_contains", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> polystring.getOrig().contains(s))),
+                            "polystring-contains",
+                            ImmutableList.of(PolyStringCelValue.class, String.class),
+                            CelMelExtensions::polystringContains,
+                            NullabilityProperties.NULLABLE_FALSE)),
+
+            // list.contains(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "contains",
+                            CelOverloadDecl.newMemberOverload(
+                                    "list-contains-any",
+                                    "Returns true if the list contains specified item.",
+                                    SimpleType.BOOL,
+                                    ListType.create(SimpleType.ANY), SimpleType.ANY)
+                    ),
+                    CelFunctionBinding.from(
+                            "list-contains-any", List.class, Object.class,
+                            this::listContains,
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
 
             // string.containsIgnoreCase(substring)
             new Function(
@@ -246,7 +315,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING, SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "string_"+FUNC_CONTAINS_IGNORE_CASE_NAME, String.class, String.class,
-                            basicExpressionFunctions::containsIgnoreCase)),
+                            CelMelExtensions::containsIgnoreCase,
+                            NullabilityProperties.NULLABLE_FALSE)),
 
             // polystring.containsIgnoreCase(substring)
             new Function(
@@ -259,10 +329,41 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_"+CelMelExtensions.FUNC_CONTAINS_IGNORE_CASE_NAME, PolyStringCelValue.class, String.class,
-                            (polystring, s) ->basicExpressionFunctions.containsIgnoreCase(polystring.getOrig(), s))
+                            (polystring, s) -> containsIgnoreCase(polystring.getOrig(), s),
+                            NullabilityProperties.NULLABLE_FALSE)
             ),
 
-            // default(x, defaultVal)
+            // containsIgnoreCase(any, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_CONTAINS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newGlobalOverload(
+                                    "any_"+FUNC_CONTAINS_IGNORE_CASE_NAME,
+                                    "Returns true if string contains other string without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.ANY), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "any_"+FUNC_CONTAINS_IGNORE_CASE_NAME, Object.class, Object.class,
+                            CelMelExtensions::containsIgnoreCase,
+                            NullabilityProperties.NULLABLE)),
+
+            // list.containsIgnoreCase(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "containsIgnoreCase",
+                            CelOverloadDecl.newMemberOverload(
+                                    "list-containsIgnoreCase-any",
+                                    "Returns true if the list contains specified item without regard to case.",
+                                    SimpleType.BOOL,
+                                    ListType.create(SimpleType.ANY), SimpleType.ANY)
+                    ),
+                    CelFunctionBinding.from(
+                            "list-containsIgnoreCase-any", List.class, Object.class,
+                            this::listContainsIgnoreCase,
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
+
+                // default(x, defaultVal)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "default",
@@ -273,7 +374,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.DYN, paramTypeV)),
                     CelFunctionBinding.from(
                             "default", Object.class, Object.class,
-                            CelMelExtensions::funcDefault)),
+                            CelMelExtensions::funcDefault,
+                            NullabilityProperties.NULLABLE)),
 
             // protectedString.decrypt()
             new Function(
@@ -285,7 +387,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     CelTypeMapper.PROTECTED_STRING_CEL_TYPE)),
                     CelFunctionBinding.from(
-                            "protectedstring_"+FUNC_DECRYPT_NAME, ProtectedStringType.class, this::decrypt)),
+                            "protectedstring_"+FUNC_DECRYPT_NAME, ProtectedStringType.class, this::decrypt,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // str.encrypt()
             new Function(
@@ -297,7 +400,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
                                     SimpleType.STRING)),
                     CelFunctionBinding.from(
-                            "string_"+FUNC_ENCRYPT_NAME, String.class, this::encrypt)),
+                            "string_"+FUNC_ENCRYPT_NAME, String.class, this::encrypt,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // polystring.encrypt()
             new Function(
@@ -309,7 +413,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
-                            "polystring_"+FUNC_ENCRYPT_NAME, PolyStringCelValue.class, this::encrypt)),
+                            "polystring_"+FUNC_ENCRYPT_NAME, PolyStringCelValue.class, this::encrypt,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // TODO: bytes.encrypt()? Should we encrypt to ProtectedString or ProtectedData?
 
@@ -326,23 +431,75 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_endswith", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> polystring.getOrig().endsWith(s))),
+                            (polystring, s) -> polystring.getOrig().endsWith(s),
+                            NullabilityProperties.NULLABLE_FALSE)),
 
+
+            // string.equalsIgnoreCase(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_EQUALS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_"+FUNC_EQUALS_IGNORE_CASE_NAME,
+                                    "Returns true if the strings match without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from(
+                            "string_"+FUNC_EQUALS_IGNORE_CASE_NAME, String.class, String.class,
+                            CelMelExtensions::equalsIgnoreCase,
+                            NullabilityProperties.NULLABLE_FALSE)),
+
+            // polystring.equalsIgnoreCase(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_EQUALS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_"+CelMelExtensions.FUNC_EQUALS_IGNORE_CASE_NAME,
+                                    "Returns true if the strings match without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from(
+                            "polystring_"+CelMelExtensions.FUNC_EQUALS_IGNORE_CASE_NAME, PolyStringCelValue.class, String.class,
+                            (polystring, s) -> equalsIgnoreCase(polystring.getOrig(), s),
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
+
+            // equalsIgnoreCase(any, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            FUNC_EQUALS_IGNORE_CASE_NAME,
+                            CelOverloadDecl.newGlobalOverload(
+                                    "any_"+FUNC_EQUALS_IGNORE_CASE_NAME,
+                                    "Returns true if the strings match without regard to case.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.ANY), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "any_"+FUNC_EQUALS_IGNORE_CASE_NAME, Object.class, Object.class,
+                            CelMelExtensions::equalsIgnoreCase,
+                            NullabilityProperties.NULLABLE)),
 
             // str.format([args])
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "format",
                             CelOverloadDecl.newMemberOverload(
-                                    "pm-string-format",
+                                    "mp-string-format",
                                     "Format strings according to specified template, filling in data from the arguments."
                                             + " Follow Java formatting conventions.",
                                     SimpleType.STRING,
                                     SimpleType.STRING,
-                                    SimpleType.ANY)),
+                                    SimpleType.ANY),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mp-string-format",
+                                    "Format strings according to specified template, filling in data from the arguments."
+                                            + " Follow Java formatting conventions.",
+                                    SimpleType.STRING,
+                                    SimpleType.STRING, SimpleType.ANY)
+                            ),
                     CelFunctionBinding.from(
-                            "pm-string-format", String.class, Object.class,
-                            CelMelExtensions::stringFormat)),
+                            "mp-string-format", String.class, Object.class,
+                            CelMelExtensions::stringFormat,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // string.indexOf(substring [, offset])
             new Function(
@@ -364,11 +521,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.INT,
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.STRING, SimpleType.INT))),
                     CelFunctionBinding.from(
-                            "mel_string_index_of_string", String.class, String.class, CelMelExtensions::indexOf),
+                            "mel_string_index_of_string", String.class, String.class, CelMelExtensions::indexOf,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE),
                     CelFunctionBinding.from(
                             "mel_string_index_of_string_int",
                             ImmutableList.of(String.class, String.class, Long.class),
-                            CelMelExtensions::indexOfString)),
+                            CelMelExtensions::indexOfString,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE)),
 
             // polystring.indexOf(substring [, offset])
             new Function(
@@ -390,11 +549,14 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.INT,
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.INT))),
                     CelFunctionBinding.from(
-                            "polystring_index_of_string", PolyStringCelValue.class, String.class, CelMelExtensions::indexOf),
+                            "polystring_index_of_string", PolyStringCelValue.class, String.class,
+                            CelMelExtensions::indexOf,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE),
                     CelFunctionBinding.from(
                             "polystring_index_of_string_int",
                             ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
-                            CelMelExtensions::indexOfPolystring)),
+                            CelMelExtensions::indexOfPolystring,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE)),
 
 
             // string.isBlank()
@@ -408,7 +570,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(SimpleType.STRING))),
                     CelFunctionBinding.from(
                             "string_"+FUNC_IS_BLANK_NAME, String.class,
-                            CelMelExtensions::stringIsBlank)),
+                            CelMelExtensions::stringIsBlank,
+                            NullabilityProperties.NULLABLE_TRUE)),
 
             // isBlank(string)
             new Function(
@@ -421,7 +584,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(SimpleType.STRING))),
                     CelFunctionBinding.from(
                             FUNC_IS_BLANK_NAME+"_string", String.class,
-                            CelMelExtensions::stringIsBlank)),
+                            CelMelExtensions::stringIsBlank,
+                            NullabilityProperties.NULLABLE_TRUE)),
 
 
             // polystring.isBlank
@@ -435,7 +599,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
                             "polystring_"+CelMelExtensions.FUNC_IS_BLANK_NAME, PolyStringCelValue.class,
-                            CelMelExtensions::polystringIsBlank)),
+                            CelMelExtensions::polystringIsBlank,
+                            NullabilityProperties.NULLABLE_TRUE)),
 
             // isBlank(polystring)
             new Function(
@@ -448,7 +613,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
                             CelMelExtensions.FUNC_IS_BLANK_NAME+"_polystring", PolyStringCelValue.class,
-                            CelMelExtensions::polystringIsBlank)),
+                            CelMelExtensions::polystringIsBlank,
+                            NullabilityProperties.NULLABLE_TRUE)),
 
             // polystring.isEmpty()
             new Function(
@@ -461,7 +627,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
                             "polystring_"+CelMelExtensions.FUNC_IS_EMPTY_NAME, PolyStringCelValue.class,
-                            CelMelExtensions::polystringIsEmpty)),
+                            CelMelExtensions::polystringIsEmpty,
+                            NullabilityProperties.NULLABLE_TRUE)),
 
             // string.isEmpty()
             new Function(
@@ -474,7 +641,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "string_"+FUNC_IS_EMPTY_NAME, String.class,
-                            CelMelExtensions::stringIsEmpty)),
+                            CelMelExtensions::stringIsEmpty,
+                            NullabilityProperties.NULLABLE_TRUE)),
 
             // isEmpty(any)
             new Function(
@@ -489,7 +657,22 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY)),
                     CelFunctionBinding.from(
                             FUNC_IS_EMPTY_NAME+"_string", Object.class,
-                            CelMelExtensions::isEmpty)),
+                            CelMelExtensions::isEmpty,
+                            NullabilityProperties.NULLABLE_TRUE)),
+
+            // isNil(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "isNil",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "isNil_any",
+                                    "Returns true if argument is null/nil (includes processing of optionals).",
+                                    SimpleType.BOOL,
+                                    SimpleType.ANY)),
+                    CelFunctionBinding.from(
+                            "isNil_any", Object.class,
+                            CelMelExtensions::isNull,
+                            NullabilityProperties.NULLABLE)),
 
             // isNull(any)
             new Function(
@@ -502,7 +685,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY)),
                     CelFunctionBinding.from(
                             "isNull_any", Object.class,
-                            CelMelExtensions::isNull)),
+                            CelMelExtensions::isNull,
+                            NullabilityProperties.NULLABLE)),
 
             // isPresent(any)
             new Function(
@@ -515,9 +699,89 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY)),
                     CelFunctionBinding.from(
                             "isPresent_any", Object.class,
-                            CelMelExtensions::isPresent)),
+                            CelMelExtensions::isPresent,
+                            NullabilityProperties.NULLABLE)),
 
-            // TODO: JOIN? Does it make sense? -> join(list(any))
+            // itemPath(string)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-string",
+                                    "Creates a item path value from string representation.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    SimpleType.STRING)),
+                    CelFunctionBinding.from("mel-itemPath-string", String.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+            // itemPath(qname)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-qname",
+                                    "Creates a item path value from QName.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    QNameCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("mel-itemPath-qname", QNameCelValue.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+            // itemPath(list)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "itemPath",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-itemPath-list",
+                                    "Creates a item path value from string representation.",
+                                    ItemPathCelValue.CEL_TYPE,
+                                    ListType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from("mel-itemPath-list", List.class,
+                            CelMelExtensions::itemPath,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+
+                // join(list)
+            // join(list, separator)
+            // list.join()
+            // list.join(separator)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "join",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "join-list",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "join-list",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "join-list-string",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY), SimpleType.STRING),
+                            CelOverloadDecl.newMemberOverload(
+                                    "join-list-string",
+                                    "Returns a new string where the elements of string list are concatenated using the separator.",
+                                    SimpleType.STRING,
+                                    ListType.create(SimpleType.ANY), SimpleType.STRING)
+                    ),
+                    CelFunctionBinding.from(
+                            "join-list", Object.class,
+                            CelMelExtensions::join,
+                            NullabilityProperties.NULLABLE),
+                    CelFunctionBinding.from(
+                            "join-list-string", Object.class, String.class,
+                            CelMelExtensions::join,
+                            NullabilityProperties.NULLABLE)
+                    ),
 
             // string.lastIndexOf(substring [, offset])
             new Function(
@@ -542,11 +806,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "mel_string_last_index_of_string",
                             String.class,
                             String.class,
-                            CelMelExtensions::lastIndexOf),
+                            CelMelExtensions::lastIndexOf,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE),
                     CelFunctionBinding.from(
                             "mel_string_last_index_of_string_int",
                             ImmutableList.of(String.class, String.class, Long.class),
-                            CelMelExtensions::lastIndexOfString)),
+                            CelMelExtensions::lastIndexOfString,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE)),
 
             // polystring.lastIndexOf(substring [, offset])
             new Function(
@@ -571,11 +837,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "polystring_last_index_of_string",
                             PolyStringCelValue.class,
                             String.class,
-                            CelMelExtensions::lastIndexOf),
+                            CelMelExtensions::lastIndexOf,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE),
                     CelFunctionBinding.from(
                             "polystring_last_index_of_string_int",
                             ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
-                            CelMelExtensions::lastIndexOfPolystring)),
+                            CelMelExtensions::lastIndexOfPolystring,
+                            NullabilityProperties.NULLABLE_NEGATIVE_ONE)),
 
             // string.lc()
             new Function(
@@ -587,7 +855,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     NullableType.create(SimpleType.STRING))),
                     CelFunctionBinding.from("mel_string_lc", String.class,
-                            CelMelExtensions::lc)
+                            CelMelExtensions::lc,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // polystring.lc()
@@ -600,7 +869,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from("polystring_lc", PolyStringCelValue.class,
-                            CelMelExtensions::lc)
+                            CelMelExtensions::lc,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // list
@@ -613,7 +883,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ListType.create(SimpleType.DYN),
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-list", Object.class,
-                            CelMelExtensions::melList)
+                            CelMelExtensions::melList,
+                            NullabilityProperties.NULLABLE)
 
             ),
 
@@ -628,7 +899,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                             + " range.",
                                     SimpleType.STRING,
                                     NullableType.create(SimpleType.STRING))),
-                    CelFunctionBinding.from("mel_string_lower_ascii", String.class, Ascii::toLowerCase)
+                    CelFunctionBinding.from("mel_string_lower_ascii", String.class, Ascii::toLowerCase,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // polystring.lowerAscii()
@@ -643,9 +915,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from("polystring_lower_ascii", PolyStringCelValue.class,
-                            polystring -> Ascii.toLowerCase(polystring.getOrig()))
+                            polystring -> Ascii.toLowerCase(polystring.getOrig()),
+                            NullabilityProperties.NULLABLE_NULL)
             ),
-
 
             // polysting.matches(regex)
             // matches(polysting, regex)
@@ -664,9 +936,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_matches", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions))
+                            (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions),
+                            NullabilityProperties.NULLABLE_FALSE)
             ),
-
 
             // norm(any)
             new Function(
@@ -678,8 +950,70 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.STRING,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-norm", Object.class,
-                            this::norm)
+                            this::norm,
+                            NullabilityProperties.NULLABLE)
             ),
+
+            // nil()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "nil",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-nil",
+                                    "Returns nil.",
+                                    CelTypeMapper.NIL_TYPE)),
+                    CelFunctionBinding.from("mel-nil", ImmutableList.of(),
+                            this::nilProducer,
+                            NullabilityProperties.NULLABLE)
+            ),
+
+            // sting.prefix(any)
+            // prefix(string, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "prefix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "string-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "string-prefix",
+                            String.class, Object.class,
+                            CelMelExtensions::prefix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polysting.prefix(regex)
+            // prefix(polysting, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "prefix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "polystring-prefix",
+                                    "Returns string prefixed with another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "polystring-prefix", PolyStringCelValue.class, Object.class,
+                            CelMelExtensions::prefix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
 
             // qname(local)
             new Function(
@@ -691,7 +1025,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     QNameCelValue.CEL_TYPE,
                                     SimpleType.STRING)),
                     CelFunctionBinding.from("mel-qname-local", String.class,
-                            this::qname)
+                            this::qname,
+                            NullabilityProperties.NULLABLE)
 
             ),
 
@@ -705,8 +1040,140 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     QNameCelValue.CEL_TYPE,
                                     SimpleType.STRING, SimpleType.STRING)),
                     CelFunctionBinding.from("mel-qname-ns", String.class, String.class,
-                            this::qname)
+                            this::qname,
+                            NullabilityProperties.NULLABLE)
 
+            ),
+
+            // string.quote()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "quote",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel_string_quote",
+                                    "Takes the given polystring and makes it safe to print "
+                                            + "(without any formatting due to escape sequences). "
+                                            + "If any invalid UTF-8 characters are encountered, they are replaced with \\uFFFD.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from("mel_string_quote", String.class,
+                            CelMelExtensions::quote,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polystring.quote()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "quote",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_quote",
+                                    "Takes orig part of the given string and makes it safe to print "
+                                            + "(without any formatting due to escape sequences). "
+                                            + "If any invalid UTF-8 characters are encountered, they are replaced with \\uFFFD.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("polystring_quote", PolyStringCelValue.class,
+                            CelMelExtensions::quote,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // str.reFind(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFind",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-find-string",
+                                    "Returns the string that corresponds to the fist occurrence of specified regular expression.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-find-string", String.class, String.class,
+                            this::reFindString,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // polystring.reFind(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFind",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-find-polystring",
+                                    "Returns the string that corresponds to the fist occurrence of specified regular expression.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-find-polystring", PolyStringCelValue.class, String.class,
+                            this::reFindPolyString,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // str.reFindAll(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFindAll",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-findall-string",
+                                    "Returns list of all strings that correspond to all the occurrences of specified regular expression.",
+                                    ListType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-findall-string", String.class, String.class,
+                            this::reFindAllString,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+            // polystring.reFindAll(regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reFindAll",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-findall-polystring",
+                                    "Returns list of all strings that correspond to all the occurrences of specified regular expression.",
+                                    ListType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "re-findall-polystring", PolyStringCelValue.class, String.class,
+                            this::reFindAllPolyString,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
+
+
+            // sting.reMatches(regex)
+            // reMatches(string, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reMatches",
+                            CelOverloadDecl.newMemberOverload(
+                                    "string_rematches",
+                                    "Returns true if string matches the specified RE2 regular expression",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string_rematches",
+                                    "Returns size of the orig part of polystring.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "string_rematches", String.class, String.class,
+                            (text, regex) -> RuntimeHelpers.matches(text, regex, celOptions),
+                            NullabilityProperties.NULLABLE_FALSE)
+            ),
+
+            // polysting.reMatches(regex)
+            // reMatches(polysting, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reMatches",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_rematches",
+                                    "Returns true if orig part of polystring matches the specified RE2 regular expression",
+                                    SimpleType.BOOL,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "polystring_rematches",
+                                    "Returns size of the orig part of polystring.",
+                                    SimpleType.BOOL,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
+                    CelFunctionBinding.from(
+                            "polystring_rematches", PolyStringCelValue.class, String.class,
+                            (polystring, s) -> RuntimeHelpers.matches(polystring.getOrig(), s, celOptions),
+                            NullabilityProperties.NULLABLE_FALSE)
             ),
 
             // string.replace(searchString, replacement [, limit])
@@ -733,11 +1200,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from(
                             "mel_string_replace_string_string",
                             ImmutableList.of(String.class, String.class, String.class),
-                            CelMelExtensions::replaceAllString),
+                            CelMelExtensions::replaceAllString,
+                            NullabilityProperties.NULLABLE_NULL),
                     CelFunctionBinding.from(
                             "mel_string_replace_string_string_int",
                             ImmutableList.of(String.class, String.class, String.class, Long.class),
-                            CelMelExtensions::replaceString)),
+                            CelMelExtensions::replaceString,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // polystring.replace(searchString, replacement [, limit])
             // replace(polystring, searchString, replacement [, limit])
@@ -763,11 +1232,108 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from(
                             "polystring_replace_string_string",
                             ImmutableList.of(PolyStringCelValue.class, String.class, String.class),
-                            CelMelExtensions::replaceAllPolystring),
+                            CelMelExtensions::replaceAllPolystring,
+                            NullabilityProperties.NULLABLE_NULL),
                     CelFunctionBinding.from(
                             "polystring_replace_string_string_int",
                             ImmutableList.of(PolyStringCelValue.class, String.class, String.class, Long.class),
-                            CelMelExtensions::replacePolystring)),
+                            CelMelExtensions::replacePolystring,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // str.reReplace(regex, replacement)
+            // str.reReplace(regex, replacement, replaceAll)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reReplace",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-string",
+                                    "Returns the string that corresponds to the input string, with all matches of " +
+                                    "the specified regular expression replaced.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING, NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-string-bool",
+                                    "Returns the string that corresponds to the input string, with matches of " +
+                                            "the specified regular expression replaced. " +
+                                            "The last argument specified whether to replace all occurrences (true) or " +
+                                            "just the first one (false).",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING), SimpleType.STRING, NullableType.create(SimpleType.ANY), SimpleType.BOOL)
+                            ),
+                    CelFunctionBinding.from(
+                            "re-replace-string",
+                            ImmutableList.of(String.class, String.class, Object.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL),
+                    CelFunctionBinding.from(
+                            "re-replace-string-bool",
+                            ImmutableList.of(String.class, String.class, Object.class, Boolean.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+
+            // polystring.reReplace(regex, replacement)
+            // polystring.reReplace(regex, replacement, replaceAll)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reReplace",
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-polystring",
+                                    "Returns the string that corresponds to the input string, with all matches of " +
+                                            "the specified regular expression replaced.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newMemberOverload(
+                                    "re-replace-polystring-bool",
+                                    "Returns the string that corresponds to the input string, with matches of " +
+                                            "the specified regular expression replaced. " +
+                                            "The last argument specified whether to replace all occurrences (true) or " +
+                                            "just the first one (false).",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, NullableType.create(SimpleType.ANY), SimpleType.BOOL)
+                    ),
+                    CelFunctionBinding.from(
+                            "re-replace-polystring",
+                            ImmutableList.of(PolyStringCelValue.class, String.class, Object.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL),
+                    CelFunctionBinding.from(
+                            "re-replace-polystring-bool",
+                            ImmutableList.of(PolyStringCelValue.class, String.class, Object.class, Boolean.class),
+                            this::reReplace,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // string.reverse()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reverse",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel_string_reverse",
+                                    "Returns a new string whose characters are the same as the target string,"
+                                            + " only formatted in reverse order.",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.STRING))),
+                    CelFunctionBinding.from("mel_string_reverse", String.class,
+                            CelMelExtensions::reverse,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polystring.reverse()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "reverse",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring_reverse",
+                                    "Returns a new string whose characters are the same as the orig part of target polystring,"
+                                            + " only formatted in reverse order.",
+                                    SimpleType.STRING,
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from("polystring_reverse", PolyStringCelValue.class,
+                            CelMelExtensions::reverse,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
 
             // single(any)
             new Function(
@@ -779,7 +1345,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.DYN,
                                     SimpleType.ANY)),
                     CelFunctionBinding.from("mel-single", Object.class,
-                            this::single)
+                            this::single,
+                            NullabilityProperties.NULLABLE)
 
             ),
 
@@ -788,21 +1355,42 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionDecl.newFunctionDeclaration(
                             "size",
                             CelOverloadDecl.newMemberOverload(
-                                    "polystring_size",
+                                    "polystring-size",
                                     "Returns size of the orig part of polystring.",
                                     SimpleType.INT,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE)),
                             CelOverloadDecl.newGlobalOverload(
-                                    "polystring_size",
+                                    "polystring-size",
                                     "Returns size of the orig part of polystring.",
                                     SimpleType.INT,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
-                            "polystring_size",
+                            "polystring-size",
                             PolyStringCelValue.class,
-                            polystring -> ((Integer)polystring.getOrig().length()).longValue())),
+                            polystring -> ((Integer)polystring.getOrig().length()).longValue(),
+                            NullabilityProperties.NULLABLE_ZERO)),
 
-            // string.split(separator [, limit])
+            // size(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "size",
+                            CelOverloadDecl.newMemberOverload(
+                                    "path-size",
+                                    "Returns number of segments of item path.",
+                                    SimpleType.INT,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "path-size",
+                                    "Returns number of segments of item path.",
+                                    SimpleType.INT,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from(
+                            "path-size",
+                            ItemPathCelValue.class,
+                            path -> ((Integer)path.getJavaValue().size()).longValue(),
+                            NullabilityProperties.NULLABLE_ZERO)),
+
+                // string.split(separator [, limit])
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
                             "split",
@@ -819,11 +1407,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.STRING, SimpleType.INT))),
                     CelFunctionBinding.from(
                             "mel_string_split_string", String.class, String.class,
-                            CelMelExtensions::splitString),
+                            CelMelExtensions::splitString,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST),
                     CelFunctionBinding.from(
                             "mel_string_split_string_int",
                             ImmutableList.of(String.class, String.class, Long.class),
-                            CelMelExtensions::splitString)),
+                            CelMelExtensions::splitString,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // polystring.split(separator [, limit])
             new Function(
@@ -842,11 +1432,13 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING, SimpleType.INT))),
                     CelFunctionBinding.from(
                             "polystring_split_string", PolyStringCelValue.class, String.class,
-                            CelMelExtensions::splitPolystring),
+                            CelMelExtensions::splitPolystring,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST),
                     CelFunctionBinding.from(
                             "polystring_split_string_int",
                             ImmutableList.of(PolyStringCelValue.class, String.class, Long.class),
-                            CelMelExtensions::splitPolystring)),
+                            CelMelExtensions::splitPolystring,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // polystring.startsWith(substring)
             new Function(
@@ -859,7 +1451,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "polystring_startswith", PolyStringCelValue.class, String.class,
-                            (polystring, s) -> polystring.getOrig().startsWith(s))),
+                            (polystring, s) -> polystring.getOrig().startsWith(s),
+                            NullabilityProperties.NULLABLE_FALSE)),
 
             // str(any)
             new Function(
@@ -873,7 +1466,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(SimpleType.ANY))),
                     CelFunctionBinding.from(
                             "mel-str", Object.class,
-                            CelMelExtensions::string)),
+                            CelMelExtensions::string,
+                            NullabilityProperties.NULLABLE)),
 
             // string(polystring)
             new Function(
@@ -881,13 +1475,41 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "string",
                             CelOverloadDecl.newGlobalOverload(
                                     "string-polystring",
-                                    "Converts its argument to string. " +
-                                            "This function is not nullable, it cannot be called with null or optional value.",
+                                    "Converts its argument to string.",
                                     SimpleType.STRING,
-                                    PolyStringCelValue.CEL_TYPE)),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE))),
                     CelFunctionBinding.from(
-                            "string-polystring", PolyStringCelValue.class,
-                            CelMelExtensions::string)),
+                            "string-polystring", Object.class,
+                            CelMelExtensions::string,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // string(qname)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "string",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-qname",
+                                    "Converts its argument to string.",
+                                    SimpleType.STRING,
+                                    NullableType.create(QNameCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from(
+                            "string-qname", Object.class,
+                            CelMelExtensions::string,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+                // string(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "string",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-path",
+                                    "Converts its argument to string.",
+                                    SimpleType.STRING,
+                                    NullableType.create(ItemPathCelValue.CEL_TYPE))),
+                    CelFunctionBinding.from(
+                            "string-path", Object.class,
+                            CelMelExtensions::string,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // stringify(any)
             new Function(
@@ -901,7 +1523,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(SimpleType.ANY))),
                     CelFunctionBinding.from(
                             "mel-stringify", Object.class,
-                            arg -> stringify(arg, ""))),
+                            CelMelExtensions::stringify,
+                            NullabilityProperties.NULLABLE)),
 
             // stringify(any, nullValue)
             new Function(
@@ -915,7 +1538,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     NullableType.create(SimpleType.ANY), SimpleType.STRING)),
                     CelFunctionBinding.from(
                             "mel-stringify-default", Object.class, String.class,
-                            CelMelExtensions::stringify)),
+                            CelMelExtensions::stringify,
+                            NullabilityProperties.NULLABLE)),
 
 
             // string.substring(begin,end)
@@ -924,24 +1548,26 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                             "substring",
                             CelOverloadDecl.newMemberOverload(
                                     "mel_string_substring_int",
-                                    "returns a string that is a substring of this string. The substring begins with the"
+                                    "Returns a string that is a substring of this string. The substring begins with the"
                                             + " character at the specified index and extends to the end of this string.",
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.INT)),
                             CelOverloadDecl.newMemberOverload(
                                     "mel_string_substring_int_int",
-                                    "returns a string that is a substring of this string. The substring begins at the"
+                                    "Returns a string that is a substring of this string. The substring begins at the"
                                             + " specified beginIndex and extends to the character at index endIndex - 1."
                                             + " Thus the length of the substring is {@code endIndex-beginIndex}.",
                                     SimpleType.STRING,
                                     ImmutableList.of(NullableType.create(SimpleType.STRING), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
                             "mel_string_substring_int", String.class, Long.class,
-                            CelMelExtensions::substring),
+                            CelMelExtensions::substringObject,
+                            NullabilityProperties.NULLABLE_NULL),
                     CelFunctionBinding.from(
                             "mel_string_substring_int_int",
                             ImmutableList.of(String.class, Long.class, Long.class),
-                            CelMelExtensions::substringString)),
+                            CelMelExtensions::substringAny,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // polystring.substring(begin,end)
             new Function(
@@ -962,12 +1588,88 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     ImmutableList.of(NullableType.create(PolyStringCelValue.CEL_TYPE), SimpleType.INT, SimpleType.INT))),
                     CelFunctionBinding.from(
                             "polystring_substring_int", PolyStringCelValue.class, Long.class,
-                            CelMelExtensions::substring),
+                            CelMelExtensions::substringObject,
+                            NullabilityProperties.NULLABLE_NULL),
                     CelFunctionBinding.from(
                             "polystring_substring_int_int",
                             ImmutableList.of(PolyStringCelValue.class, Long.class, Long.class),
-                            CelMelExtensions::substringPolystring)),
+                            CelMelExtensions::substringAny,
+                            NullabilityProperties.NULLABLE_NULL)),
 
+            // substring(any,begin,end)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "substring",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_substring_any_int",
+                                    "Returns a string that is a substring of this string. The substring begins with the"
+                                            + " character at the specified index and extends to the end of this string.",
+                                    NullableType.create(SimpleType.STRING),
+                                    ImmutableList.of(NullableType.create(SimpleType.ANY), SimpleType.INT)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_substring_any_int_int",
+                                    "Returns a string that is a substring of this string. The substring begins at the"
+                                            + " specified beginIndex and extends to the character at index endIndex - 1."
+                                            + " Thus the length of the substring is {@code endIndex-beginIndex}.",
+                                    NullableType.create(SimpleType.STRING),
+                                    ImmutableList.of(NullableType.create(SimpleType.ANY), SimpleType.INT, SimpleType.INT))),
+                    CelFunctionBinding.from(
+                            "mel_substring_any_int",
+                            ImmutableList.of(Object.class, Long.class),
+                            CelMelExtensions::substringAny,
+                            NullabilityProperties.NULLABLE),
+                    CelFunctionBinding.from(
+                            "mel_substring_any_int_int",
+                            ImmutableList.of(Object.class, Long.class, Long.class),
+                            CelMelExtensions::substringAny,
+                            NullabilityProperties.NULLABLE)),
+
+            // sting.suffix(any)
+            // suffix(string, any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "suffix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "string-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "string-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "string-suffix",
+                            String.class, Object.class,
+                            CelMelExtensions::suffix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // polysting.suffix(regex)
+            // suffix(polysting, regex)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "suffix",
+                            CelOverloadDecl.newMemberOverload(
+                                    "polystring-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY)),
+                            CelOverloadDecl.newGlobalOverload(
+                                    "polystring-suffix",
+                                    "Returns string suffixed by another string. "
+                                            + "This function is null-safe. It returns null if the first string is null.",
+                                    NullableType.create(SimpleType.STRING),
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE), NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from(
+                            "polystring-suffix", PolyStringCelValue.class, Object.class,
+                            CelMelExtensions::suffix,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
 
             // timestamp.atStartOfDay
             new Function(
@@ -979,7 +1681,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("timestamp_atStartOfDay",
-                            Instant.class, this::atStartOfDay)
+                            Instant.class,
+                            this::atStartOfDay,
+                            NullabilityProperties.NOT_NULLABLE)
             ),
 
             // timestamp.atStartOfDay(timezone)
@@ -992,7 +1696,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP, SimpleType.STRING)),
                     CelFunctionBinding.from("timestamp_atStartOfDay_string",
-                            Instant.class, String.class, this::atStartOfDay)
+                            Instant.class, String.class,
+                            this::atStartOfDay,
+                            NullabilityProperties.NOT_NULLABLE)
             ),
 
             // timestamp.atEndOfDay
@@ -1005,7 +1711,9 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("timestamp_atEndOfDay",
-                            Instant.class, this::atEndOfDay)
+                            Instant.class,
+                            this::atEndOfDay,
+                            NullabilityProperties.NOT_NULLABLE)
             ),
 
             // timestamp.atEndOfDay(timezone)
@@ -1018,7 +1726,68 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.TIMESTAMP,
                                     SimpleType.TIMESTAMP, SimpleType.STRING)),
                     CelFunctionBinding.from("timestamp_atEndOfDay_string",
-                            Instant.class, String.class, this::atEndOfDay)
+                            Instant.class, String.class,
+                            this::atEndOfDay,
+                            NullabilityProperties.NOT_NULLABLE)
+            ),
+
+            // timestamp.farAhead()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "timestamp.farAhead",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel-timestamp-farAhead",
+                                    "Returns timestamp that is referring to a time far ahead, too far into the future.",
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-farAhead",
+                            ImmutableList.of(),
+                            CelMelExtensions::farAhead,
+                            NullabilityProperties.NOT_NULLABLE)
+            ),
+
+            // ts.getEpochMillisecond()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "getEpochMillisecond",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-timestamp-getepochmillisecond",
+                                    "Returns number of milliseconds since the epoch.",
+                                    SimpleType.INT,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-getepochmillisecond",
+                            Instant.class,
+                            CelMelExtensions::getEpochMillisecond,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // ts.getEpochSecond()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "getEpochSecond",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-timestamp-getepochsecond",
+                                    "Returns number of seconds since the epoch.",
+                                    SimpleType.INT,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-getepochsecond",
+                            Instant.class,
+                            CelMelExtensions::getEpochSecond,
+                            NullabilityProperties.NULLABLE_NULL)
+            ),
+
+            // ts.getNanos()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "getNanos",
+                            CelOverloadDecl.newMemberOverload(
+                                    "mel-timestamp-getnanos",
+                                    "Returns number of fractional nanoseconds, additive to the epoch second.",
+                                    SimpleType.INT,
+                                    SimpleType.TIMESTAMP)),
+                    CelFunctionBinding.from("mel-timestamp-getnanos",
+                            Instant.class,
+                            CelMelExtensions::getNanos,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // timestamp.longAgo()
@@ -1030,7 +1799,8 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     "Returns timestamp that is referring to a time long, long ago, too far in the past.",
                                     SimpleType.TIMESTAMP)),
                     CelFunctionBinding.from("mel-timestamp_longAgo", ImmutableList.of(),
-                            CelMelExtensions::longAgo)
+                            CelMelExtensions::longAgo,
+                            NullabilityProperties.NOT_NULLABLE)
             ),
 
             // string.trim()
@@ -1044,8 +1814,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                             + " which does not include the zero-width spaces. ",
                                     SimpleType.STRING,
                                     NullableType.create(SimpleType.STRING))),
-                    CelFunctionBinding.from("mel_string_trim", String.class,
-                            CelMelExtensions::trim)),
+                    CelFunctionBinding.from("mel_string_trim",
+                            String.class,
+                            CelMelExtensions::trim,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // polystring.trim()
             new Function(
@@ -1058,8 +1830,26 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                             + " which does not include the zero-width spaces. ",
                                     SimpleType.STRING,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
-                    CelFunctionBinding.from("polystring_trim", PolyStringCelValue.class,
-                            CelMelExtensions::trim)),
+                    CelFunctionBinding.from("polystring_trim",
+                            PolyStringCelValue.class,
+                            CelMelExtensions::trim,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // trim(any)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "trim",
+                            CelOverloadDecl.newGlobalOverload(
+                                    "mel_trim_any",
+                                    "Returns a new string which removes the leading and trailing whitespace in the"
+                                            + " target string. The trim function uses the Unicode definition of whitespace"
+                                            + " which does not include the zero-width spaces. ",
+                                    SimpleType.STRING,
+                                    NullableType.create(SimpleType.ANY))),
+                    CelFunctionBinding.from("mel_trim_any",
+                            Object.class,
+                            CelMelExtensions::trimAny,
+                            NullabilityProperties.NULLABLE)),
 
             // string.uc()
             new Function(
@@ -1070,8 +1860,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     "Returns a new string where all characters of string are upper-cased.",
                                     SimpleType.STRING,
                                     NullableType.create(SimpleType.STRING))),
-                    CelFunctionBinding.from("mel_string_uc", String.class,
-                            CelMelExtensions::uc)
+                    CelFunctionBinding.from("mel_string_uc",
+                            String.class,
+                            CelMelExtensions::uc,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // polystring.lc()
@@ -1083,8 +1875,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                     "Returns a new string where all characters of orig represantation of polystring are upper-cased.",
                                     SimpleType.STRING,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
-                    CelFunctionBinding.from("polystring_uc", PolyStringCelValue.class,
-                            CelMelExtensions::uc)
+                    CelFunctionBinding.from("polystring_uc",
+                            PolyStringCelValue.class,
+                            CelMelExtensions::uc,
+                            NullabilityProperties.NULLABLE_NULL)
             ),
 
             // string.upperAscii()
@@ -1098,8 +1892,10 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                             + " range.",
                                     SimpleType.STRING,
                                     NullableType.create(SimpleType.STRING))),
-                    CelFunctionBinding.from("mel_string_upper_ascii", String.class,
-                            Ascii::toUpperCase)),
+                    CelFunctionBinding.from("mel_string_upper_ascii",
+                            String.class,
+                            Ascii::toUpperCase,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // polystring.upperAscii()
             new Function(
@@ -1112,10 +1908,306 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
                                             + " range.",
                                     SimpleType.STRING,
                                     NullableType.create(PolyStringCelValue.CEL_TYPE))),
-                    CelFunctionBinding.from("polystring_upper_ascii", PolyStringCelValue.class,
-                            polystring -> Ascii.toUpperCase(polystring.getOrig())))
+                    CelFunctionBinding.from("polystring_upper_ascii",
+                            PolyStringCelValue.class,
+                            polystring -> Ascii.toUpperCase(polystring.getOrig()),
+                            NullabilityProperties.NULLABLE_NULL))
 
         );
+    }
+
+    private static ItemPathCelValue itemPath(String stringPath) {
+        return ItemPathCelValue.create(ItemPath.fromString(stringPath));
+    }
+
+    private static ItemPathCelValue itemPath(QNameCelValue qPath) {
+        return ItemPathCelValue.create(ItemPath.create(qPath.getJavaValue()));
+    }
+
+    private static ItemPathCelValue itemPath(List<Object> segments) {
+        return ItemPathCelValue.create(ItemPath.create(CelTypeMapper.toCelValues(segments)));
+    }
+
+    private static Object prefix(Object s, Object prefix) {
+        if (isCelNull(s)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (isCelNull(prefix)) {
+            return string(s);
+        }
+        return stringify(prefix, "") + stringify(s, "");
+    }
+
+    private static Object suffix(Object s, Object suffix) {
+        if (isCelNull(s)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (isCelNull(suffix)) {
+            return string(s);
+        }
+        return stringify(s, "") + stringify(suffix, "");
+    }
+
+    private Object reReplace(Object[] args) {
+        String text;
+        if (args[0] instanceof String s) {
+            text = s;
+        } else if (args[0] instanceof PolyStringCelValue ps) {
+            text = ps.getOrig();
+        } else {
+            throw new IllegalArgumentException("Illegal arg[0] to reReplace");
+        }
+        String regex;
+        if (args[1] instanceof String s) {
+            regex = s;
+        } else if (args[1] instanceof PolyStringCelValue ps) {
+            regex = ps.getOrig();
+        } else {
+            throw new IllegalArgumentException("Illegal arg[1] to reReplace");
+        }
+        String replacement;
+        if (isCelNull(args[2])) {
+            replacement = "";
+        } else if (args[2] instanceof String s) {
+            replacement = s;
+        } else if (args[2] instanceof PolyStringCelValue ps) {
+            replacement = ps.getOrig();
+        } else {
+            replacement = args[2].toString();
+        }
+        boolean replaceAll = true;
+        if (args.length > 3 && args[3] instanceof Boolean b) {
+            replaceAll = b;
+        }
+        return reReplace(text, regex, replacement, replaceAll);
+    }
+
+    private Object reReplace(String text, String regex, String replacement, boolean replaceAll) {
+        Pattern pattern = prepareRe2Pattern(regex);
+        Matcher matcher = pattern.matcher(text);
+        if (replaceAll) {
+            return matcher.replaceAll(replacement);
+        } else {
+            return matcher.replaceFirst(replacement);
+        }
+    }
+
+    private Object reFindString(String text, String regex) {
+        Pattern pattern = prepareRe2Pattern(regex);
+        Matcher matcher = pattern.matcher(text);
+
+        if (matcher.find()) {
+            return matcher.group();
+        } else {
+            return NullValue.NULL_VALUE;
+        }
+    }
+
+    private Object reFindPolyString(PolyStringCelValue text, String regex) {
+        return reFindString(text.getOrig(), regex);
+    }
+
+    private Object reFindAllString(String text, String regex) {
+        Pattern pattern = prepareRe2Pattern(regex);
+        Matcher matcher = pattern.matcher(text);
+        List<String> matches = new ArrayList<>();
+
+        while (matcher.find()) {
+            matches.add(matcher.group());
+        }
+
+        return matches;
+    }
+
+    private Object reFindAllPolyString(PolyStringCelValue text, String regex) {
+        return reFindAllString(text.getOrig(), regex);
+    }
+
+    private Pattern prepareRe2Pattern(String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        int maxProgramSize = celOptions.maxRegexProgramSize();
+        if (maxProgramSize >= 0 && pattern.programSize() > maxProgramSize) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Regex pattern exceeds allowed program size. Allowed: %d, Provided: %d",
+                            maxProgramSize, pattern.programSize()));
+        }
+        return pattern;
+    }
+
+    private static String join(Object list) {
+        return join(list, "");
+    }
+
+    private static String join(Object list, String separator) {
+        if (isCelNull(list)) {
+            return "";
+        }
+        if (list instanceof List l) {
+            List<String> strList = l.stream()
+                    .filter(CelTypeMapper::isNotCelNull)
+                    .map(CelMelExtensions::stringify)
+                    .toList();
+            return String.join(separator, strList);
+        } else {
+            throw createException("Non-list argument to join() function.");
+        }
+    }
+
+    private static boolean polystringContains(Object[] args) {
+        if (isCelNull(args[0])) {
+            return false;
+        }
+        if (args[0] instanceof Optional<?> opt) {
+            return ((PolyStringCelValue)opt.get()).getOrig().contains((String)args[1]);
+        }
+        return ((PolyStringCelValue)args[0]).getOrig().contains((String)args[1]);
+    }
+
+    private static boolean containsAny(Object o, String substring) {
+        if (isCelNull(o)) {
+            return false;
+        }
+        if (o instanceof String s) {
+            return s.contains(substring);
+        }
+        if (o instanceof PolyStringCelValue ps) {
+            return ps.getOrig().contains(substring);
+        }
+        return o.toString().contains(substring);
+    }
+
+    private boolean listContains(List<Object> list, final Object item) {
+        if (isCelNull(list)) {
+            return false;
+        }
+        return list.stream()
+                .anyMatch(i -> runtimeEquality.objectEquals(item, i));
+    }
+
+    private boolean listContainsIgnoreCase(List<Object> list, final Object item) {
+        if (isCelNull(list)) {
+            return false;
+        }
+        return list.stream()
+                .anyMatch(i -> {
+                    if (i instanceof String s) {
+                        return s.equalsIgnoreCase(stringify(item, null));
+                    }
+                    if (i instanceof PolyStringCelValue ps) {
+                        return ps.getOrig().equalsIgnoreCase(stringify(item, null));
+                    }
+                    return runtimeEquality.objectEquals(item, i);
+                });
+    }
+
+
+    private Object nilProducer(Object[] objects) {
+        return NullValue.NULL_VALUE;
+    }
+
+    private static boolean containsIgnoreCase(@Nullable Object object, @Nullable Object search) {
+        String objectStr = stringify(object, "");
+        if (StringUtils.isEmpty(objectStr)) {
+            return false;
+        }
+        String searchStr = stringify(search, "");
+        if (StringUtils.isEmpty(searchStr)) {
+            return false;
+        }
+        return Strings.CI.contains(objectStr, searchStr);
+    }
+
+    private static boolean equalsIgnoreCase(@Nullable Object o1, @Nullable Object o2) {
+        if (CelTypeMapper.isCelNull(o1)) {
+            return CelTypeMapper.isCelNull(o2);
+        }
+        if (CelTypeMapper.isCelNull(o2)) {
+            return false;
+        }
+        return Strings.CI.equals(stringify(o1, ""), stringify(o2, ""));
+    }
+
+    private static String quote(PolyStringCelValue polyStringCelValue) {
+        if (isCelNull(polyStringCelValue)) {
+            return null;
+        }
+        return quote(polyStringCelValue.getOrig());
+    }
+
+    private static String reverse(String s) {
+        if (s == null) {
+            return null;
+        }
+        return new StringBuilder(s).reverse().toString();
+    }
+
+    private static String reverse(PolyStringCelValue polyStringCelValue) {
+        if (isCelNull(polyStringCelValue)) {
+            return null;
+        }
+        return reverse(polyStringCelValue.getOrig());
+    }
+
+    private static String quote(String s) {
+        if (s == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append('"');
+        for (int i = 0; i < s.length(); ) {
+            int codePoint = s.codePointAt(i);
+            if (isMalformedUtf16(s, i)) {
+                sb.append('\uFFFD');
+                i++;
+                continue;
+            }
+            switch (codePoint) {
+                case '\u0007':
+                    sb.append("\\a");
+                    break;
+                case '\b':
+                    sb.append("\\b");
+                    break;
+                case '\f':
+                    sb.append("\\f");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                case '\u000B':
+                    sb.append("\\v");
+                    break;
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                default:
+                    sb.appendCodePoint(codePoint);
+                    break;
+            }
+            i += Character.charCount(codePoint);
+        }
+        sb.append('"');
+        return sb.toString();
+    }
+
+    private static boolean isMalformedUtf16(String s, int index) {
+        char currentChar = s.charAt(index);
+        if (Character.isLowSurrogate(currentChar)) {
+            return true;
+        }
+        // Check for unpaired high surrogate
+        return Character.isHighSurrogate(currentChar)
+                && (index + 1 >= s.length() || !Character.isLowSurrogate(s.charAt(index + 1)));
     }
 
     private static String uc(String s) {
@@ -1135,7 +2227,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static Object funcDefault(Object val, Object defaultVal) {
-        if (CelTypeMapper.isCellNull(val)) {
+        if (CelTypeMapper.isCelNull(val)) {
             return defaultVal;
         }
         if (val instanceof Optional<?> opt && opt.isEmpty()) {
@@ -1163,8 +2255,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     private static final class Library implements CelExtensionLibrary<CelMelExtensions> {
         private final CelMelExtensions version0;
 
-        private Library(CelOptions celOptions, Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
-            version0 = new CelMelExtensions(celOptions, protector, basicExpressionFunctions);
+        private Library(
+                CelOptions celOptions,
+                Protector protector,
+                BasicExpressionFunctions basicExpressionFunctions,
+                RuntimeEquality runtimeEquality) {
+            version0 = new CelMelExtensions(celOptions, protector, basicExpressionFunctions, runtimeEquality);
         }
 
         @Override
@@ -1178,8 +2274,12 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static CelExtensionLibrary<CelMelExtensions> library(CelOptions celOptions, Protector protector, BasicExpressionFunctions basicExpressionFunctions) {
-        return new Library(celOptions, protector, basicExpressionFunctions);
+    public static CelExtensionLibrary<CelMelExtensions> library(
+            CelOptions celOptions,
+            Protector protector,
+            BasicExpressionFunctions basicExpressionFunctions,
+            RuntimeEquality runtimeEquality) {
+        return new Library(celOptions, protector, basicExpressionFunctions, runtimeEquality);
     }
 
     @Override
@@ -1191,9 +2291,27 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return basicExpressionFunctions.ascii(toJava(o));
     }
 
+    @Nullable
+    private static String capitalize(@Nullable String s) {
+        if (s == null) {
+            return null;
+        }
+        return StringUtils.capitalize(s);
+    }
+
+    @Nullable
+    private static String capitalize(@Nullable PolyStringCelValue ps) {
+        if (ps == null) {
+            return null;
+        }
+        return StringUtils.capitalize(ps.getOrig());
+    }
+
+
+
     private static Object stringFormat(String format, Object o) {
         Object[] javaArgs;
-        if (CelTypeMapper.isCellNull(o)) {
+        if (CelTypeMapper.isCelNull(o)) {
             javaArgs = new Object[]{ null };
         } else if (o instanceof List<?> l) {
             javaArgs = CelTypeMapper.toJavaValues(l.toArray());
@@ -1208,10 +2326,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean isNull(Object o) {
-        if (isCellNull(o)) {
-            return true;
-        }
-        return o instanceof Optional<?> opt && opt.isEmpty();
+        return isCelNull(o);
     }
 
     private QNameCelValue qname(String namespace, String localPart) {
@@ -1224,6 +2339,11 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
 
     private static Instant longAgo(Object[] args) {
         return Instant.ofEpochSecond(0);
+    }
+
+    private static Instant farAhead(Object[] args) {
+        // 9999-12-31T23:59:59
+        return Instant.ofEpochSecond(253402300799L);
     }
 
     private Instant atStartOfDay(Instant instant) {
@@ -1252,8 +2372,23 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return eodZdt.toInstant();
     }
 
-    // TODO: do we need this?
-    public static List<Object> melList(Object input) {
+    private static long getEpochSecond(Instant timestamp) {
+        return timestamp.getEpochSecond();
+    }
+
+    private static long getEpochMillisecond(Instant timestamp) {
+        return timestamp.toEpochMilli();
+    }
+
+    private static long getNanos(Instant timestamp) {
+        return timestamp.getNano();
+    }
+
+    @NotNull
+    public static List<Object> melList(@Nullable Object input) {
+        if (isCelNull(input)) {
+            return ImmutableList.of();
+        }
         if (input instanceof List) {
             return (List)input;
         } else {
@@ -1262,7 +2397,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private Object single(Object o) {
-        if (isCellNull(o)) {
+        if (isCelNull(o)) {
             return o;
         }
         if (o instanceof Optional<?> opt) {
@@ -1285,19 +2420,24 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     @NotNull
+    private static String stringify(Object arg) {
+        return stringify(arg, "");
+    }
+
+    @NotNull
     private static String stringify(Object arg, String nullRepresentation) {
         return ExpressionUtil.stringify(CelTypeMapper.toJavaValue(arg), nullRepresentation);
     }
 
     private static Object string(Object arg) {
-        if (CelTypeMapper.isCellNull(arg)) {
+        if (CelTypeMapper.isCelNull(arg)) {
             return NullValue.NULL_VALUE;
         }
         return ExpressionUtil.stringify(CelTypeMapper.toJavaValue(arg), "");
     }
 
     private String norm(Object o) {
-        if (isCellNull(o)) {
+        if (isCelNull(o)) {
             return "";
         }
         if (o instanceof MidPointValueProducer<?> mpCelVal) {
@@ -1348,16 +2488,6 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static boolean stringEqualsPolyString(String s1, PolyStringCelValue s2) {
-        if (CelTypeMapper.isCellNull(s1) && CelTypeMapper.isCellNull(s2)) {
-            return true;
-        }
-        if (CelTypeMapper.isCellNull(s1) || CelTypeMapper.isCellNull(s2)) {
-            return false;
-        }
-        return s1.equals(s2.getOrig());
-    }
-
     public static String stringAddPolyString(String s, PolyStringCelValue polystringValue) {
         if (s == null && polystringValue == null) {
             return null;
@@ -1402,19 +2532,44 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     private static boolean polystringIsBlank(PolyStringCelValue celPolystring) {
-        if (isCellNull(celPolystring)) {
+        if (isCelNull(celPolystring)) {
             return true;
         }
         return celPolystring.getOrig().isBlank();
     }
 
     private static boolean polystringIsEmpty(PolyStringCelValue celPolystring) {
-        if (isCellNull(celPolystring)) {
+        if (isCelNull(celPolystring)) {
             return true;
         }
         return celPolystring.getOrig().isEmpty();
     }
 
+    public static Object stringAddItemPath(String s, ItemPathCelValue pathValue) {
+        if (s == null && pathValue == null) {
+            return NullValue.NULL_VALUE;
+        }
+        if (s == null) {
+            return pathValue.getJavaValue().toString();
+        }
+        if (pathValue == null) {
+            return s;
+        }
+        return s + pathValue.getJavaValue().toString();
+    }
+
+    public static Object itemPathAddString(ItemPathCelValue pathValue, String s) {
+        if (s == null && pathValue == null) {
+            return NullValue.NULL_VALUE;
+        }
+        if (s == null) {
+            return pathValue.getJavaValue().toString();
+        }
+        if (pathValue == null) {
+            return s;
+        }
+        return pathValue.getJavaValue().toString() + s;
+    }
 
     // Taken from CelStringExtensions, modified for Polystring
 
@@ -1516,14 +2671,14 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean stringIsEmpty(String str) {
-        if (isCellNull(str)) {
+        if (isCelNull(str)) {
             return true;
         }
         return str.isEmpty();
     }
 
     public static boolean isEmpty(Object whatever) {
-        if (isCellNull(whatever)) {
+        if (isCelNull(whatever)) {
             return true;
         }
         if (whatever instanceof Optional<?> opt) {
@@ -1548,7 +2703,7 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     }
 
     public static boolean stringIsBlank(String str) {
-        if (isCellNull(str)) {
+        if (isCelNull(str)) {
             return true;
         }
         return str.isBlank();
@@ -1769,11 +2924,29 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return exploded;
     }
 
-    private static String substring(PolyStringCelValue ps, long i) throws CelEvaluationException {
+    private static Object substringObject(@Nullable Object o, long i) throws CelEvaluationException {
+        if (isCelNull(o)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (o instanceof String s) {
+            return substring(s, i);
+        }
+        if (o instanceof PolyStringCelValue ps) {
+            return substring(ps, i);
+        }
+        throw new IllegalArgumentException("Unexpected argument "+o.getClass().getSimpleName()+" in substringObject");
+    }
+
+    @NotNull
+    private static String substring(@NotNull PolyStringCelValue ps, long i) throws CelEvaluationException {
         return substring(ps.getOrig(), i);
     }
 
-    private static String substring(String s, long i) throws CelEvaluationException {
+    @NotNull
+    private static String substring(@NotNull String s, long i) throws CelEvaluationException {
+        if (isCelNull(s)) {
+            return null;
+        }
         int beginIndex;
         try {
             beginIndex = Math.toIntExact(i);
@@ -1805,18 +2978,58 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
     /**
      * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
      */
-    private static String substringPolystring(Object[] args) throws CelEvaluationException {
-        return substring(((PolyStringCelValue) args[0]).getOrig(), (Long) args[1], (Long) args[2]);
+    @Nullable
+    private static Object substringPolystring(Object[] args) throws CelEvaluationException {
+        if (isCelNull(args[0])) {
+            return NullValue.NULL_VALUE;
+        }
+        if (args.length == 2) {
+            return substring(((PolyStringCelValue) args[0]).getOrig(), (Long) args[1]);
+        } else if (args.length == 3) {
+            return substring(((PolyStringCelValue) args[0]).getOrig(), (Long) args[1], (Long) args[2]);
+        } else {
+            throw new IllegalArgumentException("Unexpected number of arguments to substringPolystring");
+        }
     }
 
     /**
      * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
      */
-    private static String substringString(Object[] args) throws CelEvaluationException {
-        return substring((String) args[0], (Long) args[1], (Long) args[2]);
+    @Nullable
+    private static Object substringString(Object[] args) throws CelEvaluationException {
+        if (isCelNull(args[0])) {
+            return NullValue.NULL_VALUE;
+        }
+        if (args.length == 2) {
+            return substring((String) args[0], (Long) args[1]);
+        } else if (args.length == 3) {
+            return substring((String) args[0], (Long) args[1], (Long) args[2]);
+        } else {
+            throw new IllegalArgumentException("Unexpected number of arguments to substringString");
+        }
     }
 
-    private static String substring(String s, Long beginIndexLong, Long endIndexLong) throws CelEvaluationException {
+    // TODO: clean up the mess with various substring(...) functions
+
+    /**
+     * @param args Object array with indices of [0: string], [1: beginIndex], [2: endIndex]
+     */
+    @Nullable
+    private static Object substringAny(Object[] args) throws CelEvaluationException {
+        if (isCelNull(args[0])) {
+            return NullValue.NULL_VALUE;
+        }
+        if (args[0] instanceof String) {
+            return substringString(args);
+        }
+        if (args[0] instanceof PolyStringCelValue) {
+            return substringPolystring(args);
+        }
+        throw new IllegalArgumentException("Unexpected argument type "+args[0].getClass().getSimpleName()+" in call of substringAny");
+    }
+
+    @NotNull
+    private static String substring(@NotNull String s, Long beginIndexLong, Long endIndexLong) throws CelEvaluationException {
         int beginIndex;
         int endIndex;
         try {
@@ -1869,6 +3082,19 @@ public class CelMelExtensions extends AbstractMidPointCelExtensions {
         return textCpa.slice(left, right + 1).toString();
     }
 
+    @Nullable
+    private static Object trimAny(@Nullable Object o) {
+        if (isCelNull(o)) {
+            return NullValue.NULL_VALUE;
+        }
+        if (o instanceof String s) {
+            return trim(s);
+        }
+        if (o instanceof PolyStringCelValue ps) {
+            return trim(ps);
+        }
+        throw new IllegalArgumentException("Unexpected argument type "+o.getClass().getSimpleName()+" in call of trimAny");
+    }
 
     /**
      * Finds the first index of the non-whitespace character found in the string. See {@link

@@ -53,7 +53,7 @@ public class OpaqueTokenOidcResourceServerConfiguration extends RemoteModuleWebS
         try {
             builder = ClientRegistrations.fromOidcIssuerLocation(opaqueTokenConfig.getIssuerUri());
         } catch (Exception e) {
-            LOGGER.debug("Couldn't create oidc client builder by issuer uri.");
+            LOGGER.error("Couldn't create OIDC client builder by issuer URI : {}", opaqueTokenConfig.getIssuerUri(), e);
         }
 
         if (builder == null) {

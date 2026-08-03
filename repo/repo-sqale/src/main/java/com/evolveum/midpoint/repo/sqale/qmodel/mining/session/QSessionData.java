@@ -8,16 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.mining.session;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
-import com.querydsl.core.types.dsl.ArrayPath;
-import com.querydsl.core.types.dsl.EnumPath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
-import com.querydsl.sql.ColumnMetadata;
-
-import java.sql.Types;
-
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
  */

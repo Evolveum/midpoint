@@ -16,7 +16,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemProcessingStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedItemSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedItemType;
 
 /**
  * Prints the item processing statistics.

@@ -18,7 +18,7 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.springframework.lang.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.MimeTypeUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -120,7 +120,7 @@ public class AnyTypePanel extends InputPanel {
 
                         String mimetype = getDownloadContentType();
                         if (StringUtils.isNotEmpty(mimetype)) {
-                            String extension = MimeTypeUtil.getExtension(mimetype);
+                            String extension = MimeTypeUtil.getDotExtension(mimetype);
                             if (extension != null) {
                                 fileName += extension;
                             }
@@ -164,7 +164,7 @@ public class AnyTypePanel extends InputPanel {
 
         private final IModel<Object> model;
 
-        public TypedModel(@NonNull Class<T> type, @NonNull IModel<Object> model) {
+        public TypedModel(@NotNull Class<T> type, @NotNull IModel<Object> model) {
             this.type = type;
             this.model = model;
         }

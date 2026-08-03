@@ -44,7 +44,7 @@ public class AsyncUpdater {
     public void processAsynchronousUpdates(ResourceOperationCoordinates coordinates, AsyncUpdateEventHandler handler,
             Task callerTask, OperationResult callerResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
         ProvisioningContext globalContext = ctxFactory.createForBulkOperation(coordinates, new ProvisioningOperationContext(), callerTask, callerResult);

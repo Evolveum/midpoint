@@ -6,7 +6,24 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.api.context.*;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH;
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedSituationTrigger;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -16,6 +33,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -26,19 +44,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH;
-import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * Tests triggering of exclusion, assignment and situation rules.
@@ -47,7 +52,7 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyRules extends AbstractLensTest {
 
@@ -241,12 +246,13 @@ public class TestPolicyRules extends AbstractLensTest {
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 7);
-        assertTargetTriggers(context,  null, 0);
+        assertTargetTriggers(context, null, 0);
 
         assertSerializable(context);
     }
 
-    @Test(enabled = false)          // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
+    @Test(enabled = false)
+    // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
     public void test110AssignRolePirateToJack() throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
@@ -321,7 +327,7 @@ public class TestPolicyRules extends AbstractLensTest {
         dumpPolicyRules(context);
         dumpPolicySituations(context);
         assertEvaluatedTargetPolicyRules(context, 7);
-        assertTargetTriggers(context,  null, 0);
+        assertTargetTriggers(context, null, 0);
 
         assertSerializable(context);
     }
@@ -418,7 +424,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
         EvaluatedSituationTrigger triggerSituation = (EvaluatedSituationTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.SITUATION, 1, false);
         assertEquals("Wrong # of source rules", 1, triggerSituation.getSourceRules().size());
-        EvaluatedPolicyRule sourceRule = triggerSituation.getSourceRules().iterator().next();
+        var sourceRule = triggerSituation.getSourceRules().iterator().next();
         EvaluatedExclusionTrigger sourceTrigger = (EvaluatedExclusionTrigger) sourceRule.getTriggers().iterator().next();
         assertNotNull("No conflicting assignment in source trigger", sourceTrigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in source trigger", ROLE_JUDGE_OID, sourceTrigger.getConflictingAssignment().getTarget().getOid());
@@ -451,7 +457,7 @@ public class TestPolicyRules extends AbstractLensTest {
     }
 
     /**
-     *  Employee conflicts with Contractor.
+     * Employee conflicts with Contractor.
      */
     @Test
     public void test210AssignRoleEmployeeToJack() throws Exception {
@@ -494,7 +500,7 @@ public class TestPolicyRules extends AbstractLensTest {
     }
 
     /**
-     *  Engineer->Employee conflicts with Contractor.
+     * Engineer->Employee conflicts with Contractor.
      */
     @Test
     public void test220AssignRoleEngineerToJack() throws Exception {
@@ -534,21 +540,21 @@ public class TestPolicyRules extends AbstractLensTest {
         assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1, false);
         assertTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
 
-        EvaluatedPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
+        DirectlyEvaluatedClockworkPolicyRule engineerRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
         displayDumpable("exclusion rule for Engineer", engineerRule);
         displayDumpable("exclusion trigger for Engineer", engineerTrigger);
-        displayDumpable("Engineer: assignmentPath", engineerRule.getAssignmentPath());
+        displayDumpable("Engineer: assignmentPath", engineerRule.getRuleAssignmentPath());
         displayDumpable("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
-        assertAssignmentPath(engineerRule.getAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
+        assertAssignmentPath(engineerRule.getRuleAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
         assertAssignmentPath(engineerTrigger.getConflictingPath(), ROLE_CORP_CONTRACTOR_OID);
 
-        EvaluatedPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
+        DirectlyEvaluatedClockworkPolicyRule contractorRule = getTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
         EvaluatedExclusionTrigger contractorTrigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
         displayDumpable("exclusion rule for Contractor", contractorRule);
         displayDumpable("exclusion trigger for Contractor", contractorTrigger);
-        displayDumpable("Contractor: assignmentPath", contractorRule.getAssignmentPath());
+        displayDumpable("Contractor: assignmentPath", contractorRule.getRuleAssignmentPath());
         displayDumpable("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
-        assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
+        assertAssignmentPath(contractorRule.getRuleAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
         assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
 
         assertSerializable(context);
@@ -668,7 +674,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
 
-        assertEquals("Wrong decision", SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+        assertEquals("Wrong decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
 

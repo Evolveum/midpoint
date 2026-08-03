@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;

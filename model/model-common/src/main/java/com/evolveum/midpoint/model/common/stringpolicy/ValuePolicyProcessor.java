@@ -93,7 +93,7 @@ public class ValuePolicyProcessor {
             Task task,
             OperationResult parentResult)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OP_GENERATE);
         try {
@@ -154,7 +154,7 @@ public class ValuePolicyProcessor {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         //TODO: do we want to throw exception when no value policy defined??
         Validate.notNull(valuePolicy, "Value policy must not be null.");
 

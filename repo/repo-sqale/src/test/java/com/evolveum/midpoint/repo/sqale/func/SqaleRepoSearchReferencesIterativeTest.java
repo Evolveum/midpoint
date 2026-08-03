@@ -17,9 +17,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.sqale.UriCache;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MUri;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;

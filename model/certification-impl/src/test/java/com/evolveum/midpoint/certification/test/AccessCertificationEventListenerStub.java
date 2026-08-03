@@ -12,7 +12,9 @@ import java.util.List;
 import com.evolveum.midpoint.certification.api.AccessCertificationEventListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public final class AccessCertificationEventListenerStub implements AccessCertificationEventListener {
 

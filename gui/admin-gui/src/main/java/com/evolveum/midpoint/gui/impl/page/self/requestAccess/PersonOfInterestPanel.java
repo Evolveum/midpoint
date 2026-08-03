@@ -384,7 +384,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 // model of multiselect was already updated, just "refresh" next button
-                target.add(PersonOfInterestPanel.this.getNext());
+                target.add(PersonOfInterestPanel.this.getCustomButtonsContainer());
             }
         });
         fragment.add(multiselect);

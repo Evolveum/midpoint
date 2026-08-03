@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.application.component.Applicati
 import com.evolveum.midpoint.gui.impl.page.admin.application.component.wizard.ApplicationWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApplicationType;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;

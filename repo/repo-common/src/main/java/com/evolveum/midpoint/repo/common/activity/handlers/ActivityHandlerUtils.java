@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
 
 public class ActivityHandlerUtils {
 
@@ -21,7 +22,9 @@ public class ActivityHandlerUtils {
             @NotNull ActivityDefinition<WD> original) {
         ActivityDefinition<WD> clone = original.cloneWithoutId();
         // policies should not be inherited by child activities
-        clone.getPoliciesDefinition().getPolicies().getPolicy().clear();
+        ActivityPoliciesType policies = clone.getPoliciesDefinition().getPolicies();
+        policies.getPolicy().clear();
+        policies.getPolicyRef().clear();
 
         return clone;
     }

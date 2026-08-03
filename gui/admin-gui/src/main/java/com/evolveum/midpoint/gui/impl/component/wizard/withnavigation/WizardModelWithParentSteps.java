@@ -12,19 +12,24 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerDescriptor;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-public abstract class WizardModelWithParentSteps extends WizardModel {
+public abstract class WizardModelWithParentSteps extends WizardModel implements DrawerDescriptor {
 
     private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
 
@@ -76,6 +81,10 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
         operationResultCollapsedItem.addOperationResult(panelId, fixPanelId, result);
     }
 
+    public void addOperationResult(String panelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        operationResultCollapsedItem.addOperationResult(panelId, null, result, fixAction);
+    }
+
     public void removeOperationResult(String panelId) {
         operationResultCollapsedItem.removeOperationResult(panelId);
     }
@@ -86,6 +95,16 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
         }
         return operationResultCollapsedItem.getResults().stream()
                 .anyMatch(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()));
+    }
+
+    public List<OperationResult> getOperationResultsForFixStep(String stepId) {
+        if (StringUtils.isEmpty(stepId)) {
+            return List.of();
+        }
+        return operationResultCollapsedItem.getResults().stream()
+                .filter(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()))
+                .map(OperationResultWrapper::getResult)
+                .toList();
     }
 
     public abstract boolean isShowedSummary();

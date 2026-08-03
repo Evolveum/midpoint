@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.model.impl.util.mock;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -22,7 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;

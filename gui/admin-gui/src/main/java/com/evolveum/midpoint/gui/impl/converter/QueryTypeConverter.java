@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.converter;
 
 import java.util.Locale;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -60,7 +60,7 @@
             </expression>
             <condition>
                 <script>
-                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>subtype == 'BUCCANEER'</code>
                 </script>
             </condition>
@@ -123,12 +123,9 @@
             </source>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        if (locality == null) {
-                            return null
-                        } else {
-                            locality.substring(0,2).toUpperCase()
-                        }
+                        locality.substring(0,2).uc()
                     </code>
                 </script>
             </expression>
@@ -142,7 +139,6 @@
 
     <item>
         <ref>extension/badLuck</ref>
-        <!--<tolerant>false</tolerant>--> <!-- not supported any more (4.2+): use range spec instead -->
         <mapping>
             <strength>strong</strength>
             <source>
@@ -152,15 +148,23 @@
                 <allowEmptyValues>true</allowEmptyValues>
                 <script>
                     <relativityMode>absolute</relativityMode>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        if (basic.stringify(givenName) == 'JACKIE') {
-                            [ 123L ]
-                        } else if (basic.stringify(givenName) == 'jackie') {
-                            null
-                        } else {
-                            [ 123L, 456L ]
-                        }
+                        givenName == 'JACKIE'
+                            ? [ 123 ]
+                            : givenName == 'jackie'
+                                ? nil
+                                : [ 123, 456 ]
                     </code>
+                    <!--<code>-->
+                    <!--    if (basic.stringify(givenName) == 'JACKIE') {-->
+                    <!--        [ 123L ]-->
+                    <!--    } else if (basic.stringify(givenName) == 'jackie') {-->
+                    <!--        null-->
+                    <!--    } else {-->
+                    <!--        [ 123L, 456L ]-->
+                    <!--    }-->
+                    <!--</code>-->
                 </script>
             </expression>
             <target>
@@ -296,7 +300,8 @@
                 <condition>
                     <trace>true</trace>
                     <script>
-                        <code>basic.stringify(organization)?.startsWith("AUTO-")</code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>organization.startsWith("AUTO-")</code>
                     </script>
                 </condition>
             </set>
@@ -310,7 +315,8 @@
                         <expression>
                             <trace>true</trace>
                             <script>
-                                <code>'Auto' + organization.substring(5,organization.length())</code>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>'Auto' + organization.substring(5,organization.size())</code>
                             </script>
                         </expression>
                     </q:equal>
@@ -320,8 +326,9 @@
                     <populateItem>
                         <expression>
                             <script>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                                 <code>
-                                    'AUTO'+organization
+                                    'AUTO' + organization
                                 </code>
                             </script>
                         </expression>
@@ -374,7 +381,8 @@
                     <populateItem>
                         <expression>
                             <script>
-                                <code>'Created on demand from user '+user.getName()</code>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <code>'Created on demand from user ' + focus.name</code>
                             </script>
                         </expression>
                         <target>
@@ -407,7 +415,8 @@
         </target>
         <condition>
             <script>
-                <code>telephoneNumber == null || telephoneNumber.isEmpty()</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                <code>isEmpty(telephoneNumber)</code>
             </script>
         </condition>
     </mapping>
@@ -448,7 +457,8 @@
         </target>
         <condition>
             <script>
-                <code>midpoint.hasLinkedAccount('10000000-0000-0000-0000-000000000004')</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                <code>midpoint.hasLinkedObjectOnResource('10000000-0000-0000-0000-000000000004', 'account', null)</code>
             </script>
         </condition>
         <evaluationPhase>afterProjections</evaluationPhase>
@@ -476,21 +486,31 @@
         <timeFrom>
             <expression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        if (focus?.additionalName?.orig != 'Kaboom!') {
-                            // null means that this mapping is not active. It has no date.
-                            // it will not be processed.
-                            return null
-                        }
-                        javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus, 'funeralTimestamp')
-                        if (funeralTimestamp == null) {
-                            // Always process this mapping immediately
-                            return basic.longAgo()
-                        }
-                        def timestamp = basic.addDuration(funeralTimestamp, "P90D")
-                        timestamp = basic.roundDownToMidnight(timestamp)
-                        return timestamp
+                        focus.additionalName == 'Kaboom!'
+                            ? (
+                                isPresent(focus.extension.funeralTimestamp)
+                                    ? (focus.extension.funeralTimestamp + duration('2160h')).atStartOfDay()  // P90D
+                                    : timestamp.longAgo()       // Always process this mapping immediately
+                            )
+                            : nil       // nil means that this mapping is not active. It has no date. It will not be processed.
                     </code>
+                    <!--<code>-->
+                    <!--    if (focus?.additionalName?.orig != 'Kaboom!') {-->
+                    <!--        // null means that this mapping is not active. It has no date.-->
+                    <!--        // it will not be processed.-->
+                    <!--        return null-->
+                    <!--    }-->
+                    <!--    javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus, 'funeralTimestamp')-->
+                    <!--    if (funeralTimestamp == null) {-->
+                    <!--        // Always process this mapping immediately-->
+                    <!--        return basic.longAgo()-->
+                    <!--    }-->
+                    <!--    def timestamp = basic.addDuration(funeralTimestamp, "P90D")-->
+                    <!--    timestamp = basic.roundDownToMidnight(timestamp)-->
+                    <!--    return timestamp-->
+                    <!--</code>-->
                 </script>
             </expression>
         </timeFrom>
@@ -512,22 +532,39 @@
         <timeFrom>
             <expression>
                 <script>
+                    <documentation>
+                        WARNING: there is a problem with leap year.
+                        CEL cannot specify days/years in duration, only hours.
+                        This means that the test can fail w.r.t. leap year.
+                        The number of hours in the duration has to be updated occasionally,
+                        until a good solution for CEL durations is found.
+                    </documentation>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        if (!focus?.description?.contains('gone')) {
-                            // Time-constraint is inactive
-                            // We do not want this constraint to be active too soon.
-                            // Otherwise it will set the trigger and that would complicate other tests.
-                            return null
-                        }
-                        javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')
-                        if (funeralTimestamp == null) {
-                            // Always process this mapping immediately
-                            return basic.longAgo()
-                        }
-                        def timestamp = basic.addDuration(funeralTimestamp, "P1Y")
-                        timestamp = basic.roundDownToMidnight(timestamp)
-                        return timestamp
+                        focus.description.contains('gone')
+                            ? (
+                                isPresent(focus.extension.funeralTimestamp)
+                                ? (focus.extension.funeralTimestamp + duration('8784h')).atStartOfDay()  // P1Y
+                                : timestamp.longAgo()       // Always process this mapping immediately
+                            )
+                            : nil       // Time-constraint is inactive. We do not want this constraint to be active too soon. Otherwise it will set the trigger and that would complicate other tests.
                     </code>
+                    <!--<code>-->
+                    <!--    if (!focus?.description?.contains('gone')) {-->
+                    <!--        // Time-constraint is inactive-->
+                    <!--        // We do not want this constraint to be active too soon.-->
+                    <!--        // Otherwise it will set the trigger and that would complicate other tests.-->
+                    <!--        return null-->
+                    <!--    }-->
+                    <!--    javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')-->
+                    <!--    if (funeralTimestamp == null) {-->
+                    <!--        // Always process this mapping immediately-->
+                    <!--        return basic.longAgo()-->
+                    <!--    }-->
+                    <!--    def timestamp = basic.addDuration(funeralTimestamp, "P1Y")-->
+                    <!--    timestamp = basic.roundDownToMidnight(timestamp)-->
+                    <!--    return timestamp-->
+                    <!--</code>-->
                 </script>
             </expression>
         </timeFrom>
@@ -536,7 +573,8 @@
         </expression>
         <condition>
             <script>
-                <code>givenName?.norm == 'lootjack'</code>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                <code>givenName.norm == 'lootjack'</code>
             </script>
         </condition>
         <target>
@@ -548,10 +586,10 @@
     <mapping>
       <strength>strong</strength>
       <source>
-         <c:path>$user/extension/funeralTimestamp</c:path>
+         <c:path>$focus/extension/funeralTimestamp</c:path>
       </source>
       <target>
-         <c:path>$user/activation/validTo</c:path>
+         <c:path>$focus/activation/validTo</c:path>
       </target>
    </mapping>
 

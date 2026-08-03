@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.repo.common.tasks.handlers.iterative;
 
-import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor;
+import com.evolveum.midpoint.repo.common.activity.run.PlainIterativeActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;

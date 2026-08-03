@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;

@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
 import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -82,7 +83,7 @@ class AssociationSynchronizationExpressionEvaluator
     public AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -142,7 +143,7 @@ class AssociationSynchronizationExpressionEvaluator
 
         public AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> process(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Processing {} individual values of the association '{}'",
                     inputValues.size(), associationDefinition.getItemName());
@@ -285,7 +286,7 @@ class AssociationSynchronizationExpressionEvaluator
 
             void process(OperationResult parentResult)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
                 OperationResult result = parentResult.subresult(OP_PROCESS_ASSOCIATION_VALUE)
                         .addArbitraryObjectAsParam("associationValue", associationValue)
@@ -310,7 +311,7 @@ class AssociationSynchronizationExpressionEvaluator
             private @NotNull SimplifiedCorrelationResult executeCorrelation(
                     AssignmentType assignmentForCorrelation, OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                    SecurityViolationException, ObjectNotFoundException {
+                    SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
                 LOGGER.trace("Executing correlation for assignments");
 
@@ -341,7 +342,7 @@ class AssociationSynchronizationExpressionEvaluator
 
             private AssignmentType computeAssignmentForCorrelation(OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var targetAssignment = instantiateTargetAssignment();
                 PreMappingsEvaluator.computePreFocusForAssociationValue(
                         associationValue,
@@ -446,7 +447,7 @@ class AssociationSynchronizationExpressionEvaluator
                     @Nullable ItemSynchronizationReactionDefinition synchronizationReaction,
                     @NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                    CommunicationException, ObjectNotFoundException {
+                    CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
                 if (synchronizationReaction == null) {
                     registerAssignmentsSeen(correlationResult);
                     return;
@@ -469,7 +470,7 @@ class AssociationSynchronizationExpressionEvaluator
 
             private void executeAdd(@NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                    CommunicationException, ObjectNotFoundException {
+                    CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var targetAssignment = instantiateTargetAssignment();
                 SingleShadowInboundsProcessing.evaluate(
                         createShadowProcessingContext(targetAssignment, result),
@@ -483,7 +484,7 @@ class AssociationSynchronizationExpressionEvaluator
 
             private void setValueMetadata(PrismContainerValue<?> pcv, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var metadataComputer = context.getValueMetadataComputer();
                 if (metadataComputer != null) {
                     pcv.setValueMetadata(
@@ -493,7 +494,7 @@ class AssociationSynchronizationExpressionEvaluator
 
             private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var targetAssignment = Objects.requireNonNull((AssignmentType) correlationResult.getOwner());
                 var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(
                         createShadowProcessingContext(targetAssignment, result),

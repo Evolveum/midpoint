@@ -18,19 +18,17 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebResponse;
 import org.springframework.http.HttpStatus;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * Base class for error web pages.
@@ -57,6 +55,8 @@ public class PageError extends PageBase {
 
     String exClass;
     String exMessage;
+
+    private final IModel<String> errorMessageModel = Model.of();
 
     public PageError() {
         this(500);
@@ -90,7 +90,8 @@ public class PageError extends PageBase {
         Label codeLabel = new Label(ID_CODE, code);
         add(codeLabel);
 
-        Label errorMessage = new Label(ID_ERROR_MESSAGE, createStringResource(getErrorMessageKey()));
+        setErrorMessage(getString(getErrorMessageKey()));
+        Label errorMessage = new Label(ID_ERROR_MESSAGE, errorMessageModel);
         add(errorMessage);
 
         String errorLabel = "Unexpected error";
@@ -151,7 +152,7 @@ public class PageError extends PageBase {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.render(OnDomReadyHeaderItem.forScript("$('div.content-wrapper').css('margin-left', '0');"));
+        response.render(OnDomReadyHeaderItem.forScript("$('div.app-main').css('margin-left', '0');"));
     }
 
     private boolean isStackTraceVisible() {
@@ -198,6 +199,10 @@ public class PageError extends PageBase {
 
     protected String getErrorMessageKey() {
         return "PageError.message";
+    }
+
+    protected void setErrorMessage(String message) {
+        errorMessageModel.setObject(message);
     }
 
     @Override

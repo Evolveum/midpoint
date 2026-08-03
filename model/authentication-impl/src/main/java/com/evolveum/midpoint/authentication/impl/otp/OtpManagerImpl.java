@@ -175,7 +175,6 @@ public class OtpManagerImpl implements OtpManager {
         return createOtpService(otp);
     }
 
-    // todo improve - load correct module
     private <F extends FocusType> OtpAuthenticationModuleType findOtpModuleConfigurationForFocus(
             PrismObject<F> focus, Task task, OperationResult result) {
         try {
@@ -233,11 +232,21 @@ public class OtpManagerImpl implements OtpManager {
         }
 
         AuthenticationModulesType modules = authentication.getModules();
-        if (modules == null || modules.getTotp().size() != 1) {
+        if (modules == null) {
             return null;
         }
 
-        OtpAuthenticationModuleType module = modules.getTotp().get(0);
+        List<TOtpAuthenticationModuleType> totpModules = modules.getTotp();
+        if (totpModules.isEmpty()) {
+            LOGGER.trace("No OTP authentication module found in security policy {}", securityPolicy.getName());
+            return null;
+        }
+
+        if (totpModules.size() > 1) {
+            LOGGER.debug("There are more than one OTP module defined for security policy {}, first one will be used.", securityPolicy.getName());
+        }
+
+        TOtpAuthenticationModuleType module = totpModules.get(0);
         String identifier = module.getIdentifier();
         if (StringUtils.isEmpty(identifier)) {
             return null;

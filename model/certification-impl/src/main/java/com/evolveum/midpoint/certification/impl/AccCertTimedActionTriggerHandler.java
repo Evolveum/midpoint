@@ -102,7 +102,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
             WorkItemActionsType actions, AccessCertificationCampaignType campaign, Task triggerScannerTask,
             OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
+            ObjectAlreadyExistsException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
             executeNotificationAction(campaign, notificationAction, result);
         }
@@ -119,7 +119,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 
     private void executeCompleteAction(AccessCertificationCampaignType campaign, CompleteWorkItemActionType completeAction,
             Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
                 CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid()),
                 true,
@@ -141,7 +141,7 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
             AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
             Task task, OperationResult result)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
+            ObjectAlreadyExistsException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
                 CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid()),
                 true,

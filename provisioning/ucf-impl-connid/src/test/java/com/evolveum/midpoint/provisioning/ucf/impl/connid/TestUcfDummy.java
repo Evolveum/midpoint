@@ -24,7 +24,7 @@ import java.util.*;
 import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyHrScenario.*;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.context.ContextConfiguration;
@@ -153,6 +153,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         for (ConnectorType connector : connectors) {
             assertNotNull(connector.getName());
+            assertNotNull(connector.getDiscoveryTimestamp());
+            assertFalse(connector.getDiscoveryTimestamp().isEmpty());
             System.out.printf("CONNECTOR OID=%s, name=%s, version=%s%n",
                     connector.getOid(), connector.getName(), connector.getConnectorVersion());
             System.out.println("--");

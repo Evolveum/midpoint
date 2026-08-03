@@ -33,7 +33,7 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
         initLayout();
         setOutputMarkupId(true);
         add(AttributeAppender.append("style", "display: contents !important; background-color: white!important;"));
-        add(AttributeAppender.append("class", "d-flex gap-2 px-2 bg-light rounded-sm align-items-center"));
+        add(AttributeAppender.append("class", "d-flex gap-2 px-2 bg-light rounded-1 align-items-center"));
     }
 
     private void initLayout() {

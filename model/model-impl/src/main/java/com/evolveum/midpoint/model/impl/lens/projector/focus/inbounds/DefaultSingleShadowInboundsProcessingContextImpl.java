@@ -8,7 +8,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowLikeValue;
+import com.evolveum.midpoint.schema.processor.SynchronizationPolicy;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -78,7 +78,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             XMLGregorianCalendar ignoredNow,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         processReconciliation(projectionContext, task, result);
 
@@ -89,7 +89,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void processReconciliation(LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // Reconcile even if it was not explicitly requested and if we have full shadow
         // reconciliation is cheap if the shadow is already fetched therefore just do it
@@ -133,7 +133,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         var squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
         if (squeezedAuxiliaryObjectClasses == null || squeezedAuxiliaryObjectClasses.isEmpty()) {
@@ -302,7 +302,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void reconcileProjectionAttributes(LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         LOGGER.trace("Attribute reconciliation processing all attributes of {}", projCtx.getHumanReadableName());
 
@@ -329,7 +329,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             ShadowAttributesContainer attributesContainer,
             Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
 
@@ -523,7 +523,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
     private void reconcileProjectionAssociations(LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
 
@@ -705,7 +705,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>> shouldBeCValues,
             Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, ExpressionEvaluationException {
+            ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         var evaluatePatterns = !assocDef.getTolerantValuePatterns().isEmpty() || !assocDef.getIntolerantValuePatterns().isEmpty();
         var matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
@@ -789,7 +789,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     private ShadowSimpleAttribute<String> getTargetNamingIdentifier(
             ShadowAssociationValue associationValue, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return getIdentifiersForAssociationTarget(associationValue, task, result).getNamingAttribute();
     }
 
@@ -798,7 +798,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             ShadowAssociationValue isCValue,
             Task task, OperationResult result) throws CommunicationException,
             SchemaException, ConfigurationException,
-            SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+            SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException {
         var objectRef = isCValue.getSingleObjectRefValueRequired();
         var attributesContainer = objectRef.getAttributesContainerIfPresent();
         if (attributesContainer != null) {
@@ -1026,7 +1026,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadIfPossible(LensProjectionContext projCtx, String desc, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!projCtx.isDoReconciliation()) {
             LOGGER.trace(
                     "Skipping loading the shadow, as the reconciliation was not requested for {}",

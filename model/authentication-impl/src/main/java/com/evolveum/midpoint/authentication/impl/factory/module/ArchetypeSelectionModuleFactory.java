@@ -8,7 +8,7 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import jakarta.servlet.ServletRequest;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;

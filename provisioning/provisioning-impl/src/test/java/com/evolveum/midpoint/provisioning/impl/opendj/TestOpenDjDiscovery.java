@@ -30,7 +30,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Test for connector configuration discovery, featuring OpenDJ server.
@@ -137,12 +137,10 @@ public class TestOpenDjDiscovery extends AbstractOpenDjTest {
             ItemPath propertyPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION,
                     SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
                     discoveredProperty.getElementName());
-            PrismPropertyDefinition<?> def = discoveredProperty.getDefinition();
-            Collection<? extends DisplayableValue<?>> suggestions = def.getAllowedValues() != null ? def.getAllowedValues() : def.getSuggestedValues();
             PropertyDelta<Object> propertyDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
                     propertyPath,
                     discoveredProperty.getDefinition(),
-                    suggestions.stream().map(displayValue -> displayValue.getValue()).toArray());
+                    getSuggestedPropertyValues(discoveredProperty));
             modifications.add(propertyDelta);
         }
 

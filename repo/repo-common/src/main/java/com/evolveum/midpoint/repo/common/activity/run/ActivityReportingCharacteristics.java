@@ -10,7 +10,9 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinitionDefaultValuesProvider;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
 
 import org.jetbrains.annotations.NotNull;
 

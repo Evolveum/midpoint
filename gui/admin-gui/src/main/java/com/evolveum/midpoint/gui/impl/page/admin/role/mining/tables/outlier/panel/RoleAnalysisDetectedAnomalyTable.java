@@ -9,7 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 import java.io.Serial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
@@ -46,7 +47,9 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainAnomaly;
@@ -98,7 +101,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             protected String getInlineMenuItemCssClass(IModel<SelectableBean<RoleType>> rowModel) {
-                return "btn btn-default btn-sm flex-nowrap text-nowrap";
+                return "btn btn-light border btn-sm flex-nowrap text-nowrap";
             }
 
             @Override
@@ -316,7 +319,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                 //onRefresh(target);
             }
         };
-        refreshIcon.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        refreshIcon.add(AttributeModifier.append("class", "btn btn-light border btn-sm"));
         return refreshIcon;
     }
 
@@ -514,6 +517,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     }
 
     public String getAdditionalBoxCssClasses() {
-        return " m-0 elevation-0";
+        return " m-0 shadow-none";
     }
 }

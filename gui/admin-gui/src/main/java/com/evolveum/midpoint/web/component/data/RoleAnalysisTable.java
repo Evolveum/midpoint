@@ -60,7 +60,6 @@ import com.evolveum.midpoint.web.component.data.column.RoleAnalysisObjectColumn;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisPagingColumns;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.fillCandidateList;

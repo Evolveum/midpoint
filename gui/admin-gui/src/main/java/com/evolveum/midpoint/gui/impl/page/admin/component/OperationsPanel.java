@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.border.Border;
 
 /**
@@ -19,7 +18,7 @@ public class OperationsPanel extends Border {
     public OperationsPanel(String id) {
         super(id);
 
-        add(AttributeAppender.prepend("class", "card"));
+        add(AttributeAppender.prepend("class", "card shadow-sm mb-3"));
     }
 
     @Override

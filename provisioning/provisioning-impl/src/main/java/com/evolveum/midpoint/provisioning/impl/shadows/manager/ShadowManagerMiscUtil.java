@@ -19,7 +19,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectSha
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 

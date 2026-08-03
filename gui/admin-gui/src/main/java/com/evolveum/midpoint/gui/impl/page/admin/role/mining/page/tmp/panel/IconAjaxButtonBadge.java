@@ -89,13 +89,13 @@ public class IconAjaxButtonBadge extends BasePanel<RoleAnalysisAttributeAnalysis
 
     public String getIconCssClass() {
         if (getModelObject().isSelected()) {
-            return "fa fa-check ml-1";
+            return "fa fa-check ms-1";
         } else {
             Class<?> type = getModelObject().getType();
             if (type == null) {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
             }
-            return (UserType.class.equals(type) ? GuiStyleConstants.CLASS_OBJECT_USER_ICON : GuiStyleConstants.CLASS_OBJECT_ROLE_ICON) + " ml-1";
+            return (UserType.class.equals(type) ? GuiStyleConstants.CLASS_OBJECT_USER_ICON : GuiStyleConstants.CLASS_OBJECT_ROLE_ICON) + " ms-1";
         }
 
     }
@@ -105,7 +105,7 @@ public class IconAjaxButtonBadge extends BasePanel<RoleAnalysisAttributeAnalysis
     }
 
     protected String getBadgeCssClass() {
-        return "ml-auto mr-1";
+        return "ms-auto me-1";
     }
 
     protected String getLabelCssClass() {

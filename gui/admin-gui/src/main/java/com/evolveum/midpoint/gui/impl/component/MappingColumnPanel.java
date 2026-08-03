@@ -7,15 +7,10 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,10 +18,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.List;
 
 public class MappingColumnPanel extends BasePanel<PrismContainerWrapper<MappingType>> {
 

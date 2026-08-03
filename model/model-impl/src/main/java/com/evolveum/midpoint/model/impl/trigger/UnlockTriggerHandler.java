@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.trigger;
 
-import static javax.xml.datatype.DatatypeConstants.LESSER;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

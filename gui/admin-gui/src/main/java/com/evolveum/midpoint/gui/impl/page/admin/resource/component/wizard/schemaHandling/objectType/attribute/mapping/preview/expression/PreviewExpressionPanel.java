@@ -8,15 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.Arrays;
 import java.util.Optional;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.AttributeModifier;
@@ -27,6 +18,15 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * Preview panel for {@link ExpressionType}.
@@ -88,7 +88,7 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
                 : createStringResource("PreviewExpressionPanel.expression").getString()));
 
         add(new Label(ID_TYPE_BADGE, Model.of(getBadgeLabel(evaluator)))
-                .add(AttributeModifier.append("class", "badge badge-primary px-2 py-1")));
+                .add(AttributeModifier.append("class", "badge text-bg-primary px-2 py-1")));
 
         add(new Label(ID_DESCRIPTION, Model.of(getDescription())).setEscapeModelStrings(false));
 

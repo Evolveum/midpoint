@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

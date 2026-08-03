@@ -10,8 +10,10 @@
     <tr>
         <wicket:container wicket:id="headers">
             <th wicket:id="header">
-                <i class="icon fas fa-fw mr-1"></i>
-                <span wicket:id="label"/>
+                <wicket:enclosure child="label">
+                    <i class="icon fas fa-fw me-1"></i>
+                    <span wicket:id="label"/>
+                </wicket:enclosure>
             </th>
         </wicket:container>
     </tr>

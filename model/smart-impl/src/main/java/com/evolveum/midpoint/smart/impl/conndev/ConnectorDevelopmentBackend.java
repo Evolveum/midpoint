@@ -2,10 +2,15 @@ package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.provisioning.ucf.api.EditableConnector;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
@@ -15,25 +20,34 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public abstract class ConnectorDevelopmentBackend {
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
-    private static final String CONNECTOR_MANIFEST = "connector.manifest.json";
+    private static final String CONNECTOR_MANIFEST = "connector.manifest.yaml";
+    private static final String CONNECTOR_MANIFEST_JSON_LEGACY = "connector.manifest.json";
     private static final String CONFIGURATION_OVERRIDE = "configurationOverride.properties";
+    private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
+    private static final String CONNDEV_OBJECT_CLASS = "conndev_ObjectClass";
+    private static final String CONNDEV_CONTENT_TYPE = "application/com.evolveum.conndev+json";
     protected final Task task;
     protected final OperationResult result;
 
@@ -49,6 +63,15 @@ public abstract class ConnectorDevelopmentBackend {
         this.task = task;
         this.result = result;
     }
+
+    /**
+     * A dev-shadow document built from a {@code conndev_*} shadow: its stable {@code uuid}/{@code uri}
+     * (derived from the discovered name), content type, and the unwrapped schema-mapping {@code content}.
+     * Kept purely in memory (not a file-backed {@link ProcessedDocumentation}) because the content is only
+     * a transient upload body — the stored {@link ProcessedDocumentation} is materialized from what the
+     * generation service returns (see {@link #synchronizeDocumentation}).
+     */
+    protected record DevShadowDocument(String uuid, String uri, String contentType, String content) {}
 
     /**
      * Returns a supplier that operations must poll to implement cooperative cancellation.
@@ -75,7 +98,8 @@ public abstract class ConnectorDevelopmentBackend {
         return switch (integrationType) {
             case REST -> new RestBackend(beans, connDev, task, result);
             case SCIM -> new ScimBackend(beans, connDev, task, result);
-            case DUMMY -> new OfflineBackend(beans, connDev, task, result);
+            case SQL -> new SqlBackend(beans, connDev, task, result);
+            //case DUMMY -> new OfflineBackend(beans, connDev, task, result);
         };
 
     }
@@ -111,14 +135,18 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    protected void reload() throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    protected void reload() throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         development = beans.modelService.getObject(ConnectorDevelopmentType.class, development.getOid(), null, task, result).asObjectable();
     }
 
     public void populateApplicationAuthInfo(List<ConnDevAuthInfoType> authInfo) throws CommonException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_AUTH)
-                .addRealValues( authInfo.stream().map(ConnDevAuthInfoType::clone).toList())
+                .addRealValues(authInfo.stream()
+                        .filter(info -> info.getType() != ConnDevHttpAuthTypeType.OTHER)
+                        .map(ConnDevAuthInfoType::clone)
+                        .toList())
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
@@ -182,6 +210,19 @@ public abstract class ConnectorDevelopmentBackend {
         beans.modelService.executeChanges(List.of(delta), null, task, result);
         reload();
         recomputeConnectorManifest();
+        invalidateConnector();
+    }
+
+    /**
+     * Disposes cached connector instances so that the next operation re-initializes the connector
+     * with the freshly saved scripts. Without this, provisioning keeps using the connector instance
+     * that compiled the scripts during its init.
+     */
+    private void invalidateConnector() {
+        var connectorRef = development.getConnector().getConnectorRef();
+        if (connectorRef != null && connectorRef.getOid() != null) {
+            beans.cacheDispatcher.dispatchInvalidation(ConnectorType.class, connectorRef.getOid(), false, null);
+        }
     }
 
     private void copyRelationToConnectorInfo(String objectClass) throws CommonException {
@@ -201,7 +242,7 @@ public abstract class ConnectorDevelopmentBackend {
         var manifest = new ConnectorManifestWriter(development).serialize();
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
-
+        editableConnector().deleteFileIfExists(CONNECTOR_MANIFEST_JSON_LEGACY);
     }
 
     private EditableConnector editableConnector() {
@@ -256,7 +297,8 @@ public abstract class ConnectorDevelopmentBackend {
                     .embedded(v.getEmbedded())
                     ._abstract(v.isAbstract())
                     .superclass(v.getSuperclass())
-                    .relevant(v.getRelevant());
+                    .relevant(v.getRelevant())
+                    .relevancy(v.getRelevancy());
             v.getRelevantDocumentations().forEach(chunk ->
                     oc.relevantDocumentations(new ConnDevRelevantDocumentationsType().docId(chunk.getDocId()).chunkId(chunk.getChunkId())));
             return oc;
@@ -319,14 +361,24 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
-    public abstract ConnDevApplicationInfoType discoverBasicInformation();
-    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation();
-    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation();
-    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec);
-    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated);
-    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass);
-    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass);
+    public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
+    public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
+    public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
+    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
+    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
+    public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
+
+    public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_SUGGESTED_ENDPOINT)
+                .replaceRealValues(endpoints.stream().limit(MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS).toList())
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
 
     public ConnDevArtifactType getArtifactContent(ConnDevArtifactType type) throws IOException {
         var ret = type.clone();
@@ -334,7 +386,9 @@ public abstract class ConnectorDevelopmentBackend {
         return ret;
     }
 
-    public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
         if (skipConfigurationPropsUpgrade) {
             return;
         }
@@ -347,7 +401,7 @@ public abstract class ConnectorDevelopmentBackend {
             var propString = stream.toString(StandardCharsets.UTF_8);
             editableConnector().saveFile(CONFIGURATION_OVERRIDE, propString);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't write connector configuration override (" + CONFIGURATION_OVERRIDE + ")", e);
         }
         var connRef = development.getConnector().getConnectorRef();
         if (connRef != null && deleteConnectorSchema) {
@@ -373,11 +427,15 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
-    public abstract void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    public abstract void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
-    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void ensureDocumentationIsProcessed() throws SchemaException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
         if (development.getProcessedDocumentation().isEmpty()) {
-            processDocumentation();
+            processDocumentation(false);
             reload();
         }
     }
@@ -395,9 +453,11 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
 
-    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered);
+    public abstract List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache);
 
-    public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void updateRelations(List<ConnDevRelationInfoType> relations) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
         var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_DETECTED_SCHEMA, ConnDevSchemaType.F_RELATION).replaceRealValues(relations)
                 .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
@@ -465,6 +525,50 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
+    protected void restoreMetadata(ServiceClient.RestorationClient client) throws IOException {
+        var app = developmentObject().getApplication();
+        if (app == null) return;
+
+        var infoMetadata = JSON_FACTORY.objectNode();
+
+        if (app.getApplicationName() != null) {
+            infoMetadata.set("name", JSON_FACTORY.textNode(app.getApplicationName().getOrig()));
+        }
+        if (app.getVersion() != null) {
+            infoMetadata.set("applicationVersion", JSON_FACTORY.textNode(app.getVersion()));
+        }
+        if (app.getApiVersion() != null) {
+            infoMetadata.set("apiVersion", JSON_FACTORY.textNode(app.getApiVersion()));
+        }
+        if (app.getIntegrationType() != null) {
+            var apiTypeArray = JSON_FACTORY.arrayNode();
+            apiTypeArray.add(app.getIntegrationType().value());
+            infoMetadata.set("apiType", apiTypeArray);
+        }
+        if (app.getBaseApiEndpoint() != null) {
+            var endpointEntry = JSON_FACTORY.objectNode();
+            endpointEntry.set("uri", JSON_FACTORY.textNode(app.getBaseApiEndpoint()));
+            endpointEntry.set("type", JSON_FACTORY.textNode("constant"));
+            var endpointsArray = JSON_FACTORY.arrayNode();
+            endpointsArray.add(endpointEntry);
+            var availability = JSON_FACTORY.objectNode();
+            availability.set("baseApiEndpoint", endpointsArray);
+            var availabilityKey = app.getIntegrationType() == ConnDevIntegrationType.SCIM
+                    ? "scimAvailability" : "restAvailability";
+            infoMetadata.set(availabilityKey, availability);
+        }
+
+        var body = JSON_FACTORY.objectNode();
+        body.set("infoMetadata", infoMetadata);
+        var bodyText = body.toPrettyString();
+
+        client.put("digester/{sessionId}/metadata", () ->
+                EntityBuilder.create()
+                        .setContentType(ContentType.APPLICATION_JSON)
+                        .setText(bodyText)
+                        .build());
+    }
+
     protected void restoreRelations(ServiceClient.RestorationClient client) throws IOException {
         var app = developmentObject().getApplication();
         if (app == null) return;
@@ -501,6 +605,8 @@ public abstract class ConnectorDevelopmentBackend {
         for (var relation : connector.getRelation()) {
             putCodegenArtifact(client, "codegen/{sessionId}/relations/" + relation.getName(), relation.getSchemaScript());
         }
+
+        putCodegenArtifact(client, "codegen/{sessionId}/authorization", connector.getAuthenticationScript());
     }
 
     protected void putCodegenArtifact(ServiceClient.RestorationClient client, String path, ConnDevArtifactType artifact) throws IOException {
@@ -530,7 +636,7 @@ public abstract class ConnectorDevelopmentBackend {
                                 var body = new String(documentation.asInputStream().readAllBytes(), StandardCharsets.UTF_8);
                                 return EntityBuilder.create()
                                         .setText(body)
-                                        .setContentType(ContentType.APPLICATION_JSON)
+                                        .setContentType(ContentType.create(documentation.contentType(), StandardCharsets.UTF_8))
                                         .build();
                             } catch (IOException e) {
                                 throw new SystemException("Couldn't build documentation upload body", e);
@@ -551,6 +657,160 @@ public abstract class ConnectorDevelopmentBackend {
         };
         */
         return documentation.uri();
+    }
+
+    /**
+     * Connector-agnostic dev-schema refresh: refreshes the testing resource, and if it exposes the
+     * shared {@code conndev_ObjectClass} (SCIM/SQL/... in development mode), reads the development
+     * object classes ({@link #devDocumentationObjectClasses()}) and turns their objects into
+     * {@link ProcessedDocumentation}. Classic REST has no schema standard, so it simply does not
+     * expose {@code conndev_ObjectClass} and is skipped — no connector-type branching needed.
+     */
+    public void refreshConnDevDocumentation() throws CommonException {
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null) {
+            return;
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+
+        ResourceUtils.deleteSchema(testingResourceOid, beans.modelService, task, result);
+        beans.provisioningService.testResource(testingResourceOid, task, result);
+
+        if (!exposesConnDevObjectClass(testingResourceOid)) {
+            return; // classic REST, or development mode off — nothing to discover
+        }
+
+        var objectClasses = devDocumentationObjectClasses();
+        var shadowDocs = objectClasses.stream()
+                .flatMap(objectClass -> loadShadowsAsDocumentation(testingResourceOid, objectClass).stream())
+                .toList();
+
+        // Push the freshly built dev-shadow documentation to the generation service and pull the
+        // processed result back (see synchronizeDocumentation). Offline/base does nothing and keeps
+        // the docs as built; REST/SCIM overrides it to POST each doc and pull the processed items.
+        var newDocs = synchronizeDocumentation(shadowDocs).stream()
+                .map(ProcessedDocumentation::toBean)
+                .toList();
+
+        var mergedDocs = new ArrayList<>(
+                developmentObject().getProcessedDocumentation().stream()
+                        .filter(d -> objectClasses.stream().noneMatch(c -> d.getUri().startsWith(c)))
+                        .map(ProcessedDocumentationType::clone)
+                        .toList());
+        mergedDocs.addAll(newDocs);
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(ConnectorDevelopmentType.F_PROCESSED_DOCUMENTATION)
+                .replaceRealValues(mergedDocs)
+                .<ConnectorDevelopmentType>asObjectDelta(developmentObject().getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+    }
+
+    /**
+     * Pushes the freshly built dev-shadow documentation to the generation service, waits for it to be
+     * processed, and pulls the processed result back as file-backed {@link ProcessedDocumentation}. The
+     * service is the source of truth: a {@link ProcessedDocumentation} only ever comes into being from
+     * what the service returns for a processed upload. Backends without a generation service (offline) do
+     * not support this.
+     */
+    protected abstract List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException;
+
+    /**
+     * Development object classes whose objects are forwarded as documentation: the shared
+     * {@code conndev_ObjectClass} for every connector; backends may add their own raw exports
+     * (e.g. SCIM adds {@code conndev_ScimSchema}/{@code conndev_ScimResource}).
+     */
+    protected List<String> devDocumentationObjectClasses() {
+        return List.of(CONNDEV_OBJECT_CLASS);
+    }
+
+    private boolean exposesConnDevObjectClass(String resourceOid) {
+        try {
+            var resource = beans.modelService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
+            var schema = Resource.of(resource).getCompleteSchema();
+            return schema != null
+                    && schema.findObjectClassDefinition(new QName(SchemaConstants.NS_RI, CONNDEV_OBJECT_CLASS)) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Loads shadows of a given {@code conndev_*} object class from a testing resource and forwards each
+     * as a {@link DevShadowDocument}, faithfully: the shadow content is only structurally unwrapped from
+     * prism serialization ({@link ConnDevShadowUnwrapper}), never interpreted — the connector owns the
+     * schema-mapping content (single source), midPoint reads only the name (for uri/uuid). The result is
+     * an in-memory carrier; it becomes a persisted {@link ProcessedDocumentation} only in
+     * {@link #synchronizeDocumentation}. Connector-agnostic core: any connector exposing
+     * {@code conndev_ObjectClass} (SCIM, SQL, ...) works unchanged, including future fields.
+     */
+    protected List<DevShadowDocument> loadShadowsAsDocumentation(String resourceOid, String objectClassLocalName) {
+        try {
+            var objectClass = new QName(SchemaConstants.NS_RI, objectClassLocalName);
+            var query = PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                    .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClass)
+                    .build();
+
+            // Associations must not be fetched: the embedded reference values have no OID/identifiers,
+            // so the validity checker would fail them with "No effective operation policy".
+            var options = GetOperationOptionsBuilder.create()
+                    .item(ShadowType.F_ASSOCIATIONS).dontRetrieve()
+                    .build();
+            var shadows = beans.provisioningService.searchObjects(ShadowType.class, query, options, task, result);
+            if (shadows.isEmpty()) {
+                return List.of();
+            }
+
+            var serializer = PrismContext.get().jsonSerializer();
+            var mapper = new ObjectMapper();
+            var writer = mapper.writerWithDefaultPrettyPrinter();
+            var unwrapper = new ConnDevShadowUnwrapper();
+            var docs = new ArrayList<DevShadowDocument>();
+            for (var shadow : shadows) {
+                var attrs = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+                if (attrs == null || attrs.isEmpty()) {
+                    continue;
+                }
+
+                var json = serializer.serialize(attrs.getValue());
+                var attributesContainer = mapper.readTree(json).get("attributes");
+                if (attributesContainer == null) {
+                    continue;
+                }
+
+                var document = unwrapper.unwrap(attributesContainer);
+                var content = writer.writeValueAsString(document);
+
+                var name = resolveDocName(shadow, document);
+                var uri = objectClassLocalName + "_" + name + ".json";
+                var uuid = UUID.nameUUIDFromBytes(uri.getBytes(StandardCharsets.UTF_8)).toString();
+                docs.add(new DevShadowDocument(uuid, uri, CONNDEV_CONTENT_TYPE, content));
+            }
+            return docs;
+        } catch (Exception e) {
+            throw new SystemException("Could not load shadow documentation for " + objectClassLocalName, e);
+        }
+    }
+
+    /**
+     * Human-readable name for a dev shadow: the discovered object class name (the unwrapped
+     * {@code icfs:name}), then the shadow's own name (__NAME__), finally the OID. This is the only
+     * piece of the forwarded content midPoint reads — everything else is passed through untouched.
+     */
+    protected String resolveDocName(PrismObject<ShadowType> shadow, JsonNode document) {
+        var name = document.path("name");
+        if (name.isArray() && !name.isEmpty()) {
+            name = name.get(0);
+        }
+        if (name.isTextual() && !name.asText().isBlank()) {
+            return name.asText();
+        }
+        if (shadow.getName() != null && shadow.getName().getOrig() != null) {
+            return shadow.getName().getOrig();
+        }
+        return shadow.getOid();
     }
 
 }

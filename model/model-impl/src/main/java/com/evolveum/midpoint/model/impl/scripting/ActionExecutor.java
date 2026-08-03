@@ -31,7 +31,7 @@ public interface ActionExecutor {
      */
     void checkExecutionAllowed(ExecutionContext context, OperationResult result)
             throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Executes given action command.
@@ -51,13 +51,13 @@ public interface ActionExecutor {
     PipelineData execute(
             ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** To be used only if the "dynamic" version is not supported. */
     default PipelineData execute(
             AbstractActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         throw new UnsupportedOperationException();
     }
 }

@@ -6,12 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 public abstract class AbstractQueryWrapper implements QueryWrapper {
 
     public static final String F_ERROR = "advancedError";

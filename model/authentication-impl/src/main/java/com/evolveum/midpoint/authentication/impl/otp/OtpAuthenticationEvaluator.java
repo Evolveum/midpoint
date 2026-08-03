@@ -36,6 +36,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class OtpAuthenticationEvaluator
         extends CredentialsAuthenticationEvaluatorImpl<OtpCredentialsType, OtpAuthenticationContext> {
 
+    public static final String INVALID_CREDENTIALS_KEY = "web.security.provider.otp.invalid.credentials";
+
+    public static final String INVALID_CREDENTIALS_MESSAGE = "Incorrect OTP code";
+
     private static final Trace LOGGER = TraceManager.getTrace(OtpAuthenticationEvaluator.class);
 
     @Autowired private Protector protector;
@@ -64,7 +68,7 @@ public class OtpAuthenticationEvaluator
     protected void validateCredentialNotNull(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, OtpCredentialsType credentials) {
         List<OtpCredentialType> otps = credentials.getTotp();
 
-        if (otps == null || otps.isEmpty()) {
+        if (otps == null || otps.stream().noneMatch(otp -> BooleanUtils.isTrue(otp.isVerified()))) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, null, "no otp stored for user");
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.otp.bad");
         }
@@ -109,6 +113,7 @@ public class OtpAuthenticationEvaluator
                 }
 
                 if (service.verifyCode(clearValue, code)) {
+                    LOGGER.debug("OTP code verified successfully for user '{}'", principal.getUsername());
                     return true;
                 }
             } catch (EncryptionException | SchemaException ex) {
@@ -118,6 +123,7 @@ public class OtpAuthenticationEvaluator
             }
         }
 
+        LOGGER.debug("OTP code verification failed for user '{}'", principal.getUsername());
         return false;
     }
 
@@ -138,7 +144,12 @@ public class OtpAuthenticationEvaluator
     }
 
     @Override
-    protected String createModuleAuthenticationFailureMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-        return "Incorrect OTP code";
+    protected String createInvalidCredentialsMessage(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return INVALID_CREDENTIALS_MESSAGE;
+    }
+
+    @Override
+    protected String createInvalidCredentialsKey(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        return INVALID_CREDENTIALS_KEY;
     }
 }

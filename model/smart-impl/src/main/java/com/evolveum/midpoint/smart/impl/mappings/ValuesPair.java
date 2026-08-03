@@ -13,7 +13,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiAttributeExampleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestMappingExampleType;
 
 public record ValuesPair<S, F>(Collection<S> shadowValues, Collection<F> focusValues) {
 

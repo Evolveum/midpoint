@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,7 +36,7 @@ public class AssignmentUtil {
         CollectionUtils.addIgnoreNull(infos, getReferenceInfo(assignment.getTargetRef()));
         CollectionUtils.addIgnoreNull(infos, getConstructionInfo(assignment.getConstruction()));
         infos.addAll(getMappingsInfo(assignment.getFocusMappings()));
-        CollectionUtils.addIgnoreNull(infos, PolicyRuleTypeUtil.toShortString(assignment.getPolicyRule()));
+        CollectionUtils.addIgnoreNull(infos, PolicyRuleDumpUtil.toShortString(assignment.getPolicyRule()));
 
         return String.join("; ", infos);
     }

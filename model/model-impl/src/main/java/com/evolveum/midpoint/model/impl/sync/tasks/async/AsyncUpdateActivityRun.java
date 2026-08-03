@@ -9,7 +9,10 @@ package com.evolveum.midpoint.model.impl.sync.tasks.async;
 import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityOverallItemCountingOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +75,7 @@ public final class AsyncUpdateActivityRun
     @Override
     public void iterateOverItemsInBucket(OperationResult opResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         AsyncUpdateEventHandler handler = (event, hResult) -> {
             SyncItemProcessingRequest<AsyncUpdateEvent> request =

@@ -51,8 +51,6 @@ public class PageError401 extends PageError {
             return;
         }
 
-        exClass = ex.getClass().getName();
-
         String msg = ex.getMessage();
         if (StringUtils.isEmpty(msg)) {
             msg = "web.security.provider.unavailable";
@@ -61,5 +59,8 @@ public class PageError401 extends PageError {
         ).collect(Collectors.joining("; "));
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        // Replace the generic 401 text with the translated authentication error.
+        setErrorMessage(exMessage);
     }
 }

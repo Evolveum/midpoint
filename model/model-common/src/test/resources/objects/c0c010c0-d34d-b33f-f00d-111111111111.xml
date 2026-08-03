@@ -60,7 +60,7 @@
     <assignment>
         <identifier>charlie</identifier>
         <description>Third assignment</description>
-        <targetRef oid="c0c010c0-d34d-b33f-f00d-001111111112" type="RoleType"/>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-001111111112" type="OrgType"/>
     </assignment>
 
     <credentials>

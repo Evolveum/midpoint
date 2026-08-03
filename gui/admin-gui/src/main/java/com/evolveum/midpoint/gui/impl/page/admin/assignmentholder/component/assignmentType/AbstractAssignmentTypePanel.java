@@ -13,7 +13,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -465,7 +468,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 newAssignmentClickPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         bar.add(newObjectButton);
 
         newObjectButton.add(new VisibleEnableBehaviour() {

@@ -6,11 +6,11 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.*;
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExecutedDelta;
 
-import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.model.impl.lens.indexing.IndexingConfigurationImpl;
 import com.evolveum.midpoint.prism.*;
@@ -29,16 +30,16 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExecutedDelta;
 
 /**
  * @author semancik
@@ -270,7 +271,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // The name is misleading but we keep it for compatibility reasons.
     @SuppressWarnings("unused")
     @Deprecated
-    public void swallowToWave0SecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+    public void swallowToWave0SecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
         swallowToSecondaryDelta(itemDelta);
     }
 
@@ -298,7 +299,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             if (objectNew == null) {
                 return false;
             }
-            Item<PrismValue,ItemDefinition<?>> item = objectNew.findItem(itemPath);
+            Item<PrismValue, ItemDefinition<?>> item = objectNew.findItem(itemPath);
             return item != null && !item.getValues().isEmpty();
         } else if (isDelete()) {
             // We do not care any more
@@ -310,17 +311,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     public LensFocusContext<O> clone(LensContext<O> lensContext) {
+        return copy(lensContext, true);
+    }
+
+    public LensFocusContext<O> copy(LensContext<O> lensContext, boolean detailed) {
         LensFocusContext<O> clone = new LensFocusContext<>(state.clone(), lensContext);
-        copyValues(clone);
+        copyValues(clone, detailed);
         return clone;
     }
 
-    private void copyValues(LensFocusContext<O> clone) {
-        super.copyValues(clone);
-        clone.deleted = deleted;
-        clone.archetypePolicy = archetypePolicy;
-        clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
-        clone.primaryDeltaExecuted = primaryDeltaExecuted;
+    private void copyValues(LensFocusContext<O> clone, boolean detailed) {
+        super.copyValues(clone, detailed);
+        if (detailed) {
+            clone.deleted = deleted;
+            clone.archetypePolicy = archetypePolicy;
+            clone.archetypes = archetypes != null ? new ArrayList<>(archetypes) : null;
+            clone.primaryDeltaExecuted = primaryDeltaExecuted;
+        }
     }
 
     @Override
@@ -343,12 +350,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         sb.append("\n");
 
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("new"), getObjectNew(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("deleted"), deleted, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("new"), getObjectNew(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("deleted"), deleted, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent + 1);
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append(getDebugDumpTitle("older secondary deltas")).append(":");
         ObjectDeltaWaves<O> secondaryDeltas = state.getArchivedSecondaryDeltas();
@@ -360,7 +367,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         sb.append("\n");
 
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Policy rules context", policyRulesContext, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Assignment ID store",
                 assignmentIdStore != null ? assignmentIdStore.shortDump() : null, indent + 1);
@@ -534,5 +541,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             assignmentIdStore = new AssignmentIdStore();
         }
         return assignmentIdStore;
+    }
+
+    @Override
+    public String getObjectReadVersion() {
+        var conflictContext = lensContext.getFocusConflictResolutionContext();
+        if (conflictContext != null) {
+            // Using conflict watcher is the most precise method for obtaining object version. It is updated automatically
+            // by the repository, provided that all updates take place in the current thread (which should be the case for
+            // standard clockwork operation).
+            var conflictWatcher = conflictContext.getFocusConflictWatcher();
+            if (conflictWatcher != null && conflictWatcher.isInitialized()) {
+                return String.valueOf(conflictWatcher.getExpectedVersion());
+            }
+        }
+        if (getObjectCurrent() != null) {
+            return getObjectCurrent().getVersion();
+        }
+        return null;
     }
 }

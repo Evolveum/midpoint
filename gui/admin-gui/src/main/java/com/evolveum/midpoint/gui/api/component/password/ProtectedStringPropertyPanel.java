@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.api.component.password;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;

@@ -9,6 +9,7 @@
     <name>role-modify-employee-number-5</name>
     <inducement>
         <policyRule>
+            <name>modify-employee-number-5</name>
             <policyConstraints>
                 <modification>
                     <operation>modify</operation>

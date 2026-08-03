@@ -44,7 +44,7 @@ public abstract class SelectorClause implements DebugDumpable, Serializable {
     public abstract boolean matches(
             @NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Converts the clause into {@link ObjectFilter} (passed to {@link FilteringContext#filterCollector}).
@@ -52,7 +52,7 @@ public abstract class SelectorClause implements DebugDumpable, Serializable {
      */
     public abstract boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException ;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     void traceNotApplicable(SelectorProcessingContext ctx, String message, Object... arguments) {
         ctx.traceClauseNotApplicable(this, message, arguments);

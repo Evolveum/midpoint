@@ -15,8 +15,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
-import com.evolveum.midpoint.repo.sqlbase.SupportedDatabase;
-
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;

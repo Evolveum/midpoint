@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.common;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_PASSWORD;
-import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.*;
+import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createExplicitChangeExecutionDef;
 
 import static java.util.Collections.singleton;
 import static org.testng.Assert.fail;

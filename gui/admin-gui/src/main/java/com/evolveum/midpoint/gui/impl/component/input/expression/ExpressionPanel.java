@@ -324,6 +324,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap"));
             return label;
         }
 
@@ -466,7 +467,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
-                    evaluatorPanel.add(AttributeAppender.append("class", "pl-3"));
+                    evaluatorPanel.add(AttributeAppender.append("class", "ps-3"));
                 }
                 return evaluatorPanel;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {

@@ -13,6 +13,8 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -27,14 +29,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -200,9 +194,7 @@ public class TestCorrelatorSimulationTask extends AbstractEmptyModelIntegrationT
                         BigDecimal.valueOf(1));
     }
 
-    private void removeAttributeDef(ItemPath attributeRef)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    private void removeAttributeDef(ItemPath attributeRef) throws CommonException {
         final ResourceObjectTypeDefinitionType objectType = this.resource.get().asObjectable().getSchemaHandling()
                 .getObjectType().get(0);
         final long objectTypeId = objectType.getId();

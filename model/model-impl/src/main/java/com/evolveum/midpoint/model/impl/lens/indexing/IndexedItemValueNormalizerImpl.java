@@ -109,7 +109,7 @@ public class IndexedItemValueNormalizerImpl implements IndexedItemValueNormalize
     @Override
     public @NotNull String normalize(@NotNull Object rawInput, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         String input = IndexingManager.stringify(rawInput);
         for (NormalizationStep<?> step : steps) {
             input = step.execute(input, task, result);

@@ -9,7 +9,8 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -21,7 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends AbstractParserTest {
 

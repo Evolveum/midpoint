@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 public class HeuristicRuleMatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(HeuristicRuleMatcher.class);
+    private static final String EXPRESSION_LANGUAGE = "mel";
 
     private final List<HeuristicRule> rules;
     private final MappingsQualityAssessor qualityAssessor;
@@ -36,18 +37,6 @@ public class HeuristicRuleMatcher {
     public HeuristicRuleMatcher(List<HeuristicRule> rules, MappingsQualityAssessor qualityAssessor) {
         this.rules = rules;
         this.qualityAssessor = qualityAssessor;
-    }
-
-    /**
-     * Static factory method for creating script expressions.
-     * Used as a method reference passed to heuristic rules.
-     */
-    private static ExpressionType createScriptExpression(String groovyCode, String description) {
-        return new ExpressionType()
-                .description(description)
-                .expressionEvaluator(
-                        new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(groovyCode)));
     }
 
     /**
@@ -107,5 +96,19 @@ public class HeuristicRuleMatcher {
             String focusPropertyName = sample.focusPropertyPath().lastName().getLocalPart();
             return rule.outboundExpression(focusPropertyName, HeuristicRuleMatcher::createScriptExpression);
         }
+    }
+
+    /**
+     * Static factory method for creating script expressions.
+     * Used as a method reference passed to heuristic rules.
+     */
+    private static ExpressionType createScriptExpression(String code, String description) {
+        return new ExpressionType()
+                .description(description)
+                .expressionEvaluator(
+                        new ObjectFactory().createScript(
+                                new ScriptExpressionEvaluatorType()
+                                        .language(EXPRESSION_LANGUAGE)
+                                        .code(code)));
     }
 }

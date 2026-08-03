@@ -6,9 +6,8 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class StatsCounter {
     private final Map<Class<? extends ObjectType>, FocusTypeCounter> typesCounters;

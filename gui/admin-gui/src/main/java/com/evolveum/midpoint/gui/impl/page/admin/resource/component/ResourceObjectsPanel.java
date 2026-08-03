@@ -375,7 +375,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             }
 
             protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
+                return "dropdown-menu-start";
             }
 
             @Override

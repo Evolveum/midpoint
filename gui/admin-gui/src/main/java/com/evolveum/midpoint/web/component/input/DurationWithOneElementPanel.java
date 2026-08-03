@@ -13,8 +13,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
 import org.apache.commons.lang3.StringUtils;

@@ -6,15 +6,11 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
-import java.sql.Types;
-
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObject;
 
-import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
 /**

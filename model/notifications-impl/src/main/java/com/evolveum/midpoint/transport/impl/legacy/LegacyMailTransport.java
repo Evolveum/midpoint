@@ -283,7 +283,10 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
                         }
 
                         if (!fileName.contains(".")) {
-                            fileName += MimeTypeUtil.getExtension(attachment.getContentType());
+                            String ext = MimeTypeUtil.getDotExtension(attachment.getContentType());
+                            if (ext != null) {
+                                fileName += ext;
+                            }
                         }
                         attachmentBody.setFileName(fileName);
                         if (!StringUtils.isBlank(attachment.getContentId())) {

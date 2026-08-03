@@ -22,7 +22,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.AssociationMappingTypeChoicePanelPopup;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -611,7 +612,7 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                 createMappingPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         buttons.add(newObjectButton);
@@ -754,7 +755,7 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                 addExistingMappingPerformed(target);
             }
         };
-        addExistingButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        addExistingButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm me-2"));
         addExistingButton.showTitleAsLabel(true);
         addExistingButton.add(new VisibleBehaviour(() -> !isReadOnlyTable()));
         buttons.add(addExistingButton);

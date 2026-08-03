@@ -100,6 +100,8 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(UserType.F_GIVEN_NAME),
                 ItemPath.create(UserType.F_FAMILY_NAME),
                 ItemPath.create(UserType.F_FULL_NAME),
+                ItemPath.create(UserType.F_PREFERRED_NAME),
+                ItemPath.create(UserType.F_DISPLAY_NAME),
                 ItemPath.create(UserType.F_ADDITIONAL_NAME),
                 ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
                 ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
@@ -405,8 +407,7 @@ public class SearchableItemsDefinitions {
                 return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
                         empty, AuthorizationPhaseType.REQUEST, task, result);
             }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | SecurityViolationException ex) {
+        } catch (CommonException ex) {
             result.recordFatalError(ex.getMessage());
             throw new SystemException(ex);
         }

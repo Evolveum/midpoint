@@ -14,7 +14,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,7 +102,8 @@ public class ResourceManager {
             @Nullable GetOperationOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         String oid = repositoryObject.getOid();
         boolean readonly = GetOperationOptions.isReadOnly(options);
@@ -130,7 +132,8 @@ public class ResourceManager {
             @Nullable GetOperationOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, result);
         if (cachedResource != null) {
@@ -149,7 +152,8 @@ public class ResourceManager {
             @Nullable GetOperationOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         logResourceBeforeCompletion(repositoryObject, options);
 
@@ -235,14 +239,14 @@ public class ResourceManager {
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         expandResource(resource, result);
         return new ResourceTestOperation(resource, options, task, beans)
                 .execute(result);
     }
 
     public void expandResource(@NotNull ResourceType resource, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         new ResourceExpansionOperation(resource, beans)
                 .execute(result);
     }
@@ -250,7 +254,7 @@ public class ResourceManager {
     public @NotNull DiscoveredConfiguration discoverConfiguration(
             @NotNull PrismObject<ResourceType> resource,
             @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SubscriptionComplianceException {
 
         expandResource(resource.asObjectable(), result);
 
@@ -264,7 +268,7 @@ public class ResourceManager {
     }
 
     public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         try {
             return connectorManager
                     .getUnconfiguredConnectorInstance(connOid, result)
@@ -282,7 +286,7 @@ public class ResourceManager {
      */
     public @Nullable BareResourceSchema fetchSchema(@NotNull ResourceType resource, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-            SchemaException {
+            SchemaException, SubscriptionComplianceException {
         LOGGER.trace("Fetching resource schema for {}", resource);
         var nativeSchema = schemaFetcher.fetchResourceSchema(resource, null, false, result);
         return nativeSchema != null ? ResourceSchemaFactory.nativeToBare(nativeSchema) : null;
@@ -318,7 +322,8 @@ public class ResourceManager {
             try {
                 // TODO consider getting the resource in read-only mode
                 resource = getCompletedResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
-            } catch (ConfigurationException | SchemaException | ExpressionEvaluationException e) {
+            } catch (ConfigurationException | SchemaException | ExpressionEvaluationException |
+                     SubscriptionComplianceException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
                 throw SystemException.unexpected(e);
             }
@@ -359,7 +364,8 @@ public class ResourceManager {
             GetOperationOptions options,
             Task task,
             OperationResult objectResult)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
         schemaHelper.applyDefinition(delta, resourceWhenNoOid, options, task, objectResult);
     }
 
@@ -368,7 +374,7 @@ public class ResourceManager {
      * It may be e.g. unexpanded (deriving from a super-resource and not yet expanded).
      */
     public void applyDefinition(ResourceType resource, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         schemaHelper.applyConnectorSchemasToResource(resource, result);
     }
 
@@ -378,7 +384,7 @@ public class ResourceManager {
 
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceType resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         try {
@@ -396,7 +402,7 @@ public class ResourceManager {
     }
 
     public List<ConnectorOperationalStatus> getConnectorOperationalStatus(ResourceType resource, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         List<ConnectorOperationalStatus> statuses = new ArrayList<>();
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             ConnectorInstance connectorInstance =
@@ -415,7 +421,7 @@ public class ResourceManager {
             Class<T> capabilityClass,
             boolean forceFresh,
             OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, capabilityClass);
         return connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, forceFresh, parentResult);
     }

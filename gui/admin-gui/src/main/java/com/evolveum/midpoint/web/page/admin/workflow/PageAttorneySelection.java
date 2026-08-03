@@ -169,6 +169,10 @@ public class PageAttorneySelection extends PageBase {
                 UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
         columns.add(column);
 
+        column = new PropertyColumn<>(createStringResource("UserType.displayName"),
+                UserType.F_DISPLAY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".displayName");
+        columns.add(column);
+
         column = new PropertyColumn<>(createStringResource("UserType.fullName"),
                 UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
         columns.add(column);

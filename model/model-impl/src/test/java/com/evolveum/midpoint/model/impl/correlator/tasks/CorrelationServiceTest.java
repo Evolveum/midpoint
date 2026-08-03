@@ -303,10 +303,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
     }
 
     private void configureDefaultEvalPhase(ResourceMappingsEvaluationConfigurationType defaultEvalPhase, Task task,
-            OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+            OperationResult result) throws CommonException {
         if (defaultEvalPhase == null) {
             return;
         }
@@ -321,10 +318,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
     }
 
     private void configureGivenNameMappingPhase(InboundMappingEvaluationPhaseType mappingPhase, Task task,
-            OperationResult result)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+            OperationResult result) throws CommonException {
         if (mappingPhase == null) {
             return;
         }

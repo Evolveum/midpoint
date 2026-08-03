@@ -28,8 +28,6 @@ public abstract class OtpServiceImpl implements OtpService {
 
     public static final int DEFAULT_DIGITS = 6;
 
-    public static final int DEFAULT_SKEW = 1;
-
     private static final String AUTH_URL_TEMPLATE = "otpauth://%s/%s:%s?%s";
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -46,16 +44,13 @@ public abstract class OtpServiceImpl implements OtpService {
 
     protected final int secretLength;
 
-    protected final int window;
-
     public OtpServiceImpl(
             @NotNull OtpType type,
             @NotNull Clock clock,
             String issuer,
             OtpAlgorithm algorithm,
             Integer secretLength,
-            Integer digits,
-            Integer window) {
+            Integer digits) {
 
         this.type = type;
         this.clock = clock;
@@ -63,7 +58,6 @@ public abstract class OtpServiceImpl implements OtpService {
         this.algorithm = algorithm != null ? algorithm : DEFAULT_ALGORITHM;
         this.secretLength = secretLength != null && secretLength > 0 ? secretLength : this.algorithm.secretLength;
         this.digits = digits != null && digits > 0 ? digits : DEFAULT_DIGITS;
-        this.window = window != null && window >= 1 ? window : DEFAULT_SKEW;
     }
 
     public @NotNull OtpType getType() {
@@ -107,7 +101,7 @@ public abstract class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public boolean verifyCode(String secret, int code) {
+    public boolean verifyCode(@NotNull String secret, int code) {
         return code == generateCode(secret);
     }
 

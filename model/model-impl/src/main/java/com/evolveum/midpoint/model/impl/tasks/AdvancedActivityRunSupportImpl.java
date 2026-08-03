@@ -12,6 +12,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.task.api.SimulationResult;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +55,6 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
@@ -82,7 +80,7 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     @Override
     public @NotNull SearchSpecification<?> createSearchSpecificationFromResourceObjectSetSpec(
             @NotNull ResourceObjectSetSpecificationImpl objectSetSpecification, @NotNull RunningTask task, OperationResult result)
-            throws SchemaException, ActivityRunException {
+            throws SchemaException, ActivityRunException, SubscriptionComplianceException {
         return syncTaskHelper.createSearchSpecification(
                 objectSetSpecification.getResourceObjectSetBean(),
                 task, result);

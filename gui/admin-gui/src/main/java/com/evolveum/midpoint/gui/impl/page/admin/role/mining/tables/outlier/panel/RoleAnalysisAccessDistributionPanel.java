@@ -204,7 +204,7 @@ public class RoleAnalysisAccessDistributionPanel extends BasePanel<AccessDistrib
 
     private @NotNull Label createLabel(String id, int directCount) {
         Label label = new Label(id, directCount);
-        label.add(AttributeModifier.append("class", "d-flex pl-3 m-0"));
+        label.add(AttributeModifier.append("class", "d-flex ps-3 m-0"));
         label.add(AttributeModifier.append("style", "font-size:20px"));
         return label;
     }

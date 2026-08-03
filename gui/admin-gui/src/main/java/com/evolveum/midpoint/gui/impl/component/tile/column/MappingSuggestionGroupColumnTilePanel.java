@@ -315,7 +315,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ml-auto btn btn-link p-0"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-link p-0"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -342,7 +342,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ml-auto btn btn-outline-primary"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-outline-primary"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -447,8 +447,8 @@ public class MappingSuggestionGroupColumnTilePanel<
 
     private @NotNull AjaxIconButton buildExpandableHeaderTitle(String text) {
         AjaxIconButton button = new AjaxIconButton(text, () -> getModelValue().isExpanded()
-                ? "mr-3 fa-solid fa-chevron-up"
-                : "mr-3 fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
+                ? "me-3 fa-solid fa-chevron-up"
+                : "me-3 fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
 
             @Override
             public void onClick(@NotNull AjaxRequestTarget ajaxRequestTarget) {
@@ -502,7 +502,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected @NotNull String getPanelCss() {
-        String baseCss = "card col-12 m-0 border border-ai-gradient left-border-2px p-0";
+        String baseCss = "card shadow-sm col-12 m-0 border border-ai-gradient border-start-2 p-0";
         boolean selected = isObjectSelected(getModelObject().getValue());
         return selected ? baseCss + " selected-base" : baseCss;
     }
@@ -516,7 +516,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected String getTileContainerCssClass() {
-        return "d-flex flex-wrap justify-content-left pt-2";
+        return "d-flex flex-wrap justify-content-start pt-2";
     }
 
     public String getAdditionalDefaultTilePanelCss(PV rowValue) {

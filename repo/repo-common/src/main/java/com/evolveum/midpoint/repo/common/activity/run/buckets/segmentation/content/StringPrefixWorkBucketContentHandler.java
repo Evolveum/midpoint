@@ -13,7 +13,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPrefixWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 

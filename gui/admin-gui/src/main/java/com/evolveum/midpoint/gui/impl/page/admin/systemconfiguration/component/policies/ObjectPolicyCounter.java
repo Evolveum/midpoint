@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component.
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.application.SimpleCounter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**

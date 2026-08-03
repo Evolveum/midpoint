@@ -154,7 +154,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
 
         selectCheckbox.setOutputMarkupId(true);
         selectCheckbox.add(new VisibleBehaviour(() -> isTileViewVisible() && !displayNoValuePanel()));
-        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-default"));
+        selectCheckbox.add(AttributeAppender.replace("class", "btn btn-light border"));
         return selectCheckbox;
     }
 
@@ -291,7 +291,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
     }
 
     protected String getTileContainerCssClass() {
-        return "d-flex flex-wrap justify-content-left pt-2";
+        return "d-flex flex-wrap justify-content-start pt-2";
     }
 
     public @NotNull List<InlineMenuItem> getInlineMenuItems() {
@@ -639,7 +639,7 @@ public abstract class ColumnTileTable<O extends ColumnValueProvider<PV>, PV exte
     }
 
     protected String getNewObjectButtonCssClass() {
-        return "btn btn-outline-primary ml-auto";
+        return "btn btn-outline-primary ms-auto";
     }
 
     protected StringResourceModel getNewObjectButtonTitle() {

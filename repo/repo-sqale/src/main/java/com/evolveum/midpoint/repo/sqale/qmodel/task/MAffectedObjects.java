@@ -14,8 +14,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-
 public class MAffectedObjects extends MContainer {
 
     public Integer activityId;

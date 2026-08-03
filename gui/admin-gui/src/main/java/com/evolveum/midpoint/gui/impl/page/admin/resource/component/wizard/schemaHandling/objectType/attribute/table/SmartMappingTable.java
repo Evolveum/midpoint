@@ -176,13 +176,13 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                                         IModel<PrismContainerValueWrapper<MappingType>> selectedRowModel,
                                         AjaxRequestTarget target) {
                                     deleteItemPerform(selectedRowModel.getObject());
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
                                 protected void refresh(AjaxRequestTarget target) {
                                     super.refresh(target);
-                                    refreshAndDetach(target);
+                                    SmartMappingTable.this.refreshAndDetach(target);
                                 }
 
                                 @Override
@@ -234,7 +234,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         };
                         refreshTableButton.setOutputMarkupId(true);
                         refreshTableButton.showTitleAsLabel(false);
-                        refreshTableButton.add(AttributeAppender.append("class", "btn btn-default"));
+                        refreshTableButton.add(AttributeAppender.append("class", "btn btn-light border"));
                         return refreshTableButton;
                     }
 
@@ -261,7 +261,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                     @Override
                     protected void onCreateNewObjectPerform(AjaxRequestTarget target) {
                         createNewValue(null, target);
-                        refreshAndDetach(target);
+                        SmartMappingTable.this.refreshAndDetach(target);
                     }
 
                     @Override
@@ -346,6 +346,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected boolean displayNoValuePanel() {
+        if(searchTextModel.getObject() != null && !searchTextModel.getObject().isEmpty()) {
+            return false;
+        }
         return Boolean.TRUE.equals(noValuePanelModel.getObject());
     }
 
@@ -504,7 +507,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected String getNewObjectButtonCssClass() {
-        return "btn btn-outline-primary ml-auto";
+        return "btn btn-outline-primary ms-auto";
     }
 
     protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {
@@ -668,7 +671,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
 
     protected void buildSimulationResultPanel(
             AjaxRequestTarget target,
-            IModel<com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType> simulationResultTypeModel) {
+            IModel<SimulationResultType> simulationResultTypeModel) {
         // extension hook
     }
 

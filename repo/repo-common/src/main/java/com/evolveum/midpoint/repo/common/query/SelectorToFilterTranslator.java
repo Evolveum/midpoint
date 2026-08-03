@@ -61,7 +61,7 @@ public class SelectorToFilterTranslator {
 
     public ObjectFilter createFilter(@NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         var beans = CommonTaskBeans.get(); // use other similar class
         var filterCollector = FilterCollector.defaultOne();

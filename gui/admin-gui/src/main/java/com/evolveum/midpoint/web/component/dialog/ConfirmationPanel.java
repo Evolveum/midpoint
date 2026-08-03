@@ -169,6 +169,6 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
     }
 
     protected String getNoButtonCssClass() {
-        return "btn btn-default";
+        return "btn btn-light border";
     }
 }

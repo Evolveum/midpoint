@@ -15,7 +15,10 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 
 import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;

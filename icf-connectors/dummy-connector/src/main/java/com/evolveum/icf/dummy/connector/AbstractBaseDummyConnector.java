@@ -6,21 +6,24 @@
 
 package com.evolveum.icf.dummy.connector;
 
-import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.UidMode;
 
 import org.apache.commons.lang3.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.exceptions.*;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.objects.SuggestedValues;
 import org.identityconnectors.framework.common.objects.SuggestedValuesBuilder;
 import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
-import org.identityconnectors.framework.spi.operations.*;
+import org.identityconnectors.framework.spi.operations.DiscoverConfigurationOp;
+import org.identityconnectors.framework.spi.operations.TestOp;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
 
 import static com.evolveum.icf.dummy.connector.Utils.notNull;
 import static com.evolveum.icf.dummy.connector.Utils.notNullArgument;

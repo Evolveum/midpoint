@@ -10,16 +10,11 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ShadowAssociationValueWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
-import com.evolveum.midpoint.gui.impl.component.data.column.*;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
@@ -56,7 +56,6 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -321,6 +320,8 @@ public class ColumnUtils {
                         SelectableBeanImpl.F_VALUE + ".familyName", false, true),
                 new ColumnTypeDto<>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".fullName", false, true),
+                new ColumnTypeDto<>("UserType.displayName", UserType.F_DISPLAY_NAME.getLocalPart(),
+                        SelectableBeanImpl.F_VALUE + ".displayName", false, true),
                 new ColumnTypeDto<>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 

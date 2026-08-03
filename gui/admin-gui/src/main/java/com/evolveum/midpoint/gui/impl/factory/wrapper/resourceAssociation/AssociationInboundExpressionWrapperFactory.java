@@ -10,11 +10,13 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AssociationInboundExpressionWrapper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchronizationExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,15 @@ public class AssociationInboundExpressionWrapperFactory extends AssociationMappi
     @Override
     protected ItemName getItemNameForContainer() {
         return ShadowAssociationDefinitionType.F_INBOUND;
+    }
+
+    @Override
+    protected void updateAssociationExpressionValue(ExpressionType expression, AssociationSynchronizationExpressionEvaluatorType evaluator) {
+        try {
+            ExpressionUtil.updateAssociationSynchronizationExpressionValue(expression, evaluator);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't update expression value: " + e.getMessage(), e);
+        }
     }
 
     @Override

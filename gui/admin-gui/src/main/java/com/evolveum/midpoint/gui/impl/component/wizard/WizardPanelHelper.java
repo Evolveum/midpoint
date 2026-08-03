@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;

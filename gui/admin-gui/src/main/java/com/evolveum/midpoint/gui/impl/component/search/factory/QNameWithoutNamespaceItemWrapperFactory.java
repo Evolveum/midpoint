@@ -6,10 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.factory;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.ProcessedObjectTypeSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.QNameWithoutNamespaceItemWrapper;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 
 import javax.xml.namespace.QName;
 

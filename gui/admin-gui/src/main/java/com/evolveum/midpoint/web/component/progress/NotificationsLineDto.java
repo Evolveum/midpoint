@@ -6,10 +6,8 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

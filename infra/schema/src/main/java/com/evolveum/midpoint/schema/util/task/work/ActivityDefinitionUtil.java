@@ -9,9 +9,11 @@ package com.evolveum.midpoint.schema.util.task.work;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityCompositionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDistributionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 

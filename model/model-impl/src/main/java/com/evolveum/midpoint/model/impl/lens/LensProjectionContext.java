@@ -6,14 +6,29 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
+import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.util.*;
 import java.util.function.Consumer;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jvnet.jaxb2_commons.lang.Validate;
+
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
@@ -26,10 +41,14 @@ import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -39,32 +58,18 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jvnet.jaxb2_commons.lang.Validate;
-
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-
-import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
-import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
-import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * @author semancik
@@ -1164,7 +1169,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, getObjectOld());
         addAuxiliaryObjectClassNames(auxiliaryObjectClassQNames, state.computeUnadjustedNewObject());
         auxiliaryObjectClassDefinitions = new ArrayList<>(auxiliaryObjectClassQNames.size());
-        for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+        for (QName auxiliaryObjectClassQName : auxiliaryObjectClassQNames) {
             ResourceObjectDefinition auxiliaryObjectClassDef =
                     schema.findDefinitionForObjectClass(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
@@ -1200,7 +1205,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (shadow == null) {
             return;
         }
-        for (QName aux: shadow.asObjectable().getAuxiliaryObjectClass()) {
+        for (QName aux : shadow.asObjectable().getAuxiliaryObjectClass()) {
             if (!auxiliaryObjectClassQNames.contains(aux)) {
                 auxiliaryObjectClassQNames.add(aux);
             }
@@ -1342,7 +1347,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (origDelta == null || origDelta.isModify()) {
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
-                    ChangeType.ADD);
+                        ChangeType.ADD);
                 addDelta.setObjectToAdd(
                         getCompositeObjectDefinitionRequired()
                                 .createBlankShadowWithTag(key.getTag())
@@ -1362,12 +1367,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
             ObjectDelta<ShadowType> deleteDelta = PrismContext.get().deltaFactory().object().create(getObjectTypeClass(),
-                ChangeType.DELETE);
+                    ChangeType.DELETE);
             String oid = getOid();
             if (oid == null) {
                 throw new IllegalStateException(
                         "Internal error: account context OID is null during attempt to create delete secondary delta; context="
-                                +this);
+                                + this);
             }
             deleteDelta.setOid(oid);
             return deleteDelta;
@@ -1509,30 +1514,38 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
-        LensProjectionContext clone = new LensProjectionContext(lensContext, key, state);
-        copyValues(clone);
-        return clone;
+        return copy(lensContext, true);
     }
 
-    private void copyValues(LensProjectionContext clone) {
-        super.copyValues(clone);
+    public LensProjectionContext copy(LensContext<? extends ObjectType> lensContext, boolean detailed) {
+        LensProjectionContext copy = new LensProjectionContext(lensContext, key, state);
+        copyValues(copy, detailed);
+        return copy;
+    }
+
+    private void copyValues(LensProjectionContext clone, boolean detailed) {
+        super.copyValues(clone, detailed);
         // do NOT clone transient values such as accountConstructionDeltaSetTriple
         // these are not meant to be cloned and they are also not directly cloneable
-        clone.dependencies = this.dependencies;
         clone.doReconciliation = this.doReconciliation;
         clone.fullShadow = this.fullShadow;
-        clone.assigned = this.assigned;
-        clone.assignedOld = this.assignedOld;
-        clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
-        clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
-        clone.resource = this.resource;
         clone.key = this.key;
-        clone.squeezedAttributes = cloneSqueezedAttributes();
+        clone.exists = this.exists;
+        clone.syncAbsoluteTrigger = this.syncAbsoluteTrigger;
         if (this.syncDelta != null) {
             clone.syncDelta = this.syncDelta.clone();
         }
-        clone.wave = this.wave;
         clone.synchronizationSource = this.synchronizationSource;
+        if (detailed) {
+            clone.dependencies = this.dependencies;
+            clone.assigned = this.assigned;
+            clone.assignedOld = this.assignedOld;
+            clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
+            clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
+            clone.resource = this.resource;
+            clone.squeezedAttributes = cloneSqueezedAttributes();
+            clone.wave = this.wave;
+        }
     }
 
     private Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> cloneSqueezedAttributes() {
@@ -1540,7 +1553,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return null;
         }
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<?, ?>>> clonedMap = new HashMap<>();
-        for (var entry: squeezedAttributes.entrySet()) {
+        for (var entry : squeezedAttributes.entrySet()) {
             clonedMap.put(entry.getKey(), entry.getValue().clone(ItemValueWithOrigin::clone));
         }
         return clonedMap;
@@ -1712,7 +1725,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), syncDelta, indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent + 1);
 
         if (showTriples) {
 
@@ -1740,10 +1753,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object definition"), String.valueOf(compositeObjectDefinition), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("composite object definition"), String.valueOf(compositeObjectDefinition), indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent + 1);
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "Policy rules context", policyRulesContext, indent + 1);
@@ -1781,9 +1794,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public String toHumanReadableString() {
         if (humanReadableString == null) {
             if (resource != null) {
-                humanReadableString = "("+getKindValue(key.getKind()) + " ("+ key.getIntent()+") on " + resource + ")";
+                humanReadableString = "(" + getKindValue(key.getKind()) + " (" + key.getIntent() + ") on " + resource + ")";
             } else {
-                humanReadableString = "("+getKindValue(key.getKind()) + " ("+ key.getIntent()+") on " + key.getResourceOid() + ")";
+                humanReadableString = "(" + getKindValue(key.getKind()) + " (" + key.getIntent() + ") on " + key.getResourceOid() + ")";
             }
         }
         return humanReadableString;
@@ -1965,7 +1978,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public String getDescription() {
         if (resource != null) {
-            return resource + "("+ key.getIntent()+")";
+            return resource + "(" + key.getIntent() + ")";
         } else {
             return key.toString();
         }
@@ -2086,7 +2099,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return delta.isAdd()
                 || delta.isDelete()
                 || ShadowUtil.hasAttributeModifications(delta.getModifications());
-                //|| ShadowUtil.hasResourceModifications(delta.getModifications());
+        //|| ShadowUtil.hasResourceModifications(delta.getModifications());
     }
 
     public ValueMetadataType getCachedValueMetadata() {

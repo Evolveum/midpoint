@@ -86,7 +86,8 @@ public class OperationRequestTransformer {
                 return transformerHelper.applyPredefinedTransformation(operationRequested, SIMPLIFIED_JSON);
             }
         } catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException |
-                CommunicationException | ConfigurationException | ExpressionEvaluationException | IOException e) {
+                CommunicationException | ConfigurationException | ExpressionEvaluationException | IOException |
+                 SubscriptionComplianceException e) {
             throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
         }
     }

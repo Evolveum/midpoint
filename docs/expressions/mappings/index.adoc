@@ -807,12 +807,11 @@ The properties can be accessed by the scripts in the mapping:
 [#_mapping_strength]
 == Mapping Strength
 
-Strength of the mapping defines how aggressively is the mapping be applied.
-The strongest mappings are applied all the time (regardless of the consequences), and the weakest mappings are applied only if nothing else can be applied.
-Following table summarizes mapping strengths.
+Mapping strength defines how aggressively a mapping is applied.
+_Strong_ mappings are applied all the time (regardless of the consequences), while _Weak_ mappings are applied only if nothing else can be applied.
+The following table summarizes mapping strengths.
 
 // TODO: does still hold?
-// TODO: mention relativity of normal mappings?
 
 [%autowidth,cols="h,1,1,1"]
 |===
@@ -822,33 +821,32 @@ Following table summarizes mapping strengths.
 | Always applied, regardless of circumstances.
 Strong mappings _enforce_ particular values.
 | Mapping is always used.
-The value from mapping is merged with any other deltas for the same target.
-This may cause errors, e.g. if user requested to set a different value that the mapping sets for a single-value attribute.
-| The value produced by mapping is required to be present in the target property.
-If it is not then reconciliation will add it.
+The mapping value is merged with any other deltas for the same target.
+This may cause errors, e.g., if a user requests setting a value different than the one the mapping sets for a single-value attribute.
+| The value produced by the mapping must be present in the target property.
+If it is not, then reconciliation will add it.
 
 
 | Normal
-| Apply the mapping, unless there is a more specific change.
-| Mapping is used unless user requested a more specific change.
-E.g. Mapping from user's fullName to an account will be normally used to set account attribute `cn`.
-But this mapping will not be applied if the administrator explicitly specifies a different value for the attribute `cn`.
-| Mapping is used in reconciliation only if the target attribute does not have any value.
-The information whether administrator provided a more specific value is not present during reconciliation.
-Therefore the mapping cannot be reliably applied if the attribute already has a value.
+| Mapping is applied unless there is a more specific change.
+| Mapping is used unless a user has requested a more specific change.
+For example, a mapping from user `fullName` to an account will be normally used to set the account `cn` attribute.
+But this mapping will not be applied if an administrator explicitly specifies a different value for the `cn` attribute.
+| The behavior of normal mappings during reconciliation depends on the direction of the mappings.
+See the <<normal_mappings,normal mappings>> section below for more details.
 
 
 | Weak
-| Apply the mapping only if there is a no other change on target property and the target property does not have any value.
+| Mapping is applied only if there is a no other change on target property and the target property does not have any value.
 This mapping strength is used to set initial (default) values for attributes and properties.
 | Mapping will *not* be used if the target already has a value or if user has requested any other change.
 | Mapping is used in reconciliation only if the target attribute does not have any value.
 
 |===
 
-Unless otherwise specified the default strength of a mapping is `normal`.
+If not specified, the default strength of a mapping is `normal`.
 
-NOTE: If you create a mapping in midPoint resource/role wizard, it will be created with strength of `strong` by default.
+Mappings created in the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[midPoint GUI resource/role wizard] are `strong` by default.
 
 [TIP]
 .Mappings and reconciliation
@@ -865,6 +863,33 @@ As usual, midPoint has conservative default settings that try to avoid destroyin
 This is a good setting when midPoint is deployed, new systems are connected or when midPoint operates in semi-authoritative mode.
 But once the midPoint is fully authoritative and the policies are properly defined and tested the mappings are usually switched to `strong` setting.
 ====
+
+[[normal_mappings]]
+=== Normal Mappings
+
+While `weak` mappings only apply when no value is present, and `strong` mappings are always enforced, regardless of changes, `normal` mappings are applied in a more sophisticated way.
+They are not a simple middle ground between `weak` and `strong` mappings.
+Instead, they can be best understood as "relative" or "change-driven".
+They are evaluated when a change is detected on their input side.
+
+The behavior of `normal` mappings depends on their direction:
+
+* In *inbound mappings*, `normal` strength behaves similarly to `strong`.
+Such mappings are:
+** Evaluated whenever there is a change on the source side.
+** Evaluated whenever a shadow (account) is loaded into memory during processing.
+** Applied during reconciliation.
+
++
+This means that, in practice, inbound `normal` mappings are not skipped during reconciliation.
+This is because midPoint lacks precise delta information from the resource during import and live synchronization, and it cannot reliably determine whether input values have changed.
+That is why it defaults to evaluating the mappings whenever data is present.
+
+* In *outbound mappings*, evaluation is conditional.
+A `normal` mapping is skipped only if it has no sources, or if it has sources but there are no changes in their values. +
+Therefore, reconciliation does not universally skip normal mappings.
+It only skips them when there is no detected input change.
+
 
 == Other Mapping Options
 

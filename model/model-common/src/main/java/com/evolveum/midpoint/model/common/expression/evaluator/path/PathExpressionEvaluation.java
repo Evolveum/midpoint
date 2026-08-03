@@ -45,7 +45,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
     }
 
     PrismValueDeltaSetTriple<V> evaluate(OperationResult result) throws ExpressionEvaluationException, SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         pathToResolve = evaluator.getPath();
         resolutionContext = determineInitialResolveContext();
         if (resolutionContext == null) {
@@ -130,7 +130,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
     @Nullable
     private PrismValueDeltaSetTriple<V> prepareOutputTriple(OperationResult result) throws SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         PrismValueDeltaSetTriple<V> outputTriple = resolutionContext.createOutputTriple();
         evaluator.applyValueMetadata(outputTriple, context, result);
         return evaluator.finishOutputTriple(outputTriple, context.getAdditionalConvertor(), null);

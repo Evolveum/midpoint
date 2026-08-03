@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,7 +12,6 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -546,8 +545,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException |
-                ConfigurationException | CommunicationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();

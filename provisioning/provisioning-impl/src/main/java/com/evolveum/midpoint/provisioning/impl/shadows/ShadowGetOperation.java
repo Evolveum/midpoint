@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.validateS
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.formatExceptionMessage;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_REPOSITORY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.CONCEIVED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.GESTATING;
 
@@ -39,7 +39,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.*;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -120,7 +123,7 @@ class ShadowGetOperation {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, EncryptionException {
+            CommunicationException, SecurityViolationException, EncryptionException, SubscriptionComplianceException {
         var rawRepoShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
         var ctx = createProvisioningContext(rawRepoShadow, options, context, task, result);
         var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
@@ -130,7 +133,8 @@ class ShadowGetOperation {
 
     private Shadow executeInternal(OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException,
+            SubscriptionComplianceException {
 
         Preconditions.checkArgument(!isRaw(), "Raw mode is not supported here");
 
@@ -230,7 +234,7 @@ class ShadowGetOperation {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         ProvisioningContext ctx = b().ctxFactory.createForShadow(repositoryShadow.getBean(), task, result);
         ctx.setGetOperationOptions(options);
         ctx.setOperationContext(operationContext);
@@ -247,7 +251,7 @@ class ShadowGetOperation {
     }
 
     private void refreshBeforeReading(@NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (isForceRefresh(rootOptions)
                 || isForceRetry(rootOptions)
                 || ResourceTypeUtil.isRefreshOnRead(ctx.getResource())) {
@@ -273,7 +277,7 @@ class ShadowGetOperation {
     }
 
     private void doFullShadowRefresh(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
         var refreshedShadow =
                 ShadowRefreshOperation
@@ -353,7 +357,7 @@ class ShadowGetOperation {
     private @NotNull CompleteResourceObject getResourceObject(
             ResourceObjectIdentification.WithPrimary identification, OperationResult result)
             throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ReturnCachedException, ObjectNotFoundException {
+            ExpressionEvaluationException, ReturnCachedException, ObjectNotFoundException, SubscriptionComplianceException {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         try {
@@ -437,7 +441,7 @@ class ShadowGetOperation {
      */
     private @NotNull Shadow returnCached(String reason, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
         if (ctx.isFetchAssociations()) {
@@ -455,7 +459,7 @@ class ShadowGetOperation {
     private @NotNull Shadow returnRetrieved(
             @NotNull ExistingResourceObjectShadow shadowedObject, boolean error, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         assert repoShadow != null;
         ResourceObjectShadow futurized =
                 ProvisioningUtil.isFuturePointInTime(options) ?
@@ -471,7 +475,7 @@ class ShadowGetOperation {
             ShadowContentDescriptionType contentDescription,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var bean = resourceObject.getBean();
         bean.setContentDescription(contentDescription);
         validateShadow(bean, true);

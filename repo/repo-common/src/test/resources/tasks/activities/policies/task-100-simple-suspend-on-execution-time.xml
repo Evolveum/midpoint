@@ -18,6 +18,14 @@
         </work>
         <policies>
             <policy>
+                <description>Evaluation of this rule should be skipped in activity context</description>
+                <policyConstraints>
+                    <assignment>
+                        <operation>add</operation>
+                    </assignment>
+                </policyConstraints>
+            </policy>
+            <policy>
                 <name>Execution time at most 2 seconds</name>
                 <policyConstraints>
                     <executionTime>

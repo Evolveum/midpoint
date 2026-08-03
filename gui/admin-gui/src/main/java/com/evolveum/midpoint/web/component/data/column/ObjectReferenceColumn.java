@@ -80,7 +80,11 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
             List<ObjectReferenceType> referenceTypes = extractedRefs.getObject();
 
             return referenceTypes.stream()
-                    .map(r -> WebComponentUtil.getOrigStringFromPoly(r.getTargetName()))
+                    .map(r -> {
+                        String refName = WebComponentUtil.getOrigStringFromPoly(r.getTargetName());
+                        String refOid = r.getOid();
+                        return refName != null ? refName : refOid;
+                    })
                     .collect(Collectors.joining(" -> "));
         };
     }

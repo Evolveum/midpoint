@@ -17,6 +17,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * Fires a {@link RemoveUnusedSecurityFilterEvent} when a set of dynamically built auth modules
+ * is no longer needed (session end, sessionless request finished, auth restart/abort).
+ *
+ * midPoint builds Spring Security filter chains at runtime, so their filters must be destroyed
+ * mid-life rather than only at context shutdown. This publisher is the trigger for that cleanup;
+ * the event is consumed by {@code RemoveUnusedSecurityFilterListener}. Exposes a static
+ * {@link #get()} accessor for callers that are not Spring-managed beans.
+ *
  * @author skublik
  */
 @Component

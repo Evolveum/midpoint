@@ -17,12 +17,10 @@
 
     <wicket:container wicket:id="repeater">
         <div wicket:id="textWrapper">
-            <div class="input-group input-group-sm">
-                <span class="input-group-prepend">
-                    <button wicket:id="edit" class="btn btn-primary" type="button">
-                        <wicket:message key="PageBase.button.edit" />
-                    </button>
-                </span>
+            <div class="input-group input-group-sm has-validation">
+                <button wicket:id="edit" class="btn btn-primary" type="button">
+                    <wicket:message key="PageBase.button.edit" />
+                </button>
                 <input type="text" class="form-control form-control-sm" wicket:id="text" />
                 <span class="text-danger" wicket:id="feedback" />
             </div>

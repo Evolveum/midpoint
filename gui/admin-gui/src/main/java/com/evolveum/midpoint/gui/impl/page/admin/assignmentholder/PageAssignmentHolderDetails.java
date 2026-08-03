@@ -13,7 +13,10 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -388,20 +391,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         return constructPanel(valueModel, target, clazz, exitLabel, postSaveHandler);
     }
 
-    protected <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> P showWizard(
-            @NotNull IModel<PrismContainerValueWrapper<C>> valueModel,
-            @NotNull AjaxRequestTarget target,
-            @NotNull Class<P> clazz) {
-
-        setShowedByWizard(true);
-        getObjectDetailsModels().saveDeltas();
-        getObjectDetailsModels().reloadPrismObjectModel();
-
-        return constructPanel(valueModel, target, clazz, null, null);
-    }
-
     private <C extends Containerable, P extends AbstractWizardPanel<C, AHDM>> @Nullable P constructPanel(
-            @NotNull IModel<PrismContainerValueWrapper<C>> valueModel,
+            @Nullable IModel<PrismContainerValueWrapper<C>> valueModel,
             @NotNull AjaxRequestTarget target,
             @NotNull Class<P> clazz,
             @Nullable IModel<String> exitLabel,

@@ -8,7 +8,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaService;
@@ -450,7 +451,6 @@ public class ShadowUtil {
     /**
      * This is not supposed to be used in production code! It is just for the tests.
      */
-    @VisibleForTesting
     public static void applyResourceSchema(
             PrismObject<? extends ShadowType> shadow,
             ResourceSchema resourceSchema) throws SchemaException {

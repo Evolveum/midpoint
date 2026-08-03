@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.repo.cache;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;

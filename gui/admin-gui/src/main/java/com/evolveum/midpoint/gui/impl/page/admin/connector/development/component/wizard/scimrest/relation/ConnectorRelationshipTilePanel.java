@@ -39,7 +39,7 @@ public abstract class ConnectorRelationshipTilePanel extends BasePanel<Connector
     private void initLayout() {
         add(AttributeAppender.append(
                 "class",
-                "card col-12 tile d-flex flex-column  p-3 mb-0"));
+                "card shadow-sm col-12 tile d-flex flex-column  p-3 mb-0"));
         setOutputMarkupId(true);
 
         IModel<String> titleModel = () -> {

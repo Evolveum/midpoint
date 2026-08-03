@@ -29,7 +29,7 @@
                 <div class="w-100" wicket:id="listViewContainer">
                     <button wicket:id="listView" type="button"
                             class="btn-light d-flex flex-column gap-2 w-100 p-2 mt-1
-                            border-right-0 border-top-0 border-bottom-0 border-3">
+                            border-end-0 border-top-0 border-bottom-0 border-3">
                         <div class="d-flex flex-column align-items-start py-1">
                             <span wicket:id="text" class="text-primary fw-semibold text-truncate"></span>
                             <span wicket:id="subText" class="text-muted small"></span>
@@ -60,11 +60,9 @@
     <wicket:fragment wicket:id="searchContainer">
         <div class="d-flex align-items-center gap-2">
             <div class="input-group flex-grow-1">
-                <div class="input-group-prepend">
-                    <span class="input-group-text bg-white border-right-0">
-                        <i class="fa fa-search text-muted"></i>
-                    </span>
-                </div>
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="fa fa-search text-muted"></i>
+                </span>
                 <input type="text" wicket:id="searchInput" class="form-control"/>
             </div>
 
@@ -81,7 +79,7 @@
     <wicket:fragment wicket:id="footerButtons">
         <div class="d-flex justify-content-start w-100 align-items-center gap-3">
             <button type="button" wicket:id="closeButton" class="btn btn-link"></button>
-            <div class="text-muted small ml-auto" wicket:id="timestamp"></div>
+            <div class="text-muted small ms-auto" wicket:id="timestamp"></div>
             <div wicket:id="recreateButton"></div>
         </div>
     </wicket:fragment>
@@ -89,7 +87,7 @@
     <wicket:fragment wicket:id="title">
         <div class="d-flex align-items-center gap-2 w-100">
             <div class="h5 m-0" wicket:id="primaryTitle"></div>
-            <a wicket:id="closeButton" class="ml-auto text-muted mr-2" href="#" aria-label="Close">
+            <a wicket:id="closeButton" class="ms-auto text-muted me-2" href="#" aria-label="Close">
                 <i class="fa fa-times"></i>
             </a>
         </div>

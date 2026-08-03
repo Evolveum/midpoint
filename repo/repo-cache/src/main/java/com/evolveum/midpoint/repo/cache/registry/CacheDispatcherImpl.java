@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
@@ -21,7 +20,6 @@ import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheInvalidationDetails;
 import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
 import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
-import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidation
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Dispatches cache-related events - mainly invalidation ones - to all relevant listeners:

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -235,7 +235,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     //region Mappings evaluation
     public NextRecompute evaluate(Task task, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (constructionEvaluation != null) {
             throw new IllegalStateException("Attempting to evaluate an EvaluatedResourceObjectConstruction twice: " + this);
         }
@@ -342,7 +342,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      */
     ObjectDeltaObject<ShadowType> loadFullShadow(String reason, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         construction.loadFullShadow(projectionContext, reason, task, result);
         return projectionContext.getObjectDeltaObject();
     }

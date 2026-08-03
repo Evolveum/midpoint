@@ -280,7 +280,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
     private <T> Panel createHeader(String id, IModel<PrismPropertyWrapper<T>> model) {
         PrismPropertyHeaderPanel<T> header = new PrismPropertyHeaderPanel<>(id, model);
-        header.add(AttributeAppender.prepend("class", "prism-title pull-left"));
+        header.add(AttributeAppender.prepend("class", "prism-title pull-start"));
         return header;
     }
 

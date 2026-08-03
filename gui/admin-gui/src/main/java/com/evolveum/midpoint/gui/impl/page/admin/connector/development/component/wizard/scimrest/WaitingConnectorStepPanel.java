@@ -59,6 +59,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     private LoadableModel<SmartGeneratingDto> statusModel;
     private LoadableModel<String> tokenModel;
     private boolean isReloaded = false;
+    private String restartedTaskToken;
 
     public WaitingConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -80,7 +81,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             @Override
             protected String load() {
                 if (isReloaded) {
-                    return null;
+                    return restartedTaskToken;
                 }
 
                 try {
@@ -126,6 +127,24 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         initLayout();
     }
 
+    protected void resetToken() {
+        tokenModel.reset();
+    }
+
+    /**
+     * Resets the panel so that a new background task is submitted instead of reusing
+     * the result of the previous one.
+     */
+    public void restartTask() {
+        restartedTaskToken = null;
+        resetToken();
+        if (getStatusModel() != null) {
+            getStatusModel().detach();
+        }
+        markAsReloaded();
+        addOrReplace(createWaitingPanel());
+    }
+
     private void createStatusModel() {
         statusModel = new LoadableModel<>() {
             @Override
@@ -135,7 +154,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 OperationResult result = task.getResult();
 
                 if (StringUtils.isEmpty(tokenModel.getObject())) {
-                    tokenModel.setObject(getNewTaskToken(task, result));
+                    tokenModel.setObject(getNewTaskToken(task, result, isReloaded));
+                    if (isReloaded) {
+                        restartedTaskToken = tokenModel.getObject();
+                    }
                 }
                 Optional.ofNullable(getKeyForStoringToken()).ifPresent(key -> getHelper().putVariable(key, tokenModel.getObject()));
 
@@ -182,7 +204,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    protected abstract String getNewTaskToken(Task task, OperationResult result);
+    protected abstract String getNewTaskToken(Task task, OperationResult result, boolean regenerate);
 
     private void initLayout() {
         getTextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
@@ -292,6 +314,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         getDetailsModel().reloadPrismObjectModel(
                 WebModelServiceUtils.loadObject(ConnectorDevelopmentType.class, oid, getPageBase(), task, task.getResult()));
         isReloaded = false;
+        restartedTaskToken = null;
         return super.onNextPerformed(target);
     }
 

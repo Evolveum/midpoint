@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import com.evolveum.midpoint.repo.common.activity.AbortingInformationAware;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedAbortException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
@@ -103,6 +105,10 @@ public class ActivityRunResult implements ShortDumpable {
     static ActivityRunResult fromException(Throwable throwable) {
         if (throwable instanceof ActivityRunException aee) {
             return fromException(aee.getOpResultStatus(), aee.getRunResultStatus(), aee.getCause());
+        } else if (throwable instanceof ActivityPolicyBasedAbortException abortException) {
+            return fromException(FATAL_ERROR, ABORTED, abortException);
+        } else if (throwable instanceof ActivityPolicyBasedHaltException haltException) {
+            return fromException(FATAL_ERROR, HALTING_ERROR, haltException);
         } else {
             return fromException(FATAL_ERROR, computeRunResultStatus(throwable), throwable);
         }

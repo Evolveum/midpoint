@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 
 /**
  * Builder for resource object constructions.

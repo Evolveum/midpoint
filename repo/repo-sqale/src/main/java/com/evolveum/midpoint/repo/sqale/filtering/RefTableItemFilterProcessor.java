@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.repo.sqale.filtering;
 
-import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
-
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 

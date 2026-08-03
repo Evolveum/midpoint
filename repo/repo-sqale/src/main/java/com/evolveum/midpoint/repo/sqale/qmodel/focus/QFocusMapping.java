@@ -14,8 +14,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.InfraItemName;
 
-import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
-
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;

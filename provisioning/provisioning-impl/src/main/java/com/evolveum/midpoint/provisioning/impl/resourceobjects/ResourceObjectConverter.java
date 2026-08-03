@@ -35,7 +35,10 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LiveSyncWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AsyncUpdateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
@@ -92,7 +95,7 @@ public class ResourceObjectConverter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return ResourceObjectFetchOperation.execute(
                 ctx, primaryIdentification, fetchAssociations, shadowItemsToReturn, result);
     }
@@ -107,7 +110,7 @@ public class ResourceObjectConverter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         return ResourceObjectCompleter.completeResourceObject(ctx, rawObject, fetchAssociations, result);
     }
@@ -131,7 +134,7 @@ public class ResourceObjectConverter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
+            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return ResourceObjectFetchOperation.execute(
                     ctx, primary, fetchAssociations,
@@ -152,7 +155,7 @@ public class ResourceObjectConverter {
             @Nullable FetchErrorReportingMethodType errorReportingMethod,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return ResourceObjectSearchOperation.execute(
                 ctx, resultHandler, query, fetchAssociations, errorReportingMethod, result);
     }
@@ -162,7 +165,7 @@ public class ResourceObjectConverter {
             @Nullable ObjectQuery query,
             @NotNull OperationResult parentResult)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return new ResourceObjectCountOperation(ctx, query)
                 .execute(parentResult);
     }
@@ -175,7 +178,8 @@ public class ResourceObjectConverter {
             boolean skipExplicitUniquenessCheck,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
         try {
@@ -203,7 +207,7 @@ public class ResourceObjectConverter {
             ConnectorOperationOptions connOptions,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE_RESOURCE_OBJECT);
         try {
@@ -222,7 +226,7 @@ public class ResourceObjectConverter {
             ResourceObjectOperationResult aResult,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, result);
         if (readConnector != connectorUsedForOperation) {
             // Writing by different connector that we are going to use for reading: danger of quantum effects
@@ -244,7 +248,7 @@ public class ResourceObjectConverter {
             XMLGregorianCalendar now,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OPERATION_MODIFY_RESOURCE_OBJECT)
                 .addParam("repoShadow", repoShadow.getBean())
@@ -266,7 +270,7 @@ public class ResourceObjectConverter {
     public LiveSyncToken fetchCurrentToken(
             ProvisioningContext ctx, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         Validate.notNull(parentResult, "Operation result must not be null.");
 
         LOGGER.trace("Fetching current sync token for {}", ctx);
@@ -295,7 +299,7 @@ public class ResourceObjectConverter {
             ResourceObjectLiveSyncChangeListener outerListener,
             OperationResult gResult)
             throws SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
+            SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         LOGGER.trace("START fetch changes from {}, objectClass: {}", initialToken, ctx.getObjectClassDefinition());
         ShadowItemsToReturn attrsToReturn;
@@ -378,7 +382,8 @@ public class ResourceObjectConverter {
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectAsyncChangeListener outerListener,
             @NotNull OperationResult parentResult) throws SchemaException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         LOGGER.trace("Listening for async updates in {}", ctx);
         ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
@@ -396,7 +401,7 @@ public class ResourceObjectConverter {
     public @Nullable OperationResultStatus refreshOperationStatus(
             ProvisioningContext ctx, RepoShadow shadow, String asyncRef, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_OPERATION_STATUS);
         try {

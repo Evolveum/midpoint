@@ -95,7 +95,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     public List<PcpStartInstruction> previewModelInvocation(
             @NotNull ModelInvocationContext<?> context, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<PcpStartInstruction> rv = new ArrayList<>();
         previewOrProcessModelInvocation(context, true, rv, result);
         return rv;
@@ -104,7 +104,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     @Override
     public HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (ctx.modelContext.getState() == PRIMARY) {
             return previewOrProcessModelInvocation(ctx, false, null, result);
         } else {
@@ -118,7 +118,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
             @Nullable List<PcpStartInstruction> startInstructionsHolder,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (previewOnly) {
             Preconditions.checkNotNull(startInstructionsHolder, "startInstructionsHolder");
@@ -181,7 +181,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
             @NotNull ObjectTreeDeltas<O> changesWithoutApproval,
             @NotNull ModelInvocationContext<O> ctx,
             @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         for (Iterator<PcpStartInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
             PcpStartInstruction instruction = iterator.next();
             if (instruction.startsWorkflowProcess()
@@ -189,7 +189,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
                 LOGGER.debug("Skipping empty processing instruction (returning deltas to the 'without approval' set): {}",
                         instruction.debugDumpLazily());
                 //noinspection unchecked
-                changesWithoutApproval.merge((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
+                changesWithoutApproval.mergeUnordered((ObjectTreeDeltas<O>) instruction.getDeltasToApprove());
                 iterator.remove();
             }
         }
@@ -199,7 +199,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     public boolean isEmpty(PcpStartInstruction instruction,
             StageComputeHelper stageComputeHelper, ModelInvocationContext<?> ctx, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ApprovalContextType actx = instruction.getApprovalContext();
         if (actx == null) {
             return true;
@@ -226,7 +226,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
             ApprovalStageDefinitionType stageDef, PcpStartInstruction instruction,
             StageComputeHelper stageComputeHelper, ModelInvocationContext<?> ctx, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         VariablesMap variables = caseMiscHelper.getDefaultVariables(
                 aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
         return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
@@ -234,7 +234,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
 
     private <O extends ObjectType> List<PcpStartInstruction> gatherStartInstructions(
             @NotNull ObjectTreeDeltas<O> changesBeingDecomposed, @NotNull ModelInvocationContext<O> ctx,
-            @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_GATHER_START_INSTRUCTIONS)
                 .setMinor()
@@ -346,7 +346,9 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
 
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | SecurityViolationException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException | RuntimeException | SecurityViolationException |
+                 SubscriptionComplianceException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
@@ -405,7 +407,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
     @Override
     public void finishCaseClosing(CaseEngineOperation operation, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         new CaseClosing(operation, beans)
                 .finishCaseClosing(result);

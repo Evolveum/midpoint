@@ -27,13 +27,14 @@ public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<Comp
     String resourceOid;
     QName objectClassName;
 
-    public SmartObjectClassTileModel(T valueWrapper, String resourceOid, ObjectClassSizeEstimationType sizeEstimation) {
+    public SmartObjectClassTileModel(
+            T valueWrapper, String resourceOid, ObjectClassSizeEstimationType sizeEstimation, String description) {
         super(valueWrapper);
 
         setValue(valueWrapper);
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.name = extractName(valueWrapper.getRealValue());
-        this.description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
+        this.description = description;
         this.estimationType = sizeEstimation;
         this.resourceOid = resourceOid;
         this.objectClassName = valueWrapper.getRealValue().getName();

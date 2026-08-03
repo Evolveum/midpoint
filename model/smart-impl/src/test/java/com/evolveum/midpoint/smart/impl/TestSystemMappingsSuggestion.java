@@ -459,8 +459,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         String script = scriptEvaluator.get().getCode();
         assertThat(script)
-                .as("Script should use basic.composeDnWithSuffix function")
-                .contains("basic.composeDnWithSuffix");
+                .as("Script should use ldap.composeDnWithSuffix function")
+                .contains("ldap.composeDnWithSuffix");
         assertThat(script)
                 .as("Script should use 'uid' as RDN type")
                 .contains("'uid'");
@@ -588,8 +588,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
 
         String script = scriptEvaluator.get().getCode();
         assertThat(script)
-                .as("Script should use basic.composeDnWithSuffix function")
-                .contains("basic.composeDnWithSuffix");
+                .as("Script should use ldap.composeDnWithSuffix function")
+                .contains("ldap.composeDnWithSuffix");
         assertThat(script)
                 .as("Script should use 'cn' as RDN type for AD")
                 .contains("'cn'");

@@ -204,7 +204,7 @@ public class PageMergeObjects extends PageBase {
         };
 
         back.showTitleAsLabel(true);
-        back.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        back.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         form.add(back);
     }
 

@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShad
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.jetbrains.annotations.NotNull;

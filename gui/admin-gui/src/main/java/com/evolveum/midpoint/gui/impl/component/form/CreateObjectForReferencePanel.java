@@ -33,7 +33,6 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -282,7 +281,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
 
                 @Override
                 protected String getCssForHeader() {
-                    return "border border-bottom-0 border-left-0 border-right-0 rounded-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+                    return "border border-bottom-0 border-start-0 border-end-0 rounded-0 p-2 ps-3 pe-3 mb-0 btn w-100";
                 }
 
                 @Override

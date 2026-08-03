@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.io.Serial;
 import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
@@ -18,14 +17,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.processor.deleg.CompositeObjectDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectClassDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectDefinitionDelegator;
-import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectTypeDefinitionDelegator;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 public class TransformableComplexTypeDefinition
         extends TransformableDefinition

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.provisioning;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 

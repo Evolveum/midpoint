@@ -1,0 +1,286 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+//Expanded
+.details-menu {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  right: 0;
+  margin: 0;
+
+  & a > div > i.fas,
+  a > div > i.far,
+  a > div > i.fa,
+  a > div > i.fe,
+  a > div > i.fa-solid,
+  a > div > i.fa-regular {
+    min-width: 24px;
+    text-align: center;
+  }
+
+  & a > div > div {
+    min-width: 9rem;
+    max-width: 14rem;
+    padding-right: 0.75rem;
+    padding-left: 0.5rem;
+  }
+
+  & a .details-menu-items {
+    align-items: center;
+    justify-content: end;
+  }
+
+  & a .details-menu-items .details-caret {
+    width: 1.15rem;
+    line-height:normal;
+  }
+
+  & > li.navigation-details {
+    list-style: none;
+    border-radius: 0.25rem;
+
+    &:not(:last-child){
+      margin-bottom: 0.2rem;
+    }
+
+    .navigation-details {
+      display: none;
+
+      &.active {
+        background-color: #eeeeee;  //TODO: change to constant
+      }
+    }
+
+    &.active {
+      background-color: #eeeeee;  //TODO change to constant
+      list-style: none;
+
+      .navigation-details {
+        display: block;
+      }
+    }
+    &.open {
+      display: block;
+
+      .navigation-details {
+        display: block;
+      }
+
+      & > a .fa-angle-right {
+        transform: rotate(90deg);
+      }
+    }
+
+    & > a .fa-angle-right {
+      transition: transform ease-in-out 0.15s !important;
+    }
+  }
+
+  .details-menu {
+    padding-top: 0px;
+    background-color: --#{$lte-prefix}-sidebar-submenu-bg;
+  }
+}
+
+.details-menu a {
+  text-decoration: none;
+  font-size: 15px;
+  color: var(--#{$lte-prefix}-sidebar-color);
+  display: block;
+  cursor: pointer;
+  padding: 8px 8px 8px 10px;
+  border-radius: 0.25rem;
+
+  & > i {
+    padding-right: 5px;
+
+    &.fa {
+      width: 20px;
+    }
+
+    &.fe {
+      width: 20px;
+    }
+  }
+  & .details-caret i {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.details-menu a:hover {
+  color: var(--#{$lte-prefix}-sidebar-hover-color);
+  background-color: var(--#{$lte-prefix}-sidebar-hover-bg);
+}
+
+ul.details-menu {
+  padding-inline-start: 0px;
+
+  & ul {
+    padding-inline-start: 13px;
+  }
+}
+
+.wizard-navigation-menu {
+  max-width: 350px;
+  width: 100%;
+
+  .menu-item:hover {
+      cursor: pointer;
+    }
+
+  .menu-item:hover {
+    color: var(--#{$lte-prefix}-sidebar-hover-color);
+    background-color: var(--#{$lte-prefix}-sidebar-hover-bg);
+  }
+}
+
+//Fix when hovering collapsed sidemenu to use bigger default logo
+.sidebar-mini-xs.sidebar-collapse .app-sidebar:hover {
+  & .sidebar-brand > a.logo > span {
+    &:before {
+      opacity: 1;
+    }
+
+    &:after {
+      opacity: 0;
+    }
+  }
+
+  & .user-panel > .info {
+      opacity: 1;
+    }
+}
+
+//Change default midPoint logo when sidemenu is collapsed
+body.sidebar-collapse .app-sidebar {
+  & .sidebar-brand > a.logo > span {
+    &:before {
+      opacity: 0;
+    }
+
+    &:after {
+      opacity: 1;
+    }
+  }
+
+  & .user-panel > .info {
+    opacity: 0;
+  }
+}
+
+.app-sidebar {
+  & .sidebar-wrapper > .user-panel > .info {
+    transition: opacity 0.3s ease;
+  }
+
+  & .sidebar-brand > a.logo {
+    padding: 0;
+    max-height: 3.5rem;
+    height: 100%;
+    width: 100%;
+
+    & > span {
+          height: 100%;
+          width: 100%;
+          position: relative;
+    }
+
+    & > span:before, & > span:after {
+      height: 100%;
+      width: 100%;
+      display: inline-block;
+      content: '';
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    & > span:before {
+      background: url("../img/midpoint_logo_white_250x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
+      background-size: contain;
+      background-position: 50%;
+    }
+
+    & > span:after {
+      background: url("../img/midpoint_logo_white_56x.png") no-repeat; //25px -10px;//25px -7px //50% 50%
+      opacity: 0;
+      background-size: contain;
+      background-position: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
+
+  & .sidebar-brand > a.custom-logo {
+    height: 3.5rem;
+    max-height: 3.5rem;
+    width: 100%;
+    height: 100%;
+
+    & > img {
+      vertical-align: middle;
+      max-height: 3.5rem;
+      object-fit: contain;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  & > .sidebar-wrapper > nav > ul.sidebar-menu > li.nav-item > a.active {
+    box-shadow: none;
+  }
+}
+
+div.navbar-custom-menu {
+  margin-right: 14px;
+}
+
+li.dropdown.user.user-menu {
+  & > ul.dropdown-menu {
+    border-color: #367fa9;
+    right: 0;
+    left: auto;
+
+    & > li.user-footer {
+      border-color: #367fa9;
+      border-bottom-right-radius: 4px;
+      border-bottom-left-radius: 4px;
+    }
+  }
+}
+
+.sidebar-menu {
+  & li.nav-header {
+    cursor: pointer;
+
+    & span > i.fa-chevron-down {
+      width: auto;
+      height: auto;
+      padding: 0;
+      @include transition(transform .15s ease-in-out);
+    }
+
+    &.closed {
+      & span > i.fa-chevron-down {
+        transform: rotate(-90deg);
+      }
+    }
+  }
+
+  & .nav-item > .nav-link .nav-arrow {
+    transition: transform ease-in-out 0.15s !important;
+    transform: none;
+  }
+
+  & .menu-open > .nav-link .nav-arrow {
+    transform: rotate(90deg) !important;
+  }
+}
+
+// end sidebar styles extension

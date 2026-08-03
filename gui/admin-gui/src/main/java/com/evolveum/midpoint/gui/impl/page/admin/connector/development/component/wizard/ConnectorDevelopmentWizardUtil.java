@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class ConnectorDevelopmentWizardUtil {
 
@@ -85,15 +87,7 @@ public class ConnectorDevelopmentWizardUtil {
                 .searchObjects(TaskType.class, query, null, operationTask, operationTask.getResult());
 
         if (objectClassName != null) {
-            tasks.removeIf(task ->
-                    task.asObjectable().getActivity() == null
-                            || task.asObjectable().getActivity().getWork() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact() == null
-                            || !Strings.CS.equals(
-                            task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact().getObjectClass(),
-                            objectClassName)
-            );
+            tasks.removeIf(task -> !Strings.CS.equals(getTaskObjectClass(task.asObjectable()), objectClassName));
         }
 
         if (scriptType != null) {
@@ -112,6 +106,24 @@ public class ConnectorDevelopmentWizardUtil {
         }
 
         return tasks.get(0);
+    }
+
+    /** Resolves the object class the task works on, for the work definition types that are object class specific. */
+    private static String getTaskObjectClass(TaskType task) {
+        if (task.getActivity() == null || task.getActivity().getWork() == null) {
+            return null;
+        }
+        var work = task.getActivity().getWork();
+        if (work.getGenerateConnectorArtifact() != null && work.getGenerateConnectorArtifact().getArtifact() != null) {
+            return work.getGenerateConnectorArtifact().getArtifact().getObjectClass();
+        }
+        if (work.getDiscoverObjectClassAttributes() != null) {
+            return work.getDiscoverObjectClassAttributes().getObjectClass();
+        }
+        if (work.getDiscoverObjectClassEndpoints() != null) {
+            return work.getDiscoverObjectClassEndpoints().getObjectClass();
+        }
+        return null;
     }
 
     public static String getTaskToken(
@@ -533,19 +545,9 @@ public class ConnectorDevelopmentWizardUtil {
 
     private static final String CONNECTOR_FACADE_PREFIX = "org.identityconnectors.framework.api.ConnectorFacade";
 
-    public static Collection<String> getConnectorLogs(OperationResult result) {
+    public static Collection<String> getConnectorLogs(OperationResult parent) {
         List<String> logs = new ArrayList<>();
-        collectConnectorLogs(result, logs);
-        return logs;
-    }
-
-    private static void collectConnectorLogs(OperationResult result, List<String> logs) {
-        if (result == null) {
-            return;
-        }
-
-        String operation = result.getOperation();
-        if (operation != null && operation.startsWith(CONNECTOR_FACADE_PREFIX)) {
+        collectConnectorResults(parent, (result) -> {
             List<LogSegmentType> logSegments = result.getLogSegments();
             if (logSegments != null) {
                 for (LogSegmentType segment : logSegments) {
@@ -554,10 +556,40 @@ public class ConnectorDevelopmentWizardUtil {
                     }
                 }
             }
+        });
+        return logs;
+    }
+
+    public static void collectConnectorResults(OperationResult result, Consumer<OperationResult> collector) {
+        if (result == null) {
+            return;
+        }
+
+        String operation = result.getOperation();
+        if (operation != null && operation.startsWith(CONNECTOR_FACADE_PREFIX)) {
+            collector.accept(result);
         }
 
         for (OperationResult subresult : result.getSubresults()) {
-            collectConnectorLogs(subresult, logs);
+            collectConnectorResults(subresult, collector);
+        }
+    }
+
+    public static List<String> collectErrorMessages(Collection<OperationResult> results) {
+        List<String> messages = new ArrayList<>();
+        results.forEach(result -> collectErrorMessages(result, messages));
+        return messages;
+    }
+
+    private static void collectErrorMessages(OperationResult result, List<String> messages) {
+        if (result == null) {
+            return;
+        }
+        if (result.isError() && StringUtils.isNotEmpty(result.getMessage()) && !messages.contains(result.getMessage())) {
+            messages.add(result.getMessage());
+        }
+        for (OperationResult subresult : result.getSubresults()) {
+            collectErrorMessages(subresult, messages);
         }
     }
 
@@ -570,5 +602,51 @@ public class ConnectorDevelopmentWizardUtil {
                         .levelOverride(new ClassLoggerLevelOverrideType()
                                 .logger(POLYGON_SCIMREST)
                                 .level(LoggingLevelType.TRACE))));
+    }
+
+    public static void appendLogsAsContext(OperationResult result) {
+        var logs = new StringBuilder();
+        List<LogSegmentType> logSegments = result.getLogSegments();
+        if (logSegments != null) {
+            for (LogSegmentType segment : logSegments) {
+                if (segment.getEntry() != null) {
+                    logs.append(segment.getEntry());
+                    logs.append("\n");
+                }
+            }
+        }
+        result.addContext("logs", logs.toString());
+    }
+
+    public static boolean isScim(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
+        } catch (SchemaException e) {
+            return false;
+        }
+    }
+
+    public static List<ItemName> getVisibleAuthorizationAttributes(
+            ConnectorDevelopmentDetailsModel detailsModel, ConnDevAuthInfoType authType) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integration = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return new ArrayList<>(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> void setTestingResourcePropertyValue(
+            ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName, T value)
+            throws SchemaException {
+        ObjectDetailsModels<ResourceType> resourceModel = getTestingResourceModel(detailsModel, panelType);
+        ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME, propertyName);
+        PrismPropertyWrapper<T> prop = resourceModel.getObjectWrapper().findProperty(path);
+        if (prop != null && !prop.getValues().isEmpty()) {
+            prop.getValue().setRealValue(value);
+        }
     }
 }

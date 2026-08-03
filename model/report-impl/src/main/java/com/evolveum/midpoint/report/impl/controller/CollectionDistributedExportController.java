@@ -21,7 +21,10 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * Controls the process of exporting collection-based reports.

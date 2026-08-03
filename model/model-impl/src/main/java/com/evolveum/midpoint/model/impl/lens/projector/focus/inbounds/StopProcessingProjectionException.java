@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import com.evolveum.midpoint.util.exception.SeverityAwareException;
 import org.jetbrains.annotations.NotNull;
 

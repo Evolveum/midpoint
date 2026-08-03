@@ -7,16 +7,16 @@
 
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="valueForm" class="card">
-        <div class="bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100" wicket:id="header">
+    <div wicket:id="valueForm" class="card shadow-sm mb-3">
+        <div class="bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 btn w-100" wicket:id="header">
 
-            <span wicket:id="deleteStatusMessage" role="status" class="sr-only" aria-live="polite"></span>
+            <span wicket:id="deleteStatusMessage" role="status" class="visually-hidden" aria-live="polite"></span>
 
             <div class="row" wicket:message="title:PrismObjectPanel.expandCollapseContainer" trigger="hover">
                 <span>
                     <i wicket:id="icon"></i>
                     <span wicket:id="label"></span>
-                    <i wicket:id="expandCollapseButton" class="btn-tool text-body ml-auto"></i>
+                    <i wicket:id="expandCollapseButton" class="btn-tool text-body ms-auto"></i>
                 </span>
             </div>
 
@@ -24,7 +24,7 @@
                 <small wicket:id="longHelp"/>
             </div>
         </div>
-        <div class="mb-3 ml-3" wicket:id="metadata"></div>
+        <div class="mb-3 ms-3" wicket:id="metadata"></div>
 
         <wicket:container wicket:id="valueContainer">
             <span wicket:id="input"></span>

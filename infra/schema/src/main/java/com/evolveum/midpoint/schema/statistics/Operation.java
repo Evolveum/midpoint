@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;

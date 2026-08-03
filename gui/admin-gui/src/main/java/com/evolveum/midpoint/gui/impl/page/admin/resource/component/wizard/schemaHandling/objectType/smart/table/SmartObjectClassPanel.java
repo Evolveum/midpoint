@@ -14,6 +14,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
@@ -101,6 +103,8 @@ public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexT
     private void initDescription() {
         Label description = new Label(IDD_DESCRIPTION, getModelObject().getDescription());
         description.setOutputMarkupId(true);
+        description.setOutputMarkupPlaceholderTag(true);
+        description.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(getModelObject().getDescription())));
         add(description);
     }
 

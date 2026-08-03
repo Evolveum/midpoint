@@ -7,11 +7,11 @@
 
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <form wicket:id="mainForm" class="form-inline" role="form">
+    <form wicket:id="mainForm" class="d-flex align-items-center gap-2" role="form">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12 col-xl-6">
-                    <div class="card">
+                    <div class="card shadow-sm mb-3">
                         <div class="card-header">
                             <h3 class="card-title" wicket:id="repositoryQueryLabel"/>
                         </div>
@@ -19,20 +19,20 @@
 
 
                             <div class="d-flex flex-wrap mx-3 my-2">
-                                <div class="mr-2 form-group">
-                                    <label for="objectType" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
+                                <div class="me-2 mb-3">
+                                    <label for="objectType" class="me-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
                                     <div id="objectType" wicket:id="objectType"/>
                                 </div>
-                                <div class="mr-2 flex-grow-1 form-group justify-content-start" wicket:id="distinct"/>
+                                <div class="me-2 flex-grow-1 mb-3 justify-content-start" wicket:id="distinct"/>
                             </div>
 
-                            <div class="mx-3 my-2 flex-grow-1 form-group justify-content-start" wicket:id="scriptEnabled"/>
+                            <div class="mx-3 my-2 flex-grow-1 mb-3 justify-content-start" wicket:id="scriptEnabled"/>
                             <div class="mx-4 my-2" wicket:id="editorMidPointScript"></div>
 
                             <textarea class="border-top border-bottom" wicket:id="editorMidPoint"></textarea>
 
-                            <div class="mx-3 my-2 form-group">
-                                <label for="querySample" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
+                            <div class="mx-3 my-2 mb-3">
+                                <label for="querySample" class="me-2 col-form-label"><wicket:message key="PageRepositoryQuery.chooseSample"/></label>
                                 <div id="querySample" wicket:id="querySample"/>
                             </div>
 
@@ -40,14 +40,14 @@
 
                             <div class="mx-3 mb-3 mt-2 main-button-bar" wicket:id="midPointQueryButtonBar">
                                 <a class="btn btn-primary" wicket:id="executeMidPoint"/>
-                                <a class="btn btn-default" wicket:id="compileMidPoint"/>
+                                <a class="btn btn-light border" wicket:id="compileMidPoint"/>
                                 <a class="btn btn-success" wicket:id="useInObjectList"/>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-12 col-xl-6">
-                    <div class="card">
+                    <div class="card shadow-sm mb-3">
                         <div class="card-header">
                             <h3 class="card-title" wicket:id="queryLabel"/>
                         </div>

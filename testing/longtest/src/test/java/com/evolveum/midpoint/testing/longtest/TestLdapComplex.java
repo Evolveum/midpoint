@@ -141,9 +141,7 @@ public class TestLdapComplex extends AbstractLongTest {
         assertUser("u1");
     }
 
-    private void assertUser(String name)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUser(String name) throws CommonException {
         UserType user = findUserByUsername(name).asObjectable();
         display("user " + name, user.asPrismObject());
 

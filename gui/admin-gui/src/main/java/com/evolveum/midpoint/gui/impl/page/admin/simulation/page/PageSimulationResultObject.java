@@ -9,7 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.page;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.SimulationResultObjectPanel;
 
@@ -31,7 +32,8 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResultProcessedObjectModel;
 

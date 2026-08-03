@@ -19,7 +19,10 @@ import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
 

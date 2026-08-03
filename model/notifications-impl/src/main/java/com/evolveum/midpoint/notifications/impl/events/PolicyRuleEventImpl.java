@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -20,9 +20,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PolicyRuleEventImpl extends BaseEventImpl implements PolicyRuleEvent {
 
-    @NotNull private final EvaluatedPolicyRule policyRule;
+    @NotNull private final DirectlyEvaluatedClockworkPolicyRule policyRule;
 
-    public PolicyRuleEventImpl(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull EvaluatedPolicyRule policyRule) {
+    public PolicyRuleEventImpl(
+            @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+            @NotNull DirectlyEvaluatedClockworkPolicyRule policyRule) {
         super(lightweightIdentifierGenerator);
         this.policyRule = policyRule;
     }
@@ -44,7 +46,7 @@ public class PolicyRuleEventImpl extends BaseEventImpl implements PolicyRuleEven
 
     @Override
     @NotNull
-    public EvaluatedPolicyRule getPolicyRule() {
+    public DirectlyEvaluatedClockworkPolicyRule getPolicyRule() {
         return policyRule;
     }
 

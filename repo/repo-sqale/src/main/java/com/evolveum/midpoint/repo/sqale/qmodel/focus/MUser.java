@@ -15,6 +15,8 @@ public class MUser extends MFocus {
 
     public String additionalNameOrig;
     public String additionalNameNorm;
+    public String displayNameOrig;
+    public String displayNameNorm;
     public String employeeNumber;
     public String familyNameOrig;
     public String familyNameNorm;
@@ -29,6 +31,8 @@ public class MUser extends MFocus {
     public String nickNameOrig;
     public String nickNameNorm;
     public String personalNumber;
+    public String preferredNameOrig;
+    public String preferredNameNorm;
     public String titleOrig;
     public String titleNorm;
     public Jsonb organizations;

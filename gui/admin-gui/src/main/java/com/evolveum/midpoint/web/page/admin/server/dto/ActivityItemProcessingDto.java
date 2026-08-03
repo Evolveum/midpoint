@@ -100,17 +100,17 @@ public class ActivityItemProcessingDto implements Serializable {
 
     @SuppressWarnings("unused") // accessed dynamically
     public InfoBoxData getSuccessBox() {
-        return createInfoBoxType("success", successProcessedItemSet, "bg-green", "fa fa-check");
+        return createInfoBoxType("success", successProcessedItemSet, "bg-success", "fa fa-check");
     }
 
     @SuppressWarnings("unused") // accessed dynamically
     public InfoBoxData getFailedBox() {
-        return createInfoBoxType("failure", failureProcessedItemSet, "bg-red", "fa fa-times");
+        return createInfoBoxType("failure", failureProcessedItemSet, "bg-danger", "fa fa-times");
     }
 
     @SuppressWarnings("unused") // accessed dynamically
     public InfoBoxData getSkipBox() {
-        return createInfoBoxType("skip", skippedProcessedItemSet, "bg-gray", "fe fe-skip-step-object");
+        return createInfoBoxType("skip", skippedProcessedItemSet, "bg-secondary", "fe fe-skip-step-object");
     }
 
     private InfoBoxData createInfoBoxType(String title, ProcessedItemSetType processedSet, String background, String icon) {

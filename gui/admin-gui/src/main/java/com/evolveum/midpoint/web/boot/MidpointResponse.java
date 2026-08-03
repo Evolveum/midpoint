@@ -35,12 +35,14 @@ public class MidpointResponse extends Response {
     private String contextPath;
     private SystemObjectCache systemObjectCache;
 
-    public MidpointResponse(String servletPath, SystemObjectCache systemObjectCache) {
-        this(OutputBuffer.DEFAULT_BUFFER_SIZE, servletPath, systemObjectCache);
+    public MidpointResponse(org.apache.coyote.Response coyoteResponse, String contextPath, SystemObjectCache systemObjectCache) {
+        this(coyoteResponse, OutputBuffer.DEFAULT_BUFFER_SIZE, contextPath, systemObjectCache);
     }
 
-    public MidpointResponse(int outputBufferSize, String contextPath, SystemObjectCache systemObjectCache) {
-        super(outputBufferSize);
+    public MidpointResponse(
+            org.apache.coyote.Response coyoteResponse, int outputBufferSize, String contextPath,
+            SystemObjectCache systemObjectCache) {
+        super(coyoteResponse, outputBufferSize);
 
         this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;

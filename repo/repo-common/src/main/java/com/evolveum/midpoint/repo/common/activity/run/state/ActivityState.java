@@ -382,6 +382,11 @@ public abstract class ActivityState implements DebugDumpable {
     //region Misc
     protected abstract @NotNull Task getTask();
 
+    /** OID of the task this state resides in. Together with {@link #getActivityPath()} it identifies the state instance. */
+    public @NotNull String getTaskOid() {
+        return getTask().getOid();
+    }
+
     private void convertException(CheckedCommonRunnable runnable) throws ActivityRunException {
         convertException("Couldn't update activity state", runnable);
     }

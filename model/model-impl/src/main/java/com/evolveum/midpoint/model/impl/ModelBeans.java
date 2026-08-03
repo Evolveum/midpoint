@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcess
 import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
 import com.evolveum.midpoint.model.impl.security.AuthorizationMigrator;
 
+import com.evolveum.midpoint.notifications.api.PolicyRuleNotificationPublisher;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 
 import com.evolveum.midpoint.repo.common.security.CredentialsStorageManager;
@@ -161,4 +162,5 @@ public class ModelBeans {
     @Autowired public ActivityHandlerRegistry activityHandlerRegistry;
     @Autowired public DataAccessProcessor dataAccessProcessor; // temporary
     @Autowired public RoleAnalysisService roleAnalysisService;
+    @Autowired(required = false) public PolicyRuleNotificationPublisher policyRuleNotificationPublisher;
 }

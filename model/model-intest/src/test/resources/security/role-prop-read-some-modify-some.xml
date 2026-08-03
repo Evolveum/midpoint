@@ -21,6 +21,7 @@
         <name>modify-some</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
         <item>fullName</item>
+        <item>displayName</item>
         <item>additionalName</item>
         <item>description</item>
         <item>activation/validFrom</item>

@@ -10,7 +10,10 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicResourceObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

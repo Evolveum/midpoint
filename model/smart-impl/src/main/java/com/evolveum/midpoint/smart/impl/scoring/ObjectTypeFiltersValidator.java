@@ -10,12 +10,7 @@ package com.evolveum.midpoint.smart.impl.scoring;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -27,7 +22,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -62,7 +56,7 @@ public class ObjectTypeFiltersValidator {
             SearchFilterType filterBean,
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException, SubscriptionComplianceException {
 
         var result = parentResult.subresult(ID_IS_FILTER_RUNNABLE)
                 .addParam("resourceOid", resourceOid)
@@ -99,7 +93,8 @@ public class ObjectTypeFiltersValidator {
             SearchFilterType baseContextFilterBean,
             Task task,
             OperationResult parentResult) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, FilterValidationException,
+            SubscriptionComplianceException {
 
         var result = parentResult.subresult(ID_IS_BASE_CONTEXT_FILTER_RUNNABLE)
                 .addParam("resourceOid", resourceOid)

@@ -41,6 +41,7 @@ public class ConnDevJsonMapper {
         objClass.setAbstract(toBoolean(json.get("abstract")));
         objClass.setEmbedded(toBoolean(json.get("embedded")));
         objClass.setDescription(json.get("description").asText());
+        objClass.setRelevancy(relevancyFromJson(json.get("confidence")));
         var jsonRelevantDocs = json.get("relevantDocumentations");
         if (jsonRelevantDocs != null) {
             for (var jsonDoc : jsonRelevantDocs) {
@@ -52,6 +53,8 @@ public class ConnDevJsonMapper {
         }
         return objClass;
     }
+
+
 
     // ---- Endpoints ----
 
@@ -160,6 +163,7 @@ public class ConnDevJsonMapper {
         for (var relationInfo : relations) {
             var object = JSON.objectNode();
             object.set("name", JSON.textNode(relationInfo.getName()));
+            object.set("displayName", JSON.textNode(relationInfo.getDisplayName()));
             object.set("shortDescription", JSON.textNode(relationInfo.getShortDescription()));
             object.set("subject", JSON.textNode(relationInfo.getSubject()));
             object.set("subjectAttribute", JSON.textNode(relationInfo.getSubjectAttribute()));
@@ -175,6 +179,7 @@ public class ConnDevJsonMapper {
     public static ConnDevRelationInfoType mapRelationFromJson(JsonNode object, List<ConnDevBasicObjectClassInfoType> discovered) {
         var ret = new ConnDevRelationInfoType();
         ret.setName(toText(object.get("name")));
+        ret.setDisplayName(toText(object.get("displayName")));
         ret.setObject(toText(object.get("object")));
         ret.setObjectAttribute(toText(object.get("objectAttribute")));
         ret.setSubject(toText(object.get("subject")));
@@ -184,7 +189,7 @@ public class ConnDevJsonMapper {
         ret.setObject(normalize(ret.getObject(), discovered));
         ret.setSubject(normalize(ret.getSubject(), discovered));
 
-        if (ret.getSubject() == null) {
+        if (ret.getSubject() == null || ret.getObject() == null) {
             return null;
         }
         if (ret.getName() == null) {
@@ -265,5 +270,12 @@ public class ConnDevJsonMapper {
             jsonRelevantDocs.add(jsonDoc);
         }
         return jsonRelevantDocs;
+    }
+
+    private static ConnDevRelevancyLevelType relevancyFromJson(JsonNode confidence) {
+        if (confidence == null || confidence.textValue() == null || confidence.textValue().isEmpty()) {
+            return null;
+        }
+        return ConnDevRelevancyLevelType.fromValue(confidence.textValue());
     }
 }

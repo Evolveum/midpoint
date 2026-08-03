@@ -14,7 +14,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

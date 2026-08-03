@@ -83,7 +83,7 @@ public class GovernanceMembersWizardPanel extends AbstractWizardBasicPanel<Focus
             }
 
             protected String getTileCssClasses() {
-                return "col-xs-5i col-sm-5i col-md-5i col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
+                return "col-xs-5i col-sm-5i col-md-5i col-lg-4 col-xl-3 col-3xl-3 px-4 mb-3";
             }
 
             @Override

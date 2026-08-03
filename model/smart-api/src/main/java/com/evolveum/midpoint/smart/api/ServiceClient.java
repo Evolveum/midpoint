@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.smart.api;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -25,6 +27,14 @@ public interface ServiceClient extends AutoCloseable {
      * Returns a CompletableFuture that will complete with the response or exceptionally with SchemaException.
      */
     <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass);
+
+    /**
+     * Returns AI provider and model info fetched from the remote service health endpoint.
+     * Returns empty Optional if the information is unavailable.
+     */
+    default Optional<AiInfo> getAiInfo() {
+        return Optional.empty();
+    }
 
     @Override
     void close();

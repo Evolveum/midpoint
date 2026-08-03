@@ -11,7 +11,10 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
@@ -36,6 +39,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -55,7 +59,10 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.IResource;
 
 import javax.xml.namespace.QName;
@@ -120,6 +127,13 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(CollectionPanelType.CARDS_GOVERNANCE);
         return ctx;
+    }
+
+    @Override
+    protected boolean isGovernancePanel() {
+        // this panel is always a governance one, regardless of the (possibly custom
+        // or missing) identifier of its panel configuration
+        return true;
     }
 
     protected CompiledObjectCollectionView getObjectCollectionView() {
@@ -233,7 +247,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                             }
                         };
                         menu.add(new VisibleBehaviour(() -> !menu.getModel().getObject().getMenuItems().isEmpty()));
-                        menu.add(AttributeAppender.replace("class", "ml-2"));
+                        menu.add(AttributeAppender.replace("class", "ms-2"));
                         repView.add(menu);
 
                         repView.add(createRefreshButton(repView.newChildId()));
@@ -358,7 +372,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
                         @Override
                         protected void customizeTilePanel(TilePanel tp) {
-                            tp.add(AttributeAppender.append("class", "card"));
+                            tp.add(AttributeAppender.append("class", "card shadow-sm mb-3"));
                             tp.add(AttributeAppender.append("style", "min-width:200px"));
                         }
                     };
@@ -369,7 +383,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                 GovernanceCardsPanel.this.getPageBase().showMainPopup(choose, target);
             }
         });
-        newMemberTile.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().size() > 0));
+        newMemberTile.add(new VisibleBehaviour(() ->
+                isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)
+                        && getMemberTileTable().getTilesModel().getObject().size() > 0));
 
         Label label =  new Label(
                 ID_NEW_MEMBER_TILE_LABEL,
@@ -382,7 +398,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
     private WebMarkupContainer createRelationTilesForAssignMembers() {
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATIONS_CONTAINER);
-        relationContainer.add(new VisibleBehaviour(() -> getMemberTileTable().getTilesModel().getObject().isEmpty()));
+        relationContainer.add(new VisibleBehaviour(() ->
+                isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)
+                        && getMemberTileTable().getTilesModel().getObject().isEmpty()));
 
         ListView<QName> relations = new ListView<>(ID_RELATIONS, getSupportedRelations()) {
             @Override
@@ -404,7 +422,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     }
 
     protected String getTileCssClasses() {
-        return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
+        return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-3xl-3 px-4 mb-3";
     }
 
     protected List<InlineMenuItem> createToolbarMenuActions() {
@@ -470,6 +488,14 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
             @Override
             protected String getCssForUnassignButton() {
                 return getCssForCardUnassignButton(super.getCssForUnassignButton());
+            }
+
+            @Override
+            protected Component createUnassignButton(String id) {
+                Component unassign = super.createUnassignButton(id);
+                unassign.add(new VisibleBehaviour(() ->
+                        isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)));
+                return unassign;
             }
         };
     }

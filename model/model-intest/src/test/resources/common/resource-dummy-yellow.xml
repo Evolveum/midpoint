@@ -10,7 +10,8 @@
                        also has a modified synchronization section: just correlation but no reactions.
                        also it has minimum password length constraint (resource-enforced, not midPoint password policy)
                        also it is using some constants in the configuration and expressions
-                       also it has conditional provisioning scripts -->
+                       also it has conditional provisioning scripts
+                       Groovy expressions -->
 
 <resource oid="10000000-0000-0000-0000-000000000704"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -76,6 +77,7 @@
                     </source>
                     <expression>
                         <script>
+                            <!-- Expressions in this resource are deliberately in Groovy -->
                             <code>
                                 name + iterationToken
                             </code>

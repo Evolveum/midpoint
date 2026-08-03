@@ -10,7 +10,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -61,7 +60,8 @@ public class Resolver {
     @Autowired
     private ProvisioningService provisioningService;
 
-    public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
         if (object == null) {
             return;
         }
@@ -74,7 +74,9 @@ public class Resolver {
                 if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
                     try {
                         provisioningService.applyDefinition(object, task, result);
-                    } catch (ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+                    } catch (
+                            ObjectNotFoundException | CommunicationException | ConfigurationException |
+                            SubscriptionComplianceException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
                                 ObjectTypeUtil.toShortString(object));
                     }
@@ -89,7 +91,7 @@ public class Resolver {
                     } catch (ObjectNotFoundException e) {
                         //ignore when object doesn't exist
                     } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                            SecurityViolationException e) {
+                             SecurityViolationException | SubscriptionComplianceException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                         warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                     }
@@ -150,7 +152,7 @@ public class Resolver {
                             result.recordHandledError(e);
                             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
                         } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                                SecurityViolationException e) {
+                                 SecurityViolationException | SubscriptionComplianceException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                             warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                         }

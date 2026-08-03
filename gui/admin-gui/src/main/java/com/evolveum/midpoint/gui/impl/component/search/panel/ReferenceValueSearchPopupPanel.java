@@ -63,7 +63,7 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
         MidpointForm midpointForm = getPopoverForm();
 
         ReferenceAutocompletePanel<ObjectReferenceType> nameField = (ReferenceAutocompletePanel) midpointForm.get(ID_NAME);
-        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override

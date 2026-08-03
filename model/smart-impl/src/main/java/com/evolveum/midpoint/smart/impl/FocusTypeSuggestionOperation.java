@@ -15,7 +15,9 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

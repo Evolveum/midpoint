@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @FunctionalInterface
 public interface SerializableConsumer<T> extends Consumer<T>, Serializable {

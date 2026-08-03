@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -91,7 +93,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
                 newItemPerformed(target, null);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         newObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectVisible));
         bar.add(newObjectButton);
         return bar;
@@ -202,14 +204,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     protected InlineMenuItem createDeleteInlineMenu() {
-        return new InlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        };
+        return InlineMenuItemBuilder.create()
+                .label(createStringResource("pageAdminFocus.button.delete"))
+                .action(createDeleteColumnAction())
+                .icon("fa fa-trash text-danger")
+                .additionalCssClass("text-danger")
+                .buildInlineMenu();
     }
 
     protected boolean allowEditMultipleValuesAtOnce() {

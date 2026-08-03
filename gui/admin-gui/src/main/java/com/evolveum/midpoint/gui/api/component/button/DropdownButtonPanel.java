@@ -131,6 +131,9 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
             OnBeforeClickHandler<T> beforeClickHandler) {
         T itemObject = model.getObject();
 
+        if (itemObject instanceof ComponentInlineMenuItem componentItem) {
+            return componentItem.createComponent(componentId);
+        }
 
         if (itemObject != null && itemObject.isDivider()) {
             return new MenuDividerPanel(componentId);
@@ -202,10 +205,10 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     }
 
     protected String getSpecialButtonClass() {
-        return "btn-app";
+        return "btn btn-light border d-flex flex-column align-items-center p-3 shadow-sm";
     }
 
     protected String getSpecialDropdownMenuClass() {
-        return "dropdown-menu-right";
+        return "dropdown-menu-end";
     }
 }

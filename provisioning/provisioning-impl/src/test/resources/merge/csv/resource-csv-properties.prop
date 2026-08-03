@@ -1,0 +1,10 @@
+Grp.filePath=target/csv-groups.csv
+Grp.trim=true
+Grp.headerExists=true
+Grp.fieldDelimiter=;
+Grp.uniqueAttribute=id
+Grp.nameAttribute=name
+Grp.auxiliary=true
+Grp.container=true
+Grp.multivalueAttributes=member
+Grp.multivalueDelimiter=,

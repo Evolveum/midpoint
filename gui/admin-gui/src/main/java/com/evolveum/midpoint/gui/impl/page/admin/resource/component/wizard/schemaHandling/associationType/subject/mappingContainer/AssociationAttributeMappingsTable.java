@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table.SmartMappingTable;
@@ -38,18 +37,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createNewVirtualMappingValue;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable.getMappingUsedIconColumn;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType.F_MAPPING;
 
@@ -339,7 +337,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -355,7 +353,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -366,7 +364,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col header-border-right";
+                return "col header-border-end";
             }
 
             @Override
@@ -388,7 +386,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
 
         });
@@ -400,7 +398,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         });
 
@@ -507,7 +505,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         } else {
@@ -518,7 +516,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                     getPageBase()) {
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         }

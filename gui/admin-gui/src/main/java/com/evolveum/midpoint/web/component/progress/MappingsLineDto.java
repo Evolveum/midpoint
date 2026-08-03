@@ -6,15 +6,12 @@
 
 package com.evolveum.midpoint.web.component.progress;
 
-import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
 
 import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 

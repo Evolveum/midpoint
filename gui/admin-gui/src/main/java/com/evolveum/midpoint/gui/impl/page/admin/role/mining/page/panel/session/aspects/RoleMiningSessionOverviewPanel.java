@@ -18,7 +18,9 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.*;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDistributionProgressPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisOutlierDashboardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisValueLabelPanel;
 
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -416,7 +418,7 @@ public class RoleMiningSessionOverviewPanel extends AbstractObjectMainPanel<Role
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW)); /* col-6 pl-0 */
+        statusHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW)); /* col-6 ps-0 */
         cardBodyComponent.add(statusHeader);
 
         int clusterInliers = processedObjectCount - clusterOtliers;
@@ -460,7 +462,7 @@ public class RoleMiningSessionOverviewPanel extends AbstractObjectMainPanel<Role
                             }
                         });
                         components.setOutputMarkupId(true);
-                        /*components.add(AttributeModifier.append(CLASS_CSS, "pt-3 pl-2 pr-2"));*/
+                        /*components.add(AttributeModifier.append(CLASS_CSS, "pt-3 ps-2 pe-2"));*/
                         return components;
                     }
 
@@ -505,7 +507,7 @@ public class RoleMiningSessionOverviewPanel extends AbstractObjectMainPanel<Role
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, clusterInliers);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -545,7 +547,7 @@ public class RoleMiningSessionOverviewPanel extends AbstractObjectMainPanel<Role
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalClusterOtliers);
-                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-3 m-0 lh-1 fw-bold txt-toned"));
                                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
@@ -677,7 +679,7 @@ public class RoleMiningSessionOverviewPanel extends AbstractObjectMainPanel<Role
         };
         explorePatternButton.titleAsLabel(true);
         explorePatternButton.setOutputMarkupId(true);
-        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ml-auto btn btn-link btn-sm p-0"));
+        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ms-auto btn btn-link btn-sm p-0"));
         explorePatternButton.setOutputMarkupId(true);
         return explorePatternButton;
     }

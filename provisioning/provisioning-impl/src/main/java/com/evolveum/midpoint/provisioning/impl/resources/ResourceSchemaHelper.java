@@ -70,7 +70,7 @@ class ResourceSchemaHelper {
     void applyConnectorSchemasToResource(
             @NotNull ResourceType resource,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         ResourceType expanded;
         if (ResourceTypeUtil.doesNeedExpansion(resource)) {
             expanded = resource.clone();
@@ -85,7 +85,7 @@ class ResourceSchemaHelper {
     void applyConnectorSchemasToExpandedResource(
             @NotNull ResourceType resource,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         applyConnectorSchemasToResource(resource, resource, result);
     }
 
@@ -100,7 +100,7 @@ class ResourceSchemaHelper {
             @NotNull ResourceType target,
             @NotNull ResourceType source,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         checkMutable(target.asPrismObject());
         PrismObjectDefinition<ResourceType> newResourceDefinition = target.asPrismObject().getDefinition().clone();
         for (ConnectorSpec sourceConnectorSpec : ConnectorSpec.all(source)) {
@@ -129,7 +129,7 @@ class ResourceSchemaHelper {
             @NotNull PrismObjectDefinition<ResourceType> targetDefinition,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
         var configurationContainerDefinition = connectorWithSchema.getConfigurationContainerDefinition();
@@ -191,7 +191,7 @@ class ResourceSchemaHelper {
                     try {
                         evaluateExpression((PrismProperty<?>)visitable, resource.asPrismObject(), task, result);
                     } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                            ConfigurationException | SecurityViolationException e) {
+                             ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                         throw new TunnelException(e);
                     }
                 }
@@ -224,7 +224,7 @@ class ResourceSchemaHelper {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismPropertyDefinition<T> propDef = configurationProperty.getDefinition();
         String shortDesc = "connector configuration property "+configurationProperty+" in "+resource;
         List<PrismPropertyValue<T>> extraValues = new ArrayList<>();
@@ -283,7 +283,8 @@ class ResourceSchemaHelper {
             GetOperationOptions options,
             Task task,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         if (delta.isAdd()) {
             ResourceType resource = delta.getObjectToAdd().asObjectable();
@@ -301,7 +302,8 @@ class ResourceSchemaHelper {
             GetOperationOptions options,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         if (delta.hasCompleteDefinition()) {
             // nothing to do, all modifications have definitions
@@ -322,7 +324,8 @@ class ResourceSchemaHelper {
             GetOperationOptions options,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
         String resourceOid = delta.getOid();
         if (resourceOid == null) {
             Validate.notNull(resourceWhenNoOid, "Resource oid not specified in the object delta, "
@@ -497,7 +500,7 @@ class ResourceSchemaHelper {
      * TODO is this method correct?
      */
     void updateSchemaInConnectorInstances(ResourceType resource, NativeResourceSchema nativeSchema, OperationResult result)
-            throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
+            throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             connectorManager
                     .getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)

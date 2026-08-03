@@ -124,7 +124,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 synchronizeTasksPerformed(target);
             }
         };
-        synchronize.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        synchronize.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return synchronize;
     }
 
