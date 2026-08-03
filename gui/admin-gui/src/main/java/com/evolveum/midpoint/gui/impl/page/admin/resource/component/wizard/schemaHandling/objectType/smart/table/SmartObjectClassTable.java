@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 
@@ -263,7 +264,8 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     private @NotNull String getObjectClassDescription(@NotNull QName objectClassName) {
-        return objectClassDescriptionCache.getOrDefault(objectClassName, "");
+        return objectClassDescriptionCache.getOrDefault(objectClassName,
+                translate("SmartObjectClassTable.objectClass.description.not.defined"));
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
