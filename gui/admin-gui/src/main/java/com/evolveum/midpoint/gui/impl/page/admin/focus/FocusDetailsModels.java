@@ -151,7 +151,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
 
     @Override
     protected boolean isReadonly() {
-        return history;
+        return history || super.isReadonly();
     }
 
     public boolean isHistoricalObject() {

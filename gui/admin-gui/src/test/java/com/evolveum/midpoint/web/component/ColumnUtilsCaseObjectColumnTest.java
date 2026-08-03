@@ -7,55 +7,60 @@
 package com.evolveum.midpoint.web.component;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.Url;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.AbstractGuiUnitTest;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
 
 /**
- * Tests object-reference selection and link availability in the Cases object column.
+ * Tests pending-object references and preview context in Cases and Work-item columns.
  *
  * For an ADD that is pending approval or has been rejected, the column uses
  * the object stored in the approval delta so its name can still be displayed,
- * but disables navigation because the object has not been created. Approved ADDs
- * and ordinary cases retain the normal case object reference and link behavior.
+ * and supplies case-based navigation context. Approved ADDs and ordinary cases
+ * keep the normal displayed reference and ordinary navigation.
  */
 public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
 
     private static final String DELTA_ROLE_OID = "delta-role-oid";
     private static final String CASE_OBJECT_OID = "case-object-oid";
+    private static final String CASE_OID = "case-oid";
 
     @Test
-    public void testDefaultObjectReferenceColumnLinkEnabled() {
-        TestObjectReferenceColumn column = new TestObjectReferenceColumn();
-
-        assertTrue(column.isLinkEnabledForTest(new ObjectReferenceType(), Model.of("row")));
-    }
-
-    @Test
-    public void testPendingAddUsesDeltaObjectAndDisablesLink() throws Exception {
+    public void testPendingAddUsesDeltaObjectAndSuppliesPreviewContext() throws Exception {
         CaseType caseType = createCaseWithAddDelta(null);
 
         ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
@@ -63,11 +68,17 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         ObjectReferenceType ref = getSingleRef(column, rowModel);
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertFalse(isLinkEnabled(column, ref, rowModel));
+        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+
+        PrismObject<RoleType> pendingObject =
+                WebComponentUtil.getPendingObjectFromAddCase(caseType, RoleType.class, DELTA_ROLE_OID);
+
+        assertNotNull(pendingObject);
+        assertEquals(pendingObject.getOid(), DELTA_ROLE_OID);
     }
 
     @Test
-    public void testRejectedAddUsesDeltaObjectAndDisablesLink() throws Exception {
+    public void testRejectedAddUsesDeltaObjectAndSuppliesPreviewContext() throws Exception {
         CaseType caseType = createCaseWithAddDelta(ApprovalUtils.toUri(WorkItemOutcomeType.REJECT));
 
         ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
@@ -75,11 +86,11 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         ObjectReferenceType ref = getSingleRef(column, rowModel);
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertFalse(isLinkEnabled(column, ref, rowModel));
+        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
     }
 
     @Test
-    public void testApprovedAddUsesCaseObjectRefAndEnablesLink() throws Exception {
+    public void testApprovedAddUsesCaseObjectRefWithoutPreviewContext() throws Exception {
         CaseType caseType = createCaseWithAddDelta(ApprovalUtils.toUri(WorkItemOutcomeType.APPROVE));
 
         ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
@@ -87,11 +98,27 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         ObjectReferenceType ref = getSingleRef(column, rowModel);
 
         assertMatchesCaseObjectRef(ref, caseType);
-        assertTrue(isLinkEnabled(column, ref, rowModel));
+        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
     }
 
     @Test
-    public void testOrdinaryCaseUsesCaseObjectRefAndEnablesLink() throws Exception {
+    public void testOrdinaryCaseUsesCaseObjectRefWithoutPreviewContext() throws Exception {
+        CaseType caseType = new CaseType()
+                .oid(CASE_OID)
+                .objectRef(new ObjectReferenceType()
+                        .oid(CASE_OBJECT_OID)
+                        .type(RoleType.COMPLEX_TYPE));
+
+        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
+        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertMatchesCaseObjectRef(ref, caseType);
+        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+    }
+
+    @Test
+    public void testCaseWithoutOidDoesNotSupplyPreviewContext() throws Exception {
         CaseType caseType = new CaseType()
                 .objectRef(new ObjectReferenceType()
                         .oid(CASE_OBJECT_OID)
@@ -102,7 +129,151 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         ObjectReferenceType ref = getSingleRef(column, rowModel);
 
         assertMatchesCaseObjectRef(ref, caseType);
-        assertTrue(isLinkEnabled(column, ref, rowModel));
+        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+    }
+
+    @Test
+    public void testRootOperationRequestReferenceOnlyDoesNotSupplyPreviewContext() throws Exception {
+        ObjectReferenceType objectRef = new ObjectReferenceType()
+                .oid(DELTA_ROLE_OID)
+                .type(RoleType.COMPLEX_TYPE);
+        CaseType caseType = createOperationRequestCase(objectRef);
+
+        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
+        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertEquals(ref.getOid(), DELTA_ROLE_OID);
+        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+    }
+
+    @Test
+    public void testCaseObjectRefWithoutOidDoesNotSupplyPreviewContext() throws Exception {
+        CaseType caseType = new CaseType()
+                .oid(CASE_OID)
+                .objectRef(new ObjectReferenceType()
+                        .type(RoleType.COMPLEX_TYPE));
+
+        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
+        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertNull(ref.getOid());
+        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+    }
+
+    @Test
+    public void testRootOperationRequestWithEmbeddedObjectSuppliesPreviewContext() throws Exception {
+        RoleType role = new RoleType(getPrismContext())
+                .oid(DELTA_ROLE_OID)
+                .name("Embedded role");
+
+        ObjectReferenceType objectRef = createReferenceWithEmbeddedObject(role);
+        CaseType caseType = createOperationRequestCase(objectRef);
+
+        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
+        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertEquals(ref.getOid(), DELTA_ROLE_OID);
+        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+    }
+
+    @Test
+    public void testRootOperationRequestWithEmbeddedObjectWithoutOidSuppliesPreviewContext()
+            throws Exception {
+        RoleType role = new RoleType(getPrismContext())
+                .name("Embedded role");
+
+        ObjectReferenceType objectRef = createReferenceWithEmbeddedObject(role);
+        CaseType caseType = createOperationRequestCase(objectRef);
+
+        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
+        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertNull(ref.getOid());
+        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+    }
+
+    @Test
+    public void testRootOperationRequestEmbeddedObjectIsExtracted() {
+        RoleType role = new RoleType(getPrismContext())
+                .oid(DELTA_ROLE_OID)
+                .name("Embedded role");
+
+        ObjectReferenceType objectRef = createReferenceWithEmbeddedObject(role);
+        CaseType caseType = createOperationRequestCase(objectRef);
+
+        PrismObject<RoleType> pendingObject =
+                WebComponentUtil.getPendingObjectFromAddCase(
+                        caseType, RoleType.class, DELTA_ROLE_OID);
+
+        assertNotNull(pendingObject);
+        assertEquals(pendingObject.getOid(), DELTA_ROLE_OID);
+    }
+
+    @Test
+    public void testPendingObjectExtractionRejectsTypeMismatch() throws Exception {
+        CaseType caseType = createCaseWithAddDelta(null);
+
+        assertNull(WebComponentUtil.getPendingObjectFromAddCase(caseType, UserType.class, DELTA_ROLE_OID));
+    }
+
+    @Test
+    public void testPreviewParametersContainExpectedContext() {
+        ObjectReferenceType objectRef = new ObjectReferenceType()
+                .oid(DELTA_ROLE_OID)
+                .type(RoleType.COMPLEX_TYPE);
+
+        Url encoded = new OnePageParameterEncoder()
+                .encodePageParameters(DetailsPageUtil.createPendingObjectPreviewParameters(objectRef, CASE_OID));
+
+        assertEquals(encoded.getSegments().size(), 1);
+        assertEquals(encoded.getSegments().get(0), DELTA_ROLE_OID);
+        assertTrue(encoded.getQueryParameters().stream()
+                .anyMatch(parameter -> DetailsPageUtil.PARAM_PENDING_OBJECT_PREVIEW.equals(parameter.getName())
+                        && "true".equals(parameter.getValue())));
+        assertTrue(encoded.getQueryParameters().stream()
+                .anyMatch(parameter -> DetailsPageUtil.PARAM_PENDING_OBJECT_CASE_OID.equals(parameter.getName())
+                        && CASE_OID.equals(parameter.getValue())));
+        assertTrue(encoded.getQueryParameters().stream()
+                .anyMatch(parameter -> DetailsPageUtil.PARAM_PENDING_OBJECT_TYPE.equals(parameter.getName())
+                        && RoleType.COMPLEX_TYPE.getLocalPart().equals(parameter.getValue())));
+    }
+
+    @Test
+    public void testWorkItemObjectColumnDoesNotSupplyPreviewContextForOrdinaryCase() throws Exception {
+        CaseType caseType = new CaseType()
+                .oid(CASE_OID)
+                .objectRef(new ObjectReferenceType()
+                        .oid(CASE_OBJECT_OID)
+                        .type(RoleType.COMPLEX_TYPE));
+        CaseWorkItemType workItem = new CaseWorkItemType();
+        caseType.getWorkItem().add(workItem);
+
+        ObjectReferenceColumn<PrismContainerValueWrapper<CaseWorkItemType>> column = getWorkItemObjectColumn();
+        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel =
+                createWorkItemRowModel(workItem);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertEquals(ref.getOid(), CASE_OBJECT_OID);
+        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+    }
+
+    @Test
+    public void testWorkItemObjectColumnSuppliesPreviewContextForPendingAdd() throws Exception {
+        CaseType caseType = createCaseWithAddDelta(null);
+        CaseWorkItemType workItem = new CaseWorkItemType();
+        caseType.getWorkItem().add(workItem);
+
+        ObjectReferenceColumn<PrismContainerValueWrapper<CaseWorkItemType>> column = getWorkItemObjectColumn();
+        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel =
+                createWorkItemRowModel(workItem);
+        ObjectReferenceType ref = getSingleRef(column, rowModel);
+
+        assertEquals(ref.getOid(), DELTA_ROLE_OID);
+        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
     }
 
     @SuppressWarnings("unchecked")
@@ -115,9 +286,26 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         return Model.of(new SelectableBeanImpl<>(Model.of(caseType)));
     }
 
-    private ObjectReferenceType getSingleRef(
-            ObjectReferenceColumn<SelectableBean<CaseType>> column,
-            IModel<SelectableBean<CaseType>> rowModel) {
+    @SuppressWarnings("unchecked")
+    private ObjectReferenceColumn<PrismContainerValueWrapper<CaseWorkItemType>> getWorkItemObjectColumn() {
+        List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns =
+                ColumnUtils.getDefaultWorkItemColumns(null, true, false);
+        return (ObjectReferenceColumn<PrismContainerValueWrapper<CaseWorkItemType>>)
+                columns.get(2);
+    }
+
+    private IModel<PrismContainerValueWrapper<CaseWorkItemType>> createWorkItemRowModel(
+            CaseWorkItemType workItem) {
+        return Model.of(
+                new PrismContainerValueWrapperImpl<>(
+                        null,
+                        workItem.asPrismContainerValue(),
+                        ValueStatus.NOT_CHANGED));
+    }
+
+    private <T> ObjectReferenceType getSingleRef(
+            ObjectReferenceColumn<T> column,
+            IModel<T> rowModel) {
         List<ObjectReferenceType> refs = column.extractDataModel(rowModel).getObject();
         assertEquals(refs.size(), 1);
         return refs.get(0);
@@ -128,13 +316,16 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         assertEquals(ref.getType(), caseType.getObjectRef().getType());
     }
 
-    private boolean isLinkEnabled(
-            ObjectReferenceColumn<SelectableBean<CaseType>> column,
+    /**
+     * Invokes the row-specific preview-context hook on the anonymous column.
+     */
+    private <T> String getPendingObjectPreviewCaseOid(
+            ObjectReferenceColumn<T> column,
             ObjectReferenceType ref,
-            IModel<SelectableBean<CaseType>> rowModel) throws Exception {
-        Method method = column.getClass().getDeclaredMethod("isLinkEnabled", ObjectReferenceType.class, IModel.class);
+            IModel<T> rowModel) throws Exception {
+        Method method = column.getClass().getDeclaredMethod("getPendingObjectPreviewCaseOid", ObjectReferenceType.class, IModel.class);
         method.setAccessible(true);
-        return (Boolean) method.invoke(column, ref, rowModel);
+        return (String) method.invoke(column, ref, rowModel);
     }
 
     private CaseType createCaseWithAddDelta(String outcome) throws SchemaException {
@@ -143,29 +334,33 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
                 .name("Delta role");
 
         return new CaseType()
+                .oid(CASE_OID)
                 .objectRef(new ObjectReferenceType()
                         .oid(CASE_OBJECT_OID)
                         .type(RoleType.COMPLEX_TYPE))
                 .approvalContext(new ApprovalContextType()
                         .deltasToApprove(ObjectTreeDeltas.toObjectTreeDeltasType(
-                                new ObjectTreeDeltas<>(
-                                        DeltaFactory.Object.createAddDelta(role.asPrismObject())))))
+                                new ObjectTreeDeltas<>(DeltaFactory.Object.createAddDelta(role.asPrismObject())))))
                 .outcome(outcome);
     }
 
-    private static class TestObjectReferenceColumn extends ObjectReferenceColumn<String> {
+    private CaseType createOperationRequestCase(ObjectReferenceType objectRef) {
+        CaseType caseType = new CaseType()
+                .oid(CASE_OID)
+                .objectRef(objectRef);
 
-        private TestObjectReferenceColumn() {
-            super(Model.of("test"), "");
-        }
+        caseType.getArchetypeRef().add(new ObjectReferenceType()
+                .oid(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value()));
 
-        @Override
-        public IModel<List<ObjectReferenceType>> extractDataModel(IModel<String> rowModel) {
-            return Model.ofList(Collections.<ObjectReferenceType>emptyList());
-        }
+        return caseType;
+    }
 
-        private boolean isLinkEnabledForTest(ObjectReferenceType ref, IModel<String> rowModel) {
-            return isLinkEnabled(ref, rowModel);
-        }
+    private ObjectReferenceType createReferenceWithEmbeddedObject(RoleType role) {
+        ObjectReferenceType objectRef = new ObjectReferenceType()
+                .oid(role.getOid())
+                .type(RoleType.COMPLEX_TYPE);
+        objectRef.asReferenceValue().setObject(role.asPrismObject());
+
+        return objectRef;
     }
 }

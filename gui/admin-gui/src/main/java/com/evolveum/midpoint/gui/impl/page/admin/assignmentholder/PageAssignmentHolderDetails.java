@@ -97,7 +97,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     @Override
     protected void initLayout() {
-        if (isApplicableTemplate()) {
+        if (!isPendingObjectPreview() && isApplicableTemplate()) {
             if (isAdd() && existMoreApplicableTemplate()) {
                 Fragment templateFragment = createTemplateFragment();
                 add(templateFragment);
@@ -118,7 +118,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected DetailsFragment createDetailsFragment() {
-        if (canShowWizard()) {
+        if (!isPendingObjectPreview() && canShowWizard()) {
             setShowedByWizard(true);
             return createWizardFragment();
         }

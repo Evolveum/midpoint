@@ -169,6 +169,18 @@ public interface ModelInteractionService {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
+    /**
+     * Variant of {@link #getEditObjectDefinition(PrismObject, AuthorizationPhaseType, Task, OperationResult)}
+     * for read-only rendering of an object obtained from an already authorized source, such as a case.
+     *
+     * The supplied object is used directly and is not reloaded from the repository solely because it has an OID.
+     * The caller is responsible for ensuring that the object was obtained and validated through an authorized path.
+     */
+    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForSuppliedObject(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException;
+
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(
             ResourceShadowCoordinates coordinates,
             AuthorizationPhaseType phase,

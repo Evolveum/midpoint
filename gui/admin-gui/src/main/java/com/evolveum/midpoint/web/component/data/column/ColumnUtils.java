@@ -655,11 +655,11 @@ public class ColumnUtils {
                 }
 
                 @Override
-                protected boolean isLinkEnabled(
+                protected String getPendingObjectPreviewCaseOid(
                         ObjectReferenceType ref, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    return !getCaseObjectRef(caseType).pendingAdd();
+                    return getCaseObjectRef(caseType).sourceCaseOid();
                 }
 
                 @Override
@@ -1356,9 +1356,10 @@ public class ColumnUtils {
             }
 
             @Override
-            protected boolean isLinkEnabled(ObjectReferenceType ref, IModel<SelectableBean<CaseType>> rowModel) {
+            protected String getPendingObjectPreviewCaseOid(
+                    ObjectReferenceType ref, IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseModelObject = rowModel.getObject().getValue();
-                return !getCaseObjectRef(caseModelObject).pendingAdd();
+                return getCaseObjectRef(caseModelObject).sourceCaseOid();
             }
 
             @Override
@@ -1491,19 +1492,41 @@ public class ColumnUtils {
         return columns;
     }
 
-    private record CaseObjectRef(ObjectReferenceType ref, boolean pendingAdd) {
+    private record CaseObjectRef(ObjectReferenceType ref, String sourceCaseOid) {
     }
 
     private static CaseObjectRef getCaseObjectRef(CaseType caseType) {
         AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-        if (object != null && (caseType == null || !ApprovalUtils.isApproved(caseType.getOutcome()))) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            ort.asReferenceValue().setObject(object.asPrismObject());
-            ort.setOid(object.getOid());
-            ort.setType(WebComponentUtil.classToQName(object.getClass()));
-            return new CaseObjectRef(ort, true);
+        if (object != null && !ApprovalUtils.isApproved(caseType.getOutcome())) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.asReferenceValue().setObject(object.asPrismObject());
+            ref.setOid(object.getOid());
+            ref.setType(WebComponentUtil.classToQName(object.getClass()));
+            return new CaseObjectRef(ref, caseType.getOid());
         }
-        return new CaseObjectRef(caseType != null ? caseType.getObjectRef() : null, false);
+
+        ObjectReferenceType ref = caseType != null ? caseType.getObjectRef() : null;
+        String sourceCaseOid = supportsCaseBasedPreview(caseType, ref)
+                ? caseType.getOid()
+                : null;
+
+        return new CaseObjectRef(ref, sourceCaseOid);
+    }
+
+    /**
+     * Returns whether the case reference contains enough context to open a pending-object preview.
+     *
+     * The embedded object is required because the preview loader does not resolve it from child cases.
+     */
+    private static boolean supportsCaseBasedPreview(
+            CaseType caseType, ObjectReferenceType objectRef) {
+        return caseType != null
+                && StringUtils.isNotBlank(caseType.getOid())
+                && ObjectTypeUtil.hasArchetypeRef(
+                caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+                && objectRef != null
+                && objectRef.getType() != null
+                && objectRef.asReferenceValue().getObject() != null;
     }
 
     private static String createCaseClosedTimestampLabel(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {

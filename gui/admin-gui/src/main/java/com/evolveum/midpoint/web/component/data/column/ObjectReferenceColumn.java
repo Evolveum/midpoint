@@ -61,8 +61,8 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
                 }
 
                 @Override
-                protected boolean isLinkEnabled() {
-                    return ObjectReferenceColumn.this.isLinkEnabled(ref, rowModel) && super.isLinkEnabled();
+                protected String getPendingObjectPreviewCaseOid() {
+                    return ObjectReferenceColumn.this.getPendingObjectPreviewCaseOid(ref, rowModel);
                 }
             });
         }
@@ -100,7 +100,7 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
         return false;
     }
 
-    protected boolean isLinkEnabled(ObjectReferenceType ref, IModel<T> rowModel) {
-        return true;
+    protected String getPendingObjectPreviewCaseOid(ObjectReferenceType ref, IModel<T> rowModel) {
+        return null;
     }
 }

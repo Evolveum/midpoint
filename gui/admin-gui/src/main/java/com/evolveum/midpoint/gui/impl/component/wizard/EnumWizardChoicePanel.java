@@ -86,7 +86,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected boolean addDefaultTile() {
-        return !WebComponentUtil.isOperationSubmittedForApproval(lastSaveResult);
+        return true;
     }
 
     protected OperationResult getLastSaveResult() {
@@ -118,7 +118,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
         WebComponentUtil.getPageBase(this).closeRightSidebar(target);
 
         if (value == null) {
-            goToObjectPerformed(getObjectType());
+            goToObjectPerformed();
             return;
         }
         this.onTileClickPerformed(value, target);
@@ -142,33 +142,25 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 ).getString());
     }
 
-    protected void goToObjectPerformed(QName type) {
-        Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(type, ObjectType.class);
-        if (typeClass == null) {
-            return;
-        }
+    protected void goToObjectPerformed() {
+        ObjectType object = getAssignmentHolderDetailsModel().getObjectType();
 
-        Class<? extends PageBase> detailPage = DetailsPageUtil.getObjectDetailsPage(typeClass);
-        if (detailPage == null) {
-            return;
-        }
-
-        String oid = getObjectOid();
-        if (StringUtils.isBlank(oid)) {
-            getPageBase().warn(
-                    getPageBase().createStringResource("WizardChoicePanel.objectNotAvailable")
-                            .getString());
+        if (WebComponentUtil.isOperationSubmittedForApproval(lastSaveResult)) {
+            if (object == null) {
+                getPageBase().warn(
+                        getPageBase().createStringResource("WizardChoicePanel.objectNotAvailable")
+                                .getString());
+                return;
+            }
+            getPageBase().removeLastBreadcrumb();
+            DetailsPageUtil.dispatchToPendingObjectPreview(
+                    ObjectTypeUtil.createObjectRef(object),
+                    lastSaveResult.findCaseOid(),
+                    this);
             return;
         }
 
         getPageBase().removeLastBreadcrumb();
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        getPageBase().navigateToNext(detailPage, parameters);
-    }
-
-    private String getObjectOid() {
-        ObjectType object = getAssignmentHolderDetailsModel().getObjectType();
-        return object != null ? object.getOid() : null;
+        DetailsPageUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object), this, false);
     }
 }
