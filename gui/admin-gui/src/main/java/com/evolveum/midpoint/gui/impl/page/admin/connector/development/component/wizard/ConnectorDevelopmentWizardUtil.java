@@ -628,6 +628,16 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    public static boolean isSql(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return ConnDevIntegrationType.SQL.equals(integrationType.getValue().getRealValue());
+        } catch (SchemaException e) {
+            return false;
+        }
+    }
+
     public static List<ItemName> getVisibleAuthorizationAttributes(
             ConnectorDevelopmentDetailsModel detailsModel, ConnDevAuthInfoType authType) {
         try {

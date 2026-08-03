@@ -53,9 +53,17 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
 
     private LoadableModel<String> resourceOidModel;
     private boolean nextButtonVisible = false;
+    private final String fixConnectionPanelType;
 
     public ResourceTestConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+        this(helper, FixConnectionConnectorStepPanel.PANEL_TYPE);
+    }
+
+    public ResourceTestConnectorStepPanel(
+            WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            String fixConnectionPanelType) {
         super(helper);
+        this.fixConnectionPanelType = fixConnectionPanelType;
     }
 
     @Override
@@ -110,8 +118,8 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
             @Override
             protected void onFailureActionPerform(AjaxRequestTarget target) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(PANEL_TYPE, FixConnectionConnectorStepPanel.PANEL_TYPE, getLastFailedResult());
-                    wizardModel.setActiveStepById(FixConnectionConnectorStepPanel.PANEL_TYPE);
+                    wizardModel.addOperationResult(PANEL_TYPE, fixConnectionPanelType, getLastFailedResult());
+                    wizardModel.setActiveStepById(fixConnectionPanelType);
                     wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
                     target.add(wizardModel.getPanel());
                 }
