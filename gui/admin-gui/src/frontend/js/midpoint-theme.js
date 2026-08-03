@@ -523,6 +523,19 @@ export default class MidPointTheme {
             var clickableByEnterElements = $(".clickable-by-enter");
             self.focusByArrowKeys(clickableByEnterElements, self);
         });
+
+        jQuery(function ($) {
+            $(document).on("keydown", ".dropdown-menu[role='menu'] .dropdown-item", function (e) {
+                if (e.key === "Tab") {
+                    const $menu = $(this).closest(".dropdown-menu");
+                    const $toggle = $menu.prev("[data-bs-toggle='dropdown']");
+                    if ($toggle.length && typeof $toggle.dropdown === "function") {
+                        $toggle.dropdown("hide");
+                        self.restoreFocus();
+                    }
+                }
+            });
+        });
     }
 
     restrictMorePopoverFocusArea() {

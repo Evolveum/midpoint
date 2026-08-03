@@ -2301,6 +2301,8 @@ footer.app-footer a {
 .navbar-nav .dropdown-menu {
   max-height: calc(100vh - 64px);
   overflow-y: auto;
+   padding-left: 5px;
+    padding-right: 5px;
 }
 
 // MID-10513 fix for issue with backdrop and modal in safari, where modal is displayed behind the backdrop.
@@ -2471,6 +2473,11 @@ footer.app-footer a {
   padding-bottom: 0px !important;
 }
 
+.dropdown-menu .dropdown-item:focus-visible {
+  position: relative;
+  z-index: 2;
+}
+
 .help-icon-after-label {
   float: left;
   margin-left: 5px;
@@ -2638,4 +2645,10 @@ footer.app-footer a {
 
 .min-width-0 {
   min-width: 0 !important;
+}
+
+.row > .composited-button-item {
+  width: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
 }
