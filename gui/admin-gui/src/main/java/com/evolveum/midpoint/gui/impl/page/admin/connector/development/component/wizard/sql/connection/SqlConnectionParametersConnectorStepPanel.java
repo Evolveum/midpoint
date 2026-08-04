@@ -55,8 +55,8 @@ public class SqlConnectionParametersConnectorStepPanel extends AbstractFormWizar
 
     public static final String PANEL_TYPE = "cdw-sql-connection-parameters";
 
-    private static final ItemName JDBC_URL = ItemName.from("", "jdbcUrl");
-    private static final ItemName USERNAME = ItemName.from("", "username");
+    public static final ItemName JDBC_URL = ItemName.from("", "jdbcUrl");
+    public static final ItemName USERNAME = ItemName.from("", "username");
     private static final ItemName PASSWORD = ItemName.from("", "password");
     private static final ItemName POOL_SIZE = ItemName.from("", "poolSize");
     private static final ItemName CONNECTION_TIMEOUT = ItemName.from("", "connectionTimeout");

@@ -219,13 +219,13 @@ public class ConnectorDevelopmentWizardUtil {
 
     private static <C extends PrismContainerWrapper<?>> Object getPropertyValue(C container, ItemPath path) {
         if (container == null) {
-            return false;
+            return null;
         }
 
         try {
             PrismPropertyWrapper<?> propertyWrapper = container.findProperty(path);
             if (propertyWrapper == null || propertyWrapper.getValues().isEmpty()) {
-                return false;
+                return null;
             }
             if (propertyWrapper.getValues().get(0).getNewValue() != null) {
                 return propertyWrapper.getValues().get(0).getNewValue().getRealValue();
