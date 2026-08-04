@@ -121,6 +121,11 @@
             <artifactId>jquery</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>de.agilecoders.wicket.webjars</groupId>
+            <artifactId>wicket-webjars</artifactId>
+            <version>4.0.14</version>
+        </dependency>
 
         <!-- JDBC DRIVERS -->
         <dependency>
