@@ -18,12 +18,6 @@ import java.util.Map;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.OtpManager;
-import com.evolveum.midpoint.gui.impl.converter.*;
-
-import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
@@ -57,7 +51,6 @@ import org.apache.wicket.pageStore.IPageStore;
 import org.apache.wicket.pageStore.disk.NestedFolders;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.serialize.java.JavaSerializer;
@@ -79,6 +72,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
@@ -90,10 +84,13 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.converter.*;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
+import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -222,11 +219,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 .unsafeInline()
                 .add(CSPDirective.IMG_SRC, "*", "data:")
                 .add(CSPDirective.FONT_SRC, "data:");
-
-        // This is needed for wicket to work correctly. Also jQuery version in webjars should match AdminLTE jQuery version.
-        // We'll try to use npm/webpack to create this jquery resource directly, without webjars [todo lazyman]
-        getJavaScriptLibrarySettings().setJQueryReference(
-                new PackageResourceReference(MidPointApplication.class, "../../../../../META-INF/resources/webjars/jquery/3.6.0/jquery.min.js"));
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 

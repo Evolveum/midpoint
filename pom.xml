@@ -1497,13 +1497,6 @@
                 <version>${bouncycastle.version}</version>
             </dependency>
 
-            <!-- webjars -->
-            <dependency>
-                <groupId>org.webjars</groupId>
-                <artifactId>jquery</artifactId>
-                <version>3.6.0</version>
-            </dependency>
-
             <dependency>
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
