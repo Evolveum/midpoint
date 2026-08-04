@@ -177,7 +177,8 @@ public class ConnectionConnectorStepPanel extends AbstractFormWizardStepPanel<Co
         if (ConnectorDevelopmentWizardUtil.isSql(getDetailsModel())) {
             return List.of(
                     new SqlConnectionParametersConnectorStepPanel(getHelper()),
-                    new ResourceTestConnectorStepPanel(getHelper(), SqlConnectionParametersConnectorStepPanel.PANEL_TYPE));
+                    new ResourceTestConnectorStepPanel(getHelper(), SqlConnectionParametersConnectorStepPanel.PANEL_TYPE),
+                    new WaitingSchemaConnectorStepPanel(getHelper()));
         }
         return List.of(
                 new WaitingBasicInfoConnectorStepPanel(getHelper()),
