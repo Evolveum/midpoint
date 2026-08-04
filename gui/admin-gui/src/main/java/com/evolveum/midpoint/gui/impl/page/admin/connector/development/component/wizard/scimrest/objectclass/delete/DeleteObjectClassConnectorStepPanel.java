@@ -45,6 +45,11 @@ public class DeleteObjectClassConnectorStepPanel extends AbstractObjectClassConn
 
     @Override
     public List<WizardStep> createChildrenSteps() {
+        if (isSql()) {
+            return List.of(
+                    new WaitingDeleteConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new DeleteScriptConnectorStepPanel(getHelper(), getObjectClassModel()));
+        }
         return List.of(
                 new DeleteEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingDeleteConnectorStepPanel(getHelper(), getObjectClassModel()),
