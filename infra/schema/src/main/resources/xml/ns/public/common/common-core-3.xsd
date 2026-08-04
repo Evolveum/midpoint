@@ -5283,9 +5283,6 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="iterationSpecification" type="tns:IterationSpecificationType"/>
-
-
 
     <xsd:complexType name="ProvenanceFeedDefinitionType">
         <xsd:annotation>
