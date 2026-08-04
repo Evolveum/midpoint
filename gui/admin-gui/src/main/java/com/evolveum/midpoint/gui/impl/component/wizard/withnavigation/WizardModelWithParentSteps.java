@@ -111,6 +111,13 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
 
     public abstract void showSummaryPanel();
 
+    /**
+     * Forces the cached children steps of the given parent step to be recomputed on next access
+     * (e.g. after a decision that {@link WizardParentStep#createChildrenSteps()} depends on, such
+     * as an integration type selection, has just been persisted).
+     */
+    public abstract void invalidateChildrenSteps(String parentStepId);
+
 //    public AbstractWizardController getWizardController() {
 //        return wizardController;
 //    }
