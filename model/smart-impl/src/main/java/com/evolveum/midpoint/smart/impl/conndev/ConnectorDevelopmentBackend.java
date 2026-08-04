@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
@@ -369,9 +370,7 @@ public abstract class ConnectorDevelopmentBackend {
     public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
     public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
     public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
-    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
-    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
     public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
 
     public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
@@ -781,6 +780,40 @@ public abstract class ConnectorDevelopmentBackend {
             }
         }
         return contents.length() > 0 ? contents.toString() : bundleJson;
+    }
+
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
+            List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/classes", skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
+                var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
+                var jsonClasses = o.get("objectClasses");
+                for (var jsonClass : jsonClasses) {
+                    var objClass = ConnDevJsonMapper.mapObjectClassFromJson(jsonClass);
+                    if (objClass.isRelevant() || includeUnrelated) {
+                        ret.add(objClass);
+                    }
+                }
+                return ret;
+            });
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover object classes from documentation", e);
+        }
+    }
+
+    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
+                var ret = new ArrayList<ConnDevAttributeInfoType>();
+                var jsonAttributes = (ObjectNode) o.get("attributes");
+                for (var entry : jsonAttributes.properties()) {
+                    ret.add(ConnDevJsonMapper.mapAttributeFromJson(entry.getKey(), entry.getValue()));
+                }
+                return ret;
+            });
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover attributes for object class " + objectClass, e);
+        }
     }
 
     /**

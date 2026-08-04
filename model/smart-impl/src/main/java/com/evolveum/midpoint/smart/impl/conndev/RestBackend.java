@@ -311,25 +311,6 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
-        try(var job = client().postJob("digester/{sessionId}/classes", skipCache)) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
-                var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
-                var jsonClasses = o.get("objectClasses");
-                for (var jsonClass : jsonClasses) {
-                    var objClass = ConnDevJsonMapper.mapObjectClassFromJson(jsonClass);
-                    if (objClass.isRelevant() || includeUnrelated) {
-                        ret.add(objClass);
-                    }
-                }
-                return ret;
-            });
-        } catch (IOException e) {
-            throw new SystemException("Couldn't discover object classes from documentation", e);
-        }
-    }
-
-    @Override
     public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
         try (var job = client().postJob("digester/{sessionId}/connectivity-endpoint", skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
@@ -367,22 +348,6 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         }
     }
 
-
-    @Override
-    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
-        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", skipCache)) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
-                var ret = new ArrayList<ConnDevAttributeInfoType>();
-                var jsonAttributes = (ObjectNode) o.get("attributes");
-                for (var entry : jsonAttributes.properties()) {
-                    ret.add(ConnDevJsonMapper.mapAttributeFromJson(entry.getKey(), entry.getValue()));
-                }
-                return ret;
-            });
-        } catch (IOException e) {
-            throw new SystemException("Couldn't discover attributes for object class " + objectClass, e);
-        }
-    }
 
     @Override
     public void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException,

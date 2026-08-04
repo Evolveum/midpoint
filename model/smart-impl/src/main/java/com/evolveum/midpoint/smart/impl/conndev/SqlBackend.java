@@ -58,22 +58,7 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
-            List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
-    }
-
-    @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
-    }
-
-    @Override
-    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
         // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
         LOGGER.warn(NOT_YET_IMPLEMENTED);
         return List.of();
