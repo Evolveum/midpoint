@@ -6,6 +6,9 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -17,7 +20,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.MimeTypeUtil;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -26,9 +29,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
-import static com.evolveum.midpoint.web.component.input.validator.FileMagicNumberConstants.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
 
 /**
  * @author katkav
@@ -87,7 +87,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
             @Override
             public void uploadFileFailed(AjaxRequestTarget target) {
                 super.uploadFileFailed(target);
-                target.add(((PageBase) getPage()).getFeedbackPanel());
+                target.add(((PageAdminLTE) getPage()).getFeedbackPanel());
             }
 
             @Override
