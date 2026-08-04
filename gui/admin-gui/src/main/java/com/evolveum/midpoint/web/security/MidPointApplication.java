@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.datatype.Duration;
 
+import de.agilecoders.wicket.webjars.WicketWebjars;
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -328,6 +329,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         wicketConfigurators.forEach(c -> c.configure(this));
 
         // default select2 css/js should not be attached via wicket resources. It's already embedded in vendors js/css
+        WicketWebjars.install(this);
+
         org.wicketstuff.select2.ApplicationSettings settings = org.wicketstuff.select2.ApplicationSettings.get();
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
