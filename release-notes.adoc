@@ -176,6 +176,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed saving dynamic extension attributes. See bug:MID-11716[]
 * Fixed recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts. See bug:MID-11201[]
 * Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
+* Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 
 === Releases Of Other Components
 
