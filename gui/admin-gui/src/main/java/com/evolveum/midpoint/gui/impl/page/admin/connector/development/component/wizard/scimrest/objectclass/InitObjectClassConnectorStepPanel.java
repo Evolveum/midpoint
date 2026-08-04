@@ -56,6 +56,21 @@ public class InitObjectClassConnectorStepPanel extends AbstractObjectClassConnec
 
     @Override
     public List<WizardStep> createChildrenSteps() {
+        if (isSql()) {
+            return List.of(
+                    new ObjectClassSelectConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new WaitingNativeSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new WaitingConnIdSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new SchemaScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new ShowSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new WaitingSearchAllConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new SearchAllScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new SearchAllObjectsConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new WaitingSearchByIdConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new SearchByIdScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
+                    new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()));
+        }
         return List.of(
                 new ObjectClassSelectConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), getObjectClassModel()),
