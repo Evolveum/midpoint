@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +49,8 @@ public abstract class ConnectorDevelopmentBackend {
     private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
     private static final String CONNDEV_OBJECT_CLASS = "conndev_ObjectClass";
     private static final String CONNDEV_CONTENT_TYPE = "application/com.evolveum.conndev+json";
+    protected static final long SLEEP_TIME = 5 * 1000L;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     protected final Task task;
     protected final OperationResult result;
 
@@ -707,14 +710,78 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
+    private String sessionId() {
+        return developmentObject().getOid();
+    }
+
+    protected ServiceClient client() {
+        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
+    }
+
     /**
-     * Pushes the freshly built dev-shadow documentation to the generation service, waits for it to be
-     * processed, and pulls the processed result back as file-backed {@link ProcessedDocumentation}. The
-     * service is the source of truth: a {@link ProcessedDocumentation} only ever comes into being from
-     * what the service returns for a processed upload. Backends without a generation service (offline) do
-     * not support this.
+     * Pushes each freshly built dev-shadow documentation to the connector-generation service via
+     * {@code POST session/{sessionId}/documentation/{docId}} and pulls the processed result back into
+     * midPoint. The service processes each upload with the LLM (chunking it into {@code DocumentationItem}s)
+     * as an asynchronous job, and the jobs run in parallel, so all docs are submitted first and only then
+     * are the resulting jobs harvested (submit-all-then-wait) instead of blocking on each doc in turn.
+     * Backends without a generation service (offline) override this to skip synchronization entirely.
      */
-    protected abstract List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException;
+    protected List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException {
+        if (documentation.isEmpty()) {
+            return List.of();
+        }
+
+        var sync = client().synchronizationClient();
+        try {
+            // Submit every upload first so the (parallel) processing jobs run concurrently on the service.
+            for (var doc : documentation) {
+                sync.postDocumentation(
+                        doc.uuid(),
+                        new ByteArrayInputStream(doc.content().getBytes(StandardCharsets.UTF_8)),
+                        ContentType.create(doc.contentType(), StandardCharsets.UTF_8),
+                        doc.uri());
+            }
+
+            // Harvest: wait for each upload to finish processing (HEAD 204), then pull the processed
+            // content back from the service and only now materialize it as a ProcessedDocumentation,
+            // keeping the original uri/uuid so the merge in the caller works.
+            var synced = new ArrayList<ProcessedDocumentation>();
+            for (var doc : documentation) {
+                sync.awaitDocumentation(doc.uuid(), SLEEP_TIME, canRun());
+                var content = extractDocumentationContent(sync.getDocumentation(doc.uuid()));
+                var processed = new ProcessedDocumentation(doc.uuid(), doc.uri()).contentType(doc.contentType());
+                processed.write(content);
+                synced.add(processed);
+            }
+            return synced;
+        } catch (IOException e) {
+            throw new SystemException("Couldn't synchronize documentation with the generation service", e);
+        }
+    }
+
+    /**
+     * Extracts the documentation content from a {@code GET documentation/{docId}} bundle. The bundle is
+     * {@code {docId, chunks:[{content, ...}]}}; a conndev schema is preserved as a single item, so there
+     * is normally one chunk whose {@code content} is the original schema JSON. Multiple chunks are joined
+     * (best effort); a bundle with no chunk content falls back to the raw bundle JSON.
+     */
+    private String extractDocumentationContent(String bundleJson) throws IOException {
+        var chunks = MAPPER.readTree(bundleJson).get("chunks");
+        if (chunks == null || !chunks.isArray() || chunks.isEmpty()) {
+            return bundleJson;
+        }
+        var contents = new StringBuilder();
+        for (var chunk : chunks) {
+            var content = chunk.get("content");
+            if (content != null && !content.isNull()) {
+                if (contents.length() > 0) {
+                    contents.append("\n");
+                }
+                contents.append(content.asText());
+            }
+        }
+        return contents.length() > 0 ? contents.toString() : bundleJson;
+    }
 
     /**
      * Development object classes whose objects are forwarded as documentation: the shared
