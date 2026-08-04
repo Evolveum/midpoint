@@ -18,8 +18,7 @@ import java.util.Map;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.converter.*;
-
+import de.agilecoders.wicket.webjars.WicketWebjars;
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -84,6 +83,7 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.converter.*;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.*;
@@ -327,6 +327,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         wicketConfigurators.forEach(c -> c.configure(this));
 
         // default select2 css/js should not be attached via wicket resources. It's already embedded in vendors js/css
+        WicketWebjars.install(this);
+
         org.wicketstuff.select2.ApplicationSettings settings = org.wicketstuff.select2.ApplicationSettings.get();
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
