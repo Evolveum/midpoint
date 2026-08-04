@@ -20,7 +20,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.MimeTypeUtil;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -87,7 +86,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
             @Override
             public void uploadFileFailed(AjaxRequestTarget target) {
                 super.uploadFileFailed(target);
-                target.add(((PageAdminLTE) getPage()).getFeedbackPanel());
+                target.add(getParentPage().getFeedbackPanel());
             }
 
             @Override
