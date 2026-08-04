@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.impl.converter.*;
 import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
+import de.agilecoders.wicket.webjars.WicketWebjars;
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -334,6 +335,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         wicketConfigurators.forEach(c -> c.configure(this));
 
         // default select2 css/js should not be attached via wicket resources. It's already embedded in vendors js/css
+        WicketWebjars.install(this);
+
         org.wicketstuff.select2.ApplicationSettings settings = org.wicketstuff.select2.ApplicationSettings.get();
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
