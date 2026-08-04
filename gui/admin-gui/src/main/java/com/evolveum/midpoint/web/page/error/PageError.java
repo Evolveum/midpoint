@@ -18,7 +18,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.http.WebResponse;
 import org.springframework.http.HttpStatus;
 
@@ -56,8 +55,6 @@ public class PageError extends PageBase {
     String exClass;
     String exMessage;
 
-    private final IModel<String> errorMessageModel = Model.of();
-
     public PageError() {
         this(500);
     }
@@ -90,8 +87,7 @@ public class PageError extends PageBase {
         Label codeLabel = new Label(ID_CODE, code);
         add(codeLabel);
 
-        setErrorMessage(getString(getErrorMessageKey()));
-        Label errorMessage = new Label(ID_ERROR_MESSAGE, errorMessageModel);
+        Label errorMessage = new Label(ID_ERROR_MESSAGE, createStringResource(getErrorMessageKey()));
         add(errorMessage);
 
         String errorLabel = "Unexpected error";
@@ -199,10 +195,6 @@ public class PageError extends PageBase {
 
     protected String getErrorMessageKey() {
         return "PageError.message";
-    }
-
-    protected void setErrorMessage(String message) {
-        errorMessageModel.setObject(message);
     }
 
     @Override

@@ -59,8 +59,5 @@ public class PageError401 extends PageError {
         ).collect(Collectors.joining("; "));
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        // Replace the generic 401 text with the translated authentication error.
-        setErrorMessage(exMessage);
     }
 }
