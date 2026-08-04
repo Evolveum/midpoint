@@ -5218,6 +5218,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.start</a:displayName>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5231,6 +5232,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.end</a:displayName>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -5281,6 +5283,9 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="iterationSpecification" type="tns:IterationSpecificationType"/>
+
+
 
     <xsd:complexType name="ProvenanceFeedDefinitionType">
         <xsd:annotation>
