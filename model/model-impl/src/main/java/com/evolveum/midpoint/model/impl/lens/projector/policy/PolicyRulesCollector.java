@@ -120,8 +120,10 @@ class PolicyRulesCollector<O extends ObjectType> {
             }
 
             String ruleId = rule.getRuleIdentifier().toString();
+            // The activity rule's bean is frozen (shared by all worker threads); the clockwork may need
+            // to modify its own copy, e.g. when resolving constraint references - hence the clone.
             PolicyRuleConfigItem ruleCI =
-                    ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
+                    ConfigurationItem.configItem(rule.getPolicyBean().clone(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
             rules.add(new DirectlyEvaluatedClockworkPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
@@ -254,8 +256,9 @@ class PolicyRulesCollector<O extends ObjectType> {
 
                 for (ActivityPolicyRule rule : activityRules) {
                     String ruleId = rule.getRuleIdentifier().toString();
+                    // Clone: the activity rule's bean is frozen and shared, see collectActivityRules.
                     PolicyRuleConfigItem ci =
-                            ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
+                            ConfigurationItem.configItem(rule.getPolicyBean().clone(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
                     LOGGER.trace("Collecting activity policy rule for assignment '{}' ({})", ci.getName(), ruleId);
                     evaluatedAssignment.addTargetPolicyRule(

@@ -48,9 +48,18 @@ public class ActivityPolicyRuleBuilder {
     }
 
     public ActivityPolicyRule build() {
-        var policyCI = ConfigurationItem.configItem(policyRule, origin, PolicyRuleConfigItem.class);
+        // The rule bean comes from the live (mutable) activity definition and is later read concurrently
+        // by all worker threads of the activity run - by the activity-side rule evaluation as well as by
+        // the per-item clockwork processing. We create a private frozen copy here, while still in the
+        // single-threaded run initialization: concurrent lazy parsing of a shared mutable prism structure
+        // is not thread-safe and was observed to leave parts of the rule (policy threshold water marks,
+        // policy actions) unreadable for the rest of the run.
+        PolicyRuleType frozenRule = policyRule.clone();
+        frozenRule.asPrismContainerValue().freeze();
 
-        return new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(policyRule));
+        var policyCI = ConfigurationItem.configItem(frozenRule, origin, PolicyRuleConfigItem.class);
+
+        return new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(frozenRule));
     }
 
     private static Set<DataNeed> getDataNeeds(PolicyRuleType policyBean) {
