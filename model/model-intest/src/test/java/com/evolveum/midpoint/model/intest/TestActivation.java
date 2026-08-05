@@ -589,7 +589,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        assertDisableReasonShadow(accountShadow, ModelDisableReason.MAPPED.uri);
     }
 
     @Test
@@ -645,7 +645,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
-        assertDisableReasonShadow(accountShadow, MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(accountShadow, ModelDisableReason.EXPLICIT.uri);
 
         assertAdministrativeStatusEnabled(userJack);
         assertDummyDisabled("jack");
@@ -678,7 +678,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, null, startTime);
-        assertDisableReasonShadow(accountShadow, MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(accountShadow, ModelDisableReason.EXPLICIT.uri);
 
         assertAdministrativeStatusEnabled(userJack);
         assertDummyDisabled("jack");
@@ -804,7 +804,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatusDisabled(account);
         assertDisableTimestampShadow(account, startTime, endTime);
-        assertDisableReasonShadow(account, MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(account, ModelDisableReason.EXPLICIT.uri);
     }
 
     /**
@@ -899,7 +899,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableTimestampShadow(accountRed, startTime, endTime);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.MAPPED.uri);
     }
 
     @Test
@@ -991,7 +991,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME,
                 getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusDisabled(accountRed);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.DEPROVISION.uri);
 
         // Red resource has disabled-instead-of-delete, therefore the account should exists and be disabled
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -1319,7 +1319,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatus(account, accountStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
         if (!accountStatus) {
-            assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+            assertDisableReasonShadow(account, ModelDisableReason.EXPLICIT.uri);
         }
 
         assertAccountShadowModel(accountYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME,
@@ -1330,7 +1330,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                     DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Bla bla bla administrator -- administrator");
         } else {
             assertAdministrativeStatus(accountYellow, ActivationStatusType.DISABLED);
-            assertDisableReasonShadow(accountYellow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+            assertDisableReasonShadow(accountYellow, ModelDisableReason.EXPLICIT.uri);
             assertNoDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
         }
 
