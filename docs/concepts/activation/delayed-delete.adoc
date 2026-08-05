@@ -1,0 +1,70 @@
+= Delayed Delete
+:page-nav-title: Delayed Delete
+:page-wiki-name: Delayed Delete
+:page-keywords: [ 'activation', 'delayed delete', 'disable instead of delete' ]
+:page-upkeep-status: green
+
+Delayed delete is a predefined activation mapping that postpones the deletion of a projection (resource object, usually an account) for a configured period after the projection has been disabled because of deprovisioning.
+It is commonly used together with xref:/midpoint/reference/concepts/activation/disable-instead-of-delete/[Disable instead of Delete], where midPoint first disables the account and only removes it later when the configured delay expires.
+
+== What happens internally
+
+The flow is:
+
+. The projection is disabled instead of being deleted immediately (ensured by "disable instead of delete" mechanism).
+. midPoint records the shadow's `activation/disableTimestamp` and the disable reason (deprovisioning).
+. midPoint creates a recompute trigger for the shadow at the calculated deadline.
+. When the trigger fires, the recompute handler re-runs activation evaluation for that projection.
+Note that the recomputation can occur also for any other reason, e.g. via reconciliation or recomputation task.
+The trigger is there only to ensure it eventually occurs.
+. During the recomputation: If the delay has elapsed and the projection still does exist and is disabled for a deprovisioning reason, the delayed-delete evaluator returns `false` for existence, which causes the projection to be deleted.
+
+The deadline is computed as:
+
+`disableTimestamp + deleteAfter`
+
+where `deleteAfter` is configured in the delayed-delete mapping.
+
+== Configuration
+
+A typical configuration looks like this:
+
+[source,xml]
+----
+<activation>
+    <disableInsteadOfDelete>
+        <lifecycleState>active</lifecycleState>
+    </disableInsteadOfDelete>
+    <delayedDelete>
+        <deleteAfter>P5D</deleteAfter>
+    </delayedDelete>
+</activation>
+----
+
+The important points are:
+
+* `disableInsteadOfDelete` puts the projection into a disabled state instead of deleting it immediately.
+* `delayedDelete` defines how long midPoint keeps the disabled projection before deletion.
+* The delete decision is evaluated only while the projection remains disabled for a deprovisioning reason.
+
+== Why deletion may not happen yet
+
+Delayed delete does not delete the projection immediately if the delay has been configured.
+Deletion is postponed until the conditions are met at the next recomputation.
+The most common reasons are:
+
+* The projection was not disabled for the deprovisioning reason expected by the evaluator.
+* The shadow does not yet have a valid `activation/disableTimestamp`.
+* The recompute trigger was not created or has not been processed yet.
+* The projection is already gone, reaped, or otherwise excluded from normal activation processing.
+
+== How to diagnose it
+
+When troubleshooting delayed delete, start with the shadow:
+
+* Check `activation/administrativeStatus` and `activation/disableReason` on the shadow.
+* Check `activation/disableTimestamp` to confirm that the reference time exists and is in the expected range.
+* Inspect whether the shadow carries a recompute trigger and whether the trigger timestamp matches the expected deadline.
+* Review model and task logs for recompute activity around the deadline.
+
+If the projection still exists after the delay, the first thing to verify is whether the account was disabled for the expected deprovisioning reason and whether a recomputation occurred after the deadline.
