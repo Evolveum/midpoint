@@ -2180,7 +2180,7 @@
                     <configuration>
                         <dependencyTrackBaseUrl>${env.DTRACK_URL}</dependencyTrackBaseUrl>
                         <apiKey>${env.DTRACK_TOKEN}</apiKey>
-                        <parentName>midPoint</parentName>
+                        <parentName>midpoint</parentName>
                         <parentVersion>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</parentVersion>
                     </configuration>
                 </plugin>
