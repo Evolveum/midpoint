@@ -195,7 +195,19 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
+            LOGGER.trace("enforceThresholds: {} object policy rules in focus context", focusContext.getObjectPolicyRules().size());
             for (DirectlyEvaluatedClockworkPolicyRule policyRule : focusContext.getObjectPolicyRules()) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("enforceThresholds: rule '{}' ({}, instance {}): evaluated={}, triggered={}, count={}, "
+                                    + "hasThreshold={}, overThreshold={}, enabledActions={}",
+                            policyRule.getName(), policyRule.getRuleIdentifier(), System.identityHashCode(policyRule),
+                            policyRule.isEvaluated(), policyRule.isTriggered(), policyRule.getCount(),
+                            policyRule.hasThreshold(), policyRule.isOverThreshold(),
+                            policyRule.isEvaluated()
+                                    ? policyRule.getEnabledActions().stream().map(a -> a.getTypeName()).toList()
+                                    : "(not computed)");
+                }
+
                 if (!policyRule.isOverThreshold()) {
                     continue;
                 }

@@ -75,8 +75,9 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
         objectClassModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConnDevObjectClassInfoType> load() {
-                if (getObjectClassName() == null) {
-                    setObjectClassName(getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME));
+                String selectedObjectClassName = getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
+                if (selectedObjectClassName != null) {
+                    setObjectClassName(selectedObjectClassName);
                     getHelper().removeVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
                 }
 

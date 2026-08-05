@@ -97,7 +97,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 String token = getTaskToken();
 
                 if (StringUtils.isEmpty(token)) {
-                    return null;
+                    return getScriptType().create(getObjectClassName());
                 }
 
                 Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
@@ -111,8 +111,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 }
                 ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();
 
-                if (artifactResultType == null) {
-                    return null;
+                if (artifactResultType == null || artifactResultType.getArtifact() == null) {
+                    return getScriptType().create(getObjectClassName());
                 }
 
                 return artifactResultType.getArtifact();
