@@ -77,6 +77,9 @@
     <!-- explicit, so the per-item "enforceThresholds: rule ..." diagnostics (count, overThreshold,
          enabledActions) survive even if the package level above is ever lowered -->
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer" level="TRACE"/>
+    <!-- enabled-actions computation ("Computing enabled actions for ...", per-action accept/skip);
+         lives outside the projector.policy package, hence the explicit logger -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl" level="TRACE"/>
 
     <!-- activity side: ActivityPolicyRulesCollector/Processor, PolicyRuleCounterUpdater,
          PreexistingValues, evaluators -->

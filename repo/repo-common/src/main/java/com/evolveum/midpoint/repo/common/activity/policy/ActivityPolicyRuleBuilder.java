@@ -17,8 +17,11 @@ import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 
 /**
  * Builder for {@link ActivityPolicyRule}.
@@ -27,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  * construction, so that it can be used in upper layers that also process policies.
  */
 public class ActivityPolicyRuleBuilder {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRuleBuilder.class);
 
     private final PolicyRuleType policyRule;
 
@@ -59,7 +64,20 @@ public class ActivityPolicyRuleBuilder {
 
         var policyCI = ConfigurationItem.configItem(frozenRule, origin, PolicyRuleConfigItem.class);
 
-        return new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(frozenRule));
+        var rule = new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(frozenRule));
+
+        // The "what will this run actually enforce" snapshot: any content lost on the way from the
+        // definition (thresholds, actions) is visible right here, at the start of the run.
+        if (LOGGER.isTraceEnabled()) {
+            PolicyThresholdType threshold = frozenRule.getPolicyThreshold();
+            LOGGER.trace("Built activity policy rule '{}' ({}) at '{}': lowWaterMark={}, highWaterMark={}, actions={}",
+                    frozenRule.getName(), rule.getRuleIdentifier(), activityPath,
+                    threshold != null && threshold.getLowWaterMark() != null ? threshold.getLowWaterMark().getCount() : null,
+                    threshold != null && threshold.getHighWaterMark() != null ? threshold.getHighWaterMark().getCount() : null,
+                    policyCI.getAllActions().stream().map(a -> a.getTypeName()).toList());
+        }
+
+        return rule;
     }
 
     private static Set<DataNeed> getDataNeeds(PolicyRuleType policyBean) {
