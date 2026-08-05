@@ -2393,26 +2393,36 @@ footer.app-footer a {
     .select2-selection__choice__remove {
       order: 2;
       flex: 0 0 auto;
-      margin-left: 0.25rem;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       width: auto;
       height: auto;
+      padding: 0;
+      margin-left: 0.25rem;
+      margin-right: 0;
+      line-height: 1;
       overflow: visible;
       text-indent: 0;
 
       color: var(--bs-white);
-      background: transparent;
+      background-color: transparent;
+      background-image: none !important;
       opacity: 0.6;
 
       span {
-        display: inline;
+        display: block;
+        line-height: 1;
         color: var(--bs-white);
       }
 
       &:hover,
       &:focus {
         color: var(--bs-white);
-        background: transparent;
+        background-color: transparent !important;
+        background-image: none !important;
         opacity: 1;
 
         span {

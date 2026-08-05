@@ -22,9 +22,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
 
 /**
- * This evaluator delayed delete base on duration from configuration {@link DelayedDeleteActivationMappingType}.
- * As reference time is used value of attribute activation/disableTimestamp from shadow.
- * We should combine with {@link DisableInsteadOfDeleteEvaluator}.
+ * Implements the predefined activation mapping for delayed shadow deletion.
+ *
+ * The evaluator postpones deletion until a configured delay has elapsed after the shadow was disabled
+ * for a deprovisioning reason. It uses the shadow's {@code activation/disableTimestamp} as the reference
+ * point and is intended to be used together with {@link DisableInsteadOfDeleteEvaluator}, because it only
+ * triggers deletion after the account has already been disabled instead of being removed immediately.
  */
 public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator {
 
@@ -32,10 +35,18 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
 
     private TimeConstraintEvaluation timeEvaluation;
 
+    /**
+     * Creates a delayed-delete evaluator for the given activation definition.
+     *
+     * @param activationDefinitionBean activation definition that contains the delayed-delete configuration
+     */
     public DelayedDeleteEvaluator(ResourceActivationDefinitionType activationDefinitionBean) {
         super(activationDefinitionBean);
     }
 
+    /**
+     * Initializes the evaluator and prepares the time-constraint helper from the configured delay.
+     */
     @Override
     public void initialize() {
         super.initialize();
@@ -44,10 +55,22 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
                 getActivationDefinitionBean().getDelayedDelete().getDeleteAfter());
     }
 
+    /**
+     * Returns the existence value used for the projection when delayed delete is active.
+     *
+     * Delayed delete always makes the projection non-existent once the configured delay has expired and the
+     * deprovisioning condition is still satisfied.
+     */
     public <F extends FocusType> boolean defineExistence(LensContext<F> context, LensProjectionContext projCtx) {
         return false;
     }
 
+    /**
+     * Computes the next recompute time for delayed delete - needed when the time did not yet come, so we have to plan
+     * the future evaluation.
+     *
+     * @return the time when the projection should be recomputed again, or {@code null} if no trigger is needed
+     */
     @Override
     public <F extends FocusType> XMLGregorianCalendar getNextRecomputeTimeForExistence(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now)
@@ -55,7 +78,7 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
         initializeIfNeeded();
 
         if (!timeEvaluation.isTimeValidityEstablished()) {
-            timeEvaluation.evaluateFrom(projCtx.getObjectDeltaObject(), now);
+            timeEvaluation.areWeAfterLimit(projCtx.getObjectDeltaObject(), now);
         }
 
         if (timeEvaluation.isTimeConstraintValid()) {
@@ -69,18 +92,24 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
         return null;
     }
 
+    /**
+     * Returns the delayed-delete configuration block from the activation definition.
+     */
     @Override
     @Nullable AbstractPredefinedActivationMappingType getConfiguration() {
         return getActivationDefinitionBean().getDelayedDelete();
     }
 
+    /**
+     * Checks whether delayed delete is currently applicable - both general condition and the time.
+     */
     @Override
     public <F extends FocusType> boolean isApplicable(
             LensContext<F> context, LensProjectionContext projCtx, XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
         initializeIfNeeded();
 
-        timeEvaluation.evaluateFrom(projCtx.getObjectDeltaObject(), now);
+        timeEvaluation.areWeAfterLimit(projCtx.getObjectDeltaObject(), now);
         if (!timeEvaluation.isTimeConstraintValid()) {
             LOGGER.trace("Time constraint isn't valid -> not applicable");
             return false;
