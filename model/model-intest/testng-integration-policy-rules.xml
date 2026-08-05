@@ -48,6 +48,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyContribution"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActions"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsComposite"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyPreseededCounter"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyCombinations"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioSimple"/>
