@@ -45,15 +45,7 @@ public class CreateObjectClassConnectorStepPanel extends AbstractObjectClassConn
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        if (isSql()) {
-            return List.of(
-                    new WaitingCreateConnectorStepPanel(getHelper(), getObjectClassModel()),
-                    new CreateScriptConnectorStepPanel(getHelper(), getObjectClassModel()));
-        }
-        return List.of(
-                new CreateEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingCreateConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new CreateScriptConnectorStepPanel(getHelper(), getObjectClassModel()));
+        return wizardStrategy().createObjectClassSteps(getHelper(), getObjectClassModel());
     }
 
     @Override
