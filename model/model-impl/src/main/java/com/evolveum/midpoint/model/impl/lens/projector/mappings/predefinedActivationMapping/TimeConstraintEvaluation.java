@@ -38,12 +38,14 @@ class TimeConstraintEvaluation implements Serializable {
     private final Duration timeOffset;
 
     /**
-     * Is the time valid regarding specified {@link #referenceTimePath} (in object provided later) and {@link #timeOffset}?
+     * Is the time constraint valid regarding specified {@link #referenceTimePath} (in object provided later)
+     * and {@link #timeOffset}? The answer depends whether we understand the constraint as `validFrom` or `validTo`,
+     * see the evaluation methods.
      *
      * {@code null} if the evaluation was not done yet.
      *
-     * @see #areWeAfterLimit(ObjectDeltaObject, XMLGregorianCalendar)
-     * @see #areWeBeforeLimit(ObjectDeltaObject, XMLGregorianCalendar)
+     * @see #evaluateAsValidFrom(ObjectDeltaObject, XMLGregorianCalendar)
+     * @see #evaluateAsValidTo(ObjectDeltaObject, XMLGregorianCalendar)
      */
     private Boolean timeConstraintValid;
 
@@ -66,12 +68,14 @@ class TimeConstraintEvaluation implements Serializable {
 
     /**
      * Evaluates whether we are _after_ the reference time plus offset.
-     * I.e. "valid from" is the value of {@link #referenceTimePath} plus {@link #timeOffset}.
+     * I.e. the constraint is understood as "valid from X" where X = {@link #referenceTimePath} plus {@link #timeOffset}.
      *
      * @param parentOdo object containing the reference timestamp (driven by {@link #referenceTimePath})
      * @param now current time used for evaluation
+     *
+     * @see #evaluateAsValidTo(ObjectDeltaObject, XMLGregorianCalendar)
      */
-    void areWeAfterLimit(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
+    void evaluateAsValidFrom(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
         if (parentOdo == null || referenceTimePath == null) {
             timeConstraintValid = true;
             return;
@@ -100,12 +104,14 @@ class TimeConstraintEvaluation implements Serializable {
 
     /**
      * Evaluates whether we are _before_ the reference time plus offset.
-     * I.e. "valid to" is the value of {@link #referenceTimePath} plus {@link #timeOffset}.
+     * I.e. the constraint is understood as "valid to X" where X = {@link #referenceTimePath} plus {@link #timeOffset}.
      *
      * @param parentOdo object containing the reference timestamp (driven by {@link #referenceTimePath})
      * @param now current time used for evaluation
+     *
+     * @see #evaluateAsValidFrom(ObjectDeltaObject, XMLGregorianCalendar)
      */
-    void areWeBeforeLimit(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
+    void evaluateAsValidTo(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
         if (parentOdo == null || referenceTimePath == null) {
             timeConstraintValid = true;
             return;

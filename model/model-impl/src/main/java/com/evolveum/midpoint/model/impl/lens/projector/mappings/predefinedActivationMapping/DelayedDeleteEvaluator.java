@@ -33,7 +33,7 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
 
     private static final Trace LOGGER = TraceManager.getTrace(DelayedDeleteEvaluator.class);
 
-    private TimeConstraintEvaluation timeEvaluation;
+    private TimeConstraintEvaluation timeConstraintEvaluation;
 
     /**
      * Creates a delayed-delete evaluator for the given activation definition.
@@ -50,7 +50,7 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
     @Override
     public void initialize() {
         super.initialize();
-        timeEvaluation = new TimeConstraintEvaluation(
+        timeConstraintEvaluation = new TimeConstraintEvaluation(
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
                 getActivationDefinitionBean().getDelayedDelete().getDeleteAfter());
     }
@@ -77,16 +77,16 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
             throws SchemaException, ConfigurationException {
         initializeIfNeeded();
 
-        if (!timeEvaluation.isTimeValidityEstablished()) {
-            timeEvaluation.areWeAfterLimit(projCtx.getObjectDeltaObject(), now);
+        if (!timeConstraintEvaluation.isTimeValidityEstablished()) {
+            timeConstraintEvaluation.evaluateAsValidFrom(projCtx.getObjectDeltaObject(), now);
         }
 
-        if (timeEvaluation.isTimeConstraintValid()) {
+        if (timeConstraintEvaluation.isTimeConstraintValid()) {
             return null;
         }
 
         if (isConditionSatisfied(projCtx)) {
-            return timeEvaluation.getNextRecomputeTime();
+            return timeConstraintEvaluation.getNextRecomputeTime();
         }
 
         return null;
@@ -109,8 +109,8 @@ public class DelayedDeleteEvaluator extends PredefinedActivationMappingEvaluator
             throws SchemaException, ConfigurationException {
         initializeIfNeeded();
 
-        timeEvaluation.areWeAfterLimit(projCtx.getObjectDeltaObject(), now);
-        if (!timeEvaluation.isTimeConstraintValid()) {
+        timeConstraintEvaluation.evaluateAsValidFrom(projCtx.getObjectDeltaObject(), now);
+        if (!timeConstraintEvaluation.isTimeConstraintValid()) {
             LOGGER.trace("Time constraint isn't valid -> not applicable");
             return false;
         }
