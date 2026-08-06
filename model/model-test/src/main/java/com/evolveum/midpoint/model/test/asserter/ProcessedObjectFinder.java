@@ -105,6 +105,10 @@ public class ProcessedObjectFinder<RA> {
         return processedObjectsAsserter;
     }
 
+    public ProcessedObjectsAsserter<ProcessedObjectsAsserter<RA>> collect(String description) {
+        return this.processedObjectsAsserter.slice(select(), description);
+    }
+
     private List<ProcessedObject<?>> select() {
         List<ProcessedObject<?>> selected = new ArrayList<>();
         int currentIndex = -1;
