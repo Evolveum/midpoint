@@ -32,7 +32,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache) {
-        try(var job = client().postJob("digester/{sessionId}/metadata", skipCache)) {
+        try(var job = client().postJob("digester/{sessionId}/metadata", null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ConnDevApplicationInfoType();
 
@@ -116,7 +116,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache) {
-        try(var job = client().postJob("digester/{sessionId}/auth", skipCache)) {
+        try(var job = client().postJob("digester/{sessionId}/auth", null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ConnDevAuthInfoType>();
                 for (var jsonAuth : json.get("auth")) {
@@ -144,7 +144,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         request.set("applicationVersion", JSON_FACTORY.textNode(
                 Objects.requireNonNullElse(developmentObject().getApplication().getVersion(), "latest")));
         request.set("llmGeneratedSearchQuery", JSON_FACTORY.booleanNode(false));
-        try(var jobSpec = client().postJob("discovery/{sessionId}/discovery", request, skipCache)) {
+        try(var jobSpec = client().postJob("discovery/{sessionId}/discovery", request, null, skipCache)) {
             return jobSpec.waitAndProcess(SLEEP_TIME, canRun(), result -> {
                 var results = jobSpec.getResult().get("candidateLinksEnriched");
 
@@ -187,7 +187,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/connectivity-endpoint", skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/connectivity-endpoint", null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevHttpEndpointType>();
                 var jsonEndpoints = o.get("endpoints");
@@ -209,7 +209,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
-        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints", skipCache)) {
+        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints", apiType(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevHttpEndpointType>();
                 var jsonClasses = o.get("endpoints");
@@ -247,7 +247,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
 
     private void downloadUsingScrapper(Collection<ConnDevDocumentationSourceType> byScrapper, Collection<ProcessedDocumentation> documentations, boolean skipCache) {
         var request = scrapperRequest(byScrapper);
-        try(var job = client().postJob("scrape/{sessionId}/scrape", request, skipCache)) {
+        try(var job = client().postJob("scrape/{sessionId}/scrape", request, null, skipCache)) {
             var scrapped = job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
 
@@ -328,7 +328,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     @Override
     public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache) {
         try {
-            try(var job = client().postJob("digester/{sessionId}/relations", skipCache)) {
+            try(var job = client().postJob("digester/{sessionId}/relations", null, skipCache)) {
                 return job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                     var ret = new ArrayList<ConnDevRelationInfoType>();
                     var jsonRelations = json.get("relations");

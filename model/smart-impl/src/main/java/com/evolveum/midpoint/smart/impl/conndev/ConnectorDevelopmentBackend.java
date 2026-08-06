@@ -417,7 +417,7 @@ public abstract class ConnectorDevelopmentBackend {
         }
         body.set("preferredAuthorizations", authArray);
 
-        try (var job = client().postJob("codegen/{sessionId}/authorization", body, skipCache)) {
+        try (var job = client().postJob("codegen/{sessionId}/authorization", body, apiType(), skipCache)) {
             String content = job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
             if (content == null || content.isBlank()) {
                 return null;
@@ -483,7 +483,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, ObjectNode body, boolean skipCache) {
-        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), body, skipCache)) {
+        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), body, null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
         } catch (IOException e) {
             throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
@@ -491,7 +491,8 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, ObjectNode body, boolean skipCache) {
-        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, body, skipCache)) {
+        var apiType = "connid".equals(endpointSuffix) ? null : apiType();
+        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, body, apiType, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
         } catch (IOException e) {
             throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
@@ -845,6 +846,12 @@ public abstract class ConnectorDevelopmentBackend {
         return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
     }
 
+    protected String apiType() {
+        var app = developmentObject().getApplication();
+        var integrationType = app != null ? app.getIntegrationType() : null;
+        return integrationType != null ? integrationType.value() : null;
+    }
+
     /**
      * Pushes each freshly built dev-shadow documentation to the connector-generation service via
      * {@code POST session/{sessionId}/documentation/{docId}} and pulls the processed result back into
@@ -912,7 +919,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
             List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/classes", skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");
@@ -930,7 +937,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", apiType(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevAttributeInfoType>();
                 var jsonAttributes = (ObjectNode) o.get("attributes");
