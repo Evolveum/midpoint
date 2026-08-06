@@ -135,7 +135,8 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends MultiWaitingCon
 
         PrismContainerValueWrapper<ConnDevObjectClassInfoType> objectClassValue =
                 ConnectorDevelopmentWizardUtil.getObjectClassValueWrapper(getDetailsModel(), getObjectClassName());
-        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)) {
+        if (ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ATTRIBUTE)
+                && ConnectorDevelopmentWizardUtil.existContainerValue(objectClassValue, ConnDevObjectClassInfoType.F_ENDPOINT)) {
             return true;
         }
 

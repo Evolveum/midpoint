@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -60,7 +61,7 @@ public abstract class MultiCompositedButtonPanel extends BasePanel<List<Composit
 //                    }
 //                };
                 item.add(additionalButton);
-//
+                item.add(AttributeAppender.append("class", "composited-button-item"));
 //                item.add(new Label(ID_BUTTON_DESCRIPTION, getButtonDescription(item.getModelObject())));
             }
         };

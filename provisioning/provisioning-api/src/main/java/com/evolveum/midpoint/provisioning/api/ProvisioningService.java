@@ -1137,7 +1137,16 @@ public interface ProvisioningService {
             ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
-     * Applies appropriate definition to the shadow.
+     * Applies appropriate definition to a {@link ResourceType} or {@link ShadowType} object (later to any other object
+     * managed by the provisioning service).
+     *
+     * By applying the definition we mean that we obtain the provisioning-specific definitions of attributes and associations
+     * (in the case of shadow) or of connector properties (in the case of a resource) and try to apply them to provided object.
+     *
+     * The operation should fail if the definition cannot be obtained e.g. if the shadow has no information about the resource
+     * or object class/type.
+     *
+     * NOTE: In the future, we may reconsider this "should fail" behavior.
      */
     <T extends ObjectType> void applyDefinition(PrismObject<T> object, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;

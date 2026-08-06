@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPan
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -172,18 +173,7 @@ public class ConnectionConnectorStepPanel extends AbstractFormWizardStepPanel<Co
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new WaitingBasicInfoConnectorStepPanel(getHelper()),
-                new BaseUrlConnectorStepPanel(getHelper()),
-                new SupportedAuthMethodConnectorStepPanel(getHelper()),
-                new WaitingAuthScriptsConnectorStepPanel(getHelper()),
-                new AuthScriptsConnectorStepPanel(getHelper()),
-                new CredentialsConnectorStepPanel(getHelper()),
-                new WaitingConnectivityEndpointConnectorStepPanel(getHelper()),
-                new EndpointConnectorStepPanel(getHelper()),
-                new FixConnectionConnectorStepPanel(getHelper()),
-                new ResourceTestConnectorStepPanel(getHelper()),
-                new WaitingSchemaConnectorStepPanel(getHelper()));
+        return ConnectorDevelopmentWizardUtil.wizardStrategyFor(getDetailsModel()).connectionSteps(getHelper());
     }
 
     @Override

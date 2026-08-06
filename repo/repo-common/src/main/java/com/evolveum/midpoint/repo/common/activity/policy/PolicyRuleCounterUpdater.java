@@ -97,7 +97,10 @@ public abstract class PolicyRuleCounterUpdater {
      * {@link #storeIncrementedPolicyRuleCounter(String, Integer)} caches.
      */
     private void setCount(@NotNull EvaluatedPolicyRule rule, String ruleIdentifier, Integer localValue) {
-        rule.setCount(localValue, computeTotalValue(ruleIdentifier, localValue));
+        Integer totalValue = computeTotalValue(ruleIdentifier, localValue);
+        // The total is what the threshold is checked against, so it's worth having it in the log.
+        LOGGER.trace("Setting counts for rule {}: local={}, total={}", ruleIdentifier, localValue, totalValue);
+        rule.setCount(localValue, totalValue);
     }
 
     /**

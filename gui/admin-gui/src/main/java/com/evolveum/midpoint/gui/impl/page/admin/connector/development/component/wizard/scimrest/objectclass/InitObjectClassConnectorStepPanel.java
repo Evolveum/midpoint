@@ -10,17 +10,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllScriptConnectorStepPanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllEndpointsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllObjectsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchAllConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdEndpointsConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.WaitingSearchByIdConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdScriptConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchByIdObjectConnectorStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -56,21 +45,7 @@ public class InitObjectClassConnectorStepPanel extends AbstractObjectClassConnec
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new ObjectClassSelectConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingNativeSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingConnIdSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SchemaScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new ShowSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchAllEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingSearchAllConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchAllScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchAllObjectsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchByIdEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingSearchByIdConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchByIdScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchByIdObjectConnectorStepPanel(getHelper(), getObjectClassModel()));
+        return wizardStrategy().initObjectClassSteps(getHelper(), getObjectClassModel());
     }
 
     @Override

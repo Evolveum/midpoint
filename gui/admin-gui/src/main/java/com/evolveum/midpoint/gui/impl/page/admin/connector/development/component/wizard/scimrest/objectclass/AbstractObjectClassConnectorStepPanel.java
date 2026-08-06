@@ -23,6 +23,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPan
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardStrategy;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -74,8 +76,9 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
         objectClassModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerValueWrapper<ConnDevObjectClassInfoType> load() {
-                if (getObjectClassName() == null) {
-                    setObjectClassName(getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME));
+                String selectedObjectClassName = getHelper().getVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
+                if (selectedObjectClassName != null) {
+                    setObjectClassName(selectedObjectClassName);
                     getHelper().removeVariable(ObjectClassSelectConnectorStepPanel.OBJECT_CLASS_NAME);
                 }
 
@@ -275,6 +278,10 @@ public abstract class AbstractObjectClassConnectorStepPanel extends AbstractForm
 
     protected final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> getObjectClassModel() {
         return objectClassModel;
+    }
+
+    protected final ConnectorWizardStrategy wizardStrategy() {
+        return ConnectorDevelopmentWizardUtil.wizardStrategyFor(getDetailsModel());
     }
 
     @Override

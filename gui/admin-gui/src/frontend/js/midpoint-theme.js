@@ -523,6 +523,19 @@ export default class MidPointTheme {
             var clickableByEnterElements = $(".clickable-by-enter");
             self.focusByArrowKeys(clickableByEnterElements, self);
         });
+
+        jQuery(function ($) {
+            $(document).on("keydown", ".dropdown-menu[role='menu'] .dropdown-item", function (e) {
+                if (e.key === "Tab") {
+                    const $menu = $(this).closest(".dropdown-menu");
+                    const $toggle = $menu.prev("[data-bs-toggle='dropdown']");
+                    if ($toggle.length && typeof $toggle.dropdown === "function") {
+                        $toggle.dropdown("hide");
+                        self.restoreFocus();
+                    }
+                }
+            });
+        });
     }
 
     restrictMorePopoverFocusArea() {
@@ -1936,13 +1949,22 @@ export default class MidPointTheme {
     hideModal(modalId) {
         const dialog = document.getElementById(modalId);
         const modal = dialog ? Modal.getInstance(dialog) : null;
+
         if (modal) {
+            dialog.addEventListener('hidden.bs.modal', () => {
+                this.cleanupModalScrollState();
+            }, { once: true });
+
             modal.hide();
-            return;
         }
 
+        this.cleanupModalScrollState();
+    }
+
+    cleanupModalScrollState() {
         document.body.classList.remove('modal-open');
         document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {
