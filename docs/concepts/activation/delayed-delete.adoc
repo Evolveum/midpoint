@@ -43,22 +43,85 @@ A typical configuration looks like this:
 
 The important points are:
 
-* `disableInsteadOfDelete` puts the projection into a disabled state instead of deleting it immediately.
+* `disableInsteadOfDelete` puts the projection into a disabled state instead of deleting it immediately and sets `activation/disableTimestamp` and `activation/disableReason`.
 * `delayedDelete` defines how long midPoint keeps the disabled projection before deletion.
 * The delete decision is evaluated only while the projection remains disabled for a deprovisioning reason.
 
-== Why deletion may not happen yet
+== Equivalent configuration
 
-Delayed delete does not delete the projection immediately if the delay has been configured.
-Deletion is postponed until the conditions are met at the next recomputation.
+The behavior can be better explained by writing an equivalent generic configuration of time-based mappings.
+
+They are more wordy thus harder to write but provide better explanation for those that know how to interpret them.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <existence>
+                    <outbound>
+                        <name>Default existence</name>
+						<description>
+							Default existence mapping provides a value in case when the second mapping is not active.
+						</description>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Delayed delete</name>
+						<description>
+							This mapping will be used only 5 days after the account is disabled.
+							It result is constant "false" which causes the account to stop existing.
+						</description>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P5D</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$shadow/activation/administrativeStatus</path>
+                        </source>
+                        <source>
+                            <path>$shadow/activation/disableReason</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    administrativeStatus == ActivationStatusType.DISABLED
+                                        &amp;&amp; disableReason == 'http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision'
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+See xref:/resources/resource-configuration/schema-handling/activation/#mapping-time-constraints[Mapping Time Constraints (for resources)] and xref:/expressions/mappings/#time-constraints[Mapping Time Constraints (in general)] for more information.
+
+== Troubleshooting: Why deletion may not happen yet
+
+Problem: Delayed delete does not delete the projection even if it has been configured.
+
 The most common reasons are:
 
 * The projection was not disabled for the deprovisioning reason expected by the evaluator.
 * The shadow does not yet have a valid `activation/disableTimestamp`.
 * The recompute trigger was not created or has not been processed yet.
 * The projection is already gone, reaped, or otherwise excluded from normal activation processing.
-
-== How to diagnose it
 
 When troubleshooting delayed delete, start with the shadow:
 
