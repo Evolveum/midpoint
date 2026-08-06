@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -180,6 +181,15 @@ public abstract class AbstractAsserter<RA> {
         assertThat(realTags)
                 .as("event marks")
                 .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
+    }
+
+    protected void assertEventMarks(List<String> expectedMarksOids, Collection<String> realTags) {
+        if (!getRepositoryService().supportsMarks()) {
+            return;
+        }
+        assertThat(realTags)
+                .as("event marks")
+                .containsExactlyInAnyOrderElementsOf(expectedMarksOids);
     }
 
     protected PrismContainer<ValueMetadataType> getValueMetadata(

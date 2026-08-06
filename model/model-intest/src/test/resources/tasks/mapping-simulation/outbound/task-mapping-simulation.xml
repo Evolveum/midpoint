@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  ~
+  -->
+
+<task oid="1c670eb2-e07f-477d-a2cd-b5377d2827ff"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+>
+
+    <name>Mapping Simulation</name>
+
+    <taskIdentifier>10000000-0000-0000-5656-56560000a208</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+
+    <activity>
+        <identifier>simulation-of-existing-mappings</identifier>
+        <work>
+            <outboundMappingsSimulation>
+                <resourceObjects>
+                    <resourceRef oid="9e776e33-90b0-4550-a367-46948b317e34" />
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+                <inlineMappings>
+                    <ref>ri:employeeNumber</ref>
+                    <outbound>
+                        <name>Personal number to employeeNumber</name>
+                        <source>
+                            <path>personalNumber</path>
+                        </source>
+                    </outbound>
+                </inlineMappings>
+            </outboundMappingsSimulation>
+        </work>
+        <execution>
+            <mode>preview</mode>
+        </execution>
+    </activity>
+</task>

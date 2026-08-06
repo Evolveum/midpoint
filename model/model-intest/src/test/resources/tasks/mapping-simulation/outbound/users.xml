@@ -1,0 +1,64 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:test="http://midpoint.evolveum.com/xml/ns/test/correlation"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <user xsi:type="UserType">
+        <name>smith1</name>
+        <givenName>John</givenName>
+        <familyName>Smith</familyName>
+        <organizationalUnit>With projection</organizationalUnit>
+        <personalNumber>1234</personalNumber>
+    </user>
+    <user xsi:type="UserType">
+        <name>smith2</name>
+        <givenName>Mark</givenName>
+        <familyName>Smith</familyName>
+        <organizationalUnit>With projection</organizationalUnit>
+    </user>
+    <user xsi:type="UserType">
+        <name>smith3</name>
+        <givenName>Mary</givenName>
+        <familyName>Smith</familyName>
+        <organizationalUnit>Without projection</organizationalUnit>
+    </user>
+    <user xsi:type="UserType">
+        <name>smith4</name>
+        <givenName>Judith</givenName>
+        <familyName>Smith</familyName>
+        <organizationalUnit>Without projection</organizationalUnit>
+        <personalNumber>0001</personalNumber>
+    </user>
+    <user xsi:type="UserType">
+        <name>cena</name>
+        <givenName>John</givenName>
+        <familyName>Cena</familyName>
+        <organizationalUnit>Marking</organizationalUnit>
+        <personalNumber>2345</personalNumber>
+    </user>
+    <user xsi:type="UserType">
+        <name>snow</name>
+        <givenName>John</givenName>
+        <familyName>Snow</familyName>
+        <organizationalUnit>Marking</organizationalUnit>
+    </user>
+    <user xsi:type="UserType">
+        <name>rambo</name>
+        <givenName>John</givenName>
+        <familyName>Rambo</familyName>
+        <organizationalUnit>Marking</organizationalUnit>
+        <personalNumber>4567</personalNumber>
+    </user>
+    <user xsi:type="UserType">
+        <name>connor</name>
+        <givenName>John</givenName>
+        <familyName>Connor</familyName>
+        <organizationalUnit>Marking</organizationalUnit>
+        <personalNumber>5678</personalNumber>
+    </user>
+</objects>
