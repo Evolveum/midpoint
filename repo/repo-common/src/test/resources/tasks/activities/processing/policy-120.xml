@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<policy oid="9c1de6a2-08f1-4a51-9d21-6e0b3c1a0121"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>policy-120</name>
+    <inducement>
+        <policyRule>
+            <name>ref-rule</name>
+            <policyConstraints>
+                <executionTime>
+                    <exceeds>PT8S</exceeds>
+                </executionTime>
+            </policyConstraints>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
