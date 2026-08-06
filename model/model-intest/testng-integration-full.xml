@@ -109,6 +109,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestShadowCaching"/>
             <class name="com.evolveum.midpoint.model.intest.TestDiscoveryBoundaries"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestQueries"/>
+            <class name="com.evolveum.midpoint.model.intest.behavior.TestBehaviorLastLoginMapping"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">
