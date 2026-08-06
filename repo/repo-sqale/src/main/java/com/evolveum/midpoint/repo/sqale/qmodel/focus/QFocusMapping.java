@@ -127,7 +127,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                         enumMapper(q -> q.lockoutStatus));
 
         addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.initForPersona(repositoryContext));
-        addRefMapping(F_LINK_REF, QObjectReferenceMapping.initForProjection(repositoryContext));
+        addRefMapping(ProjectionHolderType.F_LINK_REF,
+                QObjectReferenceMapping.initForProjection(repositoryContext));
 
         addNestedMapping(F_IDENTITIES, FocusIdentitiesType.class)
                 .addContainerTableMapping(FocusIdentitiesType.F_IDENTITY,

@@ -196,7 +196,7 @@ class AssociationSynchronizationExpressionEvaluator
                 Class<? extends ObjectType> clazz;
                 if (type != null) {
                     clazz = ObjectTypes.getObjectTypeClass(type);
-                    if (!FocusType.class.isAssignableFrom(clazz)) {
+                    if (!ProjectionHolderType.class.isAssignableFrom(clazz)) {
                         LOGGER.trace("-> Not a focus, just remove it.");
                         return false; // no shadows
                     }

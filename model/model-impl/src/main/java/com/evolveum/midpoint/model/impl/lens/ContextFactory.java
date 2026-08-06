@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -244,7 +245,7 @@ public class ContextFactory {
             for (ObjectDelta<? extends ObjectType> delta : deltas) {
                 Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
                 Validate.notNull(typeClass, "Object type class is null in " + delta);
-                if (FocusType.class.isAssignableFrom(typeClass)) {
+                if (ProjectionHolderType.class.isAssignableFrom(typeClass)) {
                     if (!delta.isAdd() && delta.getOid() == null) {
                         throw new IllegalArgumentException("Delta " + delta + " does not have an OID");
                     }

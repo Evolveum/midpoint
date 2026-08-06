@@ -1698,7 +1698,7 @@
     <!-- [med] but we need this to find PCD for AssignmentHolderType see MID-5010 -->
     <xsd:element name="assignmentHolder" type="tns:AssignmentHolderType"/>
 
-    <xsd:complexType name="BaseFocusType" abstract="true">
+    <xsd:complexType name="ProjectionHolderType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
@@ -1757,7 +1757,7 @@
     </xsd:complexType>
     <!-- No element definition for FocusType, because it is abstract.
          [med] OK but later :) We need this to be able to find PCD for FocusType ... see MID-5010 -->
-    <xsd:element name="baseFocus" type="tns:BaseFocusType"/>
+    <xsd:element name="baseFocus" type="tns:ProjectionHolderType"/>
 
     <xsd:complexType name="FocusType" abstract="true">
         <xsd:annotation>
@@ -1778,7 +1778,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:BaseFocusType">
+            <xsd:extension base="c:ProjectionHolderType">
                 <xsd:sequence>
                     <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
                         <xsd:annotation>

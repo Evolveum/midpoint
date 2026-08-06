@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -81,7 +82,7 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
             LOGGER.trace("Found {} owner(s)", owners.size());
             for (PrismObject<FocusType> owner : owners) {
                 FocusType ownerBean = owner.asObjectable();
-                Class<? extends FocusType> ownerType = ownerBean.getClass();
+                Class<? extends ProjectionHolderType> ownerType = ownerBean.getClass();
                 List<ObjectReferenceType> currentReferences = ownerBean.getLinkRef();
 
                 Collection<ObjectReferenceType> referencesToAdd = new ArrayList<>();

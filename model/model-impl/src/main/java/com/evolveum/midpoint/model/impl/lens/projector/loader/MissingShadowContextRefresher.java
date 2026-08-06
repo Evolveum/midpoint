@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -229,8 +230,8 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
             return null;
         }
         Class<F> focusClass = focusContext.getObjectTypeClass();
-        if (!FocusType.class.isAssignableFrom(focusClass)) {
-            LOGGER.trace(" -> no focus context of FocusType");
+        if (!ProjectionHolderType.class.isAssignableFrom(focusClass)) {
+            LOGGER.trace(" -> no focus context of ProjectionHolderType");
             return null;
         }
         try {

@@ -16,11 +16,12 @@ import com.evolveum.midpoint.schema.processor.SynchronizationActionDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * @author lazyman
  */
-public abstract class BaseAction<F extends FocusType> implements SynchronizationAction {
+public abstract class BaseAction<F extends ProjectionHolderType> implements SynchronizationAction {
 
     protected static final Trace LOGGER = TraceManager.getTrace(BaseAction.class);
 

@@ -11,7 +11,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.processor.SynchronizationActionDefinition;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * Contains various objects needed for the instantiation of a synchronization action.
  * (They are bundled together here to make action instantiation simpler.)
  */
-public class ActionInstantiationContext<F extends FocusType> {
+public class ActionInstantiationContext<F extends ProjectionHolderType> {
 
     @NotNull public final SynchronizationContext.Complete<F> syncCtx;
     @NotNull public final ResourceObjectShadowChangeDescription change;

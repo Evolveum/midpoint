@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -68,7 +68,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * TODO better name for the class?
  */
-public class ProjectionsLoadOperation<F extends FocusType> {
+public class ProjectionsLoadOperation<F extends ProjectionHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionsLoadOperation.class);
 
@@ -168,18 +168,18 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     }
 
     private @Nullable ReferenceDelta getLinkRefDelta(ObjectDelta<F> focusPrimaryDelta) {
-        if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
-            PrismReference linkRef = focusPrimaryDelta.getObjectToAdd().findReference(FocusType.F_LINK_REF);
-            if (linkRef == null) {
-                // Adding new focus with no linkRef -> nothing to do
-                return null;
-            } else {
-                ReferenceDelta linkRefDelta = linkRef.createDelta(FocusType.F_LINK_REF);
+            if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
+                PrismReference linkRef = focusPrimaryDelta.getObjectToAdd().findReference(ProjectionHolderType.F_LINK_REF);
+                if (linkRef == null) {
+                    // Adding new focus with no linkRef -> nothing to do
+                    return null;
+                } else {
+                    ReferenceDelta linkRefDelta = linkRef.createDelta(ProjectionHolderType.F_LINK_REF);
                 linkRefDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneValues(linkRef.getValues()));
                 return linkRefDelta;
             }
         } else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-            return focusPrimaryDelta.findReferenceModification(FocusType.F_LINK_REF);
+            return focusPrimaryDelta.findReferenceModification(ProjectionHolderType.F_LINK_REF);
         } else {
             // delete, all existing account are already marked for delete
             return null;
@@ -190,7 +190,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         PrismObject<F> focus = focusContext.getObjectCurrent();
         // process "replace" by distributing values to delete and add
         ReferenceDelta linkRefDeltaClone = linkRefDelta.clone();
-        PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
+            PrismReference linkRef = focus.findReference(ProjectionHolderType.F_LINK_REF);
         linkRefDeltaClone.distributeReplace(linkRef != null ? linkRef.getValues() : null);
         return linkRefDeltaClone;
     }
@@ -204,9 +204,9 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     private void removeLinkRefModifications() throws SchemaException {
         focusContext.modifyPrimaryDelta(delta -> {
             if (delta.getChangeType() == ChangeType.ADD) {
-                delta.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
-            } else if (delta.getChangeType() == ChangeType.MODIFY) {
-                delta.removeReferenceModification(FocusType.F_LINK_REF);
+            delta.getObjectToAdd().removeReference(ProjectionHolderType.F_LINK_REF);
+        } else if (delta.getChangeType() == ChangeType.MODIFY) {
+            delta.removeReferenceModification(ProjectionHolderType.F_LINK_REF);
             }
         });
     }
@@ -267,8 +267,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             return;
         }
 
-        var itemDeltas = PrismContext.get().deltaFor(FocusType.class)
-                .item(FocusType.F_LINK_REF)
+        var itemDeltas = PrismContext.get().deltaFor(ProjectionHolderType.class)
+                .item(ProjectionHolderType.F_LINK_REF)
                 .delete(CloneUtil.cloneCollectionMembers(linksToDelete))
                 .asItemDeltas();
         LOGGER.debug("Removing inactive linkRef values from focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));

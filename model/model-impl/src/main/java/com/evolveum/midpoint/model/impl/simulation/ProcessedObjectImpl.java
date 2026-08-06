@@ -429,7 +429,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                                 SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())),
-                objectClass.isAssignableFrom(FocusType.class),
+                objectClass.isAssignableFrom(ProjectionHolderType.class),
                 null,
                 objectBefore,
                 objectAfter,

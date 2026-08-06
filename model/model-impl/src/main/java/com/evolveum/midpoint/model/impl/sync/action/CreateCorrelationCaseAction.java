@@ -15,10 +15,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CreateCorrelationCaseSynchronizationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 @ActionDefinitionClass(CreateCorrelationCaseSynchronizationActionType.class)
-class CreateCorrelationCaseAction<F extends FocusType> extends BaseAction<F> {
+class CreateCorrelationCaseAction<F extends ProjectionHolderType> extends BaseAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CreateCorrelationCaseAction.class);
 

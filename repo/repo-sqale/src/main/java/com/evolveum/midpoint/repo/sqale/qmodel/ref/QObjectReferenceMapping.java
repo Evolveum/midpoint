@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -147,14 +148,14 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     initForProjection(@NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instanceProjection, repositoryContext)) {
             instanceProjection = new QObjectReferenceFullObjectMapping<>(
-                    FocusType.class,
-                    FocusType.F_LINK_REF,
+                    ProjectionHolderType.class,
+                    ProjectionHolderType.F_LINK_REF,
                     "m_ref_projection", "refpj", repositoryContext,
                     QShadowMapping::getShadowMapping,
-                    QFocusMapping::getFocusMapping,
+                    QAssignmentHolderMapping::getAssignmentHolderMapping,
                     (q, oq) -> q.ownerOid.eq(oq.oid),
-                    FocusType.class,
-                    FocusType.F_LINK_REF);
+                    ProjectionHolderType.class,
+                    ProjectionHolderType.F_LINK_REF);
         }
         return getForProjection();
     }

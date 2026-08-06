@@ -40,7 +40,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 /**
  * Selects and executes a synchronization reaction.
  */
-public class SynchronizationActionExecutor<F extends FocusType> {
+public class SynchronizationActionExecutor<F extends ProjectionHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationActionExecutor.class);
 

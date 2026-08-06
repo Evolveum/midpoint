@@ -35,8 +35,8 @@ public class Migrator {
             PrismObject<ResourceType> out = migrateResource((PrismObject<ResourceType>) original);
             return (PrismObject<O>) out;
         }
-        if (FocusType.class.isAssignableFrom(origType)) {
-            PrismObject<FocusType> out = migrateFocus((PrismObject<FocusType>) original);
+        if (ProjectionHolderType.class.isAssignableFrom(origType)) {
+            PrismObject<ProjectionHolderType> out = migrateBaseFocus((PrismObject<ProjectionHolderType>) original);
             original = (PrismObject<I>) out;
         }
         if (UserType.class.isAssignableFrom(origType)) {
@@ -88,7 +88,7 @@ public class Migrator {
         return action;
     }
 
-    private PrismObject<FocusType> migrateFocus(PrismObject<FocusType> orig) {
+    private PrismObject<ProjectionHolderType> migrateBaseFocus(PrismObject<ProjectionHolderType> orig) {
         return orig;
     }
 
