@@ -638,6 +638,21 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    /**
+     * Resolves the {@link ConnectorWizardStrategy} for this connector's integration type, so wizard
+     * step panels can delegate connector-type-specific decisions instead of branching themselves.
+     * Mirrors {@code ConnectorDevelopmentBackend.backendFor(...)} on the model layer.
+     */
+    public static ConnectorWizardStrategy wizardStrategyFor(ConnectorDevelopmentDetailsModel detailsModel) {
+        if (isSql(detailsModel)) {
+            return new SqlConnectorWizardStrategy();
+        }
+        if (isScim(detailsModel)) {
+            return new ScimConnectorWizardStrategy();
+        }
+        return new RestConnectorWizardStrategy();
+    }
+
     public static List<ItemName> getVisibleAuthorizationAttributes(
             ConnectorDevelopmentDetailsModel detailsModel, ConnDevAuthInfoType authType) {
         try {
