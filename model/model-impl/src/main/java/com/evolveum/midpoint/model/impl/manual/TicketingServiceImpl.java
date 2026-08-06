@@ -12,7 +12,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,12 +46,12 @@ public class TicketingServiceImpl implements TicketingService {
             aCase.getLinkRef().add(ticketShadow.getRefWithEmbeddedObject());
             return modelCrudService.addObject(aCase.asPrismObject(), null, task, result);
         } catch (Throwable t) {
-            throw new SystemException("Couldn't create a ticket for " + aCase, t);
+            throw SystemException.unexpected(t,"Couldn't create a ticket for " + aCase);
         }
     }
 
     private AbstractShadow createEmptyTicketShadow(
-            @NonNull TicketingResourceSpec ticketingResourceSpec, @NonNull Task task, @NonNull OperationResult result)
+            @NotNull TicketingResourceSpec ticketingResourceSpec, @NotNull Task task, @NotNull OperationResult result)
             throws CommonException {
         var ticketingResourcePrismObject =
                 modelService.getObject(ResourceType.class, ticketingResourceSpec.resourceOid(), null, task, result);
@@ -63,7 +62,7 @@ public class TicketingServiceImpl implements TicketingService {
     }
 
     @Override
-    public @NonNull CaseType getCase(@NonNull String caseOid, @NonNull Task task, @NonNull OperationResult result) {
+    public @NotNull CaseType getCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult result) {
         try {
             // Obtaining shadow OID (there should be exactly one)
             var aCase = modelService.getObject(CaseType.class, caseOid, null, task, result).asObjectable();
@@ -79,7 +78,7 @@ public class TicketingServiceImpl implements TicketingService {
             return modelService.getObject(CaseType.class, caseOid, null, task, result).asObjectable();
 
         } catch (Throwable t) {
-            throw new SystemException("Couldn't get a ticket for " + caseOid, t);
+            throw SystemException.unexpected(t, "Couldn't get a ticket for " + caseOid);
         }
     }
 }
