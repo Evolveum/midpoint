@@ -113,10 +113,20 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
 
         detailsPanel.add(createDetailsPlaceholder());
 
-        Component footer = drawerModel.getFooter(ID_FOOTER_PANEL, drawerModel);
+        detailsPanel.add(createFooter());
+    }
+
+    private @NotNull Component createFooter() {
+        Component footer = drawerModel.getFooter(
+                ID_FOOTER_PANEL,
+                drawerModel);
+
         footer.setOutputMarkupId(true);
-        footer.add(new VisibleBehaviour(() -> drawerModel.isFooterVisible()));
-        detailsPanel.add(footer);
+        footer.setOutputMarkupPlaceholderTag(true);
+        footer.add(new VisibleBehaviour(
+                () -> drawerModel.isFooterVisible()));
+
+        return footer;
     }
 
     private void customizeDetailsPanelWidth(WebMarkupContainer detailsPanel) {
@@ -206,6 +216,8 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
         this.drawerModel = Objects.requireNonNull(drawerModel);
 
         replaceSelectedDetailsContent();
+        getDetailsPanel().addOrReplace(createFooter());
+
         target.add(this);
     }
 
