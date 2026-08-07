@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Single activity with a policyRef. The processing flag is applied in code where the test needs it. -->
+<task oid="9c1de6a2-08f1-4a51-9d21-6e0b3c1a0120"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-120-policyref</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <extension>
+                <ext:simpleMock>
+                    <ext:message>#1</ext:message>
+                </ext:simpleMock>
+            </extension>
+        </work>
+        <policies>
+            <policyRef oid="9c1de6a2-08f1-4a51-9d21-6e0b3c1a0121" type="PolicyType"/>
+        </policies>
+    </activity>
+</task>

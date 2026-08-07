@@ -447,16 +447,18 @@
                     <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Operation result status to match. It can be either PARTIAL_ERROR or FATAL_ERROR.
-                                If not present, we decide solely on error category. If error categories are not specified,
-                                any error matches.
+                                Operation result status to match. It is usually PARTIAL_ERROR or FATAL_ERROR.
+                                If not present, we decide solely on error category. A constraint with neither
+                                status nor error category specified never triggers.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Error category (network, security, policy, ...) to match.
+                                Error category (network, security, policy, ...) to match. The category is determined
+                                from the exception recorded for the item, so it can match only when the item processing
+                                ended with an exception.
 
                                 NOTE: that some errors are not propagated to the level where they can be recognized
                                 by this selector.
@@ -1891,8 +1893,9 @@
                     <xsd:element name="delay" type="xsd:duration" minOccurs="0" default="PT5S">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What delay to introduce between attempts. Actual delay is taken as a random
-                                number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
+                                What delay to introduce between attempts. Actual delay grows exponentially
+                                with the number of restarts: it is computed as delay*(2^(n-1)), where n is
+                                the number of execution attempts so far (the exponent is capped at 10).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1946,7 +1949,8 @@
                         <p>
                             When should this action be applied?
 
-                            Not supported for policy rules targeted at activities. (TODO specify more precisely)
+                            Usable only in focus-based policy rules. Conditions on actions of activity-based
+                            policy rules (activity policies) are not supported and are ignored.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

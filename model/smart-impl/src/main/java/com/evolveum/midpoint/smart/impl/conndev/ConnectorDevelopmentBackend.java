@@ -368,8 +368,137 @@ public abstract class ConnectorDevelopmentBackend {
     public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
     public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
     public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
-    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
+
+    /**
+     * Generates a non-object-class artifact (authorization script or test-connection script) or,
+     * if the artifact targets an object class, delegates to {@link #generateObjectClassArtifact}.
+     * Shared across backends: every codegen path talks to the generation service through the same
+     * {@code codegen/{sessionId}/...} routes, keyed by the {@link ConnectorDevelopmentArtifacts.KnownArtifactType}
+     * classification of the requested artifact.
+     */
+    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input, boolean skipCache) {
+        var artifactSpec = input.getArtifact();
+        var ret = artifactSpec.clone();
+        if (artifactSpec.getObjectClass() != null) {
+            return generateObjectClassArtifact(input, skipCache);
+        }
+
+        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
+        return switch (classification) {
+            case AUTHENTICATION_CUSTOMIZATION -> generateAuthorizationScript(input, classification, skipCache);
+            case TEST_CONNECTION_DEFINITION -> ret.content("""
+                        test {
+                            // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
+                            // how to write test connection part of the script.
+                            // Usually it is only necessary to specify endpoint here.
+                            endpoint("/my_preferences")
+                        }
+                        """);
+            default -> throw new IllegalStateException("Unexpected value: " + artifactSpec.getIntent());
+        };
+    }
+
+    private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification, boolean skipCache) {
+        var auths = developmentObject().getConnector().getAuth();
+        if (auths.isEmpty()) {
+            return null;
+        }
+
+        var body = repairContextBody(input);
+
+        var authArray = JSON_FACTORY.arrayNode();
+        for (var auth : auths) {
+            if (auth.getType() == null) continue;
+            var authNode = JSON_FACTORY.objectNode();
+            authNode.set("name", JSON_FACTORY.textNode(auth.getName() != null ? auth.getName() : ""));
+            authNode.set("type", JSON_FACTORY.textNode(auth.getType().value()));
+            authNode.set("quirks", JSON_FACTORY.textNode(auth.getQuirks() != null ? auth.getQuirks() : ""));
+            authArray.add(authNode);
+        }
+        body.set("preferredAuthorizations", authArray);
+
+        try (var job = client().postJob("codegen/{sessionId}/authorization", body, apiType(), skipCache)) {
+            String content = job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+            if (content == null || content.isBlank()) {
+                return null;
+            }
+            return classification.create().content(content);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't generate authorization script", e);
+        }
+    }
+
+    /**
+     * Generates an object-class-scoped artifact (schema, search, create/update/delete or relation
+     * script) by dispatching to the matching {@code codegen/{sessionId}/classes/{objectClass}/...}
+     * route. Shared across backends: REST/SCIM and SQL connectors all resolve object-class scripts
+     * through the same generation-service contract.
+     */
+    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input, boolean skipCache) {
+        var artifactSpec = input.getArtifact();
+        var objectClass = artifactSpec.getObjectClass();
+        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
+        var body = repairContextBody(input);
+        var content = switch (classification) {
+            case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "native-schema", "native schema script", body, skipCache);
+            case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "connid", "ConnID mapping script", body, skipCache);
+            case SEARCH_ALL_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
+                    "search script", body, skipCache);
+            case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
+                    "search by ID script", body, skipCache);
+            case SEARCH_FILTER_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
+                    "search filter script", body, skipCache);
+            case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script", body, skipCache);
+            case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script", body, skipCache);
+            case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script", body, skipCache);
+            case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation(), body, skipCache);
+            default -> throw new IllegalStateException("Unexpected script type: " + classification);
+        };
+        content = content.replace("${objectClass}", objectClass);
+        return artifactSpec.content(content);
+    }
+
+    private ObjectNode repairContextBody(ConnDevGenerateArtifactDefinitionType input) {
+        var body = JSON_FACTORY.objectNode();
+        var artifact = input.getArtifact();
+        body.set("currentScript", JSON_FACTORY.textNode(
+                artifact != null && artifact.getContent() != null ? artifact.getContent() : ""));
+        var errors = JSON_FACTORY.arrayNode();
+        input.getMidpointError().forEach(errors::add);
+        body.set("midpointErrors", errors);
+        var preferredEndpoints = JSON_FACTORY.arrayNode();
+        for (var endpoint : input.getEndpoint()) {
+            var jsonEndpoint = JSON_FACTORY.objectNode();
+            jsonEndpoint.set("method", JSON_FACTORY.textNode(ConnDevJsonMapper.toValue(endpoint.getOperation())));
+            jsonEndpoint.set("path", JSON_FACTORY.textNode(endpoint.getUri()));
+            preferredEndpoints.add(jsonEndpoint);
+        }
+        body.set("preferredEndpoints", preferredEndpoints);
+        return body;
+    }
+
+    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, ObjectNode body, boolean skipCache) {
+        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), body, null, skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+        } catch (IOException e) {
+            throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
+        }
+    }
+
+    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, ObjectNode body, boolean skipCache) {
+        var apiType = "connid".equals(endpointSuffix) ? null : apiType();
+        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, body, apiType, skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+        } catch (IOException e) {
+            throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
+        }
+    }
+
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
     public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
 
@@ -717,6 +846,12 @@ public abstract class ConnectorDevelopmentBackend {
         return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
     }
 
+    protected String apiType() {
+        var app = developmentObject().getApplication();
+        var integrationType = app != null ? app.getIntegrationType() : null;
+        return integrationType != null ? integrationType.value() : null;
+    }
+
     /**
      * Pushes each freshly built dev-shadow documentation to the connector-generation service via
      * {@code POST session/{sessionId}/documentation/{docId}} and pulls the processed result back into
@@ -784,7 +919,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
             List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/classes", skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");
@@ -802,7 +937,7 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", apiType(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevAttributeInfoType>();
                 var jsonAttributes = (ObjectNode) o.get("attributes");

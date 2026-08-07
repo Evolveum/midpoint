@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
@@ -173,6 +174,10 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
     }
 
+    private boolean isPolicyRuleDisabled(PolicyRuleConfigItem policyRule) {
+        return BooleanUtils.isFalse(policyRule.value().getEnabled());
+    }
+
     private ActivityPolicyRule createActivityPolicyRule(PolicyRuleConfigItem policyRuleCI) {
         PolicyRuleType policyRule = policyRuleCI.value();
 
@@ -193,6 +198,11 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             return;
         }
 
+        if (isPolicyRuleDisabled(policyRule)) {
+            LOGGER.trace("Skipping disabled object policy rule '{}' in {}", policyRule.getName(), segment.source);
+            return;
+        }
+
         ActivityPolicyRule activityPolicyRule = createActivityPolicyRule(policyRule);
 
         LOGGER.trace("Collecting object policy rule '{}' in {}", policyRule.getName(), segment.source);
@@ -203,6 +213,11 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private void collectTargetPolicyRule() {
         var policyRule = segment.assignmentConfigItem.getPolicyRule();
         if (policyRule == null) {
+            return;
+        }
+
+        if (isPolicyRuleDisabled(policyRule)) {
+            LOGGER.trace("Skipping disabled target policy rule '{}' in {}", policyRule.getName(), segment.source);
             return;
         }
 
