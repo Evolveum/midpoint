@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.*;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
@@ -996,26 +997,28 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                     ConnectorType.class,
                     null,
                     (connector, searchResult) -> {
-                        ConnectorType connectorBean = (ConnectorType) connector.asObjectable();
-                        if (connectorBean.getDiscoveryTimestamp() == null
-                                || connectorBean.getDiscoveryTimestamp().isEmpty()) {
+                        ConnectorType connectorBean = connector.asObjectable();
+                        ProtectedStringType existingDiscoveryTimestampPS = connectorBean.getDiscoveryTimestamp();
+                        if (existingDiscoveryTimestampPS == null || existingDiscoveryTimestampPS.isEmpty()) {
 
-                            long discoverTimestamp = Instant.now().toEpochMilli();
+                            long now = Instant.now().toEpochMilli();
 
                             try {
-                                ProtectedStringType discoverTimestampBean = new ProtectedStringType()
+                                ProtectedStringType nowPS = new ProtectedStringType()
                                         .clearValue(
-                                                String.valueOf(discoverTimestamp));
-                                protector.encrypt(discoverTimestampBean);
+                                                String.valueOf(now));
+                                protector.encrypt(nowPS);
 
                                 repositoryService.modifyObject(ConnectorType.class, connector.getOid(),
                                         prismContext.deltaFor(ConnectorType.class)
                                                 .item(ConnectorType.F_DISCOVERY_TIMESTAMP)
-                                                .replace(discoverTimestampBean)
+                                                .replace(nowPS)
                                                 .asItemDeltas(), result);
                             } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException |
                                     EncryptionException e) {
-                                LOGGER.error("Couldn't store discovery timestamp to connector '%s'".formatted(connectorBean.getName()), e);
+                                LoggingUtils.logUnexpectedException(
+                                        LOGGER, "Couldn't store discovery timestamp to connector '{}'", e, connectorBean.getName());
+                                searchResult.recordException(e);
                             }
                         }
                         return true;
@@ -1024,7 +1027,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                     false,
                     result);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't search connectors because of storing discovery timestamp to connectors.", e);
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Couldn't search connectors because of storing discovery timestamp to connectors.", e);
+            result.recordException(e);
         }
     }
 
