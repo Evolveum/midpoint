@@ -142,7 +142,7 @@ public class ActivityPolicyRule implements DebugDumpable {
 
     @Override
     public String toString() {
-        return "EvaluatedActivityPolicyRule{" +
+        return "ActivityPolicyRule{" +
                 "policy=" + policyRuleCI.getName() +
                 '}';
     }

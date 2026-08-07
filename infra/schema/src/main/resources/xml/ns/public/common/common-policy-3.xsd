@@ -1949,7 +1949,8 @@
                         <p>
                             When should this action be applied?
 
-                            Not supported for policy rules targeted at activities. (TODO specify more precisely)
+                            Usable only in focus-based policy rules. Conditions on actions of activity-based
+                            policy rules (activity policies) are not supported and are ignored.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
