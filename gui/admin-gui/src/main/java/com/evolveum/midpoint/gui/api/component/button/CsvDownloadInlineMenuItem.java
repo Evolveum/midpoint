@@ -11,6 +11,7 @@ import java.io.Serial;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.StreamingCsvDataExporter;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -48,7 +49,8 @@ public class CsvDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
 
     @Override
     protected AbstractDataExporter getDataExporter() {
-        return new StreamingCsvDataExporter(component.getPageBase()) {
+        String encoding = resolveExportEncoding();
+        return new StreamingCsvDataExporter(component.getPageBase(), encoding) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -81,5 +83,18 @@ public class CsvDownloadInlineMenuItem extends ExportDownloadInlineMenuItem {
                 return super.wrapModel(getModel(model));
             }
         };
+    }
+
+    private String resolveExportEncoding() {
+        try {
+            CompiledGuiProfile profile = WebComponentUtil.getPageBase(component).getCompiledGuiProfile();
+            if (profile.getDefaultExportSettings() != null
+                    && profile.getDefaultExportSettings().getEncoding() != null) {
+                return profile.getDefaultExportSettings().getEncoding();
+            }
+        } catch (Exception ex) {
+            LOGGER.warn("Unable to get export encoding setting, falling back to utf-8", ex);
+        }
+        return "utf-8";
     }
 }
