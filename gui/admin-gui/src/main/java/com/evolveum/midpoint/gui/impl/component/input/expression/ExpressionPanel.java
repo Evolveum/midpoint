@@ -403,38 +403,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
-
                     DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
-
                     getPageBase().showRightSidebar(drawerModel, target);
-
-//                    OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
-//                        @Override
-//                        protected WebMarkupContainer createPanel(String id) {
-//                            return createEvaluatorPanel(id, true);
-//                        }
-//
-//                        @Override
-//                        public IModel<String> getTitle() {
-//                            Component panel = getPanel();
-//                            if (panel instanceof EvaluatorExpressionPanel) {
-//                                return ((EvaluatorExpressionPanel) panel).getValueContainerLabelModel();
-//                            }
-//                            return null;
-//                        }
-//
-//                        @Override
-//                        protected void processHide(AjaxRequestTarget target) {
-//                            super.processHide(target);
-//                            updateLabelForExistingEvaluator();
-//                            target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
-//                            target.add(ExpressionPanel.this);
-//
-//                            helpModel.reset();
-//                        }
-//                    };
-//                    getPageBase().showMainPopup(popupPanel, target);
-
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
                     if (ExpressionPanel.this.getModelObject() != null
