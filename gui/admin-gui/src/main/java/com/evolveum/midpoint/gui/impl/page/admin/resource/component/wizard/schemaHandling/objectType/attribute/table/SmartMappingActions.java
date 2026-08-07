@@ -981,7 +981,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                         table.acceptSuggestionItemPerformed(rowModel, target);
                         groupedDto.getColumnsValues().forEach(table::deleteItemPerform);
                         table.refreshAndDetach(target);
-                        table.getPageBase().hideMainPopup(target);
+                        table.getPageBase().hideDrawer(target);
                     } else {
                         showAcceptConfirmation(rowModel.getObject(), target);
                     }
@@ -990,7 +990,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
                 table.acceptSuggestionItemPerformed(rowModel, target);
                 table.refreshAndDetach(target);
-                table.getPageBase().hideMainPopup(target);
+                table.getPageBase().hideDrawer(target);
             }
         };
 
@@ -1011,7 +1011,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
             public void onClick(AjaxRequestTarget target) {
                 deleteItemPerform(rowModel.getObject());
                 table.refreshAndDetach(target);
-                table.getPageBase().hideMainPopup(target);
+                table.getPageBase().hideDrawer(target);
             }
         };
 
