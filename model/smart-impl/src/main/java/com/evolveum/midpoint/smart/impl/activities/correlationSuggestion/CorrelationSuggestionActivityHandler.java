@@ -11,6 +11,7 @@ package com.evolveum.midpoint.smart.impl.activities.correlationSuggestion;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
@@ -68,14 +69,14 @@ public class CorrelationSuggestionActivityHandler
             Activity<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new CorrelationSuggestionSchemaMatchingActivityRun(context),
                 null,
                 (i) -> ID_CORRELATION_SCHEMA_MATCHING,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new CorrelationSuggestionRemoteServiceCallActivityRun(context),
                 null,
                 (i) -> ID_CORRELATION_SUGGESTION,
