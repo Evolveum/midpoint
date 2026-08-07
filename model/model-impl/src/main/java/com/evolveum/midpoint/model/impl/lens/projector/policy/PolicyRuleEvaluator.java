@@ -191,8 +191,11 @@ abstract class PolicyRuleEvaluator {
     abstract void record(OperationResult result) throws SchemaException;
 
     @NotNull <R extends EvaluatedClockworkPolicyRule> List<R> selectRulesToRecord(@NotNull Collection<R> allRules) {
+        // Like other policy actions, `record` is executed only when the threshold (if any) is reached.
         return allRules.stream()
-                .filter(rule -> rule.isTriggered() && rule.containsEnabledAction(RecordPolicyActionType.class))
+                .filter(rule -> rule.isTriggered()
+                        && rule.isOverThreshold()
+                        && rule.containsEnabledAction(RecordPolicyActionType.class))
                 .collect(Collectors.toList());
     }
 }
