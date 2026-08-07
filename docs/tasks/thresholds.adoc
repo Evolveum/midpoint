@@ -21,6 +21,13 @@ For example, imagine that by the mistake, thousands of accounts was disabled in 
 If no one noticed the mistake before the reconciliation run it would end up with disabling users across all connected systems.
 To prevent such situations midPoint has to know which changes are critical and what to do in the case they occur.
 
+[NOTE]
+====
+Since midPoint 4.11, policy rules with thresholds can also be defined directly on individual task activities,
+without assigning a policy-bearing role to the whole task.
+See xref:./focus-policies-in-activities[Focus policies in activities] and xref:./activity-policies[Activity policies].
+====
+
 == Setting Thresholds
 
 For now, it is possible to set up thresholds for different tasks (reconciliation, recomputation, synchronization,...).
@@ -218,6 +225,10 @@ tailoring:
 ----
 
 == See Also
+
+* xref:./focus-policies-in-activities[Focus policies in activities]
+
+* xref:./activity-policies[Activity policies]
 
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
