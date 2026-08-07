@@ -12,7 +12,7 @@
 == Introduction
 
 Simply speaking midPoint is a Java web application.
-It is delivered in a single WAR archive and all that is needed for running it is to use appropriate tool to deploy it to the web container.
+It is delivered in a single JAR archive and all that is needed for running it is to use appropriate tool to deploy it to the web container.
 An external database is usually needed so it also needs to be configured.
 But that's basically all what you need.
 This minimal deployment is illustrated in the following diagram.
