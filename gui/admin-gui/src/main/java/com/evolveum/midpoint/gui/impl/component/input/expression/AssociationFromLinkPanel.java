@@ -28,7 +28,7 @@ public class AssociationFromLinkPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
         return Model.of("");
     }
 
