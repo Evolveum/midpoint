@@ -24,6 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkersPerNodeDefini
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -139,7 +142,16 @@ class ExpectedSetup {
 
     private Collection<String> getNodeIdentifiers(WorkersPerNodeDefinitionType perNodeDefinition) {
         if (!perNodeDefinition.getNodeIdentifier().isEmpty()) {
-            return perNodeDefinition.getNodeIdentifier();
+            Set<String> nodeIds = new HashSet<>();
+            for (String nodeIdentifier : perNodeDefinition.getNodeIdentifier()) {
+                try {
+                    Predicate<String> pattern = Pattern.compile(nodeIdentifier).asMatchPredicate();
+                    nodeIds.addAll(nodesUp.stream().filter(pattern).toList());
+                } catch (PatternSyntaxException e) {
+                    nodeIds.addAll(nodesUp.stream().filter(nodeIdentifier::equals).toList());
+                }
+            }
+            return nodeIds;
         } else {
             return nodesUp;
         }
