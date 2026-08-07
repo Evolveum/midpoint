@@ -190,19 +190,16 @@ Otherwise, phantom `roleMembershipRef` values may be added to the processed obje
 
 * Focus-based policies are only ever triggered within the clockwork context, i.e., when a focal object is being processed (added, modified, or deleted) by the activity.
 They are never triggered outside clockwork processing.
-* A single policy constraint cannot combine focus-based constraints with activity-based constraints (such as `executionTime`).
-The two kinds of policies are evaluated in different places, so combining them in one constraint is not possible.
+* A single policy rule cannot combine focus-based constraints with activity-based constraints (such as `executionTime`).
+Each rule must use only one of the two kinds.
+Note that mixing them is not reported as a configuration error: such a rule is evaluated as an activity policy and its focus-based constraints are silently ignored.
 * Like other activity policies, focus policies are evaluated only for iterative (plain iterative or search based) activities.
 See xref:./activity-policies#_limitations[activity policy limitations] for the full list.
 * Virtual assignment targets should contain policies only, as noted above.
 * Focus-based policies in activities are configured in XML only.
 The GUI does not support configuring composite tasks or policies, and does not display configured policies.
-* The task-details GUI actions for activity policies fully support inline policies only.
-The _disable activity policies_ action does not disable focus policies contributed via `policyRef` or virtual assignments.
-This matters when a threshold-based focus policy has suspended the task; see xref:./activity-policies#_limitations[activity policy limitations].
-* In implicit composite activities (such as reconciliation), a policy defined on a parent activity may currently be collected more than once for its embedded child activities when no tailoring is in place.
-This can affect threshold counts.
-Be careful when relying on precise thresholds for policies defined on parent activities of a implicit composite task.
+* When a threshold-based focus policy has suspended the task, use the policy processing switch to resume it: the task-details _disable activity policies_ action (or the `processing` element set by hand) suppresses focus policies from all sources, including `policyRef` and virtual assignments.
+See xref:./activity-policies#_disabling_policy_processing[Disabling policy processing].
 
 == See also
 

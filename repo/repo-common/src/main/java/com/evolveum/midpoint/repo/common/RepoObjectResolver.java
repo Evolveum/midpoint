@@ -59,8 +59,12 @@ public class RepoObjectResolver implements ObjectResolver {
     @Override
     public <O extends ObjectType> @NotNull O resolve(Referencable ref, Class<O> expectedType,
             Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription, Task task,
-            OperationResult result) {
-        throw new UnsupportedOperationException("not yet implemented");
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
+        String oid = ref != null ? ref.getOid() : null;
+        if (oid == null) {
+            throw new UnsupportedOperationException("Only OID-based references are supported here: " + contextDescription);
+        }
+        return getObject(expectedType, oid, options, task, result);
     }
 
     @Override

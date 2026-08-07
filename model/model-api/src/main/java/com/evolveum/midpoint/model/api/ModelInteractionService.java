@@ -790,9 +790,32 @@ public interface ModelInteractionService {
      * Updates enabled status of all activity policies recursively inside {@link ActivityDefinitionType} in the specified task.
      *
      * Returns true if any change was made.
+     *
+     * @deprecated This operation rewrites the {@code enabled} flag of individual inline rules, so it cannot affect
+     * rules coming from {@code policyRef} or {@code virtualAssignments}, and on enable it also removes {@code enabled}
+     * values written by hand. Use {@link #updateActivityPoliciesProcessing(PrismObject, ActivityPoliciesProcessingType,
+     * Task, OperationResult)} instead.
      */
+    @Deprecated
     boolean updateAllActivityPoliciesEnabledStatus(
             @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
+
+    /**
+     * Sets or clears the policy processing switch ({@code activity/policies/processing}) on the root activity
+     * definition of the given task. Passing null removes the switch (restoring full processing). This is the
+     * preferred way to operationally disable policies of a task (e.g. to resume it after a threshold was met):
+     * unlike per-rule {@code enabled} rewriting, it also covers {@code policyRef} and {@code virtualAssignments}
+     * sources and does not touch the rule definitions.
+     *
+     * Takes effect on the next activity run (rules are collected at run start).
+     *
+     * @return true if the task was changed, false if there was nothing to do (no activity, or same value already set)
+     */
+    boolean updateActivityPoliciesProcessing(
+            @NotNull PrismObject<TaskType> object, @Nullable ActivityPoliciesProcessingType processing,
+            @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 

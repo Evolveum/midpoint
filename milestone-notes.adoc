@@ -1,0 +1,14 @@
+= Milestone to Milestone upgrade instructions and notes
+:toc:
+:page-nav-title: Milestone upgrade instructions
+
+WARNING: This page is written for internal purposes, and we don't give any guarantee that these instructions and notes are complete, nor that it will work at all... but we do our best.
+
+This page contains the upgrade instructions and incompatibility changes that could cause problems during upgrades from a milestone to a milestone, before the "in development" version is released. Useful for continuous testing of the developed features etc.
+
+The upgrade instructions between releases are in the https://docs.evolveum.com/midpoint/release/[release notes].
+
+== 4.11-RC2
+== 4.11-RC1
+== 4.11-M6
+== 4.11-M5

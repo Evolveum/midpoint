@@ -169,12 +169,20 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void executeActions(EvaluatedActivityPolicyRuleImpl rule, OperationResult result) throws ActivityRunPolicyException {
+        // Notifications are sent first, regardless of where they appear among the actions:
+        // the order of actions in the parsed rule is not guaranteed, and the first enforcing
+        // action below ends the processing by throwing an exception.
         for (PolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationPolicyActionType) {
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
 
                 activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
-                continue;
+            }
+        }
+
+        for (PolicyActionType action : rule.getActions()) {
+            if (action instanceof NotificationPolicyActionType) {
+                continue; // already processed above
             }
 
             String ruleName = rule.getName();

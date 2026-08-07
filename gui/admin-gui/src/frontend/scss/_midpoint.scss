@@ -1505,6 +1505,12 @@ td .prism-property-value {
   margin-right: 0px !important;
 }
 
+.row > div:has(> .additionalButton) {
+  width: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
 .compositedButton {
   display: flex;
   flex-direction: column;
