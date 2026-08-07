@@ -16718,6 +16718,11 @@
                     <xsd:documentation>
                         Whether the policy rule will be evaluated.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>PolicyRuleType.enabled</a:displayName>
+                        <a:help>PolicyRuleType.enabled.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
@@ -16769,8 +16774,8 @@
                         interval for counter, ...
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>PolicyRuleType.policySituation</a:displayName>
-                        <a:help>PolicyRuleType.policySituation.help</a:help>
+                        <a:displayName>PolicyRuleType.policyThreshold</a:displayName>
+                        <a:help>PolicyRuleType.policyThreshold.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
