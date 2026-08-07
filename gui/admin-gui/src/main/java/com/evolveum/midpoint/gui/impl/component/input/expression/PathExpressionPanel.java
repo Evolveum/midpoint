@@ -37,8 +37,8 @@ public class PathExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("OptionObjectSelectorType.path");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("OptionObjectSelectorType.path");
     }
 
     protected void initLayout(MarkupContainer parent) {

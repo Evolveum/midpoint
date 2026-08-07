@@ -72,7 +72,7 @@ public class SmartIntegrationWrapperUtils {
     }
 
     @Contract("_, _ -> new")
-    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createcContainerModel(
+    public static <C extends Containerable> @NotNull IModel<PrismContainerWrapper<C>> createContainerModel(
             @NotNull IModel<PrismContainerValueWrapper<CorrelationDefinitionType>> model, @Nullable ItemPath path) {
         return PrismContainerWrapperModel.fromContainerValueWrapper(model, path);
     }
@@ -90,7 +90,7 @@ public class SmartIntegrationWrapperUtils {
             @Nullable PrismContainerValue<ItemsSubCorrelatorType> value,
             @NotNull AjaxRequestTarget target) {
 
-        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createcContainerModel(
+        IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> containerModel = createContainerModel(
                 model,
                 ItemPath.create(
                         CorrelationDefinitionType.F_CORRELATORS,

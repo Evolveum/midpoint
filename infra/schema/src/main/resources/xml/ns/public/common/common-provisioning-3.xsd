@@ -4946,13 +4946,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="discoveryTimestamp" type="t:ProtectedStringType">
+                    <xsd:element name="discoveryTimestamp" type="t:ProtectedStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies the protected timestamp until which the connector may be used without being present in the list of allowed connectors.
-
-                                The value is initialized when the ConnectorType object is created during connector import.
+                                Specifies the (protected) timestamp when the connector was first discovered.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -7710,11 +7711,12 @@
     <xsd:complexType name="AllowedConnectorsListType">
         <xsd:annotation>
             <xsd:documentation>
-                Represents a digitally signed list of allowed connectors imported from the Integration Catalog.
-                The list contains connector identifiers and their corresponding digital signatures.
-                After import, the data is used by midPoint to verify that connectors originate from a trusted source
-                and have not been modified before they are used in production environments.
+                Represents a public list of open source connectors issued by Evolveum.
+                The list contains connector identifiers. Each entry in the list is digitally signed.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
@@ -7736,9 +7738,14 @@
     <xsd:complexType name="SignedConnectorType">
         <xsd:annotation>
             <xsd:documentation>
-                Represents a connector identifier together with the information required
-                to verify its authenticity using a trusted public key.
+                Represents an entry in a public list of open source connectors (AllowedConnectorsListType).
+
+                Contains connector identifier together with the information required
+                to verify authenticity of the entry using a trusted public key.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="connector" type="tns:ConnectorIdentifierType">
@@ -7751,8 +7758,10 @@
             <xsd:element name="signature" type="tns:ConnectorSignatureType" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Digital signatures associated with this connector. During verification,
-                        midPoint selects the signature matching the trusted key identifier.
+                        Digital signature(s) associated with this connector. During verification,
+                        midPoint selects the appropriate signature matching known trusted key identifier.
+
+                        Multiple signatures may be present to support key rotation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7763,8 +7772,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 Digital signature of the connector identifier created using a trusted signing key.
-                Multiple signatures may be present to support key rotation.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="keyId" type="xsd:string">
@@ -7774,11 +7785,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="value" type="xsd:string">
+            <xsd:element name="value" type="xsd:base64Binary">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Ed25519 digital signature of the connector identifier encoded using Base64 URL
-                        encoding without padding.
+                        Ed25519 digital signature of the connector identifier.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7788,21 +7798,17 @@
     <xsd:complexType name="ConnectorIdentifierType">
         <xsd:annotation>
             <xsd:documentation>
-                Uniquely identifies a connector by its implementation class, version, and bundle name.
+                Uniquely identifies a connector by its implementation class and bundle name.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="className" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Fully qualified implementation class name of the connector.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="version" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Version of the connector.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
