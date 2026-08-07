@@ -323,8 +323,9 @@ For applying focus policy rules to processed objects (including via `policyRef` 
 [#_disabling_policy_processing]
 == Disabling policy processing
 
-Individual inline rules can be disabled declaratively by setting their `enabled` flag to `false`.
-However, this cannot be used for rules coming from `policyRef` (the rules live in a shared object, so disabling them there would affect every task referencing it), and there is no per-rule flag for policies brought in by virtual assignments.
+Individual rules can be disabled declaratively by setting their `enabled` flag to `false`.
+The flag is honored for rules from all sources: inline rules, rules coming from `policyRef`, and rules brought in by virtual assignments.
+However, for the latter two the rules live in a shared object, so disabling them there affects every task referencing that object.
 
 Since midPoint 4.11, policy processing can be switched off operationally using the `processing` element in the `policies` container of an activity definition.
 Unlike the per-rule `enabled` flag, the switch does not modify any rule definition, and it covers all policy sources.
