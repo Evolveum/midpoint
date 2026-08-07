@@ -54,7 +54,9 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
         SHADOW_OWNER_REFERENCE_SEARCH(ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH,
                 "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH"),
         PATH(ExpressionEvaluatorType.PATH,
-                "ExpressionEvaluatorType.PATH");
+                "ExpressionEvaluatorType.PATH"),
+        NULL(ExpressionEvaluatorType.NULL,
+                "ExpressionEvaluatorType.NULL");
 
         private final ExpressionEvaluatorType type;
         private final String translationKey;
