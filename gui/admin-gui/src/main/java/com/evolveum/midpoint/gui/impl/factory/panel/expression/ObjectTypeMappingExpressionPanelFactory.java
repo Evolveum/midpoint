@@ -18,11 +18,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 
 @Component
 public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> implements Serializable {
@@ -53,39 +57,38 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
             @Override
             public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
                 List<CollapsedItem<DrawerModel>> drawerCollapsedItems = super.getDrawerCollapsedItems();
-//TODO
 
-//                PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper = findIterationValueWrapper(panelCtx);
-//
-//                if (iterationValueWrapper == null) {
-//                    return drawerCollapsedItems;
-//                }
-//
-//                CollapsedItem<DrawerModel> collapsedItem = new CollapsedItem<>() {
-//
-//                    @Override
-//                    public IModel<String> getIcon() {
-//                        return Model.of("fa fa-sort-numeric-asc");
-//                    }
-//
-//                    @Override
-//                    public IModel<String> getTitle() {
-//                        return createStringResource("IterationSettings.button.iterationSettings");
-//                    }
-//
-//                    @Override
-//                    public org.apache.wicket.Component getPanel(String id, DrawerModel model) {
-//                        ContainerDrawerPanel<IterationSpecificationType> components = new ContainerDrawerPanel<>(
-//                                id, () -> iterationValueWrapper, null,
-//                                createStringResource("IterationSettings.definition.info"));
-//
-//                        components.info(translate("IterationSettings.description"));
-//
-//                        return components;
-//                    }
-//                };
-//
-//                drawerCollapsedItems.add(collapsedItem);
+                PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper = findIterationValueWrapper(panelCtx);
+
+                if (iterationValueWrapper == null) {
+                    return drawerCollapsedItems;
+                }
+
+                CollapsedItem<DrawerModel> collapsedItem = new CollapsedItem<>() {
+
+                    @Override
+                    public IModel<String> getIcon() {
+                        return Model.of("fa fa-sort-numeric-asc");
+                    }
+
+                    @Override
+                    public IModel<String> getTitle() {
+                        return createStringResource("IterationSettings.button.iterationSettings");
+                    }
+
+                    @Override
+                    public org.apache.wicket.Component getPanel(String id, DrawerModel model) {
+                        ContainerDrawerPanel<IterationSpecificationType> components = new ContainerDrawerPanel<>(
+                                id, () -> iterationValueWrapper, null,
+                                createStringResource("IterationSettings.definition.info"));
+
+                        components.info(translate("IterationSettings.description"));
+
+                        return components;
+                    }
+                };
+
+                drawerCollapsedItems.add(collapsedItem);
                 return drawerCollapsedItems;
 
             }

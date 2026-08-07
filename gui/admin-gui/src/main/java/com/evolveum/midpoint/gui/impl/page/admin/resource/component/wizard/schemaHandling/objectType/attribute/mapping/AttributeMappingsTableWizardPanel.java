@@ -6,15 +6,31 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.isSuggestionExists;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectTypeMappingTypeSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.ContainerDrawerInfoModel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.ContainerDrawerPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table.SmartMappingTable;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.component.dialog.AdditionalOperationConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -22,7 +38,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -35,10 +50,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -49,7 +60,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartAlertGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -74,8 +84,6 @@ import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDi
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.SuggestionsStorage;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -105,7 +113,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     private final MappingDirection initialTab;
     IModel<Boolean> inboundSuggestionToggleModel = Model.of(Boolean.FALSE);
     IModel<Boolean> outboundSuggestionToggleModel = Model.of(Boolean.FALSE);
-    boolean isInboundTabSelected = true;
+    boolean isInboundTabSelected;
     private SerializableConsumer<AjaxRequestTarget> restartTime;
 
     LoadableDetachableModel<SmartGeneratingAlertDto> suggestionModel = new LoadableDetachableModel<>() {
@@ -173,7 +181,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             @Override
 
             protected void onAjaxUpdate(@NotNull Optional<AjaxRequestTarget> optional) {
-
                 optional.ifPresent(target -> {
                     SmartAlertGeneratingPanel aiPanel = getAiPanel();
                     aiPanel.stopTimeBehavior(target); //stop old polling
@@ -188,7 +195,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
             @Override
             protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
-
                 isInboundTabSelected = index == 0;
                 if (getTable().isValidFormComponents(target.orElse(null))) {
                     super.onClickTabPerformed(index, target);
@@ -262,106 +268,440 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
 
     private @NotNull SmartMappingTable<P> createSmartMappingTable(
             String panelId,
-            IModel<Boolean> switchToggleModel,
+            IModel<Boolean> suggestionToggle,
             String resourceOid,
-            MappingDirection initialTab) {
-        IModel<PrismContainerValueWrapper<P>> valueModel = getValueModel();
-        SmartMappingTable<P> columnTileTable =
-                new SmartMappingTable<>(
-                        panelId,
-                        () -> initialTab,
-                        switchToggleModel,
-                        valueModel,
-                        resourceOid) {
+            MappingDirection direction) {
+
+        SmartMappingTable<P> table = new SmartMappingTable<>(panelId, () -> direction,
+                suggestionToggle,
+                getValueModel(),
+                resourceOid) {
+
+            @Override
+            protected void performOnEditMapping(
+                    @NotNull AjaxRequestTarget target,
+                    @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+
+                editMapping(direction, rowModel, target);
+            }
+
+            @Override
+            public void acceptSuggestionItemPerformed(
+                    @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+                    @NotNull AjaxRequestTarget target) {
+
+                processSuggestionAcceptance(this, rowModel.getObject(), target);
+            }
+
+            @Override
+            public void refreshAndDetach(AjaxRequestTarget target) {
+                suggestionModel.detach();
+                super.refreshAndDetach(target);
+
+                if (displayNoValuePanel()) {
+                    suggestionToggle.setObject(false);
+                }
+
+                target.add(getAiPanel());
+            }
+
+            @Override
+            protected @NotNull List<InlineMenuItem> getCustomSettingsMenuItems() {
+                return createSettingsMenuItems(direction);
+            }
+
+            @Override
+            protected void addAdditionalNoValueToolbarButtons(@NotNull List<Component> buttons, String buttonId) {
+
+                addSuggestionButtons(this, buttons, buttonId, resourceOid);
+            }
+
+            @Override
+            protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> resultModel) {
+
+                AttributeMappingsTableWizardPanel.this.buildSimulationResultPanel(target, resultModel);
+            }
+
+            @Override
+            protected ResourceType getResourceType() {
+                return getResourceWithAppliedDelta();
+            }
+        };
+
+        table.setOutputMarkupId(true);
+        table.add(AttributeAppender.append("class", "p-0"));
+        return table;
+    }
+
+    private @Nullable ResourceType getResourceWithAppliedDelta() {
+        PrismObjectWrapper<ResourceType> wrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+
+        try {
+            PrismObject<ResourceType> resource = wrapper.getObjectApplyDelta();
+            return resource != null ? resource.asObjectable() : null;
+        } catch (CommonException e) {
+            LOGGER.error("Couldn't get resource with applied delta. Returning the original resource.", e);
+            return getAssignmentHolderDetailsModel().getObjectType();
+        }
+    }
+
+    private void addSuggestionButtons(
+            @NotNull SmartMappingTable<P> table,
+            @NotNull List<Component> buttons,
+            @NotNull String buttonId,
+            @NotNull String resourceOid) {
+
+        buttons.add(createGenerateSuggestionButton(
+                table,
+                buttonId,
+                resourceOid));
+
+        buttons.add(createShowSuggestionsButton(
+                table,
+                buttonId,
+                resourceOid));
+    }
+
+    private @NotNull AjaxIconButton createGenerateSuggestionButton(
+            @NotNull SmartMappingTable<P> table,
+            @NotNull String id,
+            @NotNull String resourceOid) {
+
+        AjaxIconButton button = SmartSuggestButtonWithConfirmation.create(
+                id,
+                createStringResource("Suggestion.button.suggest"),
+                () -> GuiStyleConstants.CLASS_MAGIC_WAND,
+                SuggestionOption.of(
+                        ConfirmationOption.mappingPermissionsOptions()),
+                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(
+                        target -> {
+                        },
+                        (target, confirmedOptions) -> {
+                            performSuggestOperation(
+                                    target,
+                                    confirmedOptions,
+                                    false);
+
+                            refreshAfterSuggestionOperationSubmitted(target);
+                        }),
+                getPageBase());
+
+        button.add(new VisibleBehaviour(() ->
+                table.displayNoValuePanel()
+                        && !hasSuggestion(resourceOid)));
+
+        button.setOutputMarkupId(true);
+        button.showTitleAsLabel(true);
+
+        return button;
+    }
+
+    private @NotNull AjaxIconButton createShowSuggestionsButton(
+            @NotNull SmartMappingTable<P> table,
+            @NotNull String id,
+            @NotNull String resourceOid) {
+
+        AjaxIconButton button = new AjaxIconButton(
+                id,
+                () -> GuiStyleConstants.CLASS_MAGIC_WAND,
+                () -> createStringResource(
+                        "Suggestion.button.showSuggest").getString()) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                getSwitchToggleModel().setObject(Boolean.TRUE);
+
+                target.add(AttributeMappingsTableWizardPanel.this);
+                table.refreshAndDetach(target);
+            }
+        };
+
+        button.add(new VisibleBehaviour(() ->
+                table.displayNoValuePanel()
+                        && hasSuggestion(resourceOid)));
+
+        button.add(AttributeModifier.append(
+                "class",
+                "btn btn-purple"));
+
+        button.setOutputMarkupId(true);
+        button.showTitleAsLabel(true);
+
+        return button;
+    }
+
+    private boolean hasSuggestion(@NotNull String resourceOid) {
+        StatusInfo<?> status = loadSuggestion(resourceOid).getObject();
+        return isSuggestionExists(status);
+    }
+
+    private void editMapping(
+            MappingDirection direction,
+            IModel<PrismContainerValueWrapper<MappingType>> rowModel,
+            AjaxRequestTarget target) {
+
+        if (direction == MappingDirection.INBOUND) {
+            inEditInboundValue(rowModel, target);
+        } else {
+            inEditOutboundValue(rowModel, target);
+        }
+    }
+
+    private void processSuggestionAcceptance(
+            SmartMappingTable<P> table,
+            PrismContainerValueWrapper<MappingType> suggestedMapping,
+            AjaxRequestTarget target) {
+
+        StatusInfo<?> status = table.getStatusInfo(suggestedMapping);
+
+        if (status == null
+                || !(status.getResult() instanceof MappingsSuggestionType suggestion)) {
+            return;
+        }
+
+        IterationSpecificationType suggestedIteration =
+                suggestion.getIterationSpecification();
+
+        IterationSpecificationType currentIteration =
+                getCurrentIteration(table);
+
+        if (suggestedIteration == null
+                || Objects.equals(currentIteration, suggestedIteration)) {
+            acceptMappingSuggestion(table, suggestedMapping, target);
+        } else {
+            showIterationConfirmation(
+                    table,
+                    suggestedMapping,
+                    suggestedIteration,
+                    target);
+        }
+    }
+
+    private @Nullable IterationSpecificationType getCurrentIteration(SmartMappingTable<P> table) {
+
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType =
+                table.findResourceObjectTypeDefinition();
+
+        IterationSpecificationType iteration =
+                objectType != null && objectType.getRealValue() != null
+                        ? objectType.getRealValue().getIteration()
+                        : null;
+
+        if (iteration != null) {
+            //noinspection unchecked
+            WebPrismUtil.cleanupEmptyContainerValue(iteration.asPrismContainerValue());
+        }
+
+        return iteration;
+    }
+
+    private void acceptMappingSuggestion(
+            SmartMappingTable<P> table,
+            PrismContainerValueWrapper<MappingType> suggestedMapping,
+            AjaxRequestTarget target) {
+
+        PrismContainerValueWrapper<MappingType> accepted = table.createNewValue(suggestedMapping.getNewValue(), target);
+
+        if (accepted != null) {
+            table.getAcceptedSuggestionsCache().add(accepted);
+        }
+
+        table.deleteItemPerform(suggestedMapping);
+        table.refreshAndDetach(target);
+    }
+
+    private void showIterationConfirmation(
+            SmartMappingTable<P> table,
+            PrismContainerValueWrapper<MappingType> suggestedMapping,
+            IterationSpecificationType suggestedIteration,
+            AjaxRequestTarget target) {
+
+        AdditionalOperationConfirmationPanel dialog =
+                new AdditionalOperationConfirmationPanel(
+                        getPageBase().getMainPopupBodyId(),
+                        createStringResource(
+                                "SmartMappingTable.confirmationMessage.iteration")) {
+
                     @Override
-                    protected void performOnEditMapping(
-                            @NotNull AjaxRequestTarget target,
-                            @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-                        if (initialTab == MappingDirection.INBOUND) {
-                            inEditInboundValue(rowModel, target);
-                        } else {
-                            inEditOutboundValue(rowModel, target);
-                        }
+                    protected void performOnProcess(AjaxRequestTarget target) {
+                        applySuggestedIteration(
+                                table,
+                                suggestedIteration,
+                                target);
+
+                        finishAcceptance(table, suggestedMapping, target);
                     }
 
                     @Override
-                    public void refreshAndDetach(AjaxRequestTarget target) {
-                        suggestionModel.detach();
-                        super.refreshAndDetach(target);
-
-                        if (displayNoValuePanel()) {
-                            switchToggleModel.setObject(Boolean.FALSE);
-                        }
-
-                        target.add(getAiPanel());
+                    protected IModel<String> getProcessButtonLabel() {
+                        return createStringResource(
+                                "SmartMappingTable.confirmationMessage.iteration.apply");
                     }
 
                     @Override
-                    protected void addAdditionalNoValueToolbarButtons(@NotNull List<Component> toolbarButtonsList, String idButton) {
-                        AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.create(idButton,
-                                createStringResource("Suggestion.button.suggest"),
-                                () -> GuiStyleConstants.CLASS_MAGIC_WAND,
-                                SuggestionOption.of(ConfirmationOption.mappingPermissionsOptions()),
-                                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
-                                },
-                                        (target, confirmedOptions) -> {
-                                            AttributeMappingsTableWizardPanel.this.performSuggestOperation(target, confirmedOptions, false);
-                                            refreshAfterSuggestionOperationSubmitted(target);
-                                        }),
-                                getPageBase());
-
-                        generateButton.add(new VisibleBehaviour(() -> this.displayNoValuePanel()
-                                && !isSuggestionExists(loadSuggestion(resourceOid).getObject())));
-                        generateButton.setOutputMarkupId(true);
-                        generateButton.showTitleAsLabel(true);
-
-                        toolbarButtonsList.add(generateButton);
-
-                        AjaxIconButton showSuggestionsButton = new AjaxIconButton(idButton,
-                                () -> GuiStyleConstants.CLASS_MAGIC_WAND,
-                                () -> createStringResource("Suggestion.button.showSuggest").getString()) {
-
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                getSwitchToggleModel().setObject(Boolean.TRUE);
-                                target.add(AttributeMappingsTableWizardPanel.this);
-                                refreshAndDetach(target);
-                            }
-                        };
-                        showSuggestionsButton.add(new VisibleBehaviour(() -> displayNoValuePanel()
-                                && isSuggestionExists(loadSuggestion(resourceOid).getObject())));
-                        showSuggestionsButton.add(AttributeModifier.append("class", "btn btn-purple"));
-                        showSuggestionsButton.setOutputMarkupId(true);
-                        showSuggestionsButton.showTitleAsLabel(true);
-
-                        toolbarButtonsList.add(showSuggestionsButton);
+                    protected IModel<String> createYesLabel() {
+                        return createStringResource(
+                                "SmartMappingTable.confirmationMessage.iteration.keep.existing");
                     }
 
                     @Override
-                    protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
-                        AttributeMappingsTableWizardPanel.this.buildSimulationResultPanel(target, simulationResultTypeIModel);
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        finishAcceptance(table, suggestedMapping, target);
                     }
 
                     @Override
-                    protected ResourceType getResourceType() {
-                        ResourceDetailsModel resourceDetailsModel = getAssignmentHolderDetailsModel();
-                        PrismObjectWrapper<ResourceType> objectWrapper = resourceDetailsModel.getObjectWrapper();
-                        PrismObject<ResourceType> objectApplyDelta;
-                        try {
-                            objectApplyDelta = objectWrapper.getObjectApplyDelta();
-                        } catch (CommonException e) {
-                            LOGGER.error("Couldn't get resource object with applied delta, returning the original object. Details: {}", e.getMessage(), e);
-                            return null;
-                        }
+                    public int getWidth() {
+                        return 40;
+                    }
 
-                        return objectApplyDelta.asObjectable();
+                    @Override
+                    public String getWidthUnit() {
+                        return "%";
                     }
                 };
 
-        columnTileTable.setOutputMarkupId(true);
-        columnTileTable.add(AttributeAppender.append("class", "p-0"));
+        getPageBase().showMainPopup(dialog, target);
+    }
 
-        return columnTileTable;
+    private void finishAcceptance(
+            SmartMappingTable<P> table,
+            PrismContainerValueWrapper<MappingType> suggestedMapping,
+            AjaxRequestTarget target) {
+
+        acceptMappingSuggestion(table, suggestedMapping, target);
+        getPageBase().hideMainPopup(target);
+    }
+
+    private void applySuggestedIteration(
+            SmartMappingTable<P> table,
+            IterationSpecificationType suggestedIteration,
+            AjaxRequestTarget target) {
+
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = table.findResourceObjectTypeDefinition();
+
+        if (objectType == null) {
+            return;
+        }
+
+        try {
+            PrismContainerWrapper<IterationSpecificationType> container = objectType.findContainer(
+                    ResourceObjectTypeDefinitionType.F_ITERATION);
+
+            if (container == null) {
+                return;
+            }
+
+            PrismContainerValue<IterationSpecificationType> newValue = processSuggestedContainerValue(
+                    suggestedIteration.asPrismContainerValue());
+
+            newValue.setId(null);
+            WebPrismUtil.cleanupEmptyContainerValue(newValue);
+
+            PrismContainerValueWrapper<IterationSpecificationType> newWrapper = WebPrismUtil.createNewValueWrapper(
+                    container, newValue,
+                    getPageBase(), target);
+
+            newWrapper.setStatus(container.getValues().isEmpty() ? ValueStatus.ADDED : ValueStatus.MODIFIED);
+
+            container.getItem().setValue(newValue);
+            container.getValues().clear();
+            container.getValues().add(newWrapper);
+
+        } catch (SchemaException e) {
+            throw new SystemException(
+                    "Couldn't apply suggested iteration", e);
+        }
+    }
+
+    private @NotNull List<InlineMenuItem> createSettingsMenuItems(
+            MappingDirection direction) {
+
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parent =
+                getParentWrapper();
+
+        if (parent == null || parent.getRealValue() == null) {
+            return List.of();
+        }
+
+        return List.of(
+                createIterationSettingsInlineMenu(),
+                createAttributeOverridesSettingsMenu(direction));
+    }
+
+    private PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> getParentWrapper() {
+        return getValueModel().getObject()
+                .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+    }
+
+    protected @Nullable PrismContainerValueWrapper<IterationSpecificationType> loadIterationSettingValueWrapper() {
+
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parent = getParentWrapper();
+
+        if (parent == null) {
+            return null;
+        }
+
+        try {
+            PrismContainerWrapper<IterationSpecificationType> container =
+                    parent.findContainer(ResourceObjectTypeDefinitionType.F_ITERATION);
+
+            return container != null ? container.getValue() : null;
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't get iteration specification object.", e);
+        }
+    }
+
+    @NotNull InlineMenuItem createIterationSettingsInlineMenu() {
+        return InlineMenuItemBuilder.create()
+                .icon("fa fa-cogs")
+                .label(createStringResource("SmartMappingTable.button.iterationSettings"))
+                .action(new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ContainerDrawerInfoModel<IterationSpecificationType> containerDrawerInfoModel =
+                                new ContainerDrawerInfoModel<>(
+                                        AttributeMappingsTableWizardPanel.this::loadIterationSettingValueWrapper, null) {
+                                    @Override
+                                    protected void customizePanel(ContainerDrawerPanel<?> components) {
+                                        components.info(translate("IterationSettings.description"));
+                                    }
+
+                                    @Override
+                                    protected IModel<String> getDescription() {
+                                        return createStringResource("IterationSettings.definition.info");
+                                    }
+
+                                    @Override
+                                    protected IModel<String> getTitle() {
+                                        return createStringResource("IterationSettings.button.iterationSettings");
+                                    }
+                                };
+                        getPageBase().showRightSidebar(containerDrawerInfoModel, target);
+                    }
+                })
+                .visibilityChecker((rowModel, isHeader) -> isHeader)
+                .buildInlineMenu();
+    }
+
+    private @NotNull InlineMenuItem createAttributeOverridesSettingsMenu(
+            @NotNull MappingDirection direction) {
+
+        return InlineMenuItemBuilder.create()
+                .icon("fa fa-shuffle")
+                .label(createStringResource(
+                        "AttributeMappingsTableWizardPanel.showOverrides"))
+                .action(new InlineMenuItemAction() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SmartMappingTable<?> table = getTable();
+
+                        if (table.isValidFormComponents(target)) {
+                            onShowOverrides(target, direction);
+                        }
+                    }
+                })
+                .buildInlineMenu();
     }
 
     private @NotNull @Unmodifiable List<ItemPathType> getTargetPathsToIgnore() {
@@ -526,67 +866,6 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     @Override
-    protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        buttons.add(createShowOverridesButton(buttons));
-    }
-
-    private @NotNull AjaxIconButton createShowOverridesButton(@NotNull RepeatingView buttons) {
-        AjaxIconButton showOverrides = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-shuffle"),
-                getPageBase().createStringResource("AttributeMappingsTableWizardPanel.showOverrides")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getTable().isValidFormComponents(target)) {
-                    onShowOverrides(target, getSelectedMappingType());
-                }
-            }
-        };
-        showOverrides.showTitleAsLabel(true);
-        showOverrides.add(AttributeAppender.append("class", "btn  btn-outline-primary"));
-        return showOverrides;
-    }
-
-    private @NotNull SimulationActionTaskButton<Void> createSimulationMenuButton(
-            @NotNull RepeatingView buttons,
-            @NotNull IModel<ResourceObjectTypeDefinitionType> objectTypeDefModel) {
-
-        SimulationActionTaskButton<Void> simulationActionTaskButton = new SimulationActionTaskButton<>(
-                buttons.newChildId(),
-                objectTypeDefModel,
-                () -> getAssignmentHolderDetailsModel().getObjectType()) {
-            @Override
-            protected boolean isSamplingEnabled() {
-                return true;
-            }
-
-            @Override
-            protected @NotNull ResourceTaskFlavor<Void> getTaskFlavor() {
-                return ResourceTaskFlavors.IMPORT;
-            }
-
-            @Override
-            protected ExecutionModeType getExecutionMode() {
-                return ExecutionModeType.PREVIEW;
-            }
-
-            @Override
-            public void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                AttributeMappingsTableWizardPanel.this.redirectToSimulationTasksWizard(target);
-            }
-
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getAdditionalSplitComponentCssClass() {
-                return "ms-auto";
-            }
-        };
-
-        simulationActionTaskButton.setRenderBodyOnly(true);
-        return simulationActionTaskButton;
-    }
-
-    @Override
     protected boolean isValid(AjaxRequestTarget target) {
         return Objects.requireNonNull(getTable()).isValidFormComponents(target);
     }
@@ -650,16 +929,13 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
     }
 
     @SuppressWarnings("unchecked")
-    protected @NotNull SmartMappingTable<MappingType> getTable() {
+    protected @NotNull SmartMappingTable<P> getTable() {
         Component component = getTabPanel().get(TabbedPanel.TAB_PANEL_ID);
-        return (SmartMappingTable<MappingType>) component;
+        return (SmartMappingTable<P>) component;
     }
 
     protected SmartAlertGeneratingPanel getAiPanel() {
         return (SmartAlertGeneratingPanel) get(createComponentPath(ID_MAIN_FORM, ID_AI_PANEL));
-    }
-
-    protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
     }
 
     protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
