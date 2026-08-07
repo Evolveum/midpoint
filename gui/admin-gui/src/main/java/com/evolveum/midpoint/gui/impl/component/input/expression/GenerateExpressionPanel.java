@@ -101,8 +101,8 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("GenerateExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("GenerateExpressionPanel.label");
     }
 
     //don't remove it, used by class and method name

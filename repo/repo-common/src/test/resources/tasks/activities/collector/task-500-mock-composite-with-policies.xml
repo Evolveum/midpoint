@@ -37,5 +37,11 @@
                 </policyActions>
             </policy>
         </policies>
+        <!-- Like the policies above, virtual assignments must not be inherited by the embedded children. -->
+        <virtualAssignments>
+            <assignment>
+                <targetRef oid="9c1f7b2e-0d3a-4f5b-8a6c-1e2d3f4a5b60" type="PolicyType"/>
+            </assignment>
+        </virtualAssignments>
     </activity>
 </task>

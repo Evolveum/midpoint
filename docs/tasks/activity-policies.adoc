@@ -24,6 +24,8 @@ See xref:./focus-policies-in-activities[Focus policies in activities] for detail
 
 Policies are collected during activity initialization from the activity definition and its parent activity definitions (in case of composite activities).
 Policies are evaluated after each item in an iterative activity is processed.
+Rules declared on parent activities are evaluated before the rules of the activity itself.
+Within a single activity, rules are evaluated in the order given by their optional `order` property; rules without `order` come last.
 
 See a high level overview of activity policy processing:
 
@@ -50,6 +52,8 @@ Only when the activity is <<restartactivity,restarted>> via the `restartActivity
 When the `exceeds` element is specified, the constraint will trigger if the task execution time exceeds the specified value.
 When the `below` element is specified, the constraint will trigger if the task execution time is below the specified value.
 Both elements can be specified together to define a time range when the constraint should be triggered.
+Both bounds are exclusive: the constraint triggers only when the execution time is strictly greater than `exceeds`, or strictly less than `below`.
+When neither element is specified, the constraint triggers on every evaluation.
 
 The execution time for composite activities (like reconciliation) is computed as a sum of the execution times of child activities.
 
@@ -73,6 +77,8 @@ Suspending and resuming the activity (more precisely, its task) does not increas
 When the `exceeds` element is specified, the constraint will trigger if the number of attempts exceeds the specified value.
 When the `below` element is specified, the constraint will trigger if the number of attempts is below the specified value.
 Both elements can be specified together to define a range when the constraint should be triggered.
+Both bounds are exclusive: the constraint triggers only when the number of attempts is strictly greater than `exceeds`, or strictly less than `below`.
+When neither element is specified, the constraint triggers from the second execution attempt on.
 
 .Example of a policy constraint that is triggered after 3 execution attempts
 [source,xml]
@@ -90,15 +96,18 @@ The _item processing result_ constraint evaluates the result of a processing of 
 The constraint contains two parameters:
 
 * `status` - An operation result status to match.
-It can be either `PARTIAL_ERROR` or `FATAL_ERROR`.
-If not present, we rely solely on the error category.
-If error categories are not specified, any error matches.
+It is usually `PARTIAL_ERROR` or `FATAL_ERROR`.
+If not present, the decision is based solely on the error category.
 
 * `errorCategory` - An error category (network, security, policy, ...) to match.
-If not present, we rely solely on the status.
+The category is determined from the exception recorded for the item, so it can match only when the item processing ended with an exception.
+If not present, the decision is based solely on the status.
 +
 NOTE: Some errors are not propagated to the level where they can be recognized by this selector.
 See xref:#_limitations[Limitations] for more details.
+
+At least one status or error category must be specified.
+A constraint with neither of them never triggers.
 
 .Example of an item processing result constraint
 [source,xml]
@@ -116,8 +125,46 @@ See xref:#_limitations[Limitations] for more details.
 Logical constraints are implemented to help you combine multiple constraints into one.
 By default, `and` is used to combine constraints defined directly under the `policyConstraints` element.
 
-Activity-based constraints (such as `executionTime`) and focus-based constraints (see xref:./focus-policies-in-activities[Focus policies in activities]) cannot be combined within a single constraint.
-They are evaluated in different places, so each policy must use only one of the two kinds.
+Activity-based constraints (such as `executionTime`) and focus-based constraints (see xref:./focus-policies-in-activities[Focus policies in activities]) cannot be combined within a single policy rule.
+Each rule must use only one of the two kinds.
+Note that mixing them is not reported as a configuration error: such a rule is evaluated as an activity policy and its focus-based constraints are silently ignored.
+
+== Policy thresholds
+
+A policy without a `policyThreshold` executes its actions as soon as its constraints are triggered.
+When a threshold is defined, each trigger of the policy increments a counter instead, and the actions are executed only when the counter is within the configured water marks:
+
+* `lowWaterMark` - the lowest counter value for which the actions are executed.
+When not specified, the actions are executed from the first trigger on.
+* `highWaterMark` - the highest counter value for which the actions are executed.
+When the counter exceeds this value, the actions are no longer executed.
+When not specified, there is no upper bound.
+
+Each water mark is specified using the `count` element.
+
+The counters are stored in the activity state of the task, separately for each policy.
+They survive suspending and resuming the task, and they are reset when the activity is restarted via the <<restartactivity,`restartActivity`>> action.
+
+.Example: suspend the task after five items failed with a network error
+[source,xml]
+----
+<policy>
+    <name>Suspend after 5 network errors</name>
+    <policyConstraints>
+        <itemProcessingResult>
+            <errorCategory>network</errorCategory>
+        </itemProcessingResult>
+    </policyConstraints>
+    <policyThreshold>
+        <lowWaterMark>
+            <count>5</count>
+        </lowWaterMark>
+    </policyThreshold>
+    <policyActions>
+        <suspendTask/>
+    </policyActions>
+</policy>
+----
 
 == Policy actions
 
@@ -128,6 +175,7 @@ The typical actions include sending a notification or suspending tasks.
 === Notification
 
 The _notification_ policy action uses the standard notification mechanism, so it can be configured in the system configuration.
+Notification actions of a rule are always processed before its other actions, so the notification is sent even when the same rule also suspends the task or aborts the activity.
 
 .Part of a system configuration object with the default activity policy notifier
 [source,xml]
@@ -190,7 +238,7 @@ When the activity is restarted, its policy triggers and threshold counters are r
 
 Restarting of the task may be delayed by using the `delay` parameter, which is specified as an XML duration.
 The default delay parameter value is 5 seconds.
-The actual delay is taken as a random number between `0` and `delay * (2 ^ (n - 1))`, where `n` is the number of execution attempts of the activity (with the maximum of `11`).
+The actual delay grows exponentially with the number of restarts: it is computed as `delay * 2 ^ (n - 1)`, where `n` is the number of execution attempts of the activity (the exponent is capped at `10`).
 If the delay is set to `0`, the task will be resumed immediately.
 
 //Second optional parameter for this parameter is called `restartCounters`.
