@@ -145,6 +145,9 @@ Each water mark is specified using the `count` element.
 The counters are stored in the activity state of the task, separately for each policy.
 They survive suspending and resuming the task, and they are reset when the activity is restarted via the <<restartactivity,`restartActivity`>> action.
 
+In multi-threaded and multi-node activities, all worker threads and worker tasks of an activity share its counters; for multi-node activities, the counters are stored in the activity state of the coordinator task.
+Because items are processed concurrently, the counter may momentarily overshoot the threshold by up to the number of concurrent workers minus one, and items that are already being processed by other workers when the policy triggers may still complete.
+
 .Example: suspend the task after five items failed with a network error
 [source,xml]
 ----
@@ -166,11 +169,22 @@ They survive suspending and resuming the task, and they are reset when the activ
 </policy>
 ----
 
+== Policies in simulated runs
+
+Policies are evaluated and enforced in simulated activity runs (execution mode `preview`) the same way as in full execution.
+In particular, a threshold-based `suspendTask` policy suspends the simulation task, too.
+This way, a simulation activity can act as a safety gate: when it is followed by a full-execution activity in the same task, breaching the threshold during the simulation prevents the real execution from starting.
+
+Threshold counters are kept separately for full execution and for simulation modes, so a simulated run does not affect the counters of a subsequent real execution.
+
 == Policy actions
 
 Policy actions are the configured reactions that the system executes when a policy constraint is triggered.
 They define what should happen (immediately or after a threshold is reached) to an activity or task.
 The typical actions include sending a notification or suspending tasks.
+
+The optional `condition` of a policy action is usable only in focus-based policy rules.
+It is not supported for activity policies and is ignored there.
 
 === Notification
 
@@ -236,6 +250,14 @@ Restarting of the activity happens in two steps:
 
 When the activity is restarted, its policy triggers and threshold counters are reset along with the rest of the activity state, so counting starts fresh.
 
+[WARNING]
+====
+The restart action alone does not limit the number of attempts.
+If the constraint triggers in every run — for example, an `executionTime` constraint on an activity that always runs longer than the limit — the activity is restarted indefinitely.
+Always combine a restart policy with another policy that uses the `executionAttempts` constraint and suspends the task after a chosen number of attempts.
+See the <<_examples,examples>> below.
+====
+
 Restarting of the task may be delayed by using the `delay` parameter, which is specified as an XML duration.
 The default delay parameter value is 5 seconds.
 The actual delay grows exponentially with the number of restarts: it is computed as `delay * 2 ^ (n - 1)`, where `n` is the number of execution attempts of the activity (the exponent is capped at `10`).
@@ -291,6 +313,10 @@ This is useful when the same set of policies should be shared across multiple ac
 ----
 
 Inducement-based policy rules used via `policyRef` must not define `order` or `condition`; otherwise a configuration exception is thrown.
+
+Policy rules are identified in the task's activity state (policy triggers and threshold counters) by a string identifier.
+Rules defined inline use the `<activity path>:<rule container id>` form, while rules coming from `policyRef` use the `<referenced object OID>:<inducement container id>` form.
+This is useful to know when inspecting the activity state of a task, e.g. when diagnosing threshold counters.
 
 For applying focus policy rules to processed objects (including via `policyRef` and virtual assignments), see xref:./focus-policies-in-activities[Focus policies in activities].
 
