@@ -32,6 +32,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -459,22 +461,27 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
             return;
         }
 
-        IterationSpecificationType suggestedIteration =
-                suggestion.getIterationSpecification();
+        IterationSpecificationType suggestedIteration = suggestion.getIterationSpecification();
 
-        IterationSpecificationType currentIteration =
-                getCurrentIteration(table);
+        IterationSpecificationType currentIteration = getCurrentIteration(table);
 
-        if (suggestedIteration == null
-                || Objects.equals(currentIteration, suggestedIteration)) {
-            acceptMappingSuggestion(table, suggestedMapping, target);
-        } else {
-            showIterationConfirmation(
-                    table,
+        MappingType mapping = suggestedMapping.getRealValue();
+        ExpressionType expression = mapping != null ? mapping.getExpression() : null;
+
+        boolean iterationConfirmationRequired =
+                ExpressionUtil.usesIterationVariables(expression)
+                        && suggestedIteration != null
+                        && !Objects.equals(currentIteration, suggestedIteration);
+
+        if (iterationConfirmationRequired) {
+            showIterationConfirmation(table,
                     suggestedMapping,
                     suggestedIteration,
                     target);
+            return;
         }
+
+        acceptMappingSuggestion(table, suggestedMapping, target);
     }
 
     private @Nullable IterationSpecificationType getCurrentIteration(SmartMappingTable<P> table) {

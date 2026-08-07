@@ -782,7 +782,11 @@ public class ExpressionUtil {
         }
     }
 
-    public static boolean usesIterationVariables(@NotNull ExpressionType expression) {
+    public static boolean usesIterationVariables(@Nullable ExpressionType expression) {
+        if (expression == null) {
+            return false;
+        }
+
         try {
             ScriptExpressionEvaluatorType script = getScriptExpressionValue(expression);
 
