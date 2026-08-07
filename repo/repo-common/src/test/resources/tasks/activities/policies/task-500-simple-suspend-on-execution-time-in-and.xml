@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="16ccce54-5cdf-4883-8e18-8d1f8a8bf1ac">
+    <name>task-simple-suspend-on-execution-time-in-and</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <noOp>
+                <steps>100</steps>
+                <delay>100</delay>
+            </noOp>
+        </work>
+        <policies>
+            <policy>
+                <name>Execution time at most 2 seconds</name>
+                <policyConstraints>
+                    <and>
+                        <executionTime>
+                            <exceeds>PT2S</exceeds>
+                        </executionTime>
+                    </and>
+                </policyConstraints>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+            </policy>
+        </policies>
+    </activity>
+</task>
