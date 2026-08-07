@@ -41,7 +41,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
 
     protected TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
         LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
@@ -52,7 +52,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
                 public @NotNull ValueMetadataType compute(@NotNull List<PrismValue> inputValues,
                         @NotNull OperationResult computationOpResult)
                         throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-                        ConfigurationException, ExpressionEvaluationException {
+                        ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
                     return TransformationalMetadataComputation
                             .forMapping(inputValues, processingSpec, MappingImpl.this)
                             .execute(computationOpResult);
@@ -74,7 +74,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
     @NotNull
     private ItemValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         var processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION, canUseDefaultsForMetadataProcessing());
         if (ignoreValueMetadata) {
             return processingSpec; // empty

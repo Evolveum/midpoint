@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.role;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.jetbrains.annotations.NotNull;
 

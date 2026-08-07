@@ -64,7 +64,7 @@ public class IndexingManager implements DeltaExecutionPreprocessor {
             @NotNull LensElementContext<O> elementContext,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         IndexingConfiguration configuration = getIndexingConfiguration(elementContext);
         if (configuration == null || configuration.hasNoItems()) {
             LOGGER.trace("No indexing configuration for {}: index data will not be updated", elementContext);
@@ -90,7 +90,7 @@ public class IndexingManager implements DeltaExecutionPreprocessor {
             @NotNull LensElementContext<O> elementContext,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         IndexingConfiguration configuration = getIndexingConfiguration(elementContext);
         if (configuration == null || configuration.hasNoItems()) {
             LOGGER.trace("No indexing configuration for {}: index data will not be updated", elementContext);
@@ -133,7 +133,7 @@ public class IndexingManager implements DeltaExecutionPreprocessor {
             @NotNull IndexingConfiguration configuration,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         FocusNormalizedDataType normalized = new FocusNormalizedDataType();
         for (IndexingItemConfiguration itemConfig : configuration.getItems()) {
             ItemPath originalItemPath = itemConfig.getPath();
@@ -166,7 +166,7 @@ public class IndexingManager implements DeltaExecutionPreprocessor {
             @NotNull IndexingItemConfiguration config,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (originalValues.isEmpty()) {
             return List.of();
         }

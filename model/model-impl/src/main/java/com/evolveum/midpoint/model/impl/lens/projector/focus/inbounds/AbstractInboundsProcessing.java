@@ -84,7 +84,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     /** Full processing, resulting in deltas being computed. */
     public Collection<ItemDelta<?, ?>> executeToDeltas(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         executeToTriples(result);
         return consolidateTriples(result);
     }
@@ -92,7 +92,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     /** Partial processing that stops after triples are computed, i.e. just prepares and evaluates the mappings. */
     void executeToTriples(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         prepareMappings(result);
         evaluateMappings(result);
     }
@@ -104,7 +104,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      */
     abstract void prepareMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Evaluate mappings collected from all the projections. There may be mappings from different projections to the same target.
@@ -112,7 +112,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      */
     private void evaluateMappings(OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, CommunicationException {
+            ConfigurationException, SecurityViolationException, CommunicationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE_MAPPINGS)
                 .build();
         try {
@@ -134,7 +134,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     private <V extends PrismValue, D extends ItemDefinition<?>> void evaluateMapping(
             ItemPath targetPath, MappingEvaluationRequest<V, D> evaluationRequest, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         LOGGER.trace("Starting evaluation of {}", evaluationRequest);
 
         var mapping = evaluationRequest.getMapping();
@@ -182,7 +182,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
 
     private Collection<ItemDelta<?, ?>> consolidateTriples(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         Consumer<IvwoConsolidatorBuilder<?, ?, ?>> customizer = builder ->
                 builder

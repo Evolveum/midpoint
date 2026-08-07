@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +19,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -55,7 +53,7 @@ public class SchemaFetcher {
             boolean productionMode,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-            SchemaException {
+            SchemaException, SubscriptionComplianceException {
         var connectorSpec = resourceConnectorsManager.selectConnector(resource, capabilityMap, SchemaCapabilityType.class);
         if (connectorSpec == null) {
             LOGGER.debug("No connector has schema capability, cannot fetch resource schema");

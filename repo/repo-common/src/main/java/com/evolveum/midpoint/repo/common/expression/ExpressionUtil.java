@@ -154,7 +154,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         TypedValue<?> typedValue =
                 new PathExpressionResolver(
                         path,
@@ -187,7 +187,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return new PathExpressionResolver(
                 path,
                 variables,
@@ -219,7 +219,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (path == null) {
             // Is this correct? What about default targets?
             return null;
@@ -253,7 +253,7 @@ public class ExpressionUtil {
             String contextDescription, ObjectVariableModeType objectVariableMode, @NotNull ValueVariableModeType valueVariableMode,
             PrismContext prismContext, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         if (originalTypedValue.getValue() == null) {
             return originalTypedValue;
         }
@@ -408,7 +408,7 @@ public class ExpressionUtil {
             ObjectResolver objectResolver, String contextDescription, ObjectVariableModeType objectVariableMode,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         TypedValue<?> resolvedTypedValue;
         Referencable originalReference = (Referencable) referenceTypedValue.getValue();
         Itemable originalParent = originalReference.asReferenceValue().getParent();
@@ -464,7 +464,7 @@ public class ExpressionUtil {
             Collection<SelectorOptions<GetOperationOptions>> options, String varDesc, String contextDescription,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Referencable ref = (Referencable) refAndDef.getValue();
         if (ref.getOid() == null) {
             throw new SchemaException(
@@ -573,7 +573,7 @@ public class ExpressionUtil {
             ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (origQuery == null) {
             return null;
         }
@@ -595,7 +595,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (origFilter == null) {
             return null;
         }
@@ -640,7 +640,7 @@ public class ExpressionUtil {
             ObjectFilter filter, VariablesMap variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (filter == null) {
             return null;
         }
@@ -858,7 +858,8 @@ public class ExpressionUtil {
     public static <V extends PrismValue, D extends ItemDefinition<?>> V evaluateExpression(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
                 shortDesc, task, parentResult);
@@ -878,7 +879,8 @@ public class ExpressionUtil {
     public static <V extends PrismValue, D extends ItemDefinition<?>> Collection<V> evaluateExpressionNative(Collection<Source<?, ?>> sources,
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
                 shortDesc, task, parentResult);
@@ -898,7 +900,8 @@ public class ExpressionUtil {
     public static <V extends PrismValue, D extends ItemDefinition<?>> V evaluateExpression(
             VariablesMap variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         return evaluateExpression(null, variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc, task, parentResult);
     }
@@ -923,7 +926,8 @@ public class ExpressionUtil {
             VariablesMap variables,
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         PrismPropertyDefinition<String> outputDefinition =
                 PrismContext.get().definitionFactory().newPropertyDefinition(
@@ -954,7 +958,8 @@ public class ExpressionUtil {
     public static PrismPropertyValue<Boolean> evaluateCondition(VariablesMap variables,
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
         outputDefinition.freeze();
@@ -966,7 +971,7 @@ public class ExpressionUtil {
             ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
                 true, task, parentResult);
     }
@@ -975,7 +980,7 @@ public class ExpressionUtil {
             ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
                 false, task, parentResult);
     }
@@ -983,7 +988,8 @@ public class ExpressionUtil {
     private static boolean evaluateConditionWithDefault(VariablesMap variables,
             ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc,
             boolean defaultValue, Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (expressionBean == null) {
             return defaultValue;
         }
@@ -1298,7 +1304,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
         try {
             return expression.evaluate(context, result);
@@ -1313,7 +1319,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
         try {
             return expression.evaluate(eeContext, result);
@@ -1328,7 +1334,7 @@ public class ExpressionUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
         try {
             return expression.evaluate(eeContext, result);
@@ -1343,7 +1349,7 @@ public class ExpressionUtil {
             ExpressionEnvironment env,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
         try {
             return expression.evaluate(eeContext, result);
@@ -1419,10 +1425,9 @@ public class ExpressionUtil {
     /**
      * Converts whatever it gets to a string. But it does it in a sensitive way.
      * E.g. it tries to detect collections and returns the first element (if there is only one).
-     * Never returns null. Returns string representation of null instead.
      */
-    @NotNull
-    public static String stringify(@Nullable Object whatever, @NotNull String nullRepresentation) {
+    @Nullable
+    public static String stringify(@Nullable Object whatever, @Nullable String nullRepresentation) {
 
         if (whatever == null) {
             return nullRepresentation;
@@ -1446,6 +1451,10 @@ public class ExpressionUtil {
 
         if (whatever instanceof PolyStringType ps) {
             return ps.getOrig();
+        }
+
+        if (whatever instanceof QName q) {
+            return QNameUtil.qNameToUri(q);
         }
 
         if (whatever instanceof Collection<?> collection) {
@@ -1484,6 +1493,10 @@ public class ExpressionUtil {
 
         if (whatever instanceof PolyStringType) {
             return ((PolyStringType) whatever).getOrig();
+        }
+
+        if (whatever instanceof QName q) {
+            return QNameUtil.qNameToUri(q);
         }
 
         if (whatever instanceof Element element) {

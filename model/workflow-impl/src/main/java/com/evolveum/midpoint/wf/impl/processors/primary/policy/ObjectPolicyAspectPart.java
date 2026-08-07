@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,7 +83,7 @@ public class ObjectPolicyAspectPart {
             PrismObject<T> object = focusContext.getObjectOld() != null ?
                     focusContext.getObjectOld() : focusContext.getObjectNew();
 
-            List<AssociatedPolicyRule> triggeredApprovalActionRules =
+            List<EvaluatedClockworkPolicyRule> triggeredApprovalActionRules =
                     main.selectTriggeredApprovalActionRules(focusContext.getObjectPolicyRules());
             LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
                     debugDumpLazily(triggeredApprovalActionRules));
@@ -98,12 +98,6 @@ public class ObjectPolicyAspectPart {
                         break; // we're done
                     }
                     WfProcessSpecificationType processSpecification = processSpecificationEntry.basicSpec;
-                    List<ObjectDelta<T>> deltasToApprove = extractDeltasToApprove(focusDelta, processSpecification);
-                    LOGGER.trace("Deltas to approve:\n{}", debugDumpLazily(deltasToApprove));
-                    if (deltasToApprove.isEmpty()) {
-                        continue;
-                    }
-                    LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
                     ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
                     builder.setProcessSpecification(processSpecificationEntry);
                     for (ApprovalActionWithRule actionWithRule : processSpecificationEntry.actionsWithRules) {
@@ -114,7 +108,16 @@ public class ObjectPolicyAspectPart {
                                 object,
                                 actionWithRule.policyRule());
                     }
-                    buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
+                    ApprovalSchemaBuilder.Result builderResult = buildSchemaForObject(ctx, result, builder);
+                    if (builderResult != null) {
+                        List<ObjectDelta<T>> deltasToApprove = extractDeltasToApprove(focusDelta, processSpecification);
+                        LOGGER.trace("Deltas to approve:\n{}", debugDumpLazily(deltasToApprove));
+                        if (!deltasToApprove.isEmpty()) {
+                            LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
+                            prepareObjectRelatedTaskInstructions(
+                                    newInstructions, builderResult, deltasToApprove, requester, ctx, result);
+                        }
+                    }
                 }
             } else if (configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration)
                     != DefaultApprovalPolicyRulesUsageType.NEVER) {
@@ -122,10 +125,14 @@ public class ObjectPolicyAspectPart {
                 ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
                 if (builder.addPredefined(object, RelationKindType.OWNER, result)) {
                     LOGGER.trace("Added default approval action, as no explicit one was found");
-                    generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
-                    List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());
-                    focusDelta.clear();
-                    buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
+                    ApprovalSchemaBuilder.Result builderResult = buildSchemaForObject(ctx, result, builder);
+                    if (builderResult != null) {
+                        generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
+                        List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());
+                        focusDelta.clear();
+                        prepareObjectRelatedTaskInstructions(
+                                newInstructions, builderResult, deltasToApprove, requester, ctx, result);
+                    }
                 }
             }
             if (trace != null) {
@@ -153,14 +160,11 @@ public class ObjectPolicyAspectPart {
         }
     }
 
-    private <T extends ObjectType> void buildSchemaForObject(PrismObject<? extends FocusType> requester,
-            List<PcpStartInstruction> instructions, ModelInvocationContext<T> ctx,
-            @NotNull OperationResult result, List<ObjectDelta<T>> deltasToApprove,
-            ApprovalSchemaBuilder builder) throws SchemaException {
+    private @Nullable ApprovalSchemaBuilder.Result buildSchemaForObject(
+            ModelInvocationContext<?> ctx, @NotNull OperationResult result, ApprovalSchemaBuilder builder)
+            throws SchemaException {
         ApprovalSchemaBuilder.Result builderResult = builder.buildSchema(ctx, result);
-        if (!approvalSchemaHelper.shouldBeSkipped(builderResult.schema)) {
-            prepareObjectRelatedTaskInstructions(instructions, builderResult, deltasToApprove, requester, ctx, result);
-        }
+        return approvalSchemaHelper.shouldBeSkipped(builderResult.schema) ? null : builderResult;
     }
 
     private <T extends ObjectType> List<ObjectDelta<T>> extractDeltasToApprove(ObjectDelta<T> focusDelta, WfProcessSpecificationType processSpecification)

@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.func;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 
 import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;

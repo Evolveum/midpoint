@@ -11,6 +11,9 @@ package com.evolveum.midpoint.smart.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
@@ -19,16 +22,11 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Default implementation that fetches owned shadows via ModelService from the resource.
@@ -49,7 +47,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             OperationResult result,
             int maxExamples)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(maxExamples);
         final CorrelationDefinitionType correlationDef =
                 new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
@@ -58,26 +56,31 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
                 Resource.of(ctx.resource)
                         .queryFor(ctx.typeDefinition.getTypeIdentification())
                         .build(),
-                addOwnerOrOwnerCandidate(correlationDef, ctx, state, result, maxExamples, ownedShadows),
+                addOwnerOrOwnerCandidate(correlationDef, ctx, state, maxExamples, ownedShadows),
                 null, ctx.task, result);
         return ownedShadows;
     }
 
-    private ResultHandler<ShadowType> addOwnerOrOwnerCandidate(CorrelationDefinitionType correlationDef,
-            TypeOperationContext ctx, OperationContext.StateHolder state, OperationResult result, int maxExamples,
+    private @NotNull ResultHandler<ShadowType> addOwnerOrOwnerCandidate(CorrelationDefinitionType correlationDef,
+            TypeOperationContext ctx, OperationContext.StateHolder state, int maxExamples,
             ArrayList<ShadowWithOwner> shadowWithOwners) {
         return (shadow, lResult) -> {
             state.flushIfNeeded(lResult);
             try {
                 this.correlationService
                         .findLinkedOrCorrelatedFocus(shadow.asObjectable(), ctx.resource, ctx.typeDefinition,
-                                correlationDef, ctx.task, result)
+                                correlationDef, ctx.task, lResult)
                         .ifPresent(focus -> {
                             shadowWithOwners.add(new ShadowWithOwner(shadow.asObjectable(), focus));
-                            state.incrementProgress(result);
+                            state.incrementProgress(lResult);
                         });
             } catch (Exception e) {
                 LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, shadow);
+            }
+            finally {
+                lResult.computeStatusIfUnknown();
+                lResult.setSummarizeSuccesses(true);
+                lResult.summarize();
             }
             return ctx.canRun() && shadowWithOwners.size() < maxExamples;
         };

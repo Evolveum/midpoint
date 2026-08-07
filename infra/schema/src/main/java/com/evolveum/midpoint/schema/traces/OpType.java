@@ -193,7 +193,10 @@ public enum OpType {
 
     PROVISIONING_INTERNAL(OperationKindType.OTHER, "Provisioning (internal)", "com.evolveum.midpoint.provisioning.impl.*"),
 
-    REPOSITORY(OperationKindType.REPOSITORY, "Repository", "com.evolveum.midpoint.repo.api.RepositoryService.*"),
+    REPOSITORY(OperationKindType.REPOSITORY, "Repository",
+            null,
+            List.of("com.evolveum.midpoint.repo.api.RepositoryService.*", "SqaleRepositoryService.*"),
+            null),
 
     REPOSITORY_CACHE(OperationKindType.REPOSITORY_CACHE, "Repository cache", "com.evolveum.midpoint.repo.cache.RepositoryCache.*"),
 

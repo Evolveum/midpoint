@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -99,24 +100,15 @@ public class DuplicationProcessHelper {
             List<InlineMenuItem> menuItems,
             SerializableBiConsumer<PrismContainerValue<C>, AjaxRequestTarget> createDuplicatedItem,
             PageBase pageBase) {
-        menuItems.add(new InlineMenuItem(pageBase.createStringResource("DuplicationProcessHelper.menu.duplicate")) {
-            @Serial private static final long serialVersionUID = 1L;
 
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDuplicateColumnAction(pageBase, createDuplicatedItem);
-            }
-
-            @Override
-            public boolean showConfirmationDialog() {
-                return false;
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-        });
+        menuItems.add(
+                InlineMenuItemBuilder.create()
+                        .label(pageBase.createStringResource("DuplicationProcessHelper.menu.duplicate"))
+                        .icon("fa fa-copy")
+                        .action(createDuplicateColumnAction(pageBase, createDuplicatedItem))
+                        .showConfirmationDialog(false)
+                        .headerMenuItem(false)
+                        .buildInlineMenu());
     }
 
     public static <C extends Containerable> @NotNull ColumnMenuAction<PrismContainerValueWrapper<C>> createDuplicateColumnAction(

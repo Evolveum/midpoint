@@ -59,7 +59,8 @@ public class OperationsHelper {
 
     public boolean getDryRun(ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return expressionHelper.getActionArgument(Boolean.class, action,
                 AbstractExecutionActionExpressionType.F_DRY_RUN, PARAM_DRY_RUN,
                 input, context, false, PARAM_DRY_RUN, result);
@@ -69,12 +70,14 @@ public class OperationsHelper {
     public ModelExecuteOptions getOptions(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         ModelExecuteOptions options = getRawOptions(action, input, context, result);
 
         // raw and skipApprovals are not part of static schema
         Boolean raw = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_RAW, input, context, null, PARAM_RAW, result);
-        Boolean skipApprovals = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_SKIP_APPROVALS, input, context, null, PARAM_SKIP_APPROVALS, result);
+        Boolean skipApprovals = expressionHelper.getArgumentAsBoolean(
+                action.getParameter(), PARAM_SKIP_APPROVALS, input, context, null, PARAM_SKIP_APPROVALS, result);
 
         if (Boolean.TRUE.equals(raw)) {
             options.raw(true);
@@ -93,7 +96,8 @@ public class OperationsHelper {
     private ModelExecuteOptions getRawOptions(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         ModelExecuteOptionsType optionsBean = expressionHelper.getActionArgument(ModelExecuteOptionsType.class, action,
                 AbstractExecutionActionExpressionType.F_EXECUTE_OPTIONS, PARAM_OPTIONS, input, context, null,
                 "executeOptions", result);
@@ -108,14 +112,16 @@ public class OperationsHelper {
     public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(
             ObjectDelta delta, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return applyDelta(delta, null, context, result);
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(
             ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         //noinspection unchecked
         return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
     }
@@ -127,7 +133,8 @@ public class OperationsHelper {
             ExecutionContext context,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         LOGGER.debug("Going to execute delta (raw={}):\n{}", dryRun, delta.debugDumpLazily());
         if (dryRun) {
             modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
@@ -161,7 +168,7 @@ public class OperationsHelper {
             ExecutionContext context,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result); // TODO readOnly?
     }
 

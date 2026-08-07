@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jakarta.ws.rs.core.Response;
-import java.util.function.BiConsumer;
 
 /**
  *

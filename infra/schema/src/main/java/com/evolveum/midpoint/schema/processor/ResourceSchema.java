@@ -322,8 +322,16 @@ public interface ResourceSchema extends PrismSchema, Cloneable, LayeredDefinitio
 
     ResourceSchema clone();
 
-    static @NotNull QName qualifyTypeName(@NotNull String localPart) {
-        return new QName(MidPointConstants.NS_RI, localPart);
+    /**
+     * Creates object class name for midPoint use from the native class name.
+     *
+     * Currently it's done simply by adding {@link MidPointConstants#NS_RI} namespace.
+     * This works for both legacy (like `ri:AccountObjectClass`) and modern (`ri:account`) object classes.
+     *
+     * (Can be changed in the future but today we're quite satisfied with this approach.)
+     */
+    static @NotNull QName nativeToMidPointClassName(@NotNull String nativeName) {
+        return new QName(MidPointConstants.NS_RI, nativeName);
     }
 
     /**

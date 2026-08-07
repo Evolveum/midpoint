@@ -807,7 +807,7 @@ public class ShadowMarkPanel<O extends ObjectType> extends AbstractObjectMainPan
                 refreshTable(target);
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ml-2"));
+        refreshIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ms-2"));
         refreshIcon.showTitleAsLabel(true);
         return refreshIcon;
     }
@@ -824,7 +824,7 @@ public class ShadowMarkPanel<O extends ObjectType> extends AbstractObjectMainPan
                 refreshTable(target);
             }
         };
-        playPauseIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ml-2"));
+        playPauseIcon.add(AttributeAppender.append("class", "btn btn-outline-primary ms-2"));
         playPauseIcon.showTitleAsLabel(true);
         return playPauseIcon;
     }

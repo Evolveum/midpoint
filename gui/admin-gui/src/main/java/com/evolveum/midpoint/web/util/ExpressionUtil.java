@@ -10,6 +10,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 
 import jakarta.xml.bind.JAXBElement;
@@ -60,6 +61,7 @@ public class ExpressionUtil {
     public enum Language {
         GROOVY("http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy"),
         PYTHON("http://midpoint.evolveum.com/xml/ns/public/expression/language#python"),
+        MEL("http://midpoint.evolveum.com/xml/ns/public/expression/language#mel"),
         VELOCITY("http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity"),
         JAVASCRIPT("http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript");
 
@@ -71,6 +73,11 @@ public class ExpressionUtil {
 
         public String getLanguage() {
             return language;
+        }
+
+        public String getShortForm() {
+            int hashIndex = language.indexOf('#');
+            return hashIndex >= 0 ? language.substring(hashIndex + 1) : language;
         }
     }
 
@@ -116,7 +123,7 @@ public class ExpressionUtil {
     public static String getExpressionString(ExpressionEvaluatorType type, Language lang) {
         if (ExpressionEvaluatorType.SCRIPT.equals(type) && !Language.GROOVY.equals(lang)) {
             return "<script>\n"
-                    + "    <language>" + lang.getLanguage() + "</language>\n"
+                    + "    <language>" + lang.getShortForm() + "</language>\n"
                     + "    <code>\n"
                     + "        Insert your script here\n"
                     + "    </code>\n"
@@ -180,6 +187,8 @@ public class ExpressionUtil {
                 return Language.PYTHON;
             } else if (expression.contains(Language.JAVASCRIPT.getLanguage())) {
                 return Language.JAVASCRIPT;
+            } else if (expression.contains(Language.MEL.getLanguage())) {
+                return Language.MEL;
             } else {
                 return Language.GROOVY;
             }
@@ -195,7 +204,9 @@ public class ExpressionUtil {
         }
 
         for (Language language : Language.values()) {
-            if (languageValue.equals(language.getLanguage()) || languageValue.equalsIgnoreCase(language.name())) {
+            if (languageValue.equals(language.getLanguage())
+                    || languageValue.equalsIgnoreCase(language.name())
+                    || languageValue.equalsIgnoreCase(language.getShortForm())) {
                 return language;
             }
         }
@@ -768,6 +779,28 @@ public class ExpressionUtil {
             return valueNode.getValueParser().getStringValue();
         } else {
             return valueNode.getValue() != null ? valueNode.getValue().toString() : null;
+        }
+    }
+
+    public static boolean usesIterationVariables(@Nullable ExpressionType expression) {
+        if (expression == null) {
+            return false;
+        }
+
+        try {
+            ScriptExpressionEvaluatorType script = getScriptExpressionValue(expression);
+
+            if (script == null || script.getCode() == null) {
+                return false;
+            }
+
+            String code = script.getCode();
+
+            return code.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
+                    || code.contains(ExpressionConstants.VAR_ITERATION);
+
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't parse script expression.", e);
         }
     }
 }

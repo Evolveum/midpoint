@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.util;
 
-import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
 
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 
@@ -36,7 +36,7 @@ public class EventHelper {
 
     public void processEvent(
             Event event,
-            EventHandlerConfigItem adHocEventHandler,
+            BaseEventHandlerConfigItem adHocEventHandler,
             ExpressionProfile adHocEventExpressionProfile,
             Task task,
             OperationResult parentResult) {

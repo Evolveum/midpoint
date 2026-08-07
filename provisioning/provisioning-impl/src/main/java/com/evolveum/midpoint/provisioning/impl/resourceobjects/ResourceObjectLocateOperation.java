@@ -55,14 +55,14 @@ class ResourceObjectLocateOperation extends AbstractResourceObjectRetrievalOpera
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return new ResourceObjectLocateOperation(ctx, identification, fetchAssociations)
                 .execute(result);
     }
 
     private CompleteResourceObject execute(OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // TODO why we are using only the first secondary identifier for the search on resource?
 

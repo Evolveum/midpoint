@@ -23,7 +23,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,18 +71,24 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
+        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
+
         if (!workDef.isForceRecomputeSchemaMatch()) {
-            var foundOid = findLatestSchemaMatchObjectOid(result);
-            if (foundOid != null) {
-                LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
-                setSchemaMatchObjectOidInWorkState(foundOid, result);
-                return ActivityRunResult.success();
+            if (useAi) {
+                var foundOid = findLatestSchemaMatchObjectOid(result);
+                if (foundOid != null) {
+                    LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
+                    setSchemaMatchObjectOidInWorkState(foundOid, result);
+                    return ActivityRunResult.success();
+                }
+            } else {
+                LOGGER.debug("Skipping existing schema match reuse: {} permission not granted",
+                        DataAccessPermissionType.SCHEMA_ACCESS);
             }
         } else {
             LOGGER.debug("Force recompute schema match requested, skipping existing schema match check");
         }
 
-        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
         var match = SmartIntegrationBeans.get().smartIntegrationService
                 .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
         var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService

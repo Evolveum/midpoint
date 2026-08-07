@@ -394,9 +394,7 @@ public class TestLdapDependency extends AbstractLdapTest {
         return org;
     }
 
-    private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent) throws CommonException, DirectoryException {
         String orgName = org.getName().toString();
         displayValue("assert org", orgName);
 

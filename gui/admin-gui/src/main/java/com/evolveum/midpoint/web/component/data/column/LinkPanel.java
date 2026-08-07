@@ -19,8 +19,6 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 /**
  * @author lazyman
  */

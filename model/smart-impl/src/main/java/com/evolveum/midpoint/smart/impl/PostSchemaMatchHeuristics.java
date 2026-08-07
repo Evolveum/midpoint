@@ -124,7 +124,7 @@ class PostSchemaMatchHeuristics {
                         .shadowAttribute(candidate.getShadowAttribute())
                         .focusPropertyPath(namePathString)
                         .focusProperty(nameFocusDef)
-                        .isSystemProvided(false));
+                        .isSystemProvided(candidate.getIsSystemProvided()));
             }
         }
 

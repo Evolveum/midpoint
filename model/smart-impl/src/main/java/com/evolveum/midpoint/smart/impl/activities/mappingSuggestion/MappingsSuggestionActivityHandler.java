@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
@@ -21,7 +22,9 @@ import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinit
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -77,7 +80,7 @@ public class MappingsSuggestionActivityHandler
             Activity<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new MappingsSuggestionStatisticsComputationActivityRun(
                         context, modelService, repositoryService, smartIntegrationService, clock),
                 null,
@@ -85,14 +88,14 @@ public class MappingsSuggestionActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new MappingsSuggestionSchemaMatchingActivityRun(context),
                 null,
                 (i) -> ID_SCHEMA_MATCHING,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new MappingsSuggestionRemoteServiceCallActivityRun(context),
                 null,
                 (i) -> ID_MAPPINGS_SUGGESTION,

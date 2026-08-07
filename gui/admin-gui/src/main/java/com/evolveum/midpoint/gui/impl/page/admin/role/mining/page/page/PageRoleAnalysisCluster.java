@@ -444,7 +444,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         };
         editConfigurationButton.titleAsLabel(true);
         editConfigurationButton.setOutputMarkupId(true);
-        editConfigurationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default "));
+        editConfigurationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border "));
         repeatingView.add(editConfigurationButton);
     }
 

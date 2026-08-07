@@ -150,7 +150,7 @@ public class AssociationValuesTripleComputation {
     /** @see LocalTunnelException#unwrapAndRethrow() */
     private void processAssignmentTarget(@NotNull PlusMinusZero mode, EvaluatedAssignmentTargetImpl target)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("Processing assignment target {}", target);
         var eligibility = getEligibility(target);
         if (!eligibility.eligible) {
@@ -166,7 +166,7 @@ public class AssociationValuesTripleComputation {
 
     private AssignmentTargetEligibility getEligibility(EvaluatedAssignmentTargetImpl target)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var targetObject = target.getTarget().asObjectable();
         if (!(targetObject instanceof FocusType focus)) {
             return new AssignmentTargetEligibility(false, List.of());
@@ -177,7 +177,7 @@ public class AssociationValuesTripleComputation {
 
     private Collection<AbstractShadow> findRelevantShadows(FocusType focus)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         var objectParticipants = associationDefinition.getObjectParticipants();
         LOGGER.trace("Trying to find relevant shadows for focus {} having {} linkRefs (object types: {})",
@@ -231,7 +231,7 @@ public class AssociationValuesTripleComputation {
 
         private @Nullable PrismValueDeltaSetTriple<ShadowAssociationValue> compute(@NotNull PlusMinusZero mode)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             for (var attrDefBean : outboundBean.getAttribute()) {
                 evaluateAttribute(attrDefBean, false);
             }
@@ -265,7 +265,7 @@ public class AssociationValuesTripleComputation {
 
         private void evaluateAttribute(AttributeOutboundMappingsDefinitionType attrDefBean, boolean isObjectRef)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
             var mappingsCI = AbstractAttributeMappingsDefinitionConfigItem.of(attrDefBean, origin);
@@ -334,7 +334,7 @@ public class AssociationValuesTripleComputation {
 
         private @NotNull ShadowType consolidate()
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             var shadowDef = associationDefinition.isComplex() ?
                     associationDefinition.getAssociationDataObjectDefinition() :
                     projectionContext.getCompositeObjectDefinitionRequired();

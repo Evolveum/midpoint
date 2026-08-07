@@ -143,6 +143,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         exitContainer.add(exit);
 
         WebMarkupContainer customButtonsContainer = new WebMarkupContainer(ID_CUSTOM_BUTTONS_CONTAINER);
+        customButtonsContainer.setOutputMarkupPlaceholderTag(true);
+        customButtonsContainer.setOutputMarkupId(true);
         buttonsStrip.add(customButtonsContainer);
 
         RepeatingView customButtons = new RepeatingView(ID_CUSTOM_BUTTONS);
@@ -281,6 +283,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected AjaxSubmitButton getSubmit() {
         return (AjaxSubmitButton) get(createComponentPath(ID_BUTTONS_STRIP, ID_CUSTOM_BUTTONS_CONTAINER, ID_SUBMIT));
+    }
+
+    protected Component getCustomButtonsContainer() {
+        return get(createComponentPath(ID_BUTTONS_STRIP, ID_CUSTOM_BUTTONS_CONTAINER));
     }
 
     protected IModel<String> getTextModel() {

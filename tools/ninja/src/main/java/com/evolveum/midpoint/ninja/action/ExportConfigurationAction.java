@@ -8,7 +8,7 @@ import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationSeparateWork
 import com.evolveum.midpoint.ninja.action.worker.ExportConfigurationWorker;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ExportConfigurationAction extends AbstractRepositorySearchAction<ExportConfigurationOptions, Void>{
 

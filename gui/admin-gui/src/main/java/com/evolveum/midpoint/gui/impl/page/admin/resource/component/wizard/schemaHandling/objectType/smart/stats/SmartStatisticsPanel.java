@@ -5,28 +5,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.FocusStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValuePatternCountType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.applyStaticPopupBackdrop;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restoreBackdropPopupDefaults;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -39,11 +28,13 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -54,21 +45,30 @@ import org.danekja.java.util.function.serializable.SerializableToIntFunction;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.applyStaticPopupBackdrop;
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restoreBackdropPopupDefaults;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.FocusStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValuePatternCountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Popup panel that displays computed statistics for a resource object class, object type and focus type
@@ -96,11 +96,9 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     private static final String ID_MAIN_PANEL_CONTAINER = "mainPanelContainer";
     private static final String ID_WIDGETS_CONTAINER = "widgetsContainer";
-    private static final String ID_TABLE_PATTERN_CONTAINER = "tablePatternContainer";
-    private static final String ID_TABLE_FREQ_CONTAINER = "tableFreqContainer";
 
+    private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_TABLE_FRAGMENT = "tableFragment";
-    private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeader";
     private static final String ID_TABLE_PANEL_FRAGMENT = "table";
 
     private static final String ID_HEADER_FRAGMENT = "title";
@@ -121,6 +119,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     private IModel<ShadowAttributeStatisticsType> selectedAttribute;
 
     private final PanelType panelType;
+    private boolean isFreqTableDisplayed = true;
 
     enum PanelType {
         OBJECT_CLASS, FOCUS, OBJECT_TYPE
@@ -361,10 +360,14 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         };
 
         sortToggle.setOutputMarkupId(true);
+        sortToggle.add(new TooltipBehavior());
+        sortToggle.add(AttributeModifier.append("title", () -> sortModeModel.getObject().equals(SortMode.COUNT)
+                ? createStringResource("SmartStatisticsPanel.sortByCount").getObject()
+                : createStringResource("SmartStatisticsPanel.sortAlphabetically").getObject()));
         return sortToggle;
     }
 
-    private Component getShowAllButton(){
+    private Component getShowAllButton() {
         return get(ID_LEFT_PANEL).get(ID_SHOW_ALL_BUTTON);
     }
 
@@ -479,13 +482,95 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         }
 
         main.addOrReplace(buildWidgetsContainer(total, unique, missing));
-        main.addOrReplace(buildFrequencyTable(selectedAttribute.getObject(), total));
-        main.addOrReplace(buildPatternTable(selectedAttribute.getObject()));
+
+        List<ITab> tabs = new ArrayList<>();
+        tabs.add(createFrequencyTableTab(total));
+        tabs.add(createPatternTableTab());
+
+        TabSeparatedTabbedPanel<ITab> tabPanel = new TabSeparatedTabbedPanel<>(ID_TAB_PANEL, tabs) {
+
+            @Override
+            protected WebMarkupContainer newTabsContainer(String id) {
+                WebMarkupContainer components = super.newTabsContainer(id);
+                components.add(AttributeModifier.append(CLASS_CSS, "border-start border-end rounded-top bg-light"));
+                return components;
+            }
+
+            @Override
+            protected void onClickTabPerformed(int index, @NotNull Optional<AjaxRequestTarget> target) {
+                isFreqTableDisplayed = index == 0;
+                super.onClickTabPerformed(index, target);
+            }
+
+            @Override
+            protected void customizePopulatedLoopItem(LoopItem item, int index, ITab tab, @NotNull WebMarkupContainer titleLink) {
+                titleLink.add(new TooltipBehavior());
+                titleLink.add(AttributeModifier.append("title", getHelpForTab(index)));
+            }
+        };
+
+        switchTabs(tabPanel);
+
+        tabPanel.setOutputMarkupId(true);
+        main.add(tabPanel);
 
         return main;
     }
 
-    private @NotNull Fragment buildPatternTable(@NotNull ShadowAttributeStatisticsType stat) {
+    protected String getHelpForTab(int index) {
+        if (index == 0) {
+            return createStringResource("SmartStatisticsPanel.valueFrequency.help").getObject();
+        }
+        return createStringResource("SmartStatisticsPanel.valuePatterns.help").getObject();
+    }
+
+    private void switchTabs(TabSeparatedTabbedPanel<ITab> tabPanel) {
+        if (isFreqTableDisplayed) {
+            tabPanel.setSelectedTab(0);
+        } else {
+            tabPanel.setSelectedTab(1);
+        }
+    }
+
+    private @NotNull ITab createPatternTableTab() {
+        return new IconPanelTab(
+                getPageBase().createStringResource(
+                        "SmartStatisticsPanel.valuePatterns.header")) {
+            @Override
+            public WebMarkupContainer getPanel() {
+                return super.getPanel();
+            }
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return buildPatternTable(panelId, selectedAttribute.getObject());
+            }
+
+            @Override
+            public IModel<String> getCssIconModel() {
+                return Model.of("fa fa-project-diagram");
+            }
+        };
+    }
+
+    private @NotNull ITab createFrequencyTableTab(int total) {
+        return new IconPanelTab(
+                getPageBase().createStringResource(
+                        "SmartStatisticsPanel.valueFrequency.header")) {
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return buildFrequencyTable(panelId, selectedAttribute.getObject(), total);
+            }
+
+            @Override
+            public IModel<String> getCssIconModel() {
+                return Model.of("fa fa-chart-bar");
+            }
+        };
+    }
+
+    private @NotNull Fragment buildPatternTable(String id, @NotNull ShadowAttributeStatisticsType stat) {
         List<ShadowAttributeValuePatternCountType> valuePatternCount = stat.getValuePatternCount();
 
         List<IColumn<ShadowAttributeValuePatternCountType, String>> cols = List.of(
@@ -501,7 +586,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         );
 
         return tableFragment(
-                ID_TABLE_PATTERN_CONTAINER,
+                id,
                 "SmartStatisticsPanel.valuePatterns.header",
                 cols,
                 new ListDataProvider<>(this, () -> valuePatternCount),
@@ -509,6 +594,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     private @NotNull Fragment buildFrequencyTable(
+            String panelId,
             @NotNull ShadowAttributeStatisticsType stat,
             int total) {
 
@@ -525,7 +611,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         );
 
         return tableFragment(
-                ID_TABLE_FREQ_CONTAINER,
+                panelId,
                 "SmartStatisticsPanel.valueFrequency.header",
                 cols,
                 new ListDataProvider<>(this, stat::getValueCount),
@@ -549,12 +635,12 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     protected String getBadgeTypeCss(@NotNull String type) {
         if (type.equals("prefix") || type.equals("firstToken")) {
-            return "badge badge-info px-2 py-1";
+            return "badge text-bg-info px-2 py-1";
         } else if (type.equals("suffix") || type.equals("lastToken")) {
-            return "badge badge-success px-2 py-1";
+            return "badge text-bg-success px-2 py-1";
         }
 
-        return "badge badge-secondary px-2 py-1";
+        return "badge text-bg-secondary px-2 py-1";
     }
 
     private <R> @NotNull AbstractColumn<R, String> percentageColumn(
@@ -580,18 +666,6 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             IModel<String> helpModel) {
 
         Fragment frag = new Fragment(id, ID_TABLE_FRAGMENT, this);
-
-        LabelWithHelpPanel label = new LabelWithHelpPanel(
-                ID_TABLE_HEADER_FRAGMENT,
-                createStringResource(headerKey)) {
-
-            @Override
-            protected IModel<String> getHelpModel() {
-                return helpModel;
-            }
-        };
-        frag.add(label);
-
         BoxedTablePanel<R> table = new BoxedTablePanel<>(ID_TABLE_PANEL_FRAGMENT, provider, cols) {
             @Override
             protected boolean hideFooterIfSinglePage() {
@@ -607,14 +681,10 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
                 return createStringResource("SmartStatisticsPanel.noValuePanel.customSubTitle");
             }
-
-            @Override
-            protected @NotNull @Unmodifiable List<Integer> getPagingSizes() {
-                return List.of(5, 10, 20, 50, 100);
-            }
         };
 
-        table.setItemsPerPage(5);
+        table.setShowAsCard(false);
+        table.setItemsPerPage(10);
         frag.add(table);
 
         return frag;
@@ -658,7 +728,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, valueCount);
-                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-4 m-0 lh-1"));
+                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-4 m-0 lh-1"));
                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:20px"));
 
                 return label;

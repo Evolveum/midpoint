@@ -107,7 +107,7 @@ public class PreviewMappingPanel extends BasePanel<PrismContainerValueWrapper<Ma
             }
         };
         cancelButton.setOutputMarkupId(true);
-        cancelButton.add(AttributeModifier.append("class", "btn-link"));
+        cancelButton.add(AttributeModifier.append("class", "btn btn-link"));
         repeater.add(cancelButton);
     }
 

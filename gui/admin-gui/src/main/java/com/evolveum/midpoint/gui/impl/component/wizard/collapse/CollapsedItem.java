@@ -1,23 +1,38 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
 
 package com.evolveum.midpoint.gui.impl.component.wizard.collapse;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
+import java.io.Serializable;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
-import java.io.Serializable;
-
-public abstract class CollapsedItem implements Serializable {
+public abstract class CollapsedItem<M extends DrawerDescriptor>
+        implements Serializable {
 
     private boolean selected;
+    private IModel<String> titleModel;
 
     public abstract IModel<String> getIcon();
+
+    IModel<String> getTitleIconCss() {
+        return Model.of();
+    }
+
+    protected void setTitleModel(IModel<String> titleModel) {
+        this.titleModel = titleModel;
+    }
+
+    public IModel<String> getTitle() {
+        return titleModel;
+    }
+
+    public abstract Component getPanel(String id, M model);
 
     public boolean isSelected() {
         return selected;
@@ -31,11 +46,7 @@ public abstract class CollapsedItem implements Serializable {
         return 0;
     }
 
-    public abstract IModel<String> getTitle();
-
     public boolean isVisible() {
         return true;
     }
-
-    public abstract Component getPanel(String id, WizardModelWithParentSteps wizardModel);
 }

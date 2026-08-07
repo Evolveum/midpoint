@@ -19,13 +19,11 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,8 +53,8 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("AssociationExpressionValuePanel.literalValue");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("AssociationExpressionValuePanel.literalValue");
     }
 
     public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {

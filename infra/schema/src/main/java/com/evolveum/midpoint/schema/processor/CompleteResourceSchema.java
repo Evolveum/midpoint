@@ -8,8 +8,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Resource schema that is complete with regards to the resource definition, i.e., it contains the full `schemaHandling`,
  * including refined object types and object classes, and all the resource-level definitions, e.g., for shadow caching.

@@ -58,6 +58,11 @@ class ObjectTypesSuggestionFocusTypesActivityRun
         var suggestedObjectTypesClone = parentState.getWorkStateItemRealValueClone(
                 ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
 
+        if (suggestedObjectTypesClone == null) {
+            LOGGER.debug("No object types suggestion found in work state; skipping focus type suggestions");
+            return ActivityRunResult.success();
+        }
+
         for (var objectTypeBean : suggestedObjectTypesClone.getObjectType()) {
             LOGGER.debug("Going to suggest focus type for resource {} and object type:\n{}",
                     resourceOid, objectTypeBean.debugDumpLazily(1));

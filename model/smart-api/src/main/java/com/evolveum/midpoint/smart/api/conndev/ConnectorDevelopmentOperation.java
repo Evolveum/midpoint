@@ -29,6 +29,8 @@ public interface ConnectorDevelopmentOperation {
 
     String submitDiscoverBasicInformation(Task task, OperationResult result);
 
+    String submitDiscoverConnectivityEndpoint(Task task, OperationResult result);
+
     // Midpoint local (AI optional in background)
     void basicConnectorInfoUpdated(ConnectorDevelopmentType  updated);
 
@@ -36,6 +38,8 @@ public interface ConnectorDevelopmentOperation {
     StatusInfo<PrismContainer<ConnDevAuthInfoType>>  selectBaseApiInformation(String basicInfo);
 
     String submitCreateConnector(Task task, OperationResult result);
+
+    String submitExportConnector(Task task, OperationResult result);
 
     // Midpoint local (+ download framework)
 
@@ -47,23 +51,31 @@ public interface ConnectorDevelopmentOperation {
 
     String submitDiscoverObjectClassEndpoints(String objectClass, Task testTask, OperationResult testOperationResult);
 
-    String submitGenerateArtifact(ConnDevArtifactType artifact, Task testTask, OperationResult testOperationResult);
+    String submitGenerateArtifact(ConnDevArtifactType artifact, boolean retry, Task testTask, OperationResult testOperationResult);
 
-    default String submitGenerateNativeSchema(String objectClass, Task task, OperationResult result) {
-        return submitGenerateArtifact(NATIVE_SCHEMA_DEFINITION.create(objectClass), task, result);
+    default String submitGenerateNativeSchema(String objectClass, boolean retry, Task task, OperationResult result) {
+        return submitGenerateArtifact(NATIVE_SCHEMA_DEFINITION.create(objectClass), retry, task, result);
     }
 
-    default String submitGenerateConnIdSchema(String objectClass, Task testTask, OperationResult testOperationResult) {
-        return submitGenerateArtifact(CONNID_SCHEMA_DEFINITION.create(objectClass), testTask, testOperationResult);
+    default String submitGenerateConnIdSchema(String objectClass, boolean retry, Task testTask, OperationResult testOperationResult) {
+        return submitGenerateArtifact(CONNID_SCHEMA_DEFINITION.create(objectClass), retry, testTask, testOperationResult);
     }
 
-    default String submitGenerateAuthenticationScript(Task task, OperationResult result) {
-        return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), task, result);
+    default String submitGenerateAuthenticationScript(boolean retry, Task task, OperationResult result) {
+        return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), retry, task, result);
     }
 
 
-    default String submitGenerateEndpointBasedScript(ConnectorDevelopmentArtifacts.KnownArtifactType artifactDef, String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateArtifact(artifactDef.create(objectClass),
+    default String submitGenerateEndpointBasedScript(ConnectorDevelopmentArtifacts.KnownArtifactType artifactDef, String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(artifactDef, objectClass, endpoints, retry, null, List.of(), task, result);
+    }
+
+    default String submitGenerateEndpointBasedScript(ConnectorDevelopmentArtifacts.KnownArtifactType artifactDef, String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        var artifact = artifactDef.create(objectClass);
+        if (currentScript != null) {
+            artifact.setContent(currentScript);
+        }
+        return submitGenerateArtifact(artifact,
                 definition -> {
                     if (endpoints != null && !endpoints.isEmpty()) {
                         for (var endpoint : endpoints) {
@@ -77,47 +89,67 @@ public interface ConnectorDevelopmentOperation {
                             );
                         }
                     }
-                }, task, result);
+                    if (midpointErrors != null) {
+                        definition.getMidpointError().addAll(midpointErrors);
+                    }
+                }, retry, task, result);
 
     }
 
-    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(SEARCH_ALL_DEFINITION, objectClass, endpoints, task, result);
+    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, Task task, OperationResult result) {
+        return submitGenerateSearchScript(objectClass, endpoints, retry, null, List.of(), task, result);
     }
 
-    default String submitGenerateSearchByIdScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(SEARCH_BY_ID_DEFINITION, objectClass, endpoints, task, result);
+    default String submitGenerateSearchScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_ALL_DEFINITION, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    default String submitGenerateSearchFilterScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(SEARCH_FILTER_DEFINITION, objectClass, endpoints, task, result);
+    default String submitGenerateSearchByIdScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_BY_ID_DEFINITION, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
+    }
+
+    default String submitGenerateSearchFilterScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(SEARCH_FILTER_DEFINITION, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
 
-    default String submitGenerateRelationScript(ConnDevRelationInfoType relation, Task task, OperationResult result) {
+    default String submitGenerateRelationScript(ConnDevRelationInfoType relation, boolean retry, Task task, OperationResult result) {
+        return submitGenerateRelationScript(relation, retry, null, List.of(), task, result);
+    }
+
+    default String submitGenerateRelationScript(ConnDevRelationInfoType relation, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
         var safeClone = new ConnDevRelationInfoType()
                 .name(relation.getName())
                 .subject(relation.getSubject())
                 .subjectAttribute(relation.getSubjectAttribute())
                 .object(relation.getObject())
                 .objectAttribute(relation.getObjectAttribute());
-        return submitGenerateArtifact(RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName()),
-                definition -> definition.relation(safeClone), task, result);
+        var artifact = RELATIONSHIP_SCHEMA_DEFINITION.create(relation.getName());
+        if (currentScript != null) {
+            artifact.setContent(currentScript);
+        }
+        return submitGenerateArtifact(artifact,
+                definition -> {
+                    definition.relation(safeClone);
+                    if (midpointErrors != null) {
+                        definition.getMidpointError().addAll(midpointErrors);
+                    }
+                }, retry,  task, result);
     }
 
-    default String submitGenerateCreateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(CREATE, objectClass, endpoints, task, result);
+    default String submitGenerateCreateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(CREATE, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    default String submitGenerateUpdateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(UPDATE, objectClass, endpoints, task, result);
+    default String submitGenerateUpdateScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(UPDATE, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    default String submitGenerateDeleteScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, Task task, OperationResult result) {
-        return submitGenerateEndpointBasedScript(DELETE, objectClass, endpoints, task, result);
+    default String submitGenerateDeleteScript(String objectClass, List<ConnDevHttpEndpointType> endpoints, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        return submitGenerateEndpointBasedScript(DELETE, objectClass, endpoints, retry, currentScript, midpointErrors, task, result);
     }
 
-    String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result);
+    String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, boolean retry, Task task, OperationResult result);
     // FIXME: Also add operation results
     // Midpoint local
     ResourceType testConnection(ConnectorConfigurationType type);
@@ -167,7 +199,7 @@ public interface ConnectorDevelopmentOperation {
         saveArtifact(artifact, task, result);
         resetResourceSchema(task, result);
     }
-    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);
@@ -183,5 +215,7 @@ public interface ConnectorDevelopmentOperation {
 
     List<ConnDevHttpEndpointType> suggestedEndpointsFor(String objectClass, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType);
 
-    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+    void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
+
+    String submitRefreshSchema(Task task, OperationResult result);
 }

@@ -8,7 +8,9 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -46,7 +48,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new ResourceObjectFetchOperation(ctx, identification, fetchAssociations)
                 .execute(shadowItemsToReturn, result);
     }
@@ -63,7 +65,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @NotNull ResourceObjectIdentification.WithPrimary identification,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return new ResourceObjectFetchOperation(ctx, identification, false)
                 .executeRaw(null, result);
     }
@@ -71,7 +73,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
     private @NotNull CompleteResourceObject execute(
             ShadowItemsToReturn shadowItemsToReturn, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var resourceObject = executeRaw(shadowItemsToReturn, result);
         return complete(resourceObject, result);
     }
@@ -84,7 +86,7 @@ class ResourceObjectFetchOperation extends AbstractResourceObjectRetrievalOperat
             @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         checkFullReadCapability();
 

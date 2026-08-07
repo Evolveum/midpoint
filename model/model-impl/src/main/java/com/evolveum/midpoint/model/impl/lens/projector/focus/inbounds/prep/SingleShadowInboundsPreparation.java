@@ -84,7 +84,7 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
      */
     public void prepareOrEvaluate(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, StopProcessingProjectionException {
+            ConfigurationException, ExpressionEvaluationException, StopProcessingProjectionException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_PREPARE_OR_EVALUATE)
                 .addArbitraryObjectAsParam("source", inboundsSource)
@@ -168,6 +168,6 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
          * Evaluates special inbounds (password, activation). Temporary. Implemented only for the full processing case.
          */
         void evaluateSpecialInbounds(OperationResult result) throws SchemaException, ExpressionEvaluationException,
-                CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+                CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
     }
 }

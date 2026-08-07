@@ -11,7 +11,9 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -181,7 +183,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     }
 
     protected String getCssForHeader() {
-        return "bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+        return "bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 btn w-100";
     }
 
     protected String getClassForPrismContainerValuePanel() {

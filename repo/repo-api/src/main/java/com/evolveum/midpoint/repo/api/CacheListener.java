@@ -8,9 +8,6 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 @Deprecated
 public interface CacheListener extends CacheInvalidationListener {
 

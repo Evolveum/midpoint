@@ -23,7 +23,10 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType.FULL_ELEVATION;

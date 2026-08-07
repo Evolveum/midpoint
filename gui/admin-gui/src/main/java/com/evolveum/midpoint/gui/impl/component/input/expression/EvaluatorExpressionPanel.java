@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
@@ -47,7 +48,7 @@ public abstract class EvaluatorExpressionPanel extends BasePanel<ExpressionType>
 
     protected abstract void initLayout(MarkupContainer valueContainer);
 
-    public abstract IModel<String> getValueContainerLabelModel();
+    public abstract IModel<String> getValueContainerLabelModel(PageBase pageBase);
 
     protected final Component getValueContainer() {
         return get(ID_VALUE_CONTAINER);

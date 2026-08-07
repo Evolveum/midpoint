@@ -26,13 +26,16 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageProcessingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * @author shood
@@ -127,22 +130,18 @@ public class UploadDownloadPanel extends InputPanel {
                     final String contentType = fu.getContentType();
 
                     if (!FileValidatorUtil.isValidContentType(contentType, FileValidatorUtil.getMimeTypes(getAllowedUploadContentTypes()))) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
-                        validatable.error(new ValidationError(msg));
+                        validatable.error(createValidationError("UploadDownloadPanel.validationContentNotAllowed", label, contentType));
                         continue;
                     }
 
-                    if (!FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
-                        validatable.error(new ValidationError(msg));
+                    if (isMagicNumberValidationEnabled() && !FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
+                        validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType));
                     }
                 }
             } catch (MimeTypeParseException ex) {
-                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
-                validatable.error(new ValidationError(msg));
+                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage()));
             } catch (IOException ex) {
-                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage());
-                validatable.error(new ValidationError(msg));
+                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage()));
             }
         });
         fileUpload.setOutputMarkupId(true);
@@ -189,6 +188,11 @@ public class UploadDownloadPanel extends InputPanel {
         add(new VisibleBehaviour(() -> !isReadOnly));
     }
 
+    private ValidationError createValidationError(String key, Object... params) {
+        String msg = getParentPage().getString(key, params);
+        return new ValidationError(msg);
+    }
+
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return getInputFile();
@@ -199,16 +203,42 @@ public class UploadDownloadPanel extends InputPanel {
         return file.getFileUpload();
     }
 
+    /**
+     * Checks if ImageUploadProcessing is set to fixedFormat.
+     * In case of fixedFormat the magic number check is performed in ImageSanitization.
+     * Moreover, potential change of image format performed in ImageSanitization incorrectly trigger FileValidatorUtil.isValidMagicNumber
+     *
+     * @return if ImageUploadProcessing is set to fixedFormat
+     */
+    private boolean isMagicNumberValidationEnabled() {
+        final ImageUploadProcessingType config = getCompiledGuiProfile().getImageUploadProcessing();
+        return config == null || !ImageProcessingType.FIXED.equals(config.getProcessing());
+    }
+
+    private CompiledGuiProfile getCompiledGuiProfile() {
+        return getParentPage().getCompiledGuiProfile();
+    }
+
     public void uploadFilePerformed(AjaxRequestTarget target) {
         Component input = getInputFile();
         try {
             FileUpload uploadedFile = getFileUpload();
-            updateValue(uploadedFile.getBytes());
+            updateValue(
+                    ImageSanitizationUtil.sanitizeImage(
+                            uploadedFile.getBytes(),
+                            getCompiledGuiProfile().getImageUploadProcessing()
+                    )
+            );
             LOGGER.trace("Upload file success.");
             input.success(getString("UploadPanel.message.uploadSuccess"));
+        } catch (ImageSanitizationException e) {
+            LOGGER.trace("Sanitization of upload file error.", e);
+            final String errorMessage = getString("UploadPanel.message.sanitizationUploadError") + " " + e.getMessage();
+            input.error(errorMessage);
         } catch (Exception e) {
             LOGGER.trace("Upload file error.", e);
-            input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
+            final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
+            input.error(errorMessage);
         }
     }
 

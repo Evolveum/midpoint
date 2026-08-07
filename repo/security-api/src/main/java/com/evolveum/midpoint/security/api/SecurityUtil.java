@@ -6,30 +6,29 @@
 
 package com.evolveum.midpoint.security.api;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.*;
+import java.util.function.Function;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-
-import java.util.*;
-import java.util.function.Function;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Radovan Semancik
@@ -37,17 +36,16 @@ import java.util.function.Function;
 public class SecurityUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
+
     private static final long GET_LOCAL_NAME_THRESHOLD = 2000;
 
-    @NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
+    /**
+     * HTTP session attribute key under which the public session identifier is stored.
+     * This is intentionally different from the container-assigned JSESSION ID.
+     */
+    public static final String PUBLIC_SESSION_ID_ATTR = "PUBLIC_SESSION_ID";
 
-    public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
-        Collection<String> actions = new ArrayList<>(configAttributes.size());
-        for (ConfigAttribute attr: configAttributes) {
-            actions.add(attr.getAttribute());
-        }
-        return actions;
-    }
+    @NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
 
     public static void logSecurityDeny(Object object, String message) {
         if (LOGGER.isDebugEnabled()) {
@@ -66,7 +64,7 @@ public class SecurityUtil {
             String subjectDesc = getSubjectDescription();
             LOGGER.debug("Denied access to {} by {} {}", object, subjectDesc, message);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations,
+                LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: " + requiredAuthorizations,
                         object, subjectDesc, message, cause);
             }
         }
@@ -240,7 +238,6 @@ public class SecurityUtil {
         return attrVerificationPolicy;
     }
 
-
     public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
         if (securityPolicy == null) {
             return null;
@@ -254,7 +251,7 @@ public class SecurityUtil {
         }
         List<NonceCredentialsPolicyType> existingNoncePolicies = creds.getNonce();
         List<NonceCredentialsPolicyType> newNoncePolicies = new ArrayList<>(existingNoncePolicies.size());
-        for(NonceCredentialsPolicyType noncePolicy: existingNoncePolicies) {
+        for (NonceCredentialsPolicyType noncePolicy : existingNoncePolicies) {
             NonceCredentialsPolicyType newNoncePolicy = noncePolicy.clone();
             copyDefaults(creds.getDefault(), newNoncePolicy);
             newNoncePolicies.add(newNoncePolicy);
@@ -384,6 +381,39 @@ public class SecurityUtil {
     }
 
     /**
+     * Returns a stable audit session ID for the given {@link HttpServletRequest} or null if request is null.
+     *
+     * @see #getOrCreateAuditSessionId(HttpSession)
+     */
+    public static String getOrCreateAuditSessionId(@Nullable HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        return getOrCreateAuditSessionId(request.getSession(false));
+    }
+
+    /**
+     * Returns a stable audit session ID for the given HTTP session.
+     * The ID is a random UUID generated on first call and stored as a session attribute
+     * ({@value #PUBLIC_SESSION_ID_ATTR}). It intentionally differs from the container-assigned
+     * JSESSION ID so that audit logs do not expose the real session token.
+     *
+     * @return the UUID string, or {@code null} if {@code session} is {@code null}
+     */
+    public static String getOrCreateAuditSessionId(@Nullable HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        String id = (String) session.getAttribute(PUBLIC_SESSION_ID_ATTR);
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+            session.setAttribute(PUBLIC_SESSION_ID_ATTR, id);
+        }
+        return id;
+    }
+
+    /**
      * Returns current connection information, as derived from HTTP request stored in current thread.
      * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
      */
@@ -398,6 +428,7 @@ public class SecurityUtil {
         if (session != null) {
             rv.setSessionId(session.getId());
         }
+        rv.setPublicSessionId(getOrCreateAuditSessionId(request));
         long start = System.currentTimeMillis();
         rv.setLocalHostName(request.getLocalName());
         long delta = System.currentTimeMillis() - start;
@@ -517,7 +548,7 @@ public class SecurityUtil {
         }
         boolean isRecordSessionlessAccessChannel = isRecordSessionLessAccessChannel(channel);
 
-        if (!isRecordSessionlessAccessChannel){
+        if (!isRecordSessionlessAccessChannel) {
             return true;
         }
         return isAudited;

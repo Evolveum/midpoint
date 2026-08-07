@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-
 import org.apache.commons.lang3.StringUtils;
 
 public enum DisplayForLifecycleState {

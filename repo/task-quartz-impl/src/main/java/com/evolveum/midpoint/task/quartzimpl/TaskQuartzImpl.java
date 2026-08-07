@@ -6,27 +6,17 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
-
 import static java.util.Collections.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-
-import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
-import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,11 +29,18 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,20 +58,20 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * 1. Maintains the task content:
  *
- *   - prism object (TaskType)
- *   - separately stored live and extra parts: operation result, statistics, tracing
- *   - pending changes + quartz synchronization related flags
- *   - other (like requestee)
+ * - prism object (TaskType)
+ * - separately stored live and extra parts: operation result, statistics, tracing
+ * - pending changes + quartz synchronization related flags
+ * - other (like requestee)
  *
  * 2. Synchronizes access to this content in multi-threaded environment (see below).
  *
  * 3. DOES NOT implement state transitions nor retrieval methods. These are delegated to the other (helper) classes.
  *
  * 4. Custom logic present (i.e. exceptions to the above point):
- *     - instantiation,
- *     - {@link #refresh(OperationResult)},
- *     - subtasks handling,
- *     - path-to-root computing.
+ * - instantiation,
+ * - {@link #refresh(OperationResult)},
+ * - subtasks handling,
+ * - path-to-root computing.
  *
  * ---
  * A few notes about concurrency:
@@ -102,6 +99,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class TaskQuartzImpl implements Task {
 
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
+
+    private static final ItemPath CONFLICT_RESOLUTION_PATH =
+            ItemPath.create(TaskType.F_EXECUTION_ENVIRONMENT, TaskExecutionEnvironmentType.F_CONFLICT_RESOLUTION);
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
@@ -309,7 +309,6 @@ public class TaskQuartzImpl implements Task {
             return taskPrism.clone();
         }
     }
-
 
     /**
      * Returns the backing task prism object. Not supported for running task instances.
@@ -1871,6 +1870,11 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public ConflictResolutionType getConflictResolution() {
+        return getContainerableOrClone(CONFLICT_RESOLUTION_PATH, ConflictResolutionType.class);
+    }
+
+    @Override
     public TaskExecutionEnvironmentType getExecutionEnvironment() {
         return getContainerableOrClone(TaskType.F_EXECUTION_ENVIRONMENT);
     }
@@ -2088,7 +2092,7 @@ public class TaskQuartzImpl implements Task {
     public List<Task> getPathToRootTask(OperationResult result) throws SchemaException {
         List<Task> allTasksToRoot = new ArrayList<>();
         TaskQuartzImpl current = this;
-        for (;;) {
+        for (; ; ) {
             checkNoCycle(allTasksToRoot, current);
             allTasksToRoot.add(current);
 
@@ -2198,16 +2202,16 @@ public class TaskQuartzImpl implements Task {
     @Override
     public boolean equals(Object obj) {
         synchronized (prismAccess) {
-            if (this == obj) { return true; }
-            if (obj == null) { return false; }
-            if (getClass() != obj.getClass()) { return false; }
+            if (this == obj) {return true;}
+            if (obj == null) {return false;}
+            if (getClass() != obj.getClass()) {return false;}
             TaskQuartzImpl other = (TaskQuartzImpl) obj;
             if (taskResult == null) {
-                if (other.taskResult != null) { return false; }
-            } else if (!taskResult.equals(other.taskResult)) { return false; }
+                if (other.taskResult != null) {return false;}
+            } else if (!taskResult.equals(other.taskResult)) {return false;}
             if (taskPrism == null) {
-                if (other.taskPrism != null) { return false; }
-            } else if (!taskPrism.equals(other.taskPrism)) { return false; }
+                if (other.taskPrism != null) {return false;}
+            } else if (!taskPrism.equals(other.taskPrism)) {return false;}
             return true;
         }
     }

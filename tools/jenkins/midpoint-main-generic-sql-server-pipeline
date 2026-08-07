@@ -128,7 +128,7 @@ EOF
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    // -Xmx6g to fit into container memory limit, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then

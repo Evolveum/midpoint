@@ -21,8 +21,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.SimulationWizardPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -148,12 +149,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
     private void showCorrelationItemsTable(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CORRELATION, false)) {
-                    @Override
-                    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
-                        ResourceObjectTypeWizardPanel.this.showSynchronizationConfigWizard(target);
-                    }
-                });
+                new CorrelationWizardPanel(getIdOfChoicePanel(), createHelper(ResourceObjectTypeDefinitionType.F_CORRELATION, false)));
     }
 
     private void showCapabilitiesConfigWizard(AjaxRequestTarget target) {

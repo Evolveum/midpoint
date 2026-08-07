@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.LocalNodeState;
-import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.run.JobExecutor;
 import com.evolveum.midpoint.util.MiscUtil;

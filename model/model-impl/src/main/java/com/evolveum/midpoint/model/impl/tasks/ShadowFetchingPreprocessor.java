@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemPreprocessor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;

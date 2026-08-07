@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.intest.manual;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
 
 import static org.testng.AssertJUnit.*;
@@ -16,7 +14,6 @@ import java.io.File;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 

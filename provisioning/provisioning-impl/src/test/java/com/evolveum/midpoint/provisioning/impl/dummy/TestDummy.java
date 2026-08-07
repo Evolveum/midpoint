@@ -5046,8 +5046,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     /** Creates the association value (not the low-level reference attribute value). */
     ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String... objectOids)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            throws CommonException {
         List<AbstractShadow> objects = new ArrayList<>(objectOids.length);
         for (String objectOid : objectOids) {
             objects.add(
@@ -5079,8 +5078,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @SuppressWarnings("SameParameterValue")
     ObjectDelta<ShadowType> createDetitleDelta(String subjectOid, QName assocName, String objectOid)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         var object = AbstractShadow.of(
                 provisioningService.getObject(
                         ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));

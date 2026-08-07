@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<ExportFocusStatisticsOptions, Void> {
     private static final List<ItemName> INCLUDE_ITEMS = List.of(
@@ -22,10 +22,11 @@ public class ExportFocusStatisticsAction extends AbstractRepositorySearchAction<
             new ItemName(SchemaConstants.NS_C, "locality"), new ItemName(SchemaConstants.NS_C, "preferredLanguage"),
             new ItemName(SchemaConstants.NS_C, "locale"), new ItemName(SchemaConstants.NS_C, "timezone"),
             new ItemName(SchemaConstants.NS_C, "emailAddress"), new ItemName(SchemaConstants.NS_C, "telephoneNumber"),
-            new ItemName(SchemaConstants.NS_C, "fullName"), new ItemName(SchemaConstants.NS_C, "givenName"),
-            new ItemName(SchemaConstants.NS_C, "familyName"), new ItemName(SchemaConstants.NS_C, "additionalName"),
-            new ItemName(SchemaConstants.NS_C, "nickName"), new ItemName(SchemaConstants.NS_C, "honorificPrefix"),
-            new ItemName(SchemaConstants.NS_C, "honorificSuffix"), new ItemName(SchemaConstants.NS_C, "title"),
+            new ItemName(SchemaConstants.NS_C, "fullName"), new ItemName(SchemaConstants.NS_C, "preferredName"),
+            new ItemName(SchemaConstants.NS_C, "givenName"), new ItemName(SchemaConstants.NS_C, "familyName"),
+            new ItemName(SchemaConstants.NS_C, "additionalName"), new ItemName(SchemaConstants.NS_C, "nickName"),
+            new ItemName(SchemaConstants.NS_C, "honorificPrefix"), new ItemName(SchemaConstants.NS_C, "honorificSuffix"),
+            new ItemName(SchemaConstants.NS_C, "title"),
             new ItemName(SchemaConstants.NS_C, "employeeNumber"), new ItemName(SchemaConstants.NS_C, "personalNumber"),
             new ItemName(SchemaConstants.NS_C, "organization"),
             new ItemName(SchemaConstants.NS_C, "organizationalUnit"), new ItemName(SchemaConstants.NS_C, "displayName"),

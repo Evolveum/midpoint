@@ -18,12 +18,14 @@ import java.util.Optional;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
@@ -70,6 +72,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private LoadableModel<RecognizedEvaluator> typeModel;
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
+    private boolean displayHelp = true;
 
     Model<String> infoLabelModel = Model.of("");
 
@@ -215,7 +218,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         setOutputMarkupId(true);
         WebMarkupContainer infoContainer = new WebMarkupContainer(ID_INFO_CONTAINER);
         infoContainer.setOutputMarkupId(true);
-        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable() || isReadOnly())));
+        infoContainer.add(new VisibleBehaviour(() -> !isEvaluatorPanelExpanded && (!isInTable() || isReadOnly()) && displayHelp));
         add(infoContainer);
 
         Label infoLabel = new Label(ID_INFO_LABEL, infoLabelModel);
@@ -323,6 +326,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap"));
             return label;
         }
 
@@ -389,39 +393,18 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return type != null && type.evaluatorPanel != null && type.buttonLabelKeyPrefix != null && !isReadOnly();
     }
 
-    private AjaxButton createTypeButton() {
+    private AjaxIconButton createTypeButton() {
         RecognizedEvaluator type = typeModel.getObject();
-        AjaxButton typeButton = new AjaxButton(ID_TYPE_BUTTON) {
+
+        AjaxIconButton typeButton = new AjaxIconButton(ID_TYPE_BUTTON, Model.of("fa fa-gear"),
+                () -> type != null
+                        ? getPageBase().createStringResource(
+                        type.buttonLabelKeyPrefix + "." + isEvaluatorPanelExpanded()).getString() : "") {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
-                    OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
-                        @Override
-                        protected WebMarkupContainer createPanel(String id) {
-                            return createEvaluatorPanel(id, true);
-                        }
-
-                        @Override
-                        public IModel<String> getTitle() {
-                            Component panel = getPanel();
-                            if (panel instanceof EvaluatorExpressionPanel) {
-                                return ((EvaluatorExpressionPanel) panel).getValueContainerLabelModel();
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void processHide(AjaxRequestTarget target) {
-                            super.processHide(target);
-                            updateLabelForExistingEvaluator();
-                            target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
-                            target.add(ExpressionPanel.this);
-
-                            helpModel.reset();
-                        }
-                    };
-                    getPageBase().showMainPopup(popupPanel, target);
-
+                    DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
+                    getPageBase().showRightSidebar(drawerModel, target);
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
                     if (ExpressionPanel.this.getModelObject() != null
@@ -436,15 +419,6 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
                     helpModel.reset();
                 }
-            }
-
-            @Override
-            public IModel<?> getBody() {
-                if (type == null) {
-                    return Model.of();
-                }
-                return getPageBase().createStringResource(type.buttonLabelKeyPrefix + "." + isEvaluatorPanelExpanded());
-
             }
         };
         typeButton.add(new VisibleBehaviour(this::isButtonShow));
@@ -465,7 +439,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
-                    evaluatorPanel.add(AttributeAppender.append("class", "pl-3"));
+                    evaluatorPanel.add(AttributeAppender.append("class", "ps-3"));
                 }
                 return evaluatorPanel;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
@@ -503,5 +477,31 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     protected boolean isReadOnly() {
         return false;
+    }
+
+    public void setDisplayHelp(boolean displayHelp) {
+        this.displayHelp = displayHelp;
+    }
+
+    public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
+        List<CollapsedItem<DrawerModel>> collapsedItems = new ArrayList<>();
+        CollapsedItem<DrawerModel> collapsedItem = new CollapsedItem<>() {
+            @Override
+            public IModel<String> getIcon() {
+                return Model.of("fa fa-code");
+            }
+
+            @Override
+            public Component getPanel(String id, DrawerModel model) {
+                WebMarkupContainer panel = createEvaluatorPanel(id, true);
+                if (panel instanceof EvaluatorExpressionPanel evaluatorPanel) {
+                    setTitleModel(evaluatorPanel.getValueContainerLabelModel(getPageBase()));
+                }
+                return panel;
+            }
+        };
+        collapsedItem.setSelected(true);
+        collapsedItems.add(collapsedItem);
+        return collapsedItems;
     }
 }

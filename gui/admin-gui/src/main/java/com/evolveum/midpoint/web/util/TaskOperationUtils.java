@@ -22,12 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -103,7 +98,7 @@ public class TaskOperationUtils {
 
     private static boolean suspendPlainTasks(TaskService taskService, List<TaskType> plainTasks, OperationResult result, Task opTask)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         //noinspection SimplifiableIfStatement
         if (!plainTasks.isEmpty()) {
             return taskService.suspendTasks(ObjectTypeUtil.getOids(plainTasks), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
@@ -114,7 +109,7 @@ public class TaskOperationUtils {
 
     private static boolean suspendTrees(TaskService taskService, List<TaskType> roots, OperationResult result, Task opTask)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         boolean suspended = true;
         if (!roots.isEmpty()) {
             for (TaskType root : roots) {
@@ -170,7 +165,7 @@ public class TaskOperationUtils {
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, pageBase.createStringResource("TaskOperationUtils.message.runNowPerformed.success").getString());
             }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+        } catch (RuntimeException | CommonException e) {
             result.recordFatalError(pageBase.createStringResource("TaskOperationUtils.message.runNowPerformed.fatalError").getString(), e);
         }
 

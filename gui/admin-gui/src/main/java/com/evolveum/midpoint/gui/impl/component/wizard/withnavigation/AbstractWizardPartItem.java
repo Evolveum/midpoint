@@ -78,7 +78,7 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         this.parentSteps = createWizardSteps();
         getParentSteps().forEach(parentStep -> {
             parentStep.init(this.controller);
-            getChildrenSteps(parentStep).forEach(s -> s.init(this.controller));
+            getChildrenSteps(parentStep);
         });
 
         String stepId = this.controller.getStepIdFromParams(page);
@@ -144,6 +144,10 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
         return parentSteps;
     }
 
+    public void invalidateChildrenSteps(String parentStepId) {
+        childrenSteps.remove(parentStepId);
+    }
+
     private List<WizardStep> getChildrenSteps(WizardParentStep parentStep) {
         if (!childrenSteps.containsKey(parentStep.getStepId())) {
             String defaultKey = parentStep.getDefaultStepId();
@@ -151,7 +155,9 @@ public abstract class AbstractWizardPartItem<AH extends AssignmentHolderType, AD
                 childrenSteps.put(parentStep.getStepId(), childrenSteps.get(defaultKey));
                 childrenSteps.remove(defaultKey);
             } else {
-                childrenSteps.put(parentStep.getStepId(), parentStep.createChildrenSteps());
+                List<WizardStep> newChildrenSteps = parentStep.createChildrenSteps();
+                newChildrenSteps.forEach(s -> s.init(this.controller));
+                childrenSteps.put(parentStep.getStepId(), newChildrenSteps);
             }
         }
         return childrenSteps.get(parentStep.getStepId());

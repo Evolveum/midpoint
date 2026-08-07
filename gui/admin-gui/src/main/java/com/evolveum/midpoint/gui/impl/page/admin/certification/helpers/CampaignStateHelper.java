@@ -90,7 +90,7 @@ public class CampaignStateHelper implements Serializable {
                 CampaignActionConfirmation.OPEN_NEXT_STAGE_CONFIRMATION),
         CLOSE_STAGE(new DisplayType()
                 .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.closeStage"))
-                .cssClass("btn-default")
+                .cssClass("btn-light border")
                 .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark")),
                 false,
                 CampaignActionConfirmation.CLOSE_STAGE_CONFIRMATION),
@@ -108,7 +108,7 @@ public class CampaignStateHelper implements Serializable {
                 CampaignActionConfirmation.REITERATE_CAMPAIGN_CONFIRMATION),
         CLOSE_CAMPAIGN(new DisplayType()
                 .label(GuiDisplayTypeUtil.createPolyStringType("CampaignAction.closeCampaign"))
-                .cssClass("btn-default")
+                .cssClass("btn-light border")
                 .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark")),
                 true,
                 CampaignActionConfirmation.CLOSE_CAMPAIGN_CONFIRMATION),
@@ -196,7 +196,7 @@ public class CampaignStateHelper implements Serializable {
 
     public Badge createBadge() {
         Badge badge = new Badge(campaignStateClassMap.get(campaignState), LocalizationUtil.translateEnum(campaignState));
-        badge.setTextCssClass("text-truncate text-sm");
+        badge.setTextCssClass("text-truncate fs-7");
         return badge;
     }
 

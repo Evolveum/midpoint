@@ -25,5 +25,5 @@ interface ShadowsWithOwnersProvider {
             OperationResult result,
             int maxExamples)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 }

@@ -22,10 +22,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -44,7 +41,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**

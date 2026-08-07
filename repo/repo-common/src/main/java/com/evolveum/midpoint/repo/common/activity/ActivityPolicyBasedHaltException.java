@@ -8,7 +8,10 @@ package com.evolveum.midpoint.repo.common.activity;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
 
-/** An exception indicating that an activity should be halted because of a policy rule. */
+/**
+ * An exception indicating that an activity should be halted because of a policy rule.
+ * Eventually results in {@link ActivityRunResultStatus#HALTING_ERROR} being reported.
+ */
 public class ActivityPolicyBasedHaltException extends ActivityPolicyViolationException {
 
     public ActivityPolicyBasedHaltException(LocalizableMessage userFriendlyMessage, String technicalMessage) {

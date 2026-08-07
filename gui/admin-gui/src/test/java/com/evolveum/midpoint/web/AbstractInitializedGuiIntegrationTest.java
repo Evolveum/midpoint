@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.web;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -15,16 +13,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -43,7 +37,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
     protected static final String MAIN_FORM = "detailsView:mainForm";
     protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:"
             + "input:propertiesLabel:properties:0:property:valuesContainer:values:0:value:valueForm:valueContainer:input:originValueContainer:"
-            + "origValueWithButton:origValue:input";
+            + "origValueWithButtonContainer:origValueWithButton:origValue:input";
     protected static final String FORM_SAVE = "buttons:buttons:2:";
 
     protected DummyResource dummyResource;

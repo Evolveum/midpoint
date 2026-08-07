@@ -89,6 +89,10 @@ public abstract class InlineMenuItem implements Serializable {
         return additionalCssClass;
     }
 
+    public @Nullable IModel<String> getTooltip(){
+        return null;
+    }
+
     /**
      * visible behavior for menu item in the header
      */

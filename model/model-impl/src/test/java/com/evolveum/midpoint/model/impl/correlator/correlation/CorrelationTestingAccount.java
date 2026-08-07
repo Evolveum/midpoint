@@ -18,7 +18,9 @@ import com.evolveum.midpoint.model.impl.correlator.TestingAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;

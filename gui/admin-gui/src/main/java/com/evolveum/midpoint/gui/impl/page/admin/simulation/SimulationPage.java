@@ -7,19 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Viliam Repan (lazyman).

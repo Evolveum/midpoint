@@ -14,11 +14,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;

@@ -475,7 +475,7 @@ class LinkUpdater<F extends FocusType> {
             ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
             provisioningService.modifyObject(
                     ShadowType.class, projectionOid, syncSituationDeltas, null, options, ctx, task, result);
-        } catch (ObjectNotFoundException ex) {
+        } catch (ObjectNotFoundException | SubscriptionComplianceException ex) {
             // if the object not found exception is thrown, it's ok..probably
             // the account was deleted by previous execution of changes..just
             // log in the trace the message for the user..

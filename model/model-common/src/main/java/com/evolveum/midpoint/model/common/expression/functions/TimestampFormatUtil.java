@@ -6,12 +6,6 @@
 
 package com.evolveum.midpoint.model.common.expression.functions;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import org.jetbrains.annotations.VisibleForTesting;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

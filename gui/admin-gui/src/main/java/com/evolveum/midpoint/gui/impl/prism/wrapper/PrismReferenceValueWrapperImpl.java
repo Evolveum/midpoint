@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.gui.impl.util.ReferenceExecutedDeltaProcessor;
@@ -44,7 +43,7 @@ import java.util.List;
  */
 public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CreateObjectForReferencePanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
 
     private static final long serialVersionUID = 1L;
 

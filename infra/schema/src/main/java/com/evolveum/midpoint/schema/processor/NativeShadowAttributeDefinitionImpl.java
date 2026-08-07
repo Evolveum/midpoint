@@ -58,7 +58,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
         ShadowAttributeUcfDefinition.Delegable, ShadowAttributeUcfDefinition.Mutable.Delegable,
         PrismItemValuesDefinition.Delegable<T>, PrismItemValuesDefinition.Mutator.Delegable<T>,
         PrismItemMatchingDefinition.Delegable<T>, PrismItemMatchingDefinition.Mutator.Delegable,
-        SerializableItemDefinition, SerializablePropertyDefinition, SerializableContainerDefinition {
+        SerializableItemDefinition, SerializablePropertyDefinition<T>, SerializableContainerDefinition {
 
     @NotNull private final PrismItemBasicDefinition.Data prismItemBasicData;
     @NotNull private final PrismItemAccessDefinition.Data prismItemAccessData = new PrismItemAccessDefinition.Data();
@@ -573,6 +573,16 @@ public class NativeShadowAttributeDefinitionImpl<T>
     @Override
     public void setAllowedValues(Collection<? extends DisplayableValue<T>> displayableValues) {
         prismItemValues.setAllowedValues(displayableValues);
+    }
+
+    @Override
+    public Collection<? extends DisplayableValue<T>> getAllowedValues() {
+        return PrismItemValuesDefinition.Delegable.super.getAllowedValues();
+    }
+
+    @Override
+    public Collection<? extends DisplayableValue<T>> getSuggestedValues() {
+        return PrismItemValuesDefinition.Delegable.super.getSuggestedValues();
     }
 
     @Override

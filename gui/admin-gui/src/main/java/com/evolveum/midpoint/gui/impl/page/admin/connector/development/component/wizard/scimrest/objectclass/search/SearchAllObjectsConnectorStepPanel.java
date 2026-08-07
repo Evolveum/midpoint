@@ -13,9 +13,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -30,7 +33,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUnca
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
@@ -114,6 +116,11 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             }
 
             @Override
+            protected Behavior getStatisticsButtonVisibleBehaviour() {
+                return VisibleBehaviour.ALWAYS_INVISIBLE;
+            }
+
+            @Override
             protected boolean isEnabledInlineMenu() {
                 return false;
             }
@@ -141,7 +148,12 @@ public class SearchAllObjectsConnectorStepPanel extends ScriptConfirmationPanel 
             @Override
             protected void processResult(OperationResult result) {
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-                    wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", result);
+                    ConnectorDevelopmentWizardUtil.collectConnectorResults(result, (connIdResult) -> {
+                        ConnectorDevelopmentWizardUtil.appendLogsAsContext(connIdResult);
+                        wizardModel.addOperationResult(getStepId(), "cdw-search-all-script", connIdResult);
+
+                    });
+
                 }
             }
 

@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -85,7 +84,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 
     public void check(Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         PrismObject<ShadowType> projectionNew = projectionContext.getObjectNew();
         if (projectionNew == null) {

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.task.api.SimulationData;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class CorrelationSimulationData implements SimulationData {
 

@@ -20,7 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 @PanelType(name = "attributeDefinitionDetails")
 public class ResourceAttributeDetailsPanel extends MultivalueContainerDetailsPanel<ResourceAttributeDefinitionType> {

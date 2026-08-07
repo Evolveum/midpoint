@@ -8,10 +8,10 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="sr-only" wicket:id="panelStatus" aria-live="polite"/>
+    <div class="visually-hidden" wicket:id="panelStatus" aria-live="polite"/>
     <div class="row">
         <div class="container-fluid prism-container">
-            <div class="info-box info-box-ethereal">
+            <div class="info-box shadow-sm border info-box-ethereal">
                 <div class="info-box-icon info-box-icon-ethereal">
                     <i class="info-box-icon-ethereal-image" wicket:id="typeImage"></i>
                 </div>
@@ -25,7 +25,7 @@
                             <i class="fa fa-share"/>
                         </a>
                     </span>
-                    <span class="label bg-yellow relation-label" wicket:id="relation"/>
+                    <span class="label bg-warning relation-label" wicket:id="relation"/>
                     <span class="info-box-description" wicket:id="kindIntent"/>
                     <div wicket:id="descriptionLabels">
                         <div class="info-box-description" wicket:id="description"/>

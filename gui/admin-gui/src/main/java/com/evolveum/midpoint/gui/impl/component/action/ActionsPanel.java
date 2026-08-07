@@ -124,7 +124,7 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
     }
 
     protected String getButtonPanelClass() {
-        return "btn btn-default btn-xs";
+        return "btn btn-light border btn-sm";
     }
 
     private CompositedIconBuilder getIconCompositedBuilder(AbstractGuiAction<C> action) {

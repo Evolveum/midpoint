@@ -10,18 +10,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -69,7 +65,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
             String contextDescription,
             Task task,
             OperationResult result) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ValuePolicyOriginType origin = defaultIfNull(prohibitedValueItem.getOrigin(), OBJECT);
         switch (origin) {
             case OBJECT:
@@ -93,7 +89,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         handler.handle((PrismObject<R>) object, result);
     }
 
-    private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!object.canRepresent(UserType.class)) {
             return;
         }
@@ -111,7 +107,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // Not very efficient. We will usually read the shadows again, as they are already in model context.
         // It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
         // But this is good enough for now.
@@ -140,8 +136,8 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
                     return;
                 }
                 focus = MiscUtil.extractSingleton(objects).asObjectable();
-            } catch (CommunicationException | ConfigurationException | SecurityViolationException
-                    | ExpressionEvaluationException e) {
+            } catch (CommunicationException | ConfigurationException | SecurityViolationException |
+                     ExpressionEvaluationException | SubscriptionComplianceException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else {
@@ -164,7 +160,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
 
     private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectQuery ownerQuery = getOwnerQuery();
         if (ownerQuery != null) {
             objectResolver.searchIterative(getOwnerClass(), ownerQuery, readOnly(), handler, task, result);

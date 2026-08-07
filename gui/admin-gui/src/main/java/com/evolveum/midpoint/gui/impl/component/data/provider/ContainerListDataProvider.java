@@ -13,13 +13,13 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -30,12 +30,13 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.schema.ObjectHandler;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.page.error.PageError;
 
 /**
  * Created by honchar
@@ -117,6 +118,15 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         return (PrismContainerValueWrapper<C>) factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context);
     }
 
+    /**
+     * Creates a lightweight wrapper for export purposes.
+     * This skips child wrapper creation which is the main performance bottleneck.
+     * The wrapper only holds the PrismContainerValue - columns access data via getRealValue().
+     */
+    protected PrismContainerValueWrapper<C> createExportWrapper(C object) {
+        return new PrismContainerValueWrapperImpl<>(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED);
+    }
+
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
@@ -145,5 +155,54 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
     public void detach() {
         super.detach();
         getAvailableData().clear();
+    }
+
+    @Override
+    public boolean supportsIterativeExport() {
+        return true;
+    }
+
+    /**
+     * Streaming export using JDBC cursor-based streaming.
+     * This method does not load all data into memory - uses true JDBC streaming.
+     * Streaming is enabled by setting iterationPageSize to -1.
+     * Uses lightweight wrapper to skip expensive child wrapper creation.
+     */
+    @Override
+    public void exportIterative(
+            ObjectHandler<PrismContainerValueWrapper<C>> handler,
+            Task task,
+            OperationResult result) throws CommonException {
+
+        ObjectQuery query = getQuery();
+        if (query == null) {
+            query = getPrismContext().queryFactory().createQuery();
+        }
+        // Set ordering from current sort settings (no offset/limit for full export)
+        query.setPaging(createPaging(0, Integer.MAX_VALUE));
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("exportIterative: Query {} with {}", getType().getSimpleName(), query.debugDump());
+        }
+
+        // Enable JDBC streaming mode by setting iterationPageSize to -1
+        Collection<SelectorOptions<GetOperationOptions>> streamingOptions =
+                SelectorOptions.updateRootOptions(options,
+                        opt -> opt.setIterationPageSize(-1), GetOperationOptions::new);
+
+        getModelService().searchContainersIterative(
+                getType(),
+                query,
+                (object, opResult) -> {
+                    PrismContainerValueWrapper<C> wrapper = createExportWrapper(object);
+                    if (wrapper != null) {
+                        return handler.handle(wrapper, opResult);
+                    }
+                    return true;
+                },
+                streamingOptions,
+                task,
+                result
+        );
     }
 }

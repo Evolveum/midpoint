@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 

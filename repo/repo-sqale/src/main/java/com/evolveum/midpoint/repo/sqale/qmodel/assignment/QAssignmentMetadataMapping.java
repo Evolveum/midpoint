@@ -7,14 +7,10 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.mapping.QOwnedByMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.metadata.QValueMetadataMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ref.QObjectReferenceMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StorageMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;

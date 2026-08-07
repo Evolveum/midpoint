@@ -45,7 +45,7 @@ public class ApprovalsCaseEngineExtension implements EngineExtension {
     @Override
     public void finishCaseClosing(@NotNull CaseEngineOperation operation, @NotNull OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         primaryChangeProcessor.finishCaseClosing(operation, result);
     }
 

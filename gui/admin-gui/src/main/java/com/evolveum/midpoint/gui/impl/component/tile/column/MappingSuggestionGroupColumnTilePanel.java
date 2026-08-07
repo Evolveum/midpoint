@@ -275,7 +275,9 @@ public class MappingSuggestionGroupColumnTilePanel<
 
         Label noteLabel = new Label(
                 ID_NOTE_LABEL,
-                createStringResource("MappingSuggestionGroupColumnTilePanel.note"));
+                createStringResource("MappingSuggestionGroupColumnTilePanel.note",
+                        getModelObject().getValue().getKeyValue()));
+        noteLabel.setEscapeModelStrings(false);
         note.add(noteLabel);
 
         return note;
@@ -313,7 +315,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ml-auto btn btn-link p-0"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-link p-0"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -340,7 +342,7 @@ public class MappingSuggestionGroupColumnTilePanel<
         };
 
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", "ml-auto btn btn-outline-primary"));
+        button.add(AttributeAppender.append("class", "ms-auto btn btn-outline-primary"));
         button.showTitleAsLabel(true);
 
         fragment.add(button);
@@ -349,7 +351,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected void performOnAccept(AjaxRequestTarget target, PV selected) {
-            onAcceptSelected(selected, target);
+        onAcceptSelected(selected, target);
     }
 
     protected InlineMenuItem createDeleteSelectedItemMenu(IModel<PV> selectedRowModel) {
@@ -437,13 +439,16 @@ public class MappingSuggestionGroupColumnTilePanel<
         label.add(AttributeAppender.append("style", "height: fit-content;"));
         fragment.add(label);
 
+        Label targetText = new Label("targetText", Model.of(getModelObject().getValue().getKeyValue()));
+        fragment.add(targetText);
+
         container.add(fragment);
     }
 
     private @NotNull AjaxIconButton buildExpandableHeaderTitle(String text) {
         AjaxIconButton button = new AjaxIconButton(text, () -> getModelValue().isExpanded()
-                ? "fa-solid fa-chevron-up"
-                : "fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
+                ? "me-3 fa-solid fa-chevron-up"
+                : "me-3 fa-solid fa-chevron-down", createStringResource("MappingSuggestionGroupColumnTilePanel.headerTitle")) {
 
             @Override
             public void onClick(@NotNull AjaxRequestTarget ajaxRequestTarget) {
@@ -497,7 +502,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected @NotNull String getPanelCss() {
-        String baseCss = "card col-12 m-0 border border-ai-gradient p-0";
+        String baseCss = "card shadow-sm col-12 m-0 border border-ai-gradient border-start-2 p-0";
         boolean selected = isObjectSelected(getModelObject().getValue());
         return selected ? baseCss + " selected-base" : baseCss;
     }
@@ -511,7 +516,7 @@ public class MappingSuggestionGroupColumnTilePanel<
     }
 
     protected String getTileContainerCssClass() {
-        return "d-flex flex-wrap justify-content-left pt-2";
+        return "d-flex flex-wrap justify-content-start pt-2";
     }
 
     public String getAdditionalDefaultTilePanelCss(PV rowValue) {

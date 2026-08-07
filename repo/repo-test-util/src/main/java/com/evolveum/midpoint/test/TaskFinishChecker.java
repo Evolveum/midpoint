@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.*;
-import static com.evolveum.midpoint.test.AbstractIntegrationTest.display;
 
 /**
  * Configurable checker for "task finished" state.

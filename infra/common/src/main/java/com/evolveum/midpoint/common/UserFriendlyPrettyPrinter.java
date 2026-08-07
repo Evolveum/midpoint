@@ -82,6 +82,20 @@ public class UserFriendlyPrettyPrinter {
         return StringUtils.isNotEmpty(indentation) ? StringUtils.repeat(this.options.indentation(), indent) : "";
     }
 
+    public String prettyPrint(Object object, int indent) {
+        if (object instanceof Item<?, ?> item) {
+            return prettyPrintItem(item, indent);
+        } else if (object instanceof ItemDelta<?, ?> itemDelta) {
+            return prettyPrintItemDelta(itemDelta, indent);
+        } else if (object instanceof ObjectDelta<?> objectDelta) {
+            return prettyPrintObjectDelta((ObjectDelta<? extends ObjectType>) objectDelta, indent);
+        } else if (object instanceof PrismValue pv) {
+            return prettyPrintValue(pv, indent);
+        }
+
+        return PrettyPrinter.prettyPrint(object);
+    }
+
     public String prettyPrintItem(Item<?, ?> item, int indent) {
         if (item instanceof PrismProperty<?> p) {
             return prettyPrintProperty(p, indent);
@@ -107,7 +121,7 @@ public class UserFriendlyPrettyPrinter {
     }
 
     private String prettyPrintItem(Item<?, ?> item, int indent, boolean canUseSingleLine) {
-        ItemDefinition def = item.getDefinition();
+        ItemDefinition<?> def = item.getDefinition();
 
         if (def != null && def.isOperational() && !options.showOperational()) {
             return "";
@@ -431,7 +445,7 @@ public class UserFriendlyPrettyPrinter {
         sb.append(" ");
 
         if (canUseSingleLine) {
-            sb.append(valuesStr.stream().collect(Collectors.joining(", ")));
+            sb.append(String.join(", ", valuesStr));
         } else {
             valuesStr.forEach(v -> {
                 printLineSeparator(sb);

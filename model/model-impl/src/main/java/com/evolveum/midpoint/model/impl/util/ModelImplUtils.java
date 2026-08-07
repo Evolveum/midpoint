@@ -6,6 +6,15 @@
 
 package com.evolveum.midpoint.model.impl.util;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -14,65 +23,38 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment.
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensElementContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.FullTextFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.error.ErrorStackDumper;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.error.ErrorStackDumper;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.MaintenanceException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 public class ModelImplUtils {
 
@@ -151,9 +133,8 @@ public class ModelImplUtils {
         if (delta.isDelete()) {
             return ModelAuthorizationAction.DELETE.getUrl();
         }
-        throw new IllegalArgumentException("Unknown delta type "+delta);
+        throw new IllegalArgumentException("Unknown delta type " + delta);
     }
-
 
     // from the most to least appropriate
     @NotNull
@@ -168,7 +149,7 @@ public class ModelImplUtils {
         List<ObjectPolicyConfigurationType> all = new ArrayList<>(
                 systemConfigurationType.getDefaultObjectPolicyConfiguration());
 
-        for (ObjectPolicyConfigurationType aPolicyConfigurationType: all) {
+        for (ObjectPolicyConfigurationType aPolicyConfigurationType : all) {
             QName typeQName = aPolicyConfigurationType.getType();
             if (typeQName != null) {
                 ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
@@ -201,8 +182,9 @@ public class ModelImplUtils {
         return rv;
     }
 
+    // FIXME does not take archetypes into account
     @NotNull
-    public static <F extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(LensContext<F> context) {
+    private static <F extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(LensContext<F> context) {
         PrismObject<SystemConfigurationType> config = context.getSystemConfiguration();
         if (config == null) {
             return Collections.emptyList();
@@ -221,7 +203,29 @@ public class ModelImplUtils {
         return relevantPolicies;
     }
 
-    public static <F extends ObjectType> ConflictResolutionType getConflictResolution(LensContext<F> context) {
+    /**
+     * Returns the effective conflict resolution policy for the given context, consulting (in priority order):
+     *
+     * * {@link ModelExecuteOptions#getFocusConflictResolution} — programmatic / recompute-loop override
+     * * Task execution environment — per-task configuration
+     * * System configuration {@code defaultObjectPolicyConfiguration} — global/type/subtype fallback
+     *
+     * The {@link LensContext} itself is NOT checked, because we expect this method to be invoked when the policy
+     * is being put there.
+     */
+    public static <F extends ObjectType> ConflictResolutionType determineConflictResolutionPolicy(
+            LensContext<F> context, @Nullable Task task) {
+
+        var resolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
+        if (resolution != null) {
+            return resolution;
+        }
+        if (task != null) {
+            resolution = task.getConflictResolution();
+            if (resolution != null) {
+                return resolution;
+            }
+        }
         for (ObjectPolicyConfigurationType p : ModelImplUtils.getApplicablePolicies(context)) {
             if (p.getConflictResolution() != null) {
                 return p.getConflictResolution();
@@ -238,16 +242,16 @@ public class ModelImplUtils {
      */
     public static <T extends ObjectType> void resolveReferences(
             PrismObject<T> object, RepositoryService repository,
-                boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,
-                boolean throwExceptionOnFailure,
-                OperationResult result) {
+            boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,
+            boolean throwExceptionOnFailure,
+            OperationResult result) {
 
         Visitor visitor = visitable -> {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
             resolveRef(
-                    (PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
+                    (PrismReferenceValue) visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
                     resolutionTime, object.toString(), throwExceptionOnFailure, result);
         };
         object.accept(visitor);
@@ -281,7 +285,7 @@ public class ModelImplUtils {
         if (objectDelta.isAdd()) {
             objectDelta.getObjectToAdd().accept(visitor);
         } else if (objectDelta.isModify()) {
-            for (ItemDelta<?,?> delta : objectDelta.getModifications()) {
+            for (ItemDelta<?, ?> delta : objectDelta.getModifications()) {
                 applyVisitorToValues(delta.getValuesToAdd(), delta, visitor);
                 applyVisitorToValues(delta.getValuesToReplace(), delta, visitor);
             }
@@ -289,7 +293,7 @@ public class ModelImplUtils {
     }
 
     // see description in caller
-    static void applyVisitorToValues(Collection<? extends PrismValue> values, ItemDelta<?,?> delta, Visitor visitor) {
+    static void applyVisitorToValues(Collection<? extends PrismValue> values, ItemDelta<?, ?> delta, Visitor visitor) {
         Collection<? extends PrismValue> valuesToDelete = delta.getValuesToDelete();
         if (valuesToDelete == null) {
             valuesToDelete = new ArrayList<>(0);        // just to simplify the code below
@@ -370,11 +374,11 @@ public class ModelImplUtils {
         }
         // No OID and we have filter. Let's check the filter a bit
         ObjectFilter objFilter;
-        try{
+        try {
             PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
             objFilter = prismContext.getQueryConverter().parseFilter(filter, objDef);
-        } catch (SchemaException ex){
-            LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
+        } catch (SchemaException ex) {
+            LOGGER.error("Failed to convert object filter from filter because of: " + ex.getMessage() + "; filter: " + filter.debugDump(), ex);
             throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
         }
 
@@ -397,7 +401,7 @@ public class ModelImplUtils {
 
         try {
             ObjectQuery query = prismContext.queryFactory().createQuery(objFilter);
-            objects = (List)repository.searchObjects(type, query, readOnly(), result);
+            objects = (List) repository.searchObjects(type, query, readOnly(), result);
 
         } catch (SchemaException e) {
             // This is unexpected, but may happen. Record fatal error
@@ -556,7 +560,7 @@ public class ModelImplUtils {
             OperationResult result) {
         // Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
         if (!ModelExecuteOptions.isNoCrypt(options)) {
-            for(ObjectDelta<? extends ObjectType> delta: deltas) {
+            for (ObjectDelta<? extends ObjectType> delta : deltas) {
                 try {
                     CryptoUtil.encryptValues(protector, delta);
                 } catch (EncryptionException e) {
@@ -707,7 +711,7 @@ public class ModelImplUtils {
             ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
             return getAuditTarget(deltaOp.getObjectDelta());
         }
-        for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
+        for (ObjectDeltaOperation<? extends ObjectType> deltaOp : deltaOps) {
             if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
                 return getAuditTarget(deltaOp.getObjectDelta());
             }
@@ -726,7 +730,7 @@ public class ModelImplUtils {
             ObjectDelta<? extends ObjectType> delta = deltas.iterator().next();
             return getAuditTarget(delta);
         }
-        for (ObjectDelta<? extends ObjectType> delta: deltas) {
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
             if (!ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
                 return getAuditTarget(delta);
             }

@@ -11,7 +11,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartDataRm;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;

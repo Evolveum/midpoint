@@ -174,8 +174,9 @@ public class LoginAssignmentCollector {
                                     originFunction.apply(assignmentWithOrigin.origin()), // [EP:APSO] DONE
                                     task,
                                     result));
-                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException
-                        | SecurityViolationException | ConfigurationException | CommunicationException e) {
+                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
+                         SecurityViolationException | ConfigurationException | CommunicationException |
+                         SubscriptionComplianceException e) {
                     // We continue because of login mode.
                     LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
                             focus, e.getMessage(), assignment, e);
@@ -270,8 +271,8 @@ public class LoginAssignmentCollector {
         try {
             return LensUtil.getForcedAssignments( // [EP:APSO] DONE
                     lifecycleModel, lifecycleState, objectResolver, task, result);
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-                | ExpressionEvaluationException | SchemaException e) {
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException |
+                 ExpressionEvaluationException | SchemaException | SubscriptionComplianceException e) {
             // We continue because of login mode.
             LOGGER.error("Forced assignments defined for lifecycle state '{}' won't be evaluated for {} because of an error: {}",
                     lifecycleState, focusBean, e.getMessage(), e);

@@ -10,18 +10,18 @@
 <wicket:panel>
     <div wicket:id="feedback"></div>
     <p class="text-center" wicket:id="messageLabel"/>
-<!--    <p class="text-left" wicket:id="reportsForCasesLabel"/>-->
+<!--    <p class="text-start" wicket:id="reportsForCasesLabel"/>-->
     <wicket:container wicket:id="casesReportContainer" >
         <div class="dashboard-link-component" wicket:id="casesReportSelectionPanel"/>
     </wicket:container>
-<!--    <p class="text-left" wicket:id="reportsForItemsLabel"/>-->
+<!--    <p class="text-start" wicket:id="reportsForItemsLabel"/>-->
     <wicket:container wicket:id="itemsReportContainer" >
         <div class="dashboard-link-component" wicket:id="itemsReportSelectionPanel"/>
     </wicket:container>
     <wicket:fragment wicket:id="buttons">
         <div class="d-flex flex-wrap gap-2 w-100">
             <a class="btn btn-primary" wicket:id="confirmButton"/>
-            <a class="btn btn-default" wicket:id="cancelButton"/>
+            <a class="btn btn-light border" wicket:id="cancelButton"/>
         </div>
     </wicket:fragment>
 </wicket:panel>

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.testing.rest;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jakarta.ws.rs.core.MediaType;

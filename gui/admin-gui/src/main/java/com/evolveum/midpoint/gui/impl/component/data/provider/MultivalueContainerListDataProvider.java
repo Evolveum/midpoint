@@ -104,7 +104,7 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         // nothing to do, use when e.g. references needs to be resolved, etc..
     }
 
-    private <V extends Comparable<V>> V getPropertyValue(PrismContainerValueWrapper<C> o1, String propertyName) {
+    protected  <V extends Comparable<V>> V getPropertyValue(PrismContainerValueWrapper<C> o1, String propertyName) {
         try {
             return (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
         } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -112,7 +112,6 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
         list.sort((o1, o2) -> {
             SortParam<String> sortParam = getSort();

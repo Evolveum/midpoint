@@ -9,16 +9,16 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -40,7 +40,7 @@ class PolicyStateRecorder {
 
     <O extends ObjectType> void applyObjectState(
             @NotNull LensElementContext<O> elementContext,
-            @NotNull List<? extends EvaluatedPolicyRule> rulesToRecord)
+            @NotNull List<? extends DirectlyEvaluatedClockworkPolicyRule> rulesToRecord)
             throws SchemaException {
         // compute policySituation and triggeredPolicyRules and compare it with the expected state
         // note that we use the new state for the comparison, because if values match we do not need to do anything
@@ -72,7 +72,7 @@ class PolicyStateRecorder {
                             .asItemDelta());
         }
 
-        for (EvaluatedPolicyRule rule : rulesToRecord) {
+        for (DirectlyEvaluatedClockworkPolicyRule rule : rulesToRecord) {
             computeNewMarks(rule, evaluatedPolicyStatements);
         }
 
@@ -107,7 +107,7 @@ class PolicyStateRecorder {
     void applyAssignmentState(
             LensContext<?> context,
             EvaluatedAssignmentImpl<?> evaluatedAssignment,
-            List<? extends AssociatedPolicyRule> rulesToRecord)
+            List<? extends EvaluatedClockworkPolicyRule> rulesToRecord)
             throws SchemaException {
         LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {
@@ -169,22 +169,25 @@ class PolicyStateRecorder {
     }
 
     private ComputationResult compute(
-            @NotNull List<? extends AssociatedPolicyRule> rulesToRecord,
+            @NotNull List<? extends EvaluatedClockworkPolicyRule> rulesToRecord,
             @NotNull List<String> existingPolicySituation,
             @NotNull List<ObjectReferenceType> existingMarkOids,
             @NotNull List<EvaluatedPolicyRuleType> existingTriggeredPolicyRule) {
         ComputationResult cr = new ComputationResult();
-        for (AssociatedPolicyRule rule : rulesToRecord) {
+        for (EvaluatedClockworkPolicyRule rule : rulesToRecord) {
             cr.newPolicySituations.add(rule.getPolicySituation());
             cr.newMarkOid.addAll(rule.getPolicyMarkRef());
             PolicyActionConfigItem<RecordPolicyActionType> recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
             assert recordAction != null;
             var rulesStorageStrategy = recordAction.value().getPolicyRules();
             if (rulesStorageStrategy != TriggeredPolicyRulesStorageStrategyType.NONE) {
-                PolicyRuleExternalizationOptions externalizationOptions =
-                        new PolicyRuleExternalizationOptions(rulesStorageStrategy, false);
-                rule.addToEvaluatedPolicyRuleBeans(
-                        cr.newTriggeredRules, externalizationOptions, null, rule.getNewOwner());
+                var externalizationOptions =
+                        new PolicyRuleExternalizationOptions(
+                                rulesStorageStrategy,
+                                false,
+                                rule.getRelevantTriggersFilter());
+                cr.newTriggeredRules.addAll(
+                        rule.toEvaluatedPolicyRuleBeans(externalizationOptions, null));
             }
         }
 
@@ -197,7 +200,8 @@ class PolicyStateRecorder {
         return cr;
     }
 
-    private @NotNull Collection<ObjectReferenceType> computeNewMarks(AssociatedPolicyRule rule, EvaluatedPolicyStatements evaluatedPolicyStatements) {
+    private @NotNull Collection<ObjectReferenceType> computeNewMarks(
+            EvaluatedClockworkPolicyRule rule, EvaluatedPolicyStatements evaluatedPolicyStatements) {
         Set<ObjectReferenceType> newMarkRefs = new HashSet<>();
         for (ObjectReferenceType markFromPolicy : rule.getPolicyMarkRef()) {
             if (evaluatedPolicyStatements.isExclude(markFromPolicy)) {

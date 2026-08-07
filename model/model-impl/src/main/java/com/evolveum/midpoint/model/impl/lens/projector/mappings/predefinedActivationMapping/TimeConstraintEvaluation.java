@@ -11,31 +11,41 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Evaluates time from offset and path to reference time item.
+ * Evaluates whether a time-based activation constraint has become valid or invalid.
+ *
+ * The helper combines a reference timestamp from a shadow or focus item with a (usually configured) offset and computes
+ * whether the constraint is already active, still pending, or has already expired. It is used by predefined activation
+ * mappings to decide if the computation should take place or when a future recompute should happen.
  */
 class TimeConstraintEvaluation implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(TimeConstraintEvaluation.class);
 
-    /**
-     * path to reference time item
-     */
-    private final ItemPath path;
-    private final Duration offset;
+    /** Path to the reference time item (e.g. `activation/disableTimestamp`) */
+    private final ItemPath referenceTimePath;
+
+    /** Offset added to the reference timestamp to determine the time boundary (e.g. 7 days before final account deletion). */
+    private final Duration timeOffset;
 
     /**
-     * Is the time valid regarding specified offset and path to reference time item
-     * (If no constraint is provided, time.)
+     * Is the time constraint valid regarding specified {@link #referenceTimePath} (in object provided later)
+     * and {@link #timeOffset}? The answer depends whether we understand the constraint as `validFrom` or `validTo`,
+     * see the evaluation methods.
+     *
+     * {@code null} if the evaluation was not done yet.
+     *
+     * @see #evaluateAsValidFrom(ObjectDeltaObject, XMLGregorianCalendar)
+     * @see #evaluateAsValidTo(ObjectDeltaObject, XMLGregorianCalendar)
      */
     private Boolean timeConstraintValid;
 
@@ -45,67 +55,91 @@ class TimeConstraintEvaluation implements Serializable {
      */
     private XMLGregorianCalendar nextRecomputeTime;
 
-    TimeConstraintEvaluation(ItemPath path, Duration offset) {
-        this.path = path;
-        this.offset = offset;
+    /**
+     * Creates a time-constraint evaluator for a reference item and a duration offset.
+     *
+     * @param referenceTimePath path of the reference timestamp item
+     * @param timeOffset offset added to the reference timestamp
+     */
+    TimeConstraintEvaluation(ItemPath referenceTimePath, Duration timeOffset) {
+        this.referenceTimePath = referenceTimePath;
+        this.timeOffset = timeOffset;
     }
 
-    void evaluateFrom(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
-        if (parentOdo == null || path == null) {
+    /**
+     * Evaluates whether we are _after_ the reference time plus offset.
+     * I.e. the constraint is understood as "valid from X" where X = {@link #referenceTimePath} plus {@link #timeOffset}.
+     *
+     * @param parentOdo object containing the reference timestamp (driven by {@link #referenceTimePath})
+     * @param now current time used for evaluation
+     *
+     * @see #evaluateAsValidTo(ObjectDeltaObject, XMLGregorianCalendar)
+     */
+    void evaluateAsValidFrom(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
+        if (parentOdo == null || referenceTimePath == null) {
             timeConstraintValid = true;
             return;
         }
 
-        XMLGregorianCalendar timeFrom = parseTime(parentOdo);
+        XMLGregorianCalendar validFrom = getReferenceTimePlusOffset(parentOdo);
 
-        if (timeFrom == null) {
+        if (validFrom == null) {
             // Time is specified but there is no value for it.
-            // This means that event that should start validity haven't happened yet
-            // therefore the mapping is not yet valid.
+            // This means that event that determines (starts) the validity haven't happened yet - therefore the mapping
+            // is not yet valid.
             timeConstraintValid = false;
             return;
         }
 
-        if (timeFrom.compare(now) == DatatypeConstants.GREATER) {
-            // before timeFrom
-            nextRecomputeTime = timeFrom;
+        if (validFrom.compare(now) == DatatypeConstants.GREATER) {
+            // we are before validFrom -> not valid
+            nextRecomputeTime = validFrom;
             timeConstraintValid = false;
             return;
         }
 
-        // Otherwise it is less than now (so we are after it)
+        // We are after validFrom -> valid
         timeConstraintValid = true;
     }
 
-    void evaluateTo(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
-        if (parentOdo == null || path == null) {
+    /**
+     * Evaluates whether we are _before_ the reference time plus offset.
+     * I.e. the constraint is understood as "valid to X" where X = {@link #referenceTimePath} plus {@link #timeOffset}.
+     *
+     * @param parentOdo object containing the reference timestamp (driven by {@link #referenceTimePath})
+     * @param now current time used for evaluation
+     *
+     * @see #evaluateAsValidFrom(ObjectDeltaObject, XMLGregorianCalendar)
+     */
+    void evaluateAsValidTo(ObjectDeltaObject<?> parentOdo, XMLGregorianCalendar now) throws SchemaException {
+        if (parentOdo == null || referenceTimePath == null) {
             timeConstraintValid = true;
             return;
         }
 
-        XMLGregorianCalendar timeTo = parseTime(parentOdo);
+        XMLGregorianCalendar validTo = getReferenceTimePlusOffset(parentOdo);
 
-        if (timeTo == null) {
+        if (validTo == null) {
             // Time is specified but there is no value for it.
-            // This means that event that should stop validity haven't happened yet
-            // therefore the mapping is still valid.
+            // This means that event that determines (ends) the validity haven't happened yet - therefore the mapping is still
+            // valid.
             timeConstraintValid = true;
             return;
         }
 
-        if (timeTo.compare(now) == DatatypeConstants.GREATER) {
-            // between timeFrom and timeTo (also no timeFrom and before timeTo)
-            nextRecomputeTime = timeTo;
+        if (validTo.compare(now) == DatatypeConstants.GREATER) {
+            // we are before validTo -> valid
+            nextRecomputeTime = validTo;
             timeConstraintValid = true;
             return;
         }
 
-        // Otherwise it is less than now (so we are after it), we are "out of range"
+        // we are after validTo -> invalid
         timeConstraintValid = false;
     }
 
-    private XMLGregorianCalendar parseTime(ObjectDeltaObject<?> parentOdo) throws SchemaException {
-        XMLGregorianCalendar referenceTime = parseTimeSource(parentOdo);
+    private XMLGregorianCalendar getReferenceTimePlusOffset(ObjectDeltaObject<?> parentOdo) throws SchemaException {
+        XMLGregorianCalendar referenceTime = getReferenceTime(parentOdo);
         LOGGER.trace("reference time = {}", referenceTime);
 
         if (referenceTime == null) {
@@ -114,17 +148,17 @@ class TimeConstraintEvaluation implements Serializable {
 
         XMLGregorianCalendar time = (XMLGregorianCalendar) referenceTime.clone();
 
-        if (offset != null) {
-            time.add(offset);
+        if (timeOffset != null) {
+            time.add(timeOffset);
         }
-        LOGGER.trace("Offset {} applied; time = {}", offset, time);
+        LOGGER.trace("Offset {} applied; time = {}", timeOffset, time);
         return time;
     }
 
-    private XMLGregorianCalendar parseTimeSource(ObjectDeltaObject<?> parentOdo) throws SchemaException {
-        LOGGER.trace("parseTimeSource: path = {}, source object = {}", path, parentOdo);
+    private XMLGregorianCalendar getReferenceTime(ObjectDeltaObject<?> parentOdo) throws SchemaException {
+        LOGGER.trace("parseTimeSource: path = {}, source object = {}", referenceTimePath, parentOdo);
 
-        ItemDeltaItem<?, ?> sourceObject = parentOdo.findIdi(path);
+        ItemDeltaItem<?, ?> sourceObject = parentOdo.findIdi(referenceTimePath);
 
         if (sourceObject == null) {
             return null;
@@ -134,6 +168,9 @@ class TimeConstraintEvaluation implements Serializable {
         return timeProperty != null ? timeProperty.getRealValue() : null;
     }
 
+    /**
+     * Returns whether the time evaluation has already produced a result.
+     */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean isTimeValidityEstablished() {
         if (timeConstraintValid == null) {
@@ -144,11 +181,19 @@ class TimeConstraintEvaluation implements Serializable {
         }
     }
 
-    /** Assumes the validity was computed. */
+    /**
+     * Returns the computed validity state of the constraint. Fails if it was not established yet.
+     *
+     * @return {@code true} if the mapping with this time constraint is active for the current time
+     */
     boolean isTimeConstraintValid() {
         return MiscUtil.stateNonNull(timeConstraintValid, "Time validity has not been established");
     }
 
+    /**
+     * Returns the timestamp when the validity of this time constraint is expected to change next.
+     * We should recompute the object at this time.
+     */
     XMLGregorianCalendar getNextRecomputeTime() {
         return nextRecomputeTime;
     }

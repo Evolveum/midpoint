@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.otp;
 
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;

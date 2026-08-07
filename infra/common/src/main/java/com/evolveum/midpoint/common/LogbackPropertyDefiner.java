@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.common;
 
 import ch.qos.logback.core.PropertyDefinerBase;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 
 /**
  * It was simply not possible to provide an empty default value for logback property. So this is the workaround.

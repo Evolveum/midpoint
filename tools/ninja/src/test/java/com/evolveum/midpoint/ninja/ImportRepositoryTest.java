@@ -255,4 +255,52 @@ public class ImportRepositoryTest extends NinjaSpringTest {
         long countAfterImport = repository.countObjects(ObjectType.class, null, null, new OperationResult("count"));
         Assertions.assertThat(countAfterImport).isEqualTo(count);
     }
+
+    /**
+     * MID-10910: Stress-style regression test for the multithreaded Ninja export race.
+     *
+     * Export producer threads used to share the same parent {@link OperationResult}
+     * during repository search, which could rarely corrupt subresults and fail with
+     * {@link ArrayIndexOutOfBoundsException}. The test repeats multithreaded export
+     * to increase the chance of catching this race.
+     *
+     * Disabled by default because it is repetitive and intended for manual/local
+     * verification.
+     */
+    @Test(enabled = false)
+    public void test160MultithreadedExportStressCompletesAllObjects() throws Exception {
+        deleteAllRepositoryObjects();
+
+        List<PrismObject<? extends Objectable>> objects = PrismTestUtil.parseObjects(FILE_MONKEY_ISLAND_SIMPLE);
+        for (PrismObject<? extends Objectable> object : objects) {
+            repository.addObject(object.asObjectable().asPrismObject(), null, new OperationResult("add"));
+        }
+
+        long count = repository.countObjects(ObjectType.class, null, null, new OperationResult("count"));
+        Assertions.assertThat(count).isGreaterThan(0);
+
+        for (int i = 1; i <= 25; i++) {
+            File file = new File("target/test160MultithreadedExportCompletesAllObjects-" + i + ".xml");
+
+            executeTest(
+                    null,
+                    null,
+                    "-m", getMidpointHome(),
+                    "export",
+                    "-o", file.getPath(),
+                    "-O",
+                    "-r",
+                    "-l", "8");
+
+            Assertions.assertThat(file)
+                    .as("export file in iteration %s", i)
+                    .exists()
+                    .size().isNotZero();
+
+            List<PrismObject<? extends Objectable>> exported = PrismTestUtil.parseObjects(file);
+            Assertions.assertThat(exported)
+                    .as("exported object count in iteration %s", i)
+                    .hasSize((int) count);
+        }
+    }
 }

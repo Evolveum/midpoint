@@ -28,13 +28,7 @@ import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -179,13 +173,13 @@ public class ObjectValuePolicyEvaluator {
     // Beware: minOccurs is not checked here; it has to be done globally over all values. See validateMinOccurs method.
     public OperationResult validateProtectedStringValue(ProtectedStringType value, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return validateStringValue(getClearValue(value), parentResult);
     }
 
     // Beware: minOccurs is not checked here; it has to be done globally over all values. See validateMinOccurs method.
     public OperationResult validateStringValue(String clearValue, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(OPERATION_VALIDATE_VALUE);
         try {
             List<LocalizableMessage> messages = new ArrayList<>();
@@ -283,7 +277,7 @@ public class ObjectValuePolicyEvaluator {
 
     private void validateStringPolicy(String clearValue, List<LocalizableMessage> messages, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (clearValue == null) {
             return; // should be checked elsewhere

@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.report.impl.controller;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
@@ -398,7 +401,7 @@ public class ImportController {
     public List<VariablesMap> parseColumnsAsVariablesFromFile(ReportDataType reportData)
             throws IOException {
         List<String> headers = new ArrayList<>();
-        Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));
+        Reader reader = getReportReader(reportData);
         CSVFormat csvFormat = support.createCsvFormat();
         if (compiledCollection != null) {
             Class<ObjectType> type = compiledCollection.getTargetClass();
@@ -458,5 +461,15 @@ public class ImportController {
             variablesMaps.add(variables);
         }
         return variablesMaps;
+    }
+
+    private Reader getReportReader(ReportDataType reportData) throws IOException {
+        InputStream in = Files.newInputStream(Paths.get(reportData.getFilePath()));
+        BOMInputStream bomIn = BOMInputStream.builder()
+                .setInputStream(in)
+                .get();
+        return new InputStreamReader(
+                bomIn,
+                support.getEncoding());
     }
 }

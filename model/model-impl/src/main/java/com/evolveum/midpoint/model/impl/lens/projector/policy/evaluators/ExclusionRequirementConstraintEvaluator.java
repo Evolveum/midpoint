@@ -11,21 +11,16 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.*;
-
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
@@ -35,14 +30,16 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.policy.PolicyRuleDumpUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Evaluates exclusion and requirement policy constraints.
@@ -68,9 +65,9 @@ public class ExclusionRequirementConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedExclusionRequirementTrigger> evaluate(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -80,7 +77,7 @@ public class ExclusionRequirementConstraintEvaluator
         try {
             LOGGER.trace("Evaluating {} constraint {} on {}",
                     isExclusion ? "exclusion" : "requirement",
-                    lazy(() -> PolicyRuleTypeUtil.toShortString(constraint)), rctx);
+                    lazy(() -> PolicyRuleDumpUtil.toShortString(constraint)), rctx);
             if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
                 return List.of();
             }
@@ -205,7 +202,7 @@ public class ExclusionRequirementConstraintEvaluator
     private <AH extends AssignmentHolderType> boolean sourceOrderConstraintsDoNotMatch(
             @NotNull JAXBElement<ExclusionPolicyConstraintType> constraint, AssignmentPolicyRuleEvaluationContext<AH> ctx) {
         List<OrderConstraintsType> sourceOrderConstraints = defaultIfEmpty(constraint.getValue().getOrderConstraint());
-        AssignmentPath assignmentPath = ctx.policyRule.getAssignmentPathRequired();
+        AssignmentPath assignmentPath = ctx.policyRule.getRuleAssignmentPathRequired();
         if (ctx.policyRule.isGlobal()) {
             if (!pathMatches(assignmentPath, sourceOrderConstraints)) {
                 LOGGER.trace("Assignment path to the global policy rule does not match source order constraints,"
@@ -254,10 +251,10 @@ public class ExclusionRequirementConstraintEvaluator
             AssignmentPolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
-        EvaluatedPolicyRule policyRule = ctx.policyRule;
-        AssignmentPath pathA = policyRule.getAssignmentPath();
+        DirectlyEvaluatedClockworkPolicyRule policyRule = ctx.policyRule;
+        AssignmentPath pathA = policyRule.getRuleAssignmentPath();
         @NotNull AssignmentPath pathB = targetB.getAssignmentPath();
         LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), true);
         LocalizableMessage infoB = createObjectInfo(pathB, targetB.getTarget(), false);
@@ -286,10 +283,10 @@ public class ExclusionRequirementConstraintEvaluator
             AssignmentPolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
-        EvaluatedPolicyRule policyRule = ctx.policyRule;
-        AssignmentPath pathA = policyRule.getAssignmentPath();
+        DirectlyEvaluatedClockworkPolicyRule policyRule = ctx.policyRule;
+        AssignmentPath pathA = policyRule.getRuleAssignmentPath();
         LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), false);
         ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
         ObjectReferenceType requiredObjectRef = constraintElement.getValue().getTargetRef();
@@ -342,7 +339,7 @@ public class ExclusionRequirementConstraintEvaluator
             JAXBElement<ExclusionPolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<AH> ctx, String constraintKey, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKey)
                 .args(infoA, infoB)
@@ -353,7 +350,7 @@ public class ExclusionRequirementConstraintEvaluator
     @NotNull
     private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(LocalizableMessage infoA, Object infoB,
             JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, String constraintKey, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKey)
                 .args(infoA, infoB)

@@ -44,6 +44,8 @@ public class QUserMapping
 
         addItemMapping(F_ADDITIONAL_NAME, polyStringMapper(
                 q -> q.additionalNameOrig, q -> q.additionalNameNorm));
+        addItemMapping(F_DISPLAY_NAME, polyStringMapper(
+                q -> q.displayNameOrig, q -> q.displayNameNorm));
         addItemMapping(F_EMPLOYEE_NUMBER, stringMapper(q -> q.employeeNumber));
         addItemMapping(F_PERSONAL_NUMBER, stringMapper(q -> q.personalNumber));
         addItemMapping(F_FAMILY_NAME, polyStringMapper(
@@ -58,6 +60,8 @@ public class QUserMapping
                 q -> q.honorificSuffixOrig, q -> q.honorificSuffixNorm));
         addItemMapping(F_NICK_NAME, polyStringMapper(
                 q -> q.nickNameOrig, q -> q.nickNameNorm));
+        addItemMapping(F_PREFERRED_NAME, polyStringMapper(
+                q -> q.preferredNameOrig, q -> q.preferredNameNorm));
         addItemMapping(F_TITLE, polyStringMapper(
                 q -> q.titleOrig, q -> q.titleNorm));
         addItemMapping(F_ORGANIZATION, multiPolyStringMapper(q -> q.organizations));
@@ -81,6 +85,8 @@ public class QUserMapping
 
         setPolyString(user.getAdditionalName(),
                 o -> row.additionalNameOrig = o, n -> row.additionalNameNorm = n);
+        setPolyString(user.getDisplayName(),
+                o -> row.displayNameOrig = o, n -> row.displayNameNorm = n);
         row.employeeNumber = user.getEmployeeNumber();
         row.personalNumber = user.getPersonalNumber();
         setPolyString(user.getFamilyName(),
@@ -92,6 +98,8 @@ public class QUserMapping
         setPolyString(user.getHonorificSuffix(),
                 o -> row.honorificSuffixOrig = o, n -> row.honorificSuffixNorm = n);
         setPolyString(user.getNickName(), o -> row.nickNameOrig = o, n -> row.nickNameNorm = n);
+        setPolyString(user.getPreferredName(),
+                o -> row.preferredNameOrig = o, n -> row.preferredNameNorm = n);
         setPolyString(user.getTitle(), o -> row.titleOrig = o, n -> row.titleNorm = n);
         row.organizations = JsonbUtils.polyStringTypesToJsonb(user.getOrganization());
         row.organizationUnits = JsonbUtils.polyStringTypesToJsonb(user.getOrganizationalUnit());

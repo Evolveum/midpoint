@@ -12,7 +12,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -113,7 +112,7 @@ public class ButtonBar<C extends Containerable, PO extends SelectableRow> extend
             }
         };
         viewAll.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(action.getVisibility())));
-        viewAll.add(AttributeAppender.append("class", "btn btn-default btn-sm mr-2"));
+        viewAll.add(AttributeAppender.append("class", "btn btn-light border btn-sm me-2"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
     }

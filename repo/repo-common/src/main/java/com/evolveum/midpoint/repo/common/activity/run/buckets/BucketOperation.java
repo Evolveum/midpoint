@@ -189,9 +189,15 @@ class BucketOperation implements DebugDumpable {
         assert workerTaskOid != null;
         if (bucket.getWorkerRef() == null) {
             LOGGER.warn("DELEGATED bucket without workerRef: {}", bucket);
-        } else if (!workerTaskOid.equals(bucket.getWorkerRef().getOid())) {
-            LOGGER.warn("DELEGATED bucket with workerRef ({}) different from the current worker task ({}): {}",
-                    bucket.getWorkerRef().getOid(), workerTaskOid, bucket);
+        } else {
+            // The bucket must be delegated to *this* worker. If it is delegated to a different one, the
+            // current worker is stale - e.g. an orphan left running after its coordinator task was torn
+            // down and re-created (MID-10496 / MID-10687). Failing it here (on complete/release) prevents
+            // it from corrupting the shared bucketing state of the legitimate worker.
+            stateCheck(workerTaskOid.equals(bucket.getWorkerRef().getOid()),
+                    "Bucket %s is delegated to worker %s, but the current worker task is %s. "
+                            + "Isn't the worker task running in multiple instances?",
+                    bucket, bucket.getWorkerRef().getOid(), workerTaskOid);
         }
     }
 

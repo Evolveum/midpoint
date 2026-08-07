@@ -16,7 +16,6 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
@@ -173,7 +172,7 @@ public class PageSelfCredentials extends PageSelf {
     private ITab createOtpTab() {
         return new PanelTab(
                 createStringResource("PageSelfCredentials.tabs.otp"),
-                new VisibleBehaviour(this::showOtp)) {
+                new VisibleBehaviour(this::isShowOtpTab)) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -194,7 +193,7 @@ public class PageSelfCredentials extends PageSelf {
         };
     }
 
-    private boolean showOtp() {
+    private boolean isShowOtpTab() {
         GuiProfiledPrincipal principal = getPrincipal();
         if (principal == null) {
             return false;

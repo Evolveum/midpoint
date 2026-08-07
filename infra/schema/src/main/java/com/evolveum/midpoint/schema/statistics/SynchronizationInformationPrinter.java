@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySynchronizationStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationTransitionType;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;

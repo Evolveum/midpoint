@@ -96,7 +96,7 @@ public abstract class NoValuePanel extends BasePanel<NoValuePanelDto> {
     }
 
     protected String getPanelAdditionalCssClass() {
-        return "card";
+        return "card shadow-sm mb-3";
     }
 
     protected StringResourceModel getCustomSubTitleModel() {

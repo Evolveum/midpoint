@@ -128,7 +128,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
                     }
                 };
                 showAll.showTitleAsLabel(true);
-                showAll.add(AttributeAppender.append("class", "btn btn-default"));
+                showAll.add(AttributeAppender.append("class", "btn btn-light border"));
 
                 return showAll;
             }

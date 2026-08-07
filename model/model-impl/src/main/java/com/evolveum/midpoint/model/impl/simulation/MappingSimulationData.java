@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.SimulationData;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class MappingSimulationData implements SimulationData {
 

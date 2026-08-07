@@ -6,20 +6,23 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
-import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
-
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule.TargetType;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleBuilder;
+import com.evolveum.midpoint.repo.common.policy.PlainPolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -171,26 +174,63 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         }
     }
 
+    private boolean isPolicyRuleDisabled(PolicyRuleConfigItem policyRule) {
+        return BooleanUtils.isFalse(policyRule.value().getEnabled());
+    }
+
+    private ActivityPolicyRule createActivityPolicyRule(PolicyRuleConfigItem policyRuleCI) {
+        PolicyRuleType policyRule = policyRuleCI.value();
+
+        ActivityPath activityPath = segment.assignmentConfigItem.getActivityPath();
+        if (activityPath == null) {
+            return null;
+        }
+
+        return new ActivityPolicyRuleBuilder(policyRule, activityPath, policyRuleCI.origin())
+                // policy identifier in format ROLE_OID:INDUCEMENT_CID
+                .customPolicyRuleIdentifier(PlainPolicyRuleIdentifier.of(segment.getSourceOid(), segment.getAssignmentId()))
+                .build();
+    }
+
     private void collectObjectPolicyRule() {
         var policyRule = segment.assignmentConfigItem.getPolicyRule();
-        if (policyRule != null) {
-            LOGGER.trace("Collecting object policy rule '{}' in {}", policyRule.getName(), segment.source);
-            ctx.evalAssignment.addObjectPolicyRule(
-                    createEvaluatedPolicyRule(policyRule, TargetType.OBJECT));
+        if (policyRule == null) {
+            return;
         }
+
+        if (isPolicyRuleDisabled(policyRule)) {
+            LOGGER.trace("Skipping disabled object policy rule '{}' in {}", policyRule.getName(), segment.source);
+            return;
+        }
+
+        ActivityPolicyRule activityPolicyRule = createActivityPolicyRule(policyRule);
+
+        LOGGER.trace("Collecting object policy rule '{}' in {}", policyRule.getName(), segment.source);
+        ctx.evalAssignment.addObjectPolicyRule(
+                createEvaluatedPolicyRule(policyRule, TargetType.OBJECT, activityPolicyRule));
     }
 
     private void collectTargetPolicyRule() {
         var policyRule = segment.assignmentConfigItem.getPolicyRule();
-        if (policyRule != null) {
-            boolean appliesDirectly = appliesDirectly(ctx.assignmentPath);
-            LOGGER.trace("Collecting target policy rule '{}' in {} (applies directly = {})",
-                    policyRule.getName(), segment.source, appliesDirectly);
-            ctx.evalAssignment.addTargetPolicyRule(
-                    createEvaluatedPolicyRule(
-                            policyRule,
-                            appliesDirectly ? TargetType.DIRECT_ASSIGNMENT_TARGET : TargetType.INDIRECT_ASSIGNMENT_TARGET));
+        if (policyRule == null) {
+            return;
         }
+
+        if (isPolicyRuleDisabled(policyRule)) {
+            LOGGER.trace("Skipping disabled target policy rule '{}' in {}", policyRule.getName(), segment.source);
+            return;
+        }
+
+        ActivityPolicyRule activityPolicyRule = createActivityPolicyRule(policyRule);
+
+        boolean appliesDirectly = appliesDirectly(ctx.assignmentPath);
+        LOGGER.trace("Collecting target policy rule '{}' in {} (applies directly = {})",
+                policyRule.getName(), segment.source, appliesDirectly);
+        ctx.evalAssignment.addTargetPolicyRule(
+                createEvaluatedPolicyRule(
+                        policyRule,
+                        appliesDirectly ? TargetType.DIRECT_ASSIGNMENT_TARGET : TargetType.INDIRECT_ASSIGNMENT_TARGET,
+                        activityPolicyRule));
     }
 
     /**
@@ -209,12 +249,14 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         return zeroOrderCount == 1;
     }
 
-    private @NotNull EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleConfigItem policyRuleCI, TargetType targetType) {
-        return new EvaluatedPolicyRuleImpl(
+    private @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl createEvaluatedPolicyRule(
+            PolicyRuleConfigItem policyRuleCI, TargetType targetType, ActivityPolicyRule activityPolicyRule) {
+        return new DirectlyEvaluatedClockworkPolicyRuleImpl(
                 policyRuleCI.clone(), // TODO why clone?
                 PolicyRuleTypeUtil.createId(segment.getSourceOid(), segment.getAssignmentId()),
                 ctx.assignmentPath.clone(),
                 ctx.evalAssignment,
-                targetType);
+                targetType,
+                activityPolicyRule);
     }
 }

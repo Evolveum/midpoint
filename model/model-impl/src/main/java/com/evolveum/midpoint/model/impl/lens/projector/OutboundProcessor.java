@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +43,7 @@ public class OutboundProcessor {
     <AH extends AssignmentHolderType>
     void processOutbound(LensContext<AH> context, LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         ProjectionContextKey key = projCtx.getKey();
         if (projCtx.isDelete()) {

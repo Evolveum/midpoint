@@ -100,7 +100,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
                         onRefresh(target);
                     }
                 };
-                refreshIcon.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+                refreshIcon.add(AttributeModifier.append("class", "btn btn-light border btn-sm"));
                 return refreshIcon;
             }
         };

@@ -65,7 +65,7 @@ class ClassificationHelper {
             @NotNull RepoShadow repoShadow,
             @NotNull ExistingResourceObjectShadow resourceObject,
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // The classifier code works with the "combined" version of resource object and its repoShadow.
         // This is NOT a full shadowization. Just good enough for the classifier to work.
@@ -80,7 +80,7 @@ class ClassificationHelper {
             ShadowType combinedObject,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceObjectClassification classification = classifier.classify(
                 combinedObject,
                 ctx.getResource(),
@@ -125,7 +125,7 @@ class ClassificationHelper {
             @NotNull ProvisioningContext ctx,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException {
+            SecurityViolationException, ConfigurationException, SubscriptionComplianceException {
         String tag = classification.isKnown() ?
                 shadowTagGenerator.generateTag(
                         combinedObject, ctx.getResource(), classification.getDefinitionRequired(), ctx.getTask(), result) :

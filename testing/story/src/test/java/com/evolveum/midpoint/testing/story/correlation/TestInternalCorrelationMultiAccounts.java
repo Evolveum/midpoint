@@ -16,7 +16,6 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;

@@ -15,14 +15,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +48,7 @@ abstract class HardErrorHandler extends ErrorHandler {
             OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         throwException(operation, cause, result);
         return OperationResultStatus.FATAL_ERROR; // not reached
@@ -69,7 +62,7 @@ abstract class HardErrorHandler extends ErrorHandler {
             @NotNull OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         throwException(operation, cause, result);
         return OperationResultStatus.FATAL_ERROR; // not reached

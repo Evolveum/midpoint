@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.wf.impl.assignments;
 
-import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
@@ -355,7 +354,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
         String userOid = userObject.oid;
         PrismObject<UserType> user = getUser(userOid);
-        String userDisplayName = user.asObjectable().getFullName() + " (" + user.asObjectable().getName() + ")";
+        String userDisplayName = ObjectTypeUtil.getDisplayName(user) + " (" + user.asObjectable().getName() + ")";
 
         TestObject<RoleType> roleObject = getRole(1);
 

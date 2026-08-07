@@ -77,7 +77,7 @@ public class SearchExecutor extends BaseActionExecutor {
     public PipelineData execute(
             AbstractActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         var searchBean = (SearchExpressionType) action;
         return executeInternal(searchBean, input, context, globalResult);
@@ -92,7 +92,7 @@ public class SearchExecutor extends BaseActionExecutor {
     private <T extends ObjectType> PipelineData executeInternal(
             SearchExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         Validate.notNull(action.getType());
 
@@ -162,7 +162,8 @@ public class SearchExecutor extends BaseActionExecutor {
                         globalResult.summarize();
                     } catch (RuntimeException | SchemaException | ConfigurationException | ObjectNotFoundException |
                              ObjectAlreadyExistsException | CommunicationException | SecurityViolationException |
-                             PolicyViolationException | ExpressionEvaluationException e) {
+                             PolicyViolationException | ExpressionEvaluationException |
+                             SubscriptionComplianceException e) {
                         // todo think about this
                         if (context.isContinueOnAnyError()) {
                             LoggingUtils.logUnexpectedException(

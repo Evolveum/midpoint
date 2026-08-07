@@ -140,11 +140,11 @@ public abstract class ActionDropdownButtonPanel<C extends Containerable> extends
     }
 
     protected String getSpecialButtonClass() {
-        return "btn-app";
+        return "btn btn-light border d-flex flex-column align-items-center p-3 shadow-sm";
     }
 
     protected String getSpecialDropdownMenuClass() {
-        return "dropdown-menu-right";
+        return "dropdown-menu-end";
     }
 
     protected abstract List<C> getObjectsToProcess();

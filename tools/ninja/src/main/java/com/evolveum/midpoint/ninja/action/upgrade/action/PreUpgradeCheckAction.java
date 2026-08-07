@@ -15,7 +15,7 @@ import com.evolveum.midpoint.ninja.action.upgrade.UpgradeConstants;
 import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils.VersionedComponent;
 import com.evolveum.midpoint.repo.sqale.audit.SqaleAuditService;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -75,9 +75,7 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
 
         RepositoryDiag repositoryInfo = repository.getRepositoryDiag();
 
-        boolean result = validateChangeNumber(
-                repositoryInfo.getAdditionalDetails(), SqaleUtils.SCHEMA_CHANGE_NUMBER,
-                SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
+        boolean result = validateChangeNumber(repositoryInfo.getAdditionalDetails(), VersionedComponent.REPOSITORY);
         if (!result) {
             return false;
         }
@@ -90,21 +88,20 @@ public class PreUpgradeCheckAction extends Action<PreUpgradeCheckOptions, Action
         }
 
         RepositoryDiag auditInfo = audit.getRepositoryDiag();
-        return validateChangeNumber(
-                auditInfo.getAdditionalDetails(), SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER,
-                SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
+        return validateChangeNumber(auditInfo.getAdditionalDetails(), VersionedComponent.AUDIT);
     }
 
-    private boolean validateChangeNumber(List<LabeledString> list, String label, int expected) {
-        String number = getValue(list, label);
-        boolean equals = Objects.equals(number, Integer.toString(expected));
+    private boolean validateChangeNumber(List<LabeledString> list, VersionedComponent versionedComponent) {
+        String number = getValue(list, versionedComponent.label);
+        boolean equals = Objects.equals(number, Integer.toString(versionedComponent.expectedVersion));
 
         if (!equals) {
             log.error(
-                    "Database schema change number ({}) doesn't match supported one ({}) for label {}.",
-                    number, expected, label);
+                    "Database schema change number ({}) doesn't match supported one ({}) for {} (guarded by '{}').",
+                    number, versionedComponent.expectedVersion, versionedComponent.humanReadableName, versionedComponent.label);
         } else {
-            log.info("Database schema change number matches supported one ({}) for label {}.", expected, label);
+            log.info("Database schema change number matches supported one ({}) for {} (guarded by '{}').",
+                    versionedComponent.expectedVersion, versionedComponent.humanReadableName, versionedComponent.label);
         }
 
         return equals;

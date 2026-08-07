@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ReferenceSearchItemWrapper;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -20,7 +19,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 

@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+@import "../../../node_modules/flag-icons/css/flag-icons.css";
+
+@import "../../../node_modules/bootstrap/scss/functions";
+
+@import "bootstrap-variables-overrides";
+
+@import "../../../node_modules/bootstrap/scss/variables";
+@import "../../../node_modules/bootstrap/scss/variables-dark";
+
+@import "bootstrap-variables-merges";
+
+@import "../../../node_modules/bootstrap/scss/mixins";
+@import "../../../node_modules/bootstrap/scss/bootstrap";
+@import "../../../node_modules/admin-lte/src/scss/adminlte";
+
+@import "../../../node_modules/bootstrap5-toggle/dist/bootstrap5-toggle.css";
+
+@import "../../../node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css";
+
+@import "../../../node_modules/bs-stepper/dist/css/bs-stepper.css";
+
+@import "../../../node_modules/select2/dist/css/select2.css";
+@import "../../../node_modules/select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.css";
+
+@import "../../../node_modules/@eonasdan/tempus-dominus/dist/css/tempus-dominus.css";

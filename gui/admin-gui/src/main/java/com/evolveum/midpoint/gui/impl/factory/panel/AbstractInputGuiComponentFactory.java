@@ -22,7 +22,9 @@ import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;

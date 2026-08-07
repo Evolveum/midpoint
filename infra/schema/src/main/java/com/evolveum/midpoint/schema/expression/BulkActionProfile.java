@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 /**
  * Specifies limitations on the use of a particular bulk action (e.g. assign, unassign, etc).

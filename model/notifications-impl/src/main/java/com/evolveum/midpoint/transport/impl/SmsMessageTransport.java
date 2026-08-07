@@ -22,20 +22,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.ContextBuilder;
-import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
-import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.client.ClientHttpRequest;
@@ -306,7 +300,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         try {
             return evaluateExpression(expressionType, VariablesMap, false, shortDesc, ctx, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -320,7 +314,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         try {
             return evaluateExpression(expressionType, VariablesMap, true, shortDesc, ctx, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -333,7 +327,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
             ExpressionType expressionType, VariablesMap variablesMap,
             boolean multipleValues, String shortDesc, SendingContext ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (expressionType == null) {
             return multipleValues ? emptyList() : singletonList(null);
         }

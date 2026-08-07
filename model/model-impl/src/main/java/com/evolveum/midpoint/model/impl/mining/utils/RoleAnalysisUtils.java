@@ -24,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
 
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.SUSPENDED;
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.isStable;
@@ -190,7 +191,8 @@ public class RoleAnalysisUtils {
 
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
+                 SubscriptionComplianceException e) {
             logger.error("Couldn't add operation status {}", cluster.getOid(), e);
         }
     }
@@ -222,7 +224,8 @@ public class RoleAnalysisUtils {
 
             modelService.executeChanges(deltas, null, task, result);
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
+                 SubscriptionComplianceException e) {
             logger.error("Couldn't add operation status {}", cluster.getOid(), e);
         }
     }

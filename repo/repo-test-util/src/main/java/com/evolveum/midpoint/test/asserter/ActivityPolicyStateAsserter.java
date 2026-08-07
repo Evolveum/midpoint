@@ -36,7 +36,7 @@ public class ActivityPolicyStateAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ActivityPolicyStateAsserter<RA> assertTriggerCount(int expectedCount) {
-        List<EvaluatedActivityPolicyTriggerType> triggers = state.getTrigger();
+        List<EvaluatedPolicyRuleTriggerType> triggers = state.getTrigger();
 
         Assertions.assertThat(triggers)
                 .withFailMessage("Expected %d triggers, but found %d: %s", expectedCount, triggers.size(), triggers)
@@ -45,7 +45,7 @@ public class ActivityPolicyStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    public static ActivityPolicyType forName(@NotNull ActivityDefinitionType activityDef, String name) {
+    public static PolicyRuleType forName(@NotNull ActivityDefinitionType activityDef, String name) {
         ActivityPoliciesType policies = activityDef.getPolicies();
 
         Assertions.assertThat(policies)

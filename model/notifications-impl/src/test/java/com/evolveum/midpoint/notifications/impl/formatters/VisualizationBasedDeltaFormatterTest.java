@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,14 +59,6 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -402,7 +396,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     void shadowIsModified_formatVisualizationIsCalled_shadowShouldBeProperlyFormatted()
             throws SchemaException, ObjectAlreadyExistsException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            PolicyViolationException {
+            PolicyViolationException, SubscriptionComplianceException {
         final PrismObject<ShadowType> accountRudy = Resource.of(this.resource)
                 .shadow(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "HR Account"))
                 .withSimpleAttribute(SchemaConstants.ICFS_NAME, "Rudy")

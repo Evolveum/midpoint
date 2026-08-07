@@ -79,7 +79,7 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
                 }
                 limitationPanel.setOutputMarkupId(true);
                 item.add(limitationPanel);
-                item.add(AttributeAppender.append("class", showInTwoColumns() ? "col-xxl-6 col-xl-12" : ""));
+                item.add(AttributeAppender.append("class", showInTwoColumns() ? "col-3xl-6 col-xl-12" : ""));
                 item.add(AttributeModifier.append("class", (IModel<String>) () -> Boolean.TRUE.equals(item.getModelObject().isSuccess()) ? " text-success" : " text-danger"));
             }
         };

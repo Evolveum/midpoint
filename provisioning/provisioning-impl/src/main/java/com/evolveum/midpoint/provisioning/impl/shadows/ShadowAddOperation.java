@@ -80,7 +80,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
 
         InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT); // TODO is it OK here?
 
@@ -99,7 +99,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
     static private @NotNull ProvisioningContext establishProvisioningContext(
             ShadowType resourceObjectToAdd, ProvisioningOperationContext context, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException {
+            CommunicationException, SubscriptionComplianceException {
         var resource = b().ctxFactory.getResource(resourceObjectToAdd, task, result);
         var ctx = b().ctxFactory.createForShadow(resourceObjectToAdd, resource, task);
         ctx.assertDefinition();
@@ -115,7 +115,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         var beanToAdd = pendingOperation.getDelta().getObjectToAdd().asObjectable();
         var shadowToAdd = ctx.adoptNotYetExistingResourceObject(beanToAdd);
         var opState = ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
@@ -132,7 +132,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         var shadowToAdd = ctx.adoptNotYetExistingResourceObject(beanToAdd);
         var opState = ProvisioningOperationState.fromPropagatedPendingOperations(repoShadow, sortedOperations);
         new ShadowAddOperation(ctx, shadowToAdd, null, opState, null)
@@ -142,7 +142,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
     private String execute(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
 
         objectToAdd.checkConsistence();
 
@@ -180,7 +180,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
     private void executeAddOperationDirectly(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
-            SecurityViolationException, PolicyViolationException {
+            SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         LOGGER.trace("ADD {}: resource operation, execution starting", objectToAdd);
 
@@ -248,7 +248,8 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
     private void doExecuteAddOperation(
             ConnectorOperationOptions connOptions, boolean skipExplicitUniquenessCheck, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         var addOpResult =
                 resourceObjectConverter.addResourceObject(
                         ctx, objectToAdd, scripts, connOptions, skipExplicitUniquenessCheck, result);
@@ -284,7 +285,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
             Exception cause, OperationResult failedOperationResult, OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         // TODO: record operationExecution
 
@@ -304,7 +305,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation {
 
     private void executeShadowConstraintsCheck(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+            ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, SubscriptionComplianceException {
         ShadowCheckType shadowConstraintsCheck = ctx.getShadowConstraintsCheck();
         if (shadowConstraintsCheck == ShadowCheckType.NONE) {
             return;

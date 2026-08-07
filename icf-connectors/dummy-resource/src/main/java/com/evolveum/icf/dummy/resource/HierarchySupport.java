@@ -9,7 +9,6 @@ package com.evolveum.icf.dummy.resource;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**

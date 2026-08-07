@@ -22,7 +22,7 @@ public class OperationPanelPart extends Border {
     public OperationPanelPart(String id, IModel<String> legend) {
         super(id);
 
-        add(AttributeAppender.prepend("class", "objectButtons d-flex gap-1 align-items-start"));
+        add(AttributeAppender.prepend("class", "objectButtons d-flex flex-column align-items-start"));
         addToBorder(new Label(ID_LEGEND, () -> legend != null ? legend.getObject() : null));
     }
 

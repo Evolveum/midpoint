@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -115,7 +117,7 @@ public class DropDownChoiceSuggestPanel<T> extends InputPanel implements Seriali
         AjaxIconButton suggestButton = SmartSuggestButtonWithConfirmation.forBlockingActionWithIndication(ID_SUGGEST,
                 getSuggestButtonLabel(), getSuggestButtonIcon(), getSuggestProcessingStateButtonIcon(),
                 getSuggestProcessingStateButtonLabel(),
-                List.of(ConfirmationOption.selectedOf(DataAccessPermission.SCHEMA_ACCESS)),
+                SuggestionOption.of(List.of(ConfirmationOption.selectedOf(DataAccessPermission.SCHEMA_ACCESS))),
                 () -> dataAccessPermissionButtonHandlers,
                 getPageBase());
 

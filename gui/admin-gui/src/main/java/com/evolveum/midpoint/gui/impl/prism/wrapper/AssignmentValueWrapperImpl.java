@@ -10,7 +10,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.AssignmentValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.QNameUtil;

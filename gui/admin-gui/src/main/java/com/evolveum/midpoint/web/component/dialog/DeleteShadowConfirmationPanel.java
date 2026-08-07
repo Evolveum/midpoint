@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
 import org.apache.wicket.model.IModel;

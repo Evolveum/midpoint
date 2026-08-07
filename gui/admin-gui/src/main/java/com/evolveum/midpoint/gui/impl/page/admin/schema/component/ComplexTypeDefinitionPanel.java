@@ -26,7 +26,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.*;
+import com.evolveum.midpoint.web.application.Counter;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.TabCenterTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -276,7 +279,7 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
             protected WebMarkupContainer newLink(String linkId, int index) {
                 WebMarkupContainer link = super.newLink(linkId, index);
                 if (index == 0) {
-                    link.add(AttributeAppender.append("style", "border-top-left-radius: 0 !important;"));
+                    link.add(AttributeAppender.append("style", "border-top-start-radius: 0 !important;"));
                 }
                 return link;
             }

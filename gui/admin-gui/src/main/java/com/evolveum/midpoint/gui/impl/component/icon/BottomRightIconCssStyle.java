@@ -23,7 +23,7 @@ public class BottomRightIconCssStyle implements LayeredIconCssStyle {
 
     @Override
     public String getLayerCssClass() {
-        return "bottom-right-layer";
+        return "bottom-end-layer";
     }
 
     @Override

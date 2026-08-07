@@ -10,8 +10,6 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
-
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 

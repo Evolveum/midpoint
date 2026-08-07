@@ -24,7 +24,7 @@ public interface MappingLoader<O extends ObjectType> {
 
     PrismObject<O> load(String loadReason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, NotLoadedException;
+            SecurityViolationException, ExpressionEvaluationException, NotLoadedException, SubscriptionComplianceException;
 
     /** To be used when the exact reason of not-loaded state is not known. */
     class NotLoadedException extends Exception implements SeverityAwareException {

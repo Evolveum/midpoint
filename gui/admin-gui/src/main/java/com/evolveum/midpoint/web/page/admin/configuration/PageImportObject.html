@@ -11,7 +11,7 @@
     <form class="form-horizontal" wicket:id="mainForm">
         <div wicket:id="importOptions"/>
 
-        <div class="form-group">
+        <div class="mb-3">
             <label class="col-form-label"><wicket:message key="PageImportObject.getObjectsFrom"/></label>
 
             <div wicket:id="importRadioGroup">
@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <div class="form-group" wicket:id="input">
+        <div class="mb-3" wicket:id="input">
             <div wicket:id="inputAce">
                 <div wicket:id="languagePanel" class="mb-3"></div>
                 <textarea class="border rounded" wicket:id="aceEditor"></textarea>
@@ -35,14 +35,14 @@
             <label class="col-form-label" wicket:id="inputFileLabel"></label>
             <div wicket:id="inputFile">
                 <input wicket:id="fileInput" type="file"/>
-                <p class="text-sm text-muted"><wicket:message key="PageImportObject.message.help"/></p>
+                <p class="fs-7 text-muted"><wicket:message key="PageImportObject.message.help"/></p>
             </div>
         </div>
 
         <div class="main-button-bar mb-3" wicket:id="buttonBar">
             <wicket:enclosure child="back">
                 <span class="button-group">
-                    <a class="btn btn-default" wicket:id="back"/>
+                    <a class="btn btn-light border" wicket:id="back"/>
                 </span>
             </wicket:enclosure>
             <a class="btn btn-primary" wicket:id="importFileButton" about="importFileButton"/>

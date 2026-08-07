@@ -13,7 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
 /**
  * Collects target (i.e. role) payload: authorizations, GUI configuration.

@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asPrismContainerValues;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -245,14 +246,16 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         try {
             assert valueMetadataComputer == null;
             return consolidateTriples();
-        } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+        } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException |
+                 SubscriptionComplianceException e) {
             throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
         }
     }
 
     @NotNull
     public ItemDelta<V,D> consolidateTriples() throws ExpressionEvaluationException, SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         try {
             logStart();
@@ -429,7 +432,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         }
 
         private void consolidate() throws ExpressionEvaluationException, SchemaException,
-                ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+                ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
             warnIfDeletingStronglyMandatedValue();
 
@@ -471,7 +474,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
          * on adding/not-adding the value using this information.
          */
         private void consolidateToAddSet() throws ExpressionEvaluationException, SchemaException, ConfigurationException,
-                ObjectNotFoundException, CommunicationException, SecurityViolationException {
+                ObjectNotFoundException, CommunicationException, SecurityViolationException, SubscriptionComplianceException {
             classifyMappings(addingOrigins, true);
             addValueIfNeeded();
         }
@@ -487,7 +490,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         }
 
         private void addValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException,
-                SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
             // Detecting conflicting values provided by strong mappings. Normally, this is checked on the deltas after
             // consolidation. But if one of the conflicting values is stored in the existing item, the delta for it will not
@@ -550,7 +553,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
          * We have no reason to add the value based on the mappings. Let's check the other options.
          */
         private void consolidateToDeleteSet() throws ExpressionEvaluationException, ConfigurationException,
-                ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+                ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
             assert equivalenceClass.plusOrigins.isEmpty() : "Non-empty plus origin set is treated in consolidateToAddSet";
 
@@ -578,7 +581,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             }
         }
 
-        private void deleteValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        private void deleteValueIfNeeded() throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
             if (existingItemKnown && !equivalenceClass.presentInExistingItem()) {
                 LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {}",
                         equivalenceClass, itemPath, contextDescription);
@@ -611,7 +614,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
          * Metadata support is enabled so we will analyze the situation more precisely.
          */
         private void decideAccordingToMetadata(String situation) throws CommunicationException, ObjectNotFoundException,
-                SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+                SubscriptionComplianceException {
             new MetadataBasedConsolidation(situation)
                     .consolidate();
         }
@@ -739,7 +743,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             }
 
             void consolidate() throws CommunicationException, ObjectNotFoundException,
-                    SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                    SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+                    SubscriptionComplianceException {
                 logStart();
                 for (YieldPresence yieldPresence : yieldPresences) {
                     yieldPresence.consolidate();
@@ -828,7 +833,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
                 }
 
                 public void consolidate() throws CommunicationException, ObjectNotFoundException, SchemaException,
-                        SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                        SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
                     if (!zero.isEmpty() || !plus.isEmpty()) {
                         @NotNull ValueMetadataType computedMetadata =

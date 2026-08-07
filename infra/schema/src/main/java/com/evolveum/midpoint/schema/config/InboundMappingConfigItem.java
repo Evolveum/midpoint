@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingUseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingUseType.ALL;
 
 public class InboundMappingConfigItem
         extends ConfigurationItem<InboundMappingType>

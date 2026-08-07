@@ -115,8 +115,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
     }
 
     private void activateRoleAssertFailure(String roleOid, Holder<LensContext<?>> contextHolder, OperationResult result, Task task)
-            throws SchemaException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         try {
             activateRole(roleOid, contextHolder, task, result);
             fail("unexpected success");
@@ -334,9 +333,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         assertEquals("Wrong triggered policy rules", emptyList(), roleAfterApproval.asObjectable().getTriggeredPolicyRule());   // recording rules = none
     }
 
-    private void activateRole(String oid, Holder<LensContext<?>> contextHolder, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private void activateRole(String oid, Holder<LensContext<?>> contextHolder, Task task, OperationResult result) throws CommonException {
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_LIFECYCLE_STATE)
                 .replace(SchemaConstants.LIFECYCLE_ACTIVE)

@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component.preview;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,12 +19,13 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusPreviewChanges;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -47,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecut
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
 
-public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<ModelContext<O>> {
+public class PreviewChangesTabPanel extends BasePanel<Void> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_PRIMARY_DELTAS = "primaryDeltas";
@@ -64,10 +67,13 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     private IModel<List<EvaluatedTriggerGroupDto>> policyViolationsModel;
     private IModel<List<ApprovalProcessExecutionInformationDto>> approvalsModel;
 
+    private final PreviewData data;
+
     private static final Trace LOGGER = TraceManager.getTrace(PreviewChangesTabPanel.class);
 
-    public PreviewChangesTabPanel(String id, IModel<ModelContext<O>> contextModel) {
-        super(id, contextModel);
+    public PreviewChangesTabPanel(String id, PreviewData data) {
+        super(id);
+        this.data = data;
     }
 
     @Override
@@ -78,15 +84,28 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         initLayout();
     }
 
+    /** Initializes Wicket models from already extracted serializable preview data. */
     private void initModels() {
+        primaryModel = Model.ofList(data.primary());
+        secondaryModel = Model.ofList(data.secondary());
+        policyViolationsModel = Model.ofList(data.policyViolations());
+        approvalsModel = Model.ofList(data.approvals());
+    }
+
+    /**
+     * Extracts the data needed by the preview page from live model contexts.
+     *
+     * The returned data is safe to keep in Wicket page state; the original model contexts are not.
+     */
+    public static <O extends ObjectType> PreviewData createPreviewData(
+            String title, ModelContext<O> modelContext, PageBase pageBase) {
         ModelContextVisualization mcVisualization;
 
-        ModelContext<O> modelContext = getModelObject();
         try {
-            Task task = getPageBase().createSimpleTask("visualize");
+            Task task = pageBase.createSimpleTask("visualize");
             OperationResult result = task.getResult();
 
-            mcVisualization = getPageBase().getModelInteractionService().visualizeModelContext(modelContext, task, result);
+            mcVisualization = pageBase.getModelInteractionService().visualizeModelContext(modelContext, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ConfigurationException e) {
             throw new SystemException(e);        // TODO
         }
@@ -102,41 +121,46 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         final List<VisualizationDto> primaryList = primary.stream().map(v -> new VisualizationDto(v)).collect(Collectors.toList());
         final List<VisualizationDto> secondaryList = secondary.stream().map(v -> new VisualizationDto(v)).collect(Collectors.toList());
 
-        primaryModel = () -> primaryList;
-        secondaryModel = () -> secondaryList;
-
         PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
                 ? modelContext.getPolicyRuleEnforcerPreviewOutput()
                 : null;
         List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
                 ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
                 : Collections.emptyList();
-        policyViolationsModel = Model.ofList(triggerGroups);
 
         List<ApprovalSchemaExecutionInformationType> approvalsExecutionList = modelContext != null
                 ? modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class)
                 : Collections.emptyList();
         List<ApprovalProcessExecutionInformationDto> approvals = new ArrayList<>();
         if (!approvalsExecutionList.isEmpty()) {
-            Task opTask = getPageBase().createSimpleTask(PageFocusPreviewChanges.class + ".createApprovals");      // TODO
+            Task opTask = pageBase.createSimpleTask(PageFocusPreviewChanges.class + ".createApprovals");      // TODO
             OperationResult result = opTask.getResult();
             try {
                 for (ApprovalSchemaExecutionInformationType execution : approvalsExecutionList) {
                     approvals.add(ApprovalProcessExecutionInformationDto
                             .createFrom(execution, true, opTask, result,
-                                    PreviewChangesTabPanel.this.getPageBase())); // TODO reuse session
+                                    pageBase)); // TODO reuse session
                 }
                 result.computeStatus();
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare approval information", t);
                 result.recordFatalError(
-                        createStringResource("PreviewChangesTabPanel.message.prepareApproval.fatalError", t.getMessage()).getString(), t);
+                        pageBase.createStringResource(
+                                "PreviewChangesTabPanel.message.prepareApproval.fatalError", t.getMessage()).getString(), t);
             }
             if (WebComponentUtil.showResultInPage(result)) {
-                getPageBase().showResult(result);
+                pageBase.showResult(result);
             }
         }
-        approvalsModel = Model.ofList(approvals);
+
+        return new PreviewData(
+                title,
+                primaryList,
+                secondaryList,
+                triggerGroups,
+                approvals,
+                modelContext != null
+                        && TaskExecutionMode.SIMULATED_PRODUCTION.equals(modelContext.getTaskExecutionMode()));
     }
 
     private IModel<VisualizationDto> createVisualizationModel(IModel<List<VisualizationDto>> model, String oneKey, String moreKey) {
@@ -207,5 +231,26 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
 
     private boolean violationsEmpty() {
         return EvaluatedTriggerGroupDto.isEmpty(policyViolationsModel.getObject());
+    }
+
+    /**
+     * Serializable page-state representation of one preview tab.
+     *
+     * It is created once while rendering the preview page and then reused by tab panels
+     * and button visibility checks during later Wicket requests.
+     */
+    public record PreviewData(
+            String title,
+            List<VisualizationDto> primary,
+            List<VisualizationDto> secondary,
+            List<EvaluatedTriggerGroupDto> policyViolations,
+            List<ApprovalProcessExecutionInformationDto> approvals,
+            boolean withProductionConfiguration) implements Serializable {
+
+        @Serial private static final long serialVersionUID = 1L;
+
+        public boolean violationsEmpty() {
+            return EvaluatedTriggerGroupDto.isEmpty(policyViolations);
+        }
     }
 }

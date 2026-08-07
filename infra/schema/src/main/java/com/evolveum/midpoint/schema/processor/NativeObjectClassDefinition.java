@@ -38,8 +38,6 @@ public interface NativeObjectClassDefinition extends NativeObjectClassUcfDefinit
 
     @NotNull String getName();
 
-    @NotNull QName getQName();
-
     @NotNull Collection<? extends NativeShadowAttributeDefinition> getAttributeDefinitions();
 
     @TestOnly

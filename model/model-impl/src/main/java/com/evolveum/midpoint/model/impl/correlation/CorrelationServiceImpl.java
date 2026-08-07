@@ -94,7 +94,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         CompleteContext ctx = getCompleteContext(shadowedResourceObject, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
@@ -108,7 +108,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         CompleteContext ctx = getCompleteContext(preFocus, archetypeOid, candidateOids, discriminator, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
     }
@@ -122,7 +122,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final CompleteContext ctx = getCompleteContext(shadowedResourceObject, resource, resourceObjectTypeDefinition,
                 correlationDefinition, task, result);
         return correlate(ctx.correlatorContext, ctx.correlationContext, result);
@@ -139,7 +139,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final XMLGregorianCalendar correlationStart = XmlTypeConverter.createXMLGregorianCalendar();
         final CorrelationResult correlationResult = correlateInternal(rootCorrelatorContext, correlationContext,
                 result);
@@ -157,7 +157,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return createSimplifiedResult(
                 correlateInternal(rootCorrelatorContext, correlationContext, result),
                 rootCorrelatorContext);
@@ -169,7 +169,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_CORRELATE)
                 .addArbitraryObjectAsParam("rootCorrelatorContext", rootCorrelatorContext)
                 .addArbitraryObjectAsParam("correlationContext", correlationContext)
@@ -280,7 +280,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull FocusType candidateOwner,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         FocusType preFocus = PreMappingsEvaluator.computePreFocus(
                 shadowedResourceObject, synchronizationPolicy.getObjectTypeDefinition(), resource,
                 candidateOwner.getClass(), task, result);
@@ -308,7 +308,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         CompleteContext ctx = getCompleteContext(aCase, task, result);
 
@@ -329,7 +329,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new CorrelationCaseDescriber<>(
                 correlatorContext, correlationContext, ownerOptionsList, options, "test", task, beans)
                 .describe(result);
@@ -351,7 +351,8 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull CaseType currentCase,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ConfigurationException, SubscriptionComplianceException {
         correlationCaseManager.prepareCorrelationCaseClosing(currentCase, task, result);
     }
 
@@ -366,7 +367,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(OP_RESOLVE);
         try {
             // We ignore the correlation context; but the overhead of creating it is negligible. Later we may improve this.
@@ -393,7 +394,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(correlationCase);
         beans.provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
         return getCompleteContext(shadow, task, result);
@@ -404,7 +405,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         stateCheck(ShadowUtil.isClassified(shadow), "Shadow %s is not classified: %s/%s", shadow, shadow.getKind(),
                 shadow.getIntent());
@@ -441,7 +442,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         stateCheck(ShadowUtil.isClassified(shadow), "Shadow %s is not classified: %s/%s", shadow, shadow.getKind(),
                 shadow.getIntent());
@@ -648,7 +649,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
             @NotNull Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         try {
             final Optional<FocusType> existingOwner = findLinkedOwner(shadow, result)
                     .or(() -> readCandidateOwner(shadow, result));
@@ -668,7 +669,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             ResourceObjectTypeDefinition typeDef, CorrelationDefinitionType correlationDef, Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         final CompleteCorrelationResult correlationResult = correlate(shadow, resource, typeDef, correlationDef,
                 task, result);
 

@@ -10,8 +10,6 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.test.util.TestUtil;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;

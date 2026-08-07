@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -95,8 +96,9 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     protected TaskCreationPopup<?> createNewTaskPopup() {
         return new TaskCreationForUncategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
             @Override
-            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
-                ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target);
+            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate,
+                    AjaxRequestTarget target, boolean showConfigurationWizard) {
+                ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target, showConfigurationWizard);
             }
         };
     }
@@ -159,9 +161,13 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         Component statisticsButton = objectTypeIdentification != null
                 ? new ObjectTypeStatisticsButton(ID_STATISTICS, () -> objectTypeIdentification, resource.getOid())
                 : new ObjectClassStatisticsButton(ID_STATISTICS, this::getObjectClass, resource.getOid());
-
+        statisticsButton.add(getStatisticsButtonVisibleBehaviour());
         statisticsButton.setOutputMarkupId(true);
         add(statisticsButton);
+    }
+
+    protected Behavior getStatisticsButtonVisibleBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     private void createPanelTitle() {
@@ -320,7 +326,6 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
                 ResourceUncategorizedPanel.this.processResult(result);
             }
 
-
             @Override
             public Component getFeedbackPanel() {
                 return ResourceUncategorizedPanel.this.getPageBase().getFeedbackPanel();
@@ -329,7 +334,6 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         shadowTablePanel.setOutputMarkupId(true);
         add(shadowTablePanel);
     }
-
 
     protected void processResult(OperationResult result) {
 
@@ -394,7 +398,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         return null;
     }
 
-    protected boolean showPopupShadowDetailsOnClick(){
+    protected boolean showPopupShadowDetailsOnClick() {
         return false;
     }
 }

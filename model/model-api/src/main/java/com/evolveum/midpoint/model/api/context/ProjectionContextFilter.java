@@ -8,7 +8,10 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.HumanReadableDescribable;
+import com.evolveum.midpoint.util.ShortDumpable;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

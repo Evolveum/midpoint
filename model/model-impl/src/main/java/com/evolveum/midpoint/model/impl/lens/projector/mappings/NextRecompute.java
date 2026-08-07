@@ -27,9 +27,11 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- *  Next planned recompute event.
- *  Besides holding data on that this class provides some methods to manipulate it.
- *  (Seemed as a good place for this functionality, at least until mappings are refactored to their final form.)
+ * Represents a future recompute event and provides helpers for creating a recompute trigger on an object.
+ *
+ * This class is used by activation and mapping evaluation to schedule a later recomputation without executing
+ * the full change immediately. The trigger is stored on the object and later processed by the recompute trigger
+ * handler.
  */
 public class NextRecompute {
 
@@ -38,15 +40,33 @@ public class NextRecompute {
     @NotNull private final XMLGregorianCalendar nextRecomputeTime;
     @Nullable private final String triggerOriginDescription;
 
+    /**
+     * Creates a future recompute plan.
+     *
+     * @param nextRecomputeTime the time when recomputation should happen
+     * @param triggerOriginDescription optional description of the rule or mapping that requested the trigger
+     */
     public NextRecompute(@NotNull XMLGregorianCalendar nextRecomputeTime, @Nullable String triggerOriginDescription) {
         this.nextRecomputeTime = nextRecomputeTime;
         this.triggerOriginDescription = triggerOriginDescription;
     }
 
+    /**
+     * Creates or updates a recompute trigger on the given focus context
+     * (by creating the secondary delta, NOT executing the operation immediately!)
+     */
     public <F extends AssignmentHolderType> void createTrigger(LensFocusContext<F> focusContext) throws SchemaException {
         createTrigger(focusContext.getObjectCurrent(), focusContext.getObjectDefinition(), focusContext);
     }
 
+    /**
+     * Creates or updates a recompute trigger on the given object
+     * (by creating the secondary delta, NOT executing the operation immediately!)
+     *
+     * @param targetObject object that should receive the trigger
+     * @param targetObjectDefinition definition of the target object type
+     * @param targetContext lens context used to record the secondary delta
+     */
     public <V extends PrismValue, D extends ItemDefinition, T extends ObjectType, F extends FocusType> void createTrigger(
             PrismObject<T> targetObject, PrismObjectDefinition<T> targetObjectDefinition, LensElementContext<T> targetContext) throws SchemaException {
         if (targetObject != null) {
@@ -70,18 +90,27 @@ public class NextRecompute {
         targetContext.swallowToSecondaryDelta(triggerDelta);
     }
 
+    /**
+     * Updates an existing recompute plan from a mapping's next-recompute time - selecting the earlier of the two times.
+     */
     public static NextRecompute update(MappingImpl<?, ?> mapping, NextRecompute existing) {
         XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
         LOGGER.trace("Evaluation of mapping {} delayed to {}", mapping, mappingNextRecomputeTime);
-        if (mappingNextRecomputeTime != null && (existing == null || existing.nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER)) {
+        if (mappingNextRecomputeTime != null
+                && (existing == null || existing.nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER)) {
             return new NextRecompute(mappingNextRecomputeTime, mapping.getIdentifier());
         } else {
             return existing;
         }
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> NextRecompute update(NextRecompute mappingNextRecompute, NextRecompute existing) {
-        if (mappingNextRecompute != null && (existing == null || existing.nextRecomputeTime.compare(mappingNextRecompute.nextRecomputeTime) == DatatypeConstants.GREATER)) {
+    /**
+     * Updates an existing recompute plan with the earliest of the current and new timestamps.
+     */
+    public static <V extends PrismValue, D extends ItemDefinition> NextRecompute update(
+            NextRecompute mappingNextRecompute, NextRecompute existing) {
+        if (mappingNextRecompute != null
+                && (existing == null || existing.nextRecomputeTime.compare(mappingNextRecompute.nextRecomputeTime) == DatatypeConstants.GREATER)) {
             return mappingNextRecompute;
         } else {
             return existing;

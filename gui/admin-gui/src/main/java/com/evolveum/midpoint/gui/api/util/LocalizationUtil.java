@@ -6,16 +6,9 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
-import com.evolveum.midpoint.prism.impl.binding.AbstractMutableContainerable;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;

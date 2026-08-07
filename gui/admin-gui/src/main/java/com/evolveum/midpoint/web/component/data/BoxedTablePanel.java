@@ -40,7 +40,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import org.apache.wicket.model.StringResourceModel;
@@ -117,14 +116,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         this.showAsCard = showAsCard;
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
-    }
+//    @Override
+//    public void renderHead(IHeaderResponse response) {
+//        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
+//    }
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, String> provider) {
         setOutputMarkupId(true);
-        add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
+        add(AttributeAppender.prepend("class", () -> showAsCard ? "card shadow-sm mb-3" : ""));
         add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
@@ -170,6 +169,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         add(searchResultInfo);
 
         WebMarkupContainer footer = createFooter(ID_FOOTER);
+        footer.add(AttributeAppender.append("class", "boxed-table-footer"));
         footer.add(AttributeAppender.append("class", getAdditionalFooterCssClasses()));
         footer.add(new VisibleBehaviour(() -> isFooterVisible(provider, pageSize)));
         add(footer);

@@ -45,6 +45,8 @@ For more information, please refer to xref:/midpoint/reference/admin-gui/collect
 
 * `*configurableUserDashboard*`: Defines the configurable dashboards which can be accessed from the left menu.
 
+* `*imageUploadProcessing*`: Defines options for image upload processing.
+
 Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported Please, migrate your configuration as soon as possible.
 
 == How It Works
@@ -1455,6 +1457,47 @@ Relevant values are 'visible' and 'hidden'. Default value is 'visible'.
    <feedbackMessagesHook>
       <stackTraceVisibility>hidden</stackTraceVisibility>
    </feedbackMessagesHook>
+</adminGuiConfiguration>
+----
+
+== Image Upload Processing
+
+Image Upload Processing configures how uploaded images are processed.
+Contains elements 'processing', 'format' and 'stripExifData'.
+
+=== Processing and Format
+
+'processing' attribute specifies how to process uploaded images.
+Relevant values are 'preserveOriginalFormat' and 'fixedFormat'. Default value is 'preserveOriginalFormat'.
+
+If the 'preserveOriginalFormat' value is set, the original format of the image is preserved.
+
+If the 'fixedFormat' value is, the midpoint converts the uploaded images to the fixed format specified in the "format" attribute. This conversion removes any EXIF data from the image, if present. The removal of the EXIF data from the image is also performed in the case of conversion to the same format.
+
+"format" attribute specifies which fixed format we want to convert the uploaded images to. It is relevant and is only used if the "fixedFormat" value of the "processing" attribute is set.
+Relevant values are 'jpg' and 'png'. Default value is 'jpg'.
+
+[source,xml]
+----
+<adminGuiConfiguration>
+   <imageUploadProcessing>
+        <processing>fixedFormat</processing> 
+        <format>png</format>
+    </imageUploadProcessing>
+</adminGuiConfiguration>
+----
+
+=== Strip Exif Data
+
+'stripExifData' attribute specifies whether to strip the EXIF data of uploaded images. The attribute value is ignored if the "processing" attribute's "fixedFormat" value is set. In this case, the image format conversion will strip all EXIF data from the image, if present.
+Relevant values are 'true' and 'false'. Default value is 'false'.
+
+[source,xml]
+----
+<adminGuiConfiguration>
+   <imageUploadProcessing>
+        <stripExifData>true</stripExifData>
+    </imageUploadProcessing>
 </adminGuiConfiguration>
 ----
 

@@ -11,14 +11,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -132,7 +130,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             @Contract(pure = true)
             @Override
             protected @NotNull String getProgressBarContainerCssClass() {
-                return "col-12 pl-0 pr-0";
+                return "col-12 ps-0 pe-0";
             }
 
         };
@@ -412,7 +410,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         setOutputMarkupId(true);
 
         add(AttributeModifier.append(CLASS_CSS,
-                "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
+                "bg-white d-flex flex-column align-items-center shadow-sm rounded w-100 h-100 p-0"));
     }
 
     private void explorePatternPerform(@NotNull DetectedPattern pattern) {

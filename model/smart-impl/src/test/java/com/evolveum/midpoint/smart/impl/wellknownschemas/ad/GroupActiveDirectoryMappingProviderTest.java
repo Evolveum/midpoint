@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2026 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ *
+ */
+
+package com.evolveum.midpoint.smart.impl.wellknownschemas.ad;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.evolveum.midpoint.util.exception.*;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
+import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaTestBase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+public class GroupActiveDirectoryMappingProviderTest extends WellKnownSchemaTestBase {
+
+    protected GroupActiveDirectoryMappingProviderTest() throws SchemaException, IOException, SAXException {
+    }
+
+    @Test
+    void shadowContainsOuSuffix_outboundMappingsAreSuggested_suggestedScriptShouldBeCorrect()
+            throws CommonException {
+        final WellKnownSchemaProvider mappingProvider = new GroupActiveDirectoryMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("distinguishedName",
+                        "cn=app:customer-conversion:specs,ou=appgroups,dc=example,dc=com")));
+        final ExpressionType expression = getExpression(systemMappingSuggestions);
+        final String output = evaluateExpression(expression, "identifier", "app:customer-conversion:developers");
+
+        Assert.assertEquals(output, "cn=app:customer-conversion:developers,ou=appgroups,dc=example,dc=com");
+    }
+
+    @Test
+    void resourceNameIsProvided_inboundMappingsAreSuggested_suggestedScriptShouldBeCorrect()
+            throws CommonException {
+        final WellKnownSchemaProvider mappingProvider = new GroupActiveDirectoryMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestInboundMappings("AD");
+        final ExpressionType expression = getExpression(systemMappingSuggestions);
+        final String output = evaluateExpression(expression, "input", "app:customer-conversions:developers");
+
+        Assert.assertEquals(output, "AD-app:customer-conversions:developers");
+    }
+
+    @Test
+    void shadowContainsOuSuffix_outboundMappingsAreSuggested_dnCnAndSamAccountNameScriptsShouldUseIterationToken()
+            throws SchemaException {
+        final WellKnownSchemaProvider mappingProvider = new GroupActiveDirectoryMappingProvider();
+        final List<SystemMappingSuggestion> systemMappingSuggestions = mappingProvider.suggestOutboundMappings(
+                List.of(shadowWithAttribute("distinguishedName",
+                        "cn=app:customer-conversion:specs,ou=appgroups,dc=example,dc=com")));
+
+        final String dnScript = getScriptCode(getExpression(systemMappingSuggestions, "distinguishedName"));
+        final String cnScript = getScriptCode(getExpression(systemMappingSuggestions, "cn"));
+        final String samAccountNameScript = getScriptCode(getExpression(systemMappingSuggestions, "sAMAccountName"));
+
+        Assert.assertTrue(dnScript.contains("iterationToken"),
+                "distinguishedName mapped from identifier should use iterationToken, but was: " + dnScript);
+        Assert.assertTrue(cnScript.contains("iterationToken"),
+                "cn mapped from identifier should use iterationToken, but was: " + cnScript);
+        Assert.assertTrue(samAccountNameScript.contains("iterationToken"),
+                "sAMAccountName mapped from identifier should use iterationToken, but was: " + samAccountNameScript);
+    }
+}

@@ -79,13 +79,16 @@ public class WorkDefinitionUtil {
 
         addTypedParameters(values, definitions.getCreateConnector());
         addTypedParameters(values, definitions.getInstallConnector());
+        addTypedParameters(values, definitions.getExportConnector());
         addTypedParameters(values, definitions.getDiscoverDocumentation());
         addTypedParameters(values, definitions.getProcessDocumentation());
         addTypedParameters(values, definitions.getDiscoverGlobalInformation());
         addTypedParameters(values, definitions.getDiscoverObjectClassInformation());
         addTypedParameters(values, definitions.getDiscoverObjectClassAttributes());
         addTypedParameters(values, definitions.getDiscoverObjectClassEndpoints());
+        addTypedParameters(values, definitions.getDiscoverConnectivityEndpoint());
         addTypedParameters(values, definitions.getGenerateConnectorArtifact());
+        addTypedParameters(values, definitions.getRefreshSchema());
 
         addUntypedParameters(values, definitions.getExtension());
         return values;

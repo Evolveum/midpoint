@@ -47,7 +47,7 @@ public class CaseClosing {
 
     public void finishCaseClosing(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         CaseType approvalCase = operation.getCurrentCase();
 
         ObjectTreeDeltas<?> approvedDeltas = prepareDeltaOut(approvalCase);
@@ -115,7 +115,7 @@ public class CaseClosing {
 
     private void processDelayedExecution(CaseType currentCase, CaseType rootCase, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.debug("Approval case {} is completed; but execution is delayed so let's check other subcases of {}",
                 currentCase, rootCase);
         beans.executionHelper.closeCaseInRepository(currentCase, result);

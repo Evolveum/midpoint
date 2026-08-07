@@ -11,13 +11,16 @@ package com.evolveum.midpoint.smart.impl.activities.correlationSuggestion;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -66,14 +69,14 @@ public class CorrelationSuggestionActivityHandler
             Activity<CorrelationSuggestionWorkDefinition, CorrelationSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new CorrelationSuggestionSchemaMatchingActivityRun(context),
                 null,
                 (i) -> ID_CORRELATION_SCHEMA_MATCHING,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new CorrelationSuggestionRemoteServiceCallActivityRun(context),
                 null,
                 (i) -> ID_CORRELATION_SUGGESTION,

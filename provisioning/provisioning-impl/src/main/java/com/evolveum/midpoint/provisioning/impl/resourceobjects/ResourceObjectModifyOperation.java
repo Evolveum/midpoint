@@ -96,14 +96,16 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             XMLGregorianCalendar now,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return new ResourceObjectModifyOperation(ctx, repoShadow, scripts, connOptions, requestedDeltas, now)
                 .doExecute(result);
     }
 
     private @NotNull ResourceObjectModifyReturnValue doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDumpLazily(requestedDeltas, 1));
 
         if (!ShadowUtil.hasResourceModifications(requestedDeltas)) {
@@ -174,7 +176,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
     private @Nullable ExistingResourceObjectShadow doPreReadIfNeeded(
             Collection<Operation> ucfOperations, boolean hasVolatilityTriggerModification, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (!shouldDoPreRead(ucfOperations, hasVolatilityTriggerModification)) {
             return null;
@@ -222,7 +224,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             ExistingResourceObjectShadow preReadObject,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         assert preReadObject != null;
 
         // There may be other changes that were not detected by the connector. Re-read the object and compare.
@@ -299,7 +301,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             @NotNull Collection<? extends ItemDelta<?, ?>> subjectDeltas,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+            SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
         EntitlementConverter entitlementConverter = new EntitlementConverter(ctx);

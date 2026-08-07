@@ -67,7 +67,8 @@ public class SimulationMappingPanel extends BasePanel<SimulationResultType> {
             MARK_ITEM_VALUE_REMOVED.value(),
             MARK_ITEM_VALUE_MODIFIED.value(),
             MARK_ITEM_VALUE_NOT_CHANGED.value(),
-            MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value());
+            MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value(),
+            MARK_ITEM_VALUE_FAILED.value());
 
     public SimulationMappingPanel(String id, IModel<SimulationResultType> model) {
         super(id, model);

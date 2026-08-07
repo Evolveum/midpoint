@@ -6,30 +6,23 @@
 
 package com.evolveum.midpoint.model.api.authentication;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BooleanSupplier;
-
-import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Compiled user profile. This class contains information about configuration and customization
@@ -37,38 +30,40 @@ import org.jetbrains.annotations.Nullable;
  * information in a form that is suitable to direct use by user interface code. The GUI should not
  * be required to do any complex processing on this.
  *
- * This idea is to compile the profile just once, on login time. Therefore only the authentication
+ * This idea is to compile the profile just once, on login time. Therefore, only the authentication
  * code (GuiProfiledPrincipalManager) should modify this object. It should be considered read-only for all other
  * purposes.
  *
  * Later it may be split to interface and implementation parts.
  *
- * @since 4.0
  * @author Radovan Semancik
+ * @since 4.0
  */
 @Experimental
 public class CompiledGuiProfile implements DebugDumpable, Serializable {
-    private static final long serialVersionUID = 1L;
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private String defaultTimezone;
     private String preferredDataLanguage;
     private Boolean enableExperimentalFeatures;
     private Boolean useNewDesign = true; //default
-    private List<RichHyperlinkType> additionalMenuLink = new ArrayList<>();
-    private List<RichHyperlinkType> userDashboardLink = new ArrayList<>();
-    private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
-    private List<CompiledShadowCollectionView> shadowCollectionViews = new ArrayList<>();
+    private final List<RichHyperlinkType> additionalMenuLink = new ArrayList<>();
+    private final List<RichHyperlinkType> userDashboardLink = new ArrayList<>();
+    private final List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
+    private final List<CompiledShadowCollectionView> shadowCollectionViews = new ArrayList<>();
     private CompiledObjectCollectionView defaultObjectCollectionView = null;
     private DefaultGuiObjectListPanelConfigurationType defaultObjectCollectionViewsSettings;
-    private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
+    private final List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
     private GuiExportSettingsType defaultExportSettings;
     private GuiObjectDetailsSetType objectDetails;
     private FeedbackMessagesHookType feedbackMessagesHook;
     @Deprecated
     private AdminGuiConfigurationRoleManagementType roleManagement;
     private AccessRequestType accessRequest;
+    private ImageUploadProcessingType imageUploadProcessing;
     private AdminGuiApprovalsConfigurationType approvals;
-    private List<UserInterfaceFeatureType> features = new ArrayList<>();
+    private final List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
     private byte[] jpegPhoto;
     private Locale locale;
@@ -233,7 +228,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
             }
 
             QName collectionRefType = collectionRef != null ? collectionRef.getType() : null;
-            if (collectionRefType != null && ArchetypeType.COMPLEX_TYPE.equals(collectionRefType)){
+            if (ArchetypeType.COMPLEX_TYPE.equals(collectionRefType)) {
                 archetypeViews.add(objectCollectionView);
             }
         }
@@ -241,12 +236,12 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     }
 
     @NotNull
-    public <O extends ObjectType>List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType) {
+    public <O extends ObjectType> List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType) {
         return findAllApplicableArchetypeViews(ObjectTypes.getObjectType(objectType).getTypeQName(), null);
     }
 
     @NotNull
-    public <O extends ObjectType>List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType, OperationTypeType operationType) {
+    public <O extends ObjectType> List<CompiledObjectCollectionView> findAllApplicableArchetypeViews(@NotNull Class<O> objectType, OperationTypeType operationType) {
         return findAllApplicableArchetypeViews(ObjectTypes.getObjectType(objectType).getTypeQName(), operationType);
     }
 
@@ -254,7 +249,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
      * Find archetype view for archetype defined by oid.
      */
     @Nullable
-    public <O extends ObjectType> CompiledObjectCollectionView findApplicableArchetypeView(@NotNull String archetypeOid) {
+    public CompiledObjectCollectionView findApplicableArchetypeView(@NotNull String archetypeOid) {
         for (CompiledObjectCollectionView objectCollectionView : objectCollectionViews) {
             if (archetypeOid.equals(objectCollectionView.getArchetypeOid())) {
                 return objectCollectionView;
@@ -265,7 +260,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
 
     /**
      * Find all views that are applicable for a particular object type. Returns views for all collections
-     * and archetypes that are applicable for that type. Ideal to be used in costructing menus.
+     * and archetypes that are applicable for that type. Ideal to be used in constructing menus.
      */
     @NotNull
     public <O extends ObjectType> List<CompiledObjectCollectionView> findAllApplicableObjectCollectionViews(Class<O> compileTimeClass) {
@@ -320,7 +315,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return findObjectConfiguration(objectDetails.getObjectDetailsPage(), compileTimeClass);
     }
 
-    public <O extends ObjectType> GuiObjectDetailsPageType findObjectDetailsConfiguration(QName typeQName) {
+    public GuiObjectDetailsPageType findObjectDetailsConfiguration(QName typeQName) {
         if (objectDetails == null) {
             return new GuiObjectDetailsPageType().type(typeQName);
         }
@@ -329,7 +324,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return result != null ? result : new GuiObjectDetailsPageType().type(typeQName);
     }
 
-    public <O extends ObjectType> GuiResourceDetailsPageType findResourceDetailsConfiguration(String connectorOid){
+    public GuiResourceDetailsPageType findResourceDetailsConfiguration(String connectorOid) {
         if (objectDetails == null) {
             return new GuiResourceDetailsPageType();
         }
@@ -350,7 +345,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         return applicableForAll;
     }
 
-    public <O extends ObjectType> GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowCoordinates coordinates) {
+    public GuiShadowDetailsPageType findShadowDetailsConfiguration(ResourceShadowCoordinates coordinates) {
         if (objectDetails == null) {
             return null;
         }
@@ -362,13 +357,13 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
             if (shadowDetailsPageType.getResourceRef() == null) {
                 continue;
             }
-            if (!coordinates.getResourceOid().equals(shadowDetailsPageType.getResourceRef().getOid())) {
+            if (!Objects.equals(coordinates.getResourceOid(), shadowDetailsPageType.getResourceRef().getOid())) {
                 continue;
             }
             if (coordinates.getKind() != shadowDetailsPageType.getKind()) {
                 continue;
             }
-            if (!coordinates.getIntent().equals(shadowDetailsPageType.getIntent())) {
+            if (!Objects.equals(coordinates.getIntent(), shadowDetailsPageType.getIntent())) {
                 continue;
             }
             return shadowDetailsPageType;
@@ -392,19 +387,18 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         if (list == null) {
             return null;
         }
-        for (T item: list) {
+        for (T item : list) {
             if (QNameUtil.match(item.getType(), typeQName)) {
                 return item;
             }
         }
-        for (T item: list) {
+        for (T item : list) {
             if (item.getType() == null) {
                 return item;
             }
         }
         return null;
     }
-
 
     public FeedbackMessagesHookType getFeedbackMessagesHook() {
         return feedbackMessagesHook;
@@ -443,7 +437,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     }
 
     public static <T extends UserInterfaceFeatureType> T findFeature(List<T> features, String identifier) {
-        for (T feature: features) {
+        for (T feature : features) {
             if (feature.getIdentifier().equals(identifier)) {
                 return feature;
             }
@@ -523,6 +517,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         this.accessRequest = accessRequest;
     }
 
+    public ImageUploadProcessingType getImageUploadProcessing() {
+        return imageUploadProcessing;
+    }
+
+    public void setImageUploadProcessing(ImageUploadProcessingType imageUploadProcessing) {
+        this.imageUploadProcessing = imageUploadProcessing;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledGuiProfile.class, indent);
@@ -552,7 +554,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     }
 
     public void markInvalid() {
-        invalid  = true;
+        invalid = true;
     }
 
     public boolean isInvalid() {

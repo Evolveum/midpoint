@@ -11,7 +11,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
 

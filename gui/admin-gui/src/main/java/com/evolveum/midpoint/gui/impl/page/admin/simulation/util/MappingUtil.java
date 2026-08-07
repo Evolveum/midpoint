@@ -35,11 +35,12 @@ public class MappingUtil {
     private static final Trace LOGGER = TraceManager.getTrace(MappingUtil.class);
 
     public enum MappingStatus {
-        ADDED("badge badge-success badge-opaque", "Correlation.simulation.state.added"),
-        REMOVED("badge badge-danger badge-opaque", "Correlation.simulation.state.removed"),
-        MODIFIED("badge badge-info badge-opaque", "Correlation.simulation.state.modified"),
-        NOT_CHANGED("badge badge-secondary badge-opaque", "Correlation.simulation.state.notChanged"),
-        CHANGE_NOT_APPLIED("badge badge-secondary badge-opaque", "Correlation.simulation.state.changeNotApplied");
+        ADDED("badge text-bg-success opaque", "Correlation.simulation.state.added"),
+        REMOVED("badge text-bg-danger opaque", "Correlation.simulation.state.removed"),
+        MODIFIED("badge text-bg-info opaque", "Correlation.simulation.state.modified"),
+        NOT_CHANGED("badge text-bg-secondary opaque", "Correlation.simulation.state.notChanged"),
+        CHANGE_NOT_APPLIED("badge text-bg-secondary opaque", "Correlation.simulation.state.changeNotApplied"),
+        FAILED("badge text-bg-danger opaque", "Correlation.simulation.state.failed");
 
         private final String cssClass;
         private final String translationKey;
@@ -68,7 +69,10 @@ public class MappingUtil {
             }
         });
 
-        if (eventMarkOids.contains(MARK_ITEM_VALUE_ADDED.value())) {
+        if (eventMarkOids.contains(MARK_ITEM_VALUE_FAILED.value())) {
+            String label = pageBase.getString(MappingStatus.FAILED.translationKey);
+            return new Badge(MappingStatus.FAILED.cssClass(), label);
+        } else if (eventMarkOids.contains(MARK_ITEM_VALUE_ADDED.value())) {
             String label = pageBase.getString(MappingStatus.ADDED.translationKey);
             return new Badge(MappingStatus.ADDED.cssClass(), label);
         } else if (eventMarkOids.contains(MARK_ITEM_VALUE_REMOVED.value())) {
@@ -84,7 +88,7 @@ public class MappingUtil {
             String label = pageBase.getString(MappingStatus.CHANGE_NOT_APPLIED.translationKey);
             return new Badge(MappingStatus.CHANGE_NOT_APPLIED.cssClass(), label);
         } else {
-            return new Badge("badge badge-secondary badge-opaque", pageBase.getString("Correlation.simulation.state.unknown"));
+            return new Badge("badge text-bg-secondary opaque", pageBase.getString("Correlation.simulation.state.unknown"));
         }
     }
 

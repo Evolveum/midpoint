@@ -303,7 +303,7 @@ EOF
             }
             stage("tests-extra") {
                 container('maven') {
-                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    // -Xmx6g to fit into container memory limit, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
                             mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
                                 -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"

@@ -35,7 +35,7 @@ public interface ModelAuditService {
             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
 
     void audit(AuditEventRecord record, Task task, OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Clean up audit records that are older than specified.
@@ -43,7 +43,7 @@ public interface ModelAuditService {
      * @param policy Records will be deleted base on this policy.
      */
     void cleanupAudit(CleanupPolicyType policy, Task task, OperationResult parentResult)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
@@ -54,7 +54,7 @@ public interface ModelAuditService {
             Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException;
+            CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
@@ -66,7 +66,7 @@ public interface ModelAuditService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Returns true if retrieval of objects from the audit trail is supported.
@@ -82,5 +82,5 @@ public interface ModelAuditService {
             @Nullable ObjectQuery query, @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull AuditResultHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 }

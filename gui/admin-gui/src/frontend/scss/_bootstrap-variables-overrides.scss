@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+// taken from adminlte and bootstrap, also based on figma
+$gray-700: #495057 !default;
+$lightblue: #206F9D !default; //#3c8dbc - primary color //#307197 - acceptable //#1070A8 - cool saturated lightblue
+$green: #198754 !default;
+$cyan: #008099 !default; //bootstrap value - #0dcaf0
+$yellow: #ffc107 !default;
+$red: #dc3545 !default;
+$purple: #605CA8 !default; //figma #6f42c1; previous value #605ca8
+$indigo: #6610F2 !default;
+$blue: #0069d9 !default;
+
+$white: #fff !default;
+
+$midpoint-secondary: #627383 !default; // previous value #818D98
+
+// override bootstrap defaults where necessary
+$primary: $lightblue;
+$secondary: $midpoint-secondary;
+$success: $green;
+$info: $cyan;
+$warning: $yellow;
+$danger: $red;
+$body-color: $gray-700;
+$link-decoration: none;
+$font-family-sans-serif: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif !default;
+
+//custom colors
+$purple-light: #f0e7fe;
+$purple-dark: #290661;
+$success-light: #d1e7dd;
+$danger-light: #f8d7da;
+$warning-light: #fff6da;
+$info-light: #cff4fc;
+$secondary-light: #e9eaec;
+$primary-light: #cfe2ff;
+
+//override padding in dropdown popovers
+$dropdown-padding-y: 0;

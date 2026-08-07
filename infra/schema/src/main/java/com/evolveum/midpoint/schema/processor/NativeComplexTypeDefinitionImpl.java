@@ -8,7 +8,10 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.AbstractTypeDefinition;
+import com.evolveum.midpoint.prism.DefinitionFragmentBuilder;
+import com.evolveum.midpoint.prism.DisplayHint;
 import com.evolveum.midpoint.prism.ItemDefinition.ItemDefinitionLikeBuilder;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.DefinitionFeature;
@@ -53,9 +56,6 @@ public class NativeComplexTypeDefinitionImpl
      */
     @NotNull private final String name;
 
-    /** QName version of {@link #name}, with the constant namespace of `ri`. FIXME: this is not true now! */
-    @NotNull private final QName qName;
-
     //region The following applies to OBJECT classes
     @NotNull private final NativeObjectClassUcfDefinition.Data ucfData = new NativeObjectClassUcfDefinition.Data();
 
@@ -79,17 +79,11 @@ public class NativeComplexTypeDefinitionImpl
 
     NativeComplexTypeDefinitionImpl(@NotNull String name) {
         this.name = name;
-        this.qName = new QName(name);
     }
 
     @Override
     public @NotNull String getName() {
         return name;
-    }
-
-    @Override
-    public @NotNull QName getQName() {
-        return qName;
     }
 
     public boolean isReferenceType() {

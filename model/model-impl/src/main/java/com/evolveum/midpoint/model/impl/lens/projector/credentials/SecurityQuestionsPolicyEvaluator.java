@@ -12,13 +12,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
@@ -55,7 +49,7 @@ public class SecurityQuestionsPolicyEvaluator<F extends FocusType> extends
     @Override
     protected void validateCredentialContainerValues(PrismContainerValue<SecurityQuestionsCredentialsType> cVal)
             throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<SecurityQuestionAnswerType> questionAnswers = cVal.asContainerable().getQuestionAnswer();
         for (SecurityQuestionAnswerType questionAnswer : questionAnswers) {
             ProtectedStringType answer = questionAnswer.getQuestionAnswer();

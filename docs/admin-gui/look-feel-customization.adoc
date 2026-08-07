@@ -4,14 +4,12 @@
 
 Current MidPoint theme is based on link:https://almsaeedstudio.com/preview[AdminLTE] template.
 
-* AdminLTE 3.2
-* Bootstrap 4.6
+* AdminLTE 4.0.2
+* Bootstrap 5.3.8
 * jQuery
 * link:https://ace.c9.io/#nav=about[Ace editor]
 * other plugins
-** bootstrap-select
 ** bootstrap-multiselect
-** daterangepicker
 ** select2
 
 == Stylesheets and javascripts

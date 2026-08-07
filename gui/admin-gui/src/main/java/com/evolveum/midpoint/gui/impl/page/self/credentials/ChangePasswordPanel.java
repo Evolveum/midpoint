@@ -464,7 +464,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     .autohide(false)
                     .title(getString("ChangePasswordPanel.savePassword"))
                     .body(getString(result.getStatus()))
-                    .configureAriaAttributesAndShow(target);
+                    .show(target);
         }
     }
 

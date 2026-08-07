@@ -221,15 +221,15 @@ public class WizardPanel extends BasePanel implements WizardListener {
     private String getCssForStepsHeader() {
         int steps = wizardModelBasic.getSteps().size();
         if (steps == 2) {
-            return "col-xxl-5 col-xl-7 col-lg-9 col-md-9 col-sm-12 m-auto";
+            return "col-3xl-5 col-xl-7 col-lg-9 col-md-9 col-sm-12 m-auto";
         }
 
         if (steps == 3) {
-            return "col-xxl-7 col-xl-10 col-12 m-auto";
+            return "col-3xl-7 col-xl-10 col-12 m-auto";
         }
 
         if (steps == 4) {
-            return "col-xxl-10 col-12 m-auto";
+            return "col-3xl-10 col-12 m-auto";
         }
 
         if (steps >= 5) {

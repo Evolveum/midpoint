@@ -4,6 +4,9 @@
 -- Licensed under the EUPL-1.2 or later.
 --
 
+-- Developer documentation for SQL documentation annotations:
+-- https://docs.evolveum.com/midpoint/devel/guides/sql-script-annotations/
+
 -- @formatter:off because of terribly unreliable IDEA reformat for SQL
 -- This is the update script for the AUDIT database.
 -- If you use audit and main repository in a single database, this still must be run as well.
@@ -32,6 +35,14 @@ $$;
 -- changes for 4.4.1
 
 -- support for partition generation in the past using negative argument
+-- @change: Updates the audit monthly partition creation procedure to support creating partitions in the past using a negative argument.
+-- @since: 4.4.1
+-- @affects: routine audit_create_monthly_partitions | Modified procedure | Supports creating audit partitions in past months using a negative argument.
+-- @affects: table ma_audit_event_<month> | New generated partition | Creates monthly audit event partitions.
+-- @affects: table ma_audit_delta_<month> | New generated partition | Creates monthly audit delta partitions.
+-- @affects: table ma_audit_ref_<month> | New generated partition | Creates monthly audit reference partitions.
+-- @affects: constraint ma_audit_delta_<month>_fk | New generated foreign key | Links monthly audit delta partitions to matching audit event partitions.
+-- @affects: constraint ma_audit_ref_<month>_fk | New generated foreign key | Links monthly audit reference partitions to matching audit event partitions.
 call apply_audit_change(1, $aac$
 -- Use negative futureCount for creating partitions for the past months if needed.
 CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
@@ -95,6 +106,9 @@ $aac$);
 -- changes for 4.5
 
 -- MID-7484
+-- @change: Adds `MESSAGE_TEMPLATE` to audit object type values.
+-- @since: 4.5
+-- @affects: enum ObjectType | Modified enum type | Adds `MESSAGE_TEMPLATE`.
 call apply_audit_change(2, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
 $aa$);
@@ -103,6 +117,9 @@ $aa$);
 
 -- changes for 4.7
 -- Simulation related changes
+-- @change: Adds `SIMULATION_RESULT` and `MARK` object type values used by audit records.
+-- @since: 4.7
+-- @affects: enum ObjectType | Modified enum type | Adds `SIMULATION_RESULT` and `MARK`.
 call apply_audit_change(3, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MARK' AFTER 'LOOKUP_TABLE';
@@ -110,11 +127,19 @@ $aa$);
 
 -- changes for 4.8
 -- Shadow auditing
+-- @change: Adds `RESOURCE` audit stage and `DISCOVER_OBJECT` audit event type value.
+-- @since: 4.8
+-- @affects: enum AuditEventStageType | Modified enum type | Adds `RESOURCE` audit stage.
+-- @affects: enum AuditEventTypeType | Modified enum type | Adds `DISCOVER_OBJECT` audit event type.
 call apply_audit_change(4, $aa$
    ALTER TYPE AuditEventStageType ADD VALUE IF NOT EXISTS 'RESOURCE' AFTER 'EXECUTION';
    ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'DISCOVER_OBJECT' AFTER 'RUN_TASK_IMMEDIATELY';
 $aa$);
 
+-- @change: Adds effective-principal audit columns and privilege modification type.
+-- @since: 4.8
+-- @affects: enum EffectivePrivilegesModificationType | New enum type | Stores effective-principal privilege modification values.
+-- @affects: table ma_audit_event | Modified table | Adds effective-principal columns and privilege modification column.
 call apply_audit_change(5, $aa$
    CREATE TYPE EffectivePrivilegesModificationType AS ENUM ('ELEVATION', 'FULL_ELEVATION', 'REDUCTION', 'OTHER');
    ALTER TABLE ma_audit_event
@@ -124,7 +149,10 @@ call apply_audit_change(5, $aa$
      ADD COLUMN effectivePrivilegesModification EffectivePrivilegesModificationType;
 $aa$);
 
-
+-- @change: Adds shadow kind and intent audit delta columns.
+-- @since: 4.8
+-- @affects: enum ShadowKindType | New enum type | Adds shadow kind values when audit is installed separately.
+-- @affects: table ma_audit_delta | Modified table | Adds shadowKind and shadowIntent columns.
 call apply_audit_change(6, $aa$
    -- We try to create ShadowKindType (necessary if audit is in separate database, if it is in same
    -- database as repository, type already exists.
@@ -141,33 +169,51 @@ $aa$);
 
 -- Role Mining
 
+-- @change: Adds role analysis cluster and role analysis session object type values.
+-- @since: 4.8
+-- @affects: enum ObjectType | Modified enum type | Adds `ROLE_ANALYSIS_CLUSTER` and `ROLE_ANALYSIS_SESSION`.
 call apply_audit_change(7, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_CLUSTER' AFTER 'ROLE';
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_SESSION' AFTER 'ROLE_ANALYSIS_CLUSTER';
 $aa$);
 
--- Informatoin Disclosure
+-- Information Disclosure
+
+-- @change: Adds information disclosure audit event type value.
+-- @since: 4.8
+-- @affects: enum AuditEventTypeType | Modified enum type | Adds `INFORMATION_DISCLOSURE` audit event type.
 call apply_audit_change(8, $aa$
 ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'INFORMATION_DISCLOSURE' AFTER 'DISCOVER_OBJECT';
 $aa$);
 
-
---- Policy Type
+-- Policy Type
+-- @change: Adds policy object type value.
+-- @since: 4.9
+-- @affects: enum ObjectType | Modified enum type | Adds `POLICY`.
 call apply_audit_change(9, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
 $aa$);
 
---- Schema Type
+-- Schema Type
+-- @change: Adds schema object type value.
+-- @since: 4.10
+-- @affects: enum ObjectType | Modified enum type | Adds `SCHEMA`.
 call apply_audit_change(10, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
 $aa$);
 
---- Application Type
+-- Application Type
+-- @change: Adds application object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `APPLICATION`.
 call apply_audit_change(11, $aa$
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'APPLICATION' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
 $aa$);
 
---- Connector Development Type
+-- Connector Development Type
+-- @change: Adds `CONNECTOR_DEVELOPMENT` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
 call apply_audit_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
 $aa$);

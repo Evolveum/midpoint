@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import org.w3c.dom.Element;

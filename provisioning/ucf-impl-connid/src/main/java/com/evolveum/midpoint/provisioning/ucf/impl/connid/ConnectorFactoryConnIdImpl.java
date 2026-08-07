@@ -10,7 +10,8 @@ import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewC
 import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewContainerDefinition;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME;
-import static com.evolveum.midpoint.schema.processor.ConnectorSchema.*;
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.CONNECTOR_CONFIGURATION_LOCAL_NAME;
+import static com.evolveum.midpoint.schema.processor.ConnectorSchema.CONNECTOR_CONFIGURATION_TYPE_LOCAL_NAME;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,18 +21,24 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.security.Key;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition.PrismPropertyDefinitionMutator;
+import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 
 import com.evolveum.midpoint.task.api.Tracer;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import jakarta.annotation.PostConstruct;
 import javax.net.ssl.TrustManager;
@@ -41,6 +48,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.commons.configuration2.Configuration;
 import org.identityconnectors.common.Version;
+import org.identityconnectors.framework.common.objects.SuggestedValues;
+import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
@@ -302,6 +311,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 localConnectorTypes.add(connectorType);
             } catch (SchemaException e) {
                 LOGGER.error("Schema error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
+            } catch (EncryptionException e) {
+                LOGGER.error("Encryption error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return localConnectorTypes;
@@ -317,6 +328,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                 connectorTypes.add(connectorType);
             } catch (SchemaException e) {
                 LOGGER.error("Schema error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
+            } catch (EncryptionException e) {
+                LOGGER.error("Encryption error while initializing ICF connector {}: {}", getConnectorDesc(connectorInfo), e.getMessage(), e);
             }
         }
         return connectorTypes;
@@ -333,9 +346,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      *
      * @param hostType host that this connector runs on or null for local connectors
      */
-    private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
+    private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType)
+            throws SchemaException, EncryptionException {
         ConnectorType connectorType = new ConnectorType();
         ConnectorKey key = cinfo.getConnectorKey();
+
+        addDiscoveryTimestamp(connectorType);
 
         var displayName = cinfo.getConnectorDisplayName();
         displayName = displayName == null ? key.getConnectorName() : displayName;
@@ -363,6 +379,25 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         UcfUtil.setConnectorSchema(connectorType, connectorSchema);
 
         return connectorType;
+    }
+
+    /**
+     * Add discovery timestamp to ICF connector.
+     */
+    private void addDiscoveryTimestamp(ConnectorType connectorType) throws EncryptionException {
+
+        long timestamp = Instant.now().toEpochMilli();
+        if (connectorType.getMetadata() != null
+                && connectorType.getMetadata().getCreateTimestamp() != null) {
+            timestamp = connectorType.getMetadata().getCreateTimestamp()
+                    .toGregorianCalendar().getTimeInMillis();
+        }
+
+        connectorType.discoveryTimestamp(
+                new ProtectedStringType()
+                        .clearValue(String.valueOf(timestamp)));
+
+        protector.encrypt(connectorType.getDiscoveryTimestamp());
     }
 
     /**
@@ -450,6 +485,21 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             }
             propertyDefinition.setDisplayOrder(displayOrder);
             displayOrder++;
+
+            SuggestedValues allowedValues = icfProperty.getAllowedValues();
+            if (allowedValues != null && !allowedValues.getValues().isEmpty()) {
+                @SuppressWarnings("rawtypes")
+                Collection displayableValues = allowedValues.getValues().stream()
+                        .map(v -> new DisplayableValueImpl<>(v, v != null ? v.toString() : null, null))
+                        .collect(Collectors.toList());
+                if (ValueListOpenness.OPEN.equals(allowedValues.getOpenness())) {
+                    //noinspection unchecked
+                    propertyDefinition.setSuggestedValues(displayableValues);
+                } else {
+                    //noinspection unchecked
+                    propertyDefinition.setAllowedValues(displayableValues);
+                }
+            }
         }
 
         // Create common ICF configuration property containers as a references to a static schema

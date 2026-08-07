@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public interface SerializableBiFunction<T, U, R> extends BiFunction<T, U, R>, Serializable {
 }

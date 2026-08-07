@@ -54,7 +54,7 @@ class SynchronizationContextCreator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         ShadowType shadow = change.getShadowedResourceObject().asObjectable();
         ResourceType updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
@@ -124,7 +124,7 @@ class SynchronizationContextCreator {
      */
     private @NotNull ResourceType checkNotInMaintenance(ResourceType resource, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!SynchronizationContext.isSkipMaintenanceCheck()) {
             resource = beans.provisioningService
                     .getObject(ResourceType.class, resource.getOid(), readOnly(), task, result)
@@ -139,7 +139,7 @@ class SynchronizationContextCreator {
             @NotNull ShadowType shadow,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(processingContext.getResource());
         if (ShadowUtil.isClassified(shadow)) {
             if (isClassificationInSorterResult(sorterResult)) {
@@ -184,7 +184,7 @@ class SynchronizationContextCreator {
             @Nullable ResourceObjectDefinition definition,
             @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (shadow.getTag() == null) {
             if (definition != null) {
                 return beans.provisioningService.generateShadowTag(

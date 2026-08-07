@@ -9,14 +9,9 @@ package com.evolveum.midpoint.web.component.input;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-
-import java.util.List;
 
 public class ResourceObjectTypeChoiceRenderer implements IChoiceRenderer<ResourceObjectTypeIdentification> {
 

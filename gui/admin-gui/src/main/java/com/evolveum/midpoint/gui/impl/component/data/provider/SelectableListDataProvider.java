@@ -76,7 +76,6 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
     }
 
     //TODO clenaup, coppied from MultivalueCOntainerListDataProvider
-    @SuppressWarnings("unchecked")
     protected <V extends Comparable<V>> void sort(List<T> list) {
         if (getSort() == null) {
             return;

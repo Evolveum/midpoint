@@ -20,7 +20,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.cases.api.events.WorkItemAllocationChangeOperationInfo;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemTimedActionsType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +32,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.*;
+import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.AllocationChangeNew;
+import static com.evolveum.midpoint.cases.api.events.FutureNotificationEvent.ItemCreation;
 
 /**
  * Opens a default unnumbered stage (if stages are not used), or a regular - i.e. numbered - one.

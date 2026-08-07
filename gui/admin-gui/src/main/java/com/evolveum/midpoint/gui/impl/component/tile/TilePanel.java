@@ -92,13 +92,13 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
     protected void appendTileDefaultCssClass() {
         add(AttributeAppender.append("class", () -> horizontal ?
                 "tile-panel d-flex flex-column align-items-center rounded p-3 justify-content-center" :
-                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-left"));
+                "tile-panel d-flex flex-row vertical align-items-center rounded justify-content-start"));
     }
 
     protected void appendTitleCssClass(@NotNull Label title) {
         title.add(AttributeAppender.append("class", () ->  horizontal ?
                 "mt-4 text-center" :
-                "ml-2"));
+                "ms-2"));
     }
 
     protected VisibleEnableBehaviour getDescriptionBehaviour() {

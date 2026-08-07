@@ -1,0 +1,97 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+  HR source reconciliation. Composite:
+   - child "simulate": reconciliation in preview mode; suspend policy on max deleted users
+   - child "execute": reconciliation in full mode; suspend policy on max deleted users
+  The source resource deletes the focus (user) when its account is removed (deleted -> deleteFocus).
+-->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="e4f00000-0000-0000-0000-000000000001">
+    <name>hr-reconciliation</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>simulate</identifier>
+                <work>
+                    <reconciliation>
+                        <resourceObjects>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000001"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </reconciliation>
+                </work>
+                <execution>
+                    <mode>preview</mode>
+                </execution>
+                <reporting>
+                    <simulationResult>
+                        <enabled>false</enabled>
+                    </simulationResult>
+                </reporting>
+                <policies>
+                    <policy>
+                        <name>max-deleted</name>
+                        <policyConstraints>
+                            <modification>
+                                <operation>delete</operation>
+                            </modification>
+                        </policyConstraints>
+                        <policyThreshold>
+                            <lowWaterMark>
+                                <count>5</count>
+                            </lowWaterMark>
+                        </policyThreshold>
+                        <policyActions>
+                            <notification/>
+                            <suspendTask/>
+                        </policyActions>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>execute</identifier>
+                <work>
+                    <reconciliation>
+                        <resourceObjects>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000001"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </reconciliation>
+                </work>
+                <execution>
+                    <mode>full</mode>
+                </execution>
+                <policies>
+                    <policy>
+                        <name>max-deleted-execute</name>
+                        <policyConstraints>
+                            <modification>
+                                <operation>delete</operation>
+                            </modification>
+                        </policyConstraints>
+                        <policyThreshold>
+                            <lowWaterMark>
+                                <count>5</count>
+                            </lowWaterMark>
+                        </policyThreshold>
+                        <policyActions>
+                            <notification/>
+                            <suspendTask/>
+                        </policyActions>
+                    </policy>
+                </policies>
+            </activity>
+        </composition>
+    </activity>
+</task>

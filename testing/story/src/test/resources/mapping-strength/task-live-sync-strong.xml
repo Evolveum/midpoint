@@ -1,0 +1,16 @@
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="728b230b-a923-4459-b07e-e7622ac6b8b0">
+    <name>task-live-sync-strong</name>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <liveSynchronization>
+                <resourceObjects>
+                    <resourceRef oid="a9e934ec-1b49-4cd0-89da-d7f5e55858a4"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </liveSynchronization>
+        </work>
+    </activity>
+</task>

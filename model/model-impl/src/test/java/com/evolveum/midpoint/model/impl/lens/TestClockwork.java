@@ -311,8 +311,7 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private void assertJackAccountShadow(LensContext<UserType> context)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
         LensProjectionContext accContext = accountContexts.iterator().next();
@@ -341,9 +340,7 @@ public class TestClockwork extends AbstractLensTest {
     }
 
     private void unassignJackAccount()
-            throws SchemaException, ObjectNotFoundException, IOException, PolicyViolationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            throws CommonException, IOException {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
         LensContext<UserType> context = createUserLensContext();
         OperationResult result = task.getResult();

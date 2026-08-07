@@ -10,19 +10,19 @@
     <form wicket:id="mainForm">
         <div class="row">
             <div class="col-12">
-                <div class="d-flex flex-wrap mx-3 my-2 form-inline">
-                    <div class="mr-2 form-group">
-                        <label for="objectType" class="mr-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
+                <div class="d-flex flex-wrap mx-3 my-2 d-flex align-items-center gap-2">
+                    <div class="me-2 mb-3">
+                        <label for="objectType" class="me-2 col-form-label"><wicket:message key="PageRepositoryQuery.objectType"/></label>
                         <div id="objectType" wicket:id="objectType"/>
                     </div>
-                    <div class="form-group row">
+                    <div class="mb-3 row">
                         <div class="col" wicket:id="viewButtonPanel"/>
                     </div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="card">
+                <div class="card shadow-sm mb-3">
                     <div class="card-header">
                         <h3 class="card-title" >XML Query</h3>
                     </div>
@@ -34,13 +34,13 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="mb-3">
                     <a class="btn btn-primary" wicket:id="convertQuery"/>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="card">
+                <div class="card shadow-sm mb-3">
                     <div class="card-header">
                         <h3 class="card-title" >Converted midPoint Query</h3>
                     </div>

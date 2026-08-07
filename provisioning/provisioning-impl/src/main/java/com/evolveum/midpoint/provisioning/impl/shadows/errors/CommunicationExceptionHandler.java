@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.shadows.*;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowDeleteOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +24,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Component
 class CommunicationExceptionHandler extends ErrorHandler {

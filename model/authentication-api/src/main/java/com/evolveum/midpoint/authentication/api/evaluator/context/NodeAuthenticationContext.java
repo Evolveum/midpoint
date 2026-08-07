@@ -6,12 +6,6 @@
 
 package com.evolveum.midpoint.authentication.api.evaluator.context;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import java.util.List;
-
 public class NodeAuthenticationContext extends AbstractAuthenticationContext {
 
     private String enteredPassword;

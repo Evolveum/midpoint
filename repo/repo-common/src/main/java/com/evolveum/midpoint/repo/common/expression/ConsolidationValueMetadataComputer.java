@@ -27,7 +27,7 @@ public interface ConsolidationValueMetadataComputer {
             @NotNull List<ValueMetadataType> existingValues,
             @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     static ConsolidationValueMetadataComputer named(Supplier<String> nameSupplier, ConsolidationValueMetadataComputer computer) {
         return new ConsolidationValueMetadataComputer() {
@@ -36,7 +36,7 @@ public interface ConsolidationValueMetadataComputer {
                     @NotNull List<ValueMetadataType> existingValues,
                     @NotNull OperationResult result)
                     throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-                    ConfigurationException, ExpressionEvaluationException {
+                    ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
                 return computer.compute(nonNegativeValues, existingValues, result);
             }
 

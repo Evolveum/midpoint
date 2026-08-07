@@ -74,7 +74,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new Correlation<>(correlationContext.asShadowCtx())
                 .correlate(result);
     }
@@ -85,7 +85,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new Correlation<>(correlationContext.asShadowCtx())
                 .checkCandidateOwner(candidateOwner, result);
     }
@@ -114,7 +114,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         CorrelationResult correlate(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             ObjectSet<F> candidates = findCandidatesUsingConditionalFilters(result);
             ObjectSet<F> confirmedCandidates = confirmCandidates(candidates, result);
             return createResult(confirmedCandidates, null, task, result);
@@ -122,7 +122,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         @NotNull Confidence checkCandidateOwner(F candidateOwner, @NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             boolean matches =
                     checkCandidateUsingConditionalFilters(candidateOwner, result)
                             && !confirmCandidates(ObjectSet.of(candidateOwner), result).isEmpty();
@@ -135,7 +135,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         private @NotNull ObjectSet<F> findCandidatesUsingConditionalFilters(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             List<ConditionalSearchFilterType> conditionalFilters = getConditionalFilters();
 
@@ -158,7 +158,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         private boolean checkCandidateUsingConditionalFilters(F candidateOwner, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             List<ConditionalSearchFilterType> conditionalFilters = getConditionalFilters();
 
@@ -186,7 +186,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         private boolean isConditionSatisfied(ConditionalSearchFilterType conditionalFilter, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
             ExpressionType condition = conditionalFilter.getCondition();
             if (condition == null) {
                 LOGGER.trace("No filter condition specified, will use the filter automatically");
@@ -208,7 +208,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
         @NotNull private List<F> findCandidatesUsingFilter(
                 SearchFilterType conditionalFilter, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
             ObjectQuery query = getQuery(conditionalFilter, result);
             // TODO use read-only option in the future (but is it OK to start a clockwork with immutable object?)
             //noinspection unchecked
@@ -220,7 +220,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
         private boolean checkCandidateUsingFilter(
                 SearchFilterType conditionalFilter, F candidateOwner, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
             ObjectQuery query = getQuery(conditionalFilter, result);
             return query.getFilter().match(candidateOwner.asPrismContainerValue(), beans.matchingRuleRegistry);
         }
@@ -228,7 +228,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
         /** Here we add the archetype-related clause (if needed). */
         private @NotNull ObjectQuery getQuery(SearchFilterType conditionalFilter, OperationResult result)
                 throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-                CommunicationException, SecurityViolationException {
+                CommunicationException, SecurityViolationException, SubscriptionComplianceException {
             if (!conditionalFilter.containsFilterClause()) {
                 throw new ConfigurationException("No filter clause in: " + contextDescription);
             }
@@ -240,7 +240,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 ObjectQuery evaluatedQuery = evaluateQueryExpressions(rawQuery, result);
                 query = addArchetypeClauseIfNeeded(evaluatedQuery);
             } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                    ConfigurationException | SecurityViolationException e) {
+                     ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                 // Logging here to provide information about failing query
                 LoggingUtils.logException(LOGGER, "Couldn't convert correlation query in {}\n{}.", e,
                         contextDescription, SchemaDebugUtil.prettyPrint(conditionalFilter));
@@ -255,7 +255,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         private ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             if (origQuery.getFilter() == null) {
                 LOGGER.trace("No filter provided, skipping updating filter (strange but may happen)");
@@ -288,7 +288,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         private ObjectSet<F> confirmCandidates(ObjectSet<F> candidates, OperationResult result)
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
             if (configurationBean.getConfirmation() == null) {
                 LOGGER.trace("No confirmation expression");
                 return candidates;
@@ -323,7 +323,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
         private boolean evaluateConfirmationExpression(F candidate, OperationResult result)
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
             String shortDesc = "confirmation expression for " + contextDescription;
 
             PrismPropertyDefinition<Boolean> outputDefinition =

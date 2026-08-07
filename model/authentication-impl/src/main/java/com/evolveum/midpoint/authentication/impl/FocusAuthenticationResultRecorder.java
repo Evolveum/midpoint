@@ -24,7 +24,7 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,6 +59,8 @@ public class FocusAuthenticationResultRecorder {
 
         boolean successLoginAfterFail = false;
         if (failedLogins != null && failedLogins > 0) {
+            LOGGER.debug("Resetting {} failed module attempt(s) for user '{}' after successful authentication (sequence={}, module={})",
+                    failedLogins, principal.getUsername(), connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
             authAttemptData.setFailedAttempts(0);
             successLoginAfterFail = true;
         }
@@ -76,6 +78,7 @@ public class FocusAuthenticationResultRecorder {
         ActivationType activation = principal.getFocus().getActivation();
         if (activation != null) {
             if (LockoutStatusType.LOCKED.equals(activation.getLockoutStatus())) {
+                LOGGER.debug("Clearing lockout status for user '{}' after successful authentication", principal.getUsername());
                 successLoginAfterFail = true;
             }
             activation.setLockoutStatus(LockoutStatusType.NORMAL);
@@ -91,6 +94,7 @@ public class FocusAuthenticationResultRecorder {
         FocusType focusAfter = principal.getFocus();
 
         AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, principal);
+        LOGGER.debug("recordModuleAuthenticationAttemptFailure: authAttemptData={}", authAttemptData);
 
         Integer failedLogins = authAttemptData.getFailedAttempts();
         LoginEventType lastFailedLogin = authAttemptData.getLastFailedAuthentication();
@@ -98,6 +102,7 @@ public class FocusAuthenticationResultRecorder {
         if (lastFailedLogin != null) {
             lastFailedLoginTs = lastFailedLogin.getTimestamp();
         }
+        LOGGER.debug("recordModuleAuthenticationAttemptFailure: failedLogins={}, lastFailedLoginTs={}", failedLogins, lastFailedLoginTs);
 
         if (credentialsPolicy != null) {
             Duration lockoutFailedAttemptsDuration = credentialsPolicy.getLockoutFailedAttemptsDuration();
@@ -116,6 +121,8 @@ public class FocusAuthenticationResultRecorder {
             failedLogins++;
         }
 
+        LOGGER.debug("Failed module attempt for user '{}': count={} (sequence={}, module={})",
+                principal.getUsername(), failedLogins, connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
         authAttemptData.setFailedAttempts(failedLogins);
 
         LoginEventType event = new LoginEventType();
@@ -136,6 +143,8 @@ public class FocusAuthenticationResultRecorder {
             if (lockoutDuration != null) {
                 lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
             }
+            LOGGER.debug("User '{}' locked out after {} failed attempt(s), expiration={}",
+                    principal.getUsername(), failedLogins, lockoutExpirationTs);
             activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
             authAttemptData.setLockoutExpirationTimestamp(lockoutExpirationTs);
             authAttemptData.setLockoutTimestamp(event.getTimestamp());
@@ -152,7 +161,6 @@ public class FocusAuthenticationResultRecorder {
 
     public void recordSequenceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
         if (principal == null) {
-            //TODO logging?
             return;
         }
         AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
@@ -226,6 +234,8 @@ public class FocusAuthenticationResultRecorder {
             failedLogins++;
         }
 
+        LOGGER.debug("Failed sequence attempt for user '{}': count={} (sequence={})",
+                principal.getUsername(), failedLogins, connEnv.getSequenceIdentifier());
         behavior.setFailedLogins(failedLogins);
 
         LoginEventType event = new LoginEventType();
@@ -246,6 +256,8 @@ public class FocusAuthenticationResultRecorder {
             if (lockoutDuration != null) {
                 lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
             }
+            LOGGER.debug("User '{}' locked out after {} failed sequence attempt(s), expiration={}",
+                    principal.getUsername(), failedLogins, lockoutExpirationTs);
             activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
             focusAfter.getTrigger().add(
                     new TriggerType()

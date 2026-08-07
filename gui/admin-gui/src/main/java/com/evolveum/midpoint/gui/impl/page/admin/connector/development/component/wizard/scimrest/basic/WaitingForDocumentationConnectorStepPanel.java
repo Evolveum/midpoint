@@ -49,7 +49,7 @@ public class WaitingForDocumentationConnectorStepPanel extends WaitingConnectorS
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverDocumentation(task, result);
     }
 

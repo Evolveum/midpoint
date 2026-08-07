@@ -52,7 +52,7 @@ public class WaitingBasicInfoConnectorStepPanel extends WaitingConnectorStepPane
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverBasicInformation(task, result);
     }
 

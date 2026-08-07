@@ -2,7 +2,6 @@ package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
@@ -12,24 +11,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
-import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
-import org.apache.hc.core5.http.ContentType;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RestBackend extends ConnectorDevelopmentBackend {
 
-    private static final long SLEEP_TIME = 5 * 1000L;
     protected static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
-
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentBackend.class);
     private static final int MAX_SCRAPE_ITERATIONS = 2;
@@ -39,12 +31,12 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevApplicationInfoType discoverBasicInformation() {
-        try(var job = client().postJob("digester/{sessionId}/metadata")) {
+    public ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache) {
+        try(var job = client().postJob("digester/{sessionId}/metadata", null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ConnDevApplicationInfoType();
 
-                var jsonInfo = o.get("infoMetadata");
+                var jsonInfo = o.path("infoMetadata");
                 if (jsonInfo.isEmpty()) {
                     // Should we re
                     return ret;
@@ -55,17 +47,58 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 if (jsonInfo.get("applicationVersion") != null) {
                     ret.version(jsonInfo.get("applicationVersion").asText());
                 }
-                // FIXME for proper detection
-                ret.integrationType(ConnDevIntegrationType.REST);
-                if (jsonInfo.get("baseApiEndpoint") != null) {
-                    ret.baseApiEndpoint(jsonInfo.get("baseApiEndpoint").get(0).get("uri").asText());
+                if (jsonInfo.get("apiVersion") != null) {
+                    ret.apiVersion(jsonInfo.get("apiVersion").asText());
+                }
+                ret.integrationType(integrationTypeOf(jsonInfo));
+                var baseApiEndpoint = baseApiEndpointOf(jsonInfo);
+                if (baseApiEndpoint != null) {
+                    ret.baseApiEndpoint(baseApiEndpoint);
                 }
                 // FIXME: Add dynamic
                 return ret;
             });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover basic application information", e);
         }
+    }
+
+    /**
+     * The digester reports the supported API styles in {@code apiType} (e.g. {@code ["rest","scim"]}).
+     * When an application supports both, REST is preferred (the historical default); pure-SCIM
+     * applications get SCIM. Missing/unknown values keep the REST default.
+     */
+    private static ConnDevIntegrationType integrationTypeOf(JsonNode jsonInfo) {
+        var apiType = jsonInfo.path("apiType");
+        if (apiType.isArray()) {
+            for (var type : apiType) {
+                if ("rest".equalsIgnoreCase(type.asText())) {
+                    return ConnDevIntegrationType.REST;
+                }
+            }
+            for (var type : apiType) {
+                if ("scim".equalsIgnoreCase(type.asText())) {
+                    return ConnDevIntegrationType.SCIM;
+                }
+            }
+        }
+        return ConnDevIntegrationType.REST;
+    }
+
+    /**
+     * The base API endpoint moved from the top level of {@code infoMetadata} into the per-style
+     * availability blocks ({@code restAvailability}/{@code scimAvailability}); the old top-level
+     * location is still read as a fallback for older digesters.
+     */
+    private static String baseApiEndpointOf(JsonNode jsonInfo) {
+        for (var container : List.of(
+                jsonInfo.path("restAvailability"), jsonInfo.path("scimAvailability"), jsonInfo)) {
+            var uri = container.path("baseApiEndpoint").path(0).path("uri");
+            if (uri.isTextual() && !uri.asText().isBlank()) {
+                return uri.asText();
+            }
+        }
+        return null;
     }
 
     private ProcessedDocumentation selectBestDocumentation(List<ProcessedDocumentation> processedDocumentation) {
@@ -75,12 +108,15 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 return doc;
             }
         }
+        if (processedDocumentation.isEmpty()) {
+            throw new SystemException("No processed documentation is available to select from");
+        }
         return processedDocumentation.get(0);
     }
 
     @Override
-    public List<ConnDevAuthInfoType> discoverAuthorizationInformation() {
-        try(var job = client().postJob("digester/{sessionId}/auth")) {
+    public List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache) {
+        try(var job = client().postJob("digester/{sessionId}/auth", null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ConnDevAuthInfoType>();
                 for (var jsonAuth : json.get("auth")) {
@@ -88,18 +124,19 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     if (auth != null) {
                         auth.setName(jsonAuth.get("name").asText());
                         auth.quirks(jsonAuth.get("quirks").asText());
+                        auth.setRecommended(true);
                         ret.add(auth);
                     }
                 }
                 return ret;
             });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover authorization information", e);
         }
     }
 
     @Override
-    public List<ConnDevDocumentationSourceType> discoverDocumentation() {
+    public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
 
         ObjectNode request = JSON_FACTORY.objectNode();
         request.set("applicationName", JSON_FACTORY.textNode(
@@ -107,7 +144,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         request.set("applicationVersion", JSON_FACTORY.textNode(
                 Objects.requireNonNullElse(developmentObject().getApplication().getVersion(), "latest")));
         request.set("llmGeneratedSearchQuery", JSON_FACTORY.booleanNode(false));
-        try(var jobSpec = client().postJob("discovery/{sessionId}/discovery", request)) {
+        try(var jobSpec = client().postJob("discovery/{sessionId}/discovery", request, null, skipCache)) {
             return jobSpec.waitAndProcess(SLEEP_TIME, canRun(), result -> {
                 var results = jobSpec.getResult().get("candidateLinksEnriched");
 
@@ -132,113 +169,14 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new SystemException("Couldn't discover candidate links", e);
-        }
-    }
-
-    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input) {
-        var artifactSpec = input.getArtifact();
-        var ret = artifactSpec.clone();
-        if (artifactSpec.getObjectClass() != null) {
-            return generateObjectClassArtifact(input);
-        }
-
-        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
-        return switch (classification) {
-            case AUTHENTICATION_CUSTOMIZATION -> generateAuthorizationScript(input, classification);
-            case TEST_CONNECTION_DEFINITION -> ret.content("""
-                        test {
-                            // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
-                            // how to write test connection part of the script.
-                            // Usually it is only necessary to specify endpoint here.
-                            endpoint("/my_preferences")
-                        }
-                        """);
-            default -> throw new IllegalStateException("Unexpected value: " + artifactSpec.getIntent());
-        };
-    }
-
-    private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification) {
-        if (hasAuthenticationQuirks()) {
-            // FIXME: Here should be LLM call
-            return classification.create().content("""
-                    authentication {
-                        // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
-                        // how to write authentication part of the script.
-                    }
-                    """);
-        }
-        return null;
-    }
-
-    private boolean hasAuthenticationQuirks() {
-        return developmentObject().getConnector().getAuth().stream()
-                .anyMatch(auth -> auth.getQuirks() != null && !auth.getQuirks().isBlank());
-    }
-
-    @Override
-    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input) {
-        var artifactSpec = input.getArtifact();
-        var objectClass = artifactSpec.getObjectClass();
-        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
-        var content = switch (classification) {
-            case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
-                    "native-schema", "native schema script");
-            case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
-                    "connid", "ConnID mapping script");
-            case SEARCH_ALL_DEFINITION -> generateSearchAll(artifactSpec, input.getEndpoint());
-            case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search by ID script");
-            case SEARCH_FILTER_DEFINITION -> generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search filter script");
-            case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script");
-            case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script");
-            case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script");
-            case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation());
-            default -> throw new IllegalStateException("Unexpected script type: " + classification);
-        };
-        content = content.replace("${objectClass}", objectClass);
-        return artifactSpec.content(content);
-
-    }
-
-    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation) {
-        // FIXME: Upload new relations to server
-        try {
-            client().synchronizationClient().put("digester/{sessionId}/relations", () -> {
-                var relationJsons = ConnDevJsonMapper.mapRelationsToJson(developmentObject().getConnector().getRelation());
-                return EntityBuilder.create()
-                        .setContentType(ContentType.APPLICATION_JSON)
-                        .setText(relationJsons.toPrettyString()).build();
-            });
-        } catch (Exception e) {
-            throw new SystemException("Couldn't generate relation for " + artifactSpec + ". Unable to synchronize relationships", e);
-        }
-
-        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass())) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
-        } catch (Exception e) {
-            throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
-        }
-
-    }
-
-
-
-    private String generateSearchAll(ConnDevArtifactType artifactSpec, List<ConnDevHttpEndpointType> endpoints) {
-        // TODO: In future when endpoints are editable ensure synchronization of endpoints
-        return generateObjectClassScript(artifactSpec, "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()), "search script");
-    }
-
-    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription) {
-        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix)) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
-        } catch (Exception e) {
-            throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
         }
     }
 
     @Override
     protected void restoreSession(ServiceClient.RestorationClient client) throws IOException {
+        restoreMetadata(client);
         ensureDocumentationIsUploaded(client);
         restoreObjectClasses(client);
         restoreRelations(client);
@@ -247,37 +185,31 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         restoreCodegenArtifacts(client);
     }
 
-    private String sessionId() {
-        return developmentObject().getOid();
-    }
-
-    protected ServiceClient client() {
-        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
-    }
-
-
     @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated) {
-        try(var job = client().postJob("digester/{sessionId}/classes")) {
+    public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/connectivity-endpoint", null, skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
-                var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
-                var jsonClasses = o.get("objectClasses");
-                for (var jsonClass : jsonClasses) {
-                    var objClass = ConnDevJsonMapper.mapObjectClassFromJson(jsonClass);
-                    if (objClass.isRelevant() || includeUnrelated) {
-                        ret.add(objClass);
+                var ret = new ArrayList<ConnDevHttpEndpointType>();
+                var jsonEndpoints = o.get("endpoints");
+                for (var jsonEndpoint : jsonEndpoints) {
+                    ret.add(ConnDevJsonMapper.mapEndpointFromJson(jsonEndpoint));
+                }
+                if (ret.isEmpty()) {
+                    var jsonErrors = o.get("errors");
+                    if (jsonErrors != null && !jsonErrors.isEmpty()) {
+                        throw new SystemException("Connectivity endpoint discovery failed with errors: " + jsonErrors);
                     }
                 }
                 return ret;
             });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover connectivity endpoints", e);
         }
     }
 
     @Override
-    public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass) {
-        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints")) {
+    public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
+        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/endpoints", apiType(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevHttpEndpointType>();
                 var jsonClasses = o.get("endpoints");
@@ -286,36 +218,22 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                 }
                 return ret;
             });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover endpoints for object class " + objectClass, e);
         }
     }
 
 
     @Override
-    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass) {
-        try(var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes")) {
-            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
-                var ret = new ArrayList<ConnDevAttributeInfoType>();
-                var jsonAttributes = (ObjectNode) o.get("attributes");
-                for (var entry : jsonAttributes.properties()) {
-                    ret.add(ConnDevJsonMapper.mapAttributeFromJson(entry.getKey(), entry.getValue()));
-                }
-                return ret;
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void processDocumentation() throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    public void processDocumentation(boolean skipCache) throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         ConnDevDocumentationSourceType openApi = null;
         var byScrapper = developmentObject().getDocumentationSource();
 
         var documentations = new ArrayList<ProcessedDocumentation>();
         if (!byScrapper.isEmpty()) {
-            downloadUsingScrapper(byScrapper, documentations);
+            downloadUsingScrapper(byScrapper, documentations, skipCache);
         }
 
         if (!documentations.isEmpty()) {
@@ -327,9 +245,9 @@ public class RestBackend extends ConnectorDevelopmentBackend {
         }
     }
 
-    private void downloadUsingScrapper(Collection<ConnDevDocumentationSourceType> byScrapper, Collection<ProcessedDocumentation> documentations) {
+    private void downloadUsingScrapper(Collection<ConnDevDocumentationSourceType> byScrapper, Collection<ProcessedDocumentation> documentations, boolean skipCache) {
         var request = scrapperRequest(byScrapper);
-        try(var job = client().postJob("scrape/{sessionId}/scrape", request)) {
+        try(var job = client().postJob("scrape/{sessionId}/scrape", request, null, skipCache)) {
             var scrapped = job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                 var ret = new ArrayList<ProcessedDocumentation>();
 
@@ -347,7 +265,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             });
             documentations.addAll(scrapped);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't scrape documentation", e);
         }
 
     }
@@ -391,7 +309,7 @@ public class RestBackend extends ConnectorDevelopmentBackend {
             beans.downloadFile(url, documentation.asOutputStream());
             return documentation;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't download documentation from " + openApi.getUri(), e);
         }
 
     }
@@ -408,9 +326,9 @@ public class RestBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered) {
+    public List<ConnDevRelationInfoType> discoverRelationsUsingObjectClasses(List<ConnDevBasicObjectClassInfoType> discovered, boolean skipCache) {
         try {
-            try(var job = client().postJob("digester/{sessionId}/relations")) {
+            try(var job = client().postJob("digester/{sessionId}/relations", null, skipCache)) {
                 return job.waitAndProcess(SLEEP_TIME, canRun(), json -> {
                     var ret = new ArrayList<ConnDevRelationInfoType>();
                     var jsonRelations = json.get("relations");
@@ -423,8 +341,8 @@ public class RestBackend extends ConnectorDevelopmentBackend {
                     return ret;
                 });
             }
-        } catch (Exception e) {
-            throw new SystemException(e.getMessage(), e);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover relations between object classes", e);
         }
     }
 

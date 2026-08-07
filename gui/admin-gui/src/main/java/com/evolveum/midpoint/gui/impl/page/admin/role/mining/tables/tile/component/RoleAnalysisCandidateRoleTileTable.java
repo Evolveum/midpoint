@@ -162,12 +162,12 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<RoleAnalysisCa
 
             @Override
             protected String getTileCssClasses() {
-                return "col-4 pb-3 pl-2 pr-2";
+                return "col-4 pb-3 ps-2 pe-2";
             }
 
             @Override
             protected String getTileContainerCssClass() {
-                return "row justify-content-left ";
+                return "row justify-content-start ";
             }
 
             @Override

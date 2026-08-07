@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.model.api.util;
 
-import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.schema.util.DiagnosticContext;

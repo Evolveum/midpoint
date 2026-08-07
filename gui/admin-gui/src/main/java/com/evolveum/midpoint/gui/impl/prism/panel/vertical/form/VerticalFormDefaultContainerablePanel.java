@@ -73,9 +73,9 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         propertiesLabel.setOutputMarkupId(true);
         add(propertiesLabel);
 
-        PrismContainerValueWrapper<C> model = getModel().getObject();
-        if (!isShowEmptyButtonVisible()) {
-            model.setShowEmpty(true);
+        PrismContainerValueWrapper<C> modelObject = getModel().getObject();
+        if (modelObject != null && !isShowEmptyButtonVisible()) {
+            modelObject.setShowEmpty(true);
         }
 
         IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
@@ -235,7 +235,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     protected Component createShowEmptyButton(String id) {
         AjaxIconButton button = new AjaxIconButton(
                 ID_SHOW_EMPTY_BUTTON,
-                () -> "fas fa-eye mr-2 mt-1",
+                () -> "fas fa-eye me-2 mt-1",
                 () -> createShowEmptyButtonLabel().getObject()) {
 
             @Override

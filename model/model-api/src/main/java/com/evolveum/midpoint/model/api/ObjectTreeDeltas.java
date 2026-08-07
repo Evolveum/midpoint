@@ -17,7 +17,10 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionObjectDeltaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.jetbrains.annotations.Contract;
@@ -243,9 +246,9 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 
     private <T1 extends ObjectType> ObjectDelta<T1> mergeInCorrectOrder(ObjectDelta<T1> first, ObjectDelta<T1> second) throws SchemaException {
         ObjectDelta<T1> rv;
-        if (first == null) {
+        if (ObjectDelta.isEmpty(first)) {
             rv = second;
-        } else if (second == null) {
+        } else if (ObjectDelta.isEmpty(second)) {
             rv = first;
         } else if (second.isAdd() || first.isDelete()) {
             rv = second.clone();

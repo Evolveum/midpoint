@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathSet;
@@ -100,6 +102,12 @@ class AttributeMappingCandidateSet {
      */
     synchronized void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
+
+        // Deduplicate against existing mappings by target path only
+        if (excludedTargetPaths.contains(mappingContext.targetPath())) {
+            return;
+        }
+
         candidates.add(new Candidate(mappingContext, suggestion));
     }
 

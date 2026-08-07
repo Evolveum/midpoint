@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerWithFullObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecution;
 

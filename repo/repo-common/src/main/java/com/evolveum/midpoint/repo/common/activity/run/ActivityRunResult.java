@@ -11,7 +11,11 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import com.evolveum.midpoint.repo.common.activity.AbortingInformationAware;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedAbortException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyEnforcementException;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -103,9 +107,22 @@ public class ActivityRunResult implements ShortDumpable {
     static ActivityRunResult fromException(Throwable throwable) {
         if (throwable instanceof ActivityRunException aee) {
             return fromException(aee.getOpResultStatus(), aee.getRunResultStatus(), aee.getCause());
-        } else {
-            return fromException(FATAL_ERROR, computeRunResultStatus(throwable), throwable);
+        } else if (throwable instanceof ActivityPolicyBasedAbortException abortException) {
+            return fromException(FATAL_ERROR, ABORTED, abortException);
+        } else if (throwable instanceof ActivityPolicyBasedHaltException haltException) {
+            return fromException(FATAL_ERROR, HALTING_ERROR, haltException);
         }
+
+        // A policy enforcement requested via ActivityPolicyProcessorHelper (e.g. from within a script)
+        // comes wrapped by the intermediate layers. The carrier is a dedicated type thrown only by the helper,
+        // so it is the only exception we look up in the cause chain.
+        ActivityPolicyEnforcementException enforcementException =
+                ExceptionUtil.findCause(throwable, ActivityPolicyEnforcementException.class);
+        if (enforcementException != null) {
+            return fromException(enforcementException.getPolicyException());
+        }
+
+        return fromException(FATAL_ERROR, computeRunResultStatus(throwable), throwable);
     }
 
     private static @NotNull ActivityRunResultStatus computeRunResultStatus(Throwable throwable) {

@@ -45,6 +45,7 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
         <phase>execution</phase>
         <item>c:fullName</item>
+        <item>c:displayName</item>
         <item>c:additionalName</item>
         <item>c:description</item>
         <item>c:organization</item> <!-- Not in request autz -->

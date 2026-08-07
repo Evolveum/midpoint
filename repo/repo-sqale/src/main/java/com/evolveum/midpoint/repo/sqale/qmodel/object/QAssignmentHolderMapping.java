@@ -6,30 +6,17 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.object;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_FOCUS_IDENTITY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.*;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocus;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.MFocusIdentity;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentity;
-import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusIdentityMapping;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType;
-
-import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;

@@ -10,8 +10,6 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
-import com.evolveum.midpoint.util.LocalizableMessage;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -65,7 +63,12 @@ public class SimulationDetailsPanel extends BasePanel<OperationResult> {
         icon.add(AttributeModifier.replace("class", resolveIconCss(result)));
         box.add(icon);
 
-        box.add(new Label(ID_MESSAGE, Model.of(resolveMessage(result))));
+
+        String message = resolveMessage(result);
+        Label messageLabel = new Label(ID_MESSAGE, Model.of(message));
+        messageLabel.add(AttributeModifier.replace("title", message));
+        messageLabel.add(AttributeModifier.replace("style", "max-width: 280px"));
+        box.add(messageLabel);
 
         box.add(new AjaxLink<Void>(ID_LINK) {
             @Override
@@ -92,9 +95,9 @@ public class SimulationDetailsPanel extends BasePanel<OperationResult> {
         OperationResultStatus status = result.getStatus();
         if (status == OperationResultStatus.WARNING
                 || status == OperationResultStatus.NOT_APPLICABLE) {
-            return "alert warning-light-alert d-flex align-items-center gap-3 mb-0";
+            return "alert warning-light-alert d-inline-flex align-items-center gap-2 mb-0";
         }
-        return "alert danger-light-alert d-flex align-items-center gap-3 mb-0";
+        return "alert danger-light-alert d-inline-flex align-items-center gap-2 mb-0";
     }
 
     private @NotNull String resolveIconCss(@NotNull OperationResult result) {
@@ -108,25 +111,15 @@ public class SimulationDetailsPanel extends BasePanel<OperationResult> {
 
     private String resolveMessage(@NotNull OperationResult result) {
         if (result.getUserFriendlyMessage() != null) {
-            LocalizableMessage userFriendlyMessage = result.getUserFriendlyMessage();
-            return LocalizationUtil.translateMessage(userFriendlyMessage);
-        }
-
-        if (result.getMessage() != null) {
+            return LocalizationUtil.translateMessage(result.getUserFriendlyMessage());
+        } else if (result.getMessage() != null) {
             return result.getMessage();
+        } else if (result.getStatus() == OperationResultStatus.NOT_APPLICABLE) {
+            return createStringResource("SimulationDetailsPanel.message.notApplicable").getString();
+        } else if (result.getStatus() == OperationResultStatus.WARNING) {
+            return createStringResource("SimulationDetailsPanel.message.warning").getString();
+        } else {
+            return createStringResource("SimulationDetailsPanel.message.error").getString();
         }
-
-        if (result.getStatus() == OperationResultStatus.NOT_APPLICABLE) {
-            return createStringResource(
-                    "SimulationDetailsPanel.message.notApplicable").getString();
-        }
-
-        if (result.getStatus() == OperationResultStatus.WARNING) {
-            return createStringResource(
-                    "SimulationDetailsPanel.message.warning").getString();
-        }
-
-        return createStringResource(
-                "SimulationDetailsPanel.message.error").getString();
     }
 }

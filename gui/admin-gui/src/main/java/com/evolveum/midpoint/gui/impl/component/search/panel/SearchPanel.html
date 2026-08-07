@@ -15,19 +15,19 @@
         <div wicket:id="searchButtonPanel" />
 
         <div class="btn-group btn-group-sm" wicket:id="saveSearchContainer">
-            <button type="button" class="btn btn-default" wicket:id="saveSearchButton">
+            <button type="button" class="btn btn-light border" wicket:id="saveSearchButton">
                 <i class="fa fa-save"></i>
             </button>
-            <button wicket:id="savedSearchMenu" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            <button wicket:id="savedSearchMenu" class="btn btn-light border dropdown-toggle" data-bs-toggle="dropdown">
                 <span class="caret"></span>
             </button>
-            <div class="dropdown-menu dropdown-menu-right" style="max-width: 500px;" role="menu" wicket:id="savedFilterMenu">
+            <div class="dropdown-menu dropdown-menu-end" style="max-width: 500px;" role="menu" wicket:id="savedFilterMenu">
                 <label class="px-2 w-100 text-center"><wicket:message key="SearchPanel.savedFilters" /></label>
                 <div class="dropdown-item d-flex justify-content-between align-items-center saved-filter-item" wicket:id="savedFilterItem">
                     <a wicket:id="savedFilterName" class="list-group-menu text-truncate d-inline-block">
                         <wicket:container wicket:id="savedFilterNameLabel" />
                     </a>
-                    <a type="button" class="btn btn-xs delete-filter" wicket:id="savedFilterRemoveButton">
+                    <a type="button" class="btn btn-sm delete-filter" wicket:id="savedFilterRemoveButton">
                         <i class="fa fa-trash text-danger"></i>
                     </a>
                 </div>
@@ -39,7 +39,7 @@
         <wicket:container wicket:id="items">
             <div wicket:id="item"/>
         </wicket:container>
-        <button wicket:id="more" class="btn btn-sm btn-default" wicket:message="title:SearchPanel.moreTitle">
+        <button wicket:id="more" class="btn btn-sm btn-light border" wicket:message="title:SearchPanel.moreTitle">
             <wicket:message key="SearchPanel.more"/>
             &nbsp;
             <span class="fa fa-caret-down"></span>
@@ -63,7 +63,7 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="oidSearchFragment">
-        <div wicket:id="oidItem" class="form-group" style="float:right; padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
+        <div wicket:id="oidItem" class="mb-3" style="float:right; padding-right: 5px; margin-bottom: 5px; text-align-last: left;"/>
     </wicket:fragment>
 
     <wicket:child/>

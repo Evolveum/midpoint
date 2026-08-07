@@ -41,6 +41,7 @@ public class ResourceTestPanel extends BasePanel<String> {
     private final XMLGregorianCalendar startTimestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     private State state = State.RUNNING;
     private AbstractAjaxTimerBehavior timerBehavior;
+    private OperationResult lastFailedResult;
 
     private enum State {
         RUNNING,
@@ -87,13 +88,12 @@ public class ResourceTestPanel extends BasePanel<String> {
                 try {
                     boolean failed;
                     Task task = getPageBase().createSimpleTask("testResource");
+                    customizeTask(task);
                     OperationResult result = task.getResult();
                     try {
                         getPageBase().getModelService().testResource(getModelObject(), task, result);
                     } catch (Throwable t) {
-                        state = State.FAILED;
-                        stop(target);
-                        return;
+                        result.recordFatalError(t);
                     }
 
                     result.computeStatus();
@@ -110,10 +110,12 @@ public class ResourceTestPanel extends BasePanel<String> {
                             stop(target);
                         }
                     } else {
+                        lastFailedResult = result;
                         getPageBase().showResult(result);
                         target.add(getFeedbackPanel());
                         state = State.FAILED;
                         stop(target);
+                        onFailureActionPerform(target);
                     }
 
                 } finally {
@@ -121,6 +123,10 @@ public class ResourceTestPanel extends BasePanel<String> {
                 }
             }
         };
+    }
+
+    protected void customizeTask(Task task) {
+        // NOOP: for overriding
     }
 
     private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {
@@ -151,6 +157,13 @@ public class ResourceTestPanel extends BasePanel<String> {
     }
 
     protected void onFinishActionPerform(AjaxRequestTarget target) {
+    }
+
+    protected void onFailureActionPerform(AjaxRequestTarget target) {
+    }
+
+    public OperationResult getLastFailedResult() {
+        return lastFailedResult;
     }
 
     protected IModel<String> getIconCssModel() {

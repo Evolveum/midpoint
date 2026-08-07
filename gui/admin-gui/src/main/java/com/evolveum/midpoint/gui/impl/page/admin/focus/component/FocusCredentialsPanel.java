@@ -10,34 +10,32 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.authentication.api.OtpManager;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.gui.api.component.otp.OtpListPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @SuppressWarnings("unused")
 @PanelType(name = "credentials")
+// Not used by default
 //@PanelInstance(
 //        identifier = "credentials",
 //        applicableForType = FocusType.class,
@@ -67,28 +65,25 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
     protected void initLayout() {
         List<ITab> tabs = createTabs();
 
-        if (tabs.size() == 1) {
-            WebMarkupContainer panel = tabs.get(0).getPanel(ID_CONTENT);
-            add(panel);
-        } else {
-            add(new TabbedPanel<>(ID_CONTENT, tabs));
-        }
+        add(new TabbedPanel<>(ID_CONTENT, tabs));
+    }
+
+    private boolean isCredentialsTabAuthorized(String uri) {
+        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CREDENTIALS_ALL_URL, uri);
     }
 
     private List<ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
 
-        // todo fix authorization. previously there was panel for password with
-        //  custom name (identifier) and details menu and could be hidden via gui panels
         tabs.add(
                 createTab(
                         createStringResource("FocusCredentialsPanel.tab.password"),
-                        new VisibleBehaviour(() -> true),
+                        new VisibleBehaviour(() -> isCredentialsTabAuthorized(AuthorizationConstants.AUTZ_UI_CREDENTIALS_PASSWORD_URL)),
                         id -> createPasswordPanel(id)));
         tabs.add(
                 createTab(
                         createStringResource("FocusCredentialsPanel.tab.otp"),
-                        new VisibleBehaviour(() -> isOtpConfigured()),
+                        new VisibleBehaviour(() -> isCredentialsTabAuthorized(AuthorizationConstants.AUTZ_UI_CREDENTIALS_TOTP_URL) && isOtpConfigured()),
                         id -> createOtpsPanel(id)));
 
         return tabs;
@@ -97,7 +92,7 @@ public class FocusCredentialsPanel<F extends FocusType, FDM extends FocusDetails
     private boolean isOtpConfigured() {
         FocusType focus = getObjectDetailsModels().getObjectType();
 
-        Task task =  getPageBase().createSimpleTask("checkOtpConfiguration");
+        Task task = getPageBase().createSimpleTask("checkOtpConfiguration");
         OperationResult result = task.getResult();
 
         OtpManager manager = MidPointApplication.get().getOtpManager();

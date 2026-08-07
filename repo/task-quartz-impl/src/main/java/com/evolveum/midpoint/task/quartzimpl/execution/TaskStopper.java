@@ -15,7 +15,6 @@ import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformationRetriever;
 import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
-import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;

@@ -97,7 +97,7 @@ abstract class ShadowItemMapper
 
     public PrismValueDeltaSetTripleProducer<?, ?> evaluate()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         mapper.checkNotYetEvaluated();
 
         LOGGER.trace("Starting evaluation of (item-level) {}", this);
@@ -233,7 +233,7 @@ abstract class ShadowItemMapper
 
         PrismValueDeltaSetTripleProducer<?, ?> evaluate()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-                ConfigurationException, SecurityViolationException ;
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
         void checkNotYetEvaluated();
 
@@ -283,7 +283,7 @@ abstract class ShadowItemMapper
         // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
         public PrismValueDeltaSetTripleProducer<?, ?> evaluate()
                 throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             MappingBuilder<V, ?> mappingBuilder = // [EP:M:OM] DONE
                     construction.getMappingFactory().createMappingBuilder(mappingConfigItem, getShortDesc());

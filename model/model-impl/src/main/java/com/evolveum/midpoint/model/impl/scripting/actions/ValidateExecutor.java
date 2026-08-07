@@ -54,7 +54,7 @@ public class ValidateExecutor extends BaseActionExecutor {
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         PipelineData output = PipelineData.createEmpty();
 

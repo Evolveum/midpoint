@@ -17,6 +17,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType.STRONG;
 
 /**
@@ -27,7 +28,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStreng
 public interface AbstractMappingConfigItem<M extends AbstractMappingType> extends ConfigurationItemable<M> {
 
     /** See LensUtil.setMappingTarget */
-    default @NotNull <CI extends ConfigurationItem<M>> CI setTargetIfMissing(@NotNull ItemPath path, Class<CI> clazz) {
+    default @NotNull <CI extends ConfigurationItem<M>> CI setTargetIfMissing(@NotNull ItemPath path, Class<CI> configItemClass) {
         VariableBindingDefinitionType existingTarget = value().getTarget();
         M updatedBean;
         if (existingTarget == null) {
@@ -40,10 +41,10 @@ public interface AbstractMappingConfigItem<M extends AbstractMappingType> extend
             updatedBean = (M) CloneUtil.cloneIfImmutable(value())
                     .target(existingTarget.clone().path(new ItemPathType(path)));
         } else {
-            return this.as(clazz);
+            return this.as(configItemClass);
         }
 
-        return ConfigurationItem.of(updatedBean, origin()).as(clazz);
+        return configItem(updatedBean, origin(), configItemClass);
     }
 
     default @Nullable String getName() {

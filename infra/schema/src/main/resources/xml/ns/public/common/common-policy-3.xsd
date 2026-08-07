@@ -41,6 +41,9 @@
             <xsd:documentation>
                 Set of governance, risk management, compliance (GRC) and similar policy constraints
                 that influence the identity model. These constraints act as triggers for the rules.
+
+                NOTE to developers: after adding a new constraint kind here, update PolicyConstraintKindType
+                and PolicyConstraintKind (java).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -383,11 +386,160 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="executionTime" type="tns:DurationThresholdPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The execution time constraint evaluates the activity execution time.
+
+                                When the exceeds element is specified, the constraint will trigger if the activity execution
+                                time exceeds the specified value. When the below element is specified, the constraint will
+                                trigger if the activity execution time is below the specified value.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionAttempts" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This constraint evaluates how many times the activity realization was attempted.
+
+                                When the "exceeds" element is specified, constraint will trigger if the number of attempts
+                                exceeds the specified value. When the "below" element is specified, constraint will trigger
+                                if the number of attempts is below the specified value.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="itemProcessingResult" type="tns:ItemProcessingResultPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Constraint that evaluates result of one item (object) that was processed by activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
         <!--<xsd:attribute name="id" type="xsd:long"/>--> <!-- already present in the abstract constraint -->
     </xsd:complexType>
+
+
+    <xsd:complexType name="ItemProcessingResultPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint based on the result of the processing for one object that is processed by the activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Operation result status to match. It is usually PARTIAL_ERROR or FATAL_ERROR.
+                                If not present, we decide solely on error category. A constraint with neither
+                                status nor error category specified never triggers.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Error category (network, security, policy, ...) to match. The category is determined
+                                from the exception recorded for the item, so it can match only when the item processing
+                                ended with an exception.
+
+                                NOTE: that some errors are not propagated to the level where they can be recognized
+                                by this selector.
+
+                                If not present, we decide solely on the status.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="itemProcessingResultPolicyConstraint" type="tns:ItemProcessingResultPolicyConstraintType"/>
+
+    <xsd:complexType name="NumericThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraints based on numeric value (integer).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="below" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is smaller than "below" value for activity, the constraint is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="exceeds" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is greater than "exceeds" value for activity, the constraint is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="numericThresholdPolicyConstraint" type="tns:NumericThresholdPolicyConstraintType"/>
+
+    <xsd:complexType name="DurationThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint based on duration and its threshold.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="below" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is smaller than "below" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time is below this duration, the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="exceeds" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is greater than "exceeds" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time exceeds this duration, the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="durationThresholdPolicyConstraint" type="tns:DurationThresholdPolicyConstraintType"/>
 
     <xsd:complexType name="PolicyConstraintReferenceType">
         <xsd:annotation>
@@ -1456,8 +1608,8 @@
                         will be triggered for all values starting from this value up until the
                         high water mark (closed interval). If no low water mark is specified then
                         the policy rule will be activated for all values up to the high water mark.
-                        Policy rule with a threshold that does not have any water marks will
-                        never be activated.
+                        A threshold that does not define any water mark does not limit the rule:
+                        the actions are executed on every trigger.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyThresholdType.lowWaterMark</a:displayName>
@@ -1482,7 +1634,8 @@
             <xsd:element name="timeInterval" type="tns:TimeIntervalType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO: time interval!
+                        Time interval to which the threshold counts should be related.
+                        Not currently supported - the value is ignored.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyThresholdType.timeInterval</a:displayName>
@@ -1538,7 +1691,7 @@
     <xsd:complexType name="TimeIntervalType">
         <xsd:annotation>
             <xsd:documentation>
-                Water mark (bound). Lowest or highest value defining an interval.
+                Time interval specification, e.g. for thresholds counting events within a period of time.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1693,17 +1846,89 @@
             <xsd:element name="suspendTask" type="tns:SuspendTaskPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Stop action. This action stops the operation after n executions and results with the error.
+                        Suspend task action. This action suspends the task that runs the operation,
+                        with an error in the operation result.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>PolicyActionsType.stop</a:displayName>
-                        <a:help>PolicyActionsType.stop.help</a:help>
+                        <a:since>4.0</a:since>
+                        <a:displayName>PolicyActionsType.suspendTask</a:displayName>
+                        <a:help>PolicyActionsType.suspendTask.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="restartActivity" type="tns:RestartActivityPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Restart activity action. This action restarts the run and realization of the activity
+                        that triggered the policy rule, so the activity starts processing from the beginning.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                        <a:displayName>PolicyActionsType.restartActivity</a:displayName>
+                        <a:help>PolicyActionsType.restartActivity.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="skipActivity" type="tns:SkipActivityPolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Skip activity action. This action stops the activity that triggered the policy rule,
+                        and the execution continues with the next activity (if any).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                        <a:displayName>PolicyActionsType.skipActivity</a:displayName>
+                        <a:help>PolicyActionsType.skipActivity.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="SkipActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Skip activity that triggered policy constraint, continue with next activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="skipActivityPolicyAction" type="tns:SkipActivityPolicyActionType"/>
+
+    <xsd:complexType name="RestartActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Restart the run and realization of the activity that triggered policy constraint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <xsd:element name="delay" type="xsd:duration" minOccurs="0" default="PT5S">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What delay to introduce between attempts. Actual delay grows exponentially
+                                with the number of restarts: it is computed as delay*(2^(n-1)), where n is
+                                the number of execution attempts so far (the exponent is capped at 10).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="restartActivityPolicyAction" type="tns:RestartActivityPolicyActionType"/>
 
     <xsd:complexType name="PolicyActionType">
         <xsd:annotation>
@@ -1748,6 +1973,9 @@
                     <xsd:documentation>
                         <p>
                             When should this action be applied?
+
+                            Usable only in focus-based policy rules. Conditions on actions of activity-based
+                            policy rules (activity policies) are not supported and are ignored.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2258,7 +2486,9 @@
     <xsd:complexType name="NotificationPolicyActionType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Notification action. Sends a notification using the standard notification mechanism
+                when the policy rule is triggered. The notification handlers and transports
+                are configured in the system configuration.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container />

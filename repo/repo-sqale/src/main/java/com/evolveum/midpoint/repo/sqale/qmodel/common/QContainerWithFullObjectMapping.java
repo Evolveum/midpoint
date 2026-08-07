@@ -25,7 +25,6 @@ import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 public abstract class QContainerWithFullObjectMapping<S extends Containerable, Q extends QContainerWithFullObject<R, OR>, R extends MContainerWithFullObject, OR>

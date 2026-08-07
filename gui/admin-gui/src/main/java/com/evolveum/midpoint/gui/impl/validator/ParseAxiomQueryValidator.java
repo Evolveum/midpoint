@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.validator;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterTypeForQueryModel;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

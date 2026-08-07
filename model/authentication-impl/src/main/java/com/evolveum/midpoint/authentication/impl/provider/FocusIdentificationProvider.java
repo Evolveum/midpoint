@@ -7,14 +7,12 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.evaluator.PreAuthenticatedEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.FocusIdentificationModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.FocusVerificationToken;
 import com.evolveum.midpoint.authentication.api.evaluator.context.FocusIdentificationAuthenticationContext;
-import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.logging.Trace;

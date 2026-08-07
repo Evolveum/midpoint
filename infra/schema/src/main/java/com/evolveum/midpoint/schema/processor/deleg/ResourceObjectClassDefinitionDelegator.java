@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.Nullable;
 

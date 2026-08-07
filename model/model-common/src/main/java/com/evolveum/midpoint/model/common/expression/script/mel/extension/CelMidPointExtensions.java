@@ -12,7 +12,7 @@ import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelVa
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -77,7 +77,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getLinkedShadow",
-                                        "TODO.",
+                                        "Returns a shadow on specified resource, which is linked to the specified focus."
+                                                + "This function assumes that at most one such shadow is linked to the focus.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadow",
@@ -92,7 +93,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowRepo",
-                                        "TODO.",
+                                        "Returns a shadow on specified resource, which is linked to the specified focus.\n"
+                                                + "This function assumes that at most one such shadow is linked to the focus.\n"
+                                                + "The repositoryOnly parameter specifies whether the shadow has to be"
+                                                + " retrieved only from midPoint repository (true),"
+                                                + " or whether the data corresponding to the shadow can be retrieved"
+                                                + " from the resource (false).\n",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.BOOL)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowRepo",
@@ -107,7 +113,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntent",
-                                        "TODO.",
+                                        "Returns a shadow on specified resource, which is linked to the specified focus."
+                                                + "This function assumes that at most one such shadow is linked to the focus.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntent",
@@ -122,7 +129,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getLinkedShadow",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntentRepo",
-                                        "TODO.",
+                                        "Returns a shadow on specified resource, which is linked to the specified focus."
+                                                + "This function assumes that at most one such shadow is linked to the focus."
+                                                + "The repositoryOnly parameter specifies whether the shadow has to be"
+                                                + " retrieved only from midPoint repository (true),"
+                                                + " or whether the data corresponding to the shadow can be retrieved"
+                                                + " from the resource (false).\n",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.STRING, SimpleType.STRING, SimpleType.BOOL)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowKindIntentRepo",
@@ -137,7 +149,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getLinkedShadows",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getLinkedShadows",
-                                        "TODO.",
+                                        "Returns a list of shadows on specified resource (resourceOid),"
+                                                + " which is linked to the specified focus.",
                                         ListType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadows",
@@ -152,7 +165,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getLinkedShadows",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowsRepo",
-                                        "TODO.",
+                                        "Returns a list of shadows on specified resource (resourceOid),"
+                                                + " which is linked to the specified focus. "
+                                                + "The repositoryOnly parameter specifies whether the shadow has to be"
+                                                + " retrieved only from midPoint repository (true),"
+                                                + " or whether the data corresponding to the shadow can be retrieved"
+                                                + " from the resource (false).",
                                         ListType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.BOOL)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getLinkedShadowsRepo",
@@ -166,7 +184,9 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getManagersOids",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getManagersOids",
-                                        "TODO.",
+                                        "Returns a list of OIDs of user's managers. "
+                                                + "Formally, for each Org O which this user has (any) relation to,"
+                                                + " all managers of O are added to the result.",
                                         ListType.create(SimpleType.STRING),
                                         ObjectCelValue.CEL_TYPE)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getManagersOids", ObjectCelValue.class,
@@ -180,7 +200,10 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getManagersOidsExceptUser",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getManagersOidsExceptUser",
-                                        "TODO.",
+                                        "Returns a list of OIDs of user's managers. "
+                                                + "Formally, for each Org O which this user has (any) relation to,"
+                                                + " all managers of O are added to the result. "
+                                                + "The list excludes OID of the user itself.",
                                         ListType.create(SimpleType.STRING),
                                         ObjectCelValue.CEL_TYPE)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getManagersOidsExceptUser", ObjectCelValue.class,
@@ -228,7 +251,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getObjectsInConflictOnPropertyValue",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getObjectsInConflictOnPropertyValue",
-                                        "TODO.",
+                                        "Returns a list of objects that are conflicting with the specified object"
+                                                + " on specified property.",
                                         ListType.create(ObjectCelValue.CEL_TYPE),
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.ANY, SimpleType.BOOL)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getObjectsInConflictOnPropertyValue",
@@ -255,13 +279,15 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "getOrgByName",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "getOrgByName",
-                                        "TODO.",
+                                        "Returns organization object (org) specified by name.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "getOrgByName", String.class,
                                 this::getOrgByName)
 
                 ),
+
+                // TODO: getOrgByIdentifier() or getOrgByArchetypeAndName() or getOrgByArchetypeAndIdentifier() ?
 
                 // getUserByOid() uses repository service directly, bypassing authorization checking.
                 // This is not safe for MEL!
@@ -279,6 +305,21 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 //                                this::getUserByOid)
 //
 //                ),
+
+                // midpoint.hasLinkedObjectOnResource(resourceOid, kind,  intent)
+                new Function(
+                        CelFunctionDecl.newFunctionDeclaration(
+                                FUNCTION_NAME_PREFIX_DOT + "hasLinkedObjectOnResource",
+                                CelOverloadDecl.newGlobalOverload(
+                                        FUNCTION_NAME_PREFIX_DASH + "hasLinkedObjectOnResource",
+                                        "Returns true if current focus has link to resource object on specified resource.",
+                                        SimpleType.BOOL,
+                                        SimpleType.STRING, NullableType.create(SimpleType.STRING), NullableType.create(SimpleType.STRING))),
+                        CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "hasLinkedObjectOnResource",
+                                ImmutableList.of(String.class, String.class, String.class),
+                                this::hasLinkedObjectOnResource)
+
+                ),
 
                 // midpoint.hello
                 new Function(
@@ -341,13 +382,14 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "isUniquePropertyValue",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "isUniquePropertyValue",
-                                        "TODO",
+                                        "Checks uniqueness of property value. "
+                                                + "Returns true if specified property value is unique. "
+                                                + "Returns false if an object exists, conflicting with the specified object on specified property.",
                                         SimpleType.BOOL,
                                         ObjectCelValue.CEL_TYPE, SimpleType.STRING, SimpleType.ANY)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "isUniquePropertyValue",
                                 ImmutableList.of(ObjectCelValue.class, String.class, Object.class),
                                 this::isUniquePropertyValue)
-
                 ),
 
                 // midpoint.isUniqueAccountValue(resource, shadow, attributeName, attributeValue)
@@ -371,7 +413,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "resolveReference",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "resolveReference",
-                                        "TODO.",
+                                        "Resolves specified reference, returning an object that the reference references. "
+                                                + "Error is raised in case that the referenced object does not exist.",
                                         ObjectCelValue.CEL_TYPE,
                                         ReferenceCelValue.CEL_TYPE)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "resolveReference", ReferenceCelValue.class,
@@ -385,7 +428,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "resolveReferenceIfExists",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "resolveReferenceIfExists",
-                                        "TODO.",
+                                        "Resolves specified reference, returning an object that the reference references. "
+                                                + "If the referenced object does not exist, null is returned.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         ReferenceCelValue.CEL_TYPE)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "resolveReferenceIfExists", ReferenceCelValue.class,
@@ -432,7 +476,8 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
                                 FUNCTION_NAME_PREFIX_DOT + "searchShadowOwner",
                                 CelOverloadDecl.newGlobalOverload(
                                         FUNCTION_NAME_PREFIX_DASH + "searchShadowOwner",
-                                        "TODO",
+                                        "Returns the Focus object representing owner of specified shadow. "
+                                                + "The function may return `null` if there is no owner specified for the shadow.",
                                         NullableType.create(ObjectCelValue.CEL_TYPE),
                                         SimpleType.STRING)),
                         CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH + "searchShadowOwner", String.class,
@@ -561,6 +606,12 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
         return "Hello " + s;
     }
 
+    private boolean hasLinkedObjectOnResource(Object[] args) {
+        ShadowKindType kind = args[1] == null ? null : ShadowKindType.fromValue((String)args[1]);
+        return midpointExpressionFunctions.hasLinkedObjectOnResource((String)args[0], kind, (String)args[2]);
+    }
+
+
     private <O extends ObjectType> CelValue getObject(String typeLocalPart, String oid) {
         return getObject(new QName(ObjectFactory.NAMESPACE, typeLocalPart), oid);
     }
@@ -644,7 +695,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
     private <O extends ObjectType> List<CelValue> searchObjects(QName type, Object filter) {
         Class<O> typeClass = prismContext.getSchemaRegistry().determineClassForType(type);
         String filterString;
-        if (CelTypeMapper.isCellNull(filter)) {
+        if (CelTypeMapper.isCelNull(filter)) {
             filterString = null;
         } else {
             filterString = (String) filter;

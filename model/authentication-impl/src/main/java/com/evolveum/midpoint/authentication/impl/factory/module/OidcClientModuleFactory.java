@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Component;
 

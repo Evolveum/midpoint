@@ -7,7 +7,10 @@
  */
 package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeStatisticsComputationWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeStatisticsComputationWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;

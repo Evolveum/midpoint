@@ -175,6 +175,14 @@ public final class DetailsPageUtil {
                     }
                 }
 
+                // Set manually archetypeRef.
+                // This is needed to successfully determine assignment target
+                // specification while adding new assignment
+                // TODO: fix MID-11914
+                if (ref.getType() != null && ArchetypeType.COMPLEX_TYPE.equals(ref.getType())) {
+                    assignmentHolder.getArchetypeRef().add(ref.clone());
+                }
+
             });
         }
 

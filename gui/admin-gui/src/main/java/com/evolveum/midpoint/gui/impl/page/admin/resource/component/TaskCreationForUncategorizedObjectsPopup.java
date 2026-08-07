@@ -20,7 +20,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Popup panel for creating task for unrecognized resource object (work with object class).
@@ -71,6 +72,7 @@ public class TaskCreationForUncategorizedObjectsPopup extends TaskCreationPopup<
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView view, AjaxRequestTarget target) {
                 getFlavorModel().setObject(determineTaskFlavour(view.getArchetypeOid()));
+                target.add(getFooterFragment());
             }
         };
     }

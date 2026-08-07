@@ -11,7 +11,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import groovy.lang.GroovyClassLoader;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -59,7 +58,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
     }
 
     private C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context)
-            throws ExpressionEvaluationException, SecurityViolationException, SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws ExpressionEvaluationException, SecurityViolationException, SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         K key = getScriptCachingKey(codeString, context);
         C cachedCompiledScript = scriptCache.getCode(context.getExpressionProfile(), key);
         if (cachedCompiledScript != null) {
@@ -90,7 +89,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
 
     protected abstract I createInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException, ConfigurationException;
 
-    protected abstract K getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+    protected abstract K getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     protected abstract C compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception;
 

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
 
 public class ActivityHandlerUtils {
 
@@ -20,8 +21,13 @@ public class ActivityHandlerUtils {
     public static <WD extends WorkDefinition> ActivityDefinition<WD> cloneWithoutIdForChildActivity(
             @NotNull ActivityDefinition<WD> original) {
         ActivityDefinition<WD> clone = original.cloneWithoutId();
-        // policies should not be inherited by child activities
-        clone.getPoliciesDefinition().getPolicies().getPolicy().clear();
+        // Policies and virtual assignments should not be inherited by child activities:
+        // they are collected from the declaring activity and its ancestors at run time,
+        // so an inherited copy would be picked up twice.
+        ActivityPoliciesType policies = clone.getPoliciesDefinition().getPolicies();
+        policies.getPolicy().clear();
+        policies.getPolicyRef().clear();
+        clone.getVirtualAssignmentsDefinition().getVirtualAssignments().clear();
 
         return clone;
     }

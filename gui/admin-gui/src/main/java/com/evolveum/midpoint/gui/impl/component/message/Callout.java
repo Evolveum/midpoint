@@ -94,10 +94,10 @@ public class Callout extends BasePanel<String> {
     }
 
     private enum Type {
-        INFO("card-outline-left-info", "Callout.badge.info", "bg-info", "fa fa-circle-info"),
-        WARNING("card-outline-left-warning", "Callout.badge.warning", "bg-warning", "fa fa-circle-info"),
-        DANGER("card-outline-left-danger", "Callout.badge.danger", "bg-danger", "fa fa-circle-info"),
-        SUCCESS("card-outline-left-success", "Callout.badge.success", "bg-success", "fa fa-circle-info");
+        INFO("card-outline-start-info", "Callout.badge.info", "bg-info", "fa fa-circle-info"),
+        WARNING("card-outline-start-warning", "Callout.badge.warning", "bg-warning", "fa fa-circle-info"),
+        DANGER("card-outline-start-danger", "Callout.badge.danger", "bg-danger", "fa fa-circle-info"),
+        SUCCESS("card-outline-start-success", "Callout.badge.success", "bg-success", "fa fa-circle-info");
 
         final String cardClass;
         final String badgeClass;

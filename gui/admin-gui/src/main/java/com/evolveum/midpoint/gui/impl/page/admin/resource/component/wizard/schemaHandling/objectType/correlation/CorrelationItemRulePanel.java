@@ -92,10 +92,12 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
 
         String efficiency = extractEfficiencyFromSuggestedCorrelationItemWrapper(getModelObject());
 
+        String tooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
         BadgePanel badge = new BadgePanel(ID_ALERT_BADGE,
                 getAiEfficiencyBadgeModel(
                         createStringResource("SmartCorrelationTilePanel.unconfirmed.suggestion.efficiency",
-                                efficiency).getString()));
+                                efficiency).getString(),
+                        tooltip));
         badge.setOutputMarkupId(true);
         infoPanel.add(badge);
         add(infoPanel);

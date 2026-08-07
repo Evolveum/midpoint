@@ -156,6 +156,12 @@ It will be used in case that there is no suitable `lang` for a particular langua
 
 IMPORTANT: _orig_ value of the polystring is never treated as a translation key. Therefore, it cannot be translated, but it is always used as it is. To make a polystring value localized, please, configure it in a right way using translation keys or languages within polystring.
 
+== Limitations
+
+. Polystring localization (lang values and translation definition) is not available for lookup table row labels.
+Although LookupTableRowType.label is defined as PolyStringType, lookup tables are stored using a specialized repository representation optimized for lookup operations.
+This representation persists only the original value (orig) and its normalized form (norm) of the label.
+
 == Future
 
 See xref:/midpoint/features/planned/polystring/[PolyString Improvements] page to learn about planned improvements to polystrings.

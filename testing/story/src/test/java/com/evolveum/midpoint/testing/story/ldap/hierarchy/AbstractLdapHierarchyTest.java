@@ -440,7 +440,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         assertSubOrgs(orgVysneVlkodlakyOid, 0);
     }
 
-    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // nothing to do by default
     }
 
@@ -504,7 +504,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         return user;
     }
 
-    protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws CommonException, DirectoryException {
         PrismObject<OrgType> org = getOrg(orgName);
         display("org", org);
         PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, ORG_TYPE_FUNCTIONAL);
@@ -526,7 +526,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         return org;
     }
 
-    protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected PrismObject<OrgType> getOrg(String orgName) throws CommonException {
         PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
         assertNotNull("The org " + orgName + " is missing!", org);
         display("Org " + orgName, org);
@@ -534,7 +534,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         return org;
     }
 
-    protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void dumpOrgTree() throws CommonException {
         displayValue("Org tree", dumpOrgTree(ORG_TOP_OID));
     }
 
@@ -555,16 +555,15 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         assertNoAttribute(groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
     }
 
-    protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<UserType> handler = (object, parentResult) -> {
             try {
                 display("reconciling " + object);
                 reconcileUser(object.getOid(), task, parentResult);
-            } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
-                    | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
-                    | ConfigurationException | SecurityViolationException e) {
+            } catch (CommonException e) {
                 throw new SystemException(e.getMessage(), e);
             }
             return true;
@@ -573,16 +572,15 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
         modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
     }
 
-    protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Task task = getTestTask();
         OperationResult result = task.getResult();
         ResultHandler<OrgType> handler = (object, parentResult) -> {
             try {
                 display("reconciling " + object);
                 reconcileOrg(object.getOid(), task, parentResult);
-            } catch (SchemaException | PolicyViolationException | ExpressionEvaluationException
-                    | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
-                    | ConfigurationException | SecurityViolationException e) {
+            } catch (CommonException e) {
                 throw new SystemException(e.getMessage(), e);
             }
             return true;

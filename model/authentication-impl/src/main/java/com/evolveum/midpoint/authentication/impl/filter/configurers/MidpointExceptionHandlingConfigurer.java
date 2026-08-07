@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.filter.configurers;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.evolveum.midpoint.authentication.impl.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.authentication.impl.filter.MidpointExceptionTranslationFilter;
@@ -30,6 +31,8 @@ import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAuthenticationTrustResolverImpl;
+
+import org.springframework.security.web.util.matcher.RequestMatcherEntry;
 
 public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H>> extends
         AbstractHttpConfigurer<ExceptionHandlingConfigurer<H>, H> {
@@ -84,7 +87,7 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
     }
 
     @Override
-    public void configure(H http) throws Exception {
+    public void configure(H http) {
         AuthenticationEntryPoint entryPoint = getAuthenticationEntryPoint();
         ExceptionTranslationFilter exceptionTranslationFilter = new MidpointExceptionTranslationFilter(
                 entryPoint, getRequestCache(http)) {
@@ -145,11 +148,16 @@ public class MidpointExceptionHandlingConfigurer<H extends HttpSecurityBuilder<H
         if (this.defaultEntryPointMappings.size() == 1) {
             return this.defaultEntryPointMappings.values().iterator().next();
         }
-        DelegatingAuthenticationEntryPoint entryPoint = new DelegatingAuthenticationEntryPoint(
-                this.defaultEntryPointMappings);
-        entryPoint.setDefaultEntryPoint(this.defaultEntryPointMappings.values().iterator()
-                .next());
-        return entryPoint;
+
+        AuthenticationEntryPoint defaultEntryPoint =
+                this.defaultEntryPointMappings.values().iterator().next();
+
+        List<RequestMatcherEntry<AuthenticationEntryPoint>> entryPoints =
+                this.defaultEntryPointMappings.entrySet().stream()
+                        .map(entry -> new RequestMatcherEntry<>(entry.getKey(), entry.getValue()))
+                        .toList();
+
+        return new DelegatingAuthenticationEntryPoint(defaultEntryPoint, entryPoints);
     }
 
     private RequestCache getRequestCache(H http) {

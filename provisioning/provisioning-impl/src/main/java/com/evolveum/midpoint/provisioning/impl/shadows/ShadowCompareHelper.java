@@ -46,7 +46,7 @@ class ShadowCompareHelper {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
 
         if (!path.equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
             throw new UnsupportedOperationException("Only password comparison is supported");

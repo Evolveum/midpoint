@@ -10,15 +10,16 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
-import com.evolveum.midpoint.model.api.correlator.CandidateOwner;
 import com.evolveum.midpoint.model.api.correlator.CandidateOwners;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationModuleConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CorrelationModuleAuthenticationImpl extends ModuleAuthenticationImpl implements CorrelationModuleAuthentication {
 

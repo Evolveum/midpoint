@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.intest.manual;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 

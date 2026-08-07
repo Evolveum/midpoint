@@ -20,7 +20,10 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -40,7 +43,7 @@ import java.util.*;
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getAuxiliaryObjectClassNames;
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNLINKED;
 
 /**
  * EXPERIMENTAL

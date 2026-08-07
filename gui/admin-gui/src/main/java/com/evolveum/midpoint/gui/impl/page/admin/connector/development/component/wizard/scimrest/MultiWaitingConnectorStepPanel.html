@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <!-- feedback is unused in this step, but the components are created by AbstractWizardStepPanel and need markup -->
+    <div wicket:id="feedbackContainer">
+        <div wicket:id="feedback"/>
+    </div>
+    <div class="d-flex flex-column align-items-center justify-content-center w-100 gap-4" style="min-height: 60vh;">
+        <i wicket:id="titleIcon"></i>
+        <div class="d-flex flex-column align-items-center gap-2h w-100">
+            <h2 wicket:id="titleLabel" class="gen-step-title mb-0 text-center"></h2>
+            <div wicket:id="subtitleLabel" class="text-muted text-center w-50"></div>
+        </div>
+        <div class="d-flex justify-content-center w-100">
+            <div class="bg-white border rounded" style="width: 500px; max-width: 90%; padding: 20px;" wicket:id="taskContainer">
+                <div class="d-flex flex-column gap-3" wicket:id="taskRepeater">
+                    <div class="d-flex align-items-center gap-2h">
+                        <i wicket:id="taskIcon"></i>
+                        <span wicket:id="taskLabel" class="text-nowrap"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div wicket:id="elapsedTime"></div>
+        <div class="d-flex flex-row">
+            <a wicket:id="stopButton" class="btn btn-link text-decoration-none p-3 font-weight-semibold">
+                <i class="fa fa-stop mr-2"></i> Stop
+            </a>
+            <a wicket:id="retryButton" class="btn btn-link text-decoration-none p-3 font-weight-semibold ml-2">
+                <i class="fa fa-redo mr-2"></i> Retry
+            </a>
+        </div>
+    </div>
+</wicket:extend>
+</html>

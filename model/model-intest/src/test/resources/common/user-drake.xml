@@ -17,6 +17,7 @@
         <piracy:ship xsi:type="xsd:string">Golden Hind</piracy:ship>
     </extension>
     <fullName>Francis Drake</fullName>
+    <displayName>Francis Drake</displayName>
     <givenName>Fancis</givenName>
     <familyName>Drake</familyName>
     <honorificPrefix>Sir</honorificPrefix>

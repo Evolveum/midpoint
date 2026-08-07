@@ -16,7 +16,9 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

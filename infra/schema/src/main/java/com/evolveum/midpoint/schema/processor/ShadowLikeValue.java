@@ -9,7 +9,6 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.io.Serializable;
 

@@ -115,7 +115,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         assert context.hasFocusOfType(AssignmentHolderType.class);
 
         OperationResult result = parentResult.createSubresult(OP_PROCESS_ASSIGNMENTS);
@@ -157,7 +157,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <AH extends AssignmentHolderType> void processAssignmentsInternal(
             LensContext<AH> context, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
 
@@ -247,7 +247,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException, PolicyViolationException {
+            ConfigurationException, CommunicationException, PolicyViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_PROJECTIONS);
         try {
@@ -280,7 +280,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             LensFocusContext<AH> focusContext,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException,
-            ConfigurationException, SecurityViolationException, ObjectNotFoundException, CommunicationException {
+            ConfigurationException, SecurityViolationException, ObjectNotFoundException, CommunicationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE_FOCUS_MAPPINGS)
                 .setMinor()
@@ -680,7 +680,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <AH extends AssignmentHolderType> void evaluateConstructions(LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, ConfigurationException,
-            CommunicationException {
+            CommunicationException, SubscriptionComplianceException {
         ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusOdoAbsolute();
         evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), focusOdoAbsolute, task, result);
         evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), focusOdoAbsolute, task, result);
@@ -691,7 +691,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
             ObjectDeltaObject<F> focusOdoAbsolute, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, ConfigurationException,
-            CommunicationException {
+            CommunicationException, SubscriptionComplianceException {
         if (evaluatedAssignments == null) {
             return;
         }

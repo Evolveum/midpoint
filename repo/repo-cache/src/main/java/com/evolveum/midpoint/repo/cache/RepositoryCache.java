@@ -41,7 +41,9 @@ import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -346,6 +348,18 @@ public class RepositoryCache implements RepositoryService, Cache {
         Long startTime = repoOpStart();
         try {
             return repositoryService.isDescendant(object, ancestorOrgOid);
+        } finally {
+            repoOpEnd(startTime);
+        }
+    }
+
+    @Override
+    public <O extends ObjectType> boolean isDescendantOfAny(
+            PrismObject<O> object, Collection<String> ancestorOrgOids)
+            throws SchemaException {
+        Long startTime = repoOpStart();
+        try {
+            return repositoryService.isDescendantOfAny(object, ancestorOrgOids);
         } finally {
             repoOpEnd(startTime);
         }

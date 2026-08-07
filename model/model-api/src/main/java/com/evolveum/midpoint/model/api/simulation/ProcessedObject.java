@@ -186,7 +186,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      */
     void applyDefinitions(@NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException;
+            ObjectNotFoundException, SubscriptionComplianceException;
 
     @SuppressWarnings("unused") // used by scripts
     default boolean isAddition() {

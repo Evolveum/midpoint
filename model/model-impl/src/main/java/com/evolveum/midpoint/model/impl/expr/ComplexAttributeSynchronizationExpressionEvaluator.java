@@ -73,7 +73,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
     public AssociationSynchronizationResult<PrismContainerValue<C>> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -151,7 +151,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
         public AssociationSynchronizationResult<PrismContainerValue<C>> process(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Processing {} individual values of the reference attribute '{}'",
                     inputValues.size(), refAttrDefinition.getItemName());
@@ -196,7 +196,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             void process(OperationResult parentResult)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
                 OperationResult result = parentResult.subresult(OP_PROCESS_COMPLEX_ATTRIBUTE_VALUE)
                         .addArbitraryObjectAsParam("value", refAttrValue)
@@ -250,7 +250,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private C computeValueForCorrelation(OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var typeDef = embeddedShadow.getObjectDefinition().getTypeDefinition();
                 if (typeDef == null) {
                     throw new ExpressionEvaluationException("Couldn't evaluate inbound mapping for complex attribute value: "
@@ -306,7 +306,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                     @NotNull SimplifiedCorrelationResult correlationResult,
                     @NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                    CommunicationException, ObjectNotFoundException {
+                    CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var situation = correlationResult.getSituation();
                 if (situation == CorrelationSituationType.NO_OWNER) {
                     executeAdd(result);
@@ -320,7 +320,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private void executeAdd(@NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                    CommunicationException, ObjectNotFoundException {
+                    CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var targetValue = instantiateTargetValue();
                 SingleShadowInboundsProcessing.evaluate(
                         createShadowProcessingContext(targetValue, result),
@@ -334,7 +334,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private void setValueMetadata(PrismContainerValue<?> pcv, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var metadataComputer = context.getValueMetadataComputer();
                 if (metadataComputer != null) {
                     pcv.setValueMetadata(
@@ -344,7 +344,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 //noinspection unchecked
                 var targetValue = Objects.requireNonNull((C) correlationResult.getOwner());
                 var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(

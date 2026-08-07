@@ -21,8 +21,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -324,7 +322,7 @@ public class ReportFunctions {
 
     public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
+            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException, SubscriptionComplianceException {
         return searchApprovalWorkItems(0, null);
     }
 
@@ -334,7 +332,7 @@ public class ReportFunctions {
      */
     public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
+            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException, SubscriptionComplianceException {
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(AbstractWorkItemType.class).build();
@@ -370,7 +368,7 @@ public class ReportFunctions {
      */
     public Collection<PrismObject<AccessCertificationDefinitionForReportType>> searchCertificationDefinitions()
             throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();

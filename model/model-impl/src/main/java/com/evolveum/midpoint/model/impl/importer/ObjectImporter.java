@@ -275,6 +275,8 @@ public class ObjectImporter {
             recordError(objectResult, object, "Policy violation", e);
         } catch (SecurityViolationException e) {
             recordError(objectResult, object, "Security violation", e);
+        } catch (SubscriptionComplianceException e) {
+            recordError(objectResult, object, "Restricted object", e);
         }
 
         objectResult.recordSuccessIfUnknown();
@@ -299,7 +301,7 @@ public class ObjectImporter {
 
     private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, Task task,
             OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
+            ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
@@ -383,8 +385,9 @@ public class ObjectImporter {
                 result.recordFatalError(e);
                 throw e;
             }
-        } catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
-                | ConfigurationException | PolicyViolationException | SecurityViolationException | SchemaException e) {
+        } catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException |
+                 PolicyViolationException | SecurityViolationException | SchemaException |
+                 SubscriptionComplianceException e) {
             result.recordFatalError("Cannot import " + object + ": " + e.getMessage(), e);
             throw e;
         } catch (RuntimeException ex) {
@@ -400,7 +403,8 @@ public class ObjectImporter {
             Task task,
             OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException,
+            SubscriptionComplianceException {
 
         ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(object);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
@@ -435,7 +439,8 @@ public class ObjectImporter {
     /**
      * @return OID of the deleted object or null (if nothing was deleted)
      */
-    private <T extends ObjectType> String deleteObject(PrismObject<T> object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
+    private <T extends ObjectType> String deleteObject(PrismObject<T> object, RepositoryService repository, OperationResult objectResult)
+            throws SchemaException {
         try {
             repository.deleteObject(object.getCompileTimeClass(), object.getOid(), objectResult);
         } catch (ObjectNotFoundException e) {
