@@ -153,9 +153,10 @@ ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'INFORMATION_DISCLOSURE' A
 $aa$);
 
 
---- Policy Type
+--- Policy Type / Role Analysis Outlier
 call apply_audit_change(9, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
 $aa$);
 
 -- WRITE CHANGES ABOVE ^^
