@@ -62,7 +62,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Description
 
 | xref:postgres-audit-upgrade/4.10.adoc#change-10[Change 10]
-| Adds schema object type value.
+| Adds role analysis outlier and schema object type values.
 
 |===
 

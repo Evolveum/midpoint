@@ -194,11 +194,12 @@ call apply_audit_change(9, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
 $aa$);
 
--- Schema Type
--- @change: Adds schema object type value.
+-- Schema Type / Role Analysis Outlier
+-- @change: Adds role analysis outlier and schema object type values.
 -- @since: 4.10
--- @affects: enum ObjectType | Modified enum type | Adds `SCHEMA`.
+-- @affects: enum ObjectType | Modified enum type | Adds `ROLE_ANALYSIS_OUTLIER` and `SCHEMA`.
 call apply_audit_change(10, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
 $aa$);
 

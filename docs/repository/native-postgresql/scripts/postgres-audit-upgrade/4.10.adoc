@@ -9,7 +9,7 @@
 | Description
 
 | <<change-10,Change 10>>
-| Adds schema object type value.
+| Adds role analysis outlier and schema object type values.
 
 |===
 
@@ -18,7 +18,7 @@
 
 Since version: 4.10
 
-Adds schema object type value.
+Adds role analysis outlier and schema object type values.
 
 [cols="1,1,3", options="header"]
 |===
@@ -28,7 +28,7 @@ Adds schema object type value.
 
 | `ObjectType`
 | Modified enum type
-| Adds `SCHEMA`.
+| Adds `ROLE_ANALYSIS_OUTLIER` and `SCHEMA`.
 
 |===
 
