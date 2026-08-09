@@ -40,4 +40,4 @@ For practical information on forming a cluster, see the xref:/midpoint/reference
 
 * xref:/midpoint/reference/deployment/clustering-ha/[Clustering / high availability setup]
 
-* xref:/midpoint/install/system-requirements/[System Requirements]
+* xref:/midpoint/get-started/install/system-requirements/[System Requirements]

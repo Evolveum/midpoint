@@ -62,7 +62,7 @@ link:https://www.youtube.com/watch?v=AsSDXznIhGc[t]his video tutorialThis page d
 
 . in VMplayer window pres CTRL+ALT to go out, open in browser ip adress (in my cases link:http://192.168.0.109/[http://192.168.0.109/] --> will redirected to midpoint login page) to start midpoint login page
 
-. for more info see xref:/midpoint/demo/[Live Demo]
+. for more info see xref:/midpoint/get-started/demo/[Live Demo]
 
 . to shut down virtual machine run 'sudo poweroff', VMware Player windows is closed
 
@@ -139,7 +139,7 @@ VMware Player not support snapshots, but VirtualBox has this nice feature in run
 
 . in VMplayer window pres left CTRL to go out, open in browser ip adress (in my cases link:http://192.168.0.109/[http://192.168.0.110/] --> will redirected to midpoint login page) to start midpoint login page
 
-. for more info see xref:/midpoint/demo/[Live Demo]
+. for more info see xref:/midpoint/get-started/demo/[Live Demo]
 
 . to shut down virtual machine run 'sudo poweroff', VMware Player windows is closed
 
@@ -207,7 +207,7 @@ If you need to downgrade VMWare hardware you can do it with link:https://my.vmwa
 
 .. shadow details are linked?
 
-.. test scenarios from xref:/midpoint/demo/#walkthrough[here]
+.. test scenarios from xref:/midpoint/get-started/demo/#walkthrough[here]
 
 .. cleanup after testing
 
