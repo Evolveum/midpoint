@@ -24,7 +24,7 @@ If you have followed xref:/midpoint/reference/upgrade/upgrade-with-ninja/[] page
 
 Please check and fix your Systemd service unit file or service startup file for `midPoint.war` references and replace them with `midpoint.jar`.
 
-See also xref:/midpoint/install/bare-installation/systemd/[Running midPoint with systemd].
+See also xref:/midpoint/get-started/install/bare-installation/systemd/[Running midPoint with systemd].
 
 [#_resource_schema_change]
 === Do I need to update my 4.4-based resources after upgrade to 4.8 LTS?
