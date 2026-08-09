@@ -100,7 +100,7 @@ Users that require clear database support plans should choose PostgreSQL databas
 
 * H2 support was dropped in midPoint 4.9.
 Demo, proof of concept or evaluation deployments should use either docker compose with native PostgreSQL repository or generic repository together with Oracle/MS SQL Server.
-For more information see xref:/midpoint/install/containers/docker/[Docker Compose].
+For more information see xref:/midpoint/get-started/install/containers/docker/[Docker Compose].
 
 The bottom line is, that *if you start a new midPoint deployment, the best choice is to go with PostgreSQL*.
 If you have existing midPoint deployment then you are probably OK to continue operation with current setup for a short while, but plan to migrate to PostgreSQL soon.
