@@ -69,7 +69,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
 
     public static <C extends Containerable> C evaluate(SingleShadowInboundsProcessingContext<C> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
                 .build();
@@ -95,7 +95,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
     public static SingleShadowInboundsProcessing<?> evaluateToTripleMap(
             SingleShadowInboundsProcessingContext<?> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
                 .build();
@@ -129,7 +129,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
      */
     void prepareMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         try {
             var preFocusPcv = ctx.getPreFocusAsPcv();

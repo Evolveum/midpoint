@@ -38,10 +38,7 @@ import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
 import dev.cel.parser.CelStandardMacro;
-import dev.cel.runtime.CelRuntime;
-import dev.cel.runtime.CelRuntimeBuilder;
-import dev.cel.runtime.CelRuntimeFactory;
-import dev.cel.runtime.CelUnknownSet;
+import dev.cel.runtime.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -67,9 +64,10 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current()
             .enableRegexPartialMatch(true)
-            .enableOptionalSyntax(true)
             .enableShortCircuiting(true)
+            .enableEasyNull(true)
             .build();
+    private final MelRuntimeEquality runtimeEquality = new MelRuntimeEquality(celOptions);
 
     private CelTypeProvider typeProvider = null;
 
@@ -85,7 +83,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
-                basicExpressionFunctions, midpointExpressionFunctions, celOptions);
+                basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality);
         functionLibraryProcessor = new FunctionLibraryProcessor();
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
@@ -139,7 +137,8 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
 
     @Override
     protected CelScriptCacheKey getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         Map<String,CelType> celTypeMap = new HashMap<>();
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
@@ -153,7 +152,9 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     }
 
 
-    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, SubscriptionComplianceException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
         builder.setOptions(celOptions);
         builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
@@ -165,7 +166,9 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         return builder.build();
     }
 
-    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
         for (var varEntry : variables.entrySet()) {
             builder.addVar(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
@@ -254,6 +257,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
         builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getExpressionProfile()));
+        builder.setRuntimeEquality(runtimeEquality);
         addFunctionLibraryImplementations(builder, context);
         return builder.build();
     }
@@ -268,7 +272,9 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         }
     }
 
-    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
         // Variable nil mimics nil/null literal.

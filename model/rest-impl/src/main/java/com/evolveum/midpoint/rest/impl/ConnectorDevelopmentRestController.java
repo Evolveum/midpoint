@@ -42,6 +42,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
 
     private static final String CLASS_DOT = ConnectorDevelopmentRestController.class.getName() + ".";
 
+    public static final String START_FROM_NEW = CLASS_DOT + "startFromNew";
     public static final String CONTINUE_FROM = CLASS_DOT + "continueFrom";
     public static final String OPERATION_CREATE_CONNECTOR = CLASS_DOT + "CreateConnector";
     public static final String OPERATION_DISCOVER_BASIC_INFORMATION = CLASS_DOT + "DiscoverBasicInformation";
@@ -60,6 +61,31 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     @Autowired private ConnectorDevelopmentService connectorDevelopmentService;
     @Autowired private MidpointConfiguration configuration;
     @Autowired private ModelService modelService;
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_NEW)
+    public ResponseEntity<?> startFromNew(
+            @RequestBody @NotNull ConnDevApplicationInfoType applicationInfoType
+    ) {
+
+        var task = initRequest();
+        var result = createSubresult(task, START_FROM_NEW);
+
+        try {
+
+            return createResponse(
+                    HttpStatus.OK,
+                    connectorDevelopmentService.startFromNew(
+                            applicationInfoType,
+                            new OperationResult("load_ConnectorDevelopmentOperation")
+                    ),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
 
     @GetMapping(ConnectorGeneratorConstants.RPC_CONTINUE_FROM)
     public ResponseEntity<?> continueFrom(
@@ -486,8 +512,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             SecurityViolationException,
             CommunicationException,
             ConfigurationException,
-            ObjectNotFoundException
-    {
+            ObjectNotFoundException, SubscriptionComplianceException {
         PrismObject<ConnectorDevelopmentType> connectorDevelopmentType = modelService.getObject(
                 ConnectorDevelopmentType.class,
                 oid,

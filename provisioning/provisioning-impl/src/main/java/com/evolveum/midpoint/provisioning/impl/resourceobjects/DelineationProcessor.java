@@ -58,7 +58,7 @@ class DelineationProcessor {
             @Nullable ObjectQuery clientQuery,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ResourceObjectDefinition definition = getEffectiveDefinition(ctx);
         return new DelineationProcessor(definition.getDelineation(), definition, ctx)
                 .execute(clientQuery, result);
@@ -75,7 +75,7 @@ class DelineationProcessor {
             @Nullable ObjectQuery objectQuery,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         wildcardCtx.assertWildcard();
         return new DelineationProcessor(delineation, definition, wildcardCtx)
                 .execute(objectQuery, result);
@@ -83,7 +83,7 @@ class DelineationProcessor {
 
     private @NotNull QueryWithConstraints execute(@Nullable ObjectQuery clientQuery, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new QueryWithConstraints(
                 ObjectQueryUtil.addConjunctions(clientQuery, delineation.getFilterClauses()),
                 determineSearchHierarchyConstraints(result));
@@ -91,7 +91,7 @@ class DelineationProcessor {
 
     private SearchHierarchyConstraints determineSearchHierarchyConstraints(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
         ResourceObjectReferenceType baseContextRef = delineation.getBaseContext();
         SearchHierarchyScope scope = delineation.getSearchHierarchyScope();
 
@@ -106,7 +106,7 @@ class DelineationProcessor {
     private @Nullable ResourceObjectIdentification.WithPrimary determineBaseContextIdentification(
             ResourceObjectReferenceType baseContextRef, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (baseContextRef == null) {
             return null;

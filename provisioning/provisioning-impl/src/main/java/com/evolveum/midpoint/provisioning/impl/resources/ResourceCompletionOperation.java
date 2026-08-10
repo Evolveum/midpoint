@@ -116,7 +116,8 @@ class ResourceCompletionOperation {
      * @return completed resource
      */
     public @NotNull ResourceType execute(OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         result = parentResult.createMinorSubresult(OP_COMPLETE_RESOURCE);
         try {
@@ -158,7 +159,8 @@ class ResourceCompletionOperation {
             lastExpansionOperation = new ResourceExpansionOperation(resource, beans);
             try {
                 lastExpansionOperation.execute(result);
-            } catch (SchemaException | ConfigurationException | ObjectNotFoundException | RuntimeException e) {
+            } catch (SchemaException | ConfigurationException | ObjectNotFoundException | RuntimeException |
+                     SubscriptionComplianceException e) {
                 String message =
                         "An error occurred while expanding super-resource references of " + resource + ": " + e.getMessage();
                 result.recordPartialError(message, e);
@@ -186,7 +188,7 @@ class ResourceCompletionOperation {
 
     private @NotNull ResourceType complete()
             throws StopException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            ConfigurationException {
+            ConfigurationException, SubscriptionComplianceException {
 
         LOGGER.trace("The resource is NOT complete. Trying to fetch schema and capabilities.");
 
@@ -257,7 +259,7 @@ class ResourceCompletionOperation {
 
         private void execute()
                 throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException,
-                ConfigurationException {
+                ConfigurationException, SubscriptionComplianceException {
 
             // Capabilities
             // we need to process capabilities first. Schema is one of the connector capabilities.
@@ -270,7 +272,8 @@ class ResourceCompletionOperation {
         }
 
         private void completeCapabilities()
-                throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+                throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+                SubscriptionComplianceException {
             for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
                 completeConnectorCapabilities(connectorSpec);
             }
@@ -281,7 +284,8 @@ class ResourceCompletionOperation {
          */
         private void completeConnectorCapabilities(
                 @NotNull ConnectorSpec connectorSpec)
-                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+                SubscriptionComplianceException {
             CapabilitiesType capabilitiesBean = connectorSpec.getCapabilities();
             CapabilityCollectionType nativeCapabilities;
             if (capabilitiesBean != null
@@ -310,7 +314,8 @@ class ResourceCompletionOperation {
 
         private CapabilityCollectionType fetchAndStoreCapabilities(
                 @NotNull ConnectorSpec connectorSpec)
-                throws CommunicationException, ConfigurationException, SchemaException, ObjectNotFoundException {
+                throws CommunicationException, ConfigurationException, SchemaException, ObjectNotFoundException,
+                SubscriptionComplianceException {
             LOGGER.trace("No native capabilities cached in the resource object -> fetching them; for {}", connectorSpec);
             CapabilityCollectionType fetchedNativeCapabilities;
             try {
@@ -329,7 +334,7 @@ class ResourceCompletionOperation {
 
         private void completeSchema()
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-                SchemaException {
+                SchemaException, SubscriptionComplianceException {
 
             // Try to get existing schema. We do not want to override this if it exists
             nativeResourceSchema = ResourceSchemaFactory.getNativeSchema(resource);
@@ -342,7 +347,7 @@ class ResourceCompletionOperation {
 
         private void fetchAndStoreSchema()
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-                SchemaException {
+                SchemaException, SubscriptionComplianceException {
             fetchSchema();
             if (NativeResourceSchema.isNotEmpty(nativeResourceSchema)) {
                 resourceUpdater.updateSchema(nativeResourceSchema);
@@ -364,7 +369,7 @@ class ResourceCompletionOperation {
 
         private void fetchSchema()
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
-                SchemaException {
+                SchemaException, SubscriptionComplianceException {
             LOGGER.trace("Fetching resource schema for {}", resource);
             nativeResourceSchema =
                     schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, true, result);

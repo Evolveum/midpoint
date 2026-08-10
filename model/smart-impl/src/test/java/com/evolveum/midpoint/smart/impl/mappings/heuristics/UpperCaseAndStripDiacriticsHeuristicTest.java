@@ -13,17 +13,13 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 public class UpperCaseAndStripDiacriticsHeuristicTest extends MappingScriptTestBase {
@@ -65,8 +61,7 @@ public class UpperCaseAndStripDiacriticsHeuristicTest extends MappingScriptTestB
 
     @Test
     void inputContainsLowercaseAndDiacritics_inboundScriptIsEvaluated_outputShouldBeUppercaseAndWithoutDiacritics()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final UpperCaseAndStripDiacriticsHeuristic heuristic = new UpperCaseAndStripDiacriticsHeuristic();
 
         final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
@@ -77,8 +72,7 @@ public class UpperCaseAndStripDiacriticsHeuristicTest extends MappingScriptTestB
 
     @Test
     void propertyContainsLowercaseAndDiacritics_outboundScriptIsEvaluated_outputShouldBeUppercaseAndWithoutDiacritics()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final String focusProperty = "name";
         final UpperCaseAndStripDiacriticsHeuristic heuristic = new UpperCaseAndStripDiacriticsHeuristic();
 

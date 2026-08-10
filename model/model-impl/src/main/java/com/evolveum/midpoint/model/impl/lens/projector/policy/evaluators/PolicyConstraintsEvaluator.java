@@ -51,7 +51,7 @@ public class PolicyConstraintsEvaluator {
     @NotNull <O extends ObjectType> List<EvaluatedPolicyRuleTrigger<?>> evaluateConstraints(
             PolicyConstraintsType constraints, boolean allMustApply, PolicyRuleEvaluationContext<O> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (constraints == null) {
             return Collections.emptyList();
         }

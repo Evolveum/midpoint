@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
@@ -89,7 +89,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         };
     }
@@ -187,9 +187,9 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                 panel.add(new AjaxEventBehavior("click") {
                     @Override
                     protected void onEvent(AjaxRequestTarget target) {
-                        PreviewMappingPanel preview =
+                        @NotNull DrawerModel preview =
                                 SmartMappingColumns.this.table.getActions().buildPreviewMappingPanelPopup(() -> mappingWrapper);
-                        SmartMappingColumns.this.table.getPageBase().replaceMainPopup(preview, target);
+                        SmartMappingColumns.this.table.getPageBase().showRightSidebar(preview, target);
                     }
                 });
 

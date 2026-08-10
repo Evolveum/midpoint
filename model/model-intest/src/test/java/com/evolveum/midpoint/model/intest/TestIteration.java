@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
@@ -62,6 +63,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final File RESOURCE_DUMMY_PINK_FILE = new File(TEST_DIR, "resource-dummy-pink.xml");
     private static final String RESOURCE_DUMMY_PINK_OID = "10000000-0000-0000-0000-00000000a104";
     private static final String RESOURCE_DUMMY_PINK_NAME = "pink";
+
+    // Iteration with start and end (1..10) and name + iterationToken mapping
+    private static final File RESOURCE_DUMMY_PINK_START_END_FILE = new File(TEST_DIR, "resource-dummy-pink-start-end.xml");
+    private static final String RESOURCE_DUMMY_PINK_START_END_OID = "10000000-0000-0000-0000-00000000a10a";
+    private static final String RESOURCE_DUMMY_PINK_START_END_NAME = "pink-start-end";
 
     // Iteration with token expression, pre-iteration condition and post-iteration condition
     private static final File RESOURCE_DUMMY_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-violet.xml");
@@ -172,6 +178,14 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME = TestObject.file(
             TEST_DIR, "user-template-iteration-but-constant-name.xml", "2ebfbbf4-e680-455d-a64f-a49d779a4a53");
 
+    // start=5, no end, maxIterations=2 -> effective range is 5..7
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_START = TestObject.file(
+            TEST_DIR, "user-template-iteration-start.xml", "10000000-0000-0000-0000-0000000d0020");
+
+    // start=5, end=6 (end takes precedence over maxIterations=100) -> effective range is 5..6
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_START_END = TestObject.file(
+            TEST_DIR, "user-template-iteration-start-end.xml", "10000000-0000-0000-0000-0000000d0021");
+
     private String jupiterUserOid;
 
     private String iterationTokenDiplomatico;
@@ -183,6 +197,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         initDummyResourcePirate(RESOURCE_DUMMY_PINK_NAME,
                 RESOURCE_DUMMY_PINK_FILE, RESOURCE_DUMMY_PINK_OID, initTask, initResult);
+
+        initDummyResourcePirate(RESOURCE_DUMMY_PINK_START_END_NAME,
+                RESOURCE_DUMMY_PINK_START_END_FILE, RESOURCE_DUMMY_PINK_START_END_OID, initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_VIOLET_NAME,
                 RESOURCE_DUMMY_VIOLET_FILE, RESOURCE_DUMMY_VIOLET_OID, initTask, initResult);
@@ -215,6 +232,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         ROLE_CS_101.init(this, initTask, initResult);
 
         USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME.init(this, initTask, initResult);
+
+        USER_TEMPLATE_ITERATION_START.init(this, initTask, initResult);
+        USER_TEMPLATE_ITERATION_START_END.init(this, initTask, initResult);
     }
 
     /**
@@ -474,6 +494,72 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
     }
 
+    /**
+     * End-to-end test for resource-level iteration with explicit start and end values.
+     * The resource maps account name from user name using the iterationToken variable.
+     * With iteration start=1 and end=10, a conflicting account name is resolved by
+     * appending a numeric token. The first attempt (iteration=1) yields the original name
+     * (empty token), which conflicts; the second attempt (iteration=2) yields the token "2".
+     */
+    @Test
+    public void test225JohnAssignAccountDummyPinkStartEndConflicting() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyAuditService.clear();
+
+        // Create a new user in the repository which will be projected through outbound mapping to resource.
+        PrismObject<UserType> userJohn = createUser("john", "John", "Smith", true);
+        addObject(userJohn);
+        String userJohnOid = userJohn.getOid();
+
+        // Simulate a pre-existing conflicting account on the target resource. The account "john"
+        // already exists on the dummy resource, so the projection must iterate to a different name.
+        String accountJohnName = "john";
+        DummyAccount account = new DummyAccount(accountJohnName);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "John Pinky");
+        getDummyResource(RESOURCE_DUMMY_PINK_START_END_NAME).addAccount(account);
+
+        // Add a corresponding shadow for the conflicting account to the repository.
+        repoAddObject(createRepoShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_START_END_NAME), accountJohnName).getPrismObject(), result);
+
+        // Build the assignment delta that assigns the dummy resource to the user. This triggers
+        // projection and account creation on the resource.
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(userJohnOid, RESOURCE_DUMMY_PINK_START_END_OID, null, true);
+
+        // The model will compute  account name using the iteration token mapping, and handle the naming conflict.
+        when();
+        executeChanges(accountAssignmentUserDelta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        // Verify the user state after the operation. The user's name and full name remain unchanged.
+        PrismObject<UserType> userJohnAfter = getUser(userJohnOid);
+        display("User after change execution", userJohnAfter);
+        assertUser(userJohnAfter, userJohnOid, "john", "John Smith", "John", "Smith");
+
+        assertLiveLinks(userJohnAfter, 1);
+
+        String accountStartEndOid = getSingleLinkOid(userJohnAfter);
+
+        // Check the shadow as stored directly in the repository. The account name should be "john2"
+        var accountStartEndShadow = getShadowRepo(accountStartEndOid);
+        assertAccountShadowRepo(accountStartEndShadow, accountStartEndOid, "john2", getDummyResourceType(RESOURCE_DUMMY_PINK_START_END_NAME));
+
+        // Check the shadow through the model layer. This validates that the projection logic and
+        // schema handling also see the same account name "john2".
+        PrismObject<ShadowType> accountStartEndModel = modelService.getObject(ShadowType.class, accountStartEndOid, null, task, result);
+        assertAccountShadowModel(accountStartEndModel, accountStartEndOid, "john2", getDummyResourceType(RESOURCE_DUMMY_PINK_START_END_NAME));
+
+        // Verify the dummy resource state. The original conflicting account "john" remains unchanged.
+        assertDummyAccount(RESOURCE_DUMMY_PINK_START_END_NAME, accountJohnName, "John Pinky", true);
+
+        // The projected account should be "john2" with the user's full name "John Smith".
+        assertDummyAccount(RESOURCE_DUMMY_PINK_START_END_NAME, "john2", "John Smith", true);
+    }
+
     @Test
     public void test230ScroogeAddAccountDummyConflictingNoShadow() throws Exception {
         // GIVEN
@@ -691,11 +777,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         cleanUpJupiter();
     }
 
-    private void cleanUpJupiter()
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException, SchemaViolationException,
-            ConflictException, InterruptedException {
+    private void cleanUpJupiter() throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
 
         // GIVEN
         Task task = getTestTask();
@@ -2180,11 +2262,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertUser(userLargo, USER_LARGO_OID, USER_LARGO_NAME, null, "Largo", "LaGrande", null);
     }
 
-    private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws CommonException {
         assertUserNick(accountName, accountFullName, expectedUserName, null);
     }
 
-    private void assertUserNick(String accountName, String accountFullName, String expectedUserName, String expectedLocality) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUserNick(String accountName, String accountFullName, String expectedUserName, String expectedLocality) throws CommonException {
         PrismObject<UserType> user = findUserByUsername(expectedUserName);
         assertNotNull("No user for " + accountName + " (" + expectedUserName + ")", user);
         display("Created user for " + accountName, user);
@@ -2198,15 +2280,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         }
     }
 
-    private void assertNoUserNick(String accountName, String expectedUserName)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertNoUserNick(String accountName, String expectedUserName) throws CommonException {
         PrismObject<UserType> user = findUserByUsername(expectedUserName);
         display("User for " + accountName, user);
         assertNull("User for " + accountName + " (" + expectedUserName + ") exists but it should be gone", user);
     }
 
-    private String lookupIterationTokenByAdditionalName(String additionalName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private String lookupIterationTokenByAdditionalName(String additionalName) throws CommonException {
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + ".lookupIterationTokenByAdditionalName");
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -2316,6 +2396,88 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
             then("user is there");
             assertUserAfterByUsername(name);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Tests the `start` property of the iteration specification, combined with `maxIterations` (no `end` defined).
+     * With `start=5` and `maxIterations=2`, the effective (inclusive) range of the iteration variable is 5..7.
+     */
+    @Test
+    public void test930IterationStart() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_START.oid);
+        try {
+            given("no user named 'Anne Bonny' exists yet");
+
+            when("first user 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration starts at 5, so the token is empty");
+            assertUserAfterByUsername("Anne Bonny")
+                    .assertName("Anne Bonny");
+
+            when("second conflicting 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration is 6");
+            assertUserAfterByUsername("Anne Bonny6")
+                    .assertName("Anne Bonny6");
+
+            when("third conflicting 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration is 7 (start + maxIterations)");
+            assertUserAfterByUsername("Anne Bonny7")
+                    .assertName("Anne Bonny7");
+
+            when("fourth conflicting 'Anne Bonny' is added");
+            then("the iteration limit (7) is exceeded and the operation fails");
+            assertThatThrownBy(() ->
+                    addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result))
+                    .isInstanceOf(ObjectAlreadyExistsException.class);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Tests the `start` and `end` properties of the iteration specification. `end` must take precedence
+     * over `maxIterations` when both are defined. With `start=5` and `end=6`, the effective (inclusive)
+     * range of the iteration variable is 5..6, regardless of the (much higher) `maxIterations=100`.
+     */
+    @Test
+    public void test940IterationStartEnd() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_START_END.oid);
+        try {
+            given("no user named 'Jack Rackham' exists yet");
+
+            when("first user 'Jack Rackham' is added");
+            addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result);
+
+            then("iteration starts at 5, so the token is empty");
+            assertUserAfterByUsername("Jack Rackham")
+                    .assertName("Jack Rackham");
+
+            when("second conflicting 'Jack Rackham' is added");
+            addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result);
+
+            then("iteration is 6 (end)");
+            assertUserAfterByUsername("Jack Rackham6")
+                    .assertName("Jack Rackham6");
+
+            when("third conflicting 'Jack Rackham' is added");
+            then("the iteration limit (end=6) is exceeded, even though maxIterations=100, and the operation fails");
+            assertThatThrownBy(() ->
+                    addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result))
+                    .isInstanceOf(ObjectAlreadyExistsException.class);
         } finally {
             setDefaultUserTemplate(null);
         }

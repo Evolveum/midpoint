@@ -78,7 +78,7 @@ public class CorrelationSimulationActivityRun
 
     private void precomputeResourceSchemaAndContext(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
         final String resourceOid = resourceObjectSet.getResourceRef().getOid();
         final ResourceObjectTypeIdentification objectTypeId = ResourceObjectTypeIdentification.of(
@@ -104,7 +104,7 @@ public class CorrelationSimulationActivityRun
     public boolean processItem(@NotNull ShadowType shadow, @NotNull ItemProcessingRequest<ShadowType> req,
             RunningTask task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final CompleteCorrelationResult correlationResult = this.correlationService.correlate(shadow,
                 this.resource, this.objectTypeDefinition, this.correlationDefinition, task, result);
 

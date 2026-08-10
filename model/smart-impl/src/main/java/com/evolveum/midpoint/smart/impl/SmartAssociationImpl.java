@@ -64,14 +64,12 @@ public class SmartAssociationImpl {
      * Associations are derived by analyzing reference attributes in native object class definitions.
      *
      * @param resource The resource in which to evaluate possible associations.
-     * @param isInbound if true suggest inbound mapping otherwise suggest outbound mapping
      * @return Suggested associations as {@link AssociationsSuggestionType}.
      */
     public AssociationsSuggestionType suggestSmartAssociation(
-            @NotNull ResourceType resource,
-            boolean isInbound
+            @NotNull ResourceType resource
     ) throws SchemaException, ConfigurationException {
-        LOGGER.info("Start generating association suggestions, resource: {}, isInbound: {}", resource.getOid(), isInbound);
+        LOGGER.info("Start generating association suggestions, resource: {}", resource.getOid());
 
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
 
@@ -103,7 +101,7 @@ public class SmartAssociationImpl {
                             refAttribute.getItemName(),
                             objectObjectType.getTypeIdentification()
                     );
-                    var associationDef = resolveRefBasedAssociation(subjectObjectType, refAttribute, objectObjectType, isInbound);
+                    var associationDef = resolveRefBasedAssociation(subjectObjectType, refAttribute, objectObjectType);
                     var suggestion = new AssociationSuggestionType().definition(associationDef);
                     associationsSuggestionType.getAssociation().add(suggestion);
                     traceAssociationSuggestion(suggestion);
@@ -125,13 +123,11 @@ public class SmartAssociationImpl {
      * @param subjectObjectType association subject
      * @param attributeReference referenced attribute
      * @param objectObjectType association object
-     * @param isInbound inbound/outbound flag
      */
     private ShadowAssociationTypeDefinitionType resolveRefBasedAssociation(
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ShadowReferenceAttributeDefinition attributeReference,
-            @NotNull ResourceObjectTypeDefinition objectObjectType,
-            boolean isInbound) {
+            @NotNull ResourceObjectTypeDefinition objectObjectType) {
 
         ShadowAssociationTypeDefinitionType association = new ShadowAssociationTypeDefinitionType();
 
@@ -141,7 +137,7 @@ public class SmartAssociationImpl {
         var displayName = constructAssociationDisplayName(subjectObjectType, objectObjectType);
         association.setDisplayName(displayName);
 
-        var subject = buildSubjectParticipantDefinitionType(subjectObjectType, objectObjectType, attributeReference, assocName, isInbound);
+        var subject = buildSubjectParticipantDefinitionType(subjectObjectType, objectObjectType, attributeReference, assocName);
         var object = buildObjectParticipantDefinitionType(objectObjectType);
 
         String descriptionNote = createAssociationDescription(attributeReference, subjectObjectType, objectObjectType);
@@ -179,13 +175,15 @@ public class SmartAssociationImpl {
         return expression;
     }
 
-    private MappingType makeOutboundMapping(String associationName) {
+    private MappingType makeOutboundMapping(String associationName, ItemPathType ref) {
         var fromLinkEvaluator = new AssociationFromLinkExpressionEvaluatorType();
         var fromLinkExpression = makeExpressionType(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, fromLinkEvaluator);
 
         var constructionEvaluator = new AssociationConstructionExpressionEvaluatorType()
                 .objectRef(new AttributeOutboundMappingsDefinitionType()
+                        .ref(ref)
                         .mapping(new MappingType()
+                                .strength(MappingStrengthType.STRONG)
                                 .name("associationFromLink")
                                 .expression(fromLinkExpression)
                         )
@@ -198,9 +196,10 @@ public class SmartAssociationImpl {
                 .expression(constructionExpression);
     }
 
-    private InboundMappingType makeInboundMapping(String associationName) {
+    private InboundMappingType makeInboundMapping(String associationName, ItemPathType ref) {
         var mapping = new InboundMappingType()
                 .name("shadowOwner-into-targetRef")
+                .strength(MappingStrengthType.STRONG)
                 .target(new VariableBindingDefinitionType().path(new ItemPathType(ItemPath.fromString("targetRef"))))
                 .expression(makeExpressionType(SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, new ShadowOwnerReferenceSearchExpressionEvaluatorType()));
         var synchronizationEvaluator = new AssociationSynchronizationExpressionEvaluatorType()
@@ -224,8 +223,9 @@ public class SmartAssociationImpl {
                                 .situation(ItemSynchronizationSituationType.MATCHED_INDIRECTLY)
                         )
                 )
+                .correlation(makeCorrelation(mapping))
                 .objectRef(new AttributeInboundMappingsDefinitionType()
-                        .correlator(new ItemCorrelatorDefinitionType())
+                        .ref(ref)
                         .mapping(mapping)
                 );
         var synchronizationExpression = makeExpressionType(SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION, synchronizationEvaluator);
@@ -233,7 +233,20 @@ public class SmartAssociationImpl {
         var inboundMappingName = associationName + "-inbound";
         return new InboundMappingType()
                 .name(inboundMappingName)
+                .strength(MappingStrengthType.STRONG)
                 .expression(synchronizationExpression);
+    }
+
+    private CorrelationDefinitionType makeCorrelation(@NotNull InboundMappingType mapping) {
+        return new CorrelationDefinitionType()
+                .correlators(new CompositeCorrelatorType()
+                        .items(new ItemsSubCorrelatorType()
+                                .name("membership-correlation")
+                                .enabled(true)
+                                .description("Correlate group membership using existing assignments")
+                                .item(new CorrelationItemType()
+                                        .name(mapping.getName())
+                                        .ref(mapping.getTarget().getPath()))));
     }
 
     /**
@@ -243,8 +256,7 @@ public class SmartAssociationImpl {
             @NotNull ResourceObjectTypeDefinition subjectObjectType,
             @NotNull ResourceObjectTypeDefinition objectObjectType,
             @NotNull ShadowReferenceAttributeDefinition attributeReference,
-            String associationName,
-            boolean isInbound
+            String associationName
     ) {
 
         var sourceRef = attributeReference.getItemName().toBean();
@@ -255,11 +267,8 @@ public class SmartAssociationImpl {
                 .ref(ref)
                 .sourceAttributeRef(sourceRef);
 
-        if (isInbound) {
-            assocDef.inbound(makeInboundMapping(associationName));
-        } else {
-            assocDef.outbound(makeOutboundMapping(associationName));
-        }
+        assocDef.inbound(makeInboundMapping(associationName, sourceRef));
+        assocDef.outbound(makeOutboundMapping(associationName, sourceRef));
 
         return new ShadowAssociationTypeSubjectDefinitionType()
                 .association(assocDef)

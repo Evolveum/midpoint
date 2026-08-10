@@ -427,7 +427,8 @@ Inherits from: xref:#m_abstract_role[`m_abstract_role`]
 [[m_service]]
 === `m_service`
 
-Stores service objects, including service accounts and application services. +
+Stores service objects, including service accounts and application services.
+
 Represents ServiceType, see https://docs.evolveum.com/midpoint/reference/deployment/service-account-management/
 
 XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ServiceType`

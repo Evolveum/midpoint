@@ -79,7 +79,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
             @NotNull ObjectTreeDeltas<T> objectTreeDeltas,
             @NotNull ModelInvocationContext<T> ctx,
             @NotNull OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_GET_START_INSTRUCTIONS)
                 .setMinor()
                 .build();

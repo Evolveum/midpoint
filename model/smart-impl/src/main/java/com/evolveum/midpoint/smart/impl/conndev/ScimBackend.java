@@ -11,14 +11,16 @@ import java.util.List;
 /**
  * SCIM backend. Schema discovery is connector-agnostic and lives in {@link ConnectorDevelopmentBackend}
  * (via the shared {@code conndev_ObjectClass} dev model); on top of that the SCIM connector exports the
- * raw discovered schema ({@code conndev_ScimSchema}/{@code conndev_ScimResource} — full /Schemas and
- * /ResourceTypes JSON), which is forwarded to the generation service as well: it carries details the
- * precomputed mapping does not (complex attributes, extension schemas).
+ * raw discovered schema ({@code conndev_ScimSchema}/{@code conndev_ScimResource}/
+ * {@code conndev_ScimServiceProviderConfig} — full /Schemas, /ResourceTypes and /ServiceProviderConfig
+ * JSON), which is forwarded to the generation service as well: it carries details the precomputed
+ * mapping does not (complex attributes, extension schemas, provider capabilities).
  */
 public class ScimBackend extends RestBackend {
 
     private static final String CONNDEV_SCIM_SCHEMA = "conndev_ScimSchema";
     private static final String CONNDEV_SCIM_RESOURCE = "conndev_ScimResource";
+    private static final String CONNDEV_SCIM_SERVICE_PROVIDER_CONFIG = "conndev_ScimServiceProviderConfig";
 
     public ScimBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         super(beans, connDev, task, result);
@@ -29,6 +31,7 @@ public class ScimBackend extends RestBackend {
         var objectClasses = new ArrayList<>(super.devDocumentationObjectClasses());
         objectClasses.add(CONNDEV_SCIM_SCHEMA);
         objectClasses.add(CONNDEV_SCIM_RESOURCE);
+        objectClasses.add(CONNDEV_SCIM_SERVICE_PROVIDER_CONFIG);
         return objectClasses;
     }
 }

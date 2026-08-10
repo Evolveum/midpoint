@@ -93,17 +93,17 @@ public abstract class AbstractMidPointCelExtensions
     }
 
     @NotNull
-    protected RuntimeException createException(@NotNull Exception e) {
+    protected static RuntimeException createException(@NotNull Exception e) {
         return new MelException(e.getMessage(), e);
     }
 
     @NotNull
-    protected RuntimeException createException(@NotNull String message) {
+    protected static RuntimeException createException(@NotNull String message) {
         return new MelException(message);
     }
 
     @NotNull
-    protected RuntimeException createException(@NotNull String message, @NotNull Exception e) {
+    protected static RuntimeException createException(@NotNull String message, @NotNull Exception e) {
         return new MelException(message, e);
     }
 

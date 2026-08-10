@@ -1120,10 +1120,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         }
     }
 
-    private void cleanupAutzTest(String userOid)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException {
+    private void cleanupAutzTest(String userOid) throws CommonException {
         login(userAdministrator);
         unassignAllRoles(userOid);
     }

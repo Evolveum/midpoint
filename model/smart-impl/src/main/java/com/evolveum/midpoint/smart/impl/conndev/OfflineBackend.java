@@ -15,6 +15,12 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
         super(beans, connDev, task, result);
     }
 
+    @Override
+    protected List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) {
+        // The offline backend has no generation service to process documentation, so there is nothing to sync.
+        return List.of();
+    }
+
 
     @Override
     public ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache) {

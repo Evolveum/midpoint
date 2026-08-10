@@ -248,7 +248,9 @@ public abstract class AbstractProvisioningIntegrationTest
         return null;
     }
 
-    protected ShadowAsserter<Void> assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected ShadowAsserter<Void> assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException,
+            SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         OperationResult result = createSubresult("assertShadowProvisioning");
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, null, getTestTask(), result);
         assertSuccess(result);
@@ -259,7 +261,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     protected ShadowAsserter<Void> assertShadowNoFetch(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createSubresult("assertShadowNoFetch-" + oid);
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, getTestTask(), result);
@@ -271,7 +273,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     protected ShadowAsserter<Void> assertShadowFuture(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createSubresult("assertShadowFuture-" + oid);
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, getTestTask(), result);
@@ -281,7 +283,9 @@ public abstract class AbstractProvisioningIntegrationTest
         return asserter;
     }
 
-    protected ShadowAsserter<Void> assertShadowFutureNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected ShadowAsserter<Void> assertShadowFutureNoFetch(String oid) throws ObjectNotFoundException, CommunicationException,
+            SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
@@ -296,7 +300,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     protected OperationResult testResourceAssertSuccess(String resourceOid, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         OperationResult testResult = provisioningService.testResource(resourceOid, task, result);
         assertSuccess(testResult);
         return testResult;
@@ -304,7 +308,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     @SuppressWarnings("UnusedReturnValue")
     protected OperationResult testResourceAssertSuccess(DummyTestResource resource, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         OperationResult testResult = provisioningService.testResource(resource.oid, task, result);
         assertSuccess(testResult);
         resource.reload(result);
@@ -374,7 +378,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     @Override
     public OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         return provisioningService.testResource(oid, task, result);
     }
 
@@ -394,7 +398,7 @@ public abstract class AbstractProvisioningIntegrationTest
 
     protected ShadowAsserter<Void> assertProvisioningShadowNew(@NotNull String oid)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var shadow = provisioningService
                 .getObject(ShadowType.class, oid, null, getTestTask(), getTestOperationResult())
                 .asObjectable();

@@ -13,17 +13,13 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 public class ToLowerCaseHeuristicTest extends MappingScriptTestBase {
@@ -50,8 +46,7 @@ public class ToLowerCaseHeuristicTest extends MappingScriptTestBase {
 
     @Test
     void inputContainsUppercaseLetters_inboundScriptIsEvaluated_outputShouldBeLowercase()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final ToLowerCaseHeuristic heuristic = new ToLowerCaseHeuristic();
 
         final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
@@ -62,8 +57,7 @@ public class ToLowerCaseHeuristicTest extends MappingScriptTestBase {
 
     @Test
     void propertyContainsUppercaseLetters_outboundScriptIsEvaluated_outputShouldBeLowercase()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final String focusProperty = "name";
         final ToLowerCaseHeuristic heuristic = new ToLowerCaseHeuristic();
 

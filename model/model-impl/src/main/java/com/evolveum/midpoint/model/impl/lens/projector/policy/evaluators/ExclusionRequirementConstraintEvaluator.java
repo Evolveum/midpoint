@@ -67,7 +67,7 @@ public class ExclusionRequirementConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -251,7 +251,7 @@ public class ExclusionRequirementConstraintEvaluator
             AssignmentPolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         DirectlyEvaluatedClockworkPolicyRule policyRule = ctx.policyRule;
         AssignmentPath pathA = policyRule.getRuleAssignmentPath();
@@ -283,7 +283,7 @@ public class ExclusionRequirementConstraintEvaluator
             AssignmentPolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         DirectlyEvaluatedClockworkPolicyRule policyRule = ctx.policyRule;
         AssignmentPath pathA = policyRule.getRuleAssignmentPath();
@@ -339,7 +339,7 @@ public class ExclusionRequirementConstraintEvaluator
             JAXBElement<ExclusionPolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<AH> ctx, String constraintKey, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKey)
                 .args(infoA, infoB)
@@ -350,7 +350,7 @@ public class ExclusionRequirementConstraintEvaluator
     @NotNull
     private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(LocalizableMessage infoA, Object infoB,
             JAXBElement<ExclusionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, String constraintKey, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKey)
                 .args(infoA, infoB)

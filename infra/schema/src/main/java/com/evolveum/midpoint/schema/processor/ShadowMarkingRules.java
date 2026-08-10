@@ -77,7 +77,7 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
     /** Returns the same rules but with expressions evaluated. */
     public ShadowMarkingRules evaluateExpressions(@NotNull FilterExpressionEvaluator evaluator, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var transformedRulesMap = new HashMap<String, MarkingRule>();
         for (var sourceRulesEntry : markingRulesMap.entrySet()) {
             transformedRulesMap.put(
@@ -90,7 +90,7 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
     private MarkingRule evaluateExpressionsInRule(
             MarkingRule sourceRule, FilterExpressionEvaluator evaluator, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var transformedPatterns = new ArrayList<ResourceObjectPattern>();
         for (var sourcePattern : sourceRule.getPatterns()) {
             transformedPatterns.add(
@@ -177,7 +177,7 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
     public interface FilterExpressionEvaluator extends Serializable {
         ObjectFilter evaluate(ObjectFilter rawFilter, OperationResult result) throws SchemaException,
                 ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException;
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
     }
 
     private static class Parser {

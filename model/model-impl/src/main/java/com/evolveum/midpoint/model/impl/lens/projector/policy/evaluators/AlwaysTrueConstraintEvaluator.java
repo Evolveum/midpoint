@@ -50,7 +50,7 @@ public class AlwaysTrueConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -73,7 +73,7 @@ public class AlwaysTrueConstraintEvaluator
             @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         return List.of(
                 new EvaluatedAlwaysTrueTrigger(
@@ -87,7 +87,7 @@ public class AlwaysTrueConstraintEvaluator
             @NotNull JAXBElement<AlwaysTruePolicyConstraintType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = createBuiltInMessage(
                 SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
                 constraintElement,
@@ -102,7 +102,7 @@ public class AlwaysTrueConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = createBuiltInMessage(
                 SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
                 constraintElement,
@@ -118,7 +118,7 @@ public class AlwaysTrueConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AlwaysTruePolicyConstraintType constraint = constraintElement.getValue();
         List<Object> args = new ArrayList<>();
         args.add(evaluatorHelper.createBeforeAfterMessage(ctx));

@@ -63,7 +63,7 @@ public class ObjectModificationConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -97,7 +97,7 @@ public class ObjectModificationConstraintEvaluator
     private LocalizableMessage createMessage(
             JAXBElement<ModificationPolicyConstraintType> constraint, PolicyRuleEvaluationContext<?> rctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
@@ -111,7 +111,7 @@ public class ObjectModificationConstraintEvaluator
             PolicyRuleEvaluationContext<?> rctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String keyPostfix = createStateKey(rctx) + createOperationKey(rctx);
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
@@ -138,7 +138,7 @@ public class ObjectModificationConstraintEvaluator
             ObjectPolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ModificationPolicyConstraintType constraint = constraintElement.getValue();
         if (!operationMatches(ctx.elementContext, constraint.getOperation())) {
             LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());

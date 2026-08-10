@@ -56,18 +56,18 @@ public class LinkedObjectsFunctions {
     @Autowired private LinkManager linkManager;
 
     <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return MiscUtil.extractSingleton(findLinkedSources(type), () -> new IllegalStateException("More than one assignee found"));
     }
 
     <T extends AssignmentHolderType> T findLinkedSource(String linkType) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return MiscUtil.extractSingleton(findLinkedSources(linkType), () -> new IllegalStateException("More than one assignee found"));
     }
 
     <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectReferenceType focusObjectReference = midpointFunctions.getFocusObjectReference();
         if (focusObjectReference == null) {
             return List.of(); // There cannot be any sources yet, because the focus is not in repository.
@@ -81,7 +81,7 @@ public class LinkedObjectsFunctions {
 
     <T extends AssignmentHolderType> List<T> findLinkedSources(String linkType) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         Task currentTask = midpointFunctions.getCurrentTask();
         OperationResult currentResult = midpointFunctions.getCurrentResult();
@@ -115,7 +115,7 @@ public class LinkedObjectsFunctions {
     // Should be used after assignment evaluation!
     <T extends AssignmentHolderType> T findLinkedTarget(Class<T> type, String archetypeOid) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return MiscUtil.extractSingleton(findLinkedTargets(type, archetypeOid),
                 () -> new IllegalStateException("More than one assigned object found"));
     }
@@ -123,7 +123,7 @@ public class LinkedObjectsFunctions {
     // Should be used after assignment evaluation!
     <T extends AssignmentHolderType> T findLinkedTarget(String linkTypeName) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return MiscUtil.extractSingleton(findLinkedTargets(linkTypeName),
                 () -> new IllegalStateException("More than one assigned object found"));
     }
@@ -133,7 +133,7 @@ public class LinkedObjectsFunctions {
     @NotNull
     <T extends AssignmentHolderType> List<T> findLinkedTargets(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMemberRelation = membership.stream()
                 .filter(ref -> relationRegistry.isMember(ref.getRelation()) && objectTypeMatches(ref, type))
@@ -157,7 +157,7 @@ public class LinkedObjectsFunctions {
     @NotNull
     <T extends AssignmentHolderType> List<T> findLinkedTargets(String linkTypeName)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult currentResult = midpointFunctions.getCurrentResult();
         LensFocusContext<?> focusContext = (LensFocusContext<?>) midpointFunctions.getFocusContext();
         if (focusContext == null) {
@@ -252,7 +252,7 @@ public class LinkedObjectsFunctions {
 
     private boolean objectMatches(@NotNull AssignmentHolderType targetObject, @Nullable ObjectSelectorType selector)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return selector == null ||
                 SelectorMatcher.forSelector(selector)
                         .withLogging(LOGGER)

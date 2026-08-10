@@ -781,6 +781,9 @@ public abstract class SchemaConstants {
     /** ID of "legacy unprivileged mode" expression profile for scripting (bulk actions). */
     public static final String LEGACY_UNPRIVILEGED_BULK_ACTIONS_PROFILE_ID = "##legacyUnprivilegedBulkActions";
 
+    /** ID of expression profile for mappings quality assessment. */
+    public static final String MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID = "##mappingsQualityAssessment";
+
     /**
      * The ID for built-in Groovy permission and script expression profiles.
      *

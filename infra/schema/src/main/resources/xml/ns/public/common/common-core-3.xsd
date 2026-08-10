@@ -5209,6 +5209,33 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="start" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number at which the iteration will start. This is inclusive, i.e. if set to 1,
+                        then the lowest number in the iteration variable will be 1.
+                        If not specified, the default value is 0.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.start</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="end" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number at which the iteration will stop. This is inclusive, i.e. if set to 10,
+                        then the largest number in the iteration variable will be 10.
+                        If not specified, the maxIterations property must be defined.
+                        If both maxIterations and end are defined, then end takes precedence.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.end</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="maxIterations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6443,6 +6470,9 @@
                 set of values should be constructed. E.g. setting
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
+                However, this behavior is not reliable (e.g. it changes when
+                empty values are explicitly allowed). Please use the "null"
+                evaluator to construct an empty set of values instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:rawType/>
@@ -6459,6 +6489,22 @@
     </xsd:complexType>
 
     <xsd:element name="asIs" type="tns:AsIsExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="NullExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Returns no value. The result of the evaluation is an empty set of values.
+
+                Combined with a target set (range) definition, e.g. the predefined "all" range,
+                it can be used to remove all values of the target item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:element name="null" type="tns:NullExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
     <!-- Here we use complexType to create a Java class named ConstExpressionEvaluatorType -->
     <xsd:complexType name="ConstExpressionEvaluatorType">
@@ -7995,6 +8041,9 @@
              <xsd:appinfo>
                  <a:container/>
                  <a:since>3.7</a:since>
+                 <a:schemaContext>
+                     <a:typePath>selector/type</a:typePath>
+                 </a:schemaContext>
              </xsd:appinfo>
          </xsd:annotation>
          <xsd:sequence>
@@ -11277,7 +11326,7 @@
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Provides rich information about an operation being executed; mainly for the sake of error reporting and functional/performance troubleshooting.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:schemaMigration>
@@ -16669,6 +16718,11 @@
                     <xsd:documentation>
                         Whether the policy rule will be evaluated.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>PolicyRuleType.enabled</a:displayName>
+                        <a:help>PolicyRuleType.enabled.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
@@ -16720,8 +16774,8 @@
                         interval for counter, ...
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>PolicyRuleType.policySituation</a:displayName>
-                        <a:help>PolicyRuleType.policySituation.help</a:help>
+                        <a:displayName>PolicyRuleType.policyThreshold</a:displayName>
+                        <a:help>PolicyRuleType.policyThreshold.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -19279,7 +19333,8 @@
     <xsd:complexType name="ObjectDeltaOperationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Object delta operation represents an executed change of an midPoint object.
+                Simply speaking, it describes an object delta that was already applied, including results of the operation that applied the delta.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -19291,8 +19346,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0"/>
-            <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0"/>
+            <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delta that was applied to the object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result of the operation that applied the delta.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectName" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

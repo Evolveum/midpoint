@@ -8,8 +8,8 @@
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
     <code>
-        stringify(givenName.?norm).replace(' ','').substring(0,1) +
-        stringify(familyName.?norm).replace(' ','').substring(0,7) +
+        stringify(givenName.norm).replace(' ','').substring(0,1) +
+        stringify(familyName.norm).replace(' ','').substring(0,7) +
         iterationToken
     </code>
 </script>

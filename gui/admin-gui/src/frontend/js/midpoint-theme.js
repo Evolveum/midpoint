@@ -31,6 +31,9 @@ export default class MidPointTheme {
             $(window, ".app-wrapper").resize(function () {
                 self.fixContentHeight();
             });
+
+            self.removeAdminLteSkipLinks();
+            self.labelHoneypotFields();
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
@@ -263,8 +266,8 @@ export default class MidPointTheme {
                 $(document).on("focusin mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
                     const titleText = $el.attr("title");
-                    if (!$el.attr("data-tooltip-content") && titleText) {
-                        $el.attr("data-tooltip-content", titleText);
+                    if (!$el.attr("data-original-title") && titleText) {
+                        $el.attr("data-original-title", titleText);
                         $el.removeAttr("title");
                     }
                 });
@@ -278,19 +281,24 @@ export default class MidPointTheme {
                             $el.showTooltip(true);
                         }
                     }
+                });
 
+                document.addEventListener("keydown", function (e) {
                     if (e.key === "Escape") {
-                        $("[data-bs-toggle='tooltip']").each(function () {
-                            const $tooltip = $("#" + $(this).attr("data-tooltip-id"));
-                            $(this).tooltip('hide');
-                        });
-
-                        if (lastTooltipTrigger) {
-                            $(lastTooltipTrigger).focus();
-                            lastTooltipTrigger = null;
+                        const $visibleTooltips = $(".tooltip:visible");
+                        if ($visibleTooltips.length > 0) {
+                            e.stopImmediatePropagation();
+                            e.preventDefault();
+                            $("[data-bs-toggle='tooltip']").each(function () {
+                                $(this).tooltip('hide');
+                            });
+                            if (lastTooltipTrigger) {
+                                $(lastTooltipTrigger).focus();
+                                lastTooltipTrigger = null;
+                            }
                         }
                     }
-                });
+                }, true);
 
                 $(document).on("mouseenter", "[data-bs-toggle='tooltip']", function () {
                     const $el = $(this);
@@ -322,8 +330,8 @@ export default class MidPointTheme {
                     checkHide($(this));
                 });
 
-                $(document).on("keydown", "[data-bs-toggle='tooltip']", function () {
-                    if (event.key === 'Enter') {
+                $(document).on("keydown", "[data-bs-toggle='tooltip']", function (e) {
+                    if (e.key === 'Enter') {
                         isEnterPressedOnTooltipIcon = true;
                     }
                 });
@@ -369,7 +377,7 @@ export default class MidPointTheme {
 
                     $el.tooltip({
                         html: true,
-                        title: $el.attr('data-tooltip-content') || '',
+                        title: $el.attr('data-original-title') || '',
                         allowList: wl,
                         container: container,
                         trigger: 'manual'
@@ -378,6 +386,7 @@ export default class MidPointTheme {
                     // "tooltipShowDelayTimer" is used to prevent tooltip from showing when user quickly moves mouse
                     // over multiple icons with tooltips or quickly tabs through them. Tooltip will be shown only for
                     // the last hovered/focused element after 1 second delay.
+                    const delay = setFocus ? 0 : 1000;
                     clearTimeout($el.data("tooltipShowDelayTimer"));
                     $el.data("tooltipShowDelayTimer", setTimeout(() => {
                         $el.tooltip("show");
@@ -431,7 +440,7 @@ export default class MidPointTheme {
                             $tooltipInner.focus();
                             lastTooltipTrigger = $el;
                         }
-                    }, 1000));
+                    }, delay));
                 }
             };
 
@@ -457,14 +466,15 @@ export default class MidPointTheme {
             });
         });
 
-        jQuery(function ($) {
-            $(document).on("keydown", ".showPasswordButton", function (e, t) {
-                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                    e.key == "Enter" || e.keyCode == 13) {
-                    $(this).showPassword();
-                }
-            });
-        });
+        // jQuery(function ($) {
+        //     $(document).on("keydown", ".showPasswordButton", function (e, t) {
+        //         if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+        //             e.key == "Enter" || e.keyCode == 13) {
+        //                 e.preventDefault();
+        //                 $(this).trigger("click");
+        //         }
+        //     });
+        // });
 
         (function ($) {
             $.fn.showPassword = function () {
@@ -513,6 +523,19 @@ export default class MidPointTheme {
             var clickableByEnterElements = $(".clickable-by-enter");
             self.focusByArrowKeys(clickableByEnterElements, self);
         });
+
+        jQuery(function ($) {
+            $(document).on("keydown", ".dropdown-menu[role='menu'] .dropdown-item", function (e) {
+                if (e.key === "Tab") {
+                    const $menu = $(this).closest(".dropdown-menu");
+                    const $toggle = $menu.prev("[data-bs-toggle='dropdown']");
+                    if ($toggle.length && typeof $toggle.dropdown === "function") {
+                        $toggle.dropdown("hide");
+                        self.restoreFocus();
+                    }
+                }
+            });
+        });
     }
 
     restrictMorePopoverFocusArea() {
@@ -541,7 +564,13 @@ export default class MidPointTheme {
     initWindowId(shouldReloadOnFirstLoad) {
         let isFirstLoad = false;
         if (!sessionStorage.getItem('w')) {
-            const windowId = encodeURIComponent(crypto.randomUUID().substring(0, 8));
+            // crypto.randomUUID() is only available in secure contexts (HTTPS/localhost);
+            // fall back to crypto.getRandomValues() for plain HTTP deployments
+            const windowId = encodeURIComponent(
+                (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                    ? crypto.randomUUID().substring(0, 8)
+                    : Array.from(crypto.getRandomValues(new Uint8Array(4)), b => b.toString(16).padStart(2, '0')).join('')
+            );
             console.log('windowId initialized:', windowId);
             isFirstLoad = true;
             sessionStorage.setItem('w', windowId);
@@ -553,18 +582,14 @@ export default class MidPointTheme {
         var url = new URL(window.location.href);
         var wParam = url.searchParams.get('w');
         if (isFirstLoad) {
-            console.log("inside isFirstLoad check");
             url.searchParams.set('w', windowId);
             if (shouldReloadOnFirstLoad) {
-                console.log("will be reloaded");
                 window.location.replace(url);
             } else {
-                console.log("will be replaced state");
                 window.history.replaceState({}, '', url);
             }
             return;
         }
-        console.log("after isFirstLoad check");
 
         if (!url.searchParams.has('w') || wParam !== windowId) {
             url.searchParams.set('w', windowId);
@@ -581,6 +606,32 @@ export default class MidPointTheme {
         }
     }
 
+    fixEmptyTableHeaders () {
+        document.querySelectorAll('th[scope="col"]').forEach(function (th) {
+            if (th.hasAttribute('aria-label')) {
+                return; // already labeled
+            }
+
+            var accessibleText = th.textContent.trim();
+            if (accessibleText) {
+                return; // has visible/hidden text content already, nothing to fix
+            }
+
+            // Try to inherit a label from an embedded checkbox/input
+            var input = th.querySelector('input[aria-label]');
+            if (input) {
+                th.setAttribute('aria-label', input.getAttribute('aria-label'));
+                return;
+            }
+
+            // Fallback: look for a title attribute on any descendant icon
+            var titled = th.querySelector('[title]');
+            if (titled) {
+                th.setAttribute('aria-label', titled.getAttribute('title'));
+            }
+        });
+    };
+
     keydownForMenuItems(sideBar, self) {
         if (!sideBar.length) {
             return;
@@ -588,7 +639,13 @@ export default class MidPointTheme {
 
         sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
             var menuItemEl = $(this).get(0);
-            if (menuItemEl !== document.activeElement && !menuItemEl.classList.contains('active')) {
+            var directLink = $(this).children("a").get(0);
+
+            var isRelevantFocus = menuItemEl === document.activeElement
+                || directLink === document.activeElement
+                || menuItemEl.classList.contains('active');
+
+            if (!isRelevantFocus) {
                 return;
             }
 
@@ -600,6 +657,7 @@ export default class MidPointTheme {
                     $(this).click();
                 }
                 e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -614,7 +672,8 @@ export default class MidPointTheme {
                         focusableElement.scrollIntoView({block: "center"});
                     }
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -626,7 +685,8 @@ export default class MidPointTheme {
                     parent.get(0).focus();
                     parent.get(0).scrollIntoView({block: "center"});
                 }
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
                 return;
             }
 
@@ -657,7 +717,8 @@ export default class MidPointTheme {
             if (focusItem) {
                 focusItem.focus();
                 focusItem.scrollIntoView({block: "center"});
-                e.preventDefault()
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
     }
@@ -1125,6 +1186,36 @@ export default class MidPointTheme {
         if (window_height < sidebar_height) {
             $(".app-main, .right-side").css('min-height', sidebar_height + 10); // footer size
         }
+    }
+
+    removeAdminLteSkipLinks() {
+        // AdminLTE's accessibility module auto-injects its own skip links
+        // (hardcoded to #main / #navigation), which duplicates
+        // midPoint's own working #skip-link and leads to WCAG incompatibility
+        document.querySelector('.skip-links')?.remove();
+    }
+
+    //honeypot behavior (e.g. on the Registration page) generates
+    //the invisible input field. We need to add aria label to it
+    labelHoneypotFields() {
+        const apply = (el) => {
+            if (!el.hasAttribute('aria-label')) {
+                el.setAttribute('aria-label', 'Do not fill out this field');
+            }
+        };
+
+        document.querySelectorAll('input.hpb-f, input[name="hpb-id"]').forEach(apply);
+
+        const observer = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                m.addedNodes.forEach((node) => {
+                    if (node.nodeType !== 1) return;
+                    if (node.matches?.('input.hpb-f, input[name="hpb-id"]')) apply(node);
+                    node.querySelectorAll?.('input.hpb-f, input[name="hpb-id"]').forEach(apply);
+                });
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     clickFuncWicket6(eventData) {
@@ -1857,7 +1948,23 @@ export default class MidPointTheme {
 
     hideModal(modalId) {
         const dialog = document.getElementById(modalId);
-        Modal.getOrCreateInstance(dialog).hide();
+        const modal = dialog ? Modal.getInstance(dialog) : null;
+
+        if (modal) {
+            dialog.addEventListener('hidden.bs.modal', () => {
+                this.cleanupModalScrollState();
+            }, { once: true });
+
+            modal.hide();
+        }
+
+        this.cleanupModalScrollState();
+    }
+
+    cleanupModalScrollState() {
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {
@@ -1968,7 +2075,7 @@ export default class MidPointTheme {
         subtitle = '',
         close = true,
         body = '',
-        className = 'text-bg-info',
+        className = 'info',
         autohide = true,
         delay = 5000
     } = {}) {
@@ -1982,22 +2089,24 @@ export default class MidPointTheme {
         }
 
         const toast = document.createElement('div');
-        toast.className = `toast ${className}`;
+        toast.className = `toast border-${className}`;
         toast.setAttribute('tabindex', '0');
         toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'assertive');
         toast.setAttribute('aria-atomic', 'true');
 
         toast.innerHTML = `
-        <div class="toast-header">
+        <div class="toast-header text-bg-${className}">
             ${icon ? `<i class="${icon} me-2"></i>` : ''}
             <strong class="me-auto">${title}</strong>
             ${subtitle ? `<small>${subtitle}</small>` : ''}
-            ${close ? `<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>` : ''}
+            ${close ? `<button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>` : ''}
         </div>
-        <div class="toast-body">
-            ${body}
-        </div>
+        ${body && body.trim() ?
+            `<div class="toast-body text-${className}">
+                ${body}
+            </div>` : ''}
+
     `;
 
         container.appendChild(toast);

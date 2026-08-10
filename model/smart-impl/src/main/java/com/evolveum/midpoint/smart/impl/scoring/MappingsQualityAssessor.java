@@ -10,6 +10,8 @@ package com.evolveum.midpoint.smart.impl.scoring;
 import java.util.Collection;
 import java.util.Objects;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -19,12 +21,6 @@ import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPair;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 @Component
@@ -103,7 +99,8 @@ public class MappingsQualityAssessor {
                 return null;
             }
             return transformedInput.iterator().next();
-        } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
+        } catch (SchemaException | CommunicationException | ConfigurationException | ObjectNotFoundException |
+                 SubscriptionComplianceException e) {
             throw new MappingEvaluationException("Failed to evaluate suggested expression.", e);
         }
     }

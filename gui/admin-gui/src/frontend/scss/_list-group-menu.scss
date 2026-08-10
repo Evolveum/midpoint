@@ -82,7 +82,6 @@ $max-levels: 10;
         background-color: var(--bs-list-group-action-active-bg);
       }
     }
-  }
 
     &.disabled,
     &:disabled {
@@ -91,13 +90,13 @@ $max-levels: 10;
       background-color: var(--bs-list-group-disabled-bg);
     }
 
-    // Include both here for `<a>`s and `<button>`s
     &.active {
       z-index: 2; // Place active items above their siblings for proper border styling
       color: var(--bs-list-group-active-color);
       background-color: var(--bs-list-group-active-bg);
       border-color: var(--bs-list-group-active-border-color);
     }
+  }
 
   & > .form-control {
     margin: 1rem;
@@ -106,6 +105,18 @@ $max-levels: 10;
 }
 
 .list-group-menu {
+  --bs-list-group-color: #{$list-group-color};
+  --bs-list-group-bg: #{$list-group-bg};
+  --bs-list-group-border-color: #{$list-group-border-color};
+  --bs-list-group-border-width: #{$list-group-border-width};
+  --bs-list-group-active-color: #{$list-group-active-color};
+  --bs-list-group-active-bg: #{$list-group-active-bg};
+  --bs-list-group-active-border-color: #{$list-group-active-border-color};
+  --bs-list-group-action-hover-color: #{$list-group-action-hover-color};
+  --bs-list-group-action-hover-bg: #{$list-group-hover-bg};   // ← fixed: was $list-group-action-hover-bg
+  --bs-list-group-disabled-color: #{$list-group-disabled-color};
+  --bs-list-group-disabled-bg: #{$list-group-disabled-bg};
+
   @include list-group-menu();
 }
 

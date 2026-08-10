@@ -48,7 +48,7 @@ class SelectorFilterEvaluation<T>
 
     boolean processFilter()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         FilteringContext ctx = new FilteringContext(
                 searchType,

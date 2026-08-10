@@ -52,7 +52,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
 
     void evaluate(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         collector.initialize(result);
         List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = collector.collectObjectRules(result);
@@ -80,7 +80,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
     private void evaluateCollectedRules(
             List<DirectlyEvaluatedClockworkPolicyRuleImpl> applicableRules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LOGGER.trace("Evaluating {} applicable rules", applicableRules.size());
         List<ObjectPolicyRuleEvaluationContext<O>> contextsToEvaluate =
                 applicableRules.stream()

@@ -525,8 +525,7 @@ public class WebModelServiceUtils {
             } else {
                 count = page.getModelService().countContainers(type, query, options, task, parentResult);
             }
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                | ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
+        } catch (CommonException ex) {
             parentResult.recordFatalError(page.createStringResource("WebModelUtils.couldntCountObjects").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count containers", ex);
         }

@@ -540,11 +540,15 @@ public abstract class AbstractActivityRun<
                 .updatePolicies(states, result);
     }
 
-    private @NotNull ActivityState getActivityStateForThresholds(OperationResult result)
+    /** The state into which this run's counters are written; see {@link #determineActivityStateForThresholds(OperationResult)}. */
+    public @NotNull ActivityState getActivityStateForThresholds(OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         synchronized (activityStateForThresholdsLock) {
             if (activityStateForThresholds == null) {
                 activityStateForThresholds = determineActivityStateForThresholds(result);
+                LOGGER.trace("Counters/thresholds of the '{}' run will be kept in the state of activity '{}' in task {}",
+                        getActivityPath(), activityStateForThresholds.getActivityPath(),
+                        activityStateForThresholds.getTaskOid());
             }
             return activityStateForThresholds;
         }
@@ -662,7 +666,14 @@ public abstract class AbstractActivityRun<
     }
 
     public void sendActivityPolicyRuleTriggeredEvent(EvaluatedPolicyRule policyRule, OperationResult result) {
-        for (ActivityListener activityListener : emptyIfNull(getBeans().activityListeners)) {
+        var listeners = emptyIfNull(getBeans().activityListeners);
+        if (listeners.isEmpty()) {
+            // Loud on purpose: without a listener the event (e.g. a policy notification) is silently lost.
+            LOGGER.debug("No activity listeners registered - 'policy rule triggered' event for {} is dropped", policyRule);
+            return;
+        }
+        LOGGER.trace("Sending 'policy rule triggered' event for {} to {} listener(s)", policyRule, listeners.size());
+        for (ActivityListener activityListener : listeners) {
             try {
                 activityListener.onActivityPolicyRuleTriggered(this, policyRule, getRunningTask(), result);
             } catch (Exception e) {

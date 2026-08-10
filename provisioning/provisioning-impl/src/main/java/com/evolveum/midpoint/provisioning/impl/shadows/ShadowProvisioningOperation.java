@@ -276,14 +276,14 @@ public abstract class ShadowProvisioningOperation {
     /** Does not enforce anything, just computes. */
     void determineEffectiveMarksAndPolicies(@NotNull ResourceObjectShadow objectToAdd, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         effectiveMarksAndPolicies = ctx.computeAndUpdateEffectiveMarksAndPolicies(objectToAdd, ShadowState.TO_BE_CREATED, result);
     }
 
     /** Does not enforce anything, just computes. */
     void determineEffectiveMarksAndPolicies(@NotNull RepoShadow existingShadow, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         effectiveMarksAndPolicies = ctx.computeAndUpdateEffectiveMarksAndPolicies(existingShadow, ShadowState.EXISTING, result);
     }
 

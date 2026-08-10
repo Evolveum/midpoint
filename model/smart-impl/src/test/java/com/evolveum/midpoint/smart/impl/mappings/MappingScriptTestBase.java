@@ -10,6 +10,8 @@ package com.evolveum.midpoint.smart.impl.mappings;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.Clock;
@@ -28,12 +30,6 @@ import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
@@ -48,7 +44,7 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
 
     protected String evaluateExpression(ExpressionType expression, String inputName, Object inputValue)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final Class<?> inputClass = inputValue != null ? inputValue.getClass() : String.class;
         return this.validator.evaluateExpression(expression, inputName, inputValue, inputClass,
                 new NullTaskImpl(), createOperationResult()).iterator().next();

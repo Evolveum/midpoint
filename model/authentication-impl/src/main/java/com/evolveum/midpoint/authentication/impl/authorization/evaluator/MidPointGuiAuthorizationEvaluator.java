@@ -154,7 +154,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.decideAccess(
                 principal, operationUrl, phase, params, options, task, result);
     }
@@ -274,8 +274,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
         AccessDecision decision;
         try {
             decision = securityEnforcer.decideAccess(principal, requiredActions, task, task.getResult());
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
-                | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
             LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
             LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ERROR {}",
                     authentication, object, requiredActions, e.getMessage());
@@ -349,7 +349,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @NotNull PrismObject<O> object, boolean fullInformationAvailable, @NotNull Options options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.compileSecurityConstraints(object, fullInformationAvailable, options, task, result);
     }
 
@@ -364,7 +364,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.compileOperationConstraints(
                 principal, value, phase, actionUrls, enforcerOptions, compileConstraintsOptions, task, result);
     }
@@ -383,7 +383,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.preProcessObjectFilter(
                 principal, operationUrls, searchByOperationUrls, phase,
                 filterType, origFilter, limitAuthorizationAction, paramOrderConstraints, options, task, result);
@@ -396,7 +396,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             @NotNull PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction,
             List<OrderConstraintsType> paramOrderConstraints, FilterGizmo<F> gizmo, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.computeTargetSecurityFilter(
                 principal, operationUrls, searchByOperationUrls, phase, searchResultType, object,
                 origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo, task, result);
@@ -407,7 +407,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<F> donor,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.createDonorPrincipal(attorneyPrincipal, attorneyAuthorizationAction, donor, task, result);
     }
 
@@ -418,7 +418,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             boolean privileged,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return securityContextManager.runAs(producer, newPrincipalObject, privileged, result);
     }
 
@@ -432,7 +432,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             MidPointPrincipal midPointPrincipal, String actionUri, PrismObject<O> object, PrismObject<R> target,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.getAllowedRequestAssignmentItems(
                 midPointPrincipal, actionUri, object, target, task, result);
     }

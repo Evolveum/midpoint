@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
@@ -79,7 +80,7 @@ public class MappingsSuggestionActivityHandler
             Activity<MappingsSuggestionWorkDefinition, MappingsSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new MappingsSuggestionStatisticsComputationActivityRun(
                         context, modelService, repositoryService, smartIntegrationService, clock),
                 null,
@@ -87,14 +88,14 @@ public class MappingsSuggestionActivityHandler
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new MappingsSuggestionSchemaMatchingActivityRun(context),
                 null,
                 (i) -> ID_SCHEMA_MATCHING,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new MappingsSuggestionRemoteServiceCallActivityRun(context),
                 null,
                 (i) -> ID_MAPPINGS_SUGGESTION,

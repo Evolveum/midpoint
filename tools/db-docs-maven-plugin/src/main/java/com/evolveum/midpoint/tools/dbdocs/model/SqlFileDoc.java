@@ -29,10 +29,16 @@ public final class SqlFileDoc {
 
     private final Path path;
     private final Category category;
+    private final String scriptDescription;
 
     public SqlFileDoc(Path path, Category category) {
+        this(path, category, null);
+    }
+
+    public SqlFileDoc(Path path, Category category, String scriptDescription) {
         this.path = path;
         this.category = category;
+        this.scriptDescription = scriptDescription;
     }
 
     public Path path() {
@@ -41,5 +47,13 @@ public final class SqlFileDoc {
 
     public Category category() {
         return category;
+    }
+
+    public String scriptDescription() {
+        return scriptDescription;
+    }
+
+    public SqlFileDoc withScriptDescription(String description) {
+        return new SqlFileDoc(path, category, description);
     }
 }

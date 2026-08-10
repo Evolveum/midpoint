@@ -9,19 +9,26 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
+import static javax.xml.datatype.DatatypeConstants.GREATER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.DummyDefaultScenario.Account.AttributeNames;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -526,6 +533,87 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * MID-11030: schema refresh invalidates cached shadows, so a fresh repo shadow containing an attribute that no longer
+     * exists in the current resource schema is converted laxly instead of failing in ShadowDefinitionApplicator.
+     *
+     * This test mutates the shared HR dummy resource schema, so it must stay after the HR/target cache workflow tests.
+     */
+    @Test
+    public void test490RecomputingWithStaleCachedAttributeAfterSchemaRefresh() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var title = DummyHrScenarioExtended.Person.AttributeNames.TITLE;
+
+        given("john is cached with ri:title");
+        refreshHrPersons(task, result);
+        importHrPersons(result);
+        var johnShadow = findShadowByPrismName(PERSON_JOHN_NAME, RESOURCE_DUMMY_HR.get(), result);
+        var johnShadowOid = johnShadow.getOid();
+        var rawShadowBefore = getShadowRepo(johnShadowOid);
+        var cachedTitleBefore = getCachedTitle(rawShadowBefore);
+        var retrievalTimestamp = getRetrievalTimestamp(rawShadowBefore);
+        assertRepoShadow(johnShadowOid,
+                List.of(
+                        ICFS_NAME, ICFS_UID,
+                        DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.q(),
+                        DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.q(),
+                        title.q()))
+                .assertCachedOrigValues(title.q(), cachedTitleBefore);
+
+        when("ri:title disappears from the configured and native HR person schema");
+        removeHrPersonNativeAttribute(title.local());
+        removeHrPersonConfiguredAttribute(title, result);
+
+        and("the resource schema is refreshed and stored");
+        ResourceUtils.deleteSchema(RESOURCE_DUMMY_HR.oid, modelService, task, result);
+        assertSuccess(modelService.testResource(RESOURCE_DUMMY_HR.oid, task, result));
+        RESOURCE_DUMMY_HR.reload(result);
+
+        then("the resource cache invalidation timestamp is newer than the cached shadow");
+        var invalidationTimestamp = RESOURCE_DUMMY_HR.getObjectable().getCacheInvalidationTimestamp();
+        assertThat(invalidationTimestamp).as("resource cache invalidation timestamp").isNotNull();
+        assertThat(retrievalTimestamp.compare(invalidationTimestamp))
+                .as("shadow retrieval timestamp compared to resource cache invalidation timestamp")
+                .isNotEqualTo(GREATER);
+
+        and("the repository shadow still physically contains the obsolete attribute");
+        assertRepoShadow(johnShadowOid,
+                List.of(
+                        ICFS_NAME, ICFS_UID,
+                        DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.q(),
+                        DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.q(),
+                        title.q()))
+                .assertCachedOrigValues(title.q(), cachedTitleBefore);
+
+        when("john's projection is loaded from cache/noFetch");
+        var noFetchShadow = modelService.getObject(
+                ShadowType.class, johnShadowOid, createNoFetchCollection(), task, result);
+
+        then("conversion succeeds and cached attributes remain available");
+        assertThat(noFetchShadow.findProperty(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.path()))
+                .as("known cached firstName attribute")
+                .isNotNull();
+        assertThat(noFetchShadow.findProperty(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.path()))
+                .as("known cached lastName attribute")
+                .isNotNull();
+        // Lax conversion is deliberately tolerant here: the important regression is that this stale item
+        // no longer aborts projection loading with "Unknown attribute".
+        assertThat(noFetchShadow.findProperty(title.path()))
+                .as("obsolete cached title attribute in laxly converted shadow")
+                .isNotNull();
+
+        rememberShadowOperations();
+
+        when("users are recomputed");
+        TASK_RECOMPUTE_PERSONS.rerun(result);
+
+        then("recomputation succeeds through the projection-loading path without a live fetch");
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
+                .assertGivenName("John");
+        assertNoShadowFetchOperations();
+    }
+
+    /**
      * Changes of the default caching settings in the system configuration should be reflected immediately - just like changes
      * in the resource-level caching settings are.
      */
@@ -630,6 +718,74 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                                         .retrievalTimestamp(XmlTypeConverter.fromNow(EXPIRY_INTERVAL)))
                         .asItemDeltas(),
                 result);
+    }
+
+    private XMLGregorianCalendar getRetrievalTimestamp(RawRepoShadow rawShadow) {
+        var cachingMetadata = rawShadow.getBean().getCachingMetadata();
+        assertThat(cachingMetadata).as("shadow caching metadata").isNotNull();
+        var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
+        assertThat(retrievalTimestamp).as("shadow retrieval timestamp").isNotNull();
+        return retrievalTimestamp;
+    }
+
+    private Object getCachedTitle(RawRepoShadow rawShadow) {
+        var title = rawShadow.getPrismObject()
+                .findProperty(DummyHrScenarioExtended.Person.AttributeNames.TITLE.path());
+        assertThat(title).as("cached title attribute").isNotNull();
+        return title.getRealValue();
+    }
+
+    private void removeHrPersonNativeAttribute(String attributeName) {
+        var attributeDefinitions = hrScenario.getDummyResource()
+                .getStructuralObjectClass(DummyHrScenario.Person.OBJECT_CLASS_NAME.local())
+                .getAttributeDefinitions();
+        var iterator = attributeDefinitions.iterator();
+        while (iterator.hasNext()) {
+            var definition = iterator.next();
+            if (attributeName.equals(definition.getAttributeName())) {
+                iterator.remove();
+                return;
+            }
+        }
+        throw new AssertionError("No native HR person attribute definition for " + attributeName);
+    }
+
+    private void removeHrPersonConfiguredAttribute(AttrName attribute, OperationResult result)
+            throws CommonException {
+        var resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_HR.oid, null, result)
+                .asObjectable();
+        var objectType = findHrPersonObjectType(resource);
+        var attributeDefinition = findConfiguredAttribute(objectType, attribute);
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(
+                                ResourceType.F_SCHEMA_HANDLING,
+                                SchemaHandlingType.F_OBJECT_TYPE,
+                                objectType.getId(),
+                                ResourceObjectTypeDefinitionType.F_ATTRIBUTE)
+                        .delete(attributeDefinition.clone())
+                        .asObjectDelta(RESOURCE_DUMMY_HR.oid),
+                null, getTestTask(), result);
+        RESOURCE_DUMMY_HR.reload(result);
+    }
+
+    private ResourceObjectTypeDefinitionType findHrPersonObjectType(ResourceType resource) {
+        return resource.getSchemaHandling().getObjectType().stream()
+                .filter(objectType -> INTENT_PERSON.equals(objectType.getIntent()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No HR person object type in " + resource));
+    }
+
+    private ResourceAttributeDefinitionType findConfiguredAttribute(
+            ResourceObjectTypeDefinitionType objectType, AttrName attribute) {
+        var path = ItemPath.create(attribute.q());
+        return objectType.getAttribute().stream()
+                .filter(definition ->
+                        definition.getRef() != null
+                                && definition.getRef().getItemPath() != null
+                                && path.equivalent(definition.getRef().getItemPath()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No configured attribute " + attribute.q() + " in " + objectType));
     }
 
     private ProvisioningStatisticsType dumpProvisioningStatistics(String taskOid) throws CommonException {

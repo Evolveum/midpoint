@@ -35,7 +35,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException {
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SubscriptionComplianceException {
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
         return new PathExpressionEvaluation<>(this, context)

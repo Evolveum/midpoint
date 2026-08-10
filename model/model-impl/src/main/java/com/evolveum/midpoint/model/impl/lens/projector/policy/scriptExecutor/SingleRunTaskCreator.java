@@ -32,14 +32,14 @@ class SingleRunTaskCreator extends AbstractSingleRunTaskCreator {
     @NotNull
     TaskType createTask(ExecuteScriptType executeScript, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ExecuteScriptType executeScriptWithInput = addInputToScript(executeScript, result);
         return createTaskForSingleRunScript(executeScriptWithInput, result);
     }
 
     private ExecuteScriptType addInputToScript(ExecuteScriptType executeScript, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (executeScript.getInput() != null) {
             throw new UnsupportedOperationException("Explicit input with SINGLE_RUN task execution is not supported.");
         }

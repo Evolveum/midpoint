@@ -50,7 +50,7 @@ public class WaitingSearchFilterConnectorStepPanel extends WaitingObjectClassScr
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchFilterScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

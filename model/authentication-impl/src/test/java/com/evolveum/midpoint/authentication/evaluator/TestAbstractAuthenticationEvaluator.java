@@ -138,8 +138,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract ItemName getCredentialType();
 
     public abstract void modifyUserCredential(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+            throws CommonException;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -179,7 +178,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ((CredentialsAuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
 
             @Override
-            public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object)
+                    throws CommunicationException, ConfigurationException, SecurityViolationException,
+                    ExpressionEvaluationException, SubscriptionComplianceException {
                 return focusProfileService.resolveOwner(object);
             }
 
@@ -1245,8 +1246,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void loginJackGoodPasswordExpectSuccess()
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -1269,13 +1269,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
-    private void loginJackGoodPasswordExpectDenied() throws ObjectNotFoundException,
-            SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void loginJackGoodPasswordExpectDenied() throws CommonException {
         loginJackGoodPasswordExpectDenied(1);
     }
 
-    private void loginJackGoodPasswordExpectDenied(int expectedFailInBehavior) throws ObjectNotFoundException,
-            SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void loginJackGoodPasswordExpectDenied(int expectedFailInBehavior) throws CommonException {
         displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 

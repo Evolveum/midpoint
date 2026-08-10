@@ -93,7 +93,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     private void executeLocalChanges(CaseType subcase, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
             CommunicationException, PolicyViolationException, ObjectAlreadyExistsException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         CaseType rootCase =
                 repositoryService
                         .getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
@@ -116,7 +116,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     private void executeAllChanges(CaseType rootCase, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
         LensContext<?> modelContext = lensContextHelper.collectApprovedDeltasToModelContext(rootCase, subcases, task, result);
         executeModelContext(modelContext, rootCase, task, result);
@@ -125,7 +125,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 
     private void executeModelContext(LensContext<?> modelContext, CaseType aCase, RunningTask task, OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!modelContext.hasAnyPrimaryChange()) {
             LOGGER.trace("No primary changes -- nothing to do here");
             return;

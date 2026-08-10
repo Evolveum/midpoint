@@ -56,9 +56,6 @@ public class NativeComplexTypeDefinitionImpl
      */
     @NotNull private final String name;
 
-    /** QName version of {@link #name}, with the constant namespace of `ri`. FIXME: this is not true now! */
-    @NotNull private final QName qName;
-
     //region The following applies to OBJECT classes
     @NotNull private final NativeObjectClassUcfDefinition.Data ucfData = new NativeObjectClassUcfDefinition.Data();
 
@@ -82,17 +79,11 @@ public class NativeComplexTypeDefinitionImpl
 
     NativeComplexTypeDefinitionImpl(@NotNull String name) {
         this.name = name;
-        this.qName = new QName(name);
     }
 
     @Override
     public @NotNull String getName() {
         return name;
-    }
-
-    @Override
-    public @NotNull QName getQName() {
-        return qName;
     }
 
     public boolean isReferenceType() {

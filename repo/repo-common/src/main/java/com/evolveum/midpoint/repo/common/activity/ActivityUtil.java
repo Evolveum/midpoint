@@ -14,6 +14,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
@@ -41,6 +42,10 @@ public class ActivityUtil {
         }
 
         collectAllVirtualAssignments(activity.getParent(), result);
+
+        if (ActivityPolicyUtils.isVirtualAssignmentPolicyProcessingDisabled(activity)) {
+            return;
+        }
 
         ActivityDefinition<?> def = activity.getDefinition();
         Collection<AssignmentType> virtualAssignments = def.getVirtualAssignmentsDefinition().getVirtualAssignments();

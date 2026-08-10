@@ -112,7 +112,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
     static @Nullable PrismValueCoverageInformation forAuthorization(
             @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         Collection<TieredSelectorWithItems> tieredSelectors = TieredSelectorWithItems.forAutzAndValue(value, evaluation);
         if (!tieredSelectors.isEmpty()) {
@@ -134,7 +134,8 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             @NotNull PrismValue rootValue,
             @NotNull TieredSelectorWithItems tieredSelector,
             @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
+            SubscriptionComplianceException {
 
         ValueSelector valueSelector = tieredSelector.getSelector();
         assert valueSelector.getParentClause() == null;
@@ -165,7 +166,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             PrismValue rootValue,
             AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!(parentValue instanceof PrismContainerValue<?> pcv)) {
             return PrismValueCoverageInformation.noCoverage(false);
         }

@@ -153,6 +153,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         for (ConnectorType connector : connectors) {
             assertNotNull(connector.getName());
+            assertNotNull(connector.getDiscoveryTimestamp());
+            assertFalse(connector.getDiscoveryTimestamp().isEmpty());
             System.out.printf("CONNECTOR OID=%s, name=%s, version=%s%n",
                     connector.getOid(), connector.getName(), connector.getConnectorVersion());
             System.out.println("--");

@@ -84,6 +84,18 @@
   color: #737373;
 }
 
+.mp-error-page {
+  max-width: 600px;
+  margin-inline: auto;
+}
+
+@media (min-width: 992px) {
+  .layout-fixed.sidebar-expand-lg .app-sidebar {
+    // The inner sidebar wrapper owns vertical scrolling.
+    overflow: hidden;
+  }
+}
+
 .fixed-header.sidebar-mini.sidebar-collapse .app-wrapper .brand-link,
 .fixed-header.sidebar-mini-md.sidebar-collapse .app-wrapper .brand-link,
 .fixed-header.sidebar-mini-xs.sidebar-collapse .app-wrapper .brand-link {
@@ -162,4 +174,9 @@ li.nav-item > a.active > div > span.badge {
 
 .progress {
   height:.75rem;
+}
+
+//override for midPoint logo in the header
+.brand-link.logo:focus-visible {
+  outline-offset: -3px;
 }

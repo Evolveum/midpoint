@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.processor.ResourceSchema.qualifyTypeName;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
@@ -60,7 +59,7 @@ public class ResourceObjectClassDefinitionImpl
             @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
         super(layer, basicResourceInformation, definitionBean);
-        this.objectClassName = qualifyTypeName(nativeObjectClassDefinition.getName());
+        this.objectClassName = ResourceSchema.nativeToMidPointClassName(nativeObjectClassDefinition.getName());
         this.nativeObjectClassDefinition = nativeObjectClassDefinition;
         this.effectiveDefinitionRef = FreezableReference.of(this);
     }

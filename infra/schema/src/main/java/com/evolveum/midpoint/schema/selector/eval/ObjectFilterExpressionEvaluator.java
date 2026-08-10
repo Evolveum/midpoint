@@ -7,12 +7,7 @@
 package com.evolveum.midpoint.schema.selector.eval;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * Functional interface to inject filter evaluation code.
@@ -25,6 +20,6 @@ public interface ObjectFilterExpressionEvaluator {
 
     ObjectFilter evaluate(ObjectFilter filter)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
 }

@@ -43,6 +43,7 @@ public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDe
 
     private void initLayout() {
         add(AttributeAppender.prepend("class", "dropdown-menu dropdown-menu-end"));
+        add(AttributeAppender.prepend("role", "menu"));
 
         ListView<AvailableLocale.LocaleDescriptor> locales = new ListView<>(ID_LOCALES, Model.ofList(AvailableLocale.AVAILABLE_LOCALES)) {
 
@@ -58,6 +59,7 @@ public class LocalesDropDownMenu extends BasePanel<List<AvailableLocale.LocaleDe
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         changeLocale(target, item.getModelObject());
+                        target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                     }
                 };
                 localeLink.add(AttributeAppender.append(

@@ -82,7 +82,7 @@ class CorrelatorEvaluator {
      */
     List<Double> evaluateSuggestions(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         LOGGER.info("Starting correlator evaluation. Focus type: {}, Shadow type: {}, Max shadow sample: {}",
                 ctx.getFocusClass(), ctx.getTypeIdentification(), MAX_SHADOW_SAMPLE_SIZE);

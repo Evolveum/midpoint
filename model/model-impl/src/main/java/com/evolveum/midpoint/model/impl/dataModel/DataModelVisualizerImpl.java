@@ -52,7 +52,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 
     @Override
     public String visualize(Collection<String> resourceOids, Target target, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         LOGGER.debug("Starting data model visualization");
 

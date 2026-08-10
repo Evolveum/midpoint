@@ -85,11 +85,11 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         return MOCK_CONNECTOR;
     }
 
-    private ConnectorDevelopmentType reloadDevelopment(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private ConnectorDevelopmentType reloadDevelopment(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
         return modelService.getObject(ConnectorDevelopmentType.class, developmentOid, null, task, result).asObjectable();
     }
 
-    private ConnectorDevelopmentOperation continueDevelopment(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    private ConnectorDevelopmentOperation continueDevelopment(@NotNull Task task, @NotNull OperationResult result) throws CommonException {
         return connectorService.continueFrom(reloadDevelopment(task, result));
     }
 
@@ -118,7 +118,7 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
 
     }
 
-    protected void selectDocumentation(List<ConnDevDocumentationSourceType> documentation) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    protected void selectDocumentation(List<ConnDevDocumentationSourceType> documentation) throws CommonException {
         var delta = deltaFor(ConnectorDevelopmentType.class)
                 .item(ConnectorDevelopmentType.F_DOCUMENTATION_SOURCE).add(new ConnDevDocumentationSourceType()
                         .name("OpenProject OpenAPI Specification")

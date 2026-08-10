@@ -13,17 +13,13 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.smart.impl.mappings.MappingScriptTestBase;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 public class StripDiacriticsHeuristicTest extends MappingScriptTestBase {
@@ -49,8 +45,7 @@ public class StripDiacriticsHeuristicTest extends MappingScriptTestBase {
 
     @Test
     void inputContainsDiacritics_inboundScriptIsEvaluated_outputShouldBeWithoutDiacritics()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final StripDiacriticsHeuristic heuristic = new StripDiacriticsHeuristic();
 
         final ExpressionType expression = heuristic.inboundExpression(MappingScriptTestBase::createScriptExpression);
@@ -61,8 +56,7 @@ public class StripDiacriticsHeuristicTest extends MappingScriptTestBase {
 
     @Test
     void propertyContainsDiacritics_outboundScriptIsEvaluated_outputShouldBeWithoutDiacritics()
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            throws CommonException {
         final String focusProperty = "name";
         final StripDiacriticsHeuristic heuristic = new StripDiacriticsHeuristic();
 

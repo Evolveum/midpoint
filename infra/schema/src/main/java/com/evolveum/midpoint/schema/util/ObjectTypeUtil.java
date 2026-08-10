@@ -692,10 +692,10 @@ public class ObjectTypeUtil {
     public static PolyStringType getDisplayName(ObjectType object) {
         if (object == null) {
             return null;
-        } else if (object instanceof AbstractRoleType) {
-            return firstNonEmpty(((AbstractRoleType) object).getDisplayName(), object.getName());
-        } else if (object instanceof UserType) {
-            return firstNonEmpty(((UserType) object).getDisplayName(), ((UserType) object).getFullName(), object.getName());
+        } else if (object instanceof AbstractRoleType abstractRole) {
+            return firstNonEmpty(abstractRole.getDisplayName(), object.getName());
+        } else if (object instanceof UserType user) {
+            return firstNonEmpty(user.getDisplayName(), user.getFullName(), object.getName());
         } else {
             return object.getName();
         }

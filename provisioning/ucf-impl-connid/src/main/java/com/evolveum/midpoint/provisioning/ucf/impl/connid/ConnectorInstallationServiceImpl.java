@@ -283,6 +283,12 @@ public class ConnectorInstallationServiceImpl implements ConnectorInstallationSe
         }
 
         @Override
+        public void deleteFileIfExists(String filename) throws IOException {
+            var file = newFile(connectorFile, filename);
+            Files.deleteIfExists(file.toPath());
+        }
+
+        @Override
         public String readFile(String filename) throws IOException {
             var file = newFile(connectorFile, filename);
             return Files.readString(file.toPath());

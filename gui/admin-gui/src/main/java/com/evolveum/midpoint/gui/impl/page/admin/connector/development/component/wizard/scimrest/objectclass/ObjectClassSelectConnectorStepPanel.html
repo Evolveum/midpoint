@@ -8,7 +8,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="col-12">
+    <div class="col-12" wicket:id="moreClassesHint">
         <div class="d-flex flex-row flex-wrap alert alert-info alert-opaque px-3">
             <span class="d-flex py-2 pe-2 align-items-start alert-icon">
                 <i class="fa fa fa-info-circle"></i>
@@ -36,7 +36,7 @@
         <div class="flex-fill p-1" wicket:id="panel">
             <div class="d-flex flex-row card shadow-sm p-2 h-100">
                 <div class="d-flex flex-column justify-content-center h-100 m-auto pe-3">
-                    <input wicket:id="radio" type="radio"/>
+                    <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
                 </div>
                 <div class="w-100 d-flex flex-column">
                     <div class="d-lex flex-row">

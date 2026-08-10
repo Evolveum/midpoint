@@ -1,28 +1,63 @@
 = Upgrade objects
 
-Command `upgrade-objects` can be used to _upgrade_ objects to get rid of deprecated or obsolete data and configuration.
-This operation should be used with CSV output file from `verify` command.
-For more information about verification, see xref:./verify.adoc[].
+The `upgrade-objects` command updates objects in the object model by replacing outdated object structures with their supported equivalents.
+This operation should be used with the CSV output file from the xref:/midpoint/reference/deployment/ninja/command/verify/[`verify` command].
+Specify the path to the CSV output file using the `--verification-file` option, for example:
 
-Verification report should be reviewed before running upgrade command.
-It is important to understand what will be changed and how can it affect the system.
-
-Only verification items with _type = seamless_ will be updated.
-Scope of upgrade-objects command can be set in several ways:
-
-* by oid (`--oid`)
-* by type (`-t, --type`) and filter (`-f, --filter`)
-
-This way it is possible to upgrade only specific objects.
-Verification items can be skipped also using last column in CSV file.
-Any of `true`, `t`, `yes`, `y` will tell ninja to skip the item.
-
-Upgrade objects command also supports multi-threading (`-l`, `--multi-thread`).
-For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
-
-.Example of command that upgrades objects, also with
 [source,bash]
 ----
 ./bin/ninja.sh upgrade-objects \
   --verification-file verify-output.csv
 ----
+
+By default, this command applies only verification items marked as `type = seamless`.
+It does not introduce new configuration; it only rewrites the existing obsolete constructs with their current forms.
+
+Make sure you review the verification report before running the `upgrade-objects` command.
+It is important to understand what will be changed and how it may affect the system.
+For more information about verification, see xref:./verify.adoc[].
+
+If no verification report is provided using the `--verification-file` option, the command displays a warning before applying any automatic upgrades.
+This warning can be suppressed using the `--skip-upgrade-warning` option.
+
+By default, the `upgrade-objects` command upgrades objects stored in the repository. +
+Alternatively, you can use the `--file` option to upgrade objects from an XML file.
+This option does not require repository access, and it updates the original file in place with the upgraded object definitions.
+
+The scope of the `upgrade-objects` command can be set using:
+
+* OID: `--oid`
+* Type: `-t, --type`, e.g., `./bin/ninja.sh upgrade-objects -t user`
+* Filter: `-f, --filter`
++
+Prefix the filter with `%` to interpret it as a MidPoint Query Language (MQL) query or with `@` to load it from a file.
+
+.Use an MQL query
+[source, bash]
+----
+./bin/ninja.sh upgrade-objects -f '%name = "administrator" and familyName = "Administrator"'
+----
+
+.Load the filter from a file
+[source, bash]
+----
+./bin/ninja.sh upgrade-objects -f @filter.txt
+----
+
+After selecting the objects to upgrade, you can further limit which verification items are applied by filtering them based on:
+
+* Identifier: `--upgrade-identifier`
+* Type: `--upgrade-type`
+* Phase: `--upgrade-phase`
+* Priority: `--upgrade-priority`
+
+For details on these filtering categories, see xref:./verify.adoc[].
+
+Verification of items can also be skipped using the last column in the CSV file.
+Set the column to any of the following values to skip the item: `true`, `t`, `yes`, or `y`.
+
+Objects can also be upgraded partially.
+To exclude specific parts of an object (properties or containers), such as `activation` or `description`, from processing during the upgrade, use the `-ei`, or `--exclude-item` option.
+
+The `upgrade-objects` command also supports multi-threading (`-l`, `--multi-thread <NUMBER_OF_THREADS>`).
+For more information, see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[how multithreading works].

@@ -125,7 +125,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         Validate.notNull(rawRepoShadow, "Object to modify must not be null.");
         Validate.notNull(modifications, "Object modification must not be null.");
@@ -202,7 +202,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
         assert pendingOperation.isModify();
         var opState = ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
@@ -224,7 +224,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, GenericFrameworkException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            PolicyViolationException, ObjectAlreadyExistsException {
+            PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         var opState = ProvisioningOperationState.fromPropagatedPendingOperations(repoShadow, sortedOperations);
         ctx.applyCurrentDefinition(modifications);
         new ShadowModifyOperation(ctx, modifications, null, null, opState, true)
@@ -234,7 +234,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
     private String execute(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         if (!inRefreshOrPropagation && checkAndRecordPendingOperationBeforeExecution(result)) {
             return opState.getRepoShadowOid();
@@ -278,7 +278,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
     }
 
     private void refreshBeforeExecution(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         RepoShadow repoShadow = opState.getRepoShadowRequired();
         if (inRefreshOrPropagation || !repoShadow.getPendingOperations().hasRetryableOperation()) {
             return;
@@ -326,7 +326,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
     private void executeModifyOperationDirectly(OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         RepoShadow repoShadow = opState.getRepoShadowRequired();
         try {
             ctx.checkNotInMaintenance();
@@ -363,7 +363,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation {
             @NotNull Exception cause, OperationResult failedOperationResult, @NotNull OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         LOGGER.debug("Handling provisioning MODIFY exception {}: {}", cause.getClass(), cause.getMessage());
         try {

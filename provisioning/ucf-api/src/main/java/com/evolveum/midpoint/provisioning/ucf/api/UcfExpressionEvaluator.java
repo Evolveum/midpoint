@@ -30,5 +30,5 @@ public interface UcfExpressionEvaluator {
     @NotNull <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
             String contextDescription, Task task, OperationResult opResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 }

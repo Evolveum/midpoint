@@ -308,7 +308,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
     /** Returns `true` if the `value` matches this selector. */
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ctx.traceMatchingStart(this, value);
         for (SelectorClause clause : clauses) {
             if (!ctx.isFullInformationAvailable() && clause.requiresFullInformation()) {
@@ -329,7 +329,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
      */
     public ObjectFilter computeFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (toFilter(ctx)) {
             return ctx.getFilterCollector().getFilter();
         } else {
@@ -343,7 +343,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
      */
     public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
             if (!clause.toFilter(ctx)) {

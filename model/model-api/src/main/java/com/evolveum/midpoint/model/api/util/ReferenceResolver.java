@@ -43,7 +43,7 @@ public interface ReferenceResolver {
     interface FilterExpressionEvaluator extends Serializable {
         ObjectFilter evaluate(ObjectFilter rawFilter, OperationResult result) throws SchemaException,
                 ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException;
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
     }
 
     List<PrismObject<? extends ObjectType>> resolve(
@@ -54,5 +54,5 @@ public interface ReferenceResolver {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 }

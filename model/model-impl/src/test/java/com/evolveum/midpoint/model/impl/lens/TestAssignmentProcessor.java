@@ -869,8 +869,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     private void processAssignments(Task task, OperationResult result, LensContext<UserType> context)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            throws CommonException {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
     }
 

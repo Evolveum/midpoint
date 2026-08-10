@@ -52,7 +52,8 @@ public class LogExecutor extends BaseActionExecutor {
     public PipelineData execute(
             ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         String message = expressionHelper.getActionArgument(String.class, expression,
                 LogActionExpressionType.F_MESSAGE, PARAM_MESSAGE, input, context, DEFAULT_MESSAGE, BulkAction.LOG.getName(), globalResult) + "{}";

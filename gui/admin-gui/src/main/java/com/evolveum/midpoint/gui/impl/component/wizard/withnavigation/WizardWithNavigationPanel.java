@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerInfoPanel;
+
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedInfoPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -51,7 +52,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     private static final String ID_STEP_IN_PROGRESS = "stepInProgress";
     private static final String ID_PARENT_STEP_LABEL = "parentStepLabel";
     private static final String ID_CONTENT_BODY = "contentBody";
-    private static final String ID_COLLAPSED_INFO_PANEL = "collapsedInfoPanel";
+    private static final String ID_DRAWER_INFO_PANEL = "drawerInfoPanel";
 
     private final AbstractWizardController<AH, ADM> controller;
 
@@ -174,9 +175,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         form.add(new WebMarkupContainer(ID_CONTENT_BODY));
 
-        CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getController());
-        collapsedInfoPanel.setOutputMarkupId(true);
-        form.add(collapsedInfoPanel);
+        DrawerInfoPanel drawerInfoPanel = new DrawerInfoPanel(ID_DRAWER_INFO_PANEL, getController());
+        drawerInfoPanel.setOutputMarkupId(true);
+        form.add(drawerInfoPanel);
     }
 
     protected IModel<String> getTitleModel() {

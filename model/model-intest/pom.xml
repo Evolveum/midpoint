@@ -415,6 +415,11 @@
             <artifactId>artemis-jakarta-client</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

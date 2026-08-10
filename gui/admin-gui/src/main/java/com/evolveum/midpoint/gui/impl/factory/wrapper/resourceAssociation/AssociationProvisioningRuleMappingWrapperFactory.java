@@ -49,16 +49,6 @@ public class AssociationProvisioningRuleMappingWrapperFactory<C extends Containe
     }
 
     @Override
-    public PrismContainerValueWrapper<C> createValueWrapper(
-            PrismContainerWrapper<C> parent,
-            PrismContainerValue<C> value,
-            ValueStatus status,
-            WrapperContext context) throws SchemaException {
-
-        return super.createValueWrapper(parent, value, status, context);
-    }
-
-    @Override
     public int getOrder() {
         return 90;
     }

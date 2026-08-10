@@ -77,7 +77,7 @@ class EntitlementObjectSearch<T> {
 
     public void execute(@NotNull ResourceObjectHandler foundObjectsHandler, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         argCheck(subjectAttrValue != null, "No subject attr value (should be checked by the caller)");
 

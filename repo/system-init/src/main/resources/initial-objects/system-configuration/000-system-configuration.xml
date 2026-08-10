@@ -184,7 +184,7 @@
     <smartIntegration>
         <statisticsTtl>P1D</statisticsTtl>
         <schemaMatchTtl>P1D</schemaMatchTtl>
-        <mappingSuggestionRetryCount>0</mappingSuggestionRetryCount>
+        <mappingSuggestionRetryCount>1</mappingSuggestionRetryCount>
     </smartIntegration>
     <adminGuiConfiguration>
         <homePage id="21">
@@ -2223,6 +2223,10 @@
             </evaluator>
             <evaluator id="279">
                 <type>proportional</type>
+                <decision>allow</decision>
+            </evaluator>
+            <evaluator id="309">
+                <type>null</type>
                 <decision>allow</decision>
             </evaluator>
             <bulkActionsProfile>prohibitive</bulkActionsProfile>

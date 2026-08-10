@@ -1,0 +1,31 @@
+# jack is used by the 'inbound' and 'outbound' resources (baseContext ou=People).
+dn: uid=jack,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: midpointLastLoginAware
+uid: jack
+cn: Jack Sparrow
+givenName: Jack
+sn: Sparrow
+midpointLastLogin: 20250801120000Z
+
+# will is used by the 'workaround' resource (baseContext ou=legacy), so that its
+# import does not interfere with users created from ou=People.
+dn: ou=legacy,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: legacy
+
+dn: uid=will,ou=legacy,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: midpointLastLoginAware
+uid: will
+cn: Will Turner
+givenName: Will
+sn: Turner
+midpointLastLogin: 20250615083000Z

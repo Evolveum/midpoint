@@ -56,7 +56,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
 
     void evaluate()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         assert ctx.assignmentPath.last() == segment;
         assert segment.isAssignmentActive() || segment.direct;

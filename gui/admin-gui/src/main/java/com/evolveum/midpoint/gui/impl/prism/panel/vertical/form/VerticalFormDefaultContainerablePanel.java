@@ -73,9 +73,9 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         propertiesLabel.setOutputMarkupId(true);
         add(propertiesLabel);
 
-        PrismContainerValueWrapper<C> model = getModel().getObject();
-        if (!isShowEmptyButtonVisible()) {
-            model.setShowEmpty(true);
+        PrismContainerValueWrapper<C> modelObject = getModel().getObject();
+        if (modelObject != null && !isShowEmptyButtonVisible()) {
+            modelObject.setShowEmpty(true);
         }
 
         IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");

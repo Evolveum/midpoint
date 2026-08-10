@@ -175,8 +175,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
                             createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
                 }
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(
                     createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
         }
@@ -197,8 +196,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
                 result.recordStatus(OperationResultStatus.SUCCESS,
                         createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(
                     createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
         }

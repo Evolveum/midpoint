@@ -51,8 +51,6 @@ public class PageError401 extends PageError {
             return;
         }
 
-        exClass = ex.getClass().getName();
-
         String msg = ex.getMessage();
         if (StringUtils.isEmpty(msg)) {
             msg = "web.security.provider.unavailable";

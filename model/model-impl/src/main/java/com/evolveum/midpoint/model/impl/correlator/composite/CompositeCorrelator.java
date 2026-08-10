@@ -65,7 +65,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new CorrelationOperation(correlationContext)
                 .execute(result);
     }
@@ -76,7 +76,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new ExplanationOperation(correlationContext, candidateOwner)
                 .execute(result);
     }
@@ -86,7 +86,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
             @NotNull CorrelationContext correlationContext,
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            CommunicationException, SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new CandidateCheckOperation(correlationContext, candidateOwner)
                 .execute(result);
     }
@@ -218,7 +218,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
         public CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Starting correlation operation with scale = {}, 'definite' threshold = {}", scale, definiteThreshold);
 
@@ -247,7 +247,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
         private void correlateInChild(CorrelatorConfiguration childConfiguration, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Going to correlate in child correlator '{}'", childConfiguration);
             CorrelationResult childResult =
@@ -325,7 +325,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
         CorrelationExplanation execute(@NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Starting explanation operation with scale = {}, 'definite' threshold = {}", scale, definiteThreshold);
 
@@ -349,7 +349,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
         private void explainInChild(CorrelatorConfiguration childConfiguration, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Going to explain in child correlator '{}'", childConfiguration);
             CorrelationExplanation childExplanation =
@@ -390,7 +390,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
         @NotNull Confidence execute(@NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Starting candidate check with scale = {}, 'definite' threshold = {}", scale, definiteThreshold);
 
@@ -411,7 +411,7 @@ public class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType>
 
         private void checkInChild(CorrelatorConfiguration childConfiguration, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             LOGGER.trace("Going to check the candidate in child correlator '{}'", childConfiguration);
             double childConfidence =

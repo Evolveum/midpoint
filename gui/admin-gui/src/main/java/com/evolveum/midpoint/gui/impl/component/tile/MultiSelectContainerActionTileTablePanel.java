@@ -564,7 +564,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
                     onSuggestNewPerformed(target, Collections::emptyList);
                 }
             };
-            generateButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+            generateButton.add(AttributeModifier.append("class", "btn btn-purple"));
         } else {
             generateButton = SmartSuggestButtonWithConfirmation.create(idButton,
                     createStringResource("Suggestion.button.suggest"),
@@ -592,7 +592,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
         };
         showSuggestionsButton.add(new VisibleBehaviour(() -> displayNoValuePanel()
                 && isShowSuggestionsButtonVisible()));
-        showSuggestionsButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+        showSuggestionsButton.add(AttributeModifier.append("class", "btn btn-purple"));
         showSuggestionsButton.setOutputMarkupId(true);
         showSuggestionsButton.showTitleAsLabel(true);
 

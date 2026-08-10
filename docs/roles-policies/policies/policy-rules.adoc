@@ -325,6 +325,7 @@ Policy rules can be defined:
 * <<global_pr,Globally>>
 * <<direct_pr,Directly>>
 * <<metarole_pr,In policies and metaroles>>
+* <<activity_pr,In task activities>>
 
 [[global_pr]]
 === Global Policy Rules
@@ -435,6 +436,16 @@ feature:archetype[Archetypes] can also be used as metaroles to apply policy rule
 
 See xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[] page for more details about the metarole mechanism.
 
+[[activity_pr]]
+=== Rule Definitions in Task Activities
+
+Since midPoint 4.11, policy rules can also be attached to individual xref:/midpoint/reference/tasks/activities/[task activities].
+Such rules apply only to the objects processed by the given activity - either defined inline, taken from a referenced policy object, or applied through virtual assignments.
+A typical use case is a threshold that suspends an import or reconciliation activity after a certain number of changes.
+
+See xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities] for details.
+Note that this is different from xref:/midpoint/reference/tasks/activity-policies/[activity policies], which use a separate set of constraints reacting to the activity run itself (execution time, number of attempts, item processing errors).
+
 == Policy Rule Exceptions
 
 MidPoint has a mechanism to support _exceptions_ from policy rules.
@@ -525,3 +536,7 @@ See xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[].
 * xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[]
 
 * xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[]
+
+* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]
+
+* xref:/midpoint/reference/tasks/activity-policies/[Activity policies]

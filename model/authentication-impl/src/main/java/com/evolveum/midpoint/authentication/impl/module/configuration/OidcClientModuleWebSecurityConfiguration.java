@@ -74,6 +74,10 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
             try {
                 builder = ClientRegistrations.fromOidcIssuerLocation(openIdProvider.getIssuerUri());
             } catch (Exception e) {
+                if (!hasExplicitOidcProviderEndpoints(openIdProvider)) {
+                    throw new IllegalArgumentException(
+                            "Unable to resolve OIDC issuer configuration from issuer URI: " + openIdProvider.getIssuerUri(), e);
+                }
                 LOGGER.debug("Couldn't create oidc client builder by issuer uri: " + openIdProvider.getIssuerUri(), e);
             }
 
@@ -164,6 +168,19 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
 
     private static Optional<String> getOptionalIfNotEmpty(String value) {
         return Optional.ofNullable(value).filter((s) -> !s.isEmpty());
+    }
+
+    /**
+     * Returns whether the authorization-code client can be constructed from
+     * explicitly configured provider endpoints without issuer discovery.
+     *
+     * ID-token verification requirements are validated by the OIDC
+     * provider and decoder logic.
+     */
+    private static boolean hasExplicitOidcProviderEndpoints(OidcOpenIdProviderType openIdProvider) {
+        return StringUtils.isNoneBlank(
+                openIdProvider.getAuthorizationUri(),
+                openIdProvider.getTokenUri());
     }
 
     public InMemoryClientRegistrationRepository getClientRegistrationRepository() {

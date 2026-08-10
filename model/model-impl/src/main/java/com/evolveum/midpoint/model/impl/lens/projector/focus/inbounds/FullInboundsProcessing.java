@@ -75,7 +75,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
      */
     void prepareMappings(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         for (var projectionContext : lensContext.getProjectionContexts()) {
 
@@ -248,7 +248,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
         @Override
         public void evaluateSpecialInbounds(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             var passwordValueLoaded = projectionContext.isPasswordValueLoaded();
             var activationLoaded = projectionContext.isActivationLoaded();
             // TODO convert to mapping creation requests
@@ -289,7 +289,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                 ItemPath sourcePath, ItemPath targetPath,
                 boolean sourceItemAvailable, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             if (inboundMappingBeans == null || inboundMappingBeans.isEmpty()) {
                 return;

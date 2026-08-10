@@ -9,7 +9,7 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div class="h5" wicket:id="noCorrelationContextMessage"></div>
     <div class="card shadow-sm mb-3 card-info">
-        <table wicket:id="correlationContextPanel" class="table table-bordered table-striped">
+        <table wicket:id="correlationContextPanel" class="table table-bordered table-striped table-body-color">
             <tr>
                 <th></th>
                 <wicket:container wicket:id="headers">
@@ -30,14 +30,14 @@
             <tr>
                 <th><wicket:message key="CorrelationContextPanel.name"/></th>
                 <wicket:container wicket:id="candidateReferences">
-                    <td><label wicket:id="candidateReference"></label></td>
+                    <td><label wicket:id="candidateReference" class="fw-bold"></label></td>
                 </wicket:container>
             </tr>
             <tr>
                 <th wicket:id="matchName"></th>
                 <wicket:container wicket:id="confidences">
                     <td>
-                        <label wicket:id="confidence"></label>
+                        <label wicket:id="confidence" class="fw-bold"></label>
                         <i wicket:id="explanation" wicket:message="title:CorrelationExplanation.Composite.child"/>
                     </td>
                 </wicket:container>

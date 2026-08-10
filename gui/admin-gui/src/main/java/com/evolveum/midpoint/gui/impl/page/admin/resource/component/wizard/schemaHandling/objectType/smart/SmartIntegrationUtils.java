@@ -8,16 +8,18 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.RegenerateMode;
@@ -102,20 +105,46 @@ public class SmartIntegrationUtils {
      * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
      */
     public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
-            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+            String resourceOid, PageBase pageBase, Task task, OperationResult result) {
         NativeResourceSchema schema;
         try {
             var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
             schema = Resource.of(resource).getNativeResourceSchemaRequired();
-        } catch (Exception e) {
+        } catch (CommonException e) {
             result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
             LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
             return Set.of();
         }
         return schema.getObjectClassDefinitions().stream()
                 .filter(def -> !def.isEmbedded() && !def.isAuxiliary())
-                .map(def -> new QName(NS_RI, def.getName())) // def.getQName is buggy now
+                .map(def -> ResourceSchema.nativeToMidPointClassName(def.getName()))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns the connector-provided (native) descriptions of object classes for the given resource, keyed by the
+     * object class name. Object classes for which the connector did not provide any description are not present
+     * in the returned map.
+     */
+    public static @NotNull Map<QName, String> getObjectClassDescriptions(
+            String resourceOid, PageBase pageBase, Task task, OperationResult result) {
+        NativeResourceSchema schema;
+        try {
+            var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
+            schema = Resource.of(resource).getNativeResourceSchemaRequired();
+        } catch (CommonException e) {
+            result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
+            LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
+            return Map.of();
+        }
+        Map<QName, String> descriptions = new HashMap<>();
+        for (var def : schema.getObjectClassDefinitions()) {
+            String description = def.getDescription();
+            if (StringUtils.isNotBlank(description)) {
+                descriptions.put(ResourceSchema.nativeToMidPointClassName(def.getName()), description);
+            }
+        }
+        return descriptions;
     }
 
     /**
@@ -239,17 +268,17 @@ public class SmartIntegrationUtils {
     }
 
     public enum SuggestionUiStyle {
-        FATAL("bg-light-danger", "info-badge danger", "border border-danger",
+        FATAL("table-danger", "info-badge danger", "border border-danger",
                 "SuggestionUiStyle.fatal"),
-        IN_PROGRESS("bg-light-info", "info-badge text-info", "border border-info",
+        IN_PROGRESS("table-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
-        UNKNOWN("bg-light-info", "info-badge text-info", "border border-info",
+        UNKNOWN("table-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
-        NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
+        NOT_APPLICABLE("table-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai border-start-2",
+        DEFAULT_AI("table-ai", "info-badge purple", "border border-ai border-start-2",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system border-start-2",
+        DEFAULT_SYSTEM("table-primary", "info-badge primary", "border border-system border-start-2",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;

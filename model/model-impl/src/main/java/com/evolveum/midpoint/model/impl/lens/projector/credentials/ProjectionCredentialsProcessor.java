@@ -87,7 +87,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             LensProjectionContext projectionContext, String activityDescription, XMLGregorianCalendar now, Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         try {
             processProjectionCredentials(context, projectionContext, now, task, result);
@@ -106,7 +106,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
-            SecurityViolationException, MappingLoader.NotLoadedException {
+            SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         SecurityPolicyType securityPolicy = determineSecurityPolicy(context, projectionContext);
 
@@ -121,7 +121,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             LensProjectionContext projCtx, SecurityPolicyType securityPolicy, XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         LensFocusContext<F> focusContext = context.getFocusContext();
 
         PrismObject<F> focusNew = focusContext.getObjectNew();
@@ -361,7 +361,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (securityPolicy == null) {
             LOGGER.trace("Skipping processing password policies. Security policy not specified.");

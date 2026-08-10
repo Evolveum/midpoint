@@ -21,10 +21,13 @@ public class ActivityHandlerUtils {
     public static <WD extends WorkDefinition> ActivityDefinition<WD> cloneWithoutIdForChildActivity(
             @NotNull ActivityDefinition<WD> original) {
         ActivityDefinition<WD> clone = original.cloneWithoutId();
-        // policies should not be inherited by child activities
+        // Policies and virtual assignments should not be inherited by child activities:
+        // they are collected from the declaring activity and its ancestors at run time,
+        // so an inherited copy would be picked up twice.
         ActivityPoliciesType policies = clone.getPoliciesDefinition().getPolicies();
         policies.getPolicy().clear();
         policies.getPolicyRef().clear();
+        clone.getVirtualAssignmentsDefinition().getVirtualAssignments().clear();
 
         return clone;
     }

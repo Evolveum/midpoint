@@ -76,13 +76,13 @@ public class SelectorMatcher {
 
     public boolean matches(@NotNull PrismObject<?> object)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return matches(object.getValue());
     }
 
     public boolean matches(@NotNull PrismValue value)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         return selector.matches(
                 value,

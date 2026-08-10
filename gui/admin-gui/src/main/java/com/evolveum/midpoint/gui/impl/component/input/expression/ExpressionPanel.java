@@ -18,12 +18,14 @@ import java.util.Optional;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
@@ -324,6 +326,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap"));
             return label;
         }
 
@@ -390,39 +393,18 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return type != null && type.evaluatorPanel != null && type.buttonLabelKeyPrefix != null && !isReadOnly();
     }
 
-    private AjaxButton createTypeButton() {
+    private AjaxIconButton createTypeButton() {
         RecognizedEvaluator type = typeModel.getObject();
-        AjaxButton typeButton = new AjaxButton(ID_TYPE_BUTTON) {
+
+        AjaxIconButton typeButton = new AjaxIconButton(ID_TYPE_BUTTON, Model.of("fa fa-gear"),
+                () -> type != null
+                        ? getPageBase().createStringResource(
+                        type.buttonLabelKeyPrefix + "." + isEvaluatorPanelExpanded()).getString() : "") {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
-                    OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
-                        @Override
-                        protected WebMarkupContainer createPanel(String id) {
-                            return createEvaluatorPanel(id, true);
-                        }
-
-                        @Override
-                        public IModel<String> getTitle() {
-                            Component panel = getPanel();
-                            if (panel instanceof EvaluatorExpressionPanel) {
-                                return ((EvaluatorExpressionPanel) panel).getValueContainerLabelModel();
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void processHide(AjaxRequestTarget target) {
-                            super.processHide(target);
-                            updateLabelForExistingEvaluator();
-                            target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
-                            target.add(ExpressionPanel.this);
-
-                            helpModel.reset();
-                        }
-                    };
-                    getPageBase().showMainPopup(popupPanel, target);
-
+                    DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
+                    getPageBase().showRightSidebar(drawerModel, target);
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
                     if (ExpressionPanel.this.getModelObject() != null
@@ -437,15 +419,6 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
                     helpModel.reset();
                 }
-            }
-
-            @Override
-            public IModel<?> getBody() {
-                if (type == null) {
-                    return Model.of();
-                }
-                return getPageBase().createStringResource(type.buttonLabelKeyPrefix + "." + isEvaluatorPanelExpanded());
-
             }
         };
         typeButton.add(new VisibleBehaviour(this::isButtonShow));
@@ -508,5 +481,27 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
     public void setDisplayHelp(boolean displayHelp) {
         this.displayHelp = displayHelp;
+    }
+
+    public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
+        List<CollapsedItem<DrawerModel>> collapsedItems = new ArrayList<>();
+        CollapsedItem<DrawerModel> collapsedItem = new CollapsedItem<>() {
+            @Override
+            public IModel<String> getIcon() {
+                return Model.of("fa fa-code");
+            }
+
+            @Override
+            public Component getPanel(String id, DrawerModel model) {
+                WebMarkupContainer panel = createEvaluatorPanel(id, true);
+                if (panel instanceof EvaluatorExpressionPanel evaluatorPanel) {
+                    setTitleModel(evaluatorPanel.getValueContainerLabelModel(getPageBase()));
+                }
+                return panel;
+            }
+        };
+        collapsedItem.setSelected(true);
+        collapsedItems.add(collapsedItem);
+        return collapsedItems;
     }
 }

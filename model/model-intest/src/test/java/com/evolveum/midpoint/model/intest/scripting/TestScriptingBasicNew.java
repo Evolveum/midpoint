@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -47,6 +48,15 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final File EXECUTE_CUSTOM_DELTA = new File(TEST_DIR, "execute-custom-delta.xml");
 
     private static final TestObject<TaskType> TASK_DELETE_SHADOWS_MULTINODE = TestObject.file(TEST_DIR, "task-delete-shadows-multinode.xml", "931e34be-5cf0-46c6-8cc1-90812a66d5cb");
+    private static final TestObject<RoleType> ROLE_THRESHOLD_TELEPHONE_NUMBER = TestObject.file(TEST_DIR, "role-threshold-telephone-number.xml", "1692d0e8-04e5-4aa4-a60c-3653ac77efa1");
+    private static final TestObject<TaskType> TASK_ITERATIVE_SCRIPTING_THRESHOLD = TestObject.file(TEST_DIR, "task-iterative-scripting-threshold.xml", "7636e8df-26e1-4b49-a86a-b707a97b44d9");
+    private static final TestObject<TaskType> TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE = TestObject.file(TEST_DIR, "task-iterative-scripting-threshold-tree.xml", "c3b90f6a-2b64-44b5-9f6d-d2a0c4a1e930");
+    private static final TestObject<TaskType> TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE = TestObject.file(TEST_DIR, "task-non-iterative-scripting-threshold-tree.xml", "e1c7a4d8-5a30-4f60-8c8d-b3f1a7c0e940");
+
+    private static final String THRESHOLD_TEST_USER_NAME_PREFIX = "test920-threshold-test-";
+    private static final String THRESHOLD_TREE_TEST_USER_NAME_PREFIX = "test930-threshold-tree-";
+    private static final String THRESHOLD_NON_ITERATIVE_TEST_USER_NAME_PREFIX = "test940-threshold-tree-";
+    private static final int THRESHOLD_TEST_USERS = 10;
 
     @Override
     String getSuffix() {
@@ -268,6 +278,156 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         assertThat(record.getTaskOid()).as("task OID in audit record").isEqualTo(TASK_DELETE_SHADOWS_MULTINODE.oid);
     }
 
+    @Test
+    public void test920IterativeScriptingTaskSuspendsOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_ITERATIVE_SCRIPTING_THRESHOLD, task, result);
+
+        when();
+        waitForTaskTreeCloseCheckingSuspensionWithError(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, result, 20000);
+
+        then();
+        dumpTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, result);
+
+        assertTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, "after")
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .display()
+                        .assertSuccessCount(2, true)
+                        .assertFailureCount(1, true)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(2, 1, 0)
+                    .end();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(THRESHOLD_TEST_USER_NAME_PREFIX, result);
+        displayValue("threshold test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
+    /**
+     * As {@link #test920IterativeScriptingTaskSuspendsOnThresholdViolation()}, but the scripting activity
+     * is delegated to a subtask, so the parent task waits on it. The threshold violation must be treated
+     * as a halting error: not only the subtask, but also the waiting parent must end up suspended. MID-11073.
+     */
+    @Test
+    public void test930IterativeScriptingInTaskTreeSuspendsWholeTreeOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        if (findObjectByName(RoleType.class, ROLE_THRESHOLD_TELEPHONE_NUMBER.getNameOrig()) == null) {
+            addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        }
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_TREE_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE, task, result);
+
+        when();
+        waitForTaskTreeCloseOrCondition(
+                TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result, 30000, 500,
+                tasksSuspendedPredicate(2)); // parent + subtask
+
+        then();
+        dumpTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result);
+
+        ActivityPath mainPath = ActivityPath.fromId("main");
+        assertTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, "after")
+                .assertSuspended()
+                .subtaskForPath(mainPath)
+                    .assertSuspended()
+                    .assertFatalError()
+                    .activityState(mainPath)
+                        .assertFatalError()
+                        .progress()
+                            .display()
+                            .assertSuccessCount(2, true)
+                            .assertFailureCount(1, true)
+                        .end()
+                        .itemProcessingStatistics()
+                            .display()
+                            .assertTotalCounts(2, 1, 0)
+                        .end();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(THRESHOLD_TREE_TEST_USER_NAME_PREFIX, result);
+        displayValue("threshold tree test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
+    /**
+     * As {@link #test930IterativeScriptingInTaskTreeSuspendsWholeTreeOnThresholdViolation()}, but with
+     * non-iterative scripting. There is no item processing gatekeeper there, so the threshold violation
+     * (with its activity-halt cause) propagates out of the activity run wrapped in script/expression
+     * evaluation exceptions. It must still be treated as a halting error, suspending the waiting parent
+     * along with the subtask. MID-11073.
+     */
+    @Test
+    public void test940NonIterativeScriptingInTaskTreeSuspendsWholeTreeOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        if (findObjectByName(RoleType.class, ROLE_THRESHOLD_TELEPHONE_NUMBER.getNameOrig()) == null) {
+            addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        }
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_NON_ITERATIVE_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE, task, result);
+
+        when();
+        waitForTaskTreeCloseOrCondition(
+                TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result, 30000, 500,
+                tasksSuspendedPredicate(2)); // parent + subtask
+
+        then();
+        dumpTaskTree(TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result);
+
+        assertTaskTree(TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, "after")
+                .assertSuspended()
+                .subtaskForPath(ActivityPath.fromId("main"))
+                    .assertSuspended()
+                    .assertFatalError();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(THRESHOLD_NON_ITERATIVE_TEST_USER_NAME_PREFIX, result);
+        displayValue("threshold non-iterative test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
     private int countDummyAccountShadows(OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -276,5 +436,13 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         displayValue("objects",
                 DebugUtil.debugDump(repositoryService.searchObjects(ShadowType.class, query, null, result)));
         return repositoryService.countObjects(ShadowType.class, query, null, result);
+    }
+
+    private int countThresholdTestUsersWithTelephoneNumber(String namePrefix, OperationResult result) throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_NAME).startsWith(namePrefix)
+                .and().item(UserType.F_TELEPHONE_NUMBER).eq("1000000")
+                .build();
+        return repositoryService.countObjects(UserType.class, query, null, result);
     }
 }

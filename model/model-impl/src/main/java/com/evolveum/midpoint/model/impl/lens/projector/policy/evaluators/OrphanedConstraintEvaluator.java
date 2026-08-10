@@ -58,7 +58,7 @@ public class OrphanedConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -81,7 +81,7 @@ public class OrphanedConstraintEvaluator
             @NotNull JAXBElement<OrphanedPolicyConstraintType> constraintElement,
             ObjectPolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         PrismObject<?> object = ctx.getObject();
         if (object == null || !(object.asObjectable() instanceof TaskType)) {
@@ -108,7 +108,7 @@ public class OrphanedConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = createBuiltInMessage(
                 SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
                 constraintElement,
@@ -123,7 +123,7 @@ public class OrphanedConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = createBuiltInMessage(
                 SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX,
                 constraintElement,
@@ -139,7 +139,7 @@ public class OrphanedConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OrphanedPolicyConstraintType constraint = constraintElement.getValue();
         List<Object> args = new ArrayList<>();
         args.add(evaluatorHelper.createBeforeAfterMessage(ctx));

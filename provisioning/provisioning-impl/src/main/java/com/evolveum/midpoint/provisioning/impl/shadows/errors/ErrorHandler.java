@@ -71,18 +71,18 @@ public abstract class ErrorHandler {
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             OperationResult result)
-                throws SchemaException, GenericFrameworkException, CommunicationException,
-                ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     public abstract OperationResultStatus handleModifyError(
             @NotNull ShadowModifyOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
-                throws SchemaException, GenericFrameworkException, CommunicationException,
-                ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     public abstract OperationResultStatus handleDeleteError(
             @NotNull ShadowDeleteOperation operation,

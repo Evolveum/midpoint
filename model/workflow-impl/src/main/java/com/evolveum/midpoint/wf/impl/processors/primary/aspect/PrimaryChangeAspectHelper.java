@@ -125,7 +125,8 @@ public class PrimaryChangeAspectHelper {
 
             exprResultTriple = ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException |
-                CommunicationException | ConfigurationException | SecurityViolationException e) {
+                 CommunicationException | ConfigurationException | SecurityViolationException |
+                 SubscriptionComplianceException e) {
             // TODO report as a specific exception?
             throw new SystemException("Couldn't evaluate applicability condition in aspect "
                     + aspect.getClass().getSimpleName() + ": " + e.getMessage(), e);

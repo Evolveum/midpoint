@@ -60,7 +60,7 @@ class FocusLoadOperation<F extends ObjectType> {
      */
     public void load(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_LOAD)
                 .setMinor()
@@ -117,7 +117,7 @@ class FocusLoadOperation<F extends ObjectType> {
 
     private @NotNull PrismObject<F> reallyLoadFocus(LensFocusContext<F> focusContext, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String focusOid = focusContext.getOid();
         argCheck(!StringUtils.isBlank(focusOid), "No OID in primary focus delta");
 

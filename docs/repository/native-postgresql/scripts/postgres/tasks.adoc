@@ -213,7 +213,8 @@ No primary key is defined directly on this table. The table inherits from xref:i
 [[m_task]]
 === `m_task`
 
-Stores persistent task objects managed by the task manager. +
+Stores persistent task objects managed by the task manager.
+
 Represents persistent TaskType, see https://docs.evolveum.com/midpoint/reference/tasks/task-manager/
 
 XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#TaskType`

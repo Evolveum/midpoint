@@ -159,7 +159,8 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
     }
 
     private void applyDefinitions(ExternalResourceEvent eventDescription,
-            Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         var resourceObject = eventDescription.getResourceObject();
         if (resourceObject != null) {
             shadowsFacade.applyDefinition(resourceObject, task, parentResult);

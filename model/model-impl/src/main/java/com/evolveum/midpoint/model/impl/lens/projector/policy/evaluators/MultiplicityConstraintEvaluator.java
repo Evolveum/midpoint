@@ -68,7 +68,7 @@ public class MultiplicityConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -92,7 +92,7 @@ public class MultiplicityConstraintEvaluator
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             ObjectPolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismObject<? extends ObjectType> target = ctx.elementContext.getObjectAny();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
             return List.of();
@@ -156,7 +156,7 @@ public class MultiplicityConstraintEvaluator
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (!ctx.isDirect()) {
             return List.of();
         }
@@ -180,7 +180,7 @@ public class MultiplicityConstraintEvaluator
             PlusMinusZero plusMinus,
             AssignmentPolicyRuleEvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismObject<?> target = assignment.getTarget();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
             return List.of();
@@ -272,7 +272,7 @@ public class MultiplicityConstraintEvaluator
             PrismObject<?> target,
             Object... args)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
                 .arg(ObjectTypeUtil.createDisplayInformation(target, true))
@@ -289,7 +289,7 @@ public class MultiplicityConstraintEvaluator
             String key2,
             PrismObject<?> target,
             Object... args)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
                 .arg(ObjectTypeUtil.createDisplayInformation(target, false))

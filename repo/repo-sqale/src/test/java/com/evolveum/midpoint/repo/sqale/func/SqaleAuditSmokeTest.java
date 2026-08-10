@@ -42,7 +42,9 @@ public class SqaleAuditSmokeTest extends SqaleRepoBaseTest {
                 .isNotNull()
                 .isNotEmpty();
 
-        LabeledString schemaChangeNumber = details.stream().filter(ls -> SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER.equals(ls.getLabel())).findFirst().orElse(null);
+        LabeledString schemaChangeNumber = details.stream()
+                .filter(ls -> SqaleUtils.VersionedComponent.AUDIT.label.equals(ls.getLabel()))
+                .findFirst().orElse(null);
         assertThat(schemaChangeNumber)
                 .isNotNull();
     }

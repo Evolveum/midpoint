@@ -109,7 +109,7 @@ public class ReportServiceImpl implements ReportService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         Preconditions.checkNotNull(report, "Report must not be null.");
 
@@ -205,14 +205,14 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return model.getObject(ReportType.class, reportOid, null, task, result);
     }
 
     @Override
     public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(
                 ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, SecurityEnforcer.Options.create(), task, result);
@@ -221,7 +221,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AuthorizationParameters<ReportType, ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(
                 ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, SecurityEnforcer.Options.create(), task, result);
@@ -278,7 +278,7 @@ public class ReportServiceImpl implements ReportService {
             ObjectCollectionReportEngineConfigurationType collectionConfig,
             boolean useDefaultView, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Validate.notNull(collectionConfig, "Collection engine in report couldn't be null.");
 
         CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();

@@ -28,12 +28,7 @@ import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpression
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.RandomString;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +66,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -93,7 +88,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     private String generateStringValue(
             ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         GenerateExpressionEvaluatorModeType mode = defaultIfNull(expressionEvaluatorBean.getMode(), POLICY);
         // TODO: generate value based on stringPolicyType (if not null)
         return switch (mode) {
@@ -131,7 +126,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     private String generateStringValueFromPolicy(
             ValuePolicyType valuePolicy, ExpressionEvaluationContext context, ItemPath outputPath, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ObjectBasedValuePolicyOriginResolver<?> originResolver = getOriginResolver(context);
         String generatedValue = valuePolicyProcessor.generate(
                 outputPath, valuePolicy, DEFAULT_LENGTH, originResolver,
@@ -147,7 +142,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     @Nullable
     private ValuePolicyType getValuePolicy(ExpressionEvaluationContext context, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectReferenceType specifiedValuePolicyRef = expressionEvaluatorBean.getValuePolicyRef();
         if (specifiedValuePolicyRef != null) {
             return objectResolver.resolve(

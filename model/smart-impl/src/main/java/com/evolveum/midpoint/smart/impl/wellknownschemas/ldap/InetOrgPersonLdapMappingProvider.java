@@ -82,7 +82,9 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
 
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME,
                 "uid".equals(rdn) ? MappingStrengthType.WEAK : MappingStrengthType.STRONG));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME,
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion("cn", UserType.F_FULL_NAME,
+                "fullName + iterationToken",
+                "CN: fullName + iterationToken",
                 "cn".equals(rdn) ? MappingStrengthType.WEAK : MappingStrengthType.STRONG));
 
         return mappings;
@@ -90,8 +92,10 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
 
     private SystemMappingSuggestion createDnScriptSuggestion(
             String rdnAttr, String sourceVar, ItemPath sourcePath, String ouSuffix) {
-        String script = "ldap.composeDnWithSuffix(['%s', %s, '%s'])".formatted(rdnAttr, sourceVar, ouSuffix);
-        String description = "Compose DN: %s=<%s>,%s".formatted(rdnAttr, sourceVar, ouSuffix);
+        boolean useIterationToken = UserType.F_FULL_NAME.equivalent(sourcePath);
+        String valueExpression = useIterationToken ? sourceVar + " + iterationToken" : sourceVar;
+        String script = "ldap.composeDnWithSuffix(['%s', %s, '%s'])".formatted(rdnAttr, valueExpression, ouSuffix);
+        String description = "Compose DN: %s=<%s>,%s".formatted(rdnAttr, valueExpression, ouSuffix);
         return SystemMappingSuggestion.createScriptSuggestion("dn", sourcePath, script, description,
                 MappingStrengthType.STRONG);
     }

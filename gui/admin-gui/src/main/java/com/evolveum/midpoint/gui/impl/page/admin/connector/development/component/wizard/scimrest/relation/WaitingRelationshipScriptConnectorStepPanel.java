@@ -69,7 +69,7 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateRelationScript(
-                valueModel.getObject().getRealValue(), regenerate, task, result);
+                valueModel.getObject().getRealValue(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

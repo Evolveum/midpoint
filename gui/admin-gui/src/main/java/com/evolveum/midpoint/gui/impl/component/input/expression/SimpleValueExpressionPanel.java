@@ -53,8 +53,8 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("AssociationExpressionValuePanel.literalValue");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("AssociationExpressionValuePanel.literalValue");
     }
 
     public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {

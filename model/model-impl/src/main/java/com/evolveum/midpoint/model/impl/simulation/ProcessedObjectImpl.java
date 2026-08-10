@@ -1083,7 +1083,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     @Override
     public void applyDefinitions(@NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         if (!ShadowType.class.equals(type)) {
             return;
         }

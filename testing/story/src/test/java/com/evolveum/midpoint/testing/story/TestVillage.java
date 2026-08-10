@@ -845,7 +845,7 @@ public class TestVillage extends AbstractStoryTest {
         assertEmployeeNumber(user);
     }
 
-    private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws CommonException {
         UserType userType = user.asObjectable();
         PrismAsserts.assertEqualsPolyString("Wrong locality in " + user, expLoc, userType.getLocality());
         if (expOrg == null) {
@@ -873,7 +873,7 @@ public class TestVillage extends AbstractStoryTest {
         }
     }
 
-    private void assertUserNoRole(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private void assertUserNoRole(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws CommonException, DirectoryException {
         String username = getUsername(firstName, lastName, orgName);
         assertNotNull("No " + username + " user", user);
         display("User", user);
@@ -887,11 +887,11 @@ public class TestVillage extends AbstractStoryTest {
         openDJController.assertNoEntry("uid=" + username + ",ou=people,dc=example,dc=com");
     }
 
-    private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws CommonException {
         assertUserLdap(user, firstName, lastName, orgName, 1);
     }
 
-    private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName, int assignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName, int assignments) throws CommonException {
         String username = getUsername(firstName, lastName, orgName);
         assertNotNull("No " + username + " user", user);
         display("User", user);
@@ -916,7 +916,7 @@ public class TestVillage extends AbstractStoryTest {
         assertEquals("Wrong employeeNumber in " + user, user.getOid(), employeeNumber);
     }
 
-    private String getUsername(String firstName, String lastName, String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private String getUsername(String firstName, String lastName, String orgName) throws CommonException {
         String username = firstName + "." + lastName;
         if (orgName != null) {
             PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
@@ -925,7 +925,7 @@ public class TestVillage extends AbstractStoryTest {
         return username;
     }
 
-    private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws CommonException, DirectoryException {
         String groupCn = expOrg + ":" + expLoc;
         String groupDn = "cn=" + groupCn + ",ou=groups," + openDJController.getSuffix();
         Entry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");

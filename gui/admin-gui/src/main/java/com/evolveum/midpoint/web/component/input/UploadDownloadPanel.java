@@ -26,6 +26,7 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
@@ -129,22 +130,18 @@ public class UploadDownloadPanel extends InputPanel {
                     final String contentType = fu.getContentType();
 
                     if (!FileValidatorUtil.isValidContentType(contentType, FileValidatorUtil.getMimeTypes(getAllowedUploadContentTypes()))) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
-                        validatable.error(new ValidationError(msg));
+                        validatable.error(createValidationError("UploadDownloadPanel.validationContentNotAllowed", label, contentType));
                         continue;
                     }
 
                     if (isMagicNumberValidationEnabled() && !FileValidatorUtil.isValidMagicNumber(contentType, getInputStream())) {
-                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType);
-                        validatable.error(new ValidationError(msg));
+                        validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, contentType));
                     }
                 }
             } catch (MimeTypeParseException ex) {
-                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
-                validatable.error(new ValidationError(msg));
+                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage()));
             } catch (IOException ex) {
-                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage());
-                validatable.error(new ValidationError(msg));
+                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage()));
             }
         });
         fileUpload.setOutputMarkupId(true);
@@ -191,6 +188,11 @@ public class UploadDownloadPanel extends InputPanel {
         add(new VisibleBehaviour(() -> !isReadOnly));
     }
 
+    private ValidationError createValidationError(String key, Object... params) {
+        String msg = getParentPage().getString(key, params);
+        return new ValidationError(msg);
+    }
+
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return getInputFile();
@@ -209,8 +211,12 @@ public class UploadDownloadPanel extends InputPanel {
      * @return if ImageUploadProcessing is set to fixedFormat
      */
     private boolean isMagicNumberValidationEnabled() {
-        final ImageUploadProcessingType config = getPageBase().getCompiledGuiProfile().getImageUploadProcessing();
+        final ImageUploadProcessingType config = getCompiledGuiProfile().getImageUploadProcessing();
         return config == null || !ImageProcessingType.FIXED.equals(config.getProcessing());
+    }
+
+    private CompiledGuiProfile getCompiledGuiProfile() {
+        return getParentPage().getCompiledGuiProfile();
     }
 
     public void uploadFilePerformed(AjaxRequestTarget target) {
@@ -220,7 +226,7 @@ public class UploadDownloadPanel extends InputPanel {
             updateValue(
                     ImageSanitizationUtil.sanitizeImage(
                             uploadedFile.getBytes(),
-                            getPageBase().getCompiledGuiProfile().getImageUploadProcessing()
+                            getCompiledGuiProfile().getImageUploadProcessing()
                     )
             );
             LOGGER.trace("Upload file success.");

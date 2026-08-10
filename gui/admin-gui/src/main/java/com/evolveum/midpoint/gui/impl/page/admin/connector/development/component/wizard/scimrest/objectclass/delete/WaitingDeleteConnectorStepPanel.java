@@ -49,7 +49,7 @@ public class WaitingDeleteConnectorStepPanel extends WaitingObjectClassScriptCon
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateDeleteScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

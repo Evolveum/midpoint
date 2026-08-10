@@ -47,8 +47,8 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("ShadowOwnerReferenceSearchExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("ShadowOwnerReferenceSearchExpressionPanel.label");
     }
 
     private void updateEvaluatorValue() {

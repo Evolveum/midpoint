@@ -56,7 +56,7 @@ class MappingTimeConstraintsEvaluation implements Serializable {
     }
 
     void evaluate(OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         MappingTimeDeclarationType timeFromSpec = m.mappingBean.getTimeFrom();
         MappingTimeDeclarationType timeToSpec = m.mappingBean.getTimeTo();
         if (timeFromSpec == null && timeToSpec == null) {
@@ -107,7 +107,7 @@ class MappingTimeConstraintsEvaluation implements Serializable {
 
     private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeBean, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (timeBean == null) {
             return null;
         }
@@ -172,7 +172,7 @@ class MappingTimeConstraintsEvaluation implements Serializable {
 
     private XMLGregorianCalendar parseTimeSource(VariableBindingDefinitionType source, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ItemPath path = m.parser.getSourcePath(source);
 
         Object sourceObject = ExpressionUtil.resolvePathGetValue(

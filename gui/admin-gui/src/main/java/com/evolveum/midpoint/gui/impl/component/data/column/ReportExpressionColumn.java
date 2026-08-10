@@ -43,7 +43,7 @@ public class ReportExpressionColumn<C extends Serializable> extends Configurable
     }
 
     @Override
-    protected <V> Collection<V> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    protected <V> Collection<V> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result) throws CommonException {
         Object object = getPageBase().getReportManager().evaluateScript(getReport(), expression, variablesMap, "evaluate column expression", task, result);
         if (object instanceof Collection) {
             return (Collection) object;

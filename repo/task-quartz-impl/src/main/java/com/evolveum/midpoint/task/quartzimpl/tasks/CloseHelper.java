@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tasks;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,7 +36,6 @@ class CloseHelper {
     private static final Trace LOGGER = TraceManager.getTrace(SuspendAndDeleteHelper.class);
 
     @Autowired private LocalScheduler localScheduler;
-    @Autowired private PrismContext prismContext;
     @Autowired private UnpauseHelper unpauseHelper;
 
     public void closeTask(Task task, OperationResult result)
@@ -47,7 +45,14 @@ class CloseHelper {
         } finally {
             if (task.isPersistent()) {
                 localScheduler.deleteTaskFromQuartz(task.getOid(), false, result);
-                unpauseHelper.unpauseDependentsIfPossible((TaskQuartzImpl) task, result);
+                // The task is already closed in the repository. A related task deleted concurrently (e.g. a
+                // parent removed while this subtask was finishing) must not turn a successful close into an
+                // error, so a missing dependent/parent is tolerated here. Other exceptions propagate as before.
+                try {
+                    unpauseHelper.unpauseDependentsIfPossible((TaskQuartzImpl) task, result);
+                } catch (ObjectNotFoundException e) {
+                    LOGGER.debug("A dependent/parent of closed task {} no longer exists - nothing to unpause", task, e);
+                }
             }
         }
     }

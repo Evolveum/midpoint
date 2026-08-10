@@ -127,7 +127,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             }
         };
         showSuggestionsButton.add(AttributeModifier.append(
-                "class", "ms-auto bg-purple d-flex flex-row-reverse"));
+                "class", "btn btn-purple ms-auto d-flex flex-row-reverse"));
         showSuggestionsButton.showTitleAsLabel(true);
         showSuggestionsButton.add(new VisibleBehaviour(() -> getModelObject().isShowSuggestionButtonVisible()));
         buttonsView.add(showSuggestionsButton);
@@ -270,7 +270,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         final AjaxIconButton suggestButton;
         if (getConfirmationOptions().getObject().isEmpty()) {
             suggestButton = buttonWithoutDialog(buttonId);
-            suggestButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+            suggestButton.add(AttributeModifier.append("class", "btn btn-purple"));
         } else {
             suggestButton = buttonWithDialog(buttonId);
         }

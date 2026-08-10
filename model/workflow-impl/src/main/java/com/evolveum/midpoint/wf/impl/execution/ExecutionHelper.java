@@ -287,7 +287,7 @@ public class ExecutionHelper {
      */
     public void submitExecutionTaskIfNeeded(CaseType rootCase, List<CaseType> subcases, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException {
+            ExpressionEvaluationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         assert ObjectTypeUtil.hasArchetypeRef(rootCase, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
         LensContext<?> lensContext = lensContextHelper.collectApprovedDeltasToModelContext(rootCase, subcases, task, result);
         if (lensContext.hasAnyPrimaryChange()) {

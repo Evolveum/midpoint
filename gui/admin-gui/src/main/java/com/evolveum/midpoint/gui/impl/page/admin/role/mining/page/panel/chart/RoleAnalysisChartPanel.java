@@ -636,8 +636,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         try {
             modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler,
                     options, task, result);
-        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
-                ExpressionEvaluationException | CommunicationException e) {
+        } catch (CommonException e) {
             throw new SystemException("Couldn't search assignments", e);
         }
 

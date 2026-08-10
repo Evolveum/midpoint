@@ -29,7 +29,10 @@ public class SqlAnnotationExtractor {
     private static final Set<String> TABLE_CONSTRAINT_STARTS = Set.of(
             "CHECK", "CONSTRAINT", "PRIMARY", "FOREIGN", "UNIQUE");
     private static final Set<AnnotationKey> MULTI_LINE_KEYS = Set.of(
-            AnnotationKey.DESCRIPTION, AnnotationKey.CHANGE, AnnotationKey.REGION_DESCRIPTION);
+            AnnotationKey.SCRIPT_DESCRIPTION,
+            AnnotationKey.DESCRIPTION,
+            AnnotationKey.CHANGE,
+            AnnotationKey.REGION_DESCRIPTION);
 
     /**
      * Extracts annotation metadata placed immediately before a SQL statement.
@@ -37,9 +40,46 @@ public class SqlAnnotationExtractor {
     public DocMetadata extractLeadingMetadata(String statement) {
         AnnotationMetadataBuilder builder = new AnnotationMetadataBuilder();
         for (SqlAnnotation annotation : leadingAnnotations(statement)) {
-            builder.add(annotation);
+            builder.addMetadata(annotation);
         }
         return builder.isEmpty() ? DocMetadata.EMPTY : builder.toMetadata();
+    }
+
+    /**
+     * Extracts the file-level script description from leading SQL comments.
+     */
+    public String extractScriptDescription(String statement) {
+        AnnotationMetadataBuilder builder = new AnnotationMetadataBuilder();
+        boolean inScriptDescription = false;
+        boolean inBlockComment = false;
+
+        for (String line : statement.lines().toList()) {
+            String strippedLine = line.stripLeading();
+            if (!inBlockComment && !SqlCommentSupport.startsBlockComment(strippedLine)) {
+                if (strippedLine.isBlank() || SqlCommentSupport.isLineComment(strippedLine)) {
+                    continue;
+                }
+                break;
+            }
+
+            String commentText = SqlCommentSupport.fromBlockComment(line);
+            boolean blockContinues = SqlCommentSupport.continuesBlockComment(strippedLine);
+            inBlockComment = blockContinues;
+
+            SqlAnnotation annotation = annotationFromCommentText(commentText);
+            if (!inScriptDescription && annotation != null && annotation.key() == AnnotationKey.SCRIPT_DESCRIPTION) {
+                builder.add(annotation);
+                inScriptDescription = true;
+            } else if (inScriptDescription && (!commentText.isBlank() || blockContinues)) {
+                builder.appendToLast(commentText);
+            }
+
+            if (!inBlockComment && inScriptDescription) {
+                break;
+            }
+        }
+
+        return builder.value(AnnotationKey.SCRIPT_DESCRIPTION);
     }
 
     /**
@@ -87,7 +127,7 @@ public class SqlAnnotationExtractor {
 
             SqlAnnotation annotation = annotationFromLine(line);
             if (annotation != null) {
-                pendingMetadata.add(annotation);
+                pendingMetadata.addMetadata(annotation);
                 continue;
             }
 
@@ -196,13 +236,13 @@ public class SqlAnnotationExtractor {
 
     private void collectBlockAnnotation(AnnotationMetadataBuilder builder, String line) {
         String commentText = SqlCommentSupport.fromBlockComment(line);
-        if (commentText.isBlank()) {
+        if (commentText.isBlank() && !SqlCommentSupport.continuesBlockComment(line.stripLeading())) {
             return;
         }
 
         SqlAnnotation annotation = annotationFromCommentText(commentText);
         if (annotation != null) {
-            builder.add(annotation);
+            builder.addMetadata(annotation);
         } else {
             builder.appendToLast(commentText);
         }
@@ -296,8 +336,10 @@ public class SqlAnnotationExtractor {
 
             SqlAnnotation annotation = annotationFromLine(line);
             if (annotation != null) {
-                builder.add(annotation);
-                inAnnotationBlock = true;
+                if (annotation.key() != AnnotationKey.SCRIPT_DESCRIPTION) {
+                    builder.add(annotation);
+                    inAnnotationBlock = true;
+                }
                 return LineResult.CONTINUE;
             }
 
@@ -358,8 +400,14 @@ public class SqlAnnotationExtractor {
             annotations.add(annotation);
         }
 
+        void addMetadata(SqlAnnotation annotation) {
+            if (annotation.key() != AnnotationKey.SCRIPT_DESCRIPTION) {
+                add(annotation);
+            }
+        }
+
         void appendToLast(String continuation) {
-            if (annotations.isEmpty() || continuation.isBlank()) {
+            if (annotations.isEmpty()) {
                 return;
             }
 
@@ -381,6 +429,15 @@ public class SqlAnnotationExtractor {
             return List.copyOf(annotations);
         }
 
+        String value(AnnotationKey key) {
+            for (SqlAnnotation annotation : annotations) {
+                if (annotation.key() == key) {
+                    return annotation.value();
+                }
+            }
+            return null;
+        }
+
         DocMetadata toMetadata() {
             String description = null;
             String type = null;
@@ -393,6 +450,9 @@ public class SqlAnnotationExtractor {
 
             for (SqlAnnotation annotation : annotations) {
                 switch (annotation.key()) {
+                    case SCRIPT_DESCRIPTION -> {
+                        // @script-description is handled separately as file-level metadata.
+                    }
                     case DESCRIPTION -> description = annotation.value();
                     case TYPE -> type = annotation.value();
                     case SINCE -> since = annotation.value();

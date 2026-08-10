@@ -70,11 +70,16 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "dn",
                     AbstractRoleType.F_IDENTIFIER,
-                    "ldap.composeDnWithSuffix(['cn', identifier, '%s'])".formatted(ouSuffix),
-                    "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier + iterationToken, '%s'])".formatted(ouSuffix),
+                    "Compose DN: cn=<identifier + iterationToken>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER, MappingStrengthType.WEAK));
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                "cn",
+                AbstractRoleType.F_IDENTIFIER,
+                "identifier + iterationToken",
+                "CN: identifier + iterationToken",
+                MappingStrengthType.WEAK));
         return mappings;
     }
 

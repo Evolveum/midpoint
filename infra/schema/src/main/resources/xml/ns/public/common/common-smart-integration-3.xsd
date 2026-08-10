@@ -63,6 +63,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="connectorSqlFrameworkUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the SQL connector framework template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="statisticsTtl" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -87,11 +94,11 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mappingSuggestionRetryCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="mappingSuggestionRetryCount" type="xsd:int" minOccurs="0" default="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Number of retry attempts for AI mapping suggestion when validation fails.
-                        Default is 0 (no retry). Set to 1 or higher to enable retry mechanism.
+                        Default is 1 (one retry). Set to 0 to disable retries.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.11</a:since>
@@ -618,6 +625,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Suggestions of new extension items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="iterationSpecification" type="c:IterationSpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default iteration specification to be used when suggested mappings contain iteration tokens.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

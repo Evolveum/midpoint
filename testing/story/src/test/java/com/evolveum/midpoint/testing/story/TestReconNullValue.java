@@ -404,9 +404,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         displayValue("LDAP server content", openDJController.dumpEntries());
     }
 
-    protected <F extends FocusType> PrismObject<F> getObjectByName(Class clazz, String name)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected <F extends FocusType> PrismObject<F> getObjectByName(Class clazz, String name) throws CommonException {
         PrismObject<F> object = (PrismObject<F>) findObjectByName(clazz, name);
         assertNotNull("The object " + name + " of type " + clazz + " is missing!", object);
         display(clazz + " " + name, object);
@@ -415,9 +413,7 @@ public class TestReconNullValue extends AbstractStoryTest {
     }
 
     private void assertShadowAttribute(PrismObject focus, ShadowKindType kind,
-            String intent, String attribute, String... values)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            String intent, String attribute, String... values) throws CommonException {
         String focusName = focus.getName().toString();
         displayValue("assert focus " + focus.getCompileTimeClass(), focusName);
 

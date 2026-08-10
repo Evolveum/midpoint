@@ -9,10 +9,14 @@ xref:${scriptLandingPath}[Back to $r.fileName($sourceFile.path()) documentation]
 #end
 This page documents schema objects parsed from `$r.displayPath($sourceFile.path())`.
 
+#if ($sourceFile.scriptDescription())
+$sourceFile.scriptDescription()
+
+#end
 #if ($region)
 Region: $region.title()
 
-$r.metadataValue($region.description())
+$region.description()
 
 #end
 #if (!$schema.tables().isEmpty())

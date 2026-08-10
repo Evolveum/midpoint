@@ -475,7 +475,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         assertDummyResource(importedResource, false);
 
         ResourceType importedResourceType = importedResource.asObjectable();
-        assertNotNull("No synchronization", importedResourceType.getSynchronization());
+        assertNotNull("No schemaHandling", importedResourceType.getSchemaHandling());
 
         // Read it from repo again. The read from model triggers schema fetch which increases version
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);

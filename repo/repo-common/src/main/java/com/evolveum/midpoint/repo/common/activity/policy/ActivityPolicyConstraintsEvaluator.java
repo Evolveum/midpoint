@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2025 Evolveum and contributors
+ * Copyright (c) 2010-2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
  */
@@ -10,11 +10,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,19 +21,31 @@ import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompo
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionAttemptsConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ExecutionTimeConstraintEvaluator;
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ItemProcessingResultConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Activity policy constraints evaluator will skip all unknown constraints.
- * Currently, it knows only:
- * {@link PolicyConstraintsType#F_EXECUTION_TIME}
- * {@link PolicyConstraintsType#F_EXECUTION_ATTEMPTS}
- * {@link PolicyConstraintsType#F_ITEM_PROCESSING_RESULT}
+ * Evaluates policy constraints in the activity context.
  *
+ * Only some constraints are supported here:
+ * {@link PolicyConstraintsType#F_EXECUTION_TIME},
+ * {@link PolicyConstraintsType#F_EXECUTION_ATTEMPTS},
+ * {@link PolicyConstraintsType#F_ITEM_PROCESSING_RESULT}
+ * and the logical constraints ({@link PolicyConstraintsType#F_AND}, {@link PolicyConstraintsType#F_OR},
+ * {@link PolicyConstraintsType#F_NOT}) composed of them.
+ *
+ * All other constraints are skipped: activity policies share {@link PolicyConstraintsType} with focus policy rules,
+ * so a rule may well contain constraints that are meaningful only in the focus context. Skipped constraints do not
+ * participate in the evaluation at all - in particular, they do not veto the implicit/explicit conjunction.
  */
 @Component
 public class ActivityPolicyConstraintsEvaluator {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyConstraintsEvaluator.class);
 
     @Autowired private ExecutionTimeConstraintEvaluator executionTimeEvaluator;
 
@@ -60,6 +71,9 @@ public class ActivityPolicyConstraintsEvaluator {
             //noinspection unchecked
             ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) findEvaluator(element);
+            if (evaluator == null) {
+                continue; // constraint not relevant in the activity context, does not affect the evaluation
+            }
 
             List<? extends EvaluatedPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(element, context, result);
             if (!newTriggers.isEmpty()) {
@@ -82,30 +96,20 @@ public class ActivityPolicyConstraintsEvaluator {
             //noinspection unchecked
             ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?> evaluator =
                     (ActivityPolicyConstraintEvaluator<AbstractPolicyConstraintType, ?>) findEvaluator(element);
+            if (evaluator == null) {
+                continue;
+            }
             dataNeeds.addAll(evaluator.getDataNeeds(element));
         }
         return dataNeeds;
     }
 
-    public List<JAXBElement<AbstractPolicyConstraintType>> toConstraintList(PolicyConstraintsType constraints) {
-        List<JAXBElement<AbstractPolicyConstraintType>> list = new ArrayList<>();
-        if (constraints.getExecutionTime() != null) {
-            list.add(createJAXBElement(PolicyConstraintsType.F_EXECUTION_TIME, constraints.getExecutionTime()));
-        }
-        if (constraints.getItemProcessingResult() != null) {
-            list.add(createJAXBElement(PolicyConstraintsType.F_ITEM_PROCESSING_RESULT, constraints.getItemProcessingResult()));
-        }
-        if (constraints.getExecutionAttempts() != null) {
-            list.add(createJAXBElement(PolicyConstraintsType.F_EXECUTION_ATTEMPTS, constraints.getExecutionAttempts()));
-        }
-        return list;
+    private List<JAXBElement<AbstractPolicyConstraintType>> toConstraintList(PolicyConstraintsType constraints) {
+        // Unresolved constraint references are ignored here, just like other unsupported constraints.
+        return PolicyRuleTypeUtil.toConstraintsList(constraints, true);
     }
 
-    private JAXBElement<AbstractPolicyConstraintType> createJAXBElement(QName name, AbstractPolicyConstraintType constraint) {
-        return new JAXBElement<>(name, AbstractPolicyConstraintType.class, constraint);
-    }
-
-    private ActivityPolicyConstraintEvaluator<?, ?> findEvaluator(JAXBElement<AbstractPolicyConstraintType> element) {
+    private @Nullable ActivityPolicyConstraintEvaluator<?, ?> findEvaluator(JAXBElement<AbstractPolicyConstraintType> element) {
         AbstractPolicyConstraintType constraint = element.getValue();
 
         if (constraint instanceof DurationThresholdPolicyConstraintType) {
@@ -122,6 +126,8 @@ public class ActivityPolicyConstraintsEvaluator {
             return compositeEvaluator;
         }
 
-        throw new IllegalArgumentException("No evaluator found for constraint type: " + constraint.getClass());
+        LOGGER.trace("Constraint {} ({}) is not supported in the activity context, skipping",
+                element.getName(), constraint.getClass().getSimpleName());
+        return null;
     }
 }

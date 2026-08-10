@@ -239,7 +239,7 @@ public class TestFocusPolicyActions extends AbstractEmptyModelIntegrationTest {
      * but asserts the content of the message surfaced on the task health / operation execution:
      *
      * . the technical message (what ends up as the operation execution's plain {@code message}) must read
-     *   as the trigger message ("... was added"), not as a {@code PolicyRuleType} dump, and
+     * as the trigger message ("... was added"), not as a {@code PolicyRuleType} dump, and
      * . a localizable user-friendly message must be present as well.
      */
     @Test
@@ -269,7 +269,9 @@ public class TestFocusPolicyActions extends AbstractEmptyModelIntegrationTest {
         assertThat(healthMessages).as("technical health/operation-execution messages").hasSize(1);
         assertThat(healthMessages.get(0))
                 .as("technical policy violation message")
-                .contains("added")               // trigger-derived (ADD modification constraint) => "... was added"
+                .contains("'" + RULE_ADD + "'")   // {0} = quoted policy rule name => 'fpa-add'
+                .contains("violation")
+                .contains("added")                // {1} = trigger message (ADD modification constraint) => "... added"
                 .doesNotContain("PolicyRuleType") // no bean dump
                 .doesNotContain("policyThreshold")
                 .doesNotContain("policyConstraints");
@@ -393,7 +395,9 @@ public class TestFocusPolicyActions extends AbstractEmptyModelIntegrationTest {
                     .fullExecutionModePolicyRulesCounters()
                         .assertCounterMinMax(id, ADD_THRESHOLD, ADD_THRESHOLD + threads - 1);
         // @formatter:on
-        assertThat(countImportedUsers()).as("imported users").isGreaterThanOrEqualTo(ADD_THRESHOLD - 1);
+        assertThat(countImportedUsers()).as("imported users")
+                .isGreaterThanOrEqualTo(ADD_THRESHOLD - threads)  // >= 2
+                .isLessThanOrEqualTo(ADD_THRESHOLD - 1);           // <= 4
     }
 
     // endregion

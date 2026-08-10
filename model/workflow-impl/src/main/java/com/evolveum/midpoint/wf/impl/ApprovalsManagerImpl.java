@@ -46,7 +46,7 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaExecutionInformation");
         try {
             return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(caseOid, task, result);
@@ -64,7 +64,7 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaPreview");
         try {
             return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, task, result);

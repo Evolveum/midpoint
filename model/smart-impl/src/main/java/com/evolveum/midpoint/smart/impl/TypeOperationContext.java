@@ -62,7 +62,7 @@ class TypeOperationContext extends OperationContext {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return init(serviceClient, resourceOid, typeIdentification, null, activityState, task, result);
     }
 
@@ -75,7 +75,7 @@ class TypeOperationContext extends OperationContext {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var resource = SmartIntegrationBeans.get().modelService
                 .getObject(ResourceType.class, resourceOid, options, task, result)
                 .asObjectable();

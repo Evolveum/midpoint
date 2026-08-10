@@ -66,7 +66,8 @@ public class RegionTracker {
             if (commentText == null) {
                 break;
             }
-            inBlockComment = blockComment && SqlCommentSupport.continuesBlockComment(strippedLine);
+            boolean blockContinues = blockComment && SqlCommentSupport.continuesBlockComment(strippedLine);
+            inBlockComment = blockContinues;
 
             slug = valueOrCurrent(commentText, REGION, slug);
             title = valueOrCurrent(commentText, REGION_TITLE, title);
@@ -77,7 +78,7 @@ public class RegionTracker {
                 continue;
             }
 
-            if (regionDescriptionContinues && blockComment && !commentText.isBlank()) {
+            if (regionDescriptionContinues && blockComment && (!commentText.isBlank() || blockContinues)) {
                 description = SqlCommentSupport.appendContinuation(description, commentText);
             } else if (!blockComment) {
                 regionDescriptionContinues = false;

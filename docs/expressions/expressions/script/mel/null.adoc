@@ -4,8 +4,29 @@ doc-type: intro
 ---
 = Null Values in MidPoint Expression Language
 :page-nav-title: Null Values
-:page-upkeep-status: green
+:page-upkeep-status: red
 :page-toc: top
+
+// TODO: NEEDS MAJOR UPDATE !!!
+
+MEL data structures and functions are generally null-safe.
+I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.
+MEL interpreter substitutes a reasonable return value in such a case, which is usually also `null` value.
+However, some functions may return empty string (`''`), zero (`0`) or appropriate boolean value instead.
+
+Navigation of structured data is also null-safe.
+See section xref:#optional-values-in-structured-data[Optional Values in Structured Data] for more details.
+
+However, there is one unpleasant detail regarding `null` literal.
+CEL interpreter is regarding `null` as a special data type.
+The `null` literal is considered to be statically-typed, which may cause problems in some cases.
+The conditionals (`?:`) are the most notorious (see xref:../tips[] for details).
+As a rule of thumb, use `nil` instead of `null` literal if your code does not work with `null`.
+The `nil` provides a dynamically-typed null value, which usually fixes the situation.
+
+
+// TODO: NEEDS MAJOR UPDATE !!!
+
 
 == Synopsis
 

@@ -77,7 +77,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
                 String contextDesc = "flexible label " + path + " expression";
                 try {
                     return getExpressionValue(expressionType, contextDesc, task, result);
-                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                } catch (CommonException e) {
                     result.recordFatalError(e);
                     LoggingUtils.logUnexpectedException(LOGGER, contextDesc, e, path);
                     if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
@@ -127,7 +127,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         return realValue.toString();
     }
 
-    private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws CommonException {
 
         C object = model.getObject();
         ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();

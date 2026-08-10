@@ -112,7 +112,10 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
             @Override
             public String getCssClass() {
-                return "px-0 " + additionalCssClass;
+                if (additionalCssClass == null) {
+                    return "px-0";
+                }
+                return "col-auto px-0 " + additionalCssClass;
             }
         };
     }

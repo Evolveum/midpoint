@@ -167,7 +167,7 @@ public class FullInboundsSource extends InboundsSource {
     <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
             Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (currentProjectionItem != null) {
             LOGGER.trace("Setting value metadata for current projection item");
             beans.projectionValueMetadataCreator.setValueMetadata(
@@ -206,7 +206,7 @@ public class FullInboundsSource extends InboundsSource {
                 }
             }
         } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+                 ExpressionEvaluationException | SubscriptionComplianceException e) {
             LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and"
                     + " skipping inbound processing on it", projectionContext.getOid(), e.getMessage());
             projectionContext.setBroken();

@@ -51,7 +51,7 @@ class AssignmentPolicyRuleEvaluator<F extends AssignmentHolderType> extends Poli
      */
     void evaluate(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         collector.initialize(result);
         collector.collectAllAssignmentRules(evaluatedAssignmentTriple, result);

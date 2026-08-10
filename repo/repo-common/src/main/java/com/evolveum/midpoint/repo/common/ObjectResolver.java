@@ -60,7 +60,7 @@ public interface ObjectResolver {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <O extends ObjectType> O getObject(
             @NotNull Class<O> clazz,
@@ -68,13 +68,13 @@ public interface ObjectResolver {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     // EXPERIMENTAL (implemented only for ModelObjectResolver)
     // TODO clean up this mess

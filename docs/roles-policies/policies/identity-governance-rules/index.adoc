@@ -124,7 +124,7 @@ Such an object collection can be easily used in a xref:/midpoint/reference/admin
             <icon>
                 <cssClass>fa fa-user-xmark</cssClass>
             </icon>
-            <color>var(--success)</color>
+            <color>var(--bs-success)</color>
         </display>
         <displayOrder>110</displayOrder>
         <data>

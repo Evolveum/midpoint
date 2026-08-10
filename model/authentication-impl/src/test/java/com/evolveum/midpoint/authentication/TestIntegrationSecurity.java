@@ -324,9 +324,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
     }
 
     private void cleanupAutzTest()
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException {
+            throws CommonException {
         login(userAdministrator);
         unassignAllRoles(TestIntegrationSecurity.USER_JACK_OID);
     }

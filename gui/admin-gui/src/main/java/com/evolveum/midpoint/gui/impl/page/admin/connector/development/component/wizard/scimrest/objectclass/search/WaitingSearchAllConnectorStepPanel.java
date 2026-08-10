@@ -52,7 +52,7 @@ public class WaitingSearchAllConnectorStepPanel extends WaitingObjectClassScript
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

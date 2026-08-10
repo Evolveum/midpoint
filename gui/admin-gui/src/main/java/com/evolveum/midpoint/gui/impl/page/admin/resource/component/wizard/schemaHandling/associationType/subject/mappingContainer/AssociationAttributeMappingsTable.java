@@ -162,7 +162,8 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     }
 
     @Override
-    protected @Nullable PrismContainerValueWrapper<MappingType> createNewValue(
+    @Nullable
+    public PrismContainerValueWrapper<MappingType> createNewValue(
             PrismContainerValue<MappingType> oldMappingValue,
             AjaxRequestTarget target) {
 
@@ -337,7 +338,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -353,7 +354,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -540,11 +541,6 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     @Override
     protected boolean isSimulationSupported() {
         return false;
-    }
-
-    @Override
-    protected String getNewObjectButtonCssClass() {
-        return "btn btn-outline-primary";
     }
 
 }

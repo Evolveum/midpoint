@@ -46,7 +46,7 @@ public class PolicySituationConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -87,7 +87,7 @@ public class PolicySituationConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         // determine if there's a single message that could be retrieved
         List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
                 .flatMap(r -> r.extractMessages().stream())
@@ -109,7 +109,7 @@ public class PolicySituationConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         // determine if there's a single message that could be retrieved
         List<TreeNode<LocalizableMessage>> messageTrees = sourceRules.stream()
                 .flatMap(r -> r.extractShortMessages().stream())

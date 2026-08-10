@@ -297,6 +297,9 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
         OperationResult saveResult = getHelper().onSaveObjectPerformed(target);
         if (saveResult != null && !saveResult.isError()) {
             getDetailsModel().reloadPrismObjectByOid();
+            if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                wizardModel.removeOperationResult(ResourceTestConnectorStepPanel.PANEL_TYPE);
+            }
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());

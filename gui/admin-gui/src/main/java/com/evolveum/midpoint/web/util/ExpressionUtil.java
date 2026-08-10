@@ -10,6 +10,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 
 import jakarta.xml.bind.JAXBElement;
@@ -778,6 +779,28 @@ public class ExpressionUtil {
             return valueNode.getValueParser().getStringValue();
         } else {
             return valueNode.getValue() != null ? valueNode.getValue().toString() : null;
+        }
+    }
+
+    public static boolean usesIterationVariables(@Nullable ExpressionType expression) {
+        if (expression == null) {
+            return false;
+        }
+
+        try {
+            ScriptExpressionEvaluatorType script = getScriptExpressionValue(expression);
+
+            if (script == null || script.getCode() == null) {
+                return false;
+            }
+
+            String code = script.getCode();
+
+            return code.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
+                    || code.contains(ExpressionConstants.VAR_ITERATION);
+
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't parse script expression.", e);
         }
     }
 }
