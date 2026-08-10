@@ -15,6 +15,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
 import com.evolveum.midpoint.authentication.impl.channel.IdentityRecoveryAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 
 import com.evolveum.midpoint.security.api.Authorization;
@@ -24,8 +25,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.config.FocusIdentificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
@@ -56,6 +59,8 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
  * @author skublik
@@ -219,7 +224,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
             mpAuthentication.setAuthModules(authWrapper.getAuthModules());
         }
 
-        int indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
+        // Re-enter focus identification when its form is submitted for an existing authentication flow.
+        int indexOfProcessingModule = resetToFocusIdentificationModuleIfRequested(mpAuthentication, authWrapper, httpRequest);
+        if (indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
+            indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
+        }
 
         int originalIndexOfProcessingModule = indexOfProcessingModule;
 
@@ -504,6 +513,51 @@ public class MidpointAuthFilter extends GenericFilterBean {
             indexOfProcessingModule = mpAuthentication.resolveParallelModules(request, indexOfProcessingModule);
         }
         return indexOfProcessingModule;
+    }
+
+    /**
+     * Resets authentication to the initial focus-identification module when a
+     * focus-identification POST is submitted for an existing authentication flow.
+     *
+     * This prevents state from another authentication attempt in the same
+     * HTTP session from being reused for the current identification request.
+     *
+     * @return {@code 0} if the flow was reset to focus identification,
+     *         {@link MidpointAuthentication#NO_MODULE_FOUND_INDEX} otherwise
+     */
+    private int resetToFocusIdentificationModuleIfRequested(
+            MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest request) {
+        if (mpAuthentication == null || !"POST".equals(request.getMethod()) || authWrapper.getAuthModules().isEmpty()
+                || authWrapper.getSequence().getModule().isEmpty()) {
+            return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        }
+
+        ModuleAuthentication firstModuleAuthentication = authWrapper.getAuthModules().get(0).getBaseModuleAuthentication();
+        if (!(firstModuleAuthentication instanceof FocusIdentificationModuleAuthentication)
+                || !isRequestForAuthenticationModuleLoginPage(request, firstModuleAuthentication)) {
+            return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        }
+
+        AuthenticationSequenceType sequence = authWrapper.getSequence().clone();
+        AuthenticationSequenceModuleType firstModule = sequence.getModule().get(0);
+        sequence.getModule().clear();
+        sequence.getModule().add(firstModule);
+
+        mpAuthentication.restart();
+        mpAuthentication.setSequence(sequence);
+        mpAuthentication.setAuthModules(List.of(authWrapper.getAuthModules().get(0)));
+        mpAuthentication.addAuthentication(mpAuthentication.getAuthModules().get(0).getBaseModuleAuthentication());
+        return 0;
+    }
+
+    /**
+     * Checks whether the request targets a login page configured for the given authentication module.
+     */
+    private boolean isRequestForAuthenticationModuleLoginPage(HttpServletRequest request, ModuleAuthentication moduleAuthentication) {
+        List<String> pageUrls = DescriptorLoaderImpl.getPageUrlsByAuthName(moduleAuthentication.getModuleTypeName());
+        return pageUrls != null && pageUrls.stream()
+                .map(MidpointRequestMatchers::pathMatcher)
+                .anyMatch(matcher -> matcher.matches(request));
     }
 
     private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
