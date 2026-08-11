@@ -277,7 +277,7 @@ See xrefv:/midpoint/reference/support-4.9/repository/native-postgresql/shadow-pa
 ** Added support and options to optimize queries and not retrieve these items in xrefv:/midpoint/reference/support-4.9/expressions/expressions/script/functions/get-and-search/[code and groovy scripts].
 
 * Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
-The preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
+The preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/get-started/install/containers/docker/[here].
 Otherwise, `config.xml` in midPoint home directory needs to be populated with database connection information.
 
 * Access Certification new UI.
@@ -486,7 +486,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
+Please see xref:/midpoint/get-started/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
