@@ -9,23 +9,25 @@ package com.evolveum.midpoint.gui.impl.component.input.expression;
 import static com.evolveum.midpoint.web.util.ExpressionUtil.getScriptExpressionValue;
 import static com.evolveum.midpoint.web.util.ExpressionUtil.usesIterationVariables;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Behavior that dynamically appends CSS validation classes
+ * Behavior that dynamically applies CSS validation classes
  * based on the {@link ExpressionPanel} evaluator state.
  *
  * <p>Adds:
- *
  * <ul>
  *     <li>{@code is-empty no-valid-border} when the SCRIPT evaluator has no content</li>
  *     <li>{@code is-iteration-applied no-valid-border} when the script uses iteration variables</li>
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public class ExpressionValidationBehavior extends Behavior {
 
     private static final String CLASS_EMPTY = "is-empty";
-    private static final String CLASS_ITERATION_APPLIED = "is-iteration-applied no-";
+    private static final String CLASS_ITERATION_APPLIED = "is-iteration-applied";
     private static final String CLASS_INVALID = "is-invalid";
     private static final String CLASS_NO_VALID_BORDER = "no-valid-border";
 
@@ -50,32 +52,40 @@ public class ExpressionValidationBehavior extends Behavior {
     }
 
     @Override
-    public void onConfigure(Component component) {
-        super.onConfigure(component);
+    public void onComponentTag(Component component, ComponentTag tag) {
+        super.onComponentTag(component, tag);
 
-        removeValidationClasses(component);
+        String classes = removeValidationClasses(tag.getAttribute("class"));
+        String validationClasses = computeCssClass(component);
 
-        String cssClass = computeCssClass(component);
-        if (cssClass != null) {
-            component.add(AttributeModifier.append("class", cssClass));
+        if (validationClasses != null) {
+            classes = classes.isEmpty()
+                    ? validationClasses
+                    : classes + " " + validationClasses;
+        }
+
+        if (classes.isEmpty()) {
+            tag.remove("class");
+        } else {
+            tag.put("class", classes);
         }
     }
 
-    private void removeValidationClasses(@NotNull Component component) {
-        String current = (String) component.getMarkupAttributes().get("class");
-        if (current == null || current.isBlank()) {
-            return;
+    private @NotNull String removeValidationClasses(@Nullable String classes) {
+        if (classes == null || classes.isBlank()) {
+            return "";
         }
 
-        String updated = current
-                .replace(CLASS_EMPTY, "")
-                .replace(CLASS_ITERATION_APPLIED, "")
-                .replace(CLASS_INVALID, "")
-                .replace(CLASS_NO_VALID_BORDER, "")
-                .replaceAll("\\s+", " ")
-                .trim();
+        return Arrays.stream(classes.split("\\s+"))
+                .filter(css -> !isValidationClass(css))
+                .collect(Collectors.joining(" "));
+    }
 
-        component.add(AttributeModifier.replace("class", updated));
+    private boolean isValidationClass(String css) {
+        return CLASS_EMPTY.equals(css)
+                || CLASS_ITERATION_APPLIED.equals(css)
+                || CLASS_INVALID.equals(css)
+                || CLASS_NO_VALID_BORDER.equals(css);
     }
 
     private @Nullable String computeCssClass(@NotNull Component component) {
@@ -106,14 +116,16 @@ public class ExpressionValidationBehavior extends Behavior {
         }
 
         try {
-            ScriptExpressionEvaluatorType script = getScriptExpressionValue(expression);
+            ScriptExpressionEvaluatorType script =
+                    getScriptExpressionValue(expression);
 
             return script == null
                     || script.getCode() == null
                     || script.getCode().isBlank();
 
         } catch (SchemaException e) {
-            throw new IllegalStateException("Couldn't parse script expression.", e);
+            throw new IllegalStateException(
+                    "Couldn't parse script expression.", e);
         }
     }
 
