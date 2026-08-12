@@ -612,8 +612,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                     container, newValue,
                     getPageBase(), target);
 
-            newWrapper.setStatus(container.getValues().isEmpty() ? ValueStatus.ADDED : ValueStatus.MODIFIED);
-
+            newWrapper.setStatus(ValueStatus.ADDED);
             container.getItem().setValue(newValue);
             container.getValues().clear();
             container.getValues().add(newWrapper);

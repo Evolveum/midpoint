@@ -92,9 +92,9 @@ public class ContainerDrawerInfoModel<C extends Containerable> implements Drawer
         return new DrawerFooterPanel(id) {
             @Override
             public void noPerformed(AjaxRequestTarget target) {
-                super.noPerformed(target);
                 PrismContainerValueWrapper<C> object = drawerModel.getContainerWrapperModel().getObject();
                 WebPrismUtil.resetContainerValueWrapper(object);
+                super.noPerformed(target);
             }
         };
     }
