@@ -140,6 +140,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestLiveSyncTaskMultithreaded"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestReconTask"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestClusteredTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestReconTaskMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskReporting"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestProgressReporting"/>
