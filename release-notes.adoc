@@ -54,7 +54,8 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Updated handling of String -> byte[]. See bug:MID-11015[]
 * Implemented support for `notifyChange` REST call without explicitly providing the shadow OID. See bug:MID-11230[]
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
-* Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
+* Improved patch management of docker images, updated tagging of docker images.
+    See xref:/midpoint/get-started/install/containers/container-image-naming/[].
 
 == Changes with Respect To Version 4.8.10
 
@@ -733,7 +734,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
+Please see xref:/midpoint/get-started/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
