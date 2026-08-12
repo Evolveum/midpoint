@@ -106,6 +106,7 @@ public class ContainerDrawerPanel<C extends Containerable>
 
         if (wrapper != null) {
             wrapper.setExpanded(true);
+            wrapper.setShowEmpty(false);
         }
 
         ItemPanelSettings settings = this.settings != null ? this.settings : new ItemPanelSettingsBuilder().build();
