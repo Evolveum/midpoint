@@ -2647,9 +2647,19 @@ footer.app-footer a {
     }
 }
 
-.prism-property-value-label {
-  white-space: pre-wrap;
+.prism-value-label-readonly {
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  display: block;
+  min-height: 31px;
+  padding: 4px 8px;
+  background-color: var(--bs-gray-200);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-gray-700);
+  border-radius: 4px;
+  line-height: 1.5;
+  font-family: var(--bs-body-font-family);
+  font-size: 14px;
 }
 
 .info-box-progress-bar {
