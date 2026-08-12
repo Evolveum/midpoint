@@ -98,7 +98,7 @@ class CorrelatorEvaluator {
                 null, ctx.task, result);
 
         // Use correlation sampler for random shadow sampling
-        List<PrismObject<ShadowType>> shadowSamples = samplerProvider.getCorrelationSampler().sample(
+        List<PrismObject<ShadowType>> shadowSamples = samplerProvider.getCorrelationSampler(ctx.typeDefinition).sample(
                 ctx.resource,
                 ctx.typeDefinition,
                 ctx.task,

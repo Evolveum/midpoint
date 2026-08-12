@@ -7,36 +7,65 @@
 
 package com.evolveum.midpoint.smart.impl.shadowsampling;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 /**
- * Provider for selecting the appropriate objects sampler based on the operation type.
- * Encapsulates the logic for choosing between different sampling strategies.
+ * Provider for selecting the appropriate objects sampler based on the operation type and caching configuration.
+ * Encapsulates the logic for choosing between cached and uncached sampling strategies.
  */
 @Component
 public class ObjectsSamplerProvider {
 
-    private final CorrelationObjectsSampler correlationSampler;
-    private final MappingObjectsSampler mappingSampler;
+    private final CachedCorrelationObjectsSampler cachedCorrelationSampler;
+    private final UncachedCorrelationObjectsSampler uncachedCorrelationSampler;
+    private final CachedMappingObjectsSampler cachedMappingSampler;
+    private final UncachedMappingObjectsSampler uncachedMappingSampler;
 
     public ObjectsSamplerProvider(
-            CorrelationObjectsSampler correlationSampler,
-            MappingObjectsSampler mappingSampler) {
-        this.correlationSampler = correlationSampler;
-        this.mappingSampler = mappingSampler;
+            CachedCorrelationObjectsSampler cachedCorrelationSampler,
+            UncachedCorrelationObjectsSampler uncachedCorrelationSampler,
+            CachedMappingObjectsSampler cachedMappingSampler,
+            UncachedMappingObjectsSampler uncachedMappingSampler) {
+        this.cachedCorrelationSampler = cachedCorrelationSampler;
+        this.uncachedCorrelationSampler = uncachedCorrelationSampler;
+        this.cachedMappingSampler = cachedMappingSampler;
+        this.uncachedMappingSampler = uncachedMappingSampler;
     }
 
     /**
-     * Returns sampler optimized for correlation operations.
+     * Returns sampler optimized for correlation operations based on caching configuration.
      */
-    public CorrelationObjectsSampler getCorrelationSampler() {
-        return correlationSampler;
+    public ObjectsSampler<List<PrismObject<ShadowType>>> getCorrelationSampler(ResourceObjectDefinition typeDefinition) {
+        Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
+        return typeDefinition.isCachingEnabled()
+                ? cachedCorrelationSampler
+                : uncachedCorrelationSampler;
     }
 
     /**
-     * Returns sampler optimized for mapping suggestion operations.
+     * Returns sampler optimized for mapping suggestion operations based on caching configuration.
      */
-    public MappingObjectsSampler getMappingSampler() {
-        return mappingSampler;
+    public ObjectsSampler<MappingSampleResult> getMappingSampler(ResourceObjectDefinition typeDefinition) {
+        Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
+        return typeDefinition.isCachingEnabled()
+                ? cachedMappingSampler
+                : uncachedMappingSampler;
+    }
+
+    /**
+     * Returns expected sample size for mapping operations based on caching configuration.
+     */
+    public int getExpectedMappingSampleSize(ResourceObjectDefinition typeDefinition) {
+        Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
+        return typeDefinition.isCachingEnabled()
+                ? cachedMappingSampler.getExpectedSampleSize()
+                : uncachedMappingSampler.getExpectedSampleSize();
     }
 }

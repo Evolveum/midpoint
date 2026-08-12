@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.smart.impl.shadowsampling;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.function.Predicate;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +33,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @param <R> The result type returned by this sampler
  */
 public interface ObjectsSampler<R> {
+
+    /**
+     * Get options for shadow iteration with noFetch and readOnly flags.
+     * Used to efficiently iterate through shadows in repository without fetching data from resource.
+     */
+    Collection<SelectorOptions<GetOperationOptions>> NO_FETCH_READ_ONLY_OPTIONS = createNoFetchReadOnlyOptions();
+
+    /**
+     * Creates get options for shadow iteration with noFetch and readOnly flags.
+     */
+    static Collection<SelectorOptions<GetOperationOptions>> createNoFetchReadOnlyOptions() {
+        GetOperationOptions options = new GetOperationOptions();
+        options.setNoFetch(true);
+        options.setReadOnly(true);
+        return SelectorOptions.createCollection(options);
+    }
 
     /**
      * Samples shadow objects for the given resource and type definition.
