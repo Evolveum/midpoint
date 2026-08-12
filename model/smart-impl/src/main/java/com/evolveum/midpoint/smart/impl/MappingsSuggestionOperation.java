@@ -159,9 +159,7 @@ class MappingsSuggestionOperation {
         var shadowsForLLM = sampleResult.llmSamples();
         var shadowsForValidation = sampleResult.validationSamples();
 
-        LOGGER.info("Using {} shadows for LLM, {} for validation, total {} sampled",
-                shadowsForLLM.size(), shadowsForValidation.size(),
-                shadowsForLLM.size() + shadowsForValidation.size());
+        LOGGER.info("Using {} shadows for LLM, {} for validation.", shadowsForLLM.size(), shadowsForValidation.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);

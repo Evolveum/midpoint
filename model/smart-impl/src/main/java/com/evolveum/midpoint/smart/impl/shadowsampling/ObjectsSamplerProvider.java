@@ -7,36 +7,61 @@
 
 package com.evolveum.midpoint.smart.impl.shadowsampling;
 
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 /**
- * Provider for selecting the appropriate objects sampler based on the operation type.
- * Encapsulates the logic for choosing between different sampling strategies.
+ * Provider for choosing a suitable shadow sampling strategy for the given operation
+ * in case of enabled or disabled shadow caching.
  */
 @Component
 public class ObjectsSamplerProvider {
 
-    private final CorrelationObjectsSampler correlationSampler;
-    private final MappingObjectsSampler mappingSampler;
+    private final ModelService modelService;
 
-    public ObjectsSamplerProvider(
-            CorrelationObjectsSampler correlationSampler,
-            MappingObjectsSampler mappingSampler) {
-        this.correlationSampler = correlationSampler;
-        this.mappingSampler = mappingSampler;
+    public ObjectsSamplerProvider(ModelService modelService) {
+        this.modelService = modelService;
     }
 
     /**
-     * Returns sampler optimized for correlation operations.
+     * Returns a sampler bound to the given resource and type definition for correlation operations.
      */
-    public CorrelationObjectsSampler getCorrelationSampler() {
-        return correlationSampler;
+    public ObjectsSampler<List<PrismObject<ShadowType>>> getCorrelationSampler(
+            ResourceObjectDefinition typeDefinition, ResourceType resource) {
+        Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
+        Objects.requireNonNull(resource, "resource cannot be null");
+        return typeDefinition.isCachingEnabled()
+                ? new CorrelationObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
+                : new CorrelationObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
     }
 
     /**
-     * Returns sampler optimized for mapping suggestion operations.
+     * Returns a sampler bound to the given resource and type definition for mapping suggestion operations.
      */
-    public MappingObjectsSampler getMappingSampler() {
-        return mappingSampler;
+    public ObjectsSampler<MappingSampleResult> getMappingSampler(
+            ResourceObjectDefinition typeDefinition, ResourceType resource) {
+        Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
+        Objects.requireNonNull(resource, "resource cannot be null");
+        return typeDefinition.isCachingEnabled()
+                ? new MappingObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
+                : new MappingObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
+    }
+
+    /**
+     * Returns expected sample size for mapping operations based on caching configuration.
+     */
+    public int getExpectedMappingSampleSize(ResourceObjectDefinition typeDefinition) {
+        Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
+        return typeDefinition.isCachingEnabled()
+                ? MappingObjectsSamplerWhenShadowCacheEnabled.getExpectedSampleSize()
+                : MappingObjectsSamplerWhenShadowCacheDisabled.getExpectedSampleSize();
     }
 }

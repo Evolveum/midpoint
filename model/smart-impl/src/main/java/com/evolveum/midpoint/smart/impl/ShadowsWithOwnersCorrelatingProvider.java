@@ -64,13 +64,12 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
                 new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
 
         // Set expected progress based on total sample size (llm + validation)
-        int expectedSampleSize = samplerProvider.getMappingSampler().getExpectedSampleSize(ctx.typeDefinition);
+        int expectedSampleSize = samplerProvider.getExpectedMappingSampleSize(ctx.typeDefinition);
         state.setExpectedProgress(expectedSampleSize);
 
         // Predicate only checks if shadow has owner (doesn't cache)
-        MappingSampleResult sampledResult = samplerProvider.getMappingSampler().sample(
-                ctx.resource,
-                ctx.typeDefinition,
+        MappingSampleResult sampledResult = samplerProvider.getMappingSampler(
+                ctx.typeDefinition, ctx.resource).sample(
                 shadow -> hasOwner(shadow, ctx, correlationDef, state, result),
                 ctx.task,
                 result);

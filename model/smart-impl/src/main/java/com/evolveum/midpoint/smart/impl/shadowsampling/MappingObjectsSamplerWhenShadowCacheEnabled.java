@@ -8,18 +8,15 @@
 package com.evolveum.midpoint.smart.impl.shadowsampling;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
@@ -37,40 +34,42 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Sampler for correlation operations.
- * Uses larger sample sizes when caching is enabled to improve correlation accuracy.
+ * Sampler for mapping suggestions when shadow cache is enabled.
+ *
+ * Iterates through cached shadows and tests predicate directly on them.
  */
-@Component
-public class CorrelationObjectsSampler implements ObjectsSampler<List<PrismObject<ShadowType>>> {
+public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampler<MappingSampleResult> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelationObjectsSampler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingObjectsSamplerWhenShadowCacheEnabled.class);
 
-    private static final int DEFAULT_SAMPLE_SIZE = 2000;
-    private static final int CACHED_SAMPLE_SIZE = 5000;
+    private static final int LLM_SAMPLE_SIZE = 50;
+    private static final int VALIDATION_SAMPLE_SIZE = 1000;
 
     private final ModelService modelService;
+    private final ResourceType resource;
+    private final ResourceObjectDefinition typeDefinition;
 
-    public CorrelationObjectsSampler(ModelService modelService) {
+    public MappingObjectsSamplerWhenShadowCacheEnabled(
+            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition) {
         this.modelService = modelService;
+        this.resource = resource;
+        this.typeDefinition = typeDefinition;
     }
 
     @Override
-    public List<PrismObject<ShadowType>> sample(
-            ResourceType resource,
-            ResourceObjectDefinition typeDefinition,
+    public MappingSampleResult sample(
             Predicate<PrismObject<ShadowType>> acceptancePredicate,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
-        boolean useNoFetch = typeDefinition.isCachingEnabled();
-        int sampleSize = useNoFetch ? CACHED_SAMPLE_SIZE : DEFAULT_SAMPLE_SIZE;
+        int totalSize = LLM_SAMPLE_SIZE + VALIDATION_SAMPLE_SIZE;
 
-        LOGGER.debug("Sampling shadows for correlation with predicate: {}/{}, sampleSize={}, cached={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), sampleSize, useNoFetch);
+        LOGGER.debug("Sampling cached shadows for mappings (cached): {}/{}, llmSize={}, validationSize={}",
+                resource.getOid(), typeDefinition.getTypeIdentification(), LLM_SAMPLE_SIZE, VALIDATION_SAMPLE_SIZE);
 
-        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(sampleSize);
+        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(totalSize);
         AtomicInteger totalCount = new AtomicInteger(0);
         Random random = new Random(1);
 
@@ -84,13 +83,13 @@ public class CorrelationObjectsSampler implements ObjectsSampler<List<PrismObjec
                         int i = totalCount.getAndIncrement();
 
                         // Reservoir sampling algorithm on all shadows, but only accept those passing predicate
-                        if (reservoir.size() < sampleSize) {
+                        if (reservoir.size() < totalSize) {
                             if (acceptancePredicate.test(shadow)) {
                                 reservoir.add(shadow);
                             }
                         } else {
                             int j = random.nextInt(i + 1);
-                            if (j < sampleSize && acceptancePredicate.test(shadow)) {
+                            if (j < totalSize && acceptancePredicate.test(shadow)) {
                                 reservoir.set(j, shadow);
                             }
                         }
@@ -101,23 +100,29 @@ public class CorrelationObjectsSampler implements ObjectsSampler<List<PrismObjec
                         lResult.summarize();
                     }
                 },
-                createGetOptions(useNoFetch),
+                GetOperationOptions.createNoFetchReadOnlyCollection(),
                 task,
                 result);
 
-        LOGGER.debug("Sampled {} shadows for correlation", reservoir.size());
-        return reservoir;
+        return splitReservoirIntoSamples(reservoir);
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createGetOptions(boolean useNoFetch) {
-        if (!useNoFetch) {
-            return null;
-        }
+    private MappingSampleResult splitReservoirIntoSamples(List<PrismObject<ShadowType>> reservoir) {
+        int actualLlmSize = Math.min(LLM_SAMPLE_SIZE, reservoir.size());
+        int actualValidationSize = Math.min(VALIDATION_SAMPLE_SIZE, reservoir.size());
 
-        GetOperationOptions options = new GetOperationOptions();
-        options.setNoFetch(true);
-        options.setReadOnly(true);
+        List<PrismObject<ShadowType>> llmSamples = reservoir.subList(0, actualLlmSize);
+        List<PrismObject<ShadowType>> validationSamples = reservoir.subList(
+                Math.max(0, reservoir.size() - actualValidationSize),
+                reservoir.size());
 
-        return SelectorOptions.createCollection(options);
+        LOGGER.debug("Sampled {} shadows for mappings: {} for LLM, {} for validation",
+                reservoir.size(), actualLlmSize, actualValidationSize);
+
+        return new MappingSampleResult(llmSamples, validationSamples);
+    }
+
+    public static int getExpectedSampleSize() {
+        return LLM_SAMPLE_SIZE + VALIDATION_SAMPLE_SIZE;
     }
 }
