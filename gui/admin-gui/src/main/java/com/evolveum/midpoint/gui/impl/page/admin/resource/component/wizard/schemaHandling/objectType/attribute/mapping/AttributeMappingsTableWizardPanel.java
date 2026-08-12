@@ -687,7 +687,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                         return createStringResource("IterationSettings.button.iterationSettings");
                                     }
                                 };
-                        getPageBase().showRightSidebar(containerDrawerInfoModel, target);
+                        getPageBase().showDrawer(containerDrawerInfoModel, target);
                     }
                 })
                 .visibilityChecker((rowModel, isHeader) -> isHeader)

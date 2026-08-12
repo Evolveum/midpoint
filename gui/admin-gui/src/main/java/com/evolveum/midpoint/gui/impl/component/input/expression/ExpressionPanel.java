@@ -406,7 +406,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
                     DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
-                    getPageBase().showRightSidebar(drawerModel, target);
+                    getPageBase().showDrawer(drawerModel, target);
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
                     if (ExpressionPanel.this.getModelObject() != null

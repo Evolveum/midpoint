@@ -842,7 +842,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                         }
 
                         @NotNull DrawerModel popup = buildPreviewMappingPanelPopup(getRowModel());
-                        table.getPageBase().showRightSidebar(popup, target);
+                        table.getPageBase().showDrawer(popup, target);
                     }
                 })
                 .visibilityChecker(bySuggestion(true, table::getStatusInfo))

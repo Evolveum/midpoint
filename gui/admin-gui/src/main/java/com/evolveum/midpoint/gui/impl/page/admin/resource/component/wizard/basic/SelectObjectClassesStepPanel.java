@@ -414,7 +414,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        getPageBase().closeRightSidebar(target);
+        getPageBase().hideDrawer(target);
 
         List<QName> classesForSave = new ArrayList<>();
 
