@@ -13,7 +13,7 @@ This guide shows how to create a minimal live synchronization task in midPoint w
 
 * A running midPoint instance (4.4 or later).
 * A configured, tested resource whose connector supports live synchronization.
-Verify the green Live Sync xref:/midpoint/reference/admin-gui/resource-wizard/object-type/capability/[capability] indicator on the resource detail page before proceeding. +
+Verify the green Live Sync capability indicator on the resource detail page before proceeding. +
 You can do this by going to [.nowrap]#icon:database[] btn:[Resources]# > _resource_ > [.nowrap]#icon:info[] btn:[Details]# and checking [.nowrap]#icon:rotate[] btn:[Live Sync]# is enabled (green).
 * The OID of that resource.
 This is visible in:

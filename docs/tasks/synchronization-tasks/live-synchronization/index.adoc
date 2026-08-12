@@ -117,7 +117,6 @@ Deleting and recreating the task starts from scratch (which may re-process a bac
 For resources with multiple object classes (accounts and groups, for example), create one task per class.
 * *Concurrency* - The default is a single worker thread, which preserves change order.
 Increasing `workerThreads` improves throughput but reorders processing — only do this for resources where event order does not matter.
-* *Synchronization policy must exist* - Without `synchronization` reactions defined on the resource, live sync detects changes but does nothing with them.
-Synchronization reactions like `linkSource`, `addFocus`, and `deleteShadow` are configured in the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization/[resource wizard].
+* *Synchronization policy must exist* - Without `synchronization` reactions (such as `linkSource`, `addFocus`, and `deleteShadow`) defined on the resource, live sync detects changes but does nothing with them.
 
 
