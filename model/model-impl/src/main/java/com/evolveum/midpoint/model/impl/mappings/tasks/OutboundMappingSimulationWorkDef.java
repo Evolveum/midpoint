@@ -53,7 +53,7 @@ class OutboundMappingSimulationWorkDef extends AbstractWorkDefinition
 
         this.focusObjects = workDef.getFocusObjects() != null
                 ? workDef.getFocusObjects().clone()
-                : new ObjectSetType().type(FocusType.COMPLEX_TYPE);
+                : new ObjectSetType().type(UserType.COMPLEX_TYPE);
 
         this.workDefinition = workDef;
     }

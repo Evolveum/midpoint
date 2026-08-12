@@ -81,7 +81,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private final String oid;
 
     /** See {@link ProcessedObject#getType()}. */
-    @NotNull private final Class<O> type;
+    @NotNull private final Class<? extends O> type;
 
     /** {@link QName} variant of {@link #type}. */
     @NotNull private final QName typeName;
@@ -144,7 +144,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private ProcessedObjectImpl(
             @NotNull String transactionId,
             String oid,
-            @NotNull Class<O> type,
+            @NotNull Class<? extends O> type,
             @Nullable ObjectReferenceType structuralArchetypeRef,
             ShadowDiscriminatorType shadowDiscriminator,
             PolyStringType name,
@@ -396,13 +396,14 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return processedObject;
     }
 
-    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull Class<T> objectClass,
-            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction,
-            boolean failed)
+    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull T objectBefore,
+            @Nullable ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction, boolean failed)
             throws SchemaException {
+        @SuppressWarnings("unchecked") // This should be safe.
         final T objectAfter = (T) objectBefore.clone();
 
         final ObjectProcessingStateType processingState;
+        @SuppressWarnings("unchecked") // Should be safe.
         final PrismObject<T> prismObjectAfter = (PrismObject<T>) objectAfter.asPrismObject();
         if (delta != null && !delta.isEmpty()) {
             delta.applyTo(prismObjectAfter);
@@ -411,6 +412,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             processingState = ObjectProcessingStateType.UNMODIFIED;
         }
 
+        @SuppressWarnings("unchecked") // In this case it should be safe.
+        Class<T> objectClass = (Class<T>) objectBefore.getClass();
+        @SuppressWarnings("unchecked") // Should be safe as well.
+        final PrismObject<T> prismObject = (PrismObject<T>) objectBefore.asPrismObject();
         var processedObject = new ProcessedObjectImpl<>(
                 simulationTransaction.getTransactionId(),
                 objectBefore.getOid(),
@@ -421,7 +426,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 processingState,
                 ParsedMetricValues.fromEventMarks(
                         List.of(determineItemValueChangesEventMarks(
-                                (PrismObject<T>) objectBefore.asPrismObject(),
+                                prismObject,
                                 prismObjectAfter,
                                 failed)),
                         List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
@@ -429,7 +434,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                                 SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())),
-                objectClass.isAssignableFrom(ProjectionHolderType.class),
+                FocusType.class.isAssignableFrom(objectClass),
                 null,
                 objectBefore,
                 objectAfter,
@@ -608,7 +613,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Class<O> getType() {
+    public @NotNull Class<? extends O> getType() {
         return type;
     }
 
