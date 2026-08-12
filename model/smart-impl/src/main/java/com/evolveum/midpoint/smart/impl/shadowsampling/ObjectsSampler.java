@@ -26,26 +26,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Interface for sampling shadow objects from a resource.
- * Different implementations provide different sampling strategies based on configuration
+ * Different implementations provide different sampling strategies based on configuration.
+ *
+ * @param <R> The result type returned by this sampler
  */
-public interface ObjectsSampler {
+public interface ObjectsSampler<R> {
 
     /**
      * Samples shadow objects for the given resource and type definition.
+     * This is a default implementation that calls the predicate version with a predicate that always returns true.
      */
-    List<PrismObject<ShadowType>> sample(
+    default R sample(
             ResourceType resource,
             ResourceObjectDefinition typeDefinition,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        return sample(resource, typeDefinition, shadow -> true, task, result);
+    }
 
     /**
-     * Samples shadow objects for the given resource and type definition,
-     * filtering them using the provided acceptance predicate.
+     * Samples shadow objects for the given resource and type definition, filtering them using the provided
+     * acceptance predicate.
      */
-    List<PrismObject<ShadowType>> sample(
+    R sample(
             ResourceType resource,
             ResourceObjectDefinition typeDefinition,
             Predicate<PrismObject<ShadowType>> acceptancePredicate,

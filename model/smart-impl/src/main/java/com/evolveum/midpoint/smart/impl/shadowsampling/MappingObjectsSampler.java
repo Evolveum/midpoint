@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Uses larger sample sizes when caching is enabled.
  */
 @Component
-public class MappingObjectsSampler implements ObjectsSampler {
+public class MappingObjectsSampler implements ObjectsSampler<MappingSampleResult> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingObjectsSampler.class);
 
@@ -57,97 +57,8 @@ public class MappingObjectsSampler implements ObjectsSampler {
         this.modelService = modelService;
     }
 
-    /**
-     * Samples shadows for mapping suggestion operations.
-     * Returns a combined list that can be split for LLM and validation purposes.
-     */
     @Override
-    public List<PrismObject<ShadowType>> sample(
-            ResourceType resource,
-            ResourceObjectDefinition typeDefinition,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-
-        return sampleForMappings(resource, typeDefinition, task, result).samples();
-    }
-
-    /**
-     * Samples shadows and returns structured result with LLM and validation samples.
-     */
-    public MappingSampleResult sampleForMappings(
-            ResourceType resource,
-            ResourceObjectDefinition typeDefinition,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-
-        boolean useNoFetch = typeDefinition.isCachingEnabled();
-        int llmSize = useNoFetch ? CACHED_LLM_SAMPLE_SIZE : DEFAULT_LLM_SAMPLE_SIZE;
-        int validationSize = useNoFetch ? CACHED_VALIDATION_SAMPLE_SIZE : DEFAULT_VALIDATION_SAMPLE_SIZE;
-        int totalSize = llmSize + validationSize;
-
-        LOGGER.debug("Sampling shadows for mappings: {}/{}, llmSize={}, validationSize={}, cached={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), llmSize, validationSize, useNoFetch);
-
-        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(totalSize);
-        AtomicInteger count = new AtomicInteger(0);
-        Random random = new Random(1);
-
-        modelService.searchObjectsIterative(
-                ShadowType.class,
-                Resource.of(resource)
-                        .queryFor(typeDefinition.getTypeIdentification())
-                        .build(),
-                (shadow, lResult) -> {
-                    try {
-                        int i = count.getAndIncrement();
-                        if (i < totalSize) {
-                            reservoir.add(shadow);
-                        } else {
-                            int j = random.nextInt(i + 1);
-                            if (j < totalSize) {
-                                reservoir.set(j, shadow);
-                            }
-                        }
-                        return true;
-                    } finally {
-                        lResult.computeStatusIfUnknown();
-                        lResult.setSummarizeSuccesses(true);
-                        lResult.summarize();
-                    }
-                },
-                createGetOptions(useNoFetch),
-                task,
-                result);
-
-        int actualLlmSize = Math.min(llmSize, reservoir.size());
-        int actualValidationSize = Math.min(validationSize, reservoir.size());
-
-        LOGGER.debug("Sampled {} shadows for mappings: {} for LLM, {} for validation", reservoir.size(), actualLlmSize, actualValidationSize);
-
-        return new MappingSampleResult(reservoir, actualLlmSize, actualValidationSize);
-    }
-
-    @Override
-    public List<PrismObject<ShadowType>> sample(
-            ResourceType resource,
-            ResourceObjectDefinition typeDefinition,
-            Predicate<PrismObject<ShadowType>> acceptancePredicate,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-
-        return sampleForMappings(resource, typeDefinition, acceptancePredicate, task, result).samples();
-    }
-
-    /**
-     * Samples shadows with predicate and returns structured result with LLM and validation samples.
-     */
-    public MappingSampleResult sampleForMappings(
+    public MappingSampleResult sample(
             ResourceType resource,
             ResourceObjectDefinition typeDefinition,
             Predicate<PrismObject<ShadowType>> acceptancePredicate,
@@ -202,9 +113,26 @@ public class MappingObjectsSampler implements ObjectsSampler {
         int actualLlmSize = Math.min(llmSize, reservoir.size());
         int actualValidationSize = Math.min(validationSize, reservoir.size());
 
+        // Split the reservoir into two lists
+        List<PrismObject<ShadowType>> llmSamples = reservoir.subList(0, actualLlmSize);
+        List<PrismObject<ShadowType>> validationSamples = reservoir.subList(
+                Math.max(0, reservoir.size() - actualValidationSize),
+                reservoir.size());
+
         LOGGER.debug("Sampled {} shadows for mappings: {} for LLM, {} for validation", reservoir.size(), actualLlmSize, actualValidationSize);
 
-        return new MappingSampleResult(reservoir, actualLlmSize, actualValidationSize);
+        return new MappingSampleResult(llmSamples, validationSamples);
+    }
+
+    /**
+     * Returns the expected total sample size (llm + validation) based on whether caching is enabled
+     * for the given resource object definition.
+     */
+    public int getExpectedSampleSize(ResourceObjectDefinition typeDefinition) {
+        boolean useNoFetch = typeDefinition.isCachingEnabled();
+        int llmSize = useNoFetch ? CACHED_LLM_SAMPLE_SIZE : DEFAULT_LLM_SAMPLE_SIZE;
+        int validationSize = useNoFetch ? CACHED_VALIDATION_SAMPLE_SIZE : DEFAULT_VALIDATION_SAMPLE_SIZE;
+        return llmSize + validationSize;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createGetOptions(boolean useNoFetch) {

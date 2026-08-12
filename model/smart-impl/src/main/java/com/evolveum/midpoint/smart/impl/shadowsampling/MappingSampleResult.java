@@ -17,11 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Shadows are divided into a smaller set for LLM analysis and a larger set for validation.
  */
 public record MappingSampleResult(
-        List<PrismObject<ShadowType>> samples,
-        int llmSampleSize,
-        int validationSampleSize) {
-
-    public int getTotalSampleSize() {
-        return samples.size();
-    }
+        List<PrismObject<ShadowType>> llmSamples,
+        List<PrismObject<ShadowType>> validationSamples) {
 }

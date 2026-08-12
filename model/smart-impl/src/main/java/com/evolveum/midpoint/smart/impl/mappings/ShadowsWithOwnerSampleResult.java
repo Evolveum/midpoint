@@ -12,15 +12,9 @@ import java.util.List;
 
 /**
  * Result of shadow sampling operation that includes owners.
- * Contains shadows with their owners, along with information about
- * how to split them into LLM and validation samples.
+ * Contains shadows with their owners, split into LLM and validation samples.
  */
 public record ShadowsWithOwnerSampleResult(
-        List<ShadowWithOwner> samples,
-        int llmSampleSize,
-        int validationSampleSize) {
-
-    public int getTotalSampleSize() {
-        return samples.size();
-    }
+        List<ShadowWithOwner> llmSamples,
+        List<ShadowWithOwner> validationSamples) {
 }

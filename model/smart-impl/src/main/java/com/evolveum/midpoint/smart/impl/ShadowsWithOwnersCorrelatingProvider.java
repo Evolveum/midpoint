@@ -9,7 +9,6 @@
 package com.evolveum.midpoint.smart.impl;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -64,33 +63,38 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
         final CorrelationDefinitionType correlationDef =
                 new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
 
+        // Set expected progress based on total sample size (llm + validation)
+        int expectedSampleSize = samplerProvider.getMappingSampler().getExpectedSampleSize(ctx.typeDefinition);
+        state.setExpectedProgress(expectedSampleSize);
+
         // Predicate only checks if shadow has owner (doesn't cache)
-        MappingSampleResult sampledResult = samplerProvider.getMappingSampler().sampleForMappings(
+        MappingSampleResult sampledResult = samplerProvider.getMappingSampler().sample(
                 ctx.resource,
                 ctx.typeDefinition,
                 shadow -> hasOwner(shadow, ctx, correlationDef, state, result),
                 ctx.task,
                 result);
 
-        List<PrismObject<ShadowType>> sampledShadows = sampledResult.samples();
-
-        // Now find owners for the final sample
-        final ArrayList<ShadowWithOwner> ownedShadows = new ArrayList<>(sampledShadows.size());
-        for (PrismObject<ShadowType> shadow : sampledShadows) {
+        // Process LLM samples
+        final ArrayList<ShadowWithOwner> llmOwnedShadows = new ArrayList<>();
+        for (PrismObject<ShadowType> shadow : sampledResult.llmSamples()) {
             OperationResult subResult = result.createSubresult("findOwnerForShadow");
             Optional<FocusType> ownerOptional = findOwner(shadow, ctx, correlationDef, subResult);
-            if (ownerOptional.isPresent()) {
-                ownedShadows.add(new ShadowWithOwner(shadow.asObjectable(), ownerOptional.get()));
-                state.incrementProgress(subResult);
-            }
+            ownerOptional.ifPresent(focusType -> llmOwnedShadows.add(new ShadowWithOwner(shadow.asObjectable(), focusType)));
         }
 
-        LOGGER.info("Sampled {} shadows with owners", ownedShadows.size());
+        // Process validation samples
+        final ArrayList<ShadowWithOwner> validationOwnedShadows = new ArrayList<>();
+        for (PrismObject<ShadowType> shadow : sampledResult.validationSamples()) {
+            OperationResult subResult = result.createSubresult("findOwnerForShadow");
+            Optional<FocusType> ownerOptional = findOwner(shadow, ctx, correlationDef, subResult);
+            ownerOptional.ifPresent(focusType -> validationOwnedShadows.add(new ShadowWithOwner(shadow.asObjectable(), focusType)));
+        }
 
-        return new ShadowsWithOwnerSampleResult(
-                ownedShadows,
-                sampledResult.llmSampleSize(),
-                sampledResult.validationSampleSize());
+        LOGGER.info("Sampled {} shadows with owners ({} for LLM, {} for validation)",
+                llmOwnedShadows.size() + validationOwnedShadows.size(), llmOwnedShadows.size(), validationOwnedShadows.size());
+
+        return new ShadowsWithOwnerSampleResult(llmOwnedShadows, validationOwnedShadows);
     }
 
     /**
@@ -109,8 +113,14 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
 
         OperationResult subResult = parentResult.createSubresult("checkIfShadowHasOwner");
         Optional<FocusType> ownerOptional = findOwner(shadow, ctx, correlationDef, subResult);
+        boolean hasOwner = ownerOptional.isPresent();
 
-        return ownerOptional.isPresent();
+        // Increment progress here where the actual expensive work happens
+        if (hasOwner) {
+            state.incrementProgress(subResult);
+        }
+
+        return hasOwner;
     }
 
     /**
@@ -122,23 +132,18 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             TypeOperationContext ctx,
             CorrelationDefinitionType correlationDef,
             OperationResult result) {
-
         if (!ctx.canRun()) {
             return Optional.empty();
         }
-
         result.addParam("shadow", shadow.getOid());
-
         try {
-            var owner = correlationService.findLinkedOrCorrelatedFocus(
+            return correlationService.findLinkedOrCorrelatedFocus(
                     shadow.asObjectable(),
                     ctx.resource,
                     ctx.typeDefinition,
                     correlationDef,
                     ctx.task,
                     result);
-
-            return owner;
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, shadow);
             return Optional.empty();

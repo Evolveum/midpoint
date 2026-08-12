@@ -156,15 +156,12 @@ class MappingsSuggestionOperation {
         ctx.checkIfCanRun();
 
         var sampleResult = collectOwnedShadows(result);
-        var ownedShadows = sampleResult.samples();
-
-        var shadowsForLLM = ownedShadows.subList(0, sampleResult.llmSampleSize());
-        var shadowsForValidation = ownedShadows.subList(
-                ownedShadows.size() - sampleResult.validationSampleSize(),
-                ownedShadows.size());
+        var shadowsForLLM = sampleResult.llmSamples();
+        var shadowsForValidation = sampleResult.validationSamples();
 
         LOGGER.info("Using {} shadows for LLM, {} for validation, total {} sampled",
-                sampleResult.llmSampleSize(), sampleResult.validationSampleSize(), ownedShadows.size());
+                shadowsForLLM.size(), shadowsForValidation.size(),
+                shadowsForLLM.size() + shadowsForValidation.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);

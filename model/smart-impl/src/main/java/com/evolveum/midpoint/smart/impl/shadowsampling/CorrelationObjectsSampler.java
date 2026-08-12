@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Uses larger sample sizes when caching is enabled to improve correlation accuracy.
  */
 @Component
-public class CorrelationObjectsSampler implements ObjectsSampler {
+public class CorrelationObjectsSampler implements ObjectsSampler<List<PrismObject<ShadowType>>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationObjectsSampler.class);
 
@@ -52,56 +52,6 @@ public class CorrelationObjectsSampler implements ObjectsSampler {
 
     public CorrelationObjectsSampler(ModelService modelService) {
         this.modelService = modelService;
-    }
-
-    @Override
-    public List<PrismObject<ShadowType>> sample(
-            ResourceType resource,
-            ResourceObjectDefinition typeDefinition,
-            Task task,
-            OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-
-        boolean useNoFetch = typeDefinition.isCachingEnabled();
-        int sampleSize = useNoFetch ? CACHED_SAMPLE_SIZE : DEFAULT_SAMPLE_SIZE;
-
-        LOGGER.debug("Sampling shadows for correlation: {}/{}, sampleSize={}, cached={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), sampleSize, useNoFetch);
-
-        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(sampleSize);
-        AtomicInteger count = new AtomicInteger(0);
-        Random random = new Random(1);
-
-        modelService.searchObjectsIterative(
-                ShadowType.class,
-                Resource.of(resource)
-                        .queryFor(typeDefinition.getTypeIdentification())
-                        .build(),
-                (shadow, lResult) -> {
-                    try {
-                        int i = count.getAndIncrement();
-                        if (i < sampleSize) {
-                            reservoir.add(shadow);
-                        } else {
-                            int j = random.nextInt(i + 1);
-                            if (j < sampleSize) {
-                                reservoir.set(j, shadow);
-                            }
-                        }
-                        return true;
-                    } finally {
-                        lResult.computeStatusIfUnknown();
-                        lResult.setSummarizeSuccesses(true);
-                        lResult.summarize();
-                    }
-                },
-                createGetOptions(useNoFetch),
-                task,
-                result);
-
-        LOGGER.debug("Sampled {} shadows for correlation", reservoir.size());
-        return reservoir;
     }
 
     @Override

@@ -71,7 +71,7 @@ class CorrelatorEvaluator {
      * attribute distribution and mapping, and computing suitability scores.
      *
      * The main steps are:
-     *   - Sampling all relevant focus objects (no limit)
+     *   - Retrieving all relevant focus objects
      *   - Randomly sampling shadow objects based on cache configuration
      *   - Computing statistics (uniqueness, coverage) for each suggested focus and resource path
      *   - Scoring each suggestion by shadow-focus link coverage/ambiguity
@@ -86,7 +86,7 @@ class CorrelatorEvaluator {
         LOGGER.info("Starting correlator evaluation. Focus type: {}, Shadow type: {}",
                 ctx.getFocusClass(), ctx.getTypeIdentification());
 
-        // Sample all focus objects
+        // Retrieve all focus objects
         b.modelService.searchObjectsIterative(
                 ctx.getFocusClass(),
                 null,
@@ -104,7 +104,7 @@ class CorrelatorEvaluator {
                 ctx.task,
                 result);
 
-        LOGGER.info("Sampled {} focus objects and {} shadow objects", sampledFocuses.size(), shadowSamples.size());
+        LOGGER.debug("Retrieved {} focus objects and sampled {} shadow objects", sampledFocuses.size(), shadowSamples.size());
 
         for (PrismObject<ShadowType> shadow : shadowSamples) {
             sampledShadows.add(shadow);
