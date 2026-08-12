@@ -32,6 +32,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import javax.xml.namespace.QName;
+
 import org.jetbrains.annotations.NotNull;
 
 public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
@@ -46,7 +48,11 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_REMOVE_BUTTON = "remove";
 
     public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
         if (getEvaluatorValues().isEmpty()) {
             updateEvaluatorValue(List.of());
         }

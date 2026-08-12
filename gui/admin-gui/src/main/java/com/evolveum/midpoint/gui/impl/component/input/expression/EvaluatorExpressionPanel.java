@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
@@ -24,8 +26,29 @@ public abstract class EvaluatorExpressionPanel extends BasePanel<ExpressionType>
     private static final String ID_VALUE_CONTAINER = "valueContainer";
     private static final String ID_FEEDBACK = "feedback";
 
+    /**
+     * Type of the object the expression is evaluated against. Null when the context does not tell us.
+     */
+    private final IModel<QName> expressionTargetTypeModel;
+
     public EvaluatorExpressionPanel(String id, IModel<ExpressionType> model) {
+        this(id, model, null);
+    }
+
+    public EvaluatorExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
         super(id, model);
+        this.expressionTargetTypeModel = expressionTargetTypeModel;
+    }
+
+    /**
+     * Type of the object the expression is evaluated against, for panels that need to know the
+     * schema they work with.
+     *
+     * @return the type, or null when the context does not tell us and the panel has to manage
+     * without it.
+     */
+    protected QName getExpressionTargetType() {
+        return expressionTargetTypeModel != null ? expressionTargetTypeModel.getObject() : null;
     }
 
     @Override

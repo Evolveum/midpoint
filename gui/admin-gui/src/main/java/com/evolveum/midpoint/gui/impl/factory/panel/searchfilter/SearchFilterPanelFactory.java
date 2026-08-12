@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -77,7 +78,8 @@ public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<S
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         return new SearchFilterConfigurationPanel(
-                panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), getFilterObjectType(panelCtx)
+                panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(),
+                Model.of(getFilterObjectType(panelCtx))
         );
     }
 

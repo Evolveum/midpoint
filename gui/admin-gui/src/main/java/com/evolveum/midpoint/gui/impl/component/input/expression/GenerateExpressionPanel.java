@@ -36,7 +36,11 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_VALUE_POLICY = "valuePolicy";
 
     public GenerateExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public GenerateExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
         GenerateExpressionWrapper wrapper = getEvaluatorValue();
         if (wrapper == null || wrapper.isEmpty()) {
             updateEvaluatorValue((GenerateExpressionEvaluatorModeType) null);

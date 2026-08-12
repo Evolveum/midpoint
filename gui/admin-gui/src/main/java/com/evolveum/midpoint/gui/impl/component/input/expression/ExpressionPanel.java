@@ -53,6 +53,8 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,7 +98,10 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH.show.button"),
         PATH(ExpressionEvaluatorType.PATH,
                 PathExpressionPanel.class,
-                "ExpressionEvaluatorType.PATH.show.button");
+                "ExpressionEvaluatorType.PATH.show.button"),
+        FILTER(ExpressionEvaluatorType.FILTER,
+                FilterExpressionPanel.class,
+                "ExpressionEvaluatorType.FILTER.show.button");
 
         private final ExpressionEvaluatorType type;
         private final Class<? extends EvaluatorExpressionPanel> evaluatorPanel;
@@ -157,9 +162,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             typeModel = new LoadableModel<>(false) {
                 @Override
                 protected RecognizedEvaluator load() {
-                    String expression = ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER);
-
-                    ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(expression);
+                    ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(getModelObject());
                     return recognizeEvaluator(type);
                 }
 
@@ -428,6 +431,28 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return typeButton;
     }
 
+    /**
+     * Returns type of the object the expression is evaluated against, taken from the schema context of the item.
+     *
+     * @return target object type of expression or null while the schema context is not defined for the expression.
+     */
+    private QName resolveExpressionTargetType() {
+        PrismPropertyWrapper<ExpressionType> wrapper = parent != null ? parent.getObject() : null;
+        if (wrapper == null) {
+            return null;
+        }
+
+        var item = wrapper.getItem();
+        if (item == null || item.getValue() == null) {
+            return null;
+        }
+        var schemaContext = item.getValue().getSchemaContext();
+        if (schemaContext == null || schemaContext.getItemDefinition() == null) {
+            return null;
+        }
+        return schemaContext.getItemDefinition().getTypeName();
+    }
+
     private WebMarkupContainer createEvaluatorPanel() {
         return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false);
     }
@@ -436,8 +461,10 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         RecognizedEvaluator type = typeModel.getObject();
         if (type != null && type.evaluatorPanel != null) {
             try {
-                Constructor<? extends BasePanel<ExpressionType>> constructor = type.evaluatorPanel.getConstructor(String.class, IModel.class);
-                BasePanel<ExpressionType> evaluatorPanel = constructor.newInstance(id, getModel());
+                Constructor<? extends BasePanel<ExpressionType>> constructor =
+                        type.evaluatorPanel.getConstructor(String.class, IModel.class, IModel.class);
+                BasePanel<ExpressionType> evaluatorPanel =
+                        constructor.newInstance(id, getModel(), (IModel<QName>) this::resolveExpressionTargetType);
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
@@ -446,7 +473,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 return evaluatorPanel;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 LOGGER.error("Couldn't create panel for expression evaluator by constructor for class {} with parameters type: "
-                        + "String, IModel", type.evaluatorPanel.getSimpleName());
+                        + "String, IModel, IModel", type.evaluatorPanel.getSimpleName());
             }
         }
         WebMarkupContainer invisiblePanel = new WebMarkupContainer(id);

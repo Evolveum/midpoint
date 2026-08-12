@@ -55,7 +55,8 @@ public class ExpressionUtil {
         SCRIPT,
         GENERATE,
         ASSOCIATION_FROM_LINK,
-        SHADOW_OWNER_REFERENCE_SEARCH
+        SHADOW_OWNER_REFERENCE_SEARCH,
+        FILTER
     }
 
     public enum Language {
@@ -157,6 +158,21 @@ public class ExpressionUtil {
             default:
                 return "";
         }
+    }
+
+    /**
+     *
+     * Recognizes the evaluator from the bean. Preferred over the text based variant - search evaluators
+     * contain a nested {@code filter} element, so the serialized form cannot tell them apart.
+     *
+     * @param expression expression in which we are looking for the evaluator.
+     * @return expression evaluator type.
+     */
+    public static ExpressionEvaluatorType getExpressionType(ExpressionType expression) {
+        if (!findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_FILTER).isEmpty()) {
+            return ExpressionEvaluatorType.FILTER;
+        }
+        return getExpressionType(loadExpression(expression, PrismContext.get(), LOGGER));
     }
 
     public static ExpressionEvaluatorType getExpressionType(String expression) {
@@ -581,6 +597,22 @@ public class ExpressionUtil {
         return null;
     }
 
+    /**
+     * Returns the filter evaluator of the expression.
+     *
+     * @param expression in which we are looking for the evaluator.
+     * @return the filter evaluator, or null when the expression has none.
+     */
+    public static FilterExpressionEvaluatorType getFilterExpressionValue(ExpressionType expression) {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_FILTER);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof FilterExpressionEvaluatorType evaluator) {
+                return evaluator;
+            }
+        }
+        return null;
+    }
+
     public static ItemPathType getPathExpressionValue(ExpressionType expression) throws SchemaException {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_PATH);
         for (JAXBElement<?> element : elements) {
@@ -658,6 +690,19 @@ public class ExpressionUtil {
             ExpressionType expression, ScriptExpressionEvaluatorType evaluator) throws SchemaException {
         return updateExpressionEvaluator(
                 expression, evaluator, ScriptExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SCRIPT);
+    }
+
+    /**
+     * Makes the filter evaluator the only evaluator of the expression. A null evaluator removes it.
+     *
+     * @param expression to update, created when null.
+     * @param evaluator filter evaluator to store.
+     * @return the updated expression, or null when the evaluator was null.
+     */
+    public static ExpressionType updateFilterExpressionValue(
+            ExpressionType expression, FilterExpressionEvaluatorType evaluator) throws SchemaException {
+        return updateExpressionEvaluator(
+                expression, evaluator, FilterExpressionEvaluatorType.class, SchemaConstantsGenerated.C_FILTER);
     }
 
     public static ExpressionType updatePathEvaluator(ExpressionType expression, ItemPathType path) throws SchemaException {
