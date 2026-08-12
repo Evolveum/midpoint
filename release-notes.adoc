@@ -42,6 +42,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
 * Fixed saving dynamic extension attributes. See bug:MID-11716[]
 * Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
+* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
 
 == Changes With Respect To Version 4.10.2
 
