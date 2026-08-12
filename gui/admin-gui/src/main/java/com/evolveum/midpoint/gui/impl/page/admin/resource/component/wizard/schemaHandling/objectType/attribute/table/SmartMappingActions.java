@@ -972,6 +972,8 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("SmartMappingTable.apply.suggestion")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                table.getPageBase().hideDrawer(target);
+
                 GroupedMappingDataProvider provider = table.getProvider();
                 MappingDataDto groupedDto =
                         provider != null ? provider.findGroupedDto(rowModel.getObject()) : null;
@@ -990,7 +992,6 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
                 table.acceptSuggestionItemPerformed(rowModel, target);
                 table.refreshAndDetach(target);
-                table.getPageBase().hideDrawer(target);
             }
         };
 
@@ -1009,9 +1010,9 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("SmartMappingTable.dismiss")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                table.getPageBase().hideDrawer(target);
                 deleteItemPerform(rowModel.getObject());
                 table.refreshAndDetach(target);
-                table.getPageBase().hideDrawer(target);
             }
         };
 
