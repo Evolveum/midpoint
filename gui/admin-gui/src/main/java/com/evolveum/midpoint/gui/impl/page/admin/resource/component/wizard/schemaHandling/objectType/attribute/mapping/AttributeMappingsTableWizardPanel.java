@@ -462,15 +462,18 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
         }
 
         IterationSpecificationType suggestedIteration = suggestion.getIterationSpecification();
-
+        if (suggestedIteration != null) {
+            //noinspection unchecked
+            WebPrismUtil.cleanupEmptyContainerValue(suggestedIteration.asPrismContainerValue());
+        }
         IterationSpecificationType currentIteration = getCurrentIteration(table);
 
         MappingType mapping = suggestedMapping.getRealValue();
         ExpressionType expression = mapping != null ? mapping.getExpression() : null;
 
         boolean iterationConfirmationRequired =
-                ExpressionUtil.usesIterationVariables(expression)
-                        && suggestedIteration != null
+                ExpressionUtil.usesIterationVariables(expression) &&
+                        suggestedIteration != null
                         && !Objects.equals(currentIteration, suggestedIteration);
 
         if (iterationConfirmationRequired) {
@@ -598,6 +601,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                 return;
             }
 
+            @SuppressWarnings("unchecked")
             PrismContainerValue<IterationSpecificationType> newValue = processSuggestedContainerValue(
                     suggestedIteration.asPrismContainerValue());
 
@@ -608,8 +612,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                     container, newValue,
                     getPageBase(), target);
 
-            newWrapper.setStatus(container.getValues().isEmpty() ? ValueStatus.ADDED : ValueStatus.MODIFIED);
-
+            newWrapper.setStatus(ValueStatus.ADDED);
             container.getItem().setValue(newValue);
             container.getValues().clear();
             container.getValues().add(newWrapper);
@@ -683,7 +686,7 @@ public abstract class AttributeMappingsTableWizardPanel<P extends Containerable>
                                         return createStringResource("IterationSettings.button.iterationSettings");
                                     }
                                 };
-                        getPageBase().showRightSidebar(containerDrawerInfoModel, target);
+                        getPageBase().showDrawer(containerDrawerInfoModel, target);
                     }
                 })
                 .visibilityChecker((rowModel, isHeader) -> isHeader)

@@ -72,9 +72,7 @@ public class ContainerDrawerPanel<C extends Containerable>
     }
 
     private FeedbackAlerts createFeedbackPanel() {
-        FeedbackAlerts feedback = new FeedbackAlerts(
-                ID_FEEDBACK);
-
+        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         feedback.setOutputMarkupPlaceholderTag(true);
         feedback.setEscapeModelStrings(false);
@@ -108,6 +106,7 @@ public class ContainerDrawerPanel<C extends Containerable>
 
         if (wrapper != null) {
             wrapper.setExpanded(true);
+            wrapper.setShowEmpty(false);
         }
 
         ItemPanelSettings settings = this.settings != null ? this.settings : new ItemPanelSettingsBuilder().build();

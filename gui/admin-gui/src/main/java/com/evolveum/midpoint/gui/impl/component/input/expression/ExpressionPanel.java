@@ -326,7 +326,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
-            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap"));
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap "));
+            label.add(AttributeModifier.replace("style", ""));
+            label.add(new ExpressionValidationBehavior(typeModel, getModel()));
             return label;
         }
 
@@ -404,7 +406,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
                     DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
-                    getPageBase().showRightSidebar(drawerModel, target);
+                    getPageBase().showDrawer(drawerModel, target);
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
                     if (ExpressionPanel.this.getModelObject() != null

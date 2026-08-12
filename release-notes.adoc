@@ -73,7 +73,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-10867[] Added support for java 25.
 * bug:MID-10875[] Added Order constraints tab for Assignments panel.
 * Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
-* Improved patch management of docker images, updated tagging of docker images. See https://docs.evolveum.com/midpoint/install/containers/container-image-naming/[docs].
+* Improved patch management of docker images, updated tagging of docker images.
+    See xref:/midpoint/get-started/install/containers/container-image-naming/[].
 * Implemented new configuration options for processing uploaded images.
 * bug:MID-8802[] Added displayName and preferredName to UserType.
 * Upgraded AdminLTE to 4.1. See bug:MID-11538[].
@@ -178,7 +179,8 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
 * Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
-
+* Fixed internal server error when opening the OTP tab for a new application. See bug:MID-11927[]
+* Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
 
 === Releases Of Other Components
 
@@ -270,7 +272,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
+Please see xref:/midpoint/get-started/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
@@ -477,6 +479,8 @@ Modified:
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
 * 000-system-configuration.xml -  Poly-string translation keys added.
+* 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
+* 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 

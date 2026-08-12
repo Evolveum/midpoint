@@ -1888,6 +1888,11 @@ button.tooltip-button[data-tooltip]:hover::after {
 }
 
 .card-outline-start {
+  &.card:not(.card-outline) > .card-header {
+    color: var(--bs-body-color);
+    background-color: transparent;
+  }
+
   @each $name, $color in $theme-colors {
     &.card-outline-start-#{$name} {
       border-left: 5px solid $color;
@@ -2682,4 +2687,9 @@ footer.app-footer a {
   width: auto;
   flex-shrink: 0;
   flex-grow: 0;
+}
+
+.midpoint-drawer {
+  z-index: 1060;
+  min-width: 30vw;
 }
