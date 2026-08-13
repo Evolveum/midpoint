@@ -89,6 +89,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputP
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        setOutputMarkupId(true);
         initFilterTypeModel();
         initLayout();
     }

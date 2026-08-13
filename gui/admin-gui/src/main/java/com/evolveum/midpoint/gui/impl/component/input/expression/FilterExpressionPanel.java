@@ -47,11 +47,22 @@ public class FilterExpressionPanel extends EvaluatorExpressionPanel {
             protected StringResourceModel getConfigPanelTitle() {
                 return createStringResource("FilterExpressionPanel.configureFilter");
             }
+            
+            @Override
+            protected boolean addEmptyBlumBehaviourToTextField() {
+                return true;
+            }
         });
     }
 
+    /**
+     * Model of the filter of the expression. {@link LambdaModel} skips the setter when its target
+     * object is null, and the expression of an empty condition is null, so the target falls back to
+     * a fresh expression. Without it the first filter the user configures is silently dropped.
+     */
     private IModel<SearchFilterType> createFilterModel() {
-        return LambdaModel.of(getModel(), FilterExpressionPanel::readFilter, this::writeFilter);
+        return LambdaModel.of(
+                getModel().orElseGet(ExpressionType::new), FilterExpressionPanel::readFilter, this::writeFilter);
     }
 
     private static SearchFilterType readFilter(ExpressionType expression) {
