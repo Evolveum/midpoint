@@ -51,7 +51,9 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
         PATH(ExpressionEvaluatorType.PATH,
                 "ExpressionEvaluatorType.PATH"),
         FILTER(ExpressionEvaluatorType.FILTER,
-                "ExpressionEvaluatorType.FILTER");
+                "ExpressionEvaluatorType.FILTER"),
+        NULL(ExpressionEvaluatorType.NULL,
+                "ExpressionEvaluatorType.NULL");
 
         private final ExpressionEvaluatorType type;
         private final String translationKey;

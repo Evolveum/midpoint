@@ -101,7 +101,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 "ExpressionEvaluatorType.PATH.show.button"),
         FILTER(ExpressionEvaluatorType.FILTER,
                 FilterExpressionPanel.class,
-                "ExpressionEvaluatorType.FILTER.show.button");
+                "ExpressionEvaluatorType.FILTER.show.button"),
+        NULL(ExpressionEvaluatorType.NULL,
+                null, null);
 
         private final ExpressionEvaluatorType type;
         private final Class<? extends EvaluatorExpressionPanel> evaluatorPanel;
@@ -170,7 +172,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 public void setObject(RecognizedEvaluator object) {
                     RecognizedEvaluator oldType = isLoaded() ? getObject() : null;
                     super.setObject(object);
-                    if (oldType != null && oldType != object && ExpressionPanel.this.getModelObject() != null) {
+
+                    // No subpanel writes the "null" evaluator into ExpressionType, so it updated on selection.
+                    if (object != null && object.equals(RecognizedEvaluator.NULL)) {
+                        ExpressionType currentExpression = ExpressionPanel.this.getOrCreateExpression();
+                        ExpressionUtil.addNullExpressionValue(currentExpression);
+                    } else if (oldType != null && oldType != object && ExpressionPanel.this.getModelObject() != null) {
                         ExpressionPanel.this.getModelObject().getExpressionEvaluator().clear();
                     }
                 }
