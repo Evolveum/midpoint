@@ -644,6 +644,7 @@ public class ModelImplUtils {
             variables.put(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), projCtx.getResource().asPrismObject().getDefinition());
             variables.put(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue(), String.class);
             variables.put(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx), Integer.class);
+            variables.put(ExpressionConstants.VAR_ATTEMPT, LensUtil.getIterationVariableValue(projCtx), Integer.class);
             variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
         }
 

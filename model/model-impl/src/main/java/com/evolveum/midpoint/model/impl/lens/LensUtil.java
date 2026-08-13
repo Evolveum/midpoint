@@ -219,18 +219,33 @@ public class LensUtil {
 
     /**
      * Determines the start value for iteration.
-     * @return the start value (defaults to 0 if not specified)
+     * Default value depends on whether maxIterations is defined:
+     * - If maxIterations is defined: defaults to 0
+     * - If maxIterations is not defined: defaults to 1
+     * @return the start value
      */
     public static int determineIterationStart(IterationSpecificationType iterationSpecType) {
-        return iterationSpecType != null ? or0(iterationSpecType.getStart()) : 0;
+        if (iterationSpecType == null) {
+            return 0;
+        }
+        Integer start = iterationSpecType.getStart();
+        if (start != null) {
+            return start;
+        }
+        if (iterationSpecType.getEnd() != null) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     /**
      * Determines the maximum iteration value.
      * If end is specified, it takes precedence over maxIterations.
+     * If neither end nor maxIterations is specified, throws ConfigurationException.
      * @return the maximum iteration value
      */
-    public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
+    public static int determineMaxIterations(IterationSpecificationType iterationSpecType) throws ConfigurationException {
         if (iterationSpecType == null) {
             return 0;
         }
@@ -238,7 +253,11 @@ public class LensUtil {
         if (end != null) {
             return end;
         }
-        return determineIterationStart(iterationSpecType) + or0(iterationSpecType.getMaxIterations());
+        Integer maxIterations = iterationSpecType.getMaxIterations();
+        if (maxIterations == null) {
+            throw new ConfigurationException("Iteration specification must define either 'end' or 'maxIterations'");
+        }
+        return determineIterationStart(iterationSpecType) + maxIterations;
     }
 
     public static String formatIterationToken(
@@ -251,14 +270,22 @@ public class LensUtil {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-        if (iterationSpec == null) {
-            return formatIterationTokenDefault(iteration, 0);
+        boolean useTokenOnlyOnConflict = isUseTokenOnlyOnConflict(iterationSpec);
+        int start = determineIterationStart(iterationSpec);
+        // If useTokenOnlyOnConflict is true and this is the first attempt, don't evaluate token expression
+        if (useTokenOnlyOnConflict && iteration == start) {
+            return "";
         }
+
+        if (iterationSpec == null) {
+            return formatIterationTokenDefault(iteration, 0, true);
+        }
+
         ExpressionType tokenExpressionType = iterationSpec.getTokenExpression();
         if (tokenExpressionType == null) {
-            int start = determineIterationStart(iterationSpec);
-            return formatIterationTokenDefault(iteration, start);
+            return formatIterationTokenDefault(iteration, start, useTokenOnlyOnConflict);
         }
+
         PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
@@ -282,6 +309,11 @@ public class LensUtil {
                 new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
         sources.add(iterationSource);
 
+        // Add 'attempt' as an alias for 'iteration'
+        Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> attemptSource =
+                new Source<>(idi, ExpressionConstants.VAR_ATTEMPT_QNAME);
+        sources.add(attemptSource);
+
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
                 sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), task);
         eeContext.setExpressionFactory(expressionFactory);
@@ -304,17 +336,34 @@ public class LensUtil {
 
     /**
      * Formats the iteration token with default logic.
-     * If iteration equals start, returns empty string, otherwise returns iteration as string.
+     * If useTokenOnlyOnConflict is true and iteration equals start, returns empty string.
+     * Otherwise returns iteration as string.
      *
      * @param iteration current iteration value
      * @param start the start value for iteration
+     * @param useTokenOnlyOnConflict whether to use token only on conflict (first attempt has no token)
      * @return formatted iteration token
      */
-    public static String formatIterationTokenDefault(int iteration, int start) {
-        if (iteration == start) {
+    public static String formatIterationTokenDefault(int iteration, int start, boolean useTokenOnlyOnConflict) {
+        if (useTokenOnlyOnConflict && iteration == start) {
             return "";
         }
         return Integer.toString(iteration);
+    }
+
+    /**
+     * Determines the value of useTokenOnlyOnConflict flag.
+     * Default value is true.
+     *
+     * @param iterationSpec iteration specification
+     * @return true if token should be used only on conflict, false otherwise
+     */
+    public static boolean isUseTokenOnlyOnConflict(IterationSpecificationType iterationSpec) {
+        if (iterationSpec == null) {
+            return true;
+        }
+        Boolean useTokenOnlyOnConflict = iterationSpec.isUseTokenOnlyOnConflict();
+        return useTokenOnlyOnConflict == null || useTokenOnlyOnConflict;
     }
 
     public static <F extends ObjectType> boolean evaluateIterationCondition(
@@ -351,6 +400,7 @@ public class LensUtil {
 
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null , variables, desc, task);
         eeContext.setExpressionFactory(expressionFactory);

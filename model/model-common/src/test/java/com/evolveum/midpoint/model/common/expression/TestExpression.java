@@ -399,6 +399,8 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_PROJECTION, account, shadowDef);
         variables.put(ExpressionConstants.VAR_ITERATION, 1,
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION, PrimitiveType.INT));
+        variables.put(ExpressionConstants.VAR_ATTEMPT, 1,
+                TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ATTEMPT, PrimitiveType.INT));
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION_TOKEN, PrimitiveType.STRING));
 

@@ -17,6 +17,7 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Iteration User Template (associate subtype)</name>
     <iterationSpecification>
+        <useTokenOnlyOnConflict>false</useTokenOnlyOnConflict>
         <maxIterations>5</maxIterations>
         <tokenExpression>
             <script>

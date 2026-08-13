@@ -172,7 +172,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
         focusContext.setIterationToken(iterationToken);
     }
 
-    private void initializeIterationSpecificationIfNeeded() {
+    private void initializeIterationSpecificationIfNeeded() throws ConfigurationException {
         if (!iterationSpecificationInitialized) {
             ObjectTemplateType objectTemplate = context.getFocusTemplate();
             iterationSpecification = LensUtil.getIterationSpecification(objectTemplate);

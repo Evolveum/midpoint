@@ -312,6 +312,7 @@ abstract class ShadowItemMapper
             mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_OPERATION, constructionEvaluation.operation);
 
             mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION, getIteration(), Integer.class);
+            mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ATTEMPT, getIteration(), Integer.class);
             mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, getIterationToken(), String.class);
             mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_LEGAL, getLegal());
             mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNED, getAssigned());
