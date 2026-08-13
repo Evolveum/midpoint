@@ -772,7 +772,8 @@ class MappingsSuggestionOperation {
     private boolean mappingUsesIterationToken(AttributeMappingsSuggestionType mapping) {
         String script = extractScriptFromAttributeMapping(mapping);
         return script != null && (script.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
-                || script.contains(ExpressionConstants.VAR_ITERATION));
+                || script.contains(ExpressionConstants.VAR_ITERATION)
+                || script.contains(ExpressionConstants.VAR_ATTEMPT));
     }
 
     private String extractScriptFromAttributeMapping(AttributeMappingsSuggestionType mapping) {

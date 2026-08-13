@@ -5261,8 +5261,7 @@
             <xsd:element name="maxIterations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Maximum number of iteration attempts. The number specifies attempts
-                        beyond the first one, which is not considered to be an iteration.
+                        Maximum number of iteration attempts.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.maxIterations</a:displayName>
@@ -5300,6 +5299,22 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.postIterationCondition</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, the token expression will not be evaluated on the first attempt
+                        (when there is no conflict yet). The token will only be generated starting from
+                        the second attempt when a conflict is detected.
+                        If set to false, the token expression will be evaluated on every attempt including
+                        the first one.
+                        Default value is true.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.useTokenOnlyOnConflict</a:displayName>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
