@@ -33,7 +33,8 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Updated Spring Boot to 4.0 and Hibernate to 7.1.8. See bug:MID-11002[]
 * Updated spring boot to 4.1 and Hibernate to 7.4.1. See bug:MID-11547[]
 * Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
-* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
+* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[]
+* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
 
 == Changes with Respect To Version 4.8.12
 
