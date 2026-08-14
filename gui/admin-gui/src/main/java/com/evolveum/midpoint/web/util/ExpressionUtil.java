@@ -85,20 +85,6 @@ public class ExpressionUtil {
 
     public static final QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
     private static final QName SHADOW_OID_KEY = new QName("oid");
-
-    public static final String EXPRESSION_SCRIPT = "<script>\n" +
-            "    <code>\n" +
-            "        Insert your script here\n" +
-            "    </code>\n" +
-            "</script>";
-
-    public static final String EXPRESSION_LITERAL = "<value>Insert value(s) here</value>";
-    public static final String EXPRESSION_AS_IS = "<asIs/>";
-    public static final String EXPRESSION_PATH = "<path>Insert path here</path>";
-    public static final String EXPRESSION_GENERATE = "<generate>\n" +
-            //"    <valuePolicyRef oid=\"Insert value policy oid\"/>\n" +
-            "</generate>";
-
     public static final String ELEMENT_SCRIPT = "</script>";
     public static final String ELEMENT_GENERATE = "</generate>";
     public static final String ELEMENT_GENERATE_WITH_NS = "<generate";
@@ -112,56 +98,6 @@ public class ExpressionUtil {
     public static final String ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS = "<shadowOwnerReferenceSearch";
     public static final String ELEMENT_NULL = "<null/>";
     public static final String ELEMENT_NULL_WITH_NS = "<null";
-
-    public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy) {
-        if (ExpressionEvaluatorType.GENERATE.equals(type) && policy != null) {
-            return "<generate>\n" +
-                    "    <valuePolicyRef oid=\""
-                    + policy.getOid() + "\"/>\n" +
-                    "</generate>";
-        }
-
-        return EXPRESSION_GENERATE;
-    }
-
-    public static String getExpressionString(ExpressionEvaluatorType type, Language lang) {
-        if (ExpressionEvaluatorType.SCRIPT.equals(type) && !Language.GROOVY.equals(lang)) {
-            return "<script>\n"
-                    + "    <language>" + lang.getShortForm() + "</language>\n"
-                    + "    <code>\n"
-                    + "        Insert your script here\n"
-                    + "    </code>\n"
-                    + "<script>";
-        }
-
-        return EXPRESSION_SCRIPT;
-    }
-
-    public static String getExpressionString(ExpressionEvaluatorType type) {
-        if (type == null) {
-            return "";
-        }
-
-        switch (type) {
-            case AS_IS:
-                return EXPRESSION_AS_IS;
-
-            case GENERATE:
-                return EXPRESSION_GENERATE;
-
-            case LITERAL:
-                return EXPRESSION_LITERAL;
-
-            case PATH:
-                return EXPRESSION_PATH;
-
-            case SCRIPT:
-                return EXPRESSION_SCRIPT;
-
-            default:
-                return "";
-        }
-    }
 
     /**
      * Element name of an evaluator paired with  corresponding type the GUI knows it as.
@@ -237,24 +173,6 @@ public class ExpressionUtil {
         }
 
         return null;
-    }
-
-    public static Language getExpressionLanguage(String expression) {
-        if (expression.contains("<language>")) {
-            if (expression.contains(Language.VELOCITY.getLanguage())) {
-                return Language.VELOCITY;
-            } else if (expression.contains(Language.PYTHON.getLanguage())) {
-                return Language.PYTHON;
-            } else if (expression.contains(Language.JAVASCRIPT.getLanguage())) {
-                return Language.JAVASCRIPT;
-            } else if (expression.contains(Language.MEL.getLanguage())) {
-                return Language.MEL;
-            } else {
-                return Language.GROOVY;
-            }
-        } else {
-            return Language.GROOVY;
-        }
     }
 
     @Nullable
