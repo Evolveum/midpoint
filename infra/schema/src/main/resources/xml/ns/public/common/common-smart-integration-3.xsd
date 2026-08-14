@@ -70,6 +70,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="serviceResponseTimeout" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximum time to wait for a response from the smart integration service.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationConfigurationType.serviceResponseTimeout</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="statisticsTtl" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
