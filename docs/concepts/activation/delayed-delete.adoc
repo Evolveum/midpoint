@@ -3,7 +3,7 @@
 :page-wiki-name: Delayed delete
 :page-keywords: activation, delayed delete, disable instead of delete
 :page-upkeep-status: green
-:toc: top
+:page-toc: top
 
 Delayed delete is a predefined activation mapping that postpones the deletion of a projection (usually an account) for a configured period after the projection has been disabled because of deprovisioning.
 Hence, its prerequisite is xref:/midpoint/reference/concepts/activation/disable-instead-of-delete/[] (or an equivalent feature) which midPoint uses to disable the account instead of deleting it.
