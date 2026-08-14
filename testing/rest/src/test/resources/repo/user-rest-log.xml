@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<user oid="3f8b1c74-9a6d-4f0e-b0a1-7d2e5c9b3a55"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>rest-log</name>
+    <assignment>
+        <targetRef oid="0c1c5d2a-2b0f-4a2a-9e5f-1b6c2f8e4a11" type="RoleType"/>
+    </assignment>
+    <credentials>
+        <password>
+            <value>r3stL0gR34d</value>
+        </password>
+        <securityQuestions>
+            <questionAnswer>
+                <questionIdentifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</questionIdentifier>
+                <questionAnswer>r3stL0gR34d</questionAnswer>
+            </questionAnswer>
+        </securityQuestions>
+    </credentials>
+</user>

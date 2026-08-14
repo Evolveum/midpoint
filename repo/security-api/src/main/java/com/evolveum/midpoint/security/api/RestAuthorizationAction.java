@@ -46,7 +46,9 @@ public enum RestAuthorizationAction implements DisplayableValue<String> {
     RUN_TASK("runTask", "Run task", "RUN_TASK_HELP"),
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     COMPARE_OBJECT("compareObject", "Compare object", "COMPARE_OBJECT_HELP"),
+    /** Besides this one, the `authorization-model-3#readLog` action is required as well. */
     GET_LOG_SIZE("getLogSize", "Get log size", "GET_LOG_SIZE_HELP"),
+    /** Besides this one, the `authorization-model-3#readLog` action is required as well. */
     GET_LOG("getLog", "Get log", "GET_LOG_HELP"),
     RESET_CREDENTIAL("resetCredential", "Reset credential", "RESET_CREDENTIAL_HELP"),
     GET_THREADS("getThreads", "Get threads", "GET_THREADS_HELP"),

@@ -1667,11 +1667,86 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
 
+    /* User has REST autz for the log operations, but not the model-level "readLog" one. So this fails. */
+    @Test
+    public void test691GetLogNotAuthorizedAtModelLevel() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/log");
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+    }
+
+    /* The same for the "log size" operation. */
+    @Test
+    public void test692GetLogSizeNotAuthorizedAtModelLevel() {
+        WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
+        client.path("/log/size");
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 403);
+    }
+
     /* User has both REST and model autz for "get object" operation. So this succeeds. */
     @Test
     public void test695RestMethodAuthorized() {
         WebClient client = prepareClient(USER_REST_LIMITED_NAME, USER_REST_LIMITED_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+    }
+
+    /* User has both the REST and the model-level "readLog" autz - and is not a superuser. So this succeeds. */
+    @Test
+    public void test696GetLogAuthorized() {
+        WebClient client = prepareClient(USER_REST_LOG_NAME, USER_REST_LOG_PASSWORD);
+        client.path("/log");
+        client.query("maxSize", 1024);
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        assertNotNull("No CurrentLogFileSize header", response.getHeaderString("CurrentLogFileSize"));
+        assertNotNull("No log content returned", response.readEntity(String.class));
+    }
+
+    /* The same for the "log size" operation. */
+    @Test
+    public void test697GetLogSizeAuthorized() {
+        WebClient client = prepareClient(USER_REST_LOG_NAME, USER_REST_LOG_PASSWORD);
+        client.path("/log/size");
+
+        when();
+        Response response = client.get();
+
+        then();
+        displayResponse(response);
+        assertStatus(response, 200);
+        long size = Long.parseLong(response.readEntity(String.class).trim());
+        AssertJUnit.assertTrue("Log file size is not positive: " + size, size > 0);
+    }
+
+    /* Superuser has the "all" authorization, which is applicable to any action. So this still succeeds. */
+    @Test
+    public void test698GetLogSizeAsSuperuser() {
+        WebClient client = prepareClient();
+        client.path("/log/size");
 
         when();
         Response response = client.get();

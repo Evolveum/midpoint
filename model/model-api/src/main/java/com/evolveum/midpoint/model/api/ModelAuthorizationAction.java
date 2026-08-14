@@ -93,6 +93,22 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
     READ_THREADS("readThreads", "Read threads", "READ_THREADS_HELP"),
 
+    /**
+     * Ability to read the content of the midPoint log file, and to determine its size.
+     *
+     * Covers both {@link ModelDiagnosticService#getLogFileContent(Long, Long, Task, OperationResult)} and
+     * {@link ModelDiagnosticService#getLogFileSize(Task, OperationResult)}. The two are not separated, because
+     * the size is strictly less information than the content, and clients are expected to use them together
+     * (see the `ReturnedDataPosition` / `CurrentLogFileSize` headers of the `/log` REST operation).
+     *
+     * Previously, these operations required the `authorization-3#all` authorization, i.e. effectively a superuser.
+     * Existing superusers are not affected by the change, as `#all` is applicable to any action.
+     *
+     * @see RestAuthorizationAction#GET_LOG
+     * @see RestAuthorizationAction#GET_LOG_SIZE
+     */
+    READ_LOG("readLog", "Read log", "READ_LOG_HELP"),
+
     /** Ability to complete a work item (case- or certification- related). */
     COMPLETE_WORK_ITEM("completeWorkItem", "Complete work item", "COMPLETE_WORK_ITEM_HELP"),
 
