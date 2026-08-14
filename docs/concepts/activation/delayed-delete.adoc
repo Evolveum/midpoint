@@ -6,9 +6,9 @@
 :toc: top
 
 Delayed delete is a predefined activation mapping that postpones the deletion of a projection (usually an account) for a configured period after the projection has been disabled because of deprovisioning.
-Hence, its prerequisite is to use with xref:/midpoint/reference/concepts/activation/disable-instead-of-delete/[] (or equivalent feature), where midPoint disables the account instead of deleting it.
+Hence, its prerequisite is xref:/midpoint/reference/concepts/activation/disable-instead-of-delete/[] (or an equivalent feature) which midPoint uses to disable the account instead of deleting it.
 
-The goal of this article is to provide deeper technical details regarding this feature for engineers and administrators to understand how it works and to be able to troubleshoot it.
+The goal of this article is to provide deeper technical details regarding delayed delete for engineers and administrators to understand how the feature works and to be able to troubleshoot it.
 
 == Process description
 
@@ -57,9 +57,9 @@ In this example, the projection is to be deleted 5 days after it has been disabl
 
 To illustrate the behavior of delayed delete in more details, consider the following example.
 The configuration is equivalent to the previous example, but it uses a more general time-based mapping configuration.
-The mappings target `existence` property, which tells midPoint whether the account should exist (value of `true`) or it should be deleted (value of `false`).
+The mappings target the `existence` property which tells midPoint whether the account should exist (value of `true`) or it should be deleted (value of `false`).
 
-See xref:/resources/resource-configuration/schema-handling/activation/#existence-mapping[Existence Mapping] for a detailed explanation.
+See xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/#existence-mapping[Existence Mapping] for a detailed explanation.
 
 [source,xml]
 ----
