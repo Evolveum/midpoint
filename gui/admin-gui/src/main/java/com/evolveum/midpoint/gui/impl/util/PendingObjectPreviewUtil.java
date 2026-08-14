@@ -17,6 +17,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
+import com.evolveum.midpoint.schema.util.cases.CaseState;
+import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -43,7 +45,7 @@ public final class PendingObjectPreviewUtil {
     public static <O extends ObjectType> ApprovalState determineApprovalState(
             CaseType sourceCase, Class<O> expectedType, String expectedOid, PageBase page, OperationResult result) {
         if (WebComponentUtil.getObjectFromAddDeltaForCase(sourceCase) != null) {
-            return determineApprovalStateFromOutcome(sourceCase.getOutcome());
+            return determineApprovalCaseState(sourceCase);
         }
 
         if (sourceCase == null
@@ -64,24 +66,28 @@ public final class PendingObjectPreviewUtil {
             }
             PrismObject<O> childObject = WebComponentUtil.getPendingObjectFromAddCase(child, expectedType, expectedOid);
             if (childObject != null) {
-                return determineApprovalStateFromOutcome(child.getOutcome());
+                return determineApprovalCaseState(child);
             }
         }
 
         return ApprovalState.UNKNOWN;
     }
 
-    private static ApprovalState determineApprovalStateFromOutcome(String outcome) {
+    private static ApprovalState determineApprovalCaseState(CaseType aCase) {
+        if (!CaseTypeUtil.isApprovalCase(aCase)) {
+            return ApprovalState.UNKNOWN;
+        }
+
         Boolean approved;
         try {
-            approved = ApprovalUtils.approvalBooleanValue(outcome);
+            approved = ApprovalUtils.approvalBooleanValue(aCase.getOutcome());
         } catch (IllegalArgumentException e) {
             return ApprovalState.UNKNOWN;
         }
         if (Boolean.FALSE.equals(approved)) {
             return ApprovalState.REJECTED;
         }
-        if (approved == null) {
+        if (approved == null && CaseState.of(aCase).isOpen()) {
             return ApprovalState.AWAITING_APPROVAL;
         }
         return ApprovalState.UNKNOWN;

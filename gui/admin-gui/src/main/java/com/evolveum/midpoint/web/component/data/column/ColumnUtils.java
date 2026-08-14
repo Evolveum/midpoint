@@ -70,6 +70,7 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -1492,12 +1493,14 @@ public class ColumnUtils {
         return columns;
     }
 
-    private record CaseObjectRef(ObjectReferenceType ref, String sourceCaseOid) {
+    @VisibleForTesting
+    record CaseObjectRef(ObjectReferenceType ref, String sourceCaseOid) {
     }
 
-    private static CaseObjectRef getCaseObjectRef(CaseType caseType) {
+    @VisibleForTesting
+    static CaseObjectRef getCaseObjectRef(CaseType caseType) {
         AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-        if (object != null && !ApprovalUtils.isApproved(caseType.getOutcome())) {
+        if (object != null && !ApprovalUtils.isExplicitlyApprovedOutcome(caseType.getOutcome())) {
             ObjectReferenceType ref = new ObjectReferenceType();
             ref.asReferenceValue().setObject(object.asPrismObject());
             ref.setOid(object.getOid());

@@ -170,6 +170,13 @@ public class ApprovalUtils {
         return isApproved(fromUri(uri));
     }
 
+    /**
+     * Returns whether the outcome explicitly represents approval.
+     */
+    public static boolean isExplicitlyApprovedOutcome(String uri) {
+        return uri != null && QNameUtil.matchUri(uri, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+    }
+
     public static AbstractWorkItemOutputType createApproveOutput() {
         return new AbstractWorkItemOutputType()
                 .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);

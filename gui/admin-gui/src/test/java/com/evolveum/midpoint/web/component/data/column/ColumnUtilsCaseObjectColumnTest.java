@@ -4,14 +4,16 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.web.component;
+package com.evolveum.midpoint.web.component.data.column;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.getCaseObjectRef;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -30,11 +32,7 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.AbstractGuiUnitTest;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -46,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
 
 /**
- * Tests pending-object references and preview context in Cases and Work-item columns.
+ * Tests pending-object references and preview context resolved for Cases and Work-item object columns.
  *
  * For an ADD that is pending approval or has been rejected, the column uses
  * the object stored in the approval delta so its name can still be displayed,
@@ -58,17 +56,17 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
     private static final String DELTA_ROLE_OID = "delta-role-oid";
     private static final String CASE_OBJECT_OID = "case-object-oid";
     private static final String CASE_OID = "case-oid";
+    private static final String NON_APPROVAL_OUTCOME = "http://example.com/test-outcome";
 
     @Test
     public void testPendingAddUsesDeltaObjectAndSuppliesPreviewContext() throws Exception {
         CaseType caseType = createCaseWithAddDelta(null);
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+        assertEquals(caseObjectRef.sourceCaseOid(), CASE_OID);
 
         PrismObject<RoleType> pendingObject =
                 WebComponentUtil.getPendingObjectFromAddCase(caseType, RoleType.class, DELTA_ROLE_OID);
@@ -81,89 +79,92 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
     public void testRejectedAddUsesDeltaObjectAndSuppliesPreviewContext() throws Exception {
         CaseType caseType = createCaseWithAddDelta(ApprovalUtils.toUri(WorkItemOutcomeType.REJECT));
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+        assertEquals(caseObjectRef.sourceCaseOid(), CASE_OID);
+    }
+
+    @Test
+    public void testNonApprovalOutcomeAddUsesDeltaObjectAndSuppliesPreviewContext() throws Exception {
+        CaseType caseType = createCaseWithAddDelta(NON_APPROVAL_OUTCOME);
+
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
+
+        assertFalse(ApprovalUtils.isExplicitlyApprovedOutcome(caseType.getOutcome()));
+        assertEquals(ref.getOid(), DELTA_ROLE_OID);
+        assertEquals(caseObjectRef.sourceCaseOid(), CASE_OID);
     }
 
     @Test
     public void testApprovedAddUsesCaseObjectRefWithoutPreviewContext() throws Exception {
         CaseType caseType = createCaseWithAddDelta(ApprovalUtils.toUri(WorkItemOutcomeType.APPROVE));
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
 
-        assertMatchesCaseObjectRef(ref, caseType);
-        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+        assertMatchesCaseObjectRef(caseObjectRef.ref(), caseType);
+        assertNull(caseObjectRef.sourceCaseOid());
     }
 
     @Test
-    public void testOrdinaryCaseUsesCaseObjectRefWithoutPreviewContext() throws Exception {
+    public void testOrdinaryCaseUsesCaseObjectRefWithoutPreviewContext() {
         CaseType caseType = new CaseType()
                 .oid(CASE_OID)
                 .objectRef(new ObjectReferenceType()
                         .oid(CASE_OBJECT_OID)
                         .type(RoleType.COMPLEX_TYPE));
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
 
-        assertMatchesCaseObjectRef(ref, caseType);
-        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+        assertMatchesCaseObjectRef(caseObjectRef.ref(), caseType);
+        assertNull(caseObjectRef.sourceCaseOid());
     }
 
     @Test
-    public void testCaseWithoutOidDoesNotSupplyPreviewContext() throws Exception {
+    public void testCaseWithoutOidDoesNotSupplyPreviewContext() {
         CaseType caseType = new CaseType()
                 .objectRef(new ObjectReferenceType()
                         .oid(CASE_OBJECT_OID)
                         .type(RoleType.COMPLEX_TYPE));
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
 
-        assertMatchesCaseObjectRef(ref, caseType);
-        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+        assertMatchesCaseObjectRef(caseObjectRef.ref(), caseType);
+        assertNull(caseObjectRef.sourceCaseOid());
     }
 
     @Test
-    public void testRootOperationRequestReferenceOnlyDoesNotSupplyPreviewContext() throws Exception {
+    public void testRootOperationRequestReferenceOnlyDoesNotSupplyPreviewContext() {
         ObjectReferenceType objectRef = new ObjectReferenceType()
                 .oid(DELTA_ROLE_OID)
                 .type(RoleType.COMPLEX_TYPE);
         CaseType caseType = createOperationRequestCase(objectRef);
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+        assertNull(caseObjectRef.sourceCaseOid());
     }
 
     @Test
-    public void testCaseObjectRefWithoutOidDoesNotSupplyPreviewContext() throws Exception {
+    public void testCaseObjectRefWithoutOidDoesNotSupplyPreviewContext() {
         CaseType caseType = new CaseType()
                 .oid(CASE_OID)
                 .objectRef(new ObjectReferenceType()
                         .type(RoleType.COMPLEX_TYPE));
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
 
         assertNull(ref.getOid());
-        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+        assertNull(caseObjectRef.sourceCaseOid());
     }
 
     @Test
-    public void testRootOperationRequestWithEmbeddedObjectSuppliesPreviewContext() throws Exception {
+    public void testRootOperationRequestWithEmbeddedObjectSuppliesPreviewContext() {
         RoleType role = new RoleType(getPrismContext())
                 .oid(DELTA_ROLE_OID)
                 .name("Embedded role");
@@ -171,29 +172,26 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         ObjectReferenceType objectRef = createReferenceWithEmbeddedObject(role);
         CaseType caseType = createOperationRequestCase(objectRef);
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+        assertEquals(caseObjectRef.sourceCaseOid(), CASE_OID);
     }
 
     @Test
-    public void testRootOperationRequestWithEmbeddedObjectWithoutOidSuppliesPreviewContext()
-            throws Exception {
+    public void testRootOperationRequestWithEmbeddedObjectWithoutOidSuppliesPreviewContext() {
         RoleType role = new RoleType(getPrismContext())
                 .name("Embedded role");
 
         ObjectReferenceType objectRef = createReferenceWithEmbeddedObject(role);
         CaseType caseType = createOperationRequestCase(objectRef);
 
-        ObjectReferenceColumn<SelectableBean<CaseType>> column = getCaseObjectColumn();
-        IModel<SelectableBean<CaseType>> rowModel = createRowModel(caseType);
-        ObjectReferenceType ref = getSingleRef(column, rowModel);
+        ColumnUtils.CaseObjectRef caseObjectRef = getCaseObjectRef(caseType);
+        ObjectReferenceType ref = caseObjectRef.ref();
 
         assertNull(ref.getOid());
-        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
+        assertEquals(caseObjectRef.sourceCaseOid(), CASE_OID);
     }
 
     @Test
@@ -243,7 +241,7 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
     }
 
     @Test
-    public void testWorkItemObjectColumnDoesNotSupplyPreviewContextForOrdinaryCase() throws Exception {
+    public void testWorkItemObjectColumnDoesNotSupplyPreviewContextForOrdinaryCase() {
         CaseType caseType = new CaseType()
                 .oid(CASE_OID)
                 .objectRef(new ObjectReferenceType()
@@ -253,12 +251,11 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         caseType.getWorkItem().add(workItem);
 
         ObjectReferenceColumn<PrismContainerValueWrapper<CaseWorkItemType>> column = getWorkItemObjectColumn();
-        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel =
-                createWorkItemRowModel(workItem);
+        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = createWorkItemRowModel(workItem);
         ObjectReferenceType ref = getSingleRef(column, rowModel);
 
         assertEquals(ref.getOid(), CASE_OBJECT_OID);
-        assertNull(getPendingObjectPreviewCaseOid(column, ref, rowModel));
+        assertNull(column.getPendingObjectPreviewCaseOid(ref, rowModel));
     }
 
     @Test
@@ -268,22 +265,11 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
         caseType.getWorkItem().add(workItem);
 
         ObjectReferenceColumn<PrismContainerValueWrapper<CaseWorkItemType>> column = getWorkItemObjectColumn();
-        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel =
-                createWorkItemRowModel(workItem);
+        IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = createWorkItemRowModel(workItem);
         ObjectReferenceType ref = getSingleRef(column, rowModel);
 
         assertEquals(ref.getOid(), DELTA_ROLE_OID);
-        assertEquals(getPendingObjectPreviewCaseOid(column, ref, rowModel), CASE_OID);
-    }
-
-    @SuppressWarnings("unchecked")
-    private ObjectReferenceColumn<SelectableBean<CaseType>> getCaseObjectColumn() {
-        List<IColumn<SelectableBean<CaseType>, String>> columns = ColumnUtils.getDefaultCaseColumns(null, false);
-        return (ObjectReferenceColumn<SelectableBean<CaseType>>) columns.get(1);
-    }
-
-    private IModel<SelectableBean<CaseType>> createRowModel(CaseType caseType) {
-        return Model.of(new SelectableBeanImpl<>(Model.of(caseType)));
+        assertEquals(column.getPendingObjectPreviewCaseOid(ref, rowModel), CASE_OID);
     }
 
     @SuppressWarnings("unchecked")
@@ -314,18 +300,6 @@ public class ColumnUtilsCaseObjectColumnTest extends AbstractGuiUnitTest {
     private void assertMatchesCaseObjectRef(ObjectReferenceType ref, CaseType caseType) {
         assertEquals(ref.getOid(), caseType.getObjectRef().getOid());
         assertEquals(ref.getType(), caseType.getObjectRef().getType());
-    }
-
-    /**
-     * Invokes the row-specific preview-context hook on the anonymous column.
-     */
-    private <T> String getPendingObjectPreviewCaseOid(
-            ObjectReferenceColumn<T> column,
-            ObjectReferenceType ref,
-            IModel<T> rowModel) throws Exception {
-        Method method = column.getClass().getDeclaredMethod("getPendingObjectPreviewCaseOid", ObjectReferenceType.class, IModel.class);
-        method.setAccessible(true);
-        return (String) method.invoke(column, ref, rowModel);
     }
 
     private CaseType createCaseWithAddDelta(String outcome) throws SchemaException {
