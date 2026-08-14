@@ -2071,7 +2071,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No disableTimestamp delta in account secondary delta (default)",
                 accountSecondaryDelta.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-                SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+                ModelDisableReason.EXPLICIT.uri);
         // the other modification is disable timestamp
 
         ModelProjectionContext accContextBlue = findAccountContext(modelContext, RESOURCE_DUMMY_BLUE_OID);
@@ -2088,7 +2088,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No disableTimestamp delta in account secondary delta (blue)",
                 accountSecondaryDeltaBlue.findPropertyDelta(PATH_ACTIVATION_DISABLE_TIMESTAMP));
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-                SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+                ModelDisableReason.EXPLICIT.uri);
         assertSerializable(modelContext);
     }
 

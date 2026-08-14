@@ -154,6 +154,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         this::getColumns) {
 
                     @Override
+                    public void refreshAndDetach(AjaxRequestTarget target) {
+                        super.refreshAndDetach(target);
+                        refreshAssociatedComponents(target);
+                    }
+
+                    @Override
                     protected @NotNull Component createTile(
                             String id,
                             @NotNull IModel<ColumnTile<MappingDataDto, PrismContainerValueWrapper<MappingType>>> model) {
@@ -598,6 +604,9 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         if (target != null) {
             getTable().refreshAndDetach(target);
         }
+    }
+
+    public void refreshAssociatedComponents(AjaxRequestTarget target) {
     }
 
     public void updateTileView(AjaxRequestTarget target) {
