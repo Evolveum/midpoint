@@ -8,10 +8,8 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.List;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
+import com.evolveum.midpoint.smart.impl.mappings.ShadowsWithOwnerSampleResult;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
@@ -19,11 +17,10 @@ import com.evolveum.midpoint.util.exception.*;
  */
 interface ShadowsWithOwnersProvider {
 
-    List<ShadowWithOwner> fetch(
+    ShadowsWithOwnerSampleResult fetch(
             TypeOperationContext ctx,
             OperationContext.StateHolder state,
-            OperationResult result,
-            int maxExamples)
+            OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 }

@@ -180,6 +180,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
 * Fixed internal server error when opening the OTP tab for a new application. See bug:MID-11927[]
+* Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
 
 === Releases Of Other Components
 
@@ -478,6 +479,8 @@ Modified:
 * 300-policy-require-classification.xml - Added archetype.
 * 300-policy-require-owner.xml - Added archetype.
 * 000-system-configuration.xml -  Poly-string translation keys added.
+* 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
+* 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
 

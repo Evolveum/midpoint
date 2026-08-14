@@ -45,8 +45,8 @@
         <item>givenName</item>
         <item>familyName</item>
         <item>fullName</item>
-        <item>employeeType</item>
         <item>employeeNumber</item>
+        <item>personalNumber</item>
     </authorization>
     <authorization id="5">
         <name>roles-read</name>
@@ -62,7 +62,6 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>roleType</item>
     </authorization>
     <authorization id="6">
         <name>orgs-read</name>
@@ -78,7 +77,6 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>orgType</item>
     </authorization>
     <authorization id="7">
         <name>services-read</name>
@@ -94,7 +92,6 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>serviceType</item>
     </authorization>
     <authorization>
         <name>certification-campaign-read</name>
