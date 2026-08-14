@@ -118,11 +118,8 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
         baseUrlModel = new LoadableModel<>(false) {
             @Override
             protected String load() {
-                ItemName urlField = ConnectorDevelopmentWizardUtil.isScim(getDetailsModel())
-                        ? BaseUrlConnectorStepPanel.SCIM_BASE_URL_ITEM_NAME
-                        : BaseUrlConnectorStepPanel.BASE_ADDRESS_ITEM_NAME;
                 Object val = ConnectorDevelopmentWizardUtil.getTestingResourcePropertyValue(
-                        getDetailsModel(), BaseUrlConnectorStepPanel.PANEL_TYPE, urlField);
+                        getDetailsModel(), BaseUrlConnectorStepPanel.PANEL_TYPE, urlFieldName());
                 return val instanceof String s ? s : "";
             }
         };
@@ -396,6 +393,10 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
         };
     }
 
+    private ItemName urlFieldName() {
+        return ConnectorDevelopmentWizardUtil.wizardStrategyFor(getDetailsModel()).connectionUrlFieldName();
+    }
+
     private IModel<? extends PrismContainerWrapper> getCredentialsFormModel() {
         try {
             PrismReferenceWrapper<Referencable> resource = getDetailsModel().getObjectWrapper().findReference(
@@ -435,10 +436,7 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
 
         try {
             if (StringUtils.isNotEmpty(baseUrl)) {
-                ItemName urlField = ConnectorDevelopmentWizardUtil.isScim(getDetailsModel())
-                        ? BaseUrlConnectorStepPanel.SCIM_BASE_URL_ITEM_NAME
-                        : BaseUrlConnectorStepPanel.BASE_ADDRESS_ITEM_NAME;
-                ConnectorDevelopmentWizardUtil.setTestingResourcePropertyValue(getDetailsModel(), PANEL_TYPE, urlField, baseUrl);
+                ConnectorDevelopmentWizardUtil.setTestingResourcePropertyValue(getDetailsModel(), PANEL_TYPE, urlFieldName(), baseUrl);
             }
             if (StringUtils.isNotEmpty(url)) {
                 ConnectorDevelopmentWizardUtil.setTestingResourcePropertyValue(

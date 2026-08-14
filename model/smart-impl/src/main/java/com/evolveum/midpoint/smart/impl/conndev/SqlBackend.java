@@ -16,6 +16,7 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     private static final Trace LOGGER = TraceManager.getTrace(SqlBackend.class);
 
     private static final String NOT_YET_IMPLEMENTED = "SQL connector generation is not yet implemented.";
+    private static final String NOT_APPLICABLE_TO_SQL = "This operation is HTTP-specific and does not apply to SQL connectors.";
 
     public SqlBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         super(beans, connDev, task, result);
@@ -30,35 +31,13 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
 
     @Override
     public List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
+        // HTTP auth-scheme discovery does not apply to SQL: JDBC credentials are plain
+        // configuration properties, not a discovered auth scheme.
+        throw new UnsupportedOperationException(NOT_APPLICABLE_TO_SQL);
     }
 
     @Override
     public List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
-    }
-
-    @Override
-    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return new ConnDevArtifactType();
-    }
-
-    @Override
-    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return new ConnDevArtifactType();
-    }
-
-    @Override
-    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
-            List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
         // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
         LOGGER.warn(NOT_YET_IMPLEMENTED);
         return List.of();
@@ -72,17 +51,10 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
-    }
-
-    @Override
     public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
+        // HTTP connectivity-endpoint discovery does not apply to SQL: the jdbcUrl is
+        // entered directly as a configuration property.
+        throw new UnsupportedOperationException(NOT_APPLICABLE_TO_SQL);
     }
 
     @Override
@@ -103,14 +75,11 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
 
     @Override
     protected void restoreSession(ServiceClient.RestorationClient client) throws IOException {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-    }
-
-    @Override
-    protected List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return List.of();
+        restoreMetadata(client);
+        ensureDocumentationIsUploaded(client);
+        restoreObjectClasses(client);
+        restoreRelations(client);
+        restoreAttributes(client);
+        restoreCodegenArtifacts(client);
     }
 }

@@ -120,13 +120,12 @@
             <artifactId>spring-boot-actuator-autoconfigure</artifactId>
         </dependency>
 
-        <!-- webjars -->
         <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>jquery</artifactId>
-            <scope>runtime</scope>
+            <groupId>de.agilecoders.wicket.webjars</groupId>
+            <artifactId>wicket-webjars</artifactId>
+            <version>4.0.14</version>
         </dependency>
-
+        
         <!-- JDBC DRIVERS -->
         <dependency>
             <groupId>org.postgresql</groupId>

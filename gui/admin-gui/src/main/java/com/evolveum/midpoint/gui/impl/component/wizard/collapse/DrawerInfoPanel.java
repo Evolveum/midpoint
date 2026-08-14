@@ -40,13 +40,13 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
     private static final String ID_DETAILS_LABEL = "detailsLabel";
     private static final String ID_CLOSE_BUTTON = "closeButton";
     private static final String ID_DETAILS_ITEM = "detailsItem";
+    protected static final String ID_FOOTER_PANEL = "footerPanel";
 
     private M drawerModel;
 
     public DrawerInfoPanel(
             @NotNull String id,
             @NotNull M drawerModel) {
-
         super(id);
         this.drawerModel = Objects.requireNonNull(drawerModel);
     }
@@ -62,8 +62,7 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
     }
 
     private void initLayout() {
-        add(new VisibleBehaviour(() ->
-                drawerModel.isCollapsedItemsVisible()));
+        add(new VisibleBehaviour(() -> drawerModel.isCollapsedItemsVisible()));
 
         WebMarkupContainer fakePanel =
                 new WebMarkupContainer(ID_FAKE_PANEL);
@@ -75,6 +74,7 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
         WebMarkupContainer collapsedMenu =
                 new WebMarkupContainer(ID_COLLAPSED_MENU);
         collapsedMenu.setOutputMarkupId(true);
+        collapsedMenu.setOutputMarkupPlaceholderTag(true);
         collapsedMenu.add(createItemListView());
         collapsedMenu.add(new VisibleBehaviour(this::isShowedCollapsedMenu));
         add(collapsedMenu);
@@ -103,16 +103,35 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                drawerModel.clearSelection();
-                replaceDetailsPlaceholder();
-
-                target.add(DrawerInfoPanel.this);
+                onClose(target);
             }
         };
         closeButton.setOutputMarkupId(true);
         detailsPanel.add(closeButton);
 
         detailsPanel.add(createDetailsPlaceholder());
+
+        detailsPanel.add(createFooter());
+    }
+
+    protected void onClose(AjaxRequestTarget target) {
+        drawerModel.clearSelection();
+        replaceDetailsPlaceholder();
+
+        refreshDrawerContent(target);
+    }
+
+    private @NotNull Component createFooter() {
+        Component footer = drawerModel.getFooter(
+                ID_FOOTER_PANEL,
+                drawerModel);
+
+        footer.setOutputMarkupId(true);
+        footer.setOutputMarkupPlaceholderTag(true);
+        footer.add(new VisibleBehaviour(
+                () -> drawerModel.isFooterVisible()));
+
+        return footer;
     }
 
     private void customizeDetailsPanelWidth(WebMarkupContainer detailsPanel) {
@@ -156,8 +175,7 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
                                     replaceDetailsPlaceholder();
                                 }
 
-                                target.add(
-                                        DrawerInfoPanel.this);
+                                refreshDrawerContent(target);
                             }
                         };
 
@@ -202,6 +220,8 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
         this.drawerModel = Objects.requireNonNull(drawerModel);
 
         replaceSelectedDetailsContent();
+        getDetailsPanel().addOrReplace(createFooter());
+
         target.add(this);
     }
 
@@ -268,5 +288,11 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
 
     public M getDrawerModel() {
         return drawerModel;
+    }
+
+    private void refreshDrawerContent(AjaxRequestTarget target) {
+        target.add(get(ID_FAKE_PANEL));
+        target.add(get(ID_COLLAPSED_MENU));
+        target.add(getDetailsPanel());
     }
 }

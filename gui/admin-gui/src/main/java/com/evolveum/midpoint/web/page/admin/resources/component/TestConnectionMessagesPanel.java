@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -68,6 +69,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             } catch (Exception e) {
                 // TODO how will this be displayed?
                 result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);
+                testResult = result;
             }
 
             for (OperationResult subresult: testResult.getSubresults()) {
@@ -103,13 +105,17 @@ public class TestConnectionMessagesPanel extends BasePanel {
         return subresult.getOperation().equals(TestResourceOpNames.CONNECTOR_TEST.getOperation());
     }
 
+    private boolean isTestConnectionResult(OperationResult subresult) {
+        return subresult.getOperation().equals(ProvisioningService.OP_TEST_RESOURCE);
+    }
+
     private boolean isKnownResult(OperationResult subresult) {
         for (TestResourceOpNames connectorOperation : TestResourceOpNames.values()) {
             if (connectorOperation.getOperation().equals(subresult.getOperation())) {
                 return true;
             }
         }
-        return false;
+        return isTestConnectionResult(subresult);
     }
 
 

@@ -51,8 +51,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("ScriptExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("ScriptExpressionPanel.label");
     }
 
     protected void initLayout(MarkupContainer parent) {

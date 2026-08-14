@@ -394,7 +394,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         ConnectorType connectorBean = connector.asObjectable();
 
         if (connectorSignatureVerifier.isVerificationNeeded(connectorBean)) {
-            connectorSignatureVerifier.verifyConnectorInProduction(connectorBean, connOid, result);
+            connectorSignatureVerifier.verifyConnectorInProduction(connectorBean, result);
         }
 
         if (connectorBean.getConnectorHostRef() != null) {

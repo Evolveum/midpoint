@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.ActivityTree;
+import com.evolveum.midpoint.repo.common.activity.ActivityUtil;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesCollector;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
@@ -93,6 +94,38 @@ public class TestActivityPolicyRulesCollector extends AbstractRepoCommonTest {
             assertThat(policies.getPolicyRef())
                     .as("policyRefs inherited into definition of child '%s'", child.getIdentifier())
                     .isEmpty();
+            assertThat(child.getDefinition().getVirtualAssignmentsDefinition().getVirtualAssignments())
+                    .as("virtual assignments inherited into definition of child '%s'", child.getIdentifier())
+                    .isEmpty();
+        }
+    }
+
+    /**
+     * Virtual assignments follow the same collection scheme as policies (declaring activity + ancestors),
+     * so they too must be reported exactly once for an embedded child, under the declaring parent's path.
+     */
+    @Test
+    public void test120VirtualAssignmentsAreNotDoubledForEmbeddedChildren() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("a composite mock task with a virtual assignment on the root activity");
+        Task task = getTaskPlain(result);
+
+        when("virtual assignments are collected for the root activity and each embedded child");
+        then("the root's virtual assignment is reported once everywhere, under the root's path");
+        assertThat(ActivityUtil.getAllVirtualAssignments(getRootActivity(task)))
+                .as("virtual assignments collected for the root activity")
+                .hasSize(1);
+
+        for (Activity<?, ?> child : getChildren(task)) {
+            var virtualAssignments = ActivityUtil.getAllVirtualAssignments(child);
+            assertThat(virtualAssignments)
+                    .as("virtual assignments collected for child '%s'", child.getIdentifier())
+                    .hasSize(1);
+            assertThat(virtualAssignments.iterator().next().getRight())
+                    .as("path of the virtual assignment collected for child '%s' (must be the declaring parent's)",
+                            child.getIdentifier())
+                    .isEqualTo(ActivityPath.empty());
         }
     }
 

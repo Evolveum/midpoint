@@ -23,12 +23,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +50,8 @@ public abstract class ConnectorDevelopmentBackend {
     private static final int MAX_SUGGESTED_CONNECTIVITY_ENDPOINTS = 5;
     private static final String CONNDEV_OBJECT_CLASS = "conndev_ObjectClass";
     private static final String CONNDEV_CONTENT_TYPE = "application/com.evolveum.conndev+json";
+    protected static final long SLEEP_TIME = 5 * 1000L;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
     protected final Task task;
     protected final OperationResult result;
 
@@ -364,11 +368,138 @@ public abstract class ConnectorDevelopmentBackend {
     public abstract ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache);
     public abstract List<ConnDevAuthInfoType> discoverAuthorizationInformation(boolean skipCache);
     public abstract List<ConnDevDocumentationSourceType> discoverDocumentation(boolean skipCache);
-    public abstract ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
-    public abstract ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache);
-    public abstract List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache);
+
+    /**
+     * Generates a non-object-class artifact (authorization script or test-connection script) or,
+     * if the artifact targets an object class, delegates to {@link #generateObjectClassArtifact}.
+     * Shared across backends: every codegen path talks to the generation service through the same
+     * {@code codegen/{sessionId}/...} routes, keyed by the {@link ConnectorDevelopmentArtifacts.KnownArtifactType}
+     * classification of the requested artifact.
+     */
+    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType input, boolean skipCache) {
+        var artifactSpec = input.getArtifact();
+        var ret = artifactSpec.clone();
+        if (artifactSpec.getObjectClass() != null) {
+            return generateObjectClassArtifact(input, skipCache);
+        }
+
+        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
+        return switch (classification) {
+            case AUTHENTICATION_CUSTOMIZATION -> generateAuthorizationScript(input, classification, skipCache);
+            case TEST_CONNECTION_DEFINITION -> ret.content("""
+                        test {
+                            // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
+                            // how to write test connection part of the script.
+                            // Usually it is only necessary to specify endpoint here.
+                            endpoint("/my_preferences")
+                        }
+                        """);
+            default -> throw new IllegalStateException("Unexpected value: " + artifactSpec.getIntent());
+        };
+    }
+
+    private ConnDevArtifactType generateAuthorizationScript(ConnDevGenerateArtifactDefinitionType input, ConnectorDevelopmentArtifacts.KnownArtifactType classification, boolean skipCache) {
+        var auths = developmentObject().getConnector().getAuth();
+        if (auths.isEmpty()) {
+            return null;
+        }
+
+        var body = repairContextBody(input);
+
+        var authArray = JSON_FACTORY.arrayNode();
+        for (var auth : auths) {
+            if (auth.getType() == null) continue;
+            var authNode = JSON_FACTORY.objectNode();
+            authNode.set("name", JSON_FACTORY.textNode(auth.getName() != null ? auth.getName() : ""));
+            authNode.set("type", JSON_FACTORY.textNode(auth.getType().value()));
+            authNode.set("quirks", JSON_FACTORY.textNode(auth.getQuirks() != null ? auth.getQuirks() : ""));
+            authArray.add(authNode);
+        }
+        body.set("preferredAuthorizations", authArray);
+
+        try (var job = client().postJob("codegen/{sessionId}/authorization", body, apiType(), skipCache)) {
+            String content = job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+            if (content == null || content.isBlank()) {
+                return null;
+            }
+            return classification.create().content(content);
+        } catch (IOException e) {
+            throw new SystemException("Couldn't generate authorization script", e);
+        }
+    }
+
+    /**
+     * Generates an object-class-scoped artifact (schema, search, create/update/delete or relation
+     * script) by dispatching to the matching {@code codegen/{sessionId}/classes/{objectClass}/...}
+     * route. Shared across backends: REST/SCIM and SQL connectors all resolve object-class scripts
+     * through the same generation-service contract.
+     */
+    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType input, boolean skipCache) {
+        var artifactSpec = input.getArtifact();
+        var objectClass = artifactSpec.getObjectClass();
+        var classification = ConnectorDevelopmentArtifacts.classify(artifactSpec);
+        var body = repairContextBody(input);
+        var content = switch (classification) {
+            case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "native-schema", "native schema script", body, skipCache);
+            case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "connid", "ConnID mapping script", body, skipCache);
+            case SEARCH_ALL_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
+                    "search script", body, skipCache);
+            case SEARCH_BY_ID_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
+                    "search by ID script", body, skipCache);
+            case SEARCH_FILTER_DEFINITION -> generateObjectClassScript(artifactSpec,
+                    "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
+                    "search filter script", body, skipCache);
+            case CREATE -> generateObjectClassScript(artifactSpec, "create", "Create script", body, skipCache);
+            case UPDATE ->  generateObjectClassScript(artifactSpec, "update", "Update script", body, skipCache);
+            case DELETE -> generateObjectClassScript(artifactSpec, "delete", "Delete script", body, skipCache);
+            case RELATIONSHIP_SCHEMA_DEFINITION -> generateRelation(artifactSpec, input.getRelation(), body, skipCache);
+            default -> throw new IllegalStateException("Unexpected script type: " + classification);
+        };
+        content = content.replace("${objectClass}", objectClass);
+        return artifactSpec.content(content);
+    }
+
+    private ObjectNode repairContextBody(ConnDevGenerateArtifactDefinitionType input) {
+        var body = JSON_FACTORY.objectNode();
+        var artifact = input.getArtifact();
+        body.set("currentScript", JSON_FACTORY.textNode(
+                artifact != null && artifact.getContent() != null ? artifact.getContent() : ""));
+        var errors = JSON_FACTORY.arrayNode();
+        input.getMidpointError().forEach(errors::add);
+        body.set("midpointErrors", errors);
+        var preferredEndpoints = JSON_FACTORY.arrayNode();
+        for (var endpoint : input.getEndpoint()) {
+            var jsonEndpoint = JSON_FACTORY.objectNode();
+            jsonEndpoint.set("method", JSON_FACTORY.textNode(ConnDevJsonMapper.toValue(endpoint.getOperation())));
+            jsonEndpoint.set("path", JSON_FACTORY.textNode(endpoint.getUri()));
+            preferredEndpoints.add(jsonEndpoint);
+        }
+        body.set("preferredEndpoints", preferredEndpoints);
+        return body;
+    }
+
+    private String generateRelation(ConnDevArtifactType artifactSpec, List<ConnDevRelationInfoType> relation, ObjectNode body, boolean skipCache) {
+        try(var job = client().postJob("codegen/{sessionId}/relations/" + artifactSpec.getObjectClass(), body, null, skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+        } catch (IOException e) {
+            throw new SystemException("Couldn't generate relation for objectClass " + artifactSpec.getObjectClass(), e);
+        }
+    }
+
+    private String generateObjectClassScript(ConnDevArtifactType artifactSpec, String endpointSuffix, String scriptDescription, ObjectNode body, boolean skipCache) {
+        var apiType = "connid".equals(endpointSuffix) ? null : apiType();
+        try(var job = client().postJob("codegen/{sessionId}/classes/"+ artifactSpec.getObjectClass() + "/" + endpointSuffix, body, apiType, skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> json.get("code").asText());
+        } catch (IOException e) {
+            throw new SystemException("Couldn't generate " + scriptDescription + " for objectClass " + artifactSpec.getObjectClass(), e);
+        }
+    }
+
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
-    public abstract List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache);
     public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
 
     public void populateConnectivityEndpoints(List<ConnDevHttpEndpointType> endpoints) throws CommonException {
@@ -707,14 +838,118 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
     }
 
+    private String sessionId() {
+        return developmentObject().getOid();
+    }
+
+    protected ServiceClient client() {
+        return beans.client(sessionId(), this::restoreSession, this::synchronizeSession, result);
+    }
+
+    protected String apiType() {
+        var app = developmentObject().getApplication();
+        var integrationType = app != null ? app.getIntegrationType() : null;
+        return integrationType != null ? integrationType.value() : null;
+    }
+
     /**
-     * Pushes the freshly built dev-shadow documentation to the generation service, waits for it to be
-     * processed, and pulls the processed result back as file-backed {@link ProcessedDocumentation}. The
-     * service is the source of truth: a {@link ProcessedDocumentation} only ever comes into being from
-     * what the service returns for a processed upload. Backends without a generation service (offline) do
-     * not support this.
+     * Pushes each freshly built dev-shadow documentation to the connector-generation service via
+     * {@code POST session/{sessionId}/documentation/{docId}} and pulls the processed result back into
+     * midPoint. The service processes each upload with the LLM (chunking it into {@code DocumentationItem}s)
+     * as an asynchronous job, and the jobs run in parallel, so all docs are submitted first and only then
+     * are the resulting jobs harvested (submit-all-then-wait) instead of blocking on each doc in turn.
+     * Backends without a generation service (offline) override this to skip synchronization entirely.
      */
-    protected abstract List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException;
+    protected List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) throws CommonException {
+        if (documentation.isEmpty()) {
+            return List.of();
+        }
+
+        var sync = client().synchronizationClient();
+        try {
+            // Submit every upload first so the (parallel) processing jobs run concurrently on the service.
+            for (var doc : documentation) {
+                sync.postDocumentation(
+                        doc.uuid(),
+                        new ByteArrayInputStream(doc.content().getBytes(StandardCharsets.UTF_8)),
+                        ContentType.create(doc.contentType(), StandardCharsets.UTF_8),
+                        doc.uri());
+            }
+
+            // Harvest: wait for each upload to finish processing (HEAD 204), then pull the processed
+            // content back from the service and only now materialize it as a ProcessedDocumentation,
+            // keeping the original uri/uuid so the merge in the caller works.
+            var synced = new ArrayList<ProcessedDocumentation>();
+            for (var doc : documentation) {
+                sync.awaitDocumentation(doc.uuid(), SLEEP_TIME, canRun());
+                var content = extractDocumentationContent(sync.getDocumentation(doc.uuid()));
+                var processed = new ProcessedDocumentation(doc.uuid(), doc.uri()).contentType(doc.contentType());
+                processed.write(content);
+                synced.add(processed);
+            }
+            return synced;
+        } catch (IOException e) {
+            throw new SystemException("Couldn't synchronize documentation with the generation service", e);
+        }
+    }
+
+    /**
+     * Extracts the documentation content from a {@code GET documentation/{docId}} bundle. The bundle is
+     * {@code {docId, chunks:[{content, ...}]}}; a conndev schema is preserved as a single item, so there
+     * is normally one chunk whose {@code content} is the original schema JSON. Multiple chunks are joined
+     * (best effort); a bundle with no chunk content falls back to the raw bundle JSON.
+     */
+    private String extractDocumentationContent(String bundleJson) throws IOException {
+        var chunks = MAPPER.readTree(bundleJson).get("chunks");
+        if (chunks == null || !chunks.isArray() || chunks.isEmpty()) {
+            return bundleJson;
+        }
+        var contents = new StringBuilder();
+        for (var chunk : chunks) {
+            var content = chunk.get("content");
+            if (content != null && !content.isNull()) {
+                if (contents.length() > 0) {
+                    contents.append("\n");
+                }
+                contents.append(content.asText());
+            }
+        }
+        return contents.length() > 0 ? contents.toString() : bundleJson;
+    }
+
+    public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
+            List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
+                var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
+                var jsonClasses = o.get("objectClasses");
+                for (var jsonClass : jsonClasses) {
+                    var objClass = ConnDevJsonMapper.mapObjectClassFromJson(jsonClass);
+                    if (objClass.isRelevant() || includeUnrelated) {
+                        ret.add(objClass);
+                    }
+                }
+                return ret;
+            });
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover object classes from documentation", e);
+        }
+    }
+
+    public List<ConnDevAttributeInfoType> discoverObjectClassAttributes(String objectClass, boolean skipCache) {
+        try (var job = client().postJob("digester/{sessionId}/classes/" + objectClass + "/attributes", apiType(), skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
+                var ret = new ArrayList<ConnDevAttributeInfoType>();
+                var jsonAttributes = (ObjectNode) o.get("attributes");
+                for (var entry : jsonAttributes.properties()) {
+                    ret.add(ConnDevJsonMapper.mapAttributeFromJson(entry.getKey(), entry.getValue()));
+                }
+                return ret;
+            });
+        } catch (IOException e) {
+            throw new SystemException("Couldn't discover attributes for object class " + objectClass, e);
+        }
+    }
 
     /**
      * Development object classes whose objects are forwarded as documentation: the shared

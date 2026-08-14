@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
 import com.evolveum.midpoint.authentication.impl.filter.oidc.OpaqueTokenUserDetailsIntrospector;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OidcAuthenticationModuleType;
@@ -53,7 +54,7 @@ public class OpaqueTokenOidcResourceServerConfiguration extends RemoteModuleWebS
         try {
             builder = ClientRegistrations.fromOidcIssuerLocation(opaqueTokenConfig.getIssuerUri());
         } catch (Exception e) {
-            LOGGER.error("Couldn't create OIDC client builder by issuer URI : {}", opaqueTokenConfig.getIssuerUri(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create OIDC client builder by issuer URI: {}", e, opaqueTokenConfig.getIssuerUri());
         }
 
         if (builder == null) {

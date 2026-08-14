@@ -56,7 +56,7 @@ public class PreProvisionEvaluator extends PredefinedActivationMappingEvaluator 
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
 
         if (!timeEvaluation.isTimeValidityEstablished()) {
-            timeEvaluation.evaluateTo(focusContext.getObjectDeltaObjectAbsolute(), now);
+            timeEvaluation.evaluateAsValidTo(focusContext.getObjectDeltaObjectAbsolute(), now);
         }
 
         if (timeEvaluation.isTimeConstraintValid()) {
@@ -87,7 +87,7 @@ public class PreProvisionEvaluator extends PredefinedActivationMappingEvaluator 
 
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
 
-        timeEvaluation.evaluateTo(focusContext.getObjectDeltaObjectAbsolute(), now);
+        timeEvaluation.evaluateAsValidTo(focusContext.getObjectDeltaObjectAbsolute(), now);
         if (!timeEvaluation.isTimeConstraintValid()) {
             LOGGER.trace("Time constraint isn't valid -> not applicable");
             return false;

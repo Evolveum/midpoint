@@ -45,11 +45,7 @@ public class SearchAllObjectClassConnectorStepPanel extends AbstractObjectClassC
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new SearchAllEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingSearchAllConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchAllScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchAllObjectsConnectorStepPanel(getHelper(), getObjectClassModel()));
+        return wizardStrategy().searchAllObjectClassSteps(getHelper(), getObjectClassModel());
     }
 
     @Override

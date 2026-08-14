@@ -7,8 +7,7 @@
 import Sparkline from "sparklines";
 import {TempusDominus} from '@eonasdan/tempus-dominus';
 import {DateTime} from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
-import {Modal} from 'bootstrap';
-import {Toast} from 'bootstrap';
+import {Modal, Toast, Offcanvas} from 'bootstrap';
 import {createPopper} from '@popperjs/core';
 
 export default class MidPointTheme {
@@ -1949,13 +1948,22 @@ export default class MidPointTheme {
     hideModal(modalId) {
         const dialog = document.getElementById(modalId);
         const modal = dialog ? Modal.getInstance(dialog) : null;
+
         if (modal) {
+            dialog.addEventListener('hidden.bs.modal', () => {
+                this.cleanupModalScrollState();
+            }, { once: true });
+
             modal.hide();
-            return;
         }
 
+        this.cleanupModalScrollState();
+    }
+
+    cleanupModalScrollState() {
         document.body.classList.remove('modal-open');
         document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
     }
 
     updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {
@@ -2110,5 +2118,26 @@ export default class MidPointTheme {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
 
         instance.show();
+    }
+
+    showOffcanvas(offcanvasId) {
+        const element = document.getElementById(offcanvasId);
+        if (!element) {
+            return;
+        }
+
+        Offcanvas.getOrCreateInstance(element).show();
+    }
+
+    hideOffcanvas(offcanvasId) {
+        const element = document.getElementById(offcanvasId);
+        if (!element) {
+            return;
+        }
+
+        const offcanvas = Offcanvas.getInstance(element);
+        if (offcanvas) {
+            offcanvas.hide();
+        }
     }
 }

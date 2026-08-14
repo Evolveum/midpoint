@@ -103,9 +103,13 @@
                         </div>
                     </wicket:enclosure>
                 </div>
-                <div wicket:id="rightSidebar" class="position-absolute top-0 end-0 bottom-0 d-flex z-4"></div>
             </div>
         </main>
+
+        <div wicket:id="drawer"
+             class="offcanvas offcanvas-end midpoint-drawer"
+             tabindex="-1"></div>
+
         <footer wicket:id="footerContainer" class="app-footer d-flex flex-column">
             <div class="d-flex flex-wrap" wicket:id="legalFooter">
                 <span class="pull-end hidden-xs me-1" wicket:id="version">

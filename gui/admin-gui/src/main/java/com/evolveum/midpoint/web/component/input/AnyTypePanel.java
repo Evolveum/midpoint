@@ -138,7 +138,7 @@ public class AnyTypePanel extends InputPanel {
                     public void uploadFileFailed(AjaxRequestTarget target) {
                         super.uploadFileFailed(target);
 
-                        target.add(getPageBase().getFeedbackPanel());
+                        target.add(getParentPage().getFeedbackPanel());
                     }
                 };
             case DATE_TIME:

@@ -653,7 +653,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     @Override
     protected String getButtonsStripCssClass() {
-        return "col-xl-4 col-lg-6 col-md-8 col-sm-6 col-12";
+        return "col-xl-6 col-lg-8 col-md-8 col-sm-8 col-12";
     }
 
     @Override

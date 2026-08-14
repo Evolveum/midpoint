@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -59,6 +60,10 @@ public class TestFocusPolicyActionsComposite extends AbstractEmptyModelIntegrati
 
     private static final TestObject<TaskType> TASK_COMPOSITE =
             TestObject.file(TEST_DIR, "task-fx-composite.xml", "e2f00000-0000-0000-0000-000000000005");
+
+    /** Like {@link #TASK_COMPOSITE}, but both children single-threaded - for deterministic counts. */
+    private static final TestObject<TaskType> TASK_COMPOSITE_ST =
+            TestObject.file(TEST_DIR, "task-fx-composite-st.xml", "e2f00000-0000-0000-0000-000000000006");
 
     private static final int ACCOUNTS = 20;
     private static final String PATTERN_A = "a%02d";
@@ -364,5 +369,66 @@ public class TestFocusPolicyActionsComposite extends AbstractEmptyModelIntegrati
         // @formatter:on
         assertThat(countImported(PATTERN_A)).as("A imported").isEqualTo(ACCOUNTS);
         assertThat(countImported(PATTERN_B)).as("B imported").isEqualTo(ACCOUNTS);
+    }
+
+    /**
+     * The "split threshold" contract for a rule placed on the composition root: counts accumulated in one
+     * child must be enforced in the following child (the next child starts with the previous child's count
+     * as a preexisting value). Fully deterministic: both children are single-threaded, and all but
+     * {@code ADD_THRESHOLD - 2} A-users pre-exist, so their imports are mere links/modifications that do not
+     * match the {@code modification(ADD)} constraint. Therefore:
+     *
+     * . 'alpha' produces exactly {@code ADD_THRESHOLD - 2} focus additions - below the threshold, completes;
+     * . 'beta' starts with that count as preexisting and must trip at its second addition
+     *   ({@code preexisting + local = ADD_THRESHOLD}), aborting the whole composition.
+     *
+     * This is also the deterministic slice of the flaky "silent threshold on a root-placed rule" scenario
+     * (see {@code TestFocusPolicyCombinations} combo 3 and {@link #test300RootPolicyAbortsComposition}):
+     * if the cross-child enforcement is broken, this test fails reproducibly rather than by timing.
+     */
+    @Test
+    public void test600ThresholdSplitAcrossSiblings() throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestObject<TaskType> task = TASK_COMPOSITE_ST;
+        deleteIfPresent(task, result);
+
+        int newUsers = ADD_THRESHOLD - 2;
+        given("all A-users except " + newUsers + " pre-exist; their imports correlate and only link");
+        for (int i = 0; i < ACCOUNTS - newUsers; i++) {
+            repositoryService.addObject(
+                    new UserType().name(String.format(PATTERN_A, i)).asPrismObject(), null, result);
+        }
+
+        when("policy with skipActivity on the composition root");
+        addObject(task, getTestTask(), result, contributeInline(addRule(ADD_THRESHOLD, skip()), ActivityPath.empty()));
+        waitForRootTermination(task.oid, TIMEOUT);
+
+        then("'alpha' completes below threshold, 'beta' trips at preexisting + local = threshold");
+        String counterId = ActivityPolicyUtils.buildPolicyIdentifier(
+                getTask(task.oid), ActivityPath.empty(), RULE_ADD, true);
+        // @formatter:off
+        assertTaskTree(task.oid, "after")
+                .display()
+                .assertClosed()
+                .rootActivityState()
+                    .assertAborted()
+                    .assertFatalError()
+                    .child("alpha")
+                        .assertComplete()
+                        .assertSuccess()
+                        .fullExecutionModePolicyRulesCounters()
+                            .assertCounter(counterId, newUsers)
+                            .end()
+                        .end()
+                    .child("beta")
+                        .assertAborted()
+                        .assertFatalError()
+                        .fullExecutionModePolicyRulesCounters()
+                            .assertCounter(counterId, 2)
+                            .end()
+                        .end();
+        // @formatter:on
+        assertThat(countImported(PATTERN_A)).as("A users (pre-existing + imported)").isEqualTo(ACCOUNTS);
+        assertThat(countImported(PATTERN_B)).as("B users imported before the trip").isEqualTo(1);
     }
 }
