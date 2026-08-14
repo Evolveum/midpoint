@@ -32,6 +32,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -225,7 +226,7 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn<>(
+        columns.add(new MappingExpressionColumn<>(
                 mappingTypeDef,
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,

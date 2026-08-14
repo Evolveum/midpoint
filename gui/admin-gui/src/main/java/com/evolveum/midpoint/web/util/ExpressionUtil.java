@@ -164,20 +164,59 @@ public class ExpressionUtil {
     }
 
     /**
-     *
-     * Recognizes the evaluator from the bean. Preferred over the text based variant - search evaluators
-     * contain a nested {@code filter} element, so the serialized form cannot tell them apart.
+     * Element name of an evaluator paired with  corresponding type the GUI knows it as.
+     * @param name name of the element
+     * @param type type of the evaluator
+     */
+    private record EvaluatorElement(QName name, ExpressionEvaluatorType type) {}
+
+    private static final List<EvaluatorElement> EVALUATOR_ELEMENTS = List.of(
+            new EvaluatorElement(
+                    SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH),
+            new EvaluatorElement(SchemaConstantsGenerated.C_AS_IS, ExpressionEvaluatorType.AS_IS),
+            new EvaluatorElement(SchemaConstantsGenerated.C_GENERATE, ExpressionEvaluatorType.GENERATE),
+            new EvaluatorElement(SchemaConstantsGenerated.C_PATH, ExpressionEvaluatorType.PATH),
+            new EvaluatorElement(SchemaConstantsGenerated.C_SCRIPT, ExpressionEvaluatorType.SCRIPT),
+            new EvaluatorElement(SchemaConstantsGenerated.C_VALUE, ExpressionEvaluatorType.LITERAL),
+            new EvaluatorElement(SchemaConstantsGenerated.C_FILTER, ExpressionEvaluatorType.FILTER),
+            new EvaluatorElement(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, ExpressionEvaluatorType.ASSOCIATION_FROM_LINK));
+
+    /**
+     * Recognizes the evaluator from the names of the evaluator elements. Preferred over the text based
+     * variant - it does not serialize the expression, and it only looks at the top level evaluators, so
+     * a nested element of the same name cannot fool it. Search evaluators, for one, contain a nested
+     * {@code filter} element.
      *
      * @param expression expression in which we are looking for the evaluator.
-     * @return expression evaluator type.
+     * @return expression evaluator type, or null when the expression has none we know.
      */
     public static ExpressionEvaluatorType getExpressionType(ExpressionType expression) {
-        if (!findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_FILTER).isEmpty()) {
-            return ExpressionEvaluatorType.FILTER;
+        if (isEmpty(expression)) {
+            return null;
         }
-        return getExpressionType(loadExpression(expression, PrismContext.get(), LOGGER));
+
+        for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
+            if (evaluator == null || evaluator.getName() == null) {
+                continue;
+            }
+            for (EvaluatorElement element : EVALUATOR_ELEMENTS) {
+                if (QNameUtil.match(evaluator.getName(), element.name())) {
+                    return element.type();
+                }
+            }
+        }
+
+        return null;
     }
 
+    /**
+     * Recognizes the evaluator by looking for element names in the serialized expression.
+     *
+     * @param expression the serialized expression to analyze; must not be null
+     * @return the corresponding {@link ExpressionEvaluatorType} or null if no match is found
+     * @deprecated use {@link #getExpressionType(ExpressionType)}, which reads the names off the bean
+     */
+    @Deprecated
     public static ExpressionEvaluatorType getExpressionType(String expression) {
         if (expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH) || expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS)) {
             return ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH;
@@ -276,6 +315,55 @@ public class ExpressionUtil {
 
     public static boolean isEmpty(ExpressionType expression) {
         return expression == null || expression.getExpressionEvaluator().isEmpty();
+    }
+
+    /**
+     * Tells whether the expression carries anything worth storing. Unlike {@link #isEmpty}, which only
+     * asks whether an evaluator is there, this also asks the evaluator for its content, so that an
+     * evaluator left blank by the user,  a script without code, does not count.
+
+     *
+     * @param expression expression to look at.
+     * @return true when the expression should be kept.
+     */
+    public static boolean hasEvaluatorContent(ExpressionType expression) {
+        if (isEmpty(expression)) {
+            return false;
+        }
+
+        ExpressionEvaluatorType evaluatorType = getExpressionType(expression);
+        if (evaluatorType == null) {
+            return true;
+        }
+
+        try {
+            return switch (evaluatorType) {
+                case SCRIPT -> hasScriptCode(expression);
+                case FILTER -> hasFilterValue(expression);
+                default -> true;
+            };
+        } catch (SchemaException ex) {
+            LOGGER.debug("Couldn't read the evaluator of the expression: {}", ex.getMessage(), ex);
+            return true;
+        }
+    }
+
+    /**
+     * @return true when the expression holds a script with a code that is not blank.
+     */
+    public static boolean hasScriptCode(ExpressionType expression) throws SchemaException {
+        ScriptExpressionEvaluatorType script = getScriptExpressionValue(expression);
+        return script != null && StringUtils.isNotBlank(script.getCode());
+    }
+
+    /**
+     * @return true when the expression holds a filter with a clause or a query text.
+     */
+    public static boolean hasFilterValue(ExpressionType expression) {
+        FilterExpressionEvaluatorType evaluator = getFilterExpressionValue(expression);
+        SearchFilterType filter = evaluator != null ? evaluator.getFilter() : null;
+        return filter != null
+                && (filter.containsFilterClause() || StringUtils.isNotBlank(filter.getText()));
     }
 
     public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {

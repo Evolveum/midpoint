@@ -76,6 +76,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private boolean isEvaluatorPanelExpanded = false;
     private boolean displayHelp = true;
 
+    /**
+     * Copy of the expression the script drawer works with, kept until the user applies it or closes
+     * the drawer.
+     */
+    private IModel<ExpressionType> editedExpression;
+
     Model<String> infoLabelModel = Model.of("");
 
     public enum RecognizedEvaluator {
@@ -415,6 +421,10 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
+                    if (RecognizedEvaluator.SCRIPT.equals(typeModel.getObject())) {
+                        showScriptDrawer(target);
+                        return;
+                    }
                     DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
                     getPageBase().showDrawer(drawerModel, target);
                 } else {
@@ -436,6 +446,42 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         typeButton.add(new VisibleBehaviour(this::isButtonShow));
         typeButton.setOutputMarkupId(true);
         return typeButton;
+    }
+
+    private void showScriptDrawer(AjaxRequestTarget target) {
+        ExpressionType expression = getModelObject();
+        editedExpression = Model.of(expression != null ? expression.clone() : new ExpressionType());
+
+        DrawerModel drawerModel = new ScriptExpressionDrawerModel(
+                Model.ofList(getDrawerCollapsedItems()), editedExpression) {
+
+            @Override
+            protected void storePerformed(ExpressionType edited, AjaxRequestTarget target) {
+                getModel().setObject(ExpressionUtil.hasEvaluatorContent(edited) ? edited : null);
+                closeScriptDrawer(target);
+            }
+
+            @Override
+            protected void closePerformed(AjaxRequestTarget target) {
+                closeScriptDrawer(target);
+            }
+        };
+        getPageBase().showDrawer(drawerModel, target);
+    }
+
+    private void closeScriptDrawer(AjaxRequestTarget target) {
+        editedExpression = null;
+        getPageBase().hideDrawer(target);
+
+        typeModel.reset();
+        helpModel.reset();
+        updateLabelForExistingEvaluator();
+
+        target.add(this);
+    }
+
+    private IModel<ExpressionType> getDrawerEditModel() {
+        return editedExpression != null ? editedExpression : getModel();
     }
 
     /**
@@ -461,17 +507,17 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     private WebMarkupContainer createEvaluatorPanel() {
-        return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false);
+        return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false, getModel());
     }
 
-    private WebMarkupContainer createEvaluatorPanel(String id, boolean isInPopup) {
+    private WebMarkupContainer createEvaluatorPanel(String id, boolean isInPopup, IModel<ExpressionType> model) {
         RecognizedEvaluator type = typeModel.getObject();
         if (type != null && type.evaluatorPanel != null) {
             try {
                 Constructor<? extends BasePanel<ExpressionType>> constructor =
                         type.evaluatorPanel.getConstructor(String.class, IModel.class, IModel.class);
                 BasePanel<ExpressionType> evaluatorPanel =
-                        constructor.newInstance(id, getModel(), (IModel<QName>) this::resolveExpressionTargetType);
+                        constructor.newInstance(id, model, (IModel<QName>) this::resolveExpressionTargetType);
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
@@ -515,6 +561,14 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return false;
     }
 
+    /**
+     * Shows the panel of the evaluator right away, without waiting for the user to expand it.
+     * @param expanded true to show the evaluator panel from the start.
+     */
+    public void setEvaluatorPanelExpanded(boolean expanded) {
+        this.isEvaluatorPanelExpanded = expanded;
+    }
+
     public void setDisplayHelp(boolean displayHelp) {
         this.displayHelp = displayHelp;
     }
@@ -529,7 +583,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
 
             @Override
             public Component getPanel(String id, DrawerModel model) {
-                WebMarkupContainer panel = createEvaluatorPanel(id, true);
+                WebMarkupContainer panel = createEvaluatorPanel(id, true, getDrawerEditModel());
                 if (panel instanceof EvaluatorExpressionPanel evaluatorPanel) {
                     setTitleModel(evaluatorPanel.getValueContainerLabelModel(getPageBase()));
                 }
