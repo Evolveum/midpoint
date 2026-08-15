@@ -5,11 +5,13 @@
 :page-wiki-metadata-create-date: 2017-04-19T11:57:52.623+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
+:page-nav-title: Escalation
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
 :page-description: This page describes how escalations can be used in certification campaigns. You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
 :page-keywords: escalation, certification campaign, escalate, timed action
 :page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/escalation/
 
 This page describes how escalations can be used in certification campaigns.
 
@@ -27,16 +29,16 @@ The main differences are captured in the following table:
 |  | Approvals | Certification campaigns
 
 | *Actions*
-| The following actions are supported: completion, notification, delegation, escalation.    
+| The following actions are supported: completion, notification, delegation, escalation.
 | Only escalation is currently implemented.
 
 | *Deadline*
 | Optional, and potentially different for all work items created in a particular approval stage.
-It is usually changed in escalations. 
+It is usually changed in escalations.
 | Obligatory, and identical for all work items for all active cases in a campaign stage, i.e. the certification work item deadline is fixed and it cannot be changed as part of an escalation timed action.
 
-| *Escalation configuration*    
-| Each level in an approval process can have a different escalation configuration. 
+| *Escalation configuration*
+| Each level in an approval process can have a different escalation configuration.
 | One configuration is shared by all work items for all active cases in a certification campaign stage.
 
 |===

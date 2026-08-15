@@ -1,0 +1,75 @@
+= Certification campaigns GUI configuration
+:page-nav-title: GUI configuration
+:page-toc: top
+:page-upkeep-status: orange
+:experimental:
+:page-description:
+:page-keywords:
+
+This section describes options for certification of campaign configuration in the GUI.
+
+There are several facets you can configure regarding certification campaigns in the GUI:
+
+++++
+{% children style: table %}
+++++
+
+== Collection views for certification items configuration
+
+The GUI configuration of certification campaign screens are defined in the midPoint-wide xref:/midpoint/reference/concepts/system-configuration-object/[System configuration object].
+The root of all such configuration is a default collection view for certification items.
+
+Certification items collection view brings more extended configuration options.
+The default certification items collection view are configured in _systemConfiguration -> accessCertification -> defaultView_.
+The collection view configuration should define the identifier and type.
+Collection views can also contain columns and actions configuration.
+
+[source,xml]
+----
+            <defaultView>
+                <identifier>defaultCertItemsView</identifier>
+                <column>
+                    <name>certItemObject</name>
+                    <display>
+                        <label>Cert. item object</label>
+                    </display>
+                </column>
+                <column>
+                    <name>stage</name>
+                    <path>stageNumber</path>
+                    <display>
+                        <label>Stage</label>
+                    </display>
+                </column>
+                <column>
+                    <name>certItemEditableComment</name>
+                </column>
+                <includeDefaultColumns>true</includeDefaultColumns>
+                <type>AccessCertificationWorkItemType</type>
+                <action>
+                    <identifier>certItemAccept</identifier>
+                    <panel>
+                        <display>
+                            <label>Do you really want to accept the item?</label>
+                        </display>
+                        <container>
+                            <identifier>comment</identifier>
+                            <display>
+                                <label>Please, provide a comment (required).</label>
+                            </display>
+                            <item>
+                                <path>output/comment</path>
+                                <mandatory>true</mandatory>
+                            </item>
+                        </container>
+                        <type>AccessCertificationWorkItemType</type>
+                    </panel>
+                </action>
+            </defaultView>
+----
+
+Refer to xref:/midpoint/reference/roles-policies/policies/certification/actions/[] to learn more about actions configuration.
+Refer to xref:/midpoint/reference/roles-policies/policies/certification/columns-configuration/[] to learn more about columns configuration.
+
+You can also define object collection view configuration within the access certification definition (_view_ element).
+This configuration will be merged with the global configuration and applied to all campaigns based on the particular definition.
