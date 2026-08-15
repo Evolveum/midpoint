@@ -1,0 +1,87 @@
+= Scope definition
+:page-nav-title: Scope
+:page-toc: top
+:page-upkeep-status: orange
+:experimental:
+:page-description:
+:page-keywords:
+
+Scope definition controls the set of certification cases that are created when the certification campaign is started.
+You can configure the following:
+
+objectType ::
+    Defines the type of objects that we are working with.
+    The default is `UserType`, however, you can also specify `RoleType`, `OrgType`, `ServiceType`, `FocusType` or `AbstractRoleType` here.
+
+searchFilter ::
+    Defines which objects of the given type should be selected.
+    This is a standard midPoint filter.
+    The default is "all objects of the given type".
+
+itemSelectionExpression ::
+    An expression that selects items that are to be included in the certification.
+    The exact use of this expression depends on the certification handler.
+    The direct assignment handler calls this expression individually with each assignment to determine which assignments should be included and which should not.
+
+caseGenerationExpression (not yet implemented) ::
+    Defines an expression that produces certification cases.
+    This can be any expression, whose input is an object that has passed the search filter specified above, and its output is a list of certification cases.
+// TODO Still not impl'd (master, 2026-08), delete this
+
+== Handler-specific properties
+
+A handler may also accept properties specific to the particular handler.
+
+The *bundled direct assignment handler* provides the following properties:
+
+includeAssignments ::
+    Defines if assignments are to be included in the certification (default = `true`).
+
+includeInducements ::
+    Defines if inducements are to be included in the certification (default = `true`).
+
+includeRoles ::
+    Defines if assignments/inducements of roles are to be included in the certification (default = `true`).
+
+includeOrgs ::
+    Defines if assignments/inducements of orgs are to be included in the certification (default = `true`).
+
+includeResources ::
+    Defines if assignments/inducements of resources are to be included in the certification (default = `true`).
+
+includeServices ::
+    Defines if assignments/inducements of services are to be included in the certification (default = `true`).
+
+includeUsers ::
+    Defines if assignments/inducements of users (e.g. deputy relations) are to be included in the certification (default = `true`).
+
+enabledItemsOnly ::
+    Defines if only the currently enabled assignments/inducements, i.e., with `administrativeStatus` either null or ENABLED, are to be included (default = `true`).
+
+relation ::
+    Defines relations which are to be considered.
+    The value of q:any means "any relation".
+    If no relation is present, org:default (i.e., null) is assumed.
+
+See an example of a more advanced scope definition that selects user-role assignments for users that belong to GovernorOffice and for roles with `riskLevel = "critical"`:
+
+[source,xml]
+----
+<scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+    <objectType>UserType</objectType>
+    <searchFilter>
+        <q:text>. inOrg[ONE_LEVEL] "284d0298-99b3-438d-a7ea-a323b97b795f"</q:text>
+    </searchFilter>
+    <itemSelectionExpression>
+        <script>
+            <code>
+                role = midpoint.resolveReferenceIfExists(assignment.targetRef)
+                return role != null &amp;&amp; role.riskLevel == 'critical'
+            </code>
+        </script>
+    </itemSelectionExpression>
+    <includeRoles>true</includeRoles>
+    <includeOrgs>false</includeOrgs>
+    <includeResources>false</includeResources>
+</scopeDefinition>
+----

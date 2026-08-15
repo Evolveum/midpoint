@@ -8,6 +8,7 @@
 :page-wiki-metadata-modify-date: 2016-04-23T01:35:31.626+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/stages/
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/stages/
 :page-description: This page describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 :page-keywords: certification stage, certification campaign, stage duration, deadline notification, reviewer
 :page-toc: top
@@ -32,12 +33,12 @@ You can configure the following options for stages:
 * *Duration* - Duration of the stage which is used to determine the end of the stage.
 See <<duration,stage duration>> for details.
 * *Notify before deadline* - Defines how long before the stage end time a notification is sent. See <<deadline,deadline notifications>> for details.
-* *Notify only when no decision* - If selected, notifications are sent to reviewers only if they have cases waiting for their decision. 
+* *Notify only when no decision* - If selected, notifications are sent to reviewers only if they have cases waiting for their decision.
 See <<notify_only_no_decision,no decision notifications>>.
 * *Reviewer specification name (optional)* - Identifies the reviewer-selection rules configured for the stage.
 * *Reviewer specification description (optional)* - Describes the reviewer-selection rules configured for the stage.
 * *Reviewers based on assignment target object* - Selects reviewers based on the target owner/approver of the assignment/inducement.
-For example, you can define that a role owner certifies all assignments of their role. 
+For example, you can define that a role owner certifies all assignments of their role.
 * *Reviewers based on the object being assigned to* - Selects reviewers based on objects to which something is assigned or induced.
 For example, you can define that a role owner certifies all inducements to their role.
 * *Reviewers based on the manager of object being assigned to* - Selects reviewers based on managers of object that have something assigned or induced.
