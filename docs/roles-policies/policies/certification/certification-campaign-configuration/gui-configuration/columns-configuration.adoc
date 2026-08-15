@@ -1,4 +1,5 @@
 = Predefined Columns Configuration
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/columns-configuration/
 :page-nav-title: Predefined Columns Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/columns-configuration/

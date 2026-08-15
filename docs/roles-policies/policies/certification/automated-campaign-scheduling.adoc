@@ -1,0 +1,42 @@
+= Automated campaign scheduling
+:page-nav-title: Campaign scheduling
+:page-toc: top
+:page-upkeep-status: orange
+:experimental:
+:page-description:
+:page-keywords:
+
+Campaigns can be automatically started by using tasks.
+To auto-start a campaign in the `samples/certification` directory, import the `start-*.xml` files in the icon:upload[] btn:[Import object] section of the midPoint user interface.
+
+The task looks like this:
+
+[source,xml]
+----
+<task ...>
+    <name>Start campaign: Role Inducements</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionStatus>runnable</executionStatus>
+    <category>AccessCertification</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/task/campaign-creation/handler-3</handlerUri>
+    <objectRef type="AccessCertificationDefinitionType">
+        <filter>
+            <q:text>name = "Role Inducements"</q:text>
+        </filter>
+    </objectRef>
+    <recurrence>recurring</recurrence>
+    <binding>loose</binding>
+    <schedule>
+        <cronLikePattern>0 0 0 * * ?</cronLikePattern>        <!-- each day at midnight (for testing) -->
+    </schedule>
+</task>
+
+----
+
+After importing tasks, campaigns are automatically scheduled at given times.
+
+You can check the current status of a campaign in icon:certificate[] btn:[Certifications] > icon:circle[] btn:[Campaigns scheduling].
+All certification-related tasks are shown.
+(Besides tasks for starting campaigns, there are also remediation tasks, but that will eventually be fixed.)
+
+image::scheduling.jpg[]

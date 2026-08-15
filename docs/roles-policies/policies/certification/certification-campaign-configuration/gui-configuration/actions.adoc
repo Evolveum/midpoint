@@ -1,4 +1,5 @@
 = GUI Action Configuration
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/actions/
 :page-nav-title: GUI Action Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/actions/
