@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.validator.FileUploadContentValidationException;
 import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -56,7 +57,7 @@ public class UploadDownloadPanel extends InputPanel {
     private final boolean isReadOnly;
 
     private ItemPath uploadItemPath;
-    private byte[] validatedUploadedFile;
+    private transient byte[] validatedUploadedFile;
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
@@ -140,9 +141,12 @@ public class UploadDownloadPanel extends InputPanel {
 
                     validatedUploadedFile = sanitizeUploadedFile(uploadedBytes, policy);
                 }
+            } catch (FileUploadContentValidationException ex) {
+                validatedUploadedFile = null;
+                validatable.error(createValidationError(getValidationMessageKey(ex), label, ex.getMessage()));
             } catch (ImageSanitizationException ex) {
                 validatedUploadedFile = null;
-                validatable.error(createValidationError("UploadDownloadPanel.validationContentNotMatchAllowed", label, ex.getMessage()));
+                validatable.error(createValidationError("UploadDownloadPanel.validationImageProcessingFailed", label, ex.getMessage()));
             }
         });
         fileUpload.setOutputMarkupId(true);
@@ -194,6 +198,15 @@ public class UploadDownloadPanel extends InputPanel {
         return new ValidationError(msg);
     }
 
+    private String getValidationMessageKey(FileUploadContentValidationException ex) {
+        return switch (ex.getReason()) {
+            case CONTENT_TYPE_MISMATCH -> "UploadDownloadPanel.validationContentNotMatchAllowed";
+            case NOT_ALLOWED -> "UploadDownloadPanel.validationContentNotAllowed";
+            case UNRECOGNIZED_CONTENT -> "UploadDownloadPanel.validationContentUnrecognized";
+            case MALFORMED_MIME_TYPE -> "UploadDownloadPanel.validationContentTypeMalformed";
+        };
+    }
+
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return getInputFile();
@@ -236,6 +249,7 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     public void uploadFileFailed(AjaxRequestTarget target) {
+        validatedUploadedFile = null;
         LOGGER.trace("Upload file validation failed.");
     }
 

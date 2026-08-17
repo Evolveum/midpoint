@@ -36,7 +36,7 @@ public class EffectiveFileUploadPolicy implements Serializable {
             List<String> allowedContentTypes,
             ImageFormatType convertImageTo,
             boolean stripMetadata) {
-        this.path = path;
+        this.path = path != null ? path.namedSegmentsOnly() : null;
         this.contentTypeCheckEnabled = contentTypeCheckEnabled;
         this.allowedContentTypes = List.copyOf(allowedContentTypes);
         this.convertImageTo = convertImageTo;

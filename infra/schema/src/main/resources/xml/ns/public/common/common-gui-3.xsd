@@ -371,7 +371,9 @@
                         If the whole configuration is absent, the built-in default applies only to jpegPhoto:
                         content type checking is enabled, image/jpeg and image/png are allowed, and no conversion
                         or metadata stripping is performed. If no rule matches another item, this feature does not
-                        enable checking or processing by default.
+                        enable checking or processing by default. Content validation determines the actual MIME type
+                        from uploaded bytes. Detection is not limited to JPEG and PNG, but only MIME types supported by
+                        the content detector can be recognized.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AdminGuiConfigurationType.fileUploadConfiguration</a:displayName>
@@ -5184,7 +5186,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="item" minOccurs="0" maxOccurs="unbounded" type="tns:ImageUploadProcessingType">
+            <xsd:element name="item" minOccurs="0" maxOccurs="unbounded" type="tns:FileUploadItemConfigurationType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Upload rule for one exact item path.
@@ -5194,7 +5196,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ImageUploadProcessingType">
+    <xsd:complexType name="FileUploadItemConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Upload validation and processing rule for a single item path.
@@ -5215,17 +5217,21 @@
             <xsd:element name="checkContentType" minOccurs="0" type="xsd:boolean" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Enables declared MIME type and magic-byte content validation. If absent, defaults to true.
-                        If false, allowedContentType values are ignored and content type validation is skipped.
+                        Enables content validation. If absent, defaults to true. When enabled, midPoint determines the
+                        actual MIME type from uploaded bytes, rejects unknown or unidentifiable content, checks the
+                        detected MIME type against allowedContentType, and requires the declared MIME type to match the
+                        detected type when a declared type is present. If false, allowedContentType values are ignored
+                        and this content validation is skipped.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="allowedContentType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Allowed MIME type. Wildcards supported by MIME matching, for example image/*.
-                        For jpegPhoto, absence means image/jpeg and image/png. For other items, an absent or empty
-                        list with checkContentType=true is a configuration error; it is never interpreted as allow-all.
+                        Allowed MIME type for the actual content detected from uploaded bytes. MIME wildcards are
+                        supported by MIME matching, for example image/*. The built-in jpegPhoto default remains
+                        image/jpeg and image/png. For other items, an absent or empty list with checkContentType=true is
+                        a configuration error; it is never interpreted as allow-all.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

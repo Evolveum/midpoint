@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -324,6 +325,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
 
         };
+        evidencePanel.setUploadItemPath(
+                ItemPath.create(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE));
         evidenceForm.add(evidencePanel);
         evidencePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         evidencePanel.add(new VisibleEnableBehaviour() {

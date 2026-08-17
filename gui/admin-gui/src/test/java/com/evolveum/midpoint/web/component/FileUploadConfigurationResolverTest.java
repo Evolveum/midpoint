@@ -14,22 +14,31 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.EffectiveFileUploadPolicy;
 import com.evolveum.midpoint.model.api.authentication.FileUploadConfigurationResolver;
 import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileUploadConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileUploadItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageFormatType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -41,6 +50,12 @@ public class FileUploadConfigurationResolverTest {
 
     private static final ItemPath JPEG_PHOTO_PATH = ItemPath.create(FocusType.F_JPEG_PHOTO);
     private static final ItemPath DESCRIPTION_PATH = ItemPath.create(ObjectType.F_DESCRIPTION);
+    private static final QName EXTENSION_TEST = new QName("test");
+
+    @BeforeClass
+    public void initializePrism() throws SchemaException, SAXException, IOException {
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @Test
     public void testNullConfigurationProducesNoConfiguredPolicies() throws Exception {
@@ -51,7 +66,7 @@ public class FileUploadConfigurationResolverTest {
     public void testMissingItemPathIsRejected() {
         assertThrows(ConfigurationException.class,
                 () -> FileUploadConfigurationResolver.compileConfiguredPolicies(
-                        configuration(new ImageUploadProcessingType()
+                        configuration(new FileUploadItemConfigurationType()
                                 .allowedContentType(MIME_IMAGE_JPEG))));
     }
 
@@ -69,6 +84,15 @@ public class FileUploadConfigurationResolverTest {
                         configuration(
                                 rule(JPEG_PHOTO_PATH, MIME_IMAGE_JPEG),
                                 rule(ItemPath.create(FocusType.F_JPEG_PHOTO), MIME_IMAGE_PNG))));
+    }
+
+    @Test
+    public void testDuplicatePathsDifferingOnlyByContainerIdAreRejected() {
+        assertThrows(ConfigurationException.class,
+                () -> FileUploadConfigurationResolver.compileConfiguredPolicies(
+                        configuration(
+                                rule(assignmentExtensionPath(1L), MIME_IMAGE_JPEG),
+                                rule(assignmentExtensionPath(42L), MIME_IMAGE_PNG))));
     }
 
     @Test
@@ -142,6 +166,24 @@ public class FileUploadConfigurationResolverTest {
         assertEquals(resolved.getAllowedContentTypes(), List.of("application/octet-stream"));
         assertEquals(resolved.getConvertImageTo(), ImageFormatType.PNG);
         assertTrue(resolved.isStripMetadata());
+    }
+
+    @Test
+    public void testRuntimePathWithContainerIdMatchesConfiguredStructuralPath() throws Exception {
+        ItemPath configuredPath = assignmentExtensionPath();
+        ItemPath runtimePath1 = assignmentExtensionPath(1L);
+        ItemPath runtimePath42 = assignmentExtensionPath(42L);
+
+        List<EffectiveFileUploadPolicy> policies =
+                FileUploadConfigurationResolver.compileConfiguredPolicies(
+                        configuration(rule(configuredPath, MIME_IMAGE_JPEG)));
+
+        assertEquals(
+                FileUploadConfigurationResolver.resolve(runtimePath1, policies).getAllowedContentTypes(),
+                List.of(MIME_IMAGE_JPEG));
+        assertEquals(
+                FileUploadConfigurationResolver.resolve(runtimePath42, policies).getAllowedContentTypes(),
+                List.of(MIME_IMAGE_JPEG));
     }
 
     @Test
@@ -221,21 +263,36 @@ public class FileUploadConfigurationResolverTest {
         return policies.get(0);
     }
 
-    private FileUploadConfigurationType configuration(ImageUploadProcessingType... rules) {
+    private FileUploadConfigurationType configuration(FileUploadItemConfigurationType... rules) {
         FileUploadConfigurationType configuration = new FileUploadConfigurationType();
-        for (ImageUploadProcessingType rule : rules) {
+        for (FileUploadItemConfigurationType rule : rules) {
             configuration.item(rule);
         }
         return configuration;
     }
 
-    private ImageUploadProcessingType rule(ItemPath path, String... allowedContentTypes) {
-        ImageUploadProcessingType rule = new ImageUploadProcessingType()
+    private FileUploadItemConfigurationType rule(ItemPath path, String... allowedContentTypes) {
+        FileUploadItemConfigurationType rule = new FileUploadItemConfigurationType()
                 .path(new ItemPathType(path));
         for (String allowedContentType : allowedContentTypes) {
             rule.allowedContentType(allowedContentType);
         }
         return rule;
+    }
+
+    private ItemPath assignmentExtensionPath() {
+        return ItemPath.create(
+                AssignmentHolderType.F_ASSIGNMENT,
+                AssignmentType.F_EXTENSION,
+                EXTENSION_TEST);
+    }
+
+    private ItemPath assignmentExtensionPath(long valueId) {
+        return ItemPath.create(
+                AssignmentHolderType.F_ASSIGNMENT,
+                valueId,
+                AssignmentType.F_EXTENSION,
+                EXTENSION_TEST);
     }
 
     /**

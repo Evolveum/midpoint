@@ -21,6 +21,10 @@ import javax.imageio.ImageIO;
  */
 public final class FileTestConstants {
 
+    public static final byte[] UNKNOWN_BINARY = new byte[] {
+            0, 1, 2, 3, 4, 5, 6, 7
+    };
+
     public static final byte[] XML_START_ARRAY = new byte[] {
             60, 114, 111, 108, 101, 32, 120, 109, 108, 110, 115, 61
     };
@@ -55,6 +59,16 @@ public final class FileTestConstants {
 
     public static byte[] pngBytesWithTransparency() throws IOException {
         return imageBytes("png", BufferedImage.TYPE_INT_ARGB, new Color(0, 255, 0, 80));
+    }
+
+    public static byte[] minimalPdfBytes() {
+        return """
+                %PDF-1.4
+                1 0 obj
+                << /Type /Catalog >>
+                endobj
+                %%EOF
+                """.getBytes(StandardCharsets.US_ASCII);
     }
 
     private static byte[] imageBytes(String format, int imageType, Color color) throws IOException {
