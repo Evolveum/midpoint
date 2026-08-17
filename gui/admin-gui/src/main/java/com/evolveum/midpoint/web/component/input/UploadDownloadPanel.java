@@ -9,12 +9,10 @@ package com.evolveum.midpoint.web.component.input;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
@@ -281,8 +279,8 @@ public class UploadDownloadPanel extends InputPanel {
                 return DEFAULT_CONTENT_TYPE;
             }
 
-            String contentType = URLConnection.guessContentTypeFromStream(is);
-            if (StringUtils.isNotEmpty(contentType)) {
+            String contentType = FileValidatorUtil.detectContentType(IOUtils.toByteArray(is));
+            if (contentType != null) {
                 return contentType;
             }
         } catch (IOException ex) {

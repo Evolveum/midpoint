@@ -34,6 +34,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextPanel;
+import com.evolveum.midpoint.gui.impl.factory.panel.UploadDownloadPanelFactory;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -63,8 +64,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
 
 /**
  * Created by honchar
@@ -322,8 +321,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public String getDownloadContentType() {
-                return MIME_IMAGE_JPEG;
+            public String getDownloadFileName() {
+                return UploadDownloadPanelFactory.getDownloadFileName(
+                        AbstractWorkItemOutputType.F_EVIDENCE, getDownloadContentType());
             }
 
             @Override
