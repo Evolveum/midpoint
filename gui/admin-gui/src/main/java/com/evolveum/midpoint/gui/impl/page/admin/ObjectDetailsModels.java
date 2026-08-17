@@ -211,6 +211,19 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return delta;
     }
 
+    /**
+     * Returns true if there are unsaved changes in the object.
+     * */
+    public boolean hasDelta() {
+        OperationResult result = new OperationResult("Collect deltas");
+        try {
+            return !collectDeltaWithoutSavedDeltas(result).isEmpty();
+        } catch (CommonException e) {
+            LOGGER.error("Cannot collect deltas", e);
+            return false;
+        }
+    }
+
     private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws CommonException {
         validationErrors = null;
         PrismObjectWrapper<O> objectWrapper = getObjectWrapperModel().getObject();
