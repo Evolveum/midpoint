@@ -3,6 +3,7 @@
 :page-nav-title: Predefined Columns Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/columns-configuration/
+:page-display-order: 142
 :page-description: This page shows how you can configure columns for your certification items collection view.
 :page-keywords: columns configuration, predefined columns, accessCertification, certification
 :page-toc: top
