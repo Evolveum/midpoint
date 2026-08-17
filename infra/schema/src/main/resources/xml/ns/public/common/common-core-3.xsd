@@ -6823,10 +6823,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TransformExpressionEvaluatorType">
                 <xsd:sequence>
-                    <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                    <xsd:element name="language" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Language of the expression. Groovy is the default language if other language is not specified.
+                                Language of the expression.
+                                If not specified, default scripting language is used
+                                (specified in defaultScriptLanguage in system configuration).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12607,6 +12609,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="defaultScriptLanguage" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default language for script expressions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
