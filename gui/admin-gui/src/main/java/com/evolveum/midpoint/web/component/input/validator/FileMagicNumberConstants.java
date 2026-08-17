@@ -6,11 +6,11 @@
 
 package com.evolveum.midpoint.web.component.input.validator;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
-
 import java.util.HexFormat;
 import java.util.Map;
+
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
 
 /**
  * Constants related to file validation and sanitization

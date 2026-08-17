@@ -14,6 +14,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import com.evolveum.midpoint.gui.impl.factory.panel.UploadDownloadPanelFactory;
+import org.apache.wicket.util.tester.WicketTester;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -27,6 +30,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageFormatType;
  * detected content type of the stored data.
  */
 public class UploadDownloadPanelFactoryTest {
+
+    private WicketTester wicketTester;
+
+    @BeforeClass
+    public void initWicket() {
+        wicketTester = new WicketTester();
+    }
+
+    @AfterClass(alwaysRun = true)
+    public void destroyWicket() {
+        if (wicketTester != null) {
+            wicketTester.destroy();
+            wicketTester = null;
+        }
+    }
 
     @Test
     public void testStoredPngBytesProducePngDownloadFilename() throws Exception {

@@ -15,8 +15,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileUploadConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileUploadItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImageUploadProcessingType;
 
 /**
  * Compiles configured file upload rules and resolves the effective policy for
@@ -66,7 +66,7 @@ public final class FileUploadConfigurationResolver {
         }
 
         List<EffectiveFileUploadPolicy> policies = new ArrayList<>();
-        for (ImageUploadProcessingType item : configuration.getItem()) {
+        for (FileUploadItemConfigurationType item : configuration.getItem()) {
             EffectiveFileUploadPolicy policy = compileConfiguredPolicy(item);
             assertNoDuplicatePath(policy.getPath(), policies);
             policies.add(policy);
@@ -85,7 +85,7 @@ public final class FileUploadConfigurationResolver {
         return itemPath != null && itemPath.equivalent(JPEG_PHOTO_PATH);
     }
 
-    private static EffectiveFileUploadPolicy compileConfiguredPolicy(ImageUploadProcessingType item)
+    private static EffectiveFileUploadPolicy compileConfiguredPolicy(FileUploadItemConfigurationType item)
             throws ConfigurationException {
         ItemPath path = item.getPath() != null ? item.getPath().getItemPath() : null;
         if (ItemPath.isEmpty(path)) {
@@ -118,8 +118,9 @@ public final class FileUploadConfigurationResolver {
             return null;
         }
 
+        ItemPath normalizedItemPath = itemPath.namedSegmentsOnly();
         for (EffectiveFileUploadPolicy policy : configuredPolicies) {
-            if (itemPath.equivalent(policy.getPath())) {
+            if (normalizedItemPath.equivalent(policy.getPath())) {
                 return policy;
             }
         }
