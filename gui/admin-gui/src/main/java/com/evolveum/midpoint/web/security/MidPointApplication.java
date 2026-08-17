@@ -159,7 +159,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
     @Autowired private RoleAnalysisService roleAnalysisService;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
     @Autowired private CaseService caseService;
     @Autowired private CaseManager caseManager;
     @Autowired private MidpointConfiguration configuration;
@@ -547,8 +547,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return repositoryService;
     }
 
-    public CacheRegistry getCacheRegistry() {
-        return cacheRegistry;
+    public CacheDiagnosticsService getCacheDiagnosticsService() {
+        return cacheDiagnosticsService;
     }
 
     public TaskService getTaskService() {
