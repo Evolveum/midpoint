@@ -171,12 +171,14 @@ public interface ModelInteractionService {
 
     /**
      * Variant of {@link #getEditObjectDefinition(PrismObject, AuthorizationPhaseType, Task, OperationResult)}
-     * for read-only rendering of an object obtained from an already authorized source, such as a case.
+     * for an object that has already passed through authorization/security processing.
      *
      * The supplied object is used directly and is not reloaded from the repository solely because it has an OID.
-     * The caller is responsible for ensuring that the object was obtained and validated through an authorized path.
+     * The caller must ensure that the object was obtained through an authorized path and does not contain data
+     * the current user is not allowed to access. An arbitrary or unfiltered object must not be passed here, as
+     * incorrect use could expose security-sensitive definitions/items to GUI/wrapper processing.
      */
-    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForSuppliedObject(
+    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForPreauthorizedObject(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, SubscriptionComplianceException;

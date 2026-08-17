@@ -139,7 +139,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         try {
             PrismObjectDefinition<O> objectDef = context.isSuppliedObjectFromAuthorizedCase()
-                    ? getModelInteractionService().getEditObjectDefinitionForSuppliedObject(object, phase, task, result)
+                    ? getModelInteractionService().getEditObjectDefinitionForPreauthorizedObject(object, phase, task, result)
                     : getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
             object.applyDefinition(objectDef);
         } catch (CommonException e) {

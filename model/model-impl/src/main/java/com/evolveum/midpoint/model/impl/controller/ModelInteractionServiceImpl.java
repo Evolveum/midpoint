@@ -251,7 +251,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForSuppliedObject(
+    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForPreauthorizedObject(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, SubscriptionComplianceException {
