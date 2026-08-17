@@ -15,7 +15,192 @@ doc-type: intro
 :page-description: This introduces certification campaigns and explains how they work.
 :page-keywords: certification campaign, campaign definition, campaign configuration, campaign dashboard widget
 
+Access certification in midPoint is a means to revisit various access-related configurations and assess whether they still serve their intended purpose.
+Access certifications can, for example, help prevent access accumulation or violation of segregation of duties.
 
+== Introduction
+
+Access certifications are performed in a form of campaigns.
+You define which objects you want to certify, what properties of these object you wish to check, who is to make the decision whether to keep or change the status quo, and until when they need to make the decision.
+When the time is up, the campaign closes and the decisions are carried out in a process called _remediation_.
+
+To illustrate, you may want to, for example, validate assignment of roles to users where the roles entitle the users licences to 3rd-party services, such as Zoom conferencing, Microsoft cloud storage, etc.
+The goal is to identify users who do not need the licences anymore, take the corresponding role away from them, thus revoke the licence and, ultimately, save money.
+
+== Certification campaign workflow
+
+This section describes basic access certification campaign workflow to help you connect the dots and understand better how the whole process works.
+If some terms in the paragraphs below are unclear, feel free to consult the <<terminology>> section below.
+
+=== Template
+
+Firstly, you need to define a certification campaign template.
+You can have multiple templates for various use cases.
+These templates work as a blueprint for any certification campaign instance based on the particular template you run in the future.
+(Compare to object types—any user of a given object type adheres to the structure dictated by the object type you defined previously.)
+
+=== Scope
+
+In the template, you specify the object to certify, e.g., users.
+To narrow down the selection, you can define a filter to say, e.g., that the objects of the campaigns will be only users based on the _employee_ archetype.
+
+Next, you specify the certification target, i.e., what to certify on the selected objects.
+For users as objects, targets could be roles giving the users access permissions, for example.
+
+The users × targets constitute the final number of certification cases.
+You can limit the number of resulting cases further by selecting only certain kind of relationship between the objects and targets, e.g., assignment (as opposed to entitlement).
+
+=== Reviewers
+
+Once the selection for cases is defined, you specify who is going to review the cases.
+The reviewers can be managers of the objects, owner of the targets, etc.
+It is may be desirable to set a default reviewer because not all orgs must have a manager or all roles an owner, for instance.
+If a reviewer cannot be assigned by the rules you specify, default reviewer is used as fallback.
+
+=== Stages
+
+The issue with reviewers is that they are humans and as such, they are unreliable.
+Some of them may be on vacation during the campaign or simply ignore the call to certify the cases assigned to them.
+For this reason (among others), it is possible to define multiple stages per campaign.
+
+When one stage ends as scheduled and some cases remain unresolved, they can passed to the next stage.
+The stages can each have different rules for reviewers, meaning that if the reviewer of the case in the previous stage failed to decide the fate of the case, the case can be passed to a manager higher in the corporate ladder to decide instead.
+
+Of course, it may not always be a human failure that calls for a case to be passed through multiple certification campaign stages.
+If, for example, you set that multiple people need to agree unanimously on a solution which they fail to do and someone needs to help them reach understanding.
+
+=== Time frame
+
+Lastly, certification campaigns (and, by extension, their stages) need to have some time frame—when they start and finish.
+When the time is up, the stages close and campaign proceeds to the next one to ultimately close the whole campaign.
+
+=== Remediation
+
+Once closed, the remaining step to fulfill the purpose of the certification campaign is to actually carry out the decisions the reviewers made during the campaign.
+This means, in particular, revoking the accesses by removing roles where reviewers rejected the cases.
+
+=== Reiteration
+
+Should a situation occur when some cases remain unresolved after the whole campaign ends, it is possible to reiterate the campaign.
+Campaign reiteration means that midPoint takes only the unresolved cases and runs them through the whole certification campaign anew.
+
+== Configuration options of campaigns and related functionality
+
+There are many aspects of what you can configure regarding certification campaigns and related midPoint functionality.
+Refer to the following articles for options to configure scope, stages, GUI, notifications, or reporting.
+
+++++
+{% children style: table %}
+++++
+
+
+== Terminology
+
+Ad-hoc certification [[adhoc-cert]] ::
+    A certification campaign created without a pre-existing campaign definition, typically to address a specific situation outside of regular schedules.
+
+Campaign remediation ::
+    The phase after all review stages are completed in which the decisions made by reviewers are carried out.
+    Depending on the configuration, remediation can be automated (midPoint revokes the relevant assignments directly) or report-only (an administrator performs the actions manually).
+
+Certification campaign ::
+    A structured review process in which a defined set of access-related items is assessed by designated reviewers within a specified time frame.
+    A campaign is created from a certification campaign definition and progresses through one or more stages before reaching remediation.
+
+Certification campaign template ::
+    A reusable template that specifies the configuration for a certification campaign, including the
+    scope of objects to certify,
+    stage definitions with reviewer selection rules,
+    remediation and reiteration settings,
+    and the review strategy.
+    Each campaign instance is created from a definition and inherits its configuration.
+
+Certification case [[cert-case]] ::
+    A single access item selected for review within a campaign, such as a particular role assigned to a particular user.
+    Each case is assessed by assigned reviewers who record a decision on whether the access should be kept, revoked, or modified.
+
+Certification case outcome ::
+    The consolidated result determined for a certification case after considering one or more reviewer decisions.
+    Outcomes are computed using outcome strategies at both the stage level and the campaign level.
+    See <<outcome-strategy,Outcome strategy>>.
+
+Certification item ::
+    An individual unit of access under review, corresponding to a certification case as presented to the reviewer in the graphical user interface (GUI).
+    It is the concrete relation—such as an assignment, inducement, or policy rule—the fate of which the reviewer decides.
+
+Certification scope ::
+    Defines which certification cases are created when a campaign, specifying the objects to certify (e.g., users), object filter, certification targets (e.g., roles), and may limit which kinds of relations between the objects and targets to include (e.g., assignments, inducements).
+
+Certification stage ::
+    A distinct phase of a campaign during which a specific set of reviewers is asked to provide decisions on the certification cases assigned to them.
+    Campaigns may consist of one or more stages, each with its own reviewers, duration, and outcome rules.
+
+Certification target ::
+    The object that a certification case pertains to.
+    For example, the role in a user-to-role assignment being certified.
+    Target properties (such as owner or approver) can be used to derive reviewers for the cases involving that target.
+
+Deadline rounding ::
+    A setting that controls how the stage end time is rounded, ensuring deadlines fall on practical intervals (e.g., aligned to the start or end of a day).
+
+Decisions ::
+    Various decisions reviewers can make about individual cases.
+
+    Accept :::
+        The access item under review is still appropriate and should remain unchanged.
+
+    Revoke :::
+        The access item is no longer needed and should be removed.
+
+    Reduce :::
+        The reviewer decides that the access item is not fully appropriate but a simple removal is insufficient, indicating that a discussion or alternative assignment is needed.
+
+    Delegate :::
+        The reviewer passes the decision-making responsibility for the case to another user instead of recording a direct decision.
+
+    Not decided :::
+        The reviewer explicitly records that they are unable or unwilling to make a decision on the case.
+
+    No response :::
+        No reviewer decision was recorded for the case within the stage, either because the reviewer did not act or because no reviewer could be assigned.
+
+Default reviewer ::
+    A reviewer specified as a fallback, used when the primary reviewer-selection mechanisms (such as target owner or object manager) fail to produce any reviewers for a given case.
+
+Escalation ::
+    A mechanism that automatically reassigns the case or notifies additional users when the reviewer has not acted on their assigned certification items within the defined time frame.
+    Escalation is configured through timed actions in the stage definition.
+
+Handler ::
+    A component that determines the basic character of the certification campaign.
+    For example, whether the campaign certifies direct assignments, inducements, or other types of relations.
+    The handler works together with the scope definition to determine which certification cases to generate.
+
+Microcertification ::
+    See <<adhoc-cert,Ad-hoc certification>>.
+
+Outcome strategy [[outcome-strategy]] ::
+    A rule defining how individual reviewer decisions within a stage (or across stages) are combined into a single case outcome, such as "one accept accepts" or "all must accept".
+
+Reiteration ::
+    The process of re-running a closed campaign so that certification cases that received no response in the previous run get another chance to be reviewed.
+    Previously decided cases retain their outcomes, as opposed to running a new instance based on the same template where cases are generated anew.
+
+Review strategy ::
+    A campaign-level setting that controls how stage-level outcomes are combined into the final case outcome, and whether a case continues to the next stage or is stopped based on its result.
+
+Reviewer ::
+    A user assigned to certification cases in order to decide what to do with them.
+    Reviewers are selected based on rules defined in the stage definition, such as target ownership, object management, or custom expressions.
+
+Timed actions ::
+    Actions configured to execute automatically at specified points during a stage timeline, such as escalating unaddressed cases or reassigning work items before a deadline.
+
+Work item ::
+    See <<cert-case>>.
+
+
+// TODO: Original intro, to be deleted once the new intro is finished.
 == Introduction
 
 MidPoint enables you to periodically review various settings, e.g. assignment of roles to users.
@@ -39,15 +224,3 @@ The default is that only cases which were not revoked/reduced are transferred.
 Finished (closed) campaigns can be *reiterated*.
 Reiteration re-starts campaigns, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
 For more details on iterations, see xref:/midpoint/reference/roles-policies/policies/certification/iteration/[].
-
-
-// TODO: write more descriptive and helpful intro, explaining terminology and general flow of a campaign
-
-== Configuration options of campaigns and related functionality
-
-There are many aspects of what you can configure regarding certification campaigns and related midPoint functionality.
-Refer to the following articles for options to configure scope, stages, GUI, notifications, or reporting.
-
-++++
-{% children style: table %}
-++++
