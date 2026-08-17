@@ -1,3 +1,7 @@
+---
+midpoint-feature: access-certification
+doc-type: example
+---
 = Access Certification Reports
 :page-nav-title: Certification Reports
 :page-wiki-name: Access Certification Reports

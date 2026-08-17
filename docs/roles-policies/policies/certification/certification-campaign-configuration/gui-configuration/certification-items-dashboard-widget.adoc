@@ -4,8 +4,9 @@ doc-type: config
 ---
 = Certifications items dashboard widget
 :page-nav-title: Dashboard widget
-:page-description: 
-:page-keywords: 
+:page-display-order: 146
+:page-description:
+:page-keywords:
 
 You can configure a certification dashboard widget to be displayed on the self-service dashboard page.
 The widget configuration is done as a part of the system configuration initial object.
