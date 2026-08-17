@@ -412,9 +412,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                         item.add(new Label(ID_TEXT, row.text));
                         item.add(new Label(ID_SUBTEXT, row.subText));
 
-                        if (row.item.equals(selectedAttribute.getObject())) {
-                            item.add(AttributeModifier.append(CLASS_CSS, "cursor-pointer border-primary"));
-                        }
+                        item.add(AttributeModifier.append(
+                                CLASS_CSS,
+                                row.item.equals(selectedAttribute.getObject())
+                                        ? "cursor-pointer border-primary"
+                                        : "border-light-subtle"));
 
                         item.add(new AjaxEventBehavior("click") {
                             @Override
@@ -492,7 +494,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected WebMarkupContainer newTabsContainer(String id) {
                 WebMarkupContainer components = super.newTabsContainer(id);
-                components.add(AttributeModifier.append(CLASS_CSS, "border-start border-end rounded-top bg-light"));
+                components.add(AttributeModifier.append(CLASS_CSS, "rounded-top bg-light"));
                 return components;
             }
 

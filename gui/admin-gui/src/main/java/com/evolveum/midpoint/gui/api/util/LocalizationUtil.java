@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -30,6 +33,59 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class LocalizationUtil {
+
+    //Date and time patterns for English (Europe) locale
+    public static final Map<String, String> EN_EU_PATTERNS;
+
+    static {
+        String dateShort  = "d.M.yyyy";
+        String dateMedium = "d MMM yyyy";
+        String dateLong   = "dd MMMM yyyy";
+        String dateFull   = "EEEE, dd MMMM yyyy";
+
+        String timeShort  = "HH:mm";
+        String timeMedium = "HH:mm:ss";
+        String timeLong   = "HH:mm:ss Z";
+        String timeFull   = "HH:mm:ss zzzz";
+
+        Map<String, String> m = new HashMap<>();
+
+        //all the date/time styles are taken from DateLabelComponent
+        // date only, no time
+        m.put("S-", dateShort);
+        m.put("M-", dateMedium);
+        m.put("L-", dateLong);
+        m.put("F-", dateFull);
+
+        // time only, no date
+        m.put("-S", timeShort);
+        m.put("-M", timeMedium);
+        m.put("-L", timeLong);
+        m.put("-F", timeFull);
+
+        // date + time combinations
+        m.put("SS", dateShort  + " " + timeShort);
+        m.put("SM", dateShort  + " " + timeMedium);
+        m.put("SL", dateShort  + " " + timeLong);
+        m.put("SF", dateShort  + " " + timeFull);
+
+        m.put("MS", dateMedium + " " + timeShort);
+        m.put("MM", dateMedium + " " + timeMedium);
+        m.put("ML", dateMedium + " " + timeLong);
+        m.put("MF", dateMedium + " " + timeFull);
+
+        m.put("LS", dateLong   + " " + timeShort);
+        m.put("LM", dateLong   + " " + timeMedium);
+        m.put("LL", dateLong   + " " + timeLong);
+        m.put("LF", dateLong   + " " + timeFull);
+
+        m.put("FS", dateFull   + " " + timeShort);
+        m.put("FM", dateFull   + " " + timeMedium);
+        m.put("FL", dateFull   + " " + timeLong);
+        m.put("FF", dateFull   + " " + timeFull);
+
+        EN_EU_PATTERNS = Collections.unmodifiableMap(m);
+    }
 
     public static @NotNull Locale findLocale() {
         GuiProfiledPrincipal principal = AuthUtil.getPrincipalUser();
@@ -178,5 +234,9 @@ public class LocalizationUtil {
             }
         }
         return value;
+    }
+
+    public static boolean isEnglishEuropeLocale(Locale locale) {
+        return "en".equals(locale.getLanguage()) && "EU".equals(locale.getCountry());
     }
 }

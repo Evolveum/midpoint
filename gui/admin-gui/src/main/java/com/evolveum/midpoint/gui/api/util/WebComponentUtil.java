@@ -1499,7 +1499,14 @@ public final class WebComponentUtil {
     }
 
     public static String getLocalizedDatePattern(String style) {
-        return DateTimeFormat.patternForStyle(style, getCurrentLocale());
+        Locale locale = getCurrentLocale();
+        if (com.evolveum.midpoint.gui.api.util.LocalizationUtil.isEnglishEuropeLocale(locale)) {
+            String override = com.evolveum.midpoint.gui.api.util.LocalizationUtil.EN_EU_PATTERNS.get(style);
+            if (override != null) {
+                return override;
+            }
+        }
+        return DateTimeFormat.patternForStyle(style, locale);
     }
 
     public static Locale getCurrentLocale() {
