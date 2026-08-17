@@ -3,6 +3,7 @@
 :page-nav-title: GUI Action Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/actions/
+:page-display-order: 144
 :page-toc: top
 :page-description: This page explains the different certification actions that reviewers can use in the midPoint user interface.
 :page-keywords: certification campaign, GUI actions, inline menu actions

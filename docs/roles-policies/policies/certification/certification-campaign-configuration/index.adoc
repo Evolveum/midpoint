@@ -7,6 +7,7 @@ doc-type: config
 :page-toc: top
 :page-upkeep-status: orange
 :experimental:
+:page-display-order: 100
 :page-description: This article describes certification campaign configuration options.
 :page-keywords: certification campaign, campaign definition, campaign configuration, campaign dashboard widget
 

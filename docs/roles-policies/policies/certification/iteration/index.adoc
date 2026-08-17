@@ -1,3 +1,7 @@
+---
+midpoint-feature: access-certification
+doc-type: intro
+---
 = Certification Campaign Iteration
 :page-nav-title: Iteration
 :page-wiki-name: Certification Campaign Iteration
@@ -35,7 +39,7 @@ If none of the reiterated cases enter a new stage, the whole stage is skipped.
 
 * The stage for that particular case *has no outcome* from earlier iterations.
 In such situations, midPoint attempts to determine the outcome by creating new work items.
-These are created only for those reviewers that have not provided a response in earlier iterations. 
+These are created only for those reviewers that have not provided a response in earlier iterations.
 (This only applies to the original reviewers, not reviewers that got work items by delegation or escalation.) +
 This effectively means that reviewers cannot change their decisions in later iterations. +
 This scenario has the following possible outcomes:
