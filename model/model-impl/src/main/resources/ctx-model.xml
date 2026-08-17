@@ -106,6 +106,7 @@
         </constructor-arg>
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
         <constructor-arg name="functionLibraryManager" ref="functionLibraryManager"/>
+        <constructor-arg name="systemObjectCache" ref="systemObjectCache"/>
     </bean>
 
     <bean id="functionExpressionEvaluatorFactory"
