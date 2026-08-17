@@ -181,6 +181,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
 * Fixed internal server error when opening the OTP tab for a new application. See bug:MID-11927[]
 * Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
+* Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
 
 === Releases Of Other Components
 
