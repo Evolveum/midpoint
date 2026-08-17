@@ -536,8 +536,10 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                         Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
                         navigateToNext(page, parameters);
-                        WebComponentUtil.createToastForCreateObject(target, getType());
-                    } else {
+                        if (isShowToastForSuccessSave()) {
+                            WebComponentUtil.createToastForCreateObject(target, getType());
+                        }
+                    } else if (isShowToastForSuccessSave()) {
                         WebComponentUtil.createToastForUpdateObject(target, getType());
                     }
                     if (postSaveHandler != null) {
@@ -547,6 +549,16 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 return result;
             }
         };
+    }
+
+    /**
+     * Controls whether a toast notification is displayed after a successful save.
+     * Override to suppress the toast in specific pages.
+     *
+     * @return true to show toast on successful save, false to hide it
+     */
+    protected boolean isShowToastForSuccessSave() {
+        return true;
     }
 
     protected <C extends Containerable> WizardPanelHelper<C, AHDM> createContainerWizardHelperWithoutSave(
@@ -589,7 +601,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 boolean isCreated = getPrismObject() == null || getPrismObject().getOid() == null;
                 OperationResult result = new OperationResult(OPERATION_SAVE);
                 saveOrPreviewPerformed(target, result, false);
-                if (!result.isError()) {
+                if (!result.isError() && isShowToastForSuccessSave()) {
                     if (isCreated) {
                         WebComponentUtil.createToastForCreateObject(target, getType());
                     } else {
