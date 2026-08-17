@@ -421,6 +421,12 @@ Starting from 4.11 version, the orig value will never be translated.
 Please ensure that all PolyStringType values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
 
+* Iteration specification (e.g. in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
+By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
+The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
+In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
