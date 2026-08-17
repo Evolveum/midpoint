@@ -38,7 +38,7 @@ public class ObjectsSamplerProvider {
             ResourceObjectDefinition typeDefinition, ResourceType resource) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         Objects.requireNonNull(resource, "resource cannot be null");
-        return typeDefinition.isCachingEnabled()
+        return areAllAttributesCached(typeDefinition)
                 ? new CorrelationObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
                 : new CorrelationObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
     }
@@ -50,7 +50,7 @@ public class ObjectsSamplerProvider {
             ResourceObjectDefinition typeDefinition, ResourceType resource) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         Objects.requireNonNull(resource, "resource cannot be null");
-        return typeDefinition.isCachingEnabled()
+        return areAllAttributesCached(typeDefinition)
                 ? new MappingObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
                 : new MappingObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
     }
@@ -60,8 +60,16 @@ public class ObjectsSamplerProvider {
      */
     public int getExpectedMappingSampleSize(ResourceObjectDefinition typeDefinition) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
-        return typeDefinition.isCachingEnabled()
+        return areAllAttributesCached(typeDefinition)
                 ? MappingObjectsSamplerWhenShadowCacheEnabled.getExpectedSampleSize()
                 : MappingObjectsSamplerWhenShadowCacheDisabled.getExpectedSampleSize();
+    }
+
+    private boolean areAllAttributesCached(ResourceObjectDefinition typeDefinition) {
+        if (!typeDefinition.isCachingEnabled()) {
+            return false;
+        }
+        return typeDefinition.getAttributeDefinitions().stream()
+                .allMatch(attrDef -> attrDef.isEffectivelyCached(typeDefinition));
     }
 }
