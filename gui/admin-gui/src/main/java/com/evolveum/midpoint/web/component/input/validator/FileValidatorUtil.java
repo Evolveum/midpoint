@@ -152,7 +152,7 @@ public final class FileValidatorUtil {
      * @param bytes uploaded file content
      * @return detected MIME type, or {@code null} if the content type is not recognized
      */
-    private static String detectContentType(byte[] bytes) {
+    public static String detectContentType(byte[] bytes) {
         if (bytes == null || bytes.length == 0) {
             return null;
         }
