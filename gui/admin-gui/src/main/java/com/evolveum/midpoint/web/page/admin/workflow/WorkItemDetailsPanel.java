@@ -8,12 +8,14 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -322,6 +324,25 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
                 return "image/jpeg";
             }
 
+            @Override
+            public void uploadFilePerformed(AjaxRequestTarget target) {
+                super.uploadFilePerformed(target);
+                evidenceUploadStateChanged(target, false);
+            }
+
+            @Override
+            public void uploadFileFailed(AjaxRequestTarget target) {
+                super.uploadFileFailed(target);
+                target.add(getParentPage().getFeedbackPanel());
+                evidenceUploadStateChanged(target, true);
+            }
+
+            @Override
+            public void removeFilePerformed(AjaxRequestTarget target) {
+                super.removeFilePerformed(target);
+                evidenceUploadStateChanged(target, false);
+            }
+
         };
         evidencePanel.setUploadItemPath(
                 ItemPath.create(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE));
@@ -440,6 +461,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
     }
 
+    private void evidenceUploadStateChanged(AjaxRequestTarget target, boolean invalid) {
+        EvidenceUploadStateAware parent = findParent(EvidenceUploadStateAware.class);
+        if (parent != null) {
+            parent.evidenceUploadStateChanged(target, invalid);
+        }
+    }
+
     private boolean isParentCaseClosed() {
         CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
         return parentCase != null && SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState());
@@ -453,5 +481,10 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             return getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
                     Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of();
         }
+    }
+
+    public interface EvidenceUploadStateAware extends Serializable {
+
+        void evidenceUploadStateChanged(AjaxRequestTarget target, boolean invalid);
     }
 }
