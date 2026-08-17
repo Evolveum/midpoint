@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -283,6 +284,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
                 attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
             }
 
             @Override
