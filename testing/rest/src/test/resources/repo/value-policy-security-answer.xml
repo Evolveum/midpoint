@@ -55,6 +55,7 @@ with a lowercase letter and must be at least 6 characters long.</description>
             <checkExpression>
                     <expression>
                          <script>
+                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                              <code>
                                  assert input != null
                                  assert object != null
