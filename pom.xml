@@ -245,6 +245,7 @@
         <postgresql.version>42.7.12</postgresql.version>
         <netty.version>4.2.16.Final</netty.version>
         <httpclient5.version>5.6.4</httpclient5.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -292,16 +293,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <!--
-                    Remove after this transient dependency which comes from spring boot dependencies is >= 5.4.3
-                    This comes through org.apache.httpcomponents.client5:httpclient5:jar
-                -->
-                <groupId>org.apache.httpcomponents.core5</groupId>
-                <artifactId>httpcore5-h2</artifactId>
-                <version>5.4.3</version>
-            </dependency>
-
             <dependency>
                 <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
