@@ -3876,6 +3876,148 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         }
     }
 
+
+    /**
+     * Searching for abstract roles with a query containing `TYPE` discriminators, while the OrgType read
+     * authorization is item-limited. The `TYPE(OrgType)` clause must not require full-object read access
+     * on OrgType: the same objects are legally obtainable by type-specific searches, and returned objects
+     * are pruned to readable items anyway. This mirrors the Request Access "roles of teammate" query:
+     *
+     * ----
+     * AND(
+     *     IN OID: <targets of teammate's assignments>;
+     *     OR(
+     *         TYPE(RoleType, EQUAL: requestable, true);
+     *         TYPE(OrgType, null)))
+     * ----
+     *
+     * Issue 11221
+     *
+     * See also {@link #test500SearchForAbstractRolesWithLimitedAuthorizations()}
+     */
+    @Test
+    public void test520SearchWithTypeFilterAndItemLimitedOrgAuthorization() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ORG_ITEM_READ.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching with type-specific queries (baseline, works regardless of issue 11221)");
+
+        assertSearch(RoleType.class,
+                queryFor(RoleType.class).id(ROLE_BUSINESS_1.oid).build(),
+                ROLE_BUSINESS_1.oid);
+        assertSearch(OrgType.class,
+                queryFor(OrgType.class).id(ORG_REQUESTABLE.oid).build(),
+                ORG_REQUESTABLE.oid);
+
+        when("searching for AbstractRoleType with TYPE discriminators and OID list (Request Access style)");
+
+        var query = queryFor(AbstractRoleType.class)
+                .id(ROLE_BUSINESS_1.oid, ORG_REQUESTABLE.oid)
+                .and()
+                .block()
+                .type(RoleType.COMPLEX_TYPE)
+                .item(AbstractRoleType.F_REQUESTABLE).eq(true)
+                .or()
+                .type(OrgType.COMPLEX_TYPE)
+                .endBlock()
+                .build();
+
+        then("both objects are found, even though OrgType read is item-limited");
+
+        assertSearch(AbstractRoleType.class, query, ROLE_BUSINESS_1.oid, ORG_REQUESTABLE.oid);
+
+        when("searching with a filter on an OrgType item that is not readable");
+
+        var costCenterQuery = queryFor(AbstractRoleType.class)
+                .type(OrgType.COMPLEX_TYPE)
+                .item(OrgType.F_COST_CENTER).eq("whatever")
+                .build();
+
+        then("the search is denied, as filtering by unreadable items must remain forbidden");
+
+        assertSearch(AbstractRoleType.class, costCenterQuery, 0);
+        assertSearch(OrgType.class, costCenterQuery, 0);
+    }
+
+    /**
+     * Tests searching for abstract roles (roles and services) with limited authorizations: The `riskLevel` search
+     * is authorized only for services.
+     *
+     * MID-10206
+     *
+     * See also {@link TestSecurityAdvanced#test390AutzJackCannotFilterUnpermittedItems()}
+     */
+    @Test
+    public void test500SearchForAbstractRolesWithLimitedAuthorizations() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_SEARCH.oid);
+        login(USER_JACK_USERNAME);
+
+        when("using simple riskLevel='low' query");
+
+        var query = queryFor(AbstractRoleType.class)
+                .item(AbstractRoleType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then("authorizations are correctly applied");
+
+        // There's no authorization for searching by riskLevel on RoleType -> no results
+        assertSearch(RoleType.class, query, 0);
+
+        // There is an authorization for searching by riskLevel on ServiceType -> one result
+        assertSearch(ServiceType.class, query, SERVICE_RISK_LOW.oid);
+
+        // This does not work for now: we should deny the search for AbstractRoleType.
+        // Unfortunately, it passes now.
+        //assertSearch(AbstractRoleType.class, query, 0);
+
+        when("using OR-style query for roles and services separately");
+
+        var query2 = queryFor(AbstractRoleType.class)
+                .type(RoleType.COMPLEX_TYPE)
+                .item(RoleType.F_RISK_LEVEL).eq("low")
+                .or()
+                .type(ServiceType.COMPLEX_TYPE)
+                .item(ServiceType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then("the query is forbidden to execute on any type");
+
+        // The query asks for RoleType:riskLevel, so it cannot be executed (even on ServiceType)
+
+        assertSearch(AbstractRoleType.class, query2, 0);
+        assertSearch(RoleType.class, query2, 0);
+        assertSearch(ServiceType.class, query2, 0);
+    }
+
+    /**
+     * There is a item-limited role search authorization in `role-limited-role-search`.
+     * However, other (at first sight unrelated) authorizations in `role-interfering-authorizations` interfere with it.
+     *
+     * MID-10438
+     */
+    @Test
+    public void test510SearchByItemsWithInterferingAuthorizations() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_SEARCH.oid);
+        assignRole(USER_JACK_OID, ROLE_INTERFERING_AUTHORIZATIONS.oid);
+        login(USER_JACK_USERNAME);
+
+        when("using simple riskLevel='low' query");
+
+        var query = queryFor(AbstractRoleType.class)
+                .item(AbstractRoleType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then("authorizations are correctly applied");
+
+        assertSearch(RoleType.class, query, 0);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,
