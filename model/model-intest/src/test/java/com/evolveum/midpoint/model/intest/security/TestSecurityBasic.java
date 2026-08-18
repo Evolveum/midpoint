@@ -3953,6 +3953,70 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertSearch(RoleType.class, query, 0);
     }
 
+    /**
+     * Searching for abstract roles with a query containing `TYPE` discriminators, while the OrgType read
+     * authorization is item-limited. The `TYPE(OrgType)` clause must not require full-object read access
+     * on OrgType: the same objects are legally obtainable by type-specific searches, and returned objects
+     * are pruned to readable items anyway. This mirrors the Request Access "roles of teammate" query:
+     *
+     * ----
+     * AND(
+     *     IN OID: <targets of teammate's assignments>;
+     *     OR(
+     *         TYPE(RoleType, EQUAL: requestable, true);
+     *         TYPE(OrgType, null)))
+     * ----
+     *
+     * Issue 11221
+     *
+     * See also {@link #test500SearchForAbstractRolesWithLimitedAuthorizations()}
+     */
+    @Test
+    public void test520SearchWithTypeFilterAndItemLimitedOrgAuthorization() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ORG_ITEM_READ.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching with type-specific queries (baseline, works regardless of issue 11221)");
+
+        assertSearch(RoleType.class,
+                queryFor(RoleType.class).id(ROLE_BUSINESS_1.oid).build(),
+                ROLE_BUSINESS_1.oid);
+        assertSearch(OrgType.class,
+                queryFor(OrgType.class).id(ORG_REQUESTABLE.oid).build(),
+                ORG_REQUESTABLE.oid);
+
+        when("searching for AbstractRoleType with TYPE discriminators and OID list (Request Access style)");
+
+        var query = queryFor(AbstractRoleType.class)
+                .id(ROLE_BUSINESS_1.oid, ORG_REQUESTABLE.oid)
+                .and()
+                .block()
+                .type(RoleType.COMPLEX_TYPE)
+                .item(AbstractRoleType.F_REQUESTABLE).eq(true)
+                .or()
+                .type(OrgType.COMPLEX_TYPE)
+                .endBlock()
+                .build();
+
+        then("both objects are found, even though OrgType read is item-limited");
+
+        assertSearch(AbstractRoleType.class, query, ROLE_BUSINESS_1.oid, ORG_REQUESTABLE.oid);
+
+        when("searching with a filter on an OrgType item that is not readable");
+
+        var costCenterQuery = queryFor(AbstractRoleType.class)
+                .type(OrgType.COMPLEX_TYPE)
+                .item(OrgType.F_COST_CENTER).eq("whatever")
+                .build();
+
+        then("the search is denied, as filtering by unreadable items must remain forbidden");
+
+        assertSearch(AbstractRoleType.class, costCenterQuery, 0);
+        assertSearch(OrgType.class, costCenterQuery, 0);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,
