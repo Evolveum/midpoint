@@ -26,29 +26,39 @@ public class SystemFeatures implements Serializable, DebugDumpable {
 
     private final boolean realNotificationsEnabled;
 
+    private final boolean customDeploymentColorsDefined;
+
+    private final boolean customLogoDefined;
+
     private final boolean clusteringEnabled;
 
     private final boolean genericDatabaseUsed;
 
-    SystemFeatures(
-            boolean publicHttpsUrlPatternDefined,
-            boolean remoteHostAddressHeaderDefined,
-            boolean customLoggingDefined,
-            boolean realNotificationsEnabled,
-            boolean clusteringEnabled,
-            boolean genericDatabaseUsed) {
-        this.publicHttpsUrlPatternDefined = publicHttpsUrlPatternDefined;
-        this.remoteHostAddressHeaderDefined = remoteHostAddressHeaderDefined;
-        this.customLoggingDefined = customLoggingDefined;
-        this.realNotificationsEnabled = realNotificationsEnabled;
-        this.clusteringEnabled = clusteringEnabled;
-        this.genericDatabaseUsed = genericDatabaseUsed;
+    private SystemFeatures(Builder builder) {
+        this.publicHttpsUrlPatternDefined = builder.publicHttpsUrlPatternDefined;
+        this.remoteHostAddressHeaderDefined = builder.remoteHostAddressHeaderDefined;
+        this.customLoggingDefined = builder.customLoggingDefined;
+        this.realNotificationsEnabled = builder.realNotificationsEnabled;
+        this.customDeploymentColorsDefined = builder.customDeploymentColorsDefined;
+        this.customLogoDefined = builder.customLogoDefined;
+        this.clusteringEnabled = builder.clusteringEnabled;
+        this.genericDatabaseUsed = builder.genericDatabaseUsed;
     }
 
-    /** Fallback values to be used in the case of an error. */
+    static Builder builder() {
+        return new Builder();
+    }
+
+    /** Fallback values to be used in the case of an error. All the "production" indications are turned on. */
     public static SystemFeatures error() {
-        return new SystemFeatures(
-                true, true, true, true, false, false);
+        return builder()
+                .publicHttpsUrlPatternDefined(true)
+                .remoteHostAddressHeaderDefined(true)
+                .customLoggingDefined(true)
+                .realNotificationsEnabled(true)
+                .customDeploymentColorsDefined(true)
+                .customLogoDefined(true)
+                .build();
     }
 
     /** Does the public HTTP URL pattern use secure (https) protocol? */
@@ -71,6 +81,16 @@ public class SystemFeatures implements Serializable, DebugDumpable {
         return realNotificationsEnabled;
     }
 
+    /** Are the colors of this deployment customized, i.e. is the header color or the skin set? */
+    public boolean isCustomDeploymentColorsDefined() {
+        return customDeploymentColorsDefined;
+    }
+
+    /** Is a custom logo (either an image or a CSS class) set for this deployment? */
+    public boolean isCustomLogoDefined() {
+        return customLogoDefined;
+    }
+
     /** Is the clustering enabled in the task manager configuration? */
     public boolean isClusteringEnabled() {
         return clusteringEnabled;
@@ -88,6 +108,8 @@ public class SystemFeatures implements Serializable, DebugDumpable {
         DebugUtil.debugDumpWithLabelLn(sb, "remoteHostAddressHeaderDefined", remoteHostAddressHeaderDefined, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "customLoggingDefined", customLoggingDefined, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "realNotificationsEnabled", realNotificationsEnabled, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "customDeploymentColorsDefined", customDeploymentColorsDefined, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "customLogoDefined", customLogoDefined, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "clusteringEnabled", clusteringEnabled, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "genericDatabaseUsed", genericDatabaseUsed, indent + 1);
         return sb.toString();
@@ -100,8 +122,67 @@ public class SystemFeatures implements Serializable, DebugDumpable {
                 ", remoteHostAddressHeaderDefined=" + remoteHostAddressHeaderDefined +
                 ", customLoggingDefined=" + customLoggingDefined +
                 ", realNotificationsEnabled=" + realNotificationsEnabled +
+                ", customDeploymentColorsDefined=" + customDeploymentColorsDefined +
+                ", customLogoDefined=" + customLogoDefined +
                 ", clusteringEnabled=" + clusteringEnabled +
                 ", genericDatabaseUsed=" + genericDatabaseUsed +
                 '}';
+    }
+
+    /** All features default to `false`, i.e. to "this is not a production deployment". */
+    static final class Builder {
+
+        private boolean publicHttpsUrlPatternDefined;
+        private boolean remoteHostAddressHeaderDefined;
+        private boolean customLoggingDefined;
+        private boolean realNotificationsEnabled;
+        private boolean customDeploymentColorsDefined;
+        private boolean customLogoDefined;
+        private boolean clusteringEnabled;
+        private boolean genericDatabaseUsed;
+
+        Builder publicHttpsUrlPatternDefined(boolean val) {
+            publicHttpsUrlPatternDefined = val;
+            return this;
+        }
+
+        Builder remoteHostAddressHeaderDefined(boolean val) {
+            remoteHostAddressHeaderDefined = val;
+            return this;
+        }
+
+        Builder customLoggingDefined(boolean val) {
+            customLoggingDefined = val;
+            return this;
+        }
+
+        Builder realNotificationsEnabled(boolean val) {
+            realNotificationsEnabled = val;
+            return this;
+        }
+
+        Builder customDeploymentColorsDefined(boolean val) {
+            customDeploymentColorsDefined = val;
+            return this;
+        }
+
+        Builder customLogoDefined(boolean val) {
+            customLogoDefined = val;
+            return this;
+        }
+
+        Builder clusteringEnabled(boolean val) {
+            clusteringEnabled = val;
+            return this;
+        }
+
+        Builder genericDatabaseUsed(boolean val) {
+            genericDatabaseUsed = val;
+            return this;
+        }
+
+        SystemFeatures build() {
+            return new SystemFeatures(this);
+        }
     }
 }

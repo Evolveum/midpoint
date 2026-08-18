@@ -84,6 +84,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Added support for "null" expression. See bug:MID-11867[].
 * Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
 * Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
+* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
 
 
 #TODO#
