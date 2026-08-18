@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventRecordPayload;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -108,6 +109,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             record.setRepoId(auditRow.id);
 
             insertAuditDeltas(jdbcSession, auditRow);
+            insertAuditPayloads(jdbcSession, auditRow, preparePayloads(record.getPayloads()));
             insertReferences(jdbcSession, auditRow, record.getReferences());
 
             jdbcSession.commit();
@@ -303,6 +305,44 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             insertBatch.setBatchToBulk(true);
             insertBatch.execute();
         }
+    }
+
+    private List<MAuditPayload> preparePayloads(List<AuditEventRecordPayload> payloads) {
+        if (payloads.isEmpty()) {
+            return List.of();
+        }
+
+        QAuditPayloadMapping payloadMapping = QAuditPayloadMapping.get();
+        List<MAuditPayload> rows = new ArrayList<>(payloads.size());
+        for (int i = 0; i < payloads.size(); i++) {
+            AuditEventRecordPayload payload = payloads.get(i);
+            MAuditPayload row = new MAuditPayload();
+            row.ordinal = i;
+            row.name = payload.getName();
+            row.contentType = payload.getContentType();
+            row.content = payloadMapping.contentToJsonb(payload.getContent(), payload.getContentType());
+            row.searchableText = payload.getContent();
+            rows.add(row);
+        }
+        return rows;
+    }
+
+    private void insertAuditPayloads(
+            JdbcSession jdbcSession, MAuditEventRecord auditRow, List<MAuditPayload> payloadRows) {
+        if (payloadRows.isEmpty()) {
+            return;
+        }
+
+        SQLInsertClause insertBatch = jdbcSession.newInsert(QAuditPayloadMapping.get().defaultAlias());
+        for (MAuditPayload payloadRow : payloadRows) {
+            payloadRow.recordId = auditRow.id;
+            payloadRow.timestamp = auditRow.timestamp;
+
+            // NULLs are important to keep the value count consistent during the batch.
+            insertBatch.populate(payloadRow, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
+        }
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
     }
 
     private void insertReferences(JdbcSession jdbcSession,

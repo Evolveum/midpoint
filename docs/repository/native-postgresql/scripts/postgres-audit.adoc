@@ -419,6 +419,98 @@ No primary key is defined for this table.
 
 This table is a partition of xref:#ma_audit_event[`ma_audit_event`]. Columns are inherited from the partitioned table.
 
+[[ma_audit_payload]]
+=== `ma_audit_payload`
+
+Stores audit payloads attached to audit events.
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `recordId`
+| `BIGINT`
+| primary key, required
+| Identifier of the audit event this payload belongs to.
+
+| `timestamp`
+| `TIMESTAMPTZ`
+| primary key, required
+| Timestamp of the audit event this payload belongs to. Also used as partitioning key.
+
+| `ordinal`
+| `INTEGER`
+| primary key, required
+| Order of this payload within the owning audit event.
+
+| `name`
+| `TEXT`
+| required
+| Payload name.
+
+| `contentType`
+| `TEXT`
+| 
+| Media type of the payload content.
+
+| `content`
+| `JSONB`
+| 
+| Payload content stored as JSON.
+
+| `searchableText`
+| `TEXT`
+| 
+| Text representation used for later full-text search.
+
+|===
+
+==== Indexes
+
+[cols="1,2,2", options="header"]
+|===
+| Name
+| Columns
+| Purpose / notes
+
+| `ma_audit_payload_searchableText_idx`
+| `USING gin (searchableText)`
+| Speeds up later full-text-like audit payload searches. Used for: full-text-like audit payload searches
+
+|===
+
+[[ma_audit_payload_default]]
+=== `ma_audit_payload_default`
+
+Default partition for audit payloads that do not match a monthly audit payload partition.
+
+No primary key is defined for this table.
+
+This table is a partition of xref:#ma_audit_payload[`ma_audit_payload`]. Columns are inherited from the partitioned table.
+
+==== Foreign keys
+
+[cols="1,2,2", options="header"]
+|===
+| Column
+| References
+| Notes
+
+| `recordId`
+| xref:#ma_audit_event_default[`ma_audit_event_default.id`]
+| ON DELETE CASCADE
+
+| `timestamp`
+| xref:#ma_audit_event_default[`ma_audit_event_default.timestamp`]
+| ON DELETE CASCADE
+
+|===
+
 [[ma_audit_ref]]
 === `ma_audit_ref`
 
@@ -534,7 +626,7 @@ Enum types define allowed database values for selected columns.
 [[enum_AuditEventTypeType]]
 | `AuditEventTypeType`
 | Describes the type of operation recorded in an audit event.
-| `GET_OBJECT`, `ADD_OBJECT`, `MODIFY_OBJECT`, `DELETE_OBJECT`, `EXECUTE_CHANGES_RAW`, `SYNCHRONIZATION`, `CREATE_SESSION`, `TERMINATE_SESSION`, `WORK_ITEM`, `WORKFLOW_PROCESS_INSTANCE`, `RECONCILIATION`, `SUSPEND_TASK`, `RESUME_TASK`, `RUN_TASK_IMMEDIATELY`, `DISCOVER_OBJECT`, `INFORMATION_DISCLOSURE`
+| `GET_OBJECT`, `ADD_OBJECT`, `MODIFY_OBJECT`, `DELETE_OBJECT`, `EXECUTE_CHANGES_RAW`, `SYNCHRONIZATION`, `CREATE_SESSION`, `TERMINATE_SESSION`, `WORK_ITEM`, `WORKFLOW_PROCESS_INSTANCE`, `RECONCILIATION`, `SUSPEND_TASK`, `RESUME_TASK`, `RUN_TASK_IMMEDIATELY`, `DISCOVER_OBJECT`, `INFORMATION_DISCLOSURE`, `SMART_SERVICE_CALL`
 
 [[enum_ChangeType]]
 | `ChangeType`
@@ -562,7 +654,7 @@ Kind: procedure
 [[routine_audit_create_monthly_partitions]]
 === `audit_create_monthly_partitions`
 
-Creates monthly audit table partitions for audit events, deltas, and references.
+Creates monthly audit table partitions for audit events, payloads, deltas, and references.
 
 IMPORTANT: Only default partitions are created in this script!
 Consider, whether you need partitioning before doing anything, for more read the docs:
@@ -625,6 +717,11 @@ Used for: audit schema initialization
 == Extensions and schemas
 
 Extensions and schemas are database infrastructure objects required by the repository schema.
+
+[[extension_pg_trgm]]
+=== Extension `pg_trgm`
+
+No description available yet.
 
 [[schema_CURRENT_USER]]
 === Schema `CURRENT_USER`
