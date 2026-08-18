@@ -50,11 +50,11 @@
         <!--    <artifactId>repo-api</artifactId>-->
         <!--    <version>${project.version}</version>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
-        <!--    <artifactId>audit-api</artifactId>-->
-        <!--    <version>${project.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>

@@ -141,7 +141,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
             throws SchemaException {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
-        var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
+        var requestText = SmartServiceSerialization.serializeRequest(request);
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.reset();
         webClient.type(MediaType.APPLICATION_JSON);
