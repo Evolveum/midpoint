@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.SystemUtil;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -594,12 +595,20 @@ public class ModelDiagController implements ModelDiagnosticService {
         }
     }
 
+    /**
+     * Note about authorizations: This method (and {@link #getLogFileSize(Task, OperationResult)}) is covered by the
+     * {@link ModelAuthorizationAction#READ_LOG} authorization. To avoid the need of having `rest-3#all` authorization
+     * to use the corresponding REST methods, there are also special (much more specific, i.e. weaker) REST
+     * authorizations: `rest-3#getLog` and `rest-3#getLogSize` (see `RestAuthorizationAction`).
+     * So, a user reading the log needs just these (rather weak) authorizations, instead of the `authorization-3#all`
+     * one that was required before.
+     */
     @Override
     public LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
             throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createSubresult(GET_LOG_FILE_CONTENT);
         try {
-            securityEnforcer.authorizeAll(task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.READ_LOG.getUrl(), task, result);
             File logFile = getLogFile(result);
             LogFileContentType rv = getLogFileFragment(logFile, fromPosition, maxSize);
             result.recordSuccess();
@@ -651,7 +660,7 @@ public class ModelDiagController implements ModelDiagnosticService {
             ConfigurationException, CommunicationException {
         OperationResult result = parentResult.createSubresult(GET_LOG_FILE_SIZE);
         try {
-            securityEnforcer.authorizeAll(task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.READ_LOG.getUrl(), task, result);
             File logFile = getLogFile(result);
             long size = logFile.length();
             result.recordSuccess();
