@@ -663,6 +663,63 @@
                 <version>${tika.version}</version>
             </dependency>
             <dependency>
+                <!-- Used only for its content-type detectors (OOXML, OLE2); the parser-only
+                     transitive dependencies are excluded. POI comes from our own managed version. -->
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-microsoft-module</artifactId>
+                <version>${tika.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-html-module</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-text-module</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-xml-module</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-mail-commons</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.pff</groupId>
+                        <artifactId>java-libpst</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.healthmarketscience.jackcess</groupId>
+                        <artifactId>jackcess</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.healthmarketscience.jackcess</groupId>
+                        <artifactId>jackcess-encrypt</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcjmail-jdk18on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk18on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.poi</groupId>
+                        <artifactId>poi-scratchpad</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.poi</groupId>
+                        <artifactId>poi-ooxml-full</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
                 <version>1.6</version>

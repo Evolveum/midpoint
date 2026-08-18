@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.component.input.validator;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -13,8 +14,13 @@ import java.util.Objects;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 
-import org.apache.tika.Tika;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.Detector;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.validator.FileUploadContentValidationException.Reason;
 
 /**
@@ -27,7 +33,11 @@ import com.evolveum.midpoint.web.component.input.validator.FileUploadContentVali
  */
 public final class FileValidatorUtil {
 
-    private static final Tika TIKA = new Tika();
+    private static final Trace LOGGER = TraceManager.getTrace(FileValidatorUtil.class);
+
+    // Detector-only setup: loads just the Detector SPI (magic bytes plus OOXML/OLE2
+    // container detectors), never Tika parsers.
+    private static final Detector DETECTOR = new DefaultDetector();
     private static final String GENERIC_BINARY_CONTENT_TYPE = "application/octet-stream";
 
     /**
@@ -147,7 +157,9 @@ public final class FileValidatorUtil {
     /**
      * Detects the MIME type of uploaded content from its bytes.
      *
-     * The method uses Apache Tika core detection without relying on a file name.
+     * The method uses Apache Tika detection without relying on a file name.
+     * Container detectors identify Office and OpenDocument formats precisely
+     * (e.g. docx, xlsx, doc, xls, odt, ods) in addition to magic-byte detection.
      *
      * @param bytes uploaded file content
      * @return detected MIME type, or {@code null} if the content type is not recognized
@@ -157,7 +169,12 @@ public final class FileValidatorUtil {
             return null;
         }
 
-        String detectedContentType = TIKA.detect(bytes);
-        return GENERIC_BINARY_CONTENT_TYPE.equals(detectedContentType) ? null : detectedContentType;
+        try (TikaInputStream stream = TikaInputStream.get(bytes)) {
+            String detectedContentType = DETECTOR.detect(stream, new Metadata()).toString();
+            return GENERIC_BINARY_CONTENT_TYPE.equals(detectedContentType) ? null : detectedContentType;
+        } catch (IOException e) {
+            LOGGER.debug("Content type detection failed.", e);
+            return null;
+        }
     }
 }

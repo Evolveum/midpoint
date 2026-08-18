@@ -13,8 +13,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 /**
  * Small generated fixtures used by file validation and sanitization tests.
@@ -69,6 +76,60 @@ public final class FileTestConstants {
                 endobj
                 %%EOF
                 """.getBytes(StandardCharsets.US_ASCII);
+    }
+
+    public static byte[] docxBytes() throws IOException {
+        try (XWPFDocument document = new XWPFDocument();
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            document.createParagraph().createRun().setText("test");
+            document.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    public static byte[] xlsxBytes() throws IOException {
+        try (XSSFWorkbook workbook = new XSSFWorkbook();
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            workbook.createSheet("test").createRow(0).createCell(0).setCellValue(1);
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    public static byte[] legacyXlsBytes() throws IOException {
+        try (HSSFWorkbook workbook = new HSSFWorkbook();
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            workbook.createSheet("test").createRow(0).createCell(0).setCellValue(1);
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
+
+    /**
+     * ODF container with the {@code mimetype} entry first and uncompressed,
+     * as required by the ODF specification and written by OpenOffice/LibreOffice.
+     */
+    public static byte[] odtBytes() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            byte[] mimeType = "application/vnd.oasis.opendocument.text".getBytes(StandardCharsets.US_ASCII);
+            ZipEntry mimeTypeEntry = new ZipEntry("mimetype");
+            mimeTypeEntry.setMethod(ZipEntry.STORED);
+            mimeTypeEntry.setSize(mimeType.length);
+            CRC32 crc = new CRC32();
+            crc.update(mimeType);
+            mimeTypeEntry.setCrc(crc.getValue());
+            zip.putNextEntry(mimeTypeEntry);
+            zip.write(mimeType);
+            zip.closeEntry();
+
+            zip.putNextEntry(new ZipEntry("content.xml"));
+            zip.write(("<?xml version=\"1.0\"?>"
+                    + "<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\"/>")
+                    .getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
+        return out.toByteArray();
     }
 
     private static byte[] imageBytes(String format, int imageType, Color color) throws IOException {
