@@ -12,31 +12,28 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Dispatches events to cache listeners (currently CacheRegistry and ClusterCacheListener).
+ * Dispatches "object modified" (invalidation) events to cache listeners: both local and clusterwide.
+ *
+ * @see ClusterwideCacheInvalidationListener
+ * @see CacheInvalidationDispatcher
  */
-public interface CacheDispatcher {
+public interface ClusterwideCacheInvalidationDispatcher {
 
-    default void registerCacheListener(CacheListener cacheListener) {
-        registerCacheInvalidationListener(cacheListener);
-    }
+    void registerListener(ClusterwideCacheInvalidationListener listener);
 
-    default void unregisterCacheListener(CacheListener cacheListener) {
-        unregisterCacheInvalidationListener(cacheListener);
-    }
-
-    void registerCacheInvalidationListener(CacheInvalidationListener cacheListener);
-
-    void unregisterCacheInvalidationListener(CacheInvalidationListener cacheListener);
-
+    void unregisterListener(ClusterwideCacheInvalidationListener listener);
 
     /**
      * Dispatches "cache entry/entries invalidation" event to all relevant caches, even clusterwide if requested so.
+     *
      * @param type Type of object(s) to be invalidated. Null means 'all types' (implies oid is null as well).
      * @param oid Object(s) to be invalidated. Null means 'all objects of given type(s)'.
      * @param clusterwide True if the event has to be distributed clusterwide.
      * @param context Context of the invalidation request (optional).
      */
-    <O extends ObjectType> void dispatchInvalidation(@Nullable Class<O> type, @Nullable String oid, boolean clusterwide,
+    <O extends ObjectType> void dispatchInvalidation(
+            @Nullable Class<O> type,
+            @Nullable String oid,
+            boolean clusterwide,
             @Nullable CacheInvalidationContext context);
-
 }

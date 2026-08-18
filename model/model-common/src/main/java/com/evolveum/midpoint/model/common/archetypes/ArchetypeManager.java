@@ -9,12 +9,13 @@ package com.evolveum.midpoint.model.common.archetypes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.repo.api.*;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -32,8 +33,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.Cache;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
@@ -68,7 +67,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * @author Radovan Semancik
  */
 @Component
-public class ArchetypeManager implements Cache {
+public class ArchetypeManager implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeManager.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ArchetypeManager.class.getName() + ".content");
@@ -83,7 +82,8 @@ public class ArchetypeManager implements Cache {
     );
 
     @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired private ArchetypeDeterminer archetypeDeterminer;
     @Autowired private ArchetypePolicyMerger archetypePolicyMerger;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
@@ -96,12 +96,14 @@ public class ArchetypeManager implements Cache {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     /**
@@ -406,7 +408,12 @@ public class ArchetypeManager implements Cache {
     }
 
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         // This seems to be harsh (and probably is), but a policy can really depend on a mix of objects. So we have to play
         // it safely and invalidate eagerly. Hopefully objects of these types do not change often.
         if (type == null || INVALIDATION_RELATED_CLASSES.contains(type)) {

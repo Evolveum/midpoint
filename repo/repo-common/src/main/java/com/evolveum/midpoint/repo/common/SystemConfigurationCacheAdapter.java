@@ -7,49 +7,53 @@
 package com.evolveum.midpoint.repo.common;
 
 import java.util.Collection;
-import java.util.Collections;
+
+import com.evolveum.midpoint.repo.api.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.repo.api.Cache;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
- * Adapter from SystemConfigurationChangeDispatcher to {@link Cache}.
+ * Adapter from {@link SystemConfigurationChangeDispatcher} to {@link CacheInvalidationListener}.
  * Distributes events about system configuration invalidation changes.
  */
 @Component
-public class SystemConfigurationCacheAdapter implements Cache {
+public class SystemConfigurationCacheAdapter implements CacheInvalidationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationCacheAdapter.class);
 
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             // We ignore OID by now, assuming there's only a single system configuration object
             try {
@@ -60,16 +64,5 @@ public class SystemConfigurationCacheAdapter implements Cache {
                         .logUnexpectedException(LOGGER, "Couldn't dispatch information about updated system configuration", t);
             }
         }
-    }
-
-    @NotNull
-    @Override
-    public Collection<SingleCacheStateInformationType> getStateInformation() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public void dumpContent() {
-        // nothing to do here
     }
 }

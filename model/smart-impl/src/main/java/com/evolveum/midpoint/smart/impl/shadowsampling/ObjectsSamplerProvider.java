@@ -7,13 +7,16 @@
 
 package com.evolveum.midpoint.smart.impl.shadowsampling;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -32,13 +35,19 @@ public class ObjectsSamplerProvider {
     }
 
     /**
-     * Returns a sampler bound to the given resource and type definition for correlation operations.
+     * Returns a sampler bound to the given resource and type definition for correlation operations,
+     * checking if specifically the required attribute paths are effectively cached.
      */
     public ObjectsSampler<List<PrismObject<ShadowType>>> getCorrelationSampler(
-            ResourceObjectDefinition typeDefinition, ResourceType resource) {
+            ResourceObjectDefinition typeDefinition,
+            ResourceType resource,
+            @Nullable Collection<ItemPath> requiredAttributePaths) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         Objects.requireNonNull(resource, "resource cannot be null");
-        return typeDefinition.isCachingEnabled()
+        boolean cached = requiredAttributePaths != null
+                ? areRequiredAttributesCached(typeDefinition, requiredAttributePaths)
+                : areAllAttributesCached(typeDefinition);
+        return cached
                 ? new CorrelationObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
                 : new CorrelationObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
     }
@@ -50,7 +59,7 @@ public class ObjectsSamplerProvider {
             ResourceObjectDefinition typeDefinition, ResourceType resource) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         Objects.requireNonNull(resource, "resource cannot be null");
-        return typeDefinition.isCachingEnabled()
+        return areAllAttributesCached(typeDefinition)
                 ? new MappingObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
                 : new MappingObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
     }
@@ -60,8 +69,19 @@ public class ObjectsSamplerProvider {
      */
     public int getExpectedMappingSampleSize(ResourceObjectDefinition typeDefinition) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
-        return typeDefinition.isCachingEnabled()
+        return areAllAttributesCached(typeDefinition)
                 ? MappingObjectsSamplerWhenShadowCacheEnabled.getExpectedSampleSize()
                 : MappingObjectsSamplerWhenShadowCacheDisabled.getExpectedSampleSize();
+    }
+
+    private boolean areRequiredAttributesCached(ResourceObjectDefinition typeDefinition, Collection<ItemPath> requiredPaths) {
+        return typeDefinition.isCachingEnabled()
+                && requiredPaths.stream().allMatch(typeDefinition::isEffectivelyCached);
+    }
+
+    private boolean areAllAttributesCached(ResourceObjectDefinition typeDefinition) {
+        return typeDefinition.isCachingEnabled()
+                && typeDefinition.getAttributeDefinitions().stream()
+                        .allMatch(attrDef -> attrDef.isEffectivelyCached(typeDefinition));
     }
 }

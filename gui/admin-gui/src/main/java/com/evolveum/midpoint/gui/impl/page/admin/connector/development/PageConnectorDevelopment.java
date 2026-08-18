@@ -108,4 +108,9 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
     protected boolean canShowWizard() {
         return true;
     }
+
+    @Override
+    protected boolean isShowToastForSuccessSave() {
+        return false;
+    }
 }

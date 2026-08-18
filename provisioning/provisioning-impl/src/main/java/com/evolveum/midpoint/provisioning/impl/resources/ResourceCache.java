@@ -8,9 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.Cache;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
@@ -21,6 +19,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 
@@ -56,23 +55,26 @@ import static com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLe
  * @author Radovan Semancik
  */
 @Component
-public class ResourceCache implements Cache {
+public class ResourceCache implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ResourceCache.class.getName() + ".content");
 
     @Autowired private ResourceSchemaRegistry resourceSchemaRegistry;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     /**
@@ -217,7 +219,12 @@ public class ResourceCache implements Cache {
     }
 
     @Override
-    public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public synchronized <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(ResourceType.class)) {
             if (oid != null) {
                 invalidateSingle(oid);

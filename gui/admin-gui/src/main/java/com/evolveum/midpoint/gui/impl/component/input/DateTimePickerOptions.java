@@ -216,8 +216,7 @@ public class DateTimePickerOptions implements Serializable {
             if (formats != null && StringUtils.isNotEmpty(formats.getLongDateTimeFormat())) {
                 pattern = WebComponentUtil.getLocalizedDatePattern(formats.getLongDateTimeFormat());
             } else {
-                pattern = ((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
-                        SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern();
+                pattern = WebComponentUtil.getLocalizedDatePattern("LS");   // Long date and Short time formats are default
             }
 
             return replaceSpecificCharacters(pattern);
