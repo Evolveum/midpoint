@@ -5128,5 +5128,29 @@
     <!--    </xsd:restriction>-->
     <!--</xsd:simpleType>-->
 
+    <xsd:simpleType name="ImageFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Image format that is used to store uploaded image.
+                Used by fileUploadConfiguration/item/convertImageTo.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jpg">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JPG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="png">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PNG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
