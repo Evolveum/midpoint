@@ -82,6 +82,7 @@
         <constructor-arg name="localizationService" ref="localizationService"/>
         <constructor-arg name="basicExpressionFunctions" ref="basicFunctionObject"/>
         <constructor-arg name="midpointExpressionFunctions" ref="midpointFunctionsImpl"/>
+        <constructor-arg name="cacheInvalidationDispatcher" ref="cacheInvalidationDispatcherImpl"/>
     </bean>
 
 

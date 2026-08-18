@@ -819,7 +819,8 @@ public class ExpressionUtil {
             String code = script.getCode();
 
             return code.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
-                    || code.contains(ExpressionConstants.VAR_ITERATION);
+                    || code.contains(ExpressionConstants.VAR_ITERATION)
+                    || code.contains(ExpressionConstants.VAR_ATTEMPT);
 
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't parse script expression.", e);

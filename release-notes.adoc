@@ -83,6 +83,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Upgraded AdminLTE to 4.1. See bug:MID-11538[].
 * Added support for "null" expression. See bug:MID-11867[].
 * Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
+* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
 
 
 #TODO#
@@ -183,6 +184,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
 * Fixed internal server error when opening the OTP tab for a new application. See bug:MID-11927[]
 * Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
+* Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
 
 === Releases Of Other Components
 
@@ -422,6 +424,12 @@ In such cases, if no explicit translation key was provided, midPoint attempted t
 Starting from 4.11 version, the orig value will never be translated.
 Please ensure that all PolyStringType values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
+
+* Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
+By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
+The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
+In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 
 === Changes In Initial Objects Since 4.10
 

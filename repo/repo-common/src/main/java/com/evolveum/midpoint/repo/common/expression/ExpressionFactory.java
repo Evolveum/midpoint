@@ -9,8 +9,11 @@ package com.evolveum.midpoint.repo.common.expression;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -29,8 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -45,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
  *
  * @author semancik
  */
-public class ExpressionFactory implements Cache {
+public class ExpressionFactory implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -55,7 +56,8 @@ public class ExpressionFactory implements Cache {
     private final LocalizationService localizationService;
     private final Map<QName, ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
 
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
 
     @NotNull private final Map<ExpressionIdentifier, Expression<?, ?>> cache = new ConcurrentHashMap<>();
 
@@ -78,12 +80,14 @@ public class ExpressionFactory implements Cache {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     public void setObjectResolver(ObjectResolver objectResolver) {
@@ -267,7 +271,12 @@ public class ExpressionFactory implements Cache {
     }
 
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             LOGGER.trace("Invalidating expression factory cache");
             // Currently we don't attempt to select entries to be cleared based on function library OID

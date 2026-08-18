@@ -76,7 +76,7 @@ public class TestMelExpressions extends AbstractScriptTest {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
         return new MelScriptEvaluator(prismContext, protector, localizationService,
                 (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
-                null);
+                null, null);
     }
 
     @Override
@@ -1900,6 +1900,18 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testObjectTypeEqualsString() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-type-equals-bar.xml",
+                createVariables(
+                        "foo", userJack, userJack.getDefinition(),
+                        "bar", UserType.COMPLEX_TYPE.getLocalPart(), PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
     public void testUserAssignmentFirst() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-assignment-first.xml",
@@ -2386,8 +2398,6 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 Boolean.FALSE);
     }
-
-    // TODO: qname == string
 
     @Test
     public void testExpressionNullString() throws Exception {
@@ -3904,6 +3914,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 "FooBAR",
                 2, 5, "5-string");
+
 
         // TODO: different return type
         // TODO: different expression profile

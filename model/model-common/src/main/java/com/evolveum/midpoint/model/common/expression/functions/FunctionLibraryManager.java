@@ -11,10 +11,8 @@ import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.repo.api.*;
 
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
@@ -31,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 
 import jakarta.annotation.PostConstruct;
@@ -53,7 +52,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  * Manages the function libraries, especially the ones that are created by parsing {@link FunctionLibraryType} objects.
  */
 @Component
-public class FunctionLibraryManager implements Cache {
+public class FunctionLibraryManager implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(FunctionLibraryManager.class);
     private static final Trace LOGGER_CACHE_CONTENT =
@@ -65,7 +64,8 @@ public class FunctionLibraryManager implements Cache {
     private static final String OP_FETCH_FUNCTION_LIBRARIES = FunctionLibraryManager.class.getName() + ".fetchFunctionLibraries";
 
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService repositoryService;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ExpressionProfileManager expressionProfileManager;
 
@@ -77,12 +77,14 @@ public class FunctionLibraryManager implements Cache {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     public @NotNull List<FunctionLibraryBinding> getFunctionLibraryBindings(OperationResult result)
@@ -185,7 +187,12 @@ public class FunctionLibraryManager implements Cache {
     }
 
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             // Currently we don't try to select entries to be cleared based on OID
             invalidate();

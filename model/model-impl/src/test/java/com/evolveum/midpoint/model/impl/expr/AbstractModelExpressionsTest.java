@@ -87,8 +87,10 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     @Autowired private ExpressionFactory expressionFactory;
 
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(BASE_TEST_DIR, "orgstruct.xml");
-    private static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
+    protected static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY =
             TestObject.file(BASE_TEST_DIR, "function-library.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
+    protected static final TestObject<FunctionLibraryType> FUNCTION_LIBRARY_MODIFIED =
+            TestObject.file(BASE_TEST_DIR, "function-library-modified.xml", "42c6fef1-370c-466b-a52e-747b52aacf0d");
     private static final TestObject<FunctionLibraryType> UTIL_LIBRARY =
             TestObject.file(BASE_TEST_DIR, "util-library.xml", "20afa268-5377-11f1-9f90-9c6b00360713");
 

@@ -1654,6 +1654,20 @@ If the `activation/effectiveStatus` is not present, the return value of the meth
 focus.isEffectivelyEnabled()
 ----
 
+==== type
+
+`object.type()` -> qname
+
+Returns type of the object in QName form.
+The type corresponds to types as specified in midPoint schema, (e.g. `UserType`, `RoleType`).
+
+.Example
+[source,mel]
+----
+focus.type() == 'UserType'
+----
+
+
 ==== hasRelation
 
 `assignment.hasRelation(relation)` -> bool

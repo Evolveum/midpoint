@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -75,25 +76,19 @@ public class MappingObjectsSamplerWhenShadowCacheDisabled implements ObjectsSamp
         AtomicInteger totalCount = new AtomicInteger(0);
         Random random = new Random(1);
 
+        ObjectQuery query = Resource.of(resource)
+                .queryFor(typeDefinition.getTypeIdentification())
+                .build();
+
         modelService.searchObjectsIterative(
                 ShadowType.class,
-                Resource.of(resource)
-                        .queryFor(typeDefinition.getTypeIdentification())
-                        .build(),
+                query,
                 (shadow, lResult) -> {
                     try {
                         int i = totalCount.getAndIncrement();
 
                         // Decide if this shadow should go into reservoir based on reservoir sampling algorithm
-                        Integer reservoirPosition = null;
-                        if (reservoir.size() < totalSize) {
-                            reservoirPosition = reservoir.size();
-                        } else {
-                            int j = random.nextInt(i + 1);
-                            if (j < totalSize) {
-                                reservoirPosition = j;
-                            }
-                        }
+                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, totalSize);
 
                         // If shadow should go into reservoir, load it fully from resource
                         if (reservoirPosition != null) {
@@ -104,11 +99,7 @@ public class MappingObjectsSamplerWhenShadowCacheDisabled implements ObjectsSamp
 
                             // Test predicate and add to reservoir if it passes
                             if (acceptancePredicate.test(fullShadow)) {
-                                if (reservoirPosition < reservoir.size()) {
-                                    reservoir.set(reservoirPosition, fullShadow);
-                                } else {
-                                    reservoir.add(fullShadow);
-                                }
+                                addToReservoir(reservoir, reservoirPosition, fullShadow);
                             }
                         }
                         return true;
@@ -122,12 +113,68 @@ public class MappingObjectsSamplerWhenShadowCacheDisabled implements ObjectsSamp
                 task,
                 result);
 
-        if (reservoir.isEmpty() && totalCount.get() > 0) {
-            LOGGER.warn("No shadows were loaded from resource {}/{} after processing {} candidates",
-                    resource.getOid(), typeDefinition.getTypeIdentification(), totalCount.get());
+        if (totalCount.get() == 0) {
+            sampleDirectlyFromResource(query, reservoir, totalCount, totalSize, acceptancePredicate, task, result);
+        }
+
+        if (reservoir.isEmpty()) {
+            LOGGER.warn("No shadows were loaded from resource {}/{}",
+                    resource.getOid(), typeDefinition.getTypeIdentification());
         }
 
         return splitReservoirIntoSamples(reservoir);
+    }
+
+    private void sampleDirectlyFromResource(
+            ObjectQuery query,
+            List<PrismObject<ShadowType>> reservoir,
+            AtomicInteger totalCount,
+            int totalSize,
+            Predicate<PrismObject<ShadowType>> acceptancePredicate,
+            Task task,
+            OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
+
+        Random random = new Random(1);
+
+        modelService.searchObjectsIterative(
+                ShadowType.class,
+                query,
+                (shadow, lResult) -> {
+                    try {
+                        int i = totalCount.getAndIncrement();
+                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, totalSize);
+
+                        if (reservoirPosition != null && acceptancePredicate.test(shadow)) {
+                            addToReservoir(reservoir, reservoirPosition, shadow);
+                        }
+                        return true;
+                    } finally {
+                        lResult.computeStatusIfUnknown();
+                        lResult.setSummarizeSuccesses(true);
+                        lResult.summarize();
+                    }
+                },
+                GetOperationOptions.createReadOnlyCollection(),
+                task,
+                result);
+    }
+
+    private Integer getReservoirPosition(int currentSize, int index, Random random, int sampleSize) {
+        if (currentSize < sampleSize) {
+            return currentSize;
+        }
+        int j = random.nextInt(index + 1);
+        return j < sampleSize ? j : null;
+    }
+
+    private void addToReservoir(List<PrismObject<ShadowType>> reservoir, int position, PrismObject<ShadowType> item) {
+        if (position < reservoir.size()) {
+            reservoir.set(position, item);
+        } else {
+            reservoir.add(item);
+        }
     }
 
     private MappingSampleResult splitReservoirIntoSamples(List<PrismObject<ShadowType>> reservoir) {

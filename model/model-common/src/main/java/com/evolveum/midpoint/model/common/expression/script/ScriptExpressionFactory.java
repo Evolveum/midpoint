@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorsProfile;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationExpressionsType;
@@ -245,9 +246,10 @@ public class ScriptExpressionFactory {
         if (systemObjectCache != null) {
             SystemConfigurationExpressionsType expressionsConfig = null;
             try {
-                expressionsConfig = systemObjectCache.getSystemConfiguration(result).asObjectable().getExpressions();
+                var systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+                expressionsConfig = systemConfiguration != null ? systemConfiguration.asObjectable().getExpressions() : null;
             } catch (SchemaException e) {
-                LOGGER.error("Schema error when determining default scripting language: "+e.getMessage(), e);
+                LoggingUtils.logUnexpectedException(LOGGER, "Schema error when determining default scripting language", e);
             }
             if (expressionsConfig != null) {
                 systemDefaultLanguage = expressionsConfig.getDefaultScriptLanguage();

@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationListener;
+
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.ws.rs.core.Response;
 
 import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
@@ -19,8 +22,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.authentication.api.config.NodeAuthenticationToken;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CacheListener;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
@@ -30,25 +32,33 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Passes invalidation events to remote nodes in the cluster.
+ */
 @Component
-public class ClusterCacheListener implements CacheListener {
+public class RemoteNodeInvalidationEventDispatcher implements ClusterwideCacheInvalidationListener {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ClusterCacheListener.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RemoteNodeInvalidationEventDispatcher.class);
 
     @Autowired private TaskManager taskManager;
-    @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
 
     @PostConstruct
-    public void addListener() {
-        cacheDispatcher.registerCacheListener(this);
+    public void registerMyselfAsListener() {
+        cacheDispatcher.registerListener(this);
+    }
+
+    @PreDestroy
+    public void unregisterMyselfAsListener() {
+        cacheDispatcher.unregisterListener(this);
     }
 
     @Override
-    public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
-            CacheInvalidationContext context) {
+    public <O extends ObjectType> void invalidate(
+            Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
 
-        if (!canExecute(type, oid, clusterwide, context)) {
+        if (!shouldExecute(type, oid, clusterwide, context)) {
             return;
         }
 
@@ -90,7 +100,8 @@ public class ClusterCacheListener implements CacheListener {
         return sb.toString();
     }
 
-    private <O extends ObjectType> boolean canExecute(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
+    private <O extends ObjectType> boolean shouldExecute(
+            Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context) {
         if (!clusterwide) {
             LOGGER.trace("Ignoring invalidate() call for type {} (oid={}) because clusterwide=false", type, oid);
             return false;

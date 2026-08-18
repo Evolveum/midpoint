@@ -11,4 +11,34 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC2
 == 4.11-RC1
 == 4.11-M6
+
+=== 2026-08-17 Cleaned-up internal APIs related to caching
+
+Task: https://support.evolveum.com/wp/11992[11992]
+Description:
+
+Internal APIs for caching were cleaned-up.
+
+- Legacy `com.evolveum.midpoint.repo.api.Cache` and `com.evolveum.midpoint.repo.api.CacheListener` are gone.
+- They are replaced by `com.evolveum.midpoint.repo.api.CacheInvalidationDispatcher` and `com.evolveum.midpoint.repo.api.CacheDiagnostics` (usually you need both).
+- `repo.api.CacheDispatcher` was renamed to `repo.api.ClusterwideCacheInvalidationDispatcher`.
+- Cache diagnostics were changed as well, see `repo.api.CacheDiagnosticsService`.
+
+Required Upgrade Steps:
+- If you implemented custom caching code (class that extends `Cache` or `CacheListener` interfaces): please update your code according to changes in this commit.
+- If you called `CacheDispatcher#dispatchInvalidation` method: please call it on `ClusterwideCacheInvalidationDispatcher`.
+- If you need cache diagnostics, check the `repo.api.CacheDiagnosticsService`.
+
+Notes & References:
+* Related commits: <this one>
+* Docs: See `CacheInvalidationListener`, `ClusterwideCacheInvalidationDispatcher`, `CacheDiagnostics`, and `CacheDiagnosticsService` interfaces.
+
+
+=== 2026-08-18 Added useTokenOnlyOnConflict flag to iteration specification
+
+* Iteration specification (`IterationType`) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
+By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
+The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+This can break existing custom token expressions that expect to be evaluated on the first (non conflicting) attempt.
+In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 == 4.11-M5

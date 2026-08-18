@@ -72,7 +72,8 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY,
                                     ContainerValueCelValue.CEL_TYPE,
                                     QNameCelValue.CEL_TYPE)),
-                    CelFunctionBinding.from("prism-container-index_map-qname", ContainerValueCelValue.class, QNameCelValue.class,
+                    CelFunctionBinding.from("prism-container-index_map-qname",
+                            ContainerValueCelValue.class, QNameCelValue.class,
                             CelObjectExtensions::prismIndexMap)),
 
                 new Function(
@@ -81,10 +82,12 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                 CelOverloadDecl.newMemberOverload(
                                         "prism-object-isEffectivelyEnabled",
                                         "Returns true if the object is effectively enabled.",
-                                        SimpleType.ANY,
+                                        SimpleType.BOOL,
                                         ObjectCelValue.CEL_TYPE)),
-                        CelFunctionBinding.from("prism-object-isEffectivelyEnabled", ObjectCelValue.class,
-                                CelObjectExtensions::isEffectivelyEnabled)),
+                        CelFunctionBinding.from("prism-object-isEffectivelyEnabled",
+                                ObjectCelValue.class,
+                                CelObjectExtensions::isEffectivelyEnabled,
+                                NullabilityProperties.NULLABLE_FALSE)),
 
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -95,8 +98,24 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY,
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.STRING)),
-                    CelFunctionBinding.from("prism-object-finditem-string", ObjectCelValue.class, String.class,
-                            CelObjectExtensions::prismFind)),
+                    CelFunctionBinding.from("prism-object-finditem-string",
+                            ObjectCelValue.class, String.class,
+                            CelObjectExtensions::prismFind,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // object.type()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "type",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-object-type",
+                                    "Returns object type in QName form.",
+                                    QNameCelValue.CEL_TYPE,
+                                    ObjectCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-object-type",
+                            ObjectCelValue.class,
+                            CelObjectExtensions::objectType,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // resource.connectorConfiguration(propertyName)
             new Function(
@@ -108,8 +127,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.ANY)),
-                    CelFunctionBinding.from("mp-resource-connectorConfiguration", Object.class, Object.class,
-                            this::connectorConfiguration)),
+                    CelFunctionBinding.from("mp-resource-connectorConfiguration",
+                            Object.class, Object.class,
+                            this::connectorConfiguration,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // shadow.primaryIdentifiers()
             new Function(
@@ -120,8 +141,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     "Returns list of values of shadow primary identifier.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE)),
-                    CelFunctionBinding.from("mp-shadow-primaryIdentifiers", Object.class,
-                            this::primaryIdentifiers)),
+                    CelFunctionBinding.from("mp-shadow-primaryIdentifiers",
+                            Object.class,
+                            this::primaryIdentifiers,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // shadow.secondaryIdentifiers()
             new Function(
@@ -132,8 +155,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     "Returns list of values of shadow secondary identifier.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE)),
-                    CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,
-                            this::secondaryIdentifiers)),
+                    CelFunctionBinding.from("mp-shadow-secondaryIdentifiers",
+                            Object.class,
+                            this::secondaryIdentifiers,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // ASSIGNMENT FUNCTIONS
 
@@ -288,6 +313,14 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 //                            NullabilityProperties.NULLABLE_FALSE))
         );
 
+    }
+
+    private static Object objectType(ObjectCelValue<?> object) {
+        PrismObjectDefinition<?> definition = object.getObject().getDefinition();
+        if (definition == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return QNameCelValue.create(definition.getTypeName());
     }
 
     private static Object hasDeltaFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
