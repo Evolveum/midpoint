@@ -35,7 +35,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
-== Changes with Respect To Version 4.9.8
+== Changes with Respect To Version 4.9.7
 
 * Updated Spring Boot to 4.0 and Hibernate to 7.1.8. See bug:MID-11002[]
 * Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
@@ -44,6 +44,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
 * Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 * Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
+* Fixed the multiple click on Submit request button in Role catalog. See bug:MID-11939[]
 
 == Changes with Respect To Version 4.9.6
 
