@@ -30,9 +30,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -47,11 +49,14 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class ConnectorDevelopmentWizardUtil {
 
@@ -169,7 +174,7 @@ public class ConnectorDevelopmentWizardUtil {
     /**
      * The single line shown in the step's feedback alert: always just a short summary (affected
      * file count), regardless of how many errors there are - the concrete detail always goes to
-     * the sidebar instead, see {@link #scriptValidationOperationResult}.
+     * the sidebar instead, see {@link #reportScriptValidationErrors}.
      */
     public static String scriptValidationErrorMessage(
             ConnDevArtifactValidationResult validation, String fileName, PageAdminLTE page) {
@@ -181,15 +186,13 @@ public class ConnectorDevelopmentWizardUtil {
     }
 
     /**
-     * Per-error detail for the wizard's right-side drawer (see {@code WizardModelWithParentSteps
-     * #addOperationResult}) - the feedback alert only ever shows the one-line summary above, so
-     * this is where the user finds the concrete error(s), even when there's just one.
+     * Builds the per-error detail shown for one drawer entry, scoped to a single source file (the
+     * artifact under edit, or one broken sibling) - see {@link #reportScriptValidationErrors}.
      */
-    public static OperationResult scriptValidationOperationResult(
-            ConnDevArtifactValidationResult validation, String fileName) {
-        var result = new OperationResult("Script validation: " + fileName);
-        for (var error : validation.errors()) {
-            String source = error.source() != null ? error.source() : fileName;
+    private static OperationResult buildValidationOperationResult(
+            List<ConnDevArtifactValidationResult.Error> errors, String source) {
+        var result = new OperationResult("Script validation: " + source);
+        for (var error : errors) {
             var sub = result.createSubresult(source + (error.phase() != null ? " (" + error.phase() + ")" : ""));
             String message = error.line() != null
                     ? source + ":" + error.line() + " - " + error.message()
@@ -200,26 +203,77 @@ public class ConnectorDevelopmentWizardUtil {
         return result;
     }
 
-    /** Drops any sidebar entry left over from a previous, now-superseded validation of {@code panelId}. */
-    public static void clearScriptValidationErrors(AbstractWizardStepPanel<?> step, String panelId) {
+    /**
+     * Drops every sidebar entry left over from a previous, now-superseded validation attempt for
+     * this artifact - {@code stepId} is the same prefix passed to {@link
+     * #reportScriptValidationErrors}, since one validation attempt can fan out into several
+     * entries (one per broken sibling file), not just one.
+     */
+    public static void clearScriptValidationErrors(AbstractWizardStepPanel<?> step, String stepId) {
         if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
-            wizardModel.removeOperationResult(panelId);
+            wizardModel.removeOperationResultsByPrefix(stepId + ".");
         }
     }
 
     /**
      * Pushes the concrete validation error(s) to the wizard's right-side drawer and refreshes it -
      * the feedback alert only ever shows the one-line summary from {@link
-     * #scriptValidationErrorMessage}, so this is where the user finds the detail.
+     * #scriptValidationErrorMessage}. One entry is added per distinct affected file rather than a
+     * single combined entry, so a broken sibling script gets its own fix button independently of
+     * any others. The artifact under edit itself (its own errors have no {@code source}, so its
+     * entry uses {@code fileName} as a stand-in) gets the button's default "Fix it"/navigate-back
+     * behavior, pointed at this very step - which correctly hides it while the step is active. A
+     * broken sibling instead repurposes the same button as "Disable operation" (see {@link
+     * ConnectorDevelopmentOperation#disableArtifact}), since there's nowhere to navigate to fix a
+     * script other than editing its already-deployed content, which disabling bypasses.
      */
     public static void reportScriptValidationErrors(
-            AbstractWizardStepPanel<?> step, String panelId,
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String stepId,
             ConnDevArtifactValidationResult validation, String fileName, AjaxRequestTarget target) {
         if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
             return;
         }
-        wizardModel.addOperationResult(panelId, scriptValidationOperationResult(validation, fileName));
+        var bySource = validation.errors().stream()
+                .collect(Collectors.groupingBy(
+                        error -> error.source() != null ? error.source() : fileName,
+                        LinkedHashMap::new, Collectors.toList()));
+        for (var entry : bySource.entrySet()) {
+            String source = entry.getKey();
+            String panelId = stepId + "." + source;
+            var result = buildValidationOperationResult(entry.getValue(), source);
+            if (source.equals(fileName)) {
+                wizardModel.addOperationResult(panelId, step.getStepId(), result);
+            } else {
+                wizardModel.addOperationResult(panelId, result, disableAction(step, panelId, source),
+                        "OperationResultCollapsedItemPanel.disableButton", "fa fa-ban");
+            }
+        }
         refreshDrawerPanel(step, target);
+    }
+
+    /**
+     * Builds the fix button's click handler for a broken sibling script's drawer entry, repurposed
+     * as "Disable operation" (see {@link #reportScriptValidationErrors}): marks it disabled in the
+     * manifest (see {@link ConnectorDevelopmentOperation#disableArtifact}), then removes just this
+     * one entry and refreshes the drawer - the original save attempt that surfaced the breakage is
+     * not retried automatically.
+     */
+    private static SerializableConsumer<AjaxRequestTarget> disableAction(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String panelId, String source) {
+        return clickTarget -> {
+            Task task = step.getPageBase().createSimpleTask(ConnectorDevelopmentWizardUtil.class.getName() + ".disableArtifact");
+            try {
+                step.getDetailsModel().getConnectorDevelopmentOperation().disableArtifact(source, task, task.getResult());
+            } catch (IOException | CommonException | RuntimeException e) {
+                step.getPageBase().error("Couldn't disable " + source + ": " + e.getMessage());
+                clickTarget.add(step.getWizard().getPanel());
+                return;
+            }
+            if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                wizardModel.removeOperationResult(panelId);
+            }
+            refreshDrawerPanel(step, clickTarget);
+        };
     }
 
     /**

@@ -216,7 +216,10 @@ public abstract class ConnectorDevelopmentBackend {
         }
 
         saveConnectorFile(artifact.getFilename(), artifact.getContent());
-        var modelArtifact = artifact.clone().content(null);
+        // Saving through the script's own step is the user's declaration that it's fixed and back
+        // in use - clears a stale disabled:true left over from disabling it as a broken sibling
+        // (see disableArtifact()) after a schema change, rather than requiring a separate re-enable step.
+        var modelArtifact = artifact.clone().content(null).disabled(false);
 
         var delta = deltaBuilder
                 .item(itemPath).replace(modelArtifact)
@@ -225,6 +228,50 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
         recomputeConnectorManifest();
         invalidateConnector();
+    }
+
+    /**
+     * Marks an already-deployed script as disabled in the manifest: the connector then skips it
+     * both when initializing for real and when reloading siblings during script validation (see
+     * conndev's manifest {@code disabled} flag). Lets the wizard offer a "Disable operation" action
+     * for a sibling script a schema change breaks, without deleting the script's content.
+     *
+     * @throws IllegalArgumentException if no deployed artifact has this filename
+     */
+    public void disableArtifact(String filename) throws IOException, CommonException {
+        var artifact = findArtifactByFilename(filename);
+        if (artifact == null) {
+            throw new IllegalArgumentException("No connector artifact found for filename " + filename);
+        }
+        var itemPath = ConnDevScriptIntentType.RELATION.equals(artifact.getIntent())
+                ? itemPathFor(artifact, ConnDevConnectorType.F_RELATION)
+                : itemPathFor(artifact, ConnDevConnectorType.F_OBJECT_CLASS);
+        if (itemPath == null) {
+            throw new IllegalArgumentException("No connector artifact found for filename " + filename);
+        }
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(itemPath.append(ConnDevArtifactType.F_DISABLED)).replace(true)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+        recomputeConnectorManifest();
+        invalidateConnector();
+    }
+
+    /**
+     * Finds the connector-scoped artifact whose filename matches {@code filename} (leading slash
+     * optional, since a validation error's {@code source} carries one but {@link
+     * ConnDevArtifactType#getFilename()} doesn't).
+     */
+    private ConnDevArtifactType findArtifactByFilename(String filename) {
+        if (filename == null) {
+            return null;
+        }
+        var normalized = filename.startsWith("/") ? filename.substring(1) : filename;
+        return ConnectorDevelopmentArtifacts.allArtifacts(development.getConnector()).stream()
+                .filter(a -> normalized.equals(a.getFilename()))
+                .findFirst().orElse(null);
     }
 
     /**
