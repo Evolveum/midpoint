@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
@@ -483,10 +482,5 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             return getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
                     Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of();
         }
-    }
-
-    public interface EvidenceUploadStateAware extends Serializable {
-
-        void evidenceUploadStateChanged(AjaxRequestTarget target, boolean invalid);
     }
 }

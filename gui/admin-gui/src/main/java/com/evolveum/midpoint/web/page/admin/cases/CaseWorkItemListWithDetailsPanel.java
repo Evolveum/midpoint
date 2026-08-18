@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.workflow.EvidenceUploadStateAware;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -43,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Created by honchar
  */
 public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType>
-        implements WorkItemDetailsPanel.EvidenceUploadStateAware {
+        implements EvidenceUploadStateAware {
 
     @Serial private static final long serialVersionUID = 1L;
 
