@@ -32,7 +32,7 @@
         <script>
             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
             <code>
-                'Hello ' + who
+                'Hello ' + who + ' !!!'
             </code>
         </script>
     </function>

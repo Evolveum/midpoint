@@ -76,7 +76,7 @@ public class TestMelExpressions extends AbstractScriptTest {
         FunctionLibraryBinding basicFunctionLibraryBinding = FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock);
         return new MelScriptEvaluator(prismContext, protector, localizationService,
                 (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
-                null);
+                null, null);
     }
 
     @Override
@@ -3904,6 +3904,7 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 "FooBAR",
                 2, 5, "5-string");
+
 
         // TODO: different return type
         // TODO: different expression profile
