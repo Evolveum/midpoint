@@ -193,6 +193,7 @@ public class SmartGeneratingAlertDto implements Serializable {
         Object[] args = state == SmartGenerationState.FINISHED
                 ? new Object[] { getSuggestedObjectsCount() }
                 : new Object[0];
+
         return state.createTextModel(pageBase, args);
     }
 
@@ -200,6 +201,11 @@ public class SmartGeneratingAlertDto implements Serializable {
         SmartGenerationState state = resolveState();
 
         if (state == SmartGenerationState.FINISHED) {
+
+            if(getSuggestedObjectsCount() == 0) {
+                return pageBase.createStringResource("SmartGeneratingPanel.defaultText.finished.noSuggestions");
+            }
+
             return state.createSubTextModel(pageBase, getSuggestedObjectsCount());
         }
 
