@@ -72,13 +72,6 @@ public class UploadDownloadPanel extends InputPanel {
         this.uploadItemPath = uploadItemPath;
     }
 
-    public void setAllowedUploadContentTypes(List<String> allowedUploadContentTypes) {
-        if (allowedUploadContentTypes == null) {
-            allowedUploadContentTypes = new ArrayList<>();
-        }
-        this.allowedUploadContentTypes = allowedUploadContentTypes;
-    }
-
     @Override
     protected void onInitialize() {
         super.onInitialize();

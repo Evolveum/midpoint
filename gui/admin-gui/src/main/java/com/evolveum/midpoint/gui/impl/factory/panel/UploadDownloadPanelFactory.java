@@ -91,8 +91,8 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
 
     public static String getDownloadFileName(ItemName name, String contentType) {
         String fileName = name.getLocalPart();
-        String extension = MimeTypeUtil.getDotExtension(contentType);
+        String extension = MimeTypeUtil.getExtension(contentType);
 
-        return extension != null ? fileName + extension : fileName;
+        return !extension.isEmpty() ? fileName + extension : fileName;
     }
 }
