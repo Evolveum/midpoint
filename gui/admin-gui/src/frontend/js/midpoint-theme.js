@@ -7,8 +7,7 @@
 import Sparkline from "sparklines";
 import {TempusDominus} from '@eonasdan/tempus-dominus';
 import {DateTime} from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
-import {Modal} from 'bootstrap';
-import {Toast} from 'bootstrap';
+import {Modal, Toast, Offcanvas} from 'bootstrap';
 import {createPopper} from '@popperjs/core';
 
 export default class MidPointTheme {
@@ -2119,5 +2118,26 @@ export default class MidPointTheme {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
 
         instance.show();
+    }
+
+    showOffcanvas(offcanvasId) {
+        const element = document.getElementById(offcanvasId);
+        if (!element) {
+            return;
+        }
+
+        Offcanvas.getOrCreateInstance(element).show();
+    }
+
+    hideOffcanvas(offcanvasId) {
+        const element = document.getElementById(offcanvasId);
+        if (!element) {
+            return;
+        }
+
+        const offcanvas = Offcanvas.getInstance(element);
+        if (offcanvas) {
+            offcanvas.hide();
+        }
     }
 }

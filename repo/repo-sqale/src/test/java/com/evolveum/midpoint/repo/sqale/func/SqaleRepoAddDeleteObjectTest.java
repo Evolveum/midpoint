@@ -1164,7 +1164,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .activation(new ActivationType()
-                        .disableReason(SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT)
+                        .disableReason(SchemaConstants.ModelDisableReason.EXPLICIT.uri)
                         .enableTimestamp(XmlTypeConverter.createXMLGregorianCalendar())
                 )
                 .extension(new ExtensionType());

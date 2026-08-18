@@ -183,6 +183,8 @@ This means that the account would exist under normal circumstances.
 But if the time constraint and condition in "delayed delete" mapping is evaluated to `true` value then the "delayed delete" mapping is applied instead and the "default existence" is ignored.
 Which means that the account gets deleted.
 
+For an administrator-oriented overview of the internal mechanics of this behavior, including the role of recompute triggers and the conditions under which deletion is postponed or skipped, see xref:/midpoint/reference/concepts/activation/delayed-delete/[Delayed Delete].
+
 ====
 
 [TIP]

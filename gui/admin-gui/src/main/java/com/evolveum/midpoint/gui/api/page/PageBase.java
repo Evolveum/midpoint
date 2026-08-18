@@ -135,7 +135,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_CART_LINK = "cartLink";
     private static final String ID_CART_COUNT = "cartCount";
     private static final String ID_ADDITIONAL_FOOTER = "additionalFooter";
-    private static final String ID_RIGHT_SIDEBAR = "rightSidebar";
+    private static final String ID_DRAWER = "drawer";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
 
@@ -505,13 +505,19 @@ public abstract class PageBase extends PageAdminLTE {
 
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
 
+
         DrawerInfoPanel<HelpDrawerInfoModel> rightSidebar =
                 new DrawerInfoPanel<>(
-                        ID_RIGHT_SIDEBAR,
-                        new HelpDrawerInfoModel()){
+                        ID_DRAWER,
+                        new HelpDrawerInfoModel()) {
                     @Override
                     protected String getMinWidth() {
                         return "30vw";
+                    }
+
+                    @Override
+                    protected void onClose(AjaxRequestTarget target) {
+                        hideDrawer(target);
                     }
                 };
 
@@ -523,30 +529,39 @@ public abstract class PageBase extends PageAdminLTE {
         initTimerBehavior();
     }
 
-    private DrawerInfoPanel<?> getRightSidebarPanel() {
-        return (DrawerInfoPanel<?>) get(ID_RIGHT_SIDEBAR);
+    private DrawerInfoPanel<?> getDrawerPanel() {
+        return (DrawerInfoPanel<?>) get(ID_DRAWER);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public <M extends DrawerDescriptor<M>> void replaceRightSidebarModel(
+    public <M extends DrawerDescriptor<M>> void replaceDrawerModel(
             @NotNull M drawerModel,
             @NotNull AjaxRequestTarget target) {
 
-        DrawerInfoPanel panel = getRightSidebarPanel();
+        DrawerInfoPanel panel = getDrawerPanel();
         panel.replaceModel(drawerModel, target);
     }
 
-    public void hideDrawer(AjaxRequestTarget target) {
-        DrawerInfoPanel<?> panel = getRightSidebarPanel();
-        panel.getDrawerModel().clearSelection();
-        target.add(panel);
-    }
-
-    public <M extends DrawerDescriptor<M>> void showRightSidebar(
+    public <M extends DrawerDescriptor<M>> void showDrawer(
             @NotNull M drawerModel,
             @NotNull AjaxRequestTarget target) {
 
-        replaceRightSidebarModel(drawerModel, target);
+        DrawerInfoPanel<?> panel = getDrawerPanel();
+        replaceDrawerModel(drawerModel, target);
+
+        target.appendJavaScript("""
+            MidPointTheme.showOffcanvas('%s');
+            """.formatted(panel.getMarkupId()));
+    }
+
+    public void hideDrawer(@NotNull AjaxRequestTarget target) {
+
+        DrawerInfoPanel<?> panel = getDrawerPanel();
+        panel.getDrawerModel().clearSelection();
+
+        target.appendJavaScript("""
+            MidPointTheme.hideOffcanvas('%s');
+            """.formatted(panel.getMarkupId()));
     }
 
     public void showRightSidebarHelp(
@@ -567,14 +582,7 @@ public abstract class PageBase extends PageAdminLTE {
         HelpDrawerInfoModel drawerModel =
                 new HelpDrawerInfoModel(titleModel, helpContent);
 
-        showRightSidebar(drawerModel, target);
-    }
-
-    public void closeRightSidebar(@NotNull AjaxRequestTarget target) {
-        DrawerInfoPanel<?> panel = getRightSidebarPanel();
-
-        panel.getDrawerModel().clearSelection();
-        target.add(panel);
+        showDrawer(drawerModel, target);
     }
 
     private void updateAccessibilityLogo(String logoId) {

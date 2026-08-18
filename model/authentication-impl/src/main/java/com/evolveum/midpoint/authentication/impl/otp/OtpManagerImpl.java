@@ -203,7 +203,7 @@ public class OtpManagerImpl implements OtpManager {
         if (principal == null) {
             return false;
         }
-        return focus.getOid().equals(principal.getOid());
+        return focus.getOid() != null && focus.getOid().equals(principal.getOid());
     }
 
     private SecurityPolicyType getCurrentPrincipalSecurityPolicy() {

@@ -238,7 +238,7 @@
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
-        <log4j2.version>2.26.0</log4j2.version>
+        <log4j2.version>2.26.1</log4j2.version>
         <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
         <!-- remove whole dependency tools.jackson.core:jackson-databind dependency
             definition when its above 3.1.4 (around L296) -->
@@ -246,6 +246,8 @@
         <logback.version>1.5.38</logback.version>
         <postgresql.version>42.7.12</postgresql.version>
         <netty.version>4.2.16.Final</netty.version>
+        <httpclient5.version>5.6.4</httpclient5.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->

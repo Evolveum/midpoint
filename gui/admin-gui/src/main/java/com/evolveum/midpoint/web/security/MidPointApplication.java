@@ -11,12 +11,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
 
 import de.agilecoders.wicket.webjars.WicketWebjars;
 import jakarta.servlet.ServletContext;
@@ -30,6 +29,8 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.request.handler.ListenerRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
 import org.apache.wicket.core.util.objects.checker.IObjectChecker;
@@ -40,6 +41,7 @@ import org.apache.wicket.csp.CSPDirective;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
+import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.markup.MarkupFactory;
 import org.apache.wicket.markup.MarkupParser;
 import org.apache.wicket.markup.MarkupResourceStream;
@@ -50,6 +52,9 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.pageStore.IPageStore;
 import org.apache.wicket.pageStore.disk.NestedFolders;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.IRequestCycleListener;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
@@ -333,6 +338,50 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
         settings.setIncludeCss(false);
+
+        // Intercept AJAX "change" events from form components and broadcast them
+        // as FormComponentUpdatingEvent so UI listeners (e.g., wizard save indicators)
+        // can react without being tightly coupled to the triggering component.
+        getRequestCycleListeners().add(new IRequestCycleListener() {
+            @Override
+            public void onRequestHandlerScheduled(RequestCycle cycle, IRequestHandler handler) {
+                try {
+                    if (handler instanceof AjaxRequestTarget target) {
+
+                        IRequestHandler requestHandler = cycle.getActiveRequestHandler();
+                        if ((!(requestHandler instanceof ListenerRequestHandler listenerRequestHandler))) {
+                            return;
+                        }
+
+                        if (!(listenerRequestHandler.getComponent() instanceof Component component)) {
+                            return;
+                        }
+
+                        Integer behaviourInd = listenerRequestHandler.getBehaviorIndex();
+                        if (behaviourInd == null) {
+                            return;
+                        }
+
+                        Page page = component.getPage();
+                        if (page == null) {
+                            return;
+                        }
+
+                        Behavior behavior = component.getBehaviorById(behaviourInd);
+                        if (behavior instanceof AjaxFormComponentUpdatingBehavior formComponentUpdatingBehavior) {
+
+                            if ("change".equalsIgnoreCase(formComponentUpdatingBehavior.getEvent())) {
+                                page.send(page, Broadcast.DEPTH, new FormComponentUpdatingEvent(target, component));
+                            }
+                        }
+
+                    }
+
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't find AjaxFormComponentUpdatingBehavior", e);
+                }
+            }
+        });
 
         cleanupWicketFileStore();
     }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,9 +34,11 @@ import java.util.List;
 class CorrelationSuggestionOperation {
 
     private final TypeOperationContext ctx;
+    private final ObjectsSamplerProvider samplerProvider;
 
-    CorrelationSuggestionOperation(TypeOperationContext ctx) {
+    CorrelationSuggestionOperation(TypeOperationContext ctx, ObjectsSamplerProvider samplerProvider) {
         this.ctx = ctx;
+        this.samplerProvider = samplerProvider;
     }
 
     /**
@@ -60,7 +63,7 @@ class CorrelationSuggestionOperation {
         var excludedPaths = mergeExcludedPaths(existingCorrelationPaths, targetPathsToIgnore);
         var suggestions = suggestCorrelationMappings(schemaMatch, correlators, excludedPaths);
 
-        var allScores = new CorrelatorEvaluator(ctx, suggestions)
+        var allScores = new CorrelatorEvaluator(ctx, suggestions, samplerProvider)
                 .evaluateSuggestions(result);
 
         // For each correlator, select the attribute with highest score

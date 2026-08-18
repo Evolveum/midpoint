@@ -1,13 +1,21 @@
-= Live Synchronization
+= Live synchronization
 :toc:
 
-The live synchronization task (or activity) processes a stream of so-called _change events_ coming from a resource.
-These events represent changes related to _resource objects_: their creation, modification, or deletion.
-The task ensures that these events are processed, so that changes on the resource objects are reflected
-on midPoint objects (and propagated to other resources, if needed).
+
+== Introduction
+
+Live synchronization (_live sync_) is one of midPoint's three core inbound mechanisms, alongside xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[import and reconciliation].
+A live sync task polls a resource for changes or _resource objects_ — new accounts, modifications, deletions — and propagates them into midPoint, where mappings and policies decide how the changes are reflected on user objects.
 
 The event stream is requested by midPoint: after a live synchronization activity starts, it asks the resource
-for recent changes. Please see a discussion on change token below.
+for recent changes.
+
+Live sync is the right choice when:
+
+* The resource exposes a reliable change log or change token, using mechanisms like LDAP `changelog`, AD `DirSync`, database `last_modified` columns, or an ICF-aware connector with native change detection.
+* Near-real-time propagation matters more than full consistency — live sync only sees changes since its last token, so objects that were missed are not picked up retroactively.
+
+For periodic full sweeps, pair live sync with a scheduled reconciliation task.
 
 == Basic Configuration
 
@@ -84,8 +92,32 @@ The unprocessed changes are left for the next task run. (This may change in the 
 with `preciseTokenValue` = `true`, i.e. that it assigns sync tokens to individual changes
 "incrementally", so it can resume live sync operation on each individual change.
 
+=== Multiple object classes on one resource
+
+Create one live sync task per `(kind, intent)` combination. A resource with both `account/default` and `entitlement/group` needs two tasks. They run independently and can be tuned (interval, worker threads) per object class.
+
+=== Pairing with reconciliation
+
+A common pattern is to run live sync continuously for near-real-time propagation and schedule a xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[reconciliation task] nightly or weekly. Reconciliation walks the full resource and reconciles every object, closing any gaps the change-log-driven live sync missed.
+
 == Error Handling
 
 The default behavior of Live synchronization activity is to _stop_ when an error is encountered.
 This is to ensure that no information is lost in such cases. This behavior can be changed via
 custom xref:/midpoint/reference/tasks/activities/error-handling/[error handling specification].
+
+== Limitations and considerations
+
+* *Change-log dependency* - Live sync sees only what the connector's change-detection mechanism exposes.
+Outages, log truncation, or token resets result in gaps.
+Make sure you perform reconciliation periodically to correct any changes that may have been missed.
+* *Token storage* - The last-processed change token is stored in the task itself.
+Deleting and recreating the task starts from scratch (which may re-process a backlog or skip ahead, depending on the connector).
+* *One object class per task* - A single live sync task handles one resource/kind/intent combination.
+For resources with multiple object classes (accounts and groups, for example), create one task per class.
+* *Concurrency* - The default is a single worker thread, which preserves change order.
+Increasing `workerThreads` improves throughput but reorders processing — only do this for resources where event order does not matter.
+* *Synchronization policy must exist* - Without `synchronization` reactions defined on the resource, live sync detects changes but does nothing with them.
+Synchronization reactions like `linkSource`, `addFocus`, and `deleteShadow` are configured in the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization/[resource wizard].
+
+

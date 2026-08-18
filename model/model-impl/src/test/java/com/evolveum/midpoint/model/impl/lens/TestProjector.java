@@ -455,7 +455,7 @@ public class TestProjector extends AbstractLensTest {
         PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-                SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                ModelDisableReason.MAPPED.uri);
 
         ContainerDelta<TriggerType> triggerDelta = accountSecondaryDelta.findContainerDelta(ObjectType.F_TRIGGER);
         assertNotNull("No trigger delta in account secondary delta", triggerDelta);

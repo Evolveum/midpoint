@@ -11,10 +11,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.PathSet;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -22,24 +21,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Evaluates the suitability of correlator(s) for correlation between focus objects and resource shadows.
  *
- * This class samples a set of focus (e.g., user) and resource shadow objects, computes statistics
- * on given attribute paths, and evaluates "correlator suggestions" according to their appropriateness for
- * unique, high-coverage mapping between focus and resource objects.
+ * This class samples a set of focus (e.g., user) and resource shadow objects using random sampling,
+ * computes statistics on given attribute paths, and evaluates "correlator suggestions" according to
+ * their appropriateness for unique, high-coverage mapping between focus and resource objects.
  */
 class CorrelatorEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
-    private static final int MAX_SHADOW_SAMPLE_SIZE = 2000;
-    private static final boolean NO_FETCH_SHADOWS = false;
-
     private final TypeOperationContext ctx;
     private final List<CorrelatorSuggestion> suggestions;
+    private final ObjectsSamplerProvider samplerProvider;
     private final SmartIntegrationBeans b = SmartIntegrationBeans.get();
     private final Statistics focusStatistics;
     private final Statistics resourceStatistics;
@@ -52,10 +48,12 @@ class CorrelatorEvaluator {
      *
      * @param ctx         The context of the correlation operation.
      * @param suggestions The list of correlator suggestions to evaluate.
+     * @param samplerProvider Provider for selecting appropriate sampler
      */
-    CorrelatorEvaluator(TypeOperationContext ctx, List<CorrelatorSuggestion> suggestions) {
+    CorrelatorEvaluator(TypeOperationContext ctx, List<CorrelatorSuggestion> suggestions, ObjectsSamplerProvider samplerProvider) {
         this.ctx = ctx;
         this.suggestions = suggestions;
+        this.samplerProvider = samplerProvider;
         this.focusStatistics = new Statistics(
                 suggestions.stream()
                         .map(s -> s.focusItemPath())
@@ -73,7 +71,8 @@ class CorrelatorEvaluator {
      * attribute distribution and mapping, and computing suitability scores.
      *
      * The main steps are:
-     *   - Sampling up to MAX_SHADOW_SAMPLE_SIZE focus objects and all relevant focus objects
+     *   - Retrieving all relevant focus objects
+     *   - Randomly sampling shadow objects based on cache configuration
      *   - Computing statistics (uniqueness, coverage) for each suggested focus and resource path
      *   - Scoring each suggestion by shadow-focus link coverage/ambiguity
      *
@@ -84,9 +83,10 @@ class CorrelatorEvaluator {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
-        LOGGER.info("Starting correlator evaluation. Focus type: {}, Shadow type: {}, Max shadow sample: {}",
-                ctx.getFocusClass(), ctx.getTypeIdentification(), MAX_SHADOW_SAMPLE_SIZE);
+        LOGGER.info("Starting correlator evaluation. Focus type: {}, Shadow type: {}",
+                ctx.getFocusClass(), ctx.getTypeIdentification());
 
+        // Retrieve all focus objects
         b.modelService.searchObjectsIterative(
                 ctx.getFocusClass(),
                 null,
@@ -97,21 +97,16 @@ class CorrelatorEvaluator {
                 },
                 null, ctx.task, result);
 
-        AtomicInteger shadowCounter = new AtomicInteger();
-        b.modelService.searchObjectsIterative(
-                ShadowType.class,
-                Resource.of(ctx.resource)
-                        .queryFor(ctx.getTypeIdentification())
-                        .build(),
-                (shadow, lResult) -> {
-                    if (shadowCounter.incrementAndGet() > MAX_SHADOW_SAMPLE_SIZE) return false;
-                    sampledShadows.add(shadow);
-                    resourceStatistics.process(shadow);
-                    return true;
-                },
-                NO_FETCH_SHADOWS ? GetOperationOptions.noFetch() : null,
-                ctx.task,
-                result);
+        // Use correlation sampler for random shadow sampling
+        List<PrismObject<ShadowType>> shadowSamples = samplerProvider.getCorrelationSampler(
+                ctx.typeDefinition, ctx.resource).sample(ctx.task, result);
+
+        LOGGER.debug("Retrieved {} focus objects and sampled {} shadow objects", sampledFocuses.size(), shadowSamples.size());
+
+        for (PrismObject<ShadowType> shadow : shadowSamples) {
+            sampledShadows.add(shadow);
+            resourceStatistics.process(shadow);
+        }
 
         List<Double> results = new ArrayList<>();
         for (CorrelatorSuggestion suggestion : suggestions) {

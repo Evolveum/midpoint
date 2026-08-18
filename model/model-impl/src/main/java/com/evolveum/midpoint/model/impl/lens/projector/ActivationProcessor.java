@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.constants.SchemaConstants.ModelDisableReason;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -556,7 +557,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         //   do this from GUI: REST or Java API call would be needed.)
         if (hasAdministrativeStatusDelta(projCtx.getPrimaryDelta())
                 && !hasAdministrativeStatusDelta(projCtx.getSecondaryDelta())) {
-            return SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
+            return ModelDisableReason.EXPLICIT.uri;
         }
 
         Boolean legal = projCtx.isLegal();
@@ -567,18 +568,18 @@ public class ActivationProcessor implements ProjectorProcessor {
             return SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
         }
 
-        if (!statusChanged && SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT.equals(oldDisableReason)) {
+        if (!statusChanged && ModelDisableReason.EXPLICIT.uri.equals(oldDisableReason)) {
             // Once explicit, always explicit. If we (e.g.) recompute the focus, we do not want the EXPLICIT reason
             // to disappear, even if we do not have the primary delta that caused the disablement.
             //
             // On the other hand, we do not want to keep obsolete/historic EXPLICIT value here:
             // if the account is explicitly disabled (-> EXPLICIT), then enabled by mapping, and then disabled by mapping,
             // we want to have MAPPED here. Hence the !statusChanged condition.
-            return SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
+            return ModelDisableReason.EXPLICIT.uri;
         }
 
         // No other reason: it must came through a mapping.
-        return SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
+        return ModelDisableReason.MAPPED.uri;
     }
 
     private static boolean hasAdministrativeStatusDelta(ObjectDelta<ShadowType> delta) {

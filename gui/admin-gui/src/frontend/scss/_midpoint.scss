@@ -1888,6 +1888,11 @@ button.tooltip-button[data-tooltip]:hover::after {
 }
 
 .card-outline-start {
+  &.card:not(.card-outline) > .card-header {
+    color: var(--bs-body-color);
+    background-color: transparent;
+  }
+
   @each $name, $color in $theme-colors {
     &.card-outline-start-#{$name} {
       border-left: 5px solid $color;
@@ -2647,9 +2652,19 @@ footer.app-footer a {
     }
 }
 
-.prism-property-value-label {
-  white-space: pre-wrap;
+.prism-value-label-readonly {
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  display: block;
+  min-height: 31px;
+  padding: 4px 8px;
+  background-color: var(--bs-gray-200);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-gray-700);
+  border-radius: 4px;
+  line-height: 1.5;
+  font-family: var(--bs-body-font-family);
+  font-size: 14px;
 }
 
 .info-box-progress-bar {
@@ -2672,4 +2687,14 @@ footer.app-footer a {
   width: auto;
   flex-shrink: 0;
   flex-grow: 0;
+}
+
+.midpoint-drawer {
+  z-index: 1060;
+  min-width: 30vw;
+}
+
+.construction-lifecycle-state {
+  display: inline-block;
+  width: fit-content;
 }

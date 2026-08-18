@@ -55,7 +55,8 @@ public class ExpressionUtil {
         SCRIPT,
         GENERATE,
         ASSOCIATION_FROM_LINK,
-        SHADOW_OWNER_REFERENCE_SEARCH
+        SHADOW_OWNER_REFERENCE_SEARCH,
+        NULL
     }
 
     public enum Language {
@@ -108,6 +109,8 @@ public class ExpressionUtil {
     public static final String ELEMENT_ASSOCIATION_FROM_LINK_WITH_NS = "<associationFromLink";
     public static final String ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH = "<shadowOwnerReferenceSearch/>";
     public static final String ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS = "<shadowOwnerReferenceSearch";
+    public static final String ELEMENT_NULL = "<null/>";
+    public static final String ELEMENT_NULL_WITH_NS = "<null";
 
     public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy) {
         if (ExpressionEvaluatorType.GENERATE.equals(type) && policy != null) {
@@ -174,6 +177,8 @@ public class ExpressionUtil {
             return ExpressionEvaluatorType.LITERAL;
         } else if (expression.contains(ELEMENT_ASSOCIATION_FROM_LINK) || expression.contains(ELEMENT_ASSOCIATION_FROM_LINK_WITH_NS)) {
             return ExpressionEvaluatorType.ASSOCIATION_FROM_LINK;
+        } else if (expression.contains(ELEMENT_NULL) || expression.contains(ELEMENT_NULL_WITH_NS)) {
+            return ExpressionEvaluatorType.NULL;
         }
 
         return null;
@@ -723,6 +728,23 @@ public class ExpressionUtil {
         AsIsExpressionEvaluatorType evaluator = new AsIsExpressionEvaluatorType();
         JAXBElement<AsIsExpressionEvaluatorType> element =
                 new JAXBElement<>(SchemaConstantsGenerated.C_AS_IS, AsIsExpressionEvaluatorType.class, evaluator);
+        expression.expressionEvaluator(element);
+    }
+
+    /**
+     * Makes the "null" evaluator the only evaluator of the expression.
+     * @param expression for which "null" evaluator should be set as sole evaluator.
+     */
+    public static void addNullExpressionValue(ExpressionType expression) {
+        if (expression == null) {
+            return;
+        }
+
+        expression.getExpressionEvaluator().clear();
+
+        NullExpressionEvaluatorType evaluator = new NullExpressionEvaluatorType();
+        JAXBElement<NullExpressionEvaluatorType> element =
+                new JAXBElement<>(SchemaConstantsGenerated.C_NULL, NullExpressionEvaluatorType.class, evaluator);
         expression.expressionEvaluator(element);
     }
 

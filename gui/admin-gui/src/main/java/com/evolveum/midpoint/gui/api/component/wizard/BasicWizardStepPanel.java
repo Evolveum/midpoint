@@ -314,7 +314,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     public boolean onNextPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
-        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+        WebComponentUtil.getPageBase(model.getPanel()).hideDrawer(target);
 
         if (model.hasNext()) {
             model.next();
@@ -327,7 +327,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        getPageBase().closeRightSidebar(target);
+        getPageBase().hideDrawer(target);
 
         onExitPerformed(target);
     }
@@ -335,7 +335,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     public boolean onBackPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
 
-        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+        WebComponentUtil.getPageBase(model.getPanel()).hideDrawer(target);
 
         if (model.hasPrevious()) {
             model.previous();
