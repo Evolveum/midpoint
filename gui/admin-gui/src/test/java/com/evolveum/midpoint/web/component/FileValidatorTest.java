@@ -6,14 +6,22 @@
 
 package com.evolveum.midpoint.web.component;
 
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_MSWORD_2007;
 import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_PDF;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_TEXT;
 import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
 import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
 import static com.evolveum.midpoint.web.component.FileTestConstants.UNKNOWN_BINARY;
 import static com.evolveum.midpoint.web.component.FileTestConstants.XML_START_ARRAY;
+import static com.evolveum.midpoint.web.component.FileTestConstants.docxBytes;
 import static com.evolveum.midpoint.web.component.FileTestConstants.jpegBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.legacyXlsBytes;
 import static com.evolveum.midpoint.web.component.FileTestConstants.minimalPdfBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.odtBytes;
 import static com.evolveum.midpoint.web.component.FileTestConstants.pngBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.xlsxBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.expectThrows;
 
@@ -56,6 +64,41 @@ public class FileValidatorTest {
     @Test
     public void testValidPdfDeclaredAsPdf() throws Exception {
         FileValidatorUtil.validateUploadContent(minimalPdfBytes(), MIME_APPLICATION_PDF, List.of(MIME_APPLICATION_PDF));
+    }
+
+    @Test
+    public void testValidDocxDeclaredAsDocx() throws Exception {
+        FileValidatorUtil.validateUploadContent(docxBytes(), MIME_APPLICATION_MSWORD_2007, List.of(MIME_APPLICATION_MSWORD_2007));
+    }
+
+    @Test
+    public void testValidXlsxDeclaredAsXlsx() throws Exception {
+        FileValidatorUtil.validateUploadContent(xlsxBytes(), MIME_APPLICATION_VND_MSEXCEL_2007, List.of(MIME_APPLICATION_VND_MSEXCEL_2007));
+    }
+
+    @Test
+    public void testValidLegacyXlsDeclaredAsXls() throws Exception {
+        FileValidatorUtil.validateUploadContent(legacyXlsBytes(), MIME_APPLICATION_VND_MSEXCEL, List.of(MIME_APPLICATION_VND_MSEXCEL));
+    }
+
+    @Test
+    public void testValidOdtDeclaredAsOdt() throws Exception {
+        FileValidatorUtil.validateUploadContent(odtBytes(), MIME_APPLICATION_VND_TEXT, List.of(MIME_APPLICATION_VND_TEXT));
+    }
+
+    @Test
+    public void testDocxDeclaredAsXlsxIsRejectedAsMismatch() {
+        assertRejected(Reason.CONTENT_TYPE_MISMATCH, () ->
+                FileValidatorUtil.validateUploadContent(
+                        docxBytes(),
+                        MIME_APPLICATION_VND_MSEXCEL_2007,
+                        List.of(MIME_APPLICATION_MSWORD_2007, MIME_APPLICATION_VND_MSEXCEL_2007)));
+    }
+
+    @Test
+    public void testDocxIsNotAllowedWhenOnlyImagesAreConfigured() {
+        assertRejected(Reason.NOT_ALLOWED, () ->
+                FileValidatorUtil.validateUploadContent(docxBytes(), MIME_APPLICATION_MSWORD_2007, List.of("image/*")));
     }
 
     @Test
