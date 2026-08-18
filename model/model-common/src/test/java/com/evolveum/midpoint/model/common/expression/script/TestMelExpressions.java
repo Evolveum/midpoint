@@ -1900,6 +1900,18 @@ public class TestMelExpressions extends AbstractScriptTest {
     }
 
     @Test
+    public void testObjectTypeEqualsString() throws Exception {
+        PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE);
+        evaluateAndAssertBooleanScalarExpression(
+                "expression-foo-type-equals-bar.xml",
+                createVariables(
+                        "foo", userJack, userJack.getDefinition(),
+                        "bar", UserType.COMPLEX_TYPE.getLocalPart(), PrimitiveType.STRING
+                ),
+                Boolean.TRUE);
+    }
+
+    @Test
     public void testUserAssignmentFirst() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-assignment-first.xml",
@@ -2386,8 +2398,6 @@ public class TestMelExpressions extends AbstractScriptTest {
                 ),
                 Boolean.FALSE);
     }
-
-    // TODO: qname == string
 
     @Test
     public void testExpressionNullString() throws Exception {
