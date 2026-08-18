@@ -465,7 +465,8 @@ class MappingsSuggestionOperation {
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuesPairs,
             @Nullable String errorLog,
-            @Nullable String retryScript) {
+            @Nullable String retryScript,
+            OperationResult result) {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
@@ -478,7 +479,8 @@ class MappingsSuggestionOperation {
                                 matchPair.getShadowAttribute().getName(),
                                 matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
-                .invokeAsync(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
+                .invokeAsync(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class,
+                        ctx.callContext(result))
                 .join();
     }
 
@@ -507,7 +509,7 @@ class MappingsSuggestionOperation {
                 }
             }
             if (useAiService && isInbound) {
-                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair, parentResult);
                 if (categoricalResult != null) {
                     return categoricalResult;
                 }
@@ -524,7 +526,7 @@ class MappingsSuggestionOperation {
         // Check for missing target data
         if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
             if (useAiService && isInbound) {
-                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair, parentResult);
                 if (categoricalResult != null) {
                     return categoricalResult;
                 }
@@ -551,7 +553,7 @@ class MappingsSuggestionOperation {
     /**
      * Attempts to suggest a categorical mapping when no correlated data pairs are available.
      */
-    private @Nullable MappingEvaluationResult tryCategoricalMappingSuggestion(SchemaMatchOneResultType matchPair) {
+    private @Nullable MappingEvaluationResult tryCategoricalMappingSuggestion(SchemaMatchOneResultType matchPair, OperationResult parentResult) {
         if (objectTypeStatistics == null) {
             return null;
         }
@@ -587,7 +589,8 @@ class MappingsSuggestionOperation {
         categoricalValues.get().forEach(v -> request.getMidPointCategoryValue().add(v));
 
         var response = ctx.serviceClient
-                .invokeAsync(SUGGEST_CATEGORICAL_MAPPING, request, SiSuggestMappingResponseType.class)
+                .invokeAsync(SUGGEST_CATEGORICAL_MAPPING, request, SiSuggestMappingResponseType.class,
+                        ctx.callContext(parentResult))
                 .join();
 
         var expression = buildScriptExpression(response);
@@ -680,7 +683,7 @@ class MappingsSuggestionOperation {
         String retryScript = null;
 
         for (int attempt = 0; attempt <= retryCount; attempt++) {
-            var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript);
+            var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript, parentResult);
             retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
             var aiExpression = buildScriptExpression(mappingResponse);
             try {

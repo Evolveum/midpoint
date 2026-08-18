@@ -674,7 +674,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             try (var serviceClient = this.clientFactory.getServiceClient(result)) {
                 var suggestion = new FocusTypeSuggestionOperation(
                         TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, null, task, result))
-                        .suggestFocusType(permissions);
+                        .suggestFocusType(permissions, result);
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
             }
@@ -701,7 +701,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             try (var serviceClient = this.clientFactory.getServiceClient(result)) {
                 var suggestion = new FocusTypeSuggestionOperation(
                         OperationContext.init(serviceClient, resourceOid, typeDefBean.getDelineation().getObjectClass(), task, result))
-                        .suggestFocusType(typeDefBean, permissions);
+                        .suggestFocusType(typeDefBean, permissions, result);
                 LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
                 return suggestion;
             }

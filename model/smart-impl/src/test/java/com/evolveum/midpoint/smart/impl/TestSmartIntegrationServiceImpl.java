@@ -32,6 +32,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.smart.api.ClientCallContext;
+import com.evolveum.midpoint.smart.api.ServiceClient;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -568,6 +571,40 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             throws CommonException {
         return smartIntegrationService.estimateObjectClassSize(
                 resource.oid, OC_ACCOUNT_QNAME, 5, task, result);
+    }
+
+    @Test
+    public void test090ServiceClientCompatibilityInvokeProvidesEmptyContext() throws Exception {
+        var client = new MockServiceClientImpl(new SiSuggestObjectTypesResponseType());
+
+        client.invoke(
+                ServiceClient.Method.SUGGEST_OBJECT_TYPES,
+                new SiSuggestObjectTypesRequestType(),
+                SiSuggestObjectTypesResponseType.class);
+
+        var context = client.getLastCallContext();
+        assertThat(client.getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_OBJECT_TYPES);
+        assertThat(context.task()).isNull();
+        assertThat(context.result()).isNull();
+        assertThat(context.resource()).isNull();
+    }
+
+    @Test
+    public void test095ServiceClientAsyncPreservesExplicitContext() {
+        var task = getTestTask();
+        var result = task.getResult();
+        var context = ClientCallContext.of(task, result, null);
+        var client = new MockServiceClientImpl(new SiSuggestMappingResponseType());
+
+        client.invokeAsync(
+                        ServiceClient.Method.SUGGEST_MAPPING,
+                        new SiSuggestMappingRequestType(),
+                        SiSuggestMappingResponseType.class,
+                        context)
+                .join();
+
+        assertThat(client.getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_MAPPING);
+        assertThat(client.getLastCallContext()).isSameAs(context);
     }
 
     /** Calls the remote service directly. */
