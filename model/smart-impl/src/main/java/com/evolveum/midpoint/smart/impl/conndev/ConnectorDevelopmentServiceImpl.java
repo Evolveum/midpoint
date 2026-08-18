@@ -252,6 +252,12 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
+        public void disableArtifact(String filename, Task task, OperationResult result) throws IOException, CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .disableArtifact(filename);
+        }
+
+        @Override
         public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
             return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .validateArtifact(artifact);

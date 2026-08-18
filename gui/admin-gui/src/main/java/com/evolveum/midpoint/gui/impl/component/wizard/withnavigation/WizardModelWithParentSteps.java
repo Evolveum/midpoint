@@ -85,8 +85,24 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
         operationResultCollapsedItem.addOperationResult(panelId, null, result, fixAction);
     }
 
+    /**
+     * Adds an entry whose fix button is repurposed for a different action than step navigation
+     * (e.g. disabling a broken sibling script's manifest entry instead of "fixing" it), with its
+     * own label/icon instead of the default "Fix it" - see {@link OperationResultWrapper}.
+     */
+    public void addOperationResult(
+            String panelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction,
+            String fixButtonLabelKey, String fixButtonIcon) {
+        operationResultCollapsedItem.addOperationResult(panelId, null, result, fixAction, fixButtonLabelKey, fixButtonIcon);
+    }
+
     public void removeOperationResult(String panelId) {
         operationResultCollapsedItem.removeOperationResult(panelId);
+    }
+
+    /** Removes every drawer entry whose panelId starts with {@code prefix} (e.g. {@code "<stepId>."}). */
+    public void removeOperationResultsByPrefix(String prefix) {
+        operationResultCollapsedItem.removeOperationResultsByPrefix(prefix);
     }
 
     public boolean isStepWithError(String stepId) {
