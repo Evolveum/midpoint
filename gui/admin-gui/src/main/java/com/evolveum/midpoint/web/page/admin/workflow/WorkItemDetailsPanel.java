@@ -13,6 +13,9 @@ import java.util.List;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -30,10 +33,12 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextPanel;
+import com.evolveum.midpoint.gui.impl.factory.panel.UploadDownloadPanelFactory;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -276,11 +281,33 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public String getDownloadContentType() {
-                return "image/jpeg";
+            public String getDownloadFileName() {
+                return UploadDownloadPanelFactory.getDownloadFileName(
+                        AbstractWorkItemOutputType.F_EVIDENCE, getDownloadContentType());
+            }
+
+            @Override
+            public void uploadFilePerformed(AjaxRequestTarget target) {
+                super.uploadFilePerformed(target);
+                evidenceUploadStateChanged(target, false);
+            }
+
+            @Override
+            public void uploadFileFailed(AjaxRequestTarget target) {
+                super.uploadFileFailed(target);
+                target.add(getParentPage().getFeedbackPanel());
+                evidenceUploadStateChanged(target, true);
+            }
+
+            @Override
+            public void removeFilePerformed(AjaxRequestTarget target) {
+                super.removeFilePerformed(target);
+                evidenceUploadStateChanged(target, false);
             }
 
         };
+        evidencePanel.setUploadItemPath(
+                ItemPath.create(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE));
         evidenceForm.add(evidencePanel);
         evidencePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         evidencePanel.add(new VisibleEnableBehaviour() {
@@ -381,6 +408,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
 
     public Component getCustomForm() {
         return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
+    }
+
+    private void evidenceUploadStateChanged(AjaxRequestTarget target, boolean invalid) {
+        EvidenceUploadStateAware parent = findParent(EvidenceUploadStateAware.class);
+        if (parent != null) {
+            parent.evidenceUploadStateChanged(target, invalid);
+        }
     }
 
     private boolean isParentCaseClosed() {

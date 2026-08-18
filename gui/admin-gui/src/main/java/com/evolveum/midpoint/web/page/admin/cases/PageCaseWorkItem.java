@@ -35,6 +35,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.CaseWorkItemSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.EvidenceUploadStateAware;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -52,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
                         label = "PageCaseWorkItem.auth.caseWorkItem.label",
                         description = "PageCaseWorkItem.auth.caseWorkItem.description") })
-public class PageCaseWorkItem extends PageAdminCaseWorkItems {
+public class PageCaseWorkItem extends PageAdminCaseWorkItems implements EvidenceUploadStateAware {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageCaseWorkItem.class.getName() + ".";
@@ -69,6 +70,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
     private LoadableModel<CaseType> caseModel;
     private WorkItemId workItemId;
+    private boolean evidenceUploadInvalid;
 
     public PageCaseWorkItem(PageParameters parameters) {
         super(parameters);
@@ -199,6 +201,11 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
             }
 
             @Override
+            protected boolean isCompletionEnabled() {
+                return !evidenceUploadInvalid;
+            }
+
+            @Override
             public PrismObject<UserType> getPowerDonor() {
                 return PageCaseWorkItem.this.getPowerDonor();
             }
@@ -208,6 +215,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         actionsPanel.add(new VisibleBehaviour(() -> caseWorkItemModel.getObject().getCloseTimestamp() == null));
         add(actionsPanel);
 
+    }
+
+    @Override
+    public void evidenceUploadStateChanged(AjaxRequestTarget target, boolean invalid) {
+        evidenceUploadInvalid = invalid;
+        target.add(get(ID_CASE_WORK_ITEM_ACTIONS_PANEL));
     }
 
     private void cancelPerformed() {

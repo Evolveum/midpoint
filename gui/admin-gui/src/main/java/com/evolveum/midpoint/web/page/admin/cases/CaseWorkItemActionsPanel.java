@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -73,6 +74,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                if (!isCompletionEnabled()) {
+                    return;
+                }
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(),
                         getCustomForm(), getPowerDonor(), true, completionResult, getPageBase());
@@ -81,6 +85,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemApproveButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
+        workItemApproveButton.add(new EnableBehaviour(this::isCompletionEnabled));
         workItemApproveButton.setOutputMarkupId(true);
         add(workItemApproveButton);
 
@@ -104,6 +109,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                if (!isCompletionEnabled()) {
+                    return;
+                }
                 OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(),
                         getCustomForm(), getPowerDonor(), false, completionResult, getPageBase());
@@ -112,6 +120,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
         workItemRejectButton.setOutputMarkupId(true);
         workItemRejectButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
+        workItemRejectButton.add(new EnableBehaviour(this::isCompletionEnabled));
         add(workItemRejectButton);
 
         AjaxButton workItemForwardButton = new AjaxButton(ID_WORK_ITEM_FORWARD_BUTTON,
@@ -141,6 +150,13 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         workItemClaimButton.setOutputMarkupId(true);
 
         add(workItemClaimButton);
+    }
+
+    protected void addAriaDescribedByForButton(AjaxButton workItemApproveButton) {
+    }
+
+    protected boolean isCompletionEnabled() {
+        return true;
     }
 
     private CaseWorkItemType getCaseWorkItemModelObject() {

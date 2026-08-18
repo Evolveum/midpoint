@@ -42,6 +42,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Fixed custom relation translation. See bug:MID-11523[]
 * Fixed model loading for unassign action popup. See bug:MID-11584[]
 * Fixed breaking too long labels into lines. See bug:MID-11711[]
+* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
 
 == Changes with Respect To Version 4.8.11
 
