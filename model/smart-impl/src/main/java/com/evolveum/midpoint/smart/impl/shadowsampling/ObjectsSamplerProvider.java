@@ -17,9 +17,15 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationShadowSamplingConfigurationType;
 
 /**
  * Provider for choosing a suitable shadow sampling strategy for the given operation
@@ -28,10 +34,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ObjectsSamplerProvider {
 
-    private final ModelService modelService;
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectsSamplerProvider.class);
 
-    public ObjectsSamplerProvider(ModelService modelService) {
+    private final ModelService modelService;
+    private final SystemObjectCache systemObjectCache;
+
+    public ObjectsSamplerProvider(ModelService modelService, @Nullable SystemObjectCache systemObjectCache) {
         this.modelService = modelService;
+        this.systemObjectCache = systemObjectCache;
     }
 
     /**
@@ -48,8 +58,8 @@ public class ObjectsSamplerProvider {
                 ? areRequiredAttributesCached(typeDefinition, requiredAttributePaths)
                 : areAllAttributesCached(typeDefinition);
         return cached
-                ? new CorrelationObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
-                : new CorrelationObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
+                ? new CorrelationObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition, getCorrelationSampleSizeCached())
+                : new CorrelationObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition, getCorrelationSampleSizeUncached());
     }
 
     /**
@@ -60,8 +70,8 @@ public class ObjectsSamplerProvider {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         Objects.requireNonNull(resource, "resource cannot be null");
         return areAllAttributesCached(typeDefinition)
-                ? new MappingObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition)
-                : new MappingObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition);
+                ? new MappingObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition, getMappingLlmSampleSizeCached(), getMappingValidationSampleSizeCached())
+                : new MappingObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition, getMappingLlmSampleSizeUncached(), getMappingValidationSampleSizeUncached());
     }
 
     /**
@@ -70,8 +80,64 @@ public class ObjectsSamplerProvider {
     public int getExpectedMappingSampleSize(ResourceObjectDefinition typeDefinition) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         return areAllAttributesCached(typeDefinition)
-                ? MappingObjectsSamplerWhenShadowCacheEnabled.getExpectedSampleSize()
-                : MappingObjectsSamplerWhenShadowCacheDisabled.getExpectedSampleSize();
+                ? (getMappingLlmSampleSizeCached() + getMappingValidationSampleSizeCached())
+                : (getMappingLlmSampleSizeUncached() + getMappingValidationSampleSizeUncached());
+    }
+
+    private int getCorrelationSampleSizeCached() {
+        var config = getShadowSamplingConfiguration();
+        return (config != null && config.getCorrelationSampleSizeCached() != null)
+                ? config.getCorrelationSampleSizeCached()
+                : CorrelationObjectsSamplerWhenShadowCacheEnabled.DEFAULT_SAMPLE_SIZE;
+    }
+
+    private int getCorrelationSampleSizeUncached() {
+        var config = getShadowSamplingConfiguration();
+        return (config != null && config.getCorrelationSampleSizeUncached() != null)
+                ? config.getCorrelationSampleSizeUncached()
+                : CorrelationObjectsSamplerWhenShadowCacheDisabled.DEFAULT_SAMPLE_SIZE;
+    }
+
+    private int getMappingLlmSampleSizeCached() {
+        var config = getShadowSamplingConfiguration();
+        return (config != null && config.getMappingLlmSampleSizeCached() != null)
+                ? config.getMappingLlmSampleSizeCached()
+                : MappingObjectsSamplerWhenShadowCacheEnabled.DEFAULT_LLM_SAMPLE_SIZE;
+    }
+
+    private int getMappingValidationSampleSizeCached() {
+        var config = getShadowSamplingConfiguration();
+        return (config != null && config.getMappingValidationSampleSizeCached() != null)
+                ? config.getMappingValidationSampleSizeCached()
+                : MappingObjectsSamplerWhenShadowCacheEnabled.DEFAULT_VALIDATION_SAMPLE_SIZE;
+    }
+
+    private int getMappingLlmSampleSizeUncached() {
+        var config = getShadowSamplingConfiguration();
+        return (config != null && config.getMappingLlmSampleSizeUncached() != null)
+                ? config.getMappingLlmSampleSizeUncached()
+                : MappingObjectsSamplerWhenShadowCacheDisabled.DEFAULT_LLM_SAMPLE_SIZE;
+    }
+
+    private int getMappingValidationSampleSizeUncached() {
+        var config = getShadowSamplingConfiguration();
+        return (config != null && config.getMappingValidationSampleSizeUncached() != null)
+                ? config.getMappingValidationSampleSizeUncached()
+                : MappingObjectsSamplerWhenShadowCacheDisabled.DEFAULT_VALIDATION_SAMPLE_SIZE;
+    }
+
+    @Nullable
+    private SmartIntegrationShadowSamplingConfigurationType getShadowSamplingConfiguration() {
+        if (systemObjectCache == null) {
+            return null;
+        }
+        try {
+            var systemConfig = systemObjectCache.getSystemConfigurationBean(null);
+            return SystemConfigurationTypeUtil.getSmartIntegrationShadowSamplingConfiguration(systemConfig);
+        } catch (SchemaException e) {
+            LOGGER.warn("Failed to get system configuration for shadow sampling: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     private boolean areRequiredAttributesCached(ResourceObjectDefinition typeDefinition, Collection<ItemPath> requiredPaths) {

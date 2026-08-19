@@ -42,18 +42,23 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingObjectsSamplerWhenShadowCacheEnabled.class);
 
-    private static final int LLM_SAMPLE_SIZE = 50;
-    private static final int VALIDATION_SAMPLE_SIZE = 1000;
+    public static final int DEFAULT_LLM_SAMPLE_SIZE = 50;
+    public static final int DEFAULT_VALIDATION_SAMPLE_SIZE = 1000;
 
     private final ModelService modelService;
     private final ResourceType resource;
     private final ResourceObjectDefinition typeDefinition;
+    private final int llmSampleSize;
+    private final int validationSampleSize;
 
     public MappingObjectsSamplerWhenShadowCacheEnabled(
-            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition) {
+            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition,
+            int llmSampleSize, int validationSampleSize) {
         this.modelService = modelService;
         this.resource = resource;
         this.typeDefinition = typeDefinition;
+        this.llmSampleSize = llmSampleSize;
+        this.validationSampleSize = validationSampleSize;
     }
 
     @Override
@@ -64,10 +69,10 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
-        int totalSize = LLM_SAMPLE_SIZE + VALIDATION_SAMPLE_SIZE;
+        int totalSize = llmSampleSize + validationSampleSize;
 
         LOGGER.debug("Sampling cached shadows for mappings (cached): {}/{}, llmSize={}, validationSize={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), LLM_SAMPLE_SIZE, VALIDATION_SAMPLE_SIZE);
+                resource.getOid(), typeDefinition.getTypeIdentification(), llmSampleSize, validationSampleSize);
 
         List<PrismObject<ShadowType>> reservoir = new ArrayList<>(totalSize);
         AtomicInteger totalCount = new AtomicInteger(0);
@@ -108,8 +113,8 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
     }
 
     private MappingSampleResult splitReservoirIntoSamples(List<PrismObject<ShadowType>> reservoir) {
-        int actualLlmSize = Math.min(LLM_SAMPLE_SIZE, reservoir.size());
-        int actualValidationSize = Math.min(VALIDATION_SAMPLE_SIZE, reservoir.size());
+        int actualLlmSize = Math.min(llmSampleSize, reservoir.size());
+        int actualValidationSize = Math.min(validationSampleSize, reservoir.size());
 
         List<PrismObject<ShadowType>> llmSamples = reservoir.subList(0, actualLlmSize);
         List<PrismObject<ShadowType>> validationSamples = reservoir.subList(
@@ -120,9 +125,5 @@ public class MappingObjectsSamplerWhenShadowCacheEnabled implements ObjectsSampl
                 reservoir.size(), actualLlmSize, actualValidationSize);
 
         return new MappingSampleResult(llmSamples, validationSamples);
-    }
-
-    public static int getExpectedSampleSize() {
-        return LLM_SAMPLE_SIZE + VALIDATION_SAMPLE_SIZE;
     }
 }
