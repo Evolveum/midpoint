@@ -149,6 +149,52 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
     }
 
     @Test
+    public void testAssignmentTargetName() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionStringList(
+                createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition()),
+                "assignment-targetname",
+                "F0006", "P0002", "F0001");
+    }
+
+    @Test
+    public void testAssignmentTargetDescription() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionStringList(
+                createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition()),
+                "assignment-target-description",
+                "xF0006", "xP0002", "xF0001");
+    }
+
+    @Test
+    public void testAssignmentTargetOrgArchetypeChefTrue() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionBoolean(
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition(),
+                        "archetype", ARCHETYPE_ORGUNIT_OID, PrimitiveType.STRING
+                ),
+                "assignment-is-any-target-org-archetype",
+                true);
+    }
+
+    @Test
+    public void testAssignmentTargetOrgArchetypeChefFalse() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionBoolean(
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition(),
+                        "archetype", "nonexist-oid", PrimitiveType.STRING
+                ),
+                "assignment-is-any-target-org-archetype",
+                false);
+    }
+
+    @Test
     public void testShadowNameSubstring() throws Exception {
         assertExecuteScriptExpressionString(
                 createFocusProjectionResourceVariables(),

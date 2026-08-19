@@ -139,6 +139,8 @@ public interface MidpointFunctions {
 
     /**
      * Resolves specified reference, returning an object that the reference references.
+     * Avoids excessive fetching of objects from repository.
+     * Returns object cached in the reference, if present.
      * Error is raised in case that the referenced object does not exist.
      */
     <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
@@ -148,6 +150,8 @@ public interface MidpointFunctions {
 
     /**
      * Resolves specified reference, returning an object that the reference references.
+     * Avoids excessive fetching of objects from repository.
+     * Returns object cached in the reference, if present.
      * If the referenced object does not exist, null is returned.
      */
     <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
