@@ -42,7 +42,8 @@
             <assignmentTargetSearch>
                 <condition>
                     <script>
-                        <!-- Keeping this expression in Groovy by purpose. -->
+                        <!-- Keeping this expression in Groovy by purpose. We want to test the logging. -->
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                         <code>
                             log.info('condition: x={}, y={}', x?.targetRef?.oid, y?.targetRef?.oid)
                             x != null &amp;&amp; y != null
@@ -56,9 +57,10 @@
                         <expression>
                             <script>
                                 <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                                <!-- TODO: can be improved? Like x.targetName()? -->
+                                <!-- Keeping the resolution of y reference is complex form,
+                                     to test the midpoint.resolveReference() function. -->
                                 <code>
-                                    midpoint.resolveReference(x.targetRef).name + '-' + midpoint.resolveReference(y.targetRef).name
+                                    x.targetName() + '-' + midpoint.resolveReference(y.targetRef).name
                                 </code>
                             </script>
                         </expression>
@@ -75,6 +77,8 @@
                         </target>
                         <expression>
                             <script>
+                                <!-- Keeping this expression in Groovy by purpose, test ref resolution in Groovy as well. -->
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                                 <code>
                                     midpoint.resolveReference(x?.targetRef)?.name + '-' + midpoint.resolveReference(y?.targetRef)?.name
                                 </code>

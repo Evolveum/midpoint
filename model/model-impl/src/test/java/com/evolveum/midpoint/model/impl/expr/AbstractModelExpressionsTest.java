@@ -75,6 +75,8 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     private static final String CHEESE_JR_OID = "00000002-0000-0000-0000-000000000001";
     private static final String LECHUCK_OID = "00000007-0000-0000-0000-000000000000";
     private static final String F0006_OID = "00000000-8888-6666-0000-100000000006";
+    protected static final String ARCHETYPE_ORGUNIT_OID = "6a12b965-a1c2-47c9-87bd-19e84c71d814";
+    protected static final String ARCHETYPE_PROJECT_OID = "89a34123-1db7-4fc1-a053-6c42b82ef2ab";
 
     private static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
     private static final ItemName CUSTOM = new ItemName(NS_PIRACY, "custom");

@@ -187,6 +187,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
 * Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
 * Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
+* Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
 
 === Releases Of Other Components
 
