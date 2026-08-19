@@ -12,6 +12,8 @@ doc-type: intro
 :page-upkeep-status: orange
 :page-moved-from: /midpoint/reference/roles-policies/certification/
 :experimental:
+:page-toc: top
+:toclevels: 1
 :page-description: This introduces certification campaigns and explains how they work.
 :page-keywords: certification campaign, campaign definition, campaign configuration, campaign dashboard widget
 
@@ -57,32 +59,44 @@ The reviewers can be managers of the objects, owner of the targets, etc.
 It is may be desirable to set a default reviewer because not all orgs must have a manager or all roles an owner, for instance.
 If a reviewer cannot be assigned by the rules you specify, default reviewer is used as fallback.
 
+The job of reviewers is to assess the certification cases assigned to them and carry out a decision within the time frame of the certification campaign stage.
+The decisions they can make are typically _accept_ and _reject_, but the available choices can be configured.
+Refer to xref:/midpoint/reference/roles-policies/policies/certification/certification-campaign-configuration/gui-configuration/actions/[] for details about the available choices.
+
 === Stages
 
 The issue with reviewers is that they are humans and as such, they are unreliable.
 Some of them may be on vacation during the campaign or simply ignore the call to certify the cases assigned to them.
 For this reason (among others), it is possible to define multiple stages per campaign.
 
-When one stage ends as scheduled and some cases remain unresolved, they can passed to the next stage.
-The stages can each have different rules for reviewers, meaning that if the reviewer of the case in the previous stage failed to decide the fate of the case, the case can be passed to a manager higher in the corporate ladder to decide instead.
+When one stage ends as scheduled and some cases remain unresolved, they can pass to the next stage.
+The stages can each have different rules for reviewers, meaning that if a reviewer of a case in the previous stage accepts, next stage reviewer revises the decision.
+Similarly, if the previous stage reviewer failed to decide, the case may be passed to the next stage with a different reviewer to decide instead.
 
 Of course, it may not always be a human failure that calls for a case to be passed through multiple certification campaign stages.
-If, for example, you set that multiple people need to agree unanimously on a solution which they fail to do and someone needs to help them reach understanding.
+If, for example, you set that multiple people need to agree unanimously on a solution and their opinions differ, a subsequent stage reviewer would resolve the case one way or another.
+
+You can configure which cases get passed to the next stage.
+By default, only unresolved and accepted cases are transferred for further examination.
+Refer to xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[].
 
 === Time frame
 
 Lastly, certification campaigns (and, by extension, their stages) need to have some time frame—when they start and finish.
 When the time is up, the stages close and campaign proceeds to the next one to ultimately close the whole campaign.
 
-=== Remediation
+=== Campaign remediation
 
 Once closed, the remaining step to fulfill the purpose of the certification campaign is to actually carry out the decisions the reviewers made during the campaign.
-This means, in particular, revoking the accesses by removing roles where reviewers rejected the cases.
+This means, for example, revoking accesses by removing corresponding roles where reviewers rejected the cases.
+After remediation, campaign can be closed.
 
 === Reiteration
 
-Should a situation occur when some cases remain unresolved after the whole campaign ends, it is possible to reiterate the campaign.
+When some cases remain unresolved after the whole campaign ends, it is possible to reiterate the campaign.
 Campaign reiteration means that midPoint takes only the unresolved cases and runs them through the whole certification campaign anew.
+Reiteration gives another chance to reviewers who, for example, have not decided in time.
+Refer to xref:/midpoint/reference/roles-policies/policies/certification/iteration/[].
 
 == Configuration options of campaigns and related functionality
 
@@ -96,7 +110,8 @@ Refer to the following articles for options to configure scope, stages, GUI, not
 
 == Terminology
 
-Ad-hoc certification [[adhoc-cert]] ::
+[[adhoc-cert]]
+Ad-hoc certification ::
     A certification campaign created without a pre-existing campaign definition, typically to address a specific situation outside of regular schedules.
 
 Campaign remediation ::
@@ -115,13 +130,14 @@ Certification campaign template ::
     and the review strategy.
     Each campaign instance is created from a definition and inherits its configuration.
 
-Certification case [[cert-case]] ::
+[[cert-case]]
+Certification case ::
     A single access item selected for review within a campaign, such as a particular role assigned to a particular user.
     Each case is assessed by assigned reviewers who record a decision on whether the access should be kept, revoked, or modified.
 
 Certification case outcome ::
     The consolidated result determined for a certification case after considering one or more reviewer decisions.
-    Outcomes are computed using outcome strategies at both the stage level and the campaign level.
+    Outcomes are computed using outcome strategies at both the stage and campaign levels.
     See <<outcome-strategy,Outcome strategy>>.
 
 Certification item ::
@@ -144,7 +160,7 @@ Deadline rounding ::
     A setting that controls how the stage end time is rounded, ensuring deadlines fall on practical intervals (e.g., aligned to the start or end of a day).
 
 Decisions ::
-    Various decisions reviewers can make about individual cases.
+    Various decisions reviewers can make about individual certification cases.
 
     Accept :::
         The access item under review is still appropriate and should remain unchanged.
@@ -179,7 +195,8 @@ Handler ::
 Microcertification ::
     See <<adhoc-cert,Ad-hoc certification>>.
 
-Outcome strategy [[outcome-strategy]] ::
+[[outcome-strategy]]
+Outcome strategy ::
     A rule defining how individual reviewer decisions within a stage (or across stages) are combined into a single case outcome, such as "one accept accepts" or "all must accept".
 
 Reiteration ::
@@ -197,30 +214,5 @@ Timed actions ::
     Actions configured to execute automatically at specified points during a stage timeline, such as escalating unaddressed cases or reassigning work items before a deadline.
 
 Work item ::
-    See <<cert-case>>.
+    See <<cert-case,Certification case>>.
 
-
-// TODO: Original intro, to be deleted once the new intro is finished.
-== Introduction
-
-MidPoint enables you to periodically review various settings, e.g. assignment of roles to users.
-This feature is called *Access certification*. It is implemented in the form of certification campaigns.
-
-A *certification campaign* is a review process that consists of identifying a set of certification cases, selecting reviewers for them, gathering decisions of these reviewers, and executing a remediation process, if needed.
-Reviewer selection and decision gathering can be done multiple times, in case of multi-stage campaigns.
-The remediation process can be automated or manual.
-It is assumed that certification campaigns will be run regularly, e.g. yearly, twice a year, monthly, and so on.
-
-A *certification case* is a particular "access" item which can be assessed by a reviewer.
-For example, it can be a particular role assigned to a particular user.
-The reviewer can decide if such access should be accepted or revoked (what decisions will be available to the reviewer depends on the configuration).
-
-Certification campaigns consist of one or more *stages*.
-Campaign stages enable you, for example, to divide the certification process between separate groups of reviewers.
-The first campaign stage is assessed by one group of reviewers, while the second stage could be assessed by a different group of reviewers.
-Which cases are "transferred" between stages depends on the campaign definition.
-The default is that only cases which were not revoked/reduced are transferred.
-
-Finished (closed) campaigns can be *reiterated*.
-Reiteration re-starts campaigns, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
-For more details on iterations, see xref:/midpoint/reference/roles-policies/policies/certification/iteration/[].
