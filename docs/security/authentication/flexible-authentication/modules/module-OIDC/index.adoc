@@ -1,0 +1,28 @@
+= Module oidc
+:page-nav-title: Module oidc
+:page-keywords: oidc, openid connect, authentication, flexible authentication
+:page-description: This page describes how to configure the OIDC authentication module in midPoint for integrating with an OpenID Connect identity provider.
+
+++++
+{% include since.html since="4.5" %}
+++++
+
+OIDC module in midPoint allows for using OpenID Connect (OIDC) authentication protocol.
+
+This allows midPoint to utilize OIDC in two general authentication scenarios:
+
+* Interactive link:/midpoint/reference/master/security/authentication/flexible-authentication/modules/module-OIDC/GUI/[GUI] login.
+** Uses OIDC authentication provider to provide GUI authentication for midPoint users.
+* Incoming link:/midpoint/reference/master/security/authentication/flexible-authentication/modules/module-OIDC/REST/[REST] API authentication.
+** Using a token issued by an OIDC authentication provider and evaluated by midPoint.
+
+OIDC authentication providers include Keycloak, Okta, Auth0, etc.
+
+NOTE: The OIDC module relies considerably on HTTPS. This may be fine in testing environment, but in prodution environments, it is strongly recommended ensuring security, such as by adding the relevant keys to the midPoint's keystore (`<midpoint-home>/keystore.jceks`) file.
+
+NOTE: The presence of `../.well-known/openid-configuration` endpoint on the OIDC provider side simplifies the configuration considerably. However, the midPoint OIDC module offers wide flexibility in configuration, so it's absence, as well as many OIDC edge implementations, can be used.
+
+WARNING: This article, including all of it's sub-pages offer describe ways to configure OIDC module in midPoint. It does not offer any security recommendations. Your particular security needs should imply the configuration described in these articles, not the other way around.
+
+== See also
+* xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]
