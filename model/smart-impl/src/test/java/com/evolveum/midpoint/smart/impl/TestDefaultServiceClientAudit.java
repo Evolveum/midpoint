@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * Integration tests for Smart service call auditing performed by {@link AuditingServiceClient}.
@@ -76,6 +78,57 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertResourceTarget(records.get(1));
         assertRequestPayload(records.get(0));
         assertNoResponsePayload(records.get(1));
+    }
+
+    @DataProvider
+    public Object[][] smartServiceAuditConfiguration() {
+        return new Object[][] {
+                { true, true, true, true },
+                { true, false, true, false },
+                { false, true, true, true },
+                { false, false, false, false }
+        };
+    }
+
+    @Test(dataProvider = "smartServiceAuditConfiguration")
+    public void test110SmartServiceAuditConfiguration(boolean recordEvents, boolean recordData,
+            boolean expectedRecords, boolean expectedRequestPayload) throws Exception {
+
+        var delegate = new RecordingServiceClient();
+
+        var response = audited(delegate, recordEvents, recordData).invoke(
+                ServiceClient.Method.SUGGEST_OBJECT_TYPES,
+                recordData ? request() : new Object(),
+                SiSuggestObjectTypesResponseType.class,
+                ClientCallContext.empty());
+
+        assertThat(response).isNotNull();
+        assertThat(delegate.syncCalls).isEqualTo(1);
+
+        var records = smartServiceCallRecords();
+        if (!expectedRecords) {
+            assertThat(records).isEmpty();
+            return;
+        }
+
+        assertRequestExecutionPair(records);
+        if (expectedRequestPayload) {
+            assertRequestPayload(records.get(0));
+        } else {
+            assertNoRequestPayload(records.get(0));
+        }
+        assertNoResponsePayload(records.get(1));
+    }
+
+    @Test
+    public void test115MissingSmartServiceAuditConfigurationDefaultsToRecordingEventsAndData() {
+        var missingSystemConfiguration = auditHelper.getAuditConfiguration(null);
+        assertThat(missingSystemConfiguration.isRecordSmartServiceEvents()).isTrue();
+        assertThat(missingSystemConfiguration.isRecordSmartServiceData()).isTrue();
+
+        var missingAuditConfiguration = auditHelper.getAuditConfiguration(new SystemConfigurationType());
+        assertThat(missingAuditConfiguration.isRecordSmartServiceEvents()).isTrue();
+        assertThat(missingAuditConfiguration.isRecordSmartServiceData()).isTrue();
     }
 
     @Test
@@ -218,6 +271,10 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         return new AuditingServiceClient(delegate, auditHelper);
     }
 
+    private AuditingServiceClient audited(ServiceClient delegate, boolean recordEvents, boolean recordData) {
+        return new AuditingServiceClient(delegate, auditHelper, recordEvents, recordData);
+    }
+
     private SiSuggestObjectTypesRequestType request() {
         return new SiSuggestObjectTypesRequestType();
     }
@@ -258,9 +315,17 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
     }
 
     private void assertNoResponsePayload(AuditEventRecord record) {
+        assertNoPayload(record, "response");
+    }
+
+    private void assertNoRequestPayload(AuditEventRecord record) {
+        assertNoPayload(record, "request");
+    }
+
+    private void assertNoPayload(AuditEventRecord record, String name) {
         assertThat(record.getPayloads())
                 .extracting(AuditEventRecordPayload::getName)
-                .doesNotContain("response");
+                .doesNotContain(name);
     }
 
     private AuditEventRecordPayload getPayload(AuditEventRecord record, String name) {

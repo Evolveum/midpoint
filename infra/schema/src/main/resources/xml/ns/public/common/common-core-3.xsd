@@ -12332,8 +12332,57 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="smartIntegration" type="tns:SystemConfigurationAuditSmartIntegrationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Details about recording audit events and data for Smart Integration service calls.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditType.smartIntegration</a:displayName>
+                        <a:since>4.11</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="changedItemPaths" type="tns:SystemConfigurationAuditChangedItemPathsType" minOccurs="0"/>
             <!-- TODO: recordRetentionPolicy -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationAuditSmartIntegrationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies details regarding creation and recording of audit events for Smart Integration service calls.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="recordEvents" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, midPoint will record audit events for Smart Integration service calls.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditSmartIntegrationType.recordEvents</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordData" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, midPoint will record request payloads for Smart Integration service calls.
+                        Recording data also forces recording of the owning audit events.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditSmartIntegrationType.recordData</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

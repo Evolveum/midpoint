@@ -22,6 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationA
  */
 public class SystemConfigurationAuditUtil {
 
+    private static final boolean DEFAULT_RECORD_SMART_SERVICE_EVENTS = true;
+    private static final boolean DEFAULT_RECORD_SMART_SERVICE_DATA = true;
+
     public static boolean isEscapingInvalidCharacters(SystemConfigurationAuditType configuration) {
         final boolean defaultValue = false;
         if (configuration == null || configuration.getEventRecording() == null) {
@@ -39,6 +42,26 @@ public class SystemConfigurationAuditUtil {
         } else {
             return ObjectUtils.defaultIfNull(configuration.getEventRecording().getDeltaSuccessExecutionResult(), defaultValue);
         }
+    }
+
+    public static boolean isRecordingSmartServiceEvents(SystemConfigurationAuditType configuration) {
+        if (configuration == null || configuration.getSmartIntegration() == null) {
+            return DEFAULT_RECORD_SMART_SERVICE_EVENTS;
+        }
+
+        return ObjectUtils.defaultIfNull(
+                configuration.getSmartIntegration().isRecordEvents(),
+                DEFAULT_RECORD_SMART_SERVICE_EVENTS);
+    }
+
+    public static boolean isRecordingSmartServiceData(SystemConfigurationAuditType configuration) {
+        if (configuration == null || configuration.getSmartIntegration() == null) {
+            return DEFAULT_RECORD_SMART_SERVICE_DATA;
+        }
+
+        return ObjectUtils.defaultIfNull(
+                configuration.getSmartIntegration().isRecordData(),
+                DEFAULT_RECORD_SMART_SERVICE_DATA);
     }
 
     public static boolean isIndexingAddDeltaOperation(SystemConfigurationAuditType configuration) {

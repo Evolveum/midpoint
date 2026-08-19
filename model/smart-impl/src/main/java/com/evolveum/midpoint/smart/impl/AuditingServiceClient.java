@@ -47,21 +47,29 @@ class AuditingServiceClient implements ServiceClient {
 
     private final ServiceClient delegate;
     private final AuditHelper auditHelper;
+    private final boolean recordEvents;
+    private final boolean recordData;
 
     AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper) {
+        this(delegate, auditHelper, true, true);
+    }
+
+    AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper, boolean recordEvents, boolean recordData) {
         this.delegate = delegate;
         this.auditHelper = auditHelper;
+        this.recordEvents = recordEvents || recordData;
+        this.recordData = recordData;
     }
 
     @Override
-    public <REQ, RESP> RESP invoke(
-            Method method,
-            REQ request,
-            Class<RESP> responseClass,
-            ClientCallContext callContext)
-            throws SchemaException {
+    public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass,
+            ClientCallContext callContext) throws SchemaException {
 
-        String requestText = SmartServiceSerialization.serializeRequest(request);
+        if (!recordEvents) {
+            return delegate.invoke(method, request, responseClass, callContext);
+        }
+
+        String requestText = recordData ? SmartServiceSerialization.serializeRequest(request) : null;
         String requestIdentifier = generateRequestIdentifier();
 
         // This must succeed before potentially sensitive data is sent to the Smart service.
@@ -96,17 +104,18 @@ class AuditingServiceClient implements ServiceClient {
     }
 
     @Override
-    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(
-            Method method,
-            REQ request,
-            Class<RESP> responseClass,
-            ClientCallContext callContext) {
+    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request,
+            Class<RESP> responseClass, ClientCallContext callContext) {
+
+        if (!recordEvents) {
+            return delegate.invokeAsync(method, request, responseClass, callContext);
+        }
 
         String requestText;
         String requestIdentifier;
 
         try {
-            requestText = SmartServiceSerialization.serializeRequest(request);
+            requestText = recordData ? SmartServiceSerialization.serializeRequest(request) : null;
             requestIdentifier = generateRequestIdentifier();
 
             // This must succeed before potentially sensitive data is sent to the Smart service.
@@ -174,11 +183,8 @@ class AuditingServiceClient implements ServiceClient {
         delegate.close();
     }
 
-    private void auditRequest(
-            Method method,
-            ClientCallContext callContext,
-            String requestIdentifier,
-            String requestText) {
+    private void auditRequest(Method method, ClientCallContext callContext,
+            String requestIdentifier, @Nullable String requestText) {
 
         var record = createRecord(
                 method,
@@ -186,22 +192,19 @@ class AuditingServiceClient implements ServiceClient {
                 requestIdentifier,
                 AuditEventStage.REQUEST);
 
-        record.addPayload(
-                new AuditEventRecordPayload(
-                        "request",
-                        CONTENT_TYPE_JSON,
-                        requestText));
+        if (requestText != null) {
+            record.addPayload(
+                    new AuditEventRecordPayload(
+                            "request",
+                            CONTENT_TYPE_JSON,
+                            requestText));
+        }
 
         audit(record, callContext);
     }
 
-    private void auditExecutionSuppressingFailures(
-            Method method,
-            ClientCallContext callContext,
-            String requestIdentifier,
-            OperationResultStatus outcome,
-            String message,
-            long startNanos) {
+    private void auditExecutionSuppressingFailures(Method method, ClientCallContext callContext, String requestIdentifier,
+            OperationResultStatus outcome, String message, long startNanos) {
 
         try {
             var record = createRecord(
@@ -223,11 +226,8 @@ class AuditingServiceClient implements ServiceClient {
         }
     }
 
-    private AuditEventRecord createRecord(
-            Method method,
-            ClientCallContext callContext,
-            String requestIdentifier,
-            AuditEventStage stage) {
+    private AuditEventRecord createRecord(Method method, ClientCallContext callContext,
+            String requestIdentifier, AuditEventStage stage) {
 
         var record = new AuditEventRecord(
                 AuditEventType.SMART_SERVICE_CALL,
@@ -241,9 +241,7 @@ class AuditingServiceClient implements ServiceClient {
         return record;
     }
 
-    private void addResourceTarget(
-            AuditEventRecord record,
-            @Nullable ResourceType resource) {
+    private void addResourceTarget(AuditEventRecord record, @Nullable ResourceType resource) {
 
         if (resource == null) {
             return;
@@ -256,9 +254,7 @@ class AuditingServiceClient implements ServiceClient {
         }
     }
 
-    private void audit(
-            AuditEventRecord record,
-            ClientCallContext callContext) {
+    private void audit(AuditEventRecord record, ClientCallContext callContext) {
 
         auditHelper.audit(
                 record,

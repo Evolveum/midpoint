@@ -25,12 +25,15 @@ public class ConfigBasedServiceClientFactory implements ServiceClientFactory {
 
     @Override
     public ServiceClient getServiceClient(OperationResult parentResult) throws SchemaException, ConfigurationException {
+        var systemConfiguration = systemObjectCache.getSystemConfigurationBean(parentResult);
         var smartIntegrationConfiguration =
-                SystemConfigurationTypeUtil.getSmartIntegrationConfiguration(
-                        systemObjectCache.getSystemConfigurationBean(parentResult));
+                SystemConfigurationTypeUtil.getSmartIntegrationConfiguration(systemConfiguration);
+        var auditConfiguration = auditHelper.getAuditConfiguration(systemConfiguration);
         return new AuditingServiceClient(
                 new DefaultServiceClientImpl(smartIntegrationConfiguration),
-                auditHelper);
+                auditHelper,
+                auditConfiguration.isRecordSmartServiceEvents(),
+                auditConfiguration.isRecordSmartServiceData());
     }
 
 }
