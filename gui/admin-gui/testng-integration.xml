@@ -31,6 +31,10 @@
     <test name="Features" preserve-order="true" parallel="none" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.web.RequestAccessTest"/>
+            <class name="com.evolveum.midpoint.web.component.FileValidatorTest"/>
+            <class name="com.evolveum.midpoint.web.component.ImageSanitizationTest"/>
+            <class name="com.evolveum.midpoint.web.component.FileUploadConfigurationResolverTest"/>
+            <class name="com.evolveum.midpoint.gui.UploadDownloadPanelFactoryTest"/>
         </classes>
     </test>
 </suite>
