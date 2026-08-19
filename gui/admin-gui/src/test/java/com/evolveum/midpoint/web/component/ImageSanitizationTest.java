@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.web.component;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
-import static com.evolveum.midpoint.common.MimeTypeUtil.getExtension;
 import static com.evolveum.midpoint.web.component.FileTestConstants.XML_START_ARRAY;
 import static com.evolveum.midpoint.web.component.FileTestConstants.jpegBytes;
 import static com.evolveum.midpoint.web.component.FileTestConstants.jpegBytesWithFakeExif;
@@ -39,12 +36,12 @@ public class ImageSanitizationTest {
 
     @Test
     public void testRecognizesJpegMagicNumber() throws Exception {
-        assertEquals(getFileExtensionFromFileMagicNumber(jpegBytes()), getExtension(MIME_IMAGE_JPEG));
+        assertEquals(getFileExtensionFromFileMagicNumber(jpegBytes()), "jpg");
     }
 
     @Test
     public void testRecognizesPngMagicNumber() throws Exception {
-        assertEquals(getFileExtensionFromFileMagicNumber(pngBytes()), getExtension(MIME_IMAGE_PNG));
+        assertEquals(getFileExtensionFromFileMagicNumber(pngBytes()), "png");
     }
 
     @Test
@@ -65,7 +62,7 @@ public class ImageSanitizationTest {
     public void testJpegToPngConversion() throws Exception {
         byte[] sanitized = ImageSanitizationUtil.sanitizeImage(jpegBytes(), ImageFormatType.PNG, false);
 
-        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), getExtension(MIME_IMAGE_PNG));
+        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), "png");
     }
 
     @Test
@@ -73,7 +70,7 @@ public class ImageSanitizationTest {
         byte[] sanitized = ImageSanitizationUtil.sanitizeImage(
                 pngBytesWithTransparency(), ImageFormatType.JPG, false);
 
-        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), getExtension(MIME_IMAGE_JPEG));
+        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), "jpg");
     }
 
     @Test
@@ -85,7 +82,7 @@ public class ImageSanitizationTest {
         assertTrue(containsAscii(original));
         assertFalse(containsAscii(sanitized));
         assertNotSame(sanitized, original);
-        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), getExtension(MIME_IMAGE_JPEG));
+        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), "jpg");
     }
 
     @Test
@@ -97,7 +94,7 @@ public class ImageSanitizationTest {
         assertTrue(containsAscii(original));
         assertFalse(containsAscii(sanitized));
         assertNotSame(sanitized, original);
-        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), getExtension(MIME_IMAGE_PNG));
+        assertEquals(getFileExtensionFromFileMagicNumber(sanitized), "png");
     }
 
     @Test
