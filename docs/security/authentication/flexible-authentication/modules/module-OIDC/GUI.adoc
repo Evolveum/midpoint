@@ -69,6 +69,13 @@ Multiple `client` configurations can be used.
 |false
 |Complex xref:#client[client type]
 
+|`focusType`
+|Type of object this authentication module applies to, such as `UserType` or `RoleType`.
+
+Default value is `UserType`.
+|false
+|QName
+
 |`name`
 |Unique name of the authentication module
 

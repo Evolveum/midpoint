@@ -57,22 +57,24 @@ This identifier will be used to reference this module.
 |true
 |String
 
+|`resourceServer`
+|Contains configuration of the OIDC resource server
+|false
+|Complex xref:#resourceServer[resourceServer type]
+
+|`focusType`
+|Type of object this authentication module applies to, such as `UserType` or `RoleType`.
+
+Default value is `UserType`.
+|false
+|QNames
+
 |`name`
 |Unique name of the authentication module
 
 Deprecated, use `identifier` instead.
 |false
 |String
-
-|`description`
-|Free form description (administrator comment).
-|false
-|String
-
-|`resourceServer`
-|Contains configuration of the OIDC resource server
-|false
-|Complex xref:#resourceServer[resourceServer type]
 
 |===
 
