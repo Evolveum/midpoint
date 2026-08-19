@@ -47,6 +47,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Fixed the multiple click on Submit request button in Role catalog. See bug:MID-11939[]
 * Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
 * Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
+* Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
 
 == Changes with Respect To Version 4.9.6
 
