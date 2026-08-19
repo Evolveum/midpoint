@@ -41,7 +41,15 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Fixed model loading for unassign action popup. See bug:MID-11584[]
 * Fixed breaking too long labels into lines. See bug:MID-11711[]
 * Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
-* Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
+* Fixed search authorization denial for queries with type filters when read access is item-limited, and fixed the Roles of teammates panel in the Request access wizard to list role, service, organization and application assignments only. See bug:MID-11221[].
+* Fixed localization keys being rendered verbatim in several GUI areas. See bug:MID-11269[].
+* Fixed missing `.csv` extension in the name of the exported CSV file. See bug:MID-11046[].
+* Fixed CSV export on the Tasks list page. See bug:MID-11652[].
+* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
+* Fixed logging initialization, `midPoint.log` is now written from the very start of the system startup. See bug:MID-11861[].
+* Fixed closing of a task whose dependent or parent task no longer exists, and improved detection of stale bucketing workers. See bug:MID-10913[].
+* Fixed memory leak caused by authentication filters. See bug:MID-9794[].
+* Added `#readLog` model authorization action, so the log can be read via REST without superuser privileges.
 
 == Changes with Respect To Version 4.8.11
 
