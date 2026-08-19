@@ -71,7 +71,7 @@ public interface ModelDiagnosticService {
      *
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
-    void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
+    void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
@@ -90,7 +90,7 @@ public interface ModelDiagnosticService {
      * EXPERIMENTAL.
      */
     RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Execute arbitrary mapping.
@@ -99,7 +99,7 @@ public interface ModelDiagnosticService {
      */
     MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Evaluates an authorization request.
@@ -108,7 +108,7 @@ public interface ModelDiagnosticService {
     @NotNull AuthorizationEvaluationResponseType evaluateAuthorizations(
             @NotNull AuthorizationEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
     /**
      * Exports data model
      *
@@ -116,7 +116,7 @@ public interface ModelDiagnosticService {
      */
     String exportDataModel(Collection<String> resourceOids, DataModelVisualizer.Target target,
             Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     String exportDataModel(ResourceType resource, DataModelVisualizer.Target target, Task task,
             OperationResult parentResult)
@@ -127,18 +127,25 @@ public interface ModelDiagnosticService {
     /**
      * Returns the contents of the log file.
      *
+     * Requires the {@link ModelAuthorizationAction#READ_LOG} authorization.
+     * (Before, the `authorization-3#all` one - i.e. effectively a superuser - was required.)
+     *
      * @param fromPosition From absolute log file position (if non-negative); or counted from the end (if negative).
      * @param maxSize Max number of bytes to return.
-     * @param task
-     * @param parentResult
      */
     LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
-            throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
-    long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
+    /**
+     * Returns the size of the log file, in bytes.
+     *
+     * Requires the {@link ModelAuthorizationAction#READ_LOG} authorization.
+     * (Before, the `authorization-3#all` one - i.e. effectively a superuser - was required.)
+     */
+    long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException;
 
     // change the return type eventually
     String getMemoryInformation(Task task, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, IOException;
+            ConfigurationException, ExpressionEvaluationException, IOException, SubscriptionComplianceException;
 }

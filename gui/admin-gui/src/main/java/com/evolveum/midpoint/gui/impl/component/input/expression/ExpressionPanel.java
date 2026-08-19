@@ -18,12 +18,14 @@ import java.util.Optional;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 
@@ -51,6 +53,8 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,6 +75,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
     private LoadableModel<String> helpModel;
     private boolean isEvaluatorPanelExpanded = false;
     private boolean displayHelp = true;
+
+    /**
+     * Copy of the expression the script drawer works with, kept until the user applies it or closes
+     * the drawer.
+     */
+    private IModel<ExpressionType> editedExpression;
 
     Model<String> infoLabelModel = Model.of("");
 
@@ -94,7 +104,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH.show.button"),
         PATH(ExpressionEvaluatorType.PATH,
                 PathExpressionPanel.class,
-                "ExpressionEvaluatorType.PATH.show.button");
+                "ExpressionEvaluatorType.PATH.show.button"),
+        FILTER(ExpressionEvaluatorType.FILTER,
+                FilterExpressionPanel.class,
+                "ExpressionEvaluatorType.FILTER.show.button"),
+        NULL(ExpressionEvaluatorType.NULL,
+                null, null);
 
         private final ExpressionEvaluatorType type;
         private final Class<? extends EvaluatorExpressionPanel> evaluatorPanel;
@@ -155,9 +170,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             typeModel = new LoadableModel<>(false) {
                 @Override
                 protected RecognizedEvaluator load() {
-                    String expression = ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER);
-
-                    ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(expression);
+                    ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(getModelObject());
                     return recognizeEvaluator(type);
                 }
 
@@ -165,7 +178,12 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                 public void setObject(RecognizedEvaluator object) {
                     RecognizedEvaluator oldType = isLoaded() ? getObject() : null;
                     super.setObject(object);
-                    if (oldType != null && oldType != object && ExpressionPanel.this.getModelObject() != null) {
+
+                    // No subpanel writes the "null" evaluator into ExpressionType, so it updated on selection.
+                    if (object != null && object.equals(RecognizedEvaluator.NULL)) {
+                        ExpressionType currentExpression = ExpressionPanel.this.getOrCreateExpression();
+                        ExpressionUtil.addNullExpressionValue(currentExpression);
+                    } else if (oldType != null && oldType != object && ExpressionPanel.this.getModelObject() != null) {
                         ExpressionPanel.this.getModelObject().getExpressionEvaluator().clear();
                     }
                 }
@@ -324,6 +342,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap "));
+            label.add(AttributeModifier.replace("style", ""));
+            label.add(new ExpressionValidationBehavior(typeModel, getModel()));
             return label;
         }
 
@@ -390,39 +411,22 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return type != null && type.evaluatorPanel != null && type.buttonLabelKeyPrefix != null && !isReadOnly();
     }
 
-    private AjaxButton createTypeButton() {
+    private AjaxIconButton createTypeButton() {
         RecognizedEvaluator type = typeModel.getObject();
-        AjaxButton typeButton = new AjaxButton(ID_TYPE_BUTTON) {
+
+        AjaxIconButton typeButton = new AjaxIconButton(ID_TYPE_BUTTON, Model.of("fa fa-gear"),
+                () -> type != null
+                        ? getPageBase().createStringResource(
+                        type.buttonLabelKeyPrefix + "." + isEvaluatorPanelExpanded()).getString() : "") {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isInTable()) {
-                    OnePanelPopupPanel popupPanel = new OnePanelPopupPanel(getPageBase().getMainPopupBodyId()) {
-                        @Override
-                        protected WebMarkupContainer createPanel(String id) {
-                            return createEvaluatorPanel(id, true);
-                        }
-
-                        @Override
-                        public IModel<String> getTitle() {
-                            Component panel = getPanel();
-                            if (panel instanceof EvaluatorExpressionPanel) {
-                                return ((EvaluatorExpressionPanel) panel).getValueContainerLabelModel();
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void processHide(AjaxRequestTarget target) {
-                            super.processHide(target);
-                            updateLabelForExistingEvaluator();
-                            target.add(ExpressionPanel.this.get(ID_INFO_CONTAINER));
-                            target.add(ExpressionPanel.this);
-
-                            helpModel.reset();
-                        }
-                    };
-                    getPageBase().showMainPopup(popupPanel, target);
-
+                    if (RecognizedEvaluator.SCRIPT.equals(typeModel.getObject())) {
+                        showScriptDrawer(target);
+                        return;
+                    }
+                    DrawerModel drawerModel = new DrawerModel(Model.ofList(getDrawerCollapsedItems()));
+                    getPageBase().showDrawer(drawerModel, target);
                 } else {
                     isEvaluatorPanelExpanded = !isEvaluatorPanelExpanded;
                     if (ExpressionPanel.this.getModelObject() != null
@@ -438,40 +442,91 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     helpModel.reset();
                 }
             }
-
-            @Override
-            public IModel<?> getBody() {
-                if (type == null) {
-                    return Model.of();
-                }
-                return getPageBase().createStringResource(type.buttonLabelKeyPrefix + "." + isEvaluatorPanelExpanded());
-
-            }
         };
         typeButton.add(new VisibleBehaviour(this::isButtonShow));
         typeButton.setOutputMarkupId(true);
         return typeButton;
     }
 
-    private WebMarkupContainer createEvaluatorPanel() {
-        return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false);
+    private void showScriptDrawer(AjaxRequestTarget target) {
+        ExpressionType expression = getModelObject();
+        editedExpression = Model.of(expression != null ? expression.clone() : new ExpressionType());
+
+        DrawerModel drawerModel = new ScriptExpressionDrawerModel(
+                Model.ofList(getDrawerCollapsedItems()), editedExpression) {
+
+            @Override
+            protected void storePerformed(ExpressionType edited, AjaxRequestTarget target) {
+                getModel().setObject(ExpressionUtil.hasEvaluatorContent(edited) ? edited : null);
+                closeScriptDrawer(target);
+            }
+
+            @Override
+            protected void closePerformed(AjaxRequestTarget target) {
+                closeScriptDrawer(target);
+            }
+        };
+        getPageBase().showDrawer(drawerModel, target);
     }
 
-    private WebMarkupContainer createEvaluatorPanel(String id, boolean isInPopup) {
+    private void closeScriptDrawer(AjaxRequestTarget target) {
+        editedExpression = null;
+        getPageBase().hideDrawer(target);
+
+        typeModel.reset();
+        helpModel.reset();
+        updateLabelForExistingEvaluator();
+
+        target.add(this);
+    }
+
+    private IModel<ExpressionType> getDrawerEditModel() {
+        return editedExpression != null ? editedExpression : getModel();
+    }
+
+    /**
+     * Returns type of the object the expression is evaluated against, taken from the schema context of the item.
+     *
+     * @return target object type of expression or null while the schema context is not defined for the expression.
+     */
+    private QName resolveExpressionTargetType() {
+        PrismPropertyWrapper<ExpressionType> wrapper = parent != null ? parent.getObject() : null;
+        if (wrapper == null) {
+            return null;
+        }
+
+        var item = wrapper.getItem();
+        if (item == null || item.getValue() == null) {
+            return null;
+        }
+        var schemaContext = item.getValue().getSchemaContext();
+        if (schemaContext == null || schemaContext.getItemDefinition() == null) {
+            return null;
+        }
+        return schemaContext.getItemDefinition().getTypeName();
+    }
+
+    private WebMarkupContainer createEvaluatorPanel() {
+        return createEvaluatorPanel(ExpressionPanel.ID_EVALUATOR_PANEL, false, getModel());
+    }
+
+    private WebMarkupContainer createEvaluatorPanel(String id, boolean isInPopup, IModel<ExpressionType> model) {
         RecognizedEvaluator type = typeModel.getObject();
         if (type != null && type.evaluatorPanel != null) {
             try {
-                Constructor<? extends BasePanel<ExpressionType>> constructor = type.evaluatorPanel.getConstructor(String.class, IModel.class);
-                BasePanel<ExpressionType> evaluatorPanel = constructor.newInstance(id, getModel());
+                Constructor<? extends BasePanel<ExpressionType>> constructor =
+                        type.evaluatorPanel.getConstructor(String.class, IModel.class, IModel.class);
+                BasePanel<ExpressionType> evaluatorPanel =
+                        constructor.newInstance(id, model, (IModel<QName>) this::resolveExpressionTargetType);
                 evaluatorPanel.setOutputMarkupId(true);
                 evaluatorPanel.add(new VisibleBehaviour(() -> isInPopup || isEvaluatorPanelExpanded()));
                 if (!isInTable()) {
-                    evaluatorPanel.add(AttributeAppender.append("class", "pl-3"));
+                    evaluatorPanel.add(AttributeAppender.append("class", "ps-3"));
                 }
                 return evaluatorPanel;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 LOGGER.error("Couldn't create panel for expression evaluator by constructor for class {} with parameters type: "
-                        + "String, IModel", type.evaluatorPanel.getSimpleName());
+                        + "String, IModel, IModel", type.evaluatorPanel.getSimpleName());
             }
         }
         WebMarkupContainer invisiblePanel = new WebMarkupContainer(id);
@@ -506,7 +561,37 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return false;
     }
 
+    /**
+     * Shows the panel of the evaluator right away, without waiting for the user to expand it.
+     * @param expanded true to show the evaluator panel from the start.
+     */
+    public void setEvaluatorPanelExpanded(boolean expanded) {
+        this.isEvaluatorPanelExpanded = expanded;
+    }
+
     public void setDisplayHelp(boolean displayHelp) {
         this.displayHelp = displayHelp;
+    }
+
+    public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
+        List<CollapsedItem<DrawerModel>> collapsedItems = new ArrayList<>();
+        CollapsedItem<DrawerModel> collapsedItem = new CollapsedItem<>() {
+            @Override
+            public IModel<String> getIcon() {
+                return Model.of("fa fa-code");
+            }
+
+            @Override
+            public Component getPanel(String id, DrawerModel model) {
+                WebMarkupContainer panel = createEvaluatorPanel(id, true, getDrawerEditModel());
+                if (panel instanceof EvaluatorExpressionPanel evaluatorPanel) {
+                    setTitleModel(evaluatorPanel.getValueContainerLabelModel(getPageBase()));
+                }
+                return panel;
+            }
+        };
+        collapsedItem.setSelected(true);
+        collapsedItems.add(collapsedItem);
+        return collapsedItems;
     }
 }

@@ -10,7 +10,9 @@ import java.sql.Types;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
-import com.querydsl.core.types.dsl.*;
+import com.querydsl.core.types.dsl.BooleanPath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;

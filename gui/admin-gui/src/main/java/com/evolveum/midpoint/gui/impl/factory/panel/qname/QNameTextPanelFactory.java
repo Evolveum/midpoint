@@ -6,15 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.qname;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantType;

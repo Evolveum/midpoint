@@ -26,7 +26,6 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.isReadOnly;
 import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.MISS;
 
 /**
  * Single execution of cached operation (`getObject`, `getVersion`, `searchObjects`, `searchObjectsIteratively`).

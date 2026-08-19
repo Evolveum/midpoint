@@ -11,7 +11,8 @@ import java.io.Serializable;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * Factory of work definitions which contains definition of set of resource objects.

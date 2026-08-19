@@ -46,7 +46,7 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serial;
 
@@ -135,7 +135,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class", "card card-outline-left"));
+        add(AttributeAppender.append("class", "card shadow-sm mb-3 card-outline-start"));
         add(AttributeModifier.append("class", () -> {
             VisualizationDto dto = getModelObject();
 
@@ -170,7 +170,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
             QName type = value.getTypeName();
             String icon = IconAndStylesUtil.createDefaultBlackIcon(type);
 
-            return StringUtils.isNotEmpty(icon) ? "mr-1 " + icon : null;
+            return StringUtils.isNotEmpty(icon) ? "me-1 " + icon : null;
         };
 
         IconComponent icon = new IconComponent(ID_ICON, iconModel);

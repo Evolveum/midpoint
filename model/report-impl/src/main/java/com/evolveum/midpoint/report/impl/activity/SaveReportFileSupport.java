@@ -22,7 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -273,7 +275,7 @@ class SaveReportFileSupport {
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), timestampSuffix, randomStringSuffix);
 
@@ -301,7 +303,7 @@ class SaveReportFileSupport {
 
     private String putReportDataObjectToRepository(ReportDataType reportDataObject, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         ModelService model = reportService.getModelService();
         String oid = reportDataObject.getOid();
         if (oid != null) {
@@ -337,7 +339,7 @@ class SaveReportFileSupport {
      */
     private ObjectReferenceType getCurrentNodeRef(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String nodeId = runningTask.getNode();
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(
                 NodeType.class,

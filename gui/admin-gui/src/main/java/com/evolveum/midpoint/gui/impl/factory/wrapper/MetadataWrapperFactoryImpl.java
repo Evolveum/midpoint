@@ -7,21 +7,13 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StorageMetadataType;
 
 import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.util.List;
 
 @Component
 public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C> {

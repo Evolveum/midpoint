@@ -26,7 +26,8 @@ import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 /**
  * Implements clustering of roles based process mode.

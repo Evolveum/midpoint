@@ -276,6 +276,59 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         assertThat(t.getDelineation().getFilter()).hasSize(1);
     }
 
+    /**
+     * Suggestions duplicating an object type already present in schema handling (manually created or a
+     * previously accepted suggestion) must be filtered out of the result.
+     */
+    @Test
+    public void test040AlreadyPresentObjectTypeIsFiltered() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        refreshShadows();
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        // Obtain a properly-parsed delineation for the "contractor" object type.
+        var firstClient = createClient(
+                new SiSuggestedObjectTypeType()
+                        .kind("account")
+                        .intent("contractor")
+                        .filter("attributes/type = 'contractor'"));
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, firstClient);
+        var firstOp = objectTypesSuggestionOperationFactory.create(
+                firstClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+        var firstSuggestion = firstOp.suggestObjectTypes(statistics, result);
+        assertThat(firstSuggestion.getObjectType()).hasSize(1);
+        var contractorType = firstSuggestion.getObjectType().get(0);
+
+        // Simulate that this suggestion was accepted and is now present in schema handling.
+        executeChanges(
+                PrismContext.get().deltaFor(ResourceType.class)
+                        .item(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
+                        .add(contractorType.clone())
+                        .asObjectDelta(RESOURCE_DUMMY.oid),
+                null, task, result);
+
+        // The service suggests the already-present "contractor" type again,
+        // along with a genuinely new "manager" type.
+        var secondClient = createClient(
+                new SiSuggestedObjectTypeType()
+                        .kind("account")
+                        .intent("contractor")
+                        .filter("attributes/type = 'contractor'"),
+                new SiSuggestedObjectTypeType()
+                        .kind("account")
+                        .intent("manager")
+                        .filter("attributes/type = 'manager'"));
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, secondClient);
+        var secondOp = objectTypesSuggestionOperationFactory.create(
+                secondClient, RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, null, null, task, result);
+        var secondSuggestion = secondOp.suggestObjectTypes(statistics, result);
+
+        assertThat(secondSuggestion.getObjectType()).hasSize(1);
+        assertThat(secondSuggestion.getObjectType().get(0).getIntent()).isEqualTo("manager");
+    }
+
     @Test
     public void test100StatisticsTTL_ExpiredStatisticsAreDeleted() throws Exception {
         Task task = getTestTask();

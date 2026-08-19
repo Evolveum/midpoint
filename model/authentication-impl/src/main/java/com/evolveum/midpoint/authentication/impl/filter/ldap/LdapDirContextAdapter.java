@@ -15,8 +15,6 @@ import org.springframework.ldap.core.DirContextAdapter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.security.core.Authentication;
-
 import java.util.List;
 
 /**

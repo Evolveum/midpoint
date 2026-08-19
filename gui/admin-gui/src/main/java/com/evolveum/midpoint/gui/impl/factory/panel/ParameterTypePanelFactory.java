@@ -16,7 +16,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParameterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;

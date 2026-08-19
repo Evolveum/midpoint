@@ -23,9 +23,9 @@ public class ProgressBar implements Serializable {
         DARK("bg-dark"),
         LIGHT("bg-light"),
         PURPLE("bg-purple"),
-        ACCENT("bg-orange"),
-        OLIVE("bg-olive"),
-        LIME("bg-lime");
+        ORANGE("bg-orange"),
+        PINK("bg-pink"),
+        TEAL("bg-teal");
 
         private String cssClass;
 

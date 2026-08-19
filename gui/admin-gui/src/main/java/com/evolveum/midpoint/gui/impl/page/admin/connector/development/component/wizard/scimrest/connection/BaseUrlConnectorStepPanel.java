@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -55,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         containerPath = "empty")
 public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<ConnectorDevelopmentDetailsModel> {
 
-    private static final String PANEL_TYPE = "cdw-base-url";
+    public static final String PANEL_TYPE = "cdw-base-url";
     public static final ItemName BASE_ADDRESS_ITEM_NAME = ItemName.from("", "baseAddress");
     public static final ItemName SCIM_BASE_URL_ITEM_NAME = ItemName.from("", "scimBaseUrl");
 
@@ -117,7 +115,7 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
                     ItemPath.create(ConnectorDevelopmentType.F_APPLICATION, ConnDevApplicationInfoType.F_BASE_API_ENDPOINT))
                     .getValue().getRealValue();
             if (StringUtils.isNotEmpty(suggestedUrl)) {
-                ItemName urlField = isScim() ? SCIM_BASE_URL_ITEM_NAME : BASE_ADDRESS_ITEM_NAME;
+                ItemName urlField = urlFieldName();
                 PrismPropertyValueWrapper<String> fieldValue = (PrismPropertyValueWrapper<String>) getContainerFormModel().getObject().findProperty(urlField).getValue();
                 if (StringUtils.isEmpty(fieldValue.getRealValue())) {
                     fieldValue.setRealValue(suggestedUrl);
@@ -225,46 +223,20 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
     }
 
     protected boolean checkMandatory(ItemWrapper wrapper) {
-        if (isScim()) {
-            if (QNameUtil.match(wrapper.getItemName(), SCIM_BASE_URL_ITEM_NAME)) {
-                return true;
-            }
-        } else {
-            if (QNameUtil.match(wrapper.getItemName(), BASE_ADDRESS_ITEM_NAME)) {
-                return true;
-            }
+        if (QNameUtil.match(wrapper.getItemName(), urlFieldName())) {
+            return true;
         }
         return wrapper.isMandatory();
     }
 
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
-        return wrapper -> {
-            if (isScim()) {
-                if (scimItemNames().stream().anyMatch(name -> QNameUtil.match(wrapper.getItemName(), name))) {
-                    return ItemVisibility.AUTO;
-                }
-            } else {
-                if (QNameUtil.match(wrapper.getItemName(), BASE_ADDRESS_ITEM_NAME)) {
-                    return ItemVisibility.AUTO;
-                }
-            }
-            return ItemVisibility.HIDDEN;
-        };
+        return wrapper -> QNameUtil.match(wrapper.getItemName(), urlFieldName())
+                ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
     }
 
-    private List<ItemName> scimItemNames() {
-        return List.of(SCIM_BASE_URL_ITEM_NAME);
-    }
-
-    private boolean isScim() {
-        try {
-            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = getDetailsModel().getObjectWrapper().findProperty(
-                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
-            return ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
-        } catch (SchemaException e) {
-            return false;
-        }
+    private ItemName urlFieldName() {
+        return ConnectorDevelopmentWizardUtil.wizardStrategyFor(getDetailsModel()).connectionUrlFieldName();
     }
 
     @Override
@@ -301,9 +273,8 @@ public class BaseUrlConnectorStepPanel extends AbstractFormWizardStepPanel<Conne
 
     @Override
     public boolean isCompleted() {
-        ItemName fieldToCheck = isScim() ? SCIM_BASE_URL_ITEM_NAME : BASE_ADDRESS_ITEM_NAME;
         return ConnectorDevelopmentWizardUtil.existTestingResourcePropertyValue(
-                getDetailsModel(), getPanelType(), fieldToCheck);
+                getDetailsModel(), getPanelType(), urlFieldName());
     }
     @Override
     protected String getSubTextContainerCssClass() {

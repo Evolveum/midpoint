@@ -85,7 +85,8 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         for (int loadAttempt = 1; ; loadAttempt++) {
             Set<String> modifiedFocusOids = new HashSet<>();
@@ -139,7 +140,7 @@ public class ContextLoader implements ProjectorProcessor {
     /** Loads just the focus context; projections are ignored at this moment. */
     public <O extends ObjectType> void loadFocusContext(LensContext<O> context, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         new FocusLoadOperation<>(context, task)
                 .load(result);
     }
@@ -151,7 +152,7 @@ public class ContextLoader implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         new ProjectionUpdateOperation<>(context, projectionContext, task)
                 .update(result);
     }
@@ -380,7 +381,7 @@ public class ContextLoader implements ProjectorProcessor {
     public void loadFullShadow(
             @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         new ProjectionFullLoadOperation(projCtx, reason, false, task)
                 .loadFullShadow(result);
     }
@@ -389,7 +390,7 @@ public class ContextLoader implements ProjectorProcessor {
     public void loadFullShadowNoDiscovery(
             @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         new ProjectionFullLoadOperation(projCtx, reason, true, task)
                 .loadFullShadow(result);
     }
@@ -397,7 +398,7 @@ public class ContextLoader implements ProjectorProcessor {
     public <F extends FocusType> void reloadSecurityPolicyIfNeeded(@NotNull LensContext<F> context,
             @NotNull LensFocusContext<F> focusContext, Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (focusContext.hasOrganizationalChange()) {
             loadSecurityPolicy(context, true, task, result);
         }
@@ -405,14 +406,14 @@ public class ContextLoader implements ProjectorProcessor {
 
     void loadSecurityPolicy(LensContext<?> context, Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         loadSecurityPolicy(context, false, task, result);
     }
 
     @SuppressWarnings("unchecked")
     private <O extends ObjectType> void loadSecurityPolicy(LensContext<O> context, boolean forceReload,
             Task task, OperationResult result) throws ExpressionEvaluationException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LensFocusContext<O> genericFocusContext = context.getFocusContext();
         if (genericFocusContext == null || !genericFocusContext.represents(FocusType.class)) {
             LOGGER.trace("Skipping load of security policy because focus is not of FocusType");
@@ -453,7 +454,7 @@ public class ContextLoader implements ProjectorProcessor {
     private SecurityPolicyType determineAndSetFocusSecurityPolicy(LensFocusContext<FocusType> focusContext,
             PrismObject<FocusType> focus, PrismObject<SystemConfigurationType> systemConfiguration, boolean forceReload, Task task,
             OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, SchemaException {
+            ExpressionEvaluationException, SchemaException, SubscriptionComplianceException {
         SecurityPolicyType existingPolicy = focusContext.getSecurityPolicy();
         if (existingPolicy != null && !forceReload) {
             return existingPolicy;

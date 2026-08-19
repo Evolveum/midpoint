@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 

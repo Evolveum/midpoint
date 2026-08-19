@@ -278,8 +278,8 @@ public class PageDashboardConfigurable extends PageDashboard {
         widget.setData(null);
         var data = getDashboardService().createEmptyWidgetData(widget);
         var display = data.getDisplay();
-        display.setColor("var(--warning)");
-        display.setCssStyle("color: var(--navy) !important;");
+        display.setColor("var(--bs-warning)");
+        display.setCssStyle("color: var(--bs-dark) !important;");
         display.setIcon(new IconType().cssClass("fa fa-exclamation-triangle"));
         var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[] {}, getLocale());
         data.setNumberMessage(unsupportedShort);

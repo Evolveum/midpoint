@@ -16,7 +16,10 @@ import com.evolveum.midpoint.web.component.behavior.CaretPreservingOnChangeBehav
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -46,12 +49,16 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String C_DATA_SUFFIX = "]]>";
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public ScriptExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("ScriptExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("ScriptExpressionPanel.label");
     }
 
     protected void initLayout(MarkupContainer parent) {
@@ -93,8 +100,15 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
             @Override
             public void setObject(String value) {
-                if (getModelObject() != null) {
-                    getModelObject().setDescription(value);
+                ExpressionType expression = getModelObject();
+                if (expression == null && StringUtils.isNotEmpty(value)) {
+                    // Preserve a description entered before the script evaluator is created.
+                    expression = new ExpressionType();
+                    getModel().setObject(expression);
+                }
+
+                if (expression != null) {
+                    expression.setDescription(value);
                 }
             }
         };
@@ -107,7 +121,13 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
         documentationField.setOutputMarkupId(true);
         documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
-        documentationField.add(new CaretPreservingOnChangeBehavior());
+        documentationField.add(new CaretPreservingOnChangeBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // The model is updated before this callback. Avoid rerendering the
+                // unchanged field, as replacing it causes visible flickering.
+            }
+        });
         return documentationField;
     }
 
@@ -281,7 +301,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             if (StringUtils.isEmpty(code)) {
                 return null;
             }
-            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getLanguage());
+            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getShortForm());
         }
 
         public ScriptExpressionWrapper code(String code) {

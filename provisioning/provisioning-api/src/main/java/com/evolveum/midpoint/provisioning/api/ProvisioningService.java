@@ -14,7 +14,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.TestResourceOpNames;
 
 import com.evolveum.midpoint.prism.OriginMarker;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -335,7 +338,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** A convenience method. */
     default @NotNull AbstractShadow getShadow(
@@ -344,7 +347,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return AbstractShadow.of(
                 getObject(ShadowType.class, oid, options, new ProvisioningOperationContext(), task, result));
     }
@@ -360,7 +363,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return getObject(type, oid, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -415,7 +418,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -428,7 +431,8 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return addObject(object, scripts, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -480,7 +484,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException;
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -494,7 +498,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException {
         return synchronize(coordinates, options, tokenStorage, handler, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -520,7 +524,7 @@ public interface ProvisioningService {
     void processAsynchronousUpdates(@NotNull ResourceOperationCoordinates coordinates,
             @NotNull AsyncUpdateEventHandler handler, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Searches for objects. Returns a list of objects that match search criteria.
@@ -654,7 +658,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** A convenience method. */
     default @NotNull SearchResultList<? extends AbstractShadow> searchShadows(
@@ -663,7 +667,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return searchObjects(ShadowType.class, query, options, empty(), task, result)
                 .transform(AbstractShadow::of);
     }
@@ -680,7 +684,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return searchObjects(type, query, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -715,7 +719,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -728,7 +732,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return countObjects(type, query, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -762,7 +766,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -776,7 +780,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return searchObjectsIterative(type, query, options, handler, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -789,7 +793,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return searchObjectsIterative(
                 ShadowType.class,
                 query,
@@ -847,7 +851,8 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -862,7 +867,8 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return modifyObject(type, oid, modifications, scripts, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -897,7 +903,7 @@ public interface ProvisioningService {
     <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option,
             OperationProvisioningScriptsType scripts, ProvisioningOperationContext context, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException;
+            PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -906,7 +912,7 @@ public interface ProvisioningService {
     default <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option,
             OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return deleteObject(type, oid, option, scripts, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -931,7 +937,7 @@ public interface ProvisioningService {
      *             if resulting object would have name which already exists in another object of the same type
      */
     Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Tests the resource connection and basic resource connector functionality.
@@ -959,12 +965,14 @@ public interface ProvisioningService {
             @NotNull String resourceOid,
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException,
+            SubscriptionComplianceException;
 
     @NotNull default OperationResult testResource(
             @NotNull String resourceOid,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException,
+            SubscriptionComplianceException {
         return testResource(resourceOid, null, task, parentResult);
     }
 
@@ -994,13 +1002,13 @@ public interface ProvisioningService {
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
             OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException;
 
     default @NotNull OperationResult testResource(
             @NotNull PrismObject<ResourceType> resource,
             @NotNull Task task,
             OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         return testResource(resource, null, task, parentResult);
     }
 
@@ -1019,7 +1027,8 @@ public interface ProvisioningService {
     default @NotNull OperationResult testPartialConfiguration(
             @NotNull PrismObject<ResourceType> resource,
             @NotNull Task task,
-            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            @NotNull OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            SubscriptionComplianceException {
         return testResource(
                 resource,
                 ResourceTestOptions.partial(),
@@ -1065,7 +1074,7 @@ public interface ProvisioningService {
     Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
 
     List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Get the resource referenced by the provided shadow.
@@ -1083,7 +1092,7 @@ public interface ProvisioningService {
      */
     default ResourceType getShadowResource(ShadowType shadow, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final String resourceOid = ShadowUtil.getResourceOidRequired(shadow);
         return getObject(ResourceType.class, resourceOid, null, task, parentResult).asObjectable();
     }
@@ -1101,7 +1110,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException;
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException;
 
     /**
      * This is method doesn't take {@link ProvisioningOperationContext} as a parameter to simplify backward compatibility for now.
@@ -1109,7 +1118,7 @@ public interface ProvisioningService {
      */
     default void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            ObjectAlreadyExistsException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         refreshShadow(shadow, options, new ProvisioningOperationContext(), task, parentResult);
     }
 
@@ -1117,7 +1126,7 @@ public interface ProvisioningService {
      * Applies appropriate definition to the shadow/resource delta.
      */
     <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Task task, OperationResult parentResult)
-        throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Applies appropriate definition to the shadow/resource delta. The provided object is used to get necessary information,
@@ -1125,19 +1134,28 @@ public interface ProvisioningService {
      */
     <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
-     * Applies appropriate definition to the shadow.
+     * Applies appropriate definition to a {@link ResourceType} or {@link ShadowType} object (later to any other object
+     * managed by the provisioning service).
+     *
+     * By applying the definition we mean that we obtain the provisioning-specific definitions of attributes and associations
+     * (in the case of shadow) or of connector properties (in the case of a resource) and try to apply them to provided object.
+     *
+     * The operation should fail if the definition cannot be obtained e.g. if the shadow has no information about the resource
+     * or object class/type.
+     *
+     * NOTE: In the future, we may reconsider this "should fail" behavior.
      */
     <T extends ObjectType> void applyDefinition(PrismObject<T> object, Task task, OperationResult parentResult)
-        throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Determines shadow lifecycle state (shadow state for short), updating the shadow object.
      */
     void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
-        throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Determines effective shadow marks and policies, updating the shadow object in memory.
@@ -1153,7 +1171,7 @@ public interface ProvisioningService {
      */
     void updateShadowMarksAndPolicies(PrismObject<ShadowType> shadow, boolean isNew, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException;
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Applies appropriate definition to the query.
@@ -1163,7 +1181,7 @@ public interface ProvisioningService {
      * ShadowKindType, String, QName)}.
      */
     <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, Task task, OperationResult parentResult)
-        throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
@@ -1200,7 +1218,7 @@ public interface ProvisioningService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     void enterConstraintsCheckerCache();
 
@@ -1215,7 +1233,7 @@ public interface ProvisioningService {
     <O extends ObjectType, T> ItemComparisonResult compare(Class<O> type, String oid, ItemPath path, T expectedValue,
             Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, EncryptionException;
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException;
 
     void shutdown();
 
@@ -1248,7 +1266,7 @@ public interface ProvisioningService {
             @Nullable ObjectSynchronizationDiscriminatorType existingSorterResult,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Generates shadow tag (for multi-account scenarios).
@@ -1262,7 +1280,7 @@ public interface ProvisioningService {
             @NotNull ResourceObjectDefinition definition,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Expands (in-memory) configuration object by (e.g.) resolving references to super/template objects, and so on.
@@ -1278,7 +1296,7 @@ public interface ProvisioningService {
     void expandConfigurationObject(
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Method create collection of capabilities which connector support.
@@ -1289,12 +1307,12 @@ public interface ProvisioningService {
      */
     @Experimental
     @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Returns the default operation policy for given object type (if specified). */
     @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeIdentification typeIdentification,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 }

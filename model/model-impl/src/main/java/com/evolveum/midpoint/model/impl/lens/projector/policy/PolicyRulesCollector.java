@@ -87,7 +87,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     /** Collects "object rules" (i.e. for focus and assignments) from all sources: assignments and global config, incl. marks. */
     @NotNull List<DirectlyEvaluatedClockworkPolicyRuleImpl> collectObjectRules(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules = new ArrayList<>();
         collectActivityRules(rules);
         collectObjectRulesFromAssignments(rules);
@@ -120,8 +120,10 @@ class PolicyRulesCollector<O extends ObjectType> {
             }
 
             String ruleId = rule.getRuleIdentifier().toString();
+            // The activity rule's bean is frozen (shared by all worker threads); the clockwork may need
+            // to modify its own copy, e.g. when resolving constraint references - hence the clone.
             PolicyRuleConfigItem ruleCI =
-                    ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
+                    ConfigurationItem.configItem(rule.getPolicyBean().clone(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
             LOGGER.trace("Collecting activity policy rule '{}' ({})", ruleCI.getName(), ruleId);
             rules.add(new DirectlyEvaluatedClockworkPolicyRuleImpl(ruleCI, ruleId, null, TargetType.OBJECT, rule));
@@ -140,7 +142,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     /** [EP:M:PRC] DONE rules are from {@link #rulesWithIds} only */
     private void collectGlobalObjectRules(List<DirectlyEvaluatedClockworkPolicyRuleImpl> rules, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         PrismObject<O> focus = getFocusForSelection();
         List<GlobalRuleWithId> ruleMatchingFocus = getGlobalRulesMatchingFocus(focus);
         int globalRulesFound = 0;
@@ -163,7 +165,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     void collectAllAssignmentRules(
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         collectGlobalAssignmentRules(evaluatedAssignmentTriple, result);
         collectActivityAssignmentRules(evaluatedAssignmentTriple);
@@ -173,7 +175,7 @@ class PolicyRulesCollector<O extends ObjectType> {
     private void collectGlobalAssignmentRules(
             DeltaSetTriple<? extends EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         PrismObject<O> focus = getFocusForSelection();
 
@@ -254,8 +256,9 @@ class PolicyRulesCollector<O extends ObjectType> {
 
                 for (ActivityPolicyRule rule : activityRules) {
                     String ruleId = rule.getRuleIdentifier().toString();
+                    // Clone: the activity rule's bean is frozen and shared, see collectActivityRules.
                     PolicyRuleConfigItem ci =
-                            ConfigurationItem.configItem(rule.getPolicyBean(), rule.getOrigin(), PolicyRuleConfigItem.class);
+                            ConfigurationItem.configItem(rule.getPolicyBean().clone(), rule.getOrigin(), PolicyRuleConfigItem.class);
 
                     LOGGER.trace("Collecting activity policy rule for assignment '{}' ({})", ci.getName(), ruleId);
                     evaluatedAssignment.addTargetPolicyRule(
@@ -281,7 +284,7 @@ class PolicyRulesCollector<O extends ObjectType> {
      */
     private List<GlobalRuleWithId> getGlobalRulesMatchingFocus(@Nullable PrismObject<O> focus)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         checkInitialized();
         List<GlobalRuleWithId> matching = new ArrayList<>();
         LOGGER.trace("Checking {} global policy rules for use with the object or assignments", rulesWithIds.size());
@@ -360,7 +363,7 @@ class PolicyRulesCollector<O extends ObjectType> {
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         GlobalPolicyRuleConfigItem ruleCI = ruleWithId.ruleCI();
         MappingConfigItem condition = ruleCI.getCondition();
         if (condition == null) {

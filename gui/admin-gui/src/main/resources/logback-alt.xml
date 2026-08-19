@@ -11,7 +11,10 @@
         <propertyName>midpoint.logging.alt.prefix</propertyName>
     </define>
 
-    <if condition='isDefined("midpoint.logging.alt.filename")'>
+    <condition class="ch.qos.logback.core.boolex.IsPropertyDefinedCondition">
+        <key>midpoint.logging.alt.filename</key>
+    </condition>
+    <if>
         <then>
             <appender name="ALT_LOG" class="ch.qos.logback.core.FileAppender">
                 <file>${midpoint.logging.alt.filename}</file>

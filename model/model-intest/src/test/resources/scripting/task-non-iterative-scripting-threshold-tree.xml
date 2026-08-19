@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- As task-iterative-scripting-threshold-tree.xml, but using non-iterative scripting: there is no
+     per-item processing (and no item processing gatekeeper), so the threshold violation propagates
+     out of the activity run wrapped in script/expression evaluation exceptions. -->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        oid="e1c7a4d8-5a30-4f60-8c8d-b3f1a7c0e940">
+    <name>Non-iterative scripting task tree - threshold</name>
+
+    <assignment>
+        <targetRef oid="1692d0e8-04e5-4aa4-a60c-3653ac77efa1"
+                relation="org:default"
+                type="c:RoleType"/>
+    </assignment>
+
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"
+            relation="org:default"
+            type="c:UserType"/>
+    <executionState>runnable</executionState>
+
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>main</identifier>
+                <work>
+                    <nonIterativeScripting>
+                        <scriptExecutionRequest>
+                            <s:execute>
+                                <s:forWholeInput>true</s:forWholeInput>
+                                <s:script>
+                                    <code><![CDATA[
+                                        import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy
+                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                                        def query = prismContext.queryFor(UserType.class)
+                                                .item(UserType.F_NAME).startsWith("test940-threshold-tree-")
+                                                .asc(UserType.F_NAME)
+                                                .build()
+
+                                        for (user in midpoint.searchObjects(UserType.class, query)) {
+                                            def userBefore = user.clone()
+
+                                            user.setTelephoneNumber("1000000")
+
+                                            def delta = userBefore
+                                                    .asPrismObject()
+                                                    .diff(user.asPrismObject(), EquivalenceStrategy.IGNORE_METADATA)
+
+                                            midpoint.modifyObject(delta)
+                                        }
+                                    ]]></code>
+                                </s:script>
+                            </s:execute>
+                        </scriptExecutionRequest>
+                    </nonIterativeScripting>
+                </work>
+            </activity>
+        </composition>
+        <distribution>
+            <subtasks/>
+        </distribution>
+    </activity>
+</task>

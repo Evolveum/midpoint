@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mappings.tasks;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetQueryApplicationModeType.APPEND;
 
 import java.util.List;
 

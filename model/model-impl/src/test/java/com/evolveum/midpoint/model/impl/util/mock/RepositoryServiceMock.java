@@ -38,7 +38,10 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class RepositoryServiceMock implements RepositoryService {
 
@@ -127,6 +130,11 @@ public class RepositoryServiceMock implements RepositoryService {
     @Override
     public <O extends ObjectType> boolean isDescendant(
             PrismObject<O> object, String ancestorOrgOid) {
+        return false;
+    }
+
+    @Override
+    public <O extends ObjectType> boolean isDescendantOfAny(PrismObject<O> object, Collection<String> ancestorOrgOids) throws SchemaException {
         return false;
     }
 

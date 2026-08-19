@@ -54,7 +54,7 @@ public class DisableInsteadOfDeleteEvaluator extends PredefinedActivationMapping
     public <F extends FocusType> void defineAdministratorStatus(
             LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         setTargetPropertyValue(
                 projCtx,
                 SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED,

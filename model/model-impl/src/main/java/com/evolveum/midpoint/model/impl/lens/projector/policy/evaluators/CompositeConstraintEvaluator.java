@@ -57,7 +57,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -103,7 +103,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             PolicyRuleEvaluationContext<?> rctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return new EvaluatedCompositeTrigger(
                 kind,
                 constraintElement.getValue(),
@@ -116,7 +116,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             PolicyConstraintKind kind, JAXBElement<PolicyConstraintsType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + kind.getSerializableVersion().value())
                 .build();
@@ -127,7 +127,7 @@ public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<P
             PolicyConstraintKind kind, JAXBElement<PolicyConstraintsType> constraintElement,
             PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + kind.getSerializableVersion().value())
                 .build();

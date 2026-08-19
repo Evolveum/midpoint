@@ -40,7 +40,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
@@ -50,7 +50,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Describes the provided correlation case by providing {@link CorrelationCaseDescription} object.
@@ -71,7 +71,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Completes given correlation case.
@@ -100,7 +100,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
     }
 
     /**
@@ -129,7 +129,7 @@ public interface CorrelationService {
             @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
             @NotNull Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException;
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     @FunctionalInterface
     interface CaseCloser {

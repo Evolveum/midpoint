@@ -110,6 +110,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestShadowCaching"/>
             <class name="com.evolveum.midpoint.model.intest.TestDiscoveryBoundaries"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestQueries"/>
+            <class name="com.evolveum.midpoint.model.intest.behavior.TestBehaviorLastLoginMapping"/>
             <!-- Test for MID-10834. Disabled here because it is long-running; executed separately.  -->
             <!-- <class name="com.evolveum.midpoint.model.intest.TestMqlTicket10834"/> -->
         </classes>
@@ -153,6 +154,17 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskActivityPolicies"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyContribution"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActions"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsComposite"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsMultiNode"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyCombinations"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioSimple"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultithreaded"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultiTask"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestCustomPolicyReconciliationMultiNode"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyTreeCounters"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyNonIterativeScripting"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">

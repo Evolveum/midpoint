@@ -995,6 +995,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

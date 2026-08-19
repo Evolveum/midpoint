@@ -118,7 +118,7 @@ public class ExpressionProfileManager {
     public @NotNull ExpressionProfile determineExpressionProfileStrict(
             @NotNull ConfigurationItemOrigin origin, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (origin instanceof ConfigurationItemOrigin.External external) {
             return determineExpressionProfileForChannel(external.getChannelUri(), task, result);
         } else {
@@ -181,7 +181,7 @@ public class ExpressionProfileManager {
     private @NotNull ExpressionProfile determineExpressionProfileForChannel(
             @NotNull String channelUri, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (SchemaConstants.CHANNEL_INIT_URI.equals(channelUri)
                 || SchemaConstants.CHANNEL_REST_URI.equals(channelUri)
                 || SchemaConstants.CHANNEL_USER_URI.equals(channelUri)) {
@@ -203,7 +203,7 @@ public class ExpressionProfileManager {
     public @NotNull ExpressionProfile determineBulkActionsProfile(
             @NotNull ConfigurationItemOrigin origin, boolean privileged, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         @Nullable ExpressionProfile profile;
         if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
             profile = determineExpressionProfileOrNull(inObject.getOriginatingPrismObject(), result);

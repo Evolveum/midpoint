@@ -78,7 +78,7 @@ abstract class PolicyRuleEvaluator {
     void evaluateRules(
             List<? extends PolicyRuleEvaluationContext<?>> contexts, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (PolicyRuleEvaluationContext<?> ctx : contexts) {
             if (!ctx.policyRule.hasSituationConstraint()) {
                 evaluateRule(ctx, result);
@@ -97,7 +97,7 @@ abstract class PolicyRuleEvaluator {
     private <O extends ObjectType> void evaluateRule(
             @NotNull PolicyRuleEvaluationContext<O> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         DirectlyEvaluatedClockworkPolicyRuleImpl rule = ctx.policyRule;
         String ruleShortString = rule.toShortString();
@@ -191,8 +191,11 @@ abstract class PolicyRuleEvaluator {
     abstract void record(OperationResult result) throws SchemaException;
 
     @NotNull <R extends EvaluatedClockworkPolicyRule> List<R> selectRulesToRecord(@NotNull Collection<R> allRules) {
+        // Like other policy actions, `record` is executed only when the threshold (if any) is reached.
         return allRules.stream()
-                .filter(rule -> rule.isTriggered() && rule.containsEnabledAction(RecordPolicyActionType.class))
+                .filter(rule -> rule.isTriggered()
+                        && rule.isOverThreshold()
+                        && rule.containsEnabledAction(RecordPolicyActionType.class))
                 .collect(Collectors.toList());
     }
 }

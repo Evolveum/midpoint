@@ -50,7 +50,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     @Autowired protected AccCertExpressionHelper expressionHelper;
 
     // default implementation, depending only on the expressions provided
-    public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
@@ -63,7 +63,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
             AccessCertificationCampaignType campaign, OperationResult caseResult, Task task)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         String objectOid = assignmentCase.getObjectRef().getOid();
         Class<? extends Objectable> clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
         //noinspection unchecked

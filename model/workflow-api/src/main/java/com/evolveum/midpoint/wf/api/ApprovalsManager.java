@@ -40,7 +40,7 @@ public interface ApprovalsManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Retrieves information about expected approval schema and its execution.
@@ -57,7 +57,7 @@ public interface ApprovalsManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * TODO

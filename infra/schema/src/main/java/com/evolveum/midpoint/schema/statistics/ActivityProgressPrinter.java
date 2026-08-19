@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityProgressType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutcomeKeyedCounterType;
 
 import org.jetbrains.annotations.NotNull;
 

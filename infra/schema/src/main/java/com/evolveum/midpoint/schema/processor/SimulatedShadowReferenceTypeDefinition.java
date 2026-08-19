@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.schema.processor;
 
 import static com.evolveum.midpoint.schema.config.ConfigurationItem.DESC;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonEmpty;
 
 import java.io.Serializable;
 import java.util.*;

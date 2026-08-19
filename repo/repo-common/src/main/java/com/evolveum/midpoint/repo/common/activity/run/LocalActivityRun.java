@@ -205,7 +205,7 @@ public abstract class LocalActivityRun<
     /**
      * Fails if running within a worker task. (Currently this mode is not supported e.g. for composite activities.)
      */
-    final void ensureNotInWorkerTask(@Nullable String customMessage) {
+    protected final void ensureNotInWorkerTask(@Nullable String customMessage) {
         if (isWorker()) {
             throw new UnsupportedOperationException(
                     Objects.requireNonNull(

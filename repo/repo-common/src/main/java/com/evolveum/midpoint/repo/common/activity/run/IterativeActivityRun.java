@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
@@ -24,7 +24,10 @@ import com.evolveum.midpoint.repo.common.activity.run.reports.ItemsReport;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,6 +46,7 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.GetBucketOperation
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -222,7 +226,7 @@ public abstract class IterativeActivityRun<
 
         setExpectedTotal(result);
 
-        for (; task.canRun(); initialRun = false) {
+        for (; canRunConsideringCoordinator(task, result); initialRun = false) {
 
             bucket = getWorkBucket(initialRun, result);
             if (bucket == null) {
@@ -232,7 +236,7 @@ public abstract class IterativeActivityRun<
 
             boolean complete = false;
             try {
-                if (!task.canRun()) {
+                if (!canRunConsideringCoordinator(task, result)) {
                     break;
                 }
 
@@ -317,7 +321,7 @@ public abstract class IterativeActivityRun<
             GetBucketOperationOptions options = GetBucketOperationOptionsBuilder.anOptions()
                     .withDistributionDefinition(activity.getDefinition().getDistributionDefinition())
                     .withFreeBucketWaitTime(FREE_BUCKET_WAIT_TIME)
-                    .withCanRun(task::canRun)
+                    .withCanRun(() -> canRunConsideringCoordinator(task, result))
                     .withExecuteInitialWait(initialRun)
                     .withImplicitSegmentationResolver(this)
                     .withIsScavenger(isScavenger(task))
@@ -326,9 +330,15 @@ public abstract class IterativeActivityRun<
             bucket = beans.bucketingManager.getWorkBucket(bucketingSituation.coordinatorTaskOid,
                     bucketingSituation.workerTaskOid, activity.getPath(), options, getLiveBucketManagementStatistics(), result);
             task.refresh(result); // We want to have the most current state of the running task.
+            if (!canRunConsideringCoordinator(task, result)) {
+                if (bucket != null) {
+                    releaseAllBucketsWhenWorker(result);
+                }
+                return null;
+            }
         } catch (InterruptedException e) {
             LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
-            if (!task.canRun()) {
+            if (!canRunConsideringCoordinator(task, result)) {
                 return null;
             } else {
                 LoggingUtils.logUnexpectedException(LOGGER, "Unexpected InterruptedException in {}", e, task);
@@ -348,6 +358,27 @@ public abstract class IterativeActivityRun<
         if (bucketProgress != null && !Objects.equals(bucketProgress.getTotalBuckets(), numberOfBucketsAnnounced)) {
             getTreeStateOverview().updateBucketAndItemProgress(this, bucketProgress, result);
             numberOfBucketsAnnounced = bucketProgress.getTotalBuckets();
+        }
+    }
+
+    /**
+     * A distributed worker should stop taking new buckets when its coordinator/root task is suspended. Normally, suspension
+     * of the task tree stops the worker task itself. This extra check handles the case where only the coordinator was
+     * suspended, or where the worker observes the coordinator state before its own stop request is delivered.
+     */
+    private boolean canRunConsideringCoordinator(RunningTask task, OperationResult result) {
+        return task.canRun() && (!isWorker() || isCoordinatorRunnable(result));
+    }
+
+    private boolean isCoordinatorRunnable(OperationResult result) {
+        try {
+            Task coordinatorTask = beans.taskManager.getTaskPlain(bucketingSituation.coordinatorTaskOid, result);
+            return !coordinatorTask.isSuspended() && !coordinatorTask.isClosed();
+        } catch (CommonException e) {
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Couldn't determine coordinator task state for {}, continuing the worker for now", e,
+                    bucketingSituation.coordinatorTaskOid);
+            return true;
         }
     }
 

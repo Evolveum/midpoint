@@ -191,12 +191,12 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
 
             @Override
             protected String getTileCssClasses() {
-                return "col-4 pb-3 pl-2 pr-2";
+                return "col-4 pb-3 ps-2 pe-2";
             }
 
             @Override
             protected String getTileContainerCssClass() {
-                return "row justify-content-left ";
+                return "row justify-content-start ";
             }
 
             @Override
@@ -270,7 +270,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
                     item.add(repeatingView);
 
                     AjaxCompositedIconSubmitButton migrationButton = buildCandidateButton(repeatingView.newChildId(), rowModel);
-                    migrationButton.add(AttributeModifier.append(CLASS_CSS, "mr-1"));
+                    migrationButton.add(AttributeModifier.append(CLASS_CSS, "me-1"));
                     repeatingView.add(migrationButton);
 
                     AjaxCompositedIconSubmitButton exploreButton = buildExploreButton(repeatingView.newChildId(), rowModel);
@@ -609,7 +609,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
             @Contract(pure = true)
             @Override
             protected @NotNull String getLabelComponentCssClass() {
-                return "ml-1 text-success";
+                return "ms-1 text-success";
             }
 
             @Override

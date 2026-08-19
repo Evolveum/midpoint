@@ -28,19 +28,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SqaleUtils {
 
-    /**
-     * Global metadata name for schema change number, related to
-     */
-    public static final String SCHEMA_CHANGE_NUMBER = "schemaChangeNumber";
+    public enum VersionedComponent {
 
-    /**
-     * Global metadata name for schema audit change number
-     */
-    public static final String SCHEMA_AUDIT_CHANGE_NUMBER = "schemaAuditChangeNumber";
+        /** This is the main repository database, containing `m_xxx` tables, defined in `postgres.sql`. */
+        REPOSITORY("schemaChangeNumber", "repository data", 60),
 
-    public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 57;
+        /** This is the main repository database, containing `ma_xxx` tables, defined in `postgres-audit.sql`. */
+        AUDIT("schemaAuditChangeNumber", "audit data", 12);
 
-    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 12;
+        /** Value of `name` column in `m_global_metadata` table that indicates the current version. */
+        public final String label;
+
+        /** Name of the component, meaningful for the user. */
+        public final String humanReadableName;
+
+        /** Expected value in the `m_global_metadata` table. */
+        public final int expectedVersion;
+
+        VersionedComponent(String label, String humanReadableName, int expectedVersion) {
+            this.label = label;
+            this.humanReadableName = humanReadableName;
+            this.expectedVersion = expectedVersion;
+        }
+    }
 
     /** User Data Key used to attach owner Oid to prism container values in order to propagate OID even if parent
      * full object is not present.

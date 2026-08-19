@@ -47,7 +47,7 @@ public class InfoBox extends BasePanel<InfoBoxData> {
     private void initLayout() {
         add(AttributeAppender.append("class", () -> {
             List<String> classes = new ArrayList<>();
-            classes.add("info-box");
+            classes.add("info-box shadow-sm border");
 
             InfoBoxData data = getModelObject();
             if (data.getLink() != null) {

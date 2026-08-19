@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 

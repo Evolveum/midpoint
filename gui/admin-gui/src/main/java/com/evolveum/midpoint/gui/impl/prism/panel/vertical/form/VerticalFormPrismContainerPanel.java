@@ -8,7 +8,9 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -105,7 +107,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     }
 
     protected String getCssForHeader() {
-        return "bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+        return "bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 btn w-100";
     }
 
     protected IModel<String> getTitleModel() {

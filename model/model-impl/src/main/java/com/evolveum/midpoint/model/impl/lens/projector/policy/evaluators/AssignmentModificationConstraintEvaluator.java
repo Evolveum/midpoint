@@ -54,7 +54,7 @@ public class AssignmentModificationConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -110,7 +110,7 @@ public class AssignmentModificationConstraintEvaluator
             JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage relationMessage = relation != null ?
@@ -141,7 +141,7 @@ public class AssignmentModificationConstraintEvaluator
 
     private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
         QName relation = ctx.evaluatedAssignment.getNormalizedRelation();
         LocalizableMessage builtInMessage;

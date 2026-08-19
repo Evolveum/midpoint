@@ -74,7 +74,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -107,7 +107,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         StatePolicyConstraintType constraint = constraintElement.getValue();
         int count =
@@ -197,7 +197,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             JAXBElement<StatePolicyConstraintType> constraintElement,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         StatePolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getFilter() != null) {
             throw new UnsupportedOperationException("Filter is not supported for assignment state constraints yet.");
@@ -230,7 +230,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage =
                 createBuiltInMessage(
                         SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix,
@@ -247,7 +247,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         StatePolicyConstraintType constraint = constraintElement.getValue();
         List<Object> args = new ArrayList<>();
         args.add(evaluatorHelper.createBeforeAfterMessage(ctx));
@@ -283,7 +283,7 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             boolean assignmentTarget,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage =
                 createBuiltInMessage(
                         SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKeyPrefix,

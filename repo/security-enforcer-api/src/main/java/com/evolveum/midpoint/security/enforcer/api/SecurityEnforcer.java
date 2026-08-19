@@ -54,7 +54,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns `true` if the currently logged-in user is authorized for specified action (represented by `operationUrl`),
@@ -73,7 +73,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         var decision = decideAccess(
                 getMidPointPrincipal(), operationUrl, phase, params, options, task, result);
         return decision == AccessDecision.ALLOW;
@@ -81,7 +81,7 @@ public interface SecurityEnforcer {
 
     default boolean isAuthorizedAll(@NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return isAuthorized(
                 AuthorizationConstants.AUTZ_ALL_URL,
                 null,
@@ -145,7 +145,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AccessDecision finalDecision = AccessDecision.DEFAULT;
         for (String operationUrl : operationUrls) {
             AccessDecision decision = decideAccess(
@@ -169,7 +169,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return decideAccess(principal, operationUrls, AuthorizationParameters.EMPTY, task, result);
     }
 
@@ -189,7 +189,7 @@ public interface SecurityEnforcer {
             @NotNull Options options,
             @NotNull Task task,
             @NotNull OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         if (!isAuthorized(operationUrl, phase, params, options, task, result)) {
             failAuthorization(operationUrl, phase, params, result);
         }
@@ -205,7 +205,7 @@ public interface SecurityEnforcer {
             @NotNull AbstractAuthorizationParameters params,
             @NotNull Task task,
             @NotNull OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         authorize(operationUrl, phase, params, Options.create(), task, result);
     }
 
@@ -218,12 +218,13 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         authorize(operationUrl, null, AuthorizationParameters.EMPTY, task, result);
     }
 
     default void authorizeAll(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         authorize(AuthorizationConstants.AUTZ_ALL_URL, task, result);
     }
 
@@ -256,7 +257,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Compiles the security constraints related to given `actionUrls` and `phase` for a given principal against the `object`.
@@ -278,7 +279,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns a filter that covers all the objects for which the principal is authorized to apply `operationUrls`.
@@ -306,7 +307,7 @@ public interface SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Similar to {@link #preProcessObjectFilter(MidPointPrincipal, String[], String[], AuthorizationPhaseType, Class,
@@ -331,7 +332,7 @@ public interface SecurityEnforcer {
             FilterGizmo<F> gizmo,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
@@ -344,7 +345,7 @@ public interface SecurityEnforcer {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /** TODO describe */
     <F extends FocusType> MidPointPrincipal createDonorPrincipal(
@@ -354,7 +355,7 @@ public interface SecurityEnforcer {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Determines the access to given item (e.g. `assignment`) of given object. Uses pre-computed security constraints.

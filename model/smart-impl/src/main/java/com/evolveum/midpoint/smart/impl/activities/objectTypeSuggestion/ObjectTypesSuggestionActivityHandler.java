@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
+import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerUtils;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
@@ -68,21 +69,21 @@ public class ObjectTypesSuggestionActivityHandler
             Activity<ObjectTypesSuggestionWorkDefinition, ObjectTypesSuggestionActivityHandler> parentActivity) {
         var children = new ArrayList<Activity<?, ?>>();
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ObjectTypesSuggestionStatisticsComputationActivityRun(context, "Statistics computation"),
                 null,
                 (i) -> ID_STATISTICS_COMPUTATION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ObjectTypesSuggestionObjectTypesActivityRun(context),
                 null,
                 (i) -> ID_OBJECT_TYPES_SUGGESTION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
-                parentActivity.getDefinition().cloneWithoutId(),
+                ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ObjectTypesSuggestionFocusTypesActivityRun(context),
                 null,
                 (i) -> ID_FOCUS_TYPE_SUGGESTION,

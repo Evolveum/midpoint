@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ItemsProgressInformation;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation.RealizationState;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;

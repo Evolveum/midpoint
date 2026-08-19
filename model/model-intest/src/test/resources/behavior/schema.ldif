@@ -1,0 +1,7 @@
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributeTypes: ( 1.3.6.1.4.1.45689.1.4.200 NAME 'midpointLastLogin' DESC 'Simulates AD lastLogonTimestamp (11882)' EQUALITY generalizedTimeMatch ORDERING generalizedTimeOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 SINGLE-VALUE X-ORIGIN 'user-defined' )
+-
+add: objectClasses
+objectClasses: ( 1.3.6.1.4.1.45689.1.4.201 NAME 'midpointLastLoginAware' DESC 'Allows midpointLastLogin (11882)' SUP top AUXILIARY MAY ( midpointLastLogin ) X-ORIGIN 'user-defined' )

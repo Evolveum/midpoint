@@ -10,6 +10,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -1052,6 +1053,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return instantiatePredefinedColumn(columnClass, customColumn);
     }
 
+    private boolean isColumnAlreadyInList(@NotNull List<GuiObjectColumnType> columnList,
+            @NotNull GuiObjectColumnType columnToCheck) {
+        if (columnList.isEmpty()) {
+            return false;
+        }
+        return columnList.stream()
+                .anyMatch(c -> c.getName() != null && c.getName().equals(columnToCheck.getName())
+                        || c.getPath() != null && c.getPath().equivalent(columnToCheck.getPath()));
+    }
+
     private AbstractGuiColumn<?, ?> instantiatePredefinedColumn(Class<? extends AbstractGuiColumn> columnClass,
             GuiObjectColumnType columnConfig) {
         if (columnClass == null) {
@@ -1394,9 +1405,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
             compiledView.setCollection(collectionSpec);
             return compiledView;
-        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException |
-                ExpressionEvaluationException
-                | ObjectNotFoundException e) {
+        } catch (CommonException e) {
             LOGGER.error("Couldn't compile collection " + collectionSpec, e);
             return null;
         }
@@ -1609,6 +1618,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         } else {
             objectCollection.setView(getDefaultView());
         }
+        handleObjectListViewColumns(objectCollection);
+
         SearchFilterType searchFilter = null;
         ISelectableDataProvider<?> dataProvider = getDataProvider();
         ObjectQuery query = (dataProvider instanceof BaseSortableDataProvider)
@@ -1647,6 +1658,31 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         PageReport pageReport = new PageReport(report.asPrismObject());
         getPageBase().navigateToNext(pageReport);
+    }
+
+    private void handleObjectListViewColumns(ObjectCollectionReportEngineConfigurationType objectCollection) {
+        // we need to handle view columns here (previously it was managed by ReportServiceImpl.createCompiledView)
+        // in order to set to the report view all those columns which are present in the current gui view
+        // Relates to #10967
+        if (objectCollection.getView().getColumn() == null) {
+            objectCollection.getView().createColumnList();
+        }
+        if (isCustomColumnsListConfigured() && shouldIncludeDefaultColumns()) {
+            List<GuiObjectColumnType> viewColumnsNew = objectCollection.getView().getColumn().stream()
+                    .map(column -> (GuiObjectColumnType) column.cloneWithoutId())
+                    .collect(Collectors.toList());
+            int index = 0;
+            for (GuiObjectColumnType column : getDefaultView().getColumn()) {
+                if (isColumnAlreadyInList(viewColumnsNew, column)) {
+                    continue;
+                }
+                viewColumnsNew.add(index, column.cloneWithoutId());
+                index++;
+            }
+            objectCollection.getView().getColumn().clear();
+            viewColumnsNew
+                    .forEach(c -> objectCollection.getView().getColumn().add(c.cloneWithoutId()));
+        }
     }
 
     protected GuiObjectListViewType getDefaultView() {
@@ -1751,7 +1787,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected String getInlineMenuItemCssClass(@Nullable IModel<PO> rowModel) {
-        return "btn btn-default btn-xs";
+        return "btn btn-light border btn-sm";
     }
 
     private boolean isPartOfDetailsPage() {

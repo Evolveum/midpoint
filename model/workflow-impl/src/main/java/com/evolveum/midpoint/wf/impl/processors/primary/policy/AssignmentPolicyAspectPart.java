@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 
 import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
@@ -79,7 +81,7 @@ public class AssignmentPolicyAspectPart {
 
     void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<? extends FocusType> requester,
             List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EXTRACT_ASSIGNMENT_BASED_INSTRUCTIONS)
                 .setMinor()

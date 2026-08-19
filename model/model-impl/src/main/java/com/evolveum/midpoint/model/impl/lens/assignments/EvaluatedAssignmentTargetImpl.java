@@ -7,14 +7,14 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 

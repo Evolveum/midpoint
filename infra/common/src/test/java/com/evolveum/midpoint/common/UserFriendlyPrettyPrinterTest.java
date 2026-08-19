@@ -222,7 +222,7 @@ public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
 
         Assertions.assertThat(real)
                 .isEqualTo(
-                        "assignment/[1]/activation/effectiveStatus: \n" +
+                        "assignment[1]/activation/effectiveStatus: \n" +
                                 "  Replace: ENABLED");
     }
 
@@ -270,7 +270,7 @@ public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
                 new UserFriendlyPrettyPrinterOptions()
                         .showDeltaItemPath(true));
         Assertions.assertThat(real).isEqualTo(
-                "assignment/[37]/@metadata: \n"
+                "assignment[37]/@metadata: \n"
                         + "  Add: \n"
                         + "    null:\n"
                         + "      storage: \n"

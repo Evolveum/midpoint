@@ -6,20 +6,16 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.util.exception.*;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -45,9 +41,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -57,12 +50,6 @@ import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -81,21 +68,25 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
  * @author Radovan Semancik
  */
 @Component
-public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
+public class ConnectorManager implements CacheInvalidationListener, CacheDiagnostics, ConnectorDiscoveryListener {
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired ApplicationContext springContext;
     @Autowired private PrismContext prismContext;
-    @Autowired CacheRegistry cacheRegistry;
+    @Autowired CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired CacheInvalidationDispatcher cacheInvalidationDispatcher;
+    @Autowired ConnectorSignatureVerifier connectorSignatureVerifier;
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
@@ -157,7 +148,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             @NotNull ConnectorSpec connectorSpec,
             boolean forceFresh,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         return getConfiguredAndInitializedConnectorInstance(connectorSpec, forceFresh, true, result);
     }
 
@@ -169,7 +160,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             boolean forceFresh,
             boolean productionUse,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
         try {
             var connectorCacheEntry = getOrCreateConnectorInstanceCacheEntry(connectorSpec, result);
@@ -226,7 +217,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     @NotNull ConnectorInstance getNonProductionConnectorInstance(
             @NotNull ConnectorSpec connectorSpec,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         return getConfiguredAndInitializedConnectorInstance(connectorSpec, false, false, result);
     }
 
@@ -238,7 +229,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     @NotNull ConnectorInstance getUnconfiguredConnectorInstance(
             @NotNull String connectorOid,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException, SchemaException, SubscriptionComplianceException {
 
         var connectorBean = getConnectorWithSchema(connectorOid, result).getConnector();
         return createConnectorInstance(connectorBean, connectorBean.getName().toString(), connectorBean.toString());
@@ -259,7 +250,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
      * @throws ObjectNotFoundException A required object (e.g. connector or connector host) does not exist
      */
     ConfiguredConnectorInstanceEntry getOrCreateConnectorInstanceCacheEntry(ConnectorSpec connectorSpec, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
         ConfiguredConnectorInstanceEntry existingCacheEntry = connectorInstanceCache.get(cacheKey);
 
@@ -309,7 +300,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     private @NotNull ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         var resourceBean = connectorSpec.getResource();
         var connectorBean = getConnectorWithSchema(connectorSpec, result).getConnector();
         var connectorInstance = createConnectorInstance(
@@ -369,7 +360,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             connector.initialize(
                     ResourceSchemaFactory.getNativeSchema(resource),
                     fetchCapabilities ? null : connectorSpec.getNativeCapabilities(),   // fix for #10676 and #10644
-                                                                    //we want to fetch the capabilities during first connector initialization
+                    //we want to fetch the capabilities during first connector initialization
                     result);
         }
     }
@@ -378,7 +369,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
      * @return Connector bean with attached parsed schema. The connector may be immutable (if returned from cache).
      */
     @NotNull ConnectorWithSchema getConnectorWithSchema(ConnectorSpec connectorSpec, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException {
         // TODO what about runtime-resolved connector OIDs (e.g. XmlImportTest.test033)?
         //  Currently, we need to throw a ConfigurationException here for the test to pass.
         //  E.g., IllegalStateException won't work.
@@ -390,7 +381,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     private @NotNull ConnectorWithSchema getConnectorWithSchema(String connOid, OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException, SchemaException, SubscriptionComplianceException {
 
         ConnectorWithSchema cachedConnectorWithSchema = connectorBeanCache.get(connOid);
         if (cachedConnectorWithSchema != null) {
@@ -402,6 +393,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         PrismObject<ConnectorType> connector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
         ConnectorType connectorBean = connector.asObjectable();
+
+        if (connectorSignatureVerifier.isVerificationNeeded(connectorBean)) {
+            connectorSignatureVerifier.verifyConnectorInProduction(connectorBean, result);
+        }
 
         if (connectorBean.getConnectorHostRef() != null) {
             // We need to resolve the connector host
@@ -711,7 +706,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task ignored) {
-        for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+        for (ConnectorFactory connectorFactory : getConnectorFactories()) {
             connectorFactory.selfTest(parentTestResult);
         }
     }
@@ -733,15 +728,19 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
             // initialized. This should not happen under normal circumstances.
             // Generally, do not call getConnectorFactories() from here. This is
             // spring "destroy" method. We should not work with spring context here.
-            for (ConnectorFactory connectorFactory: connectorFactories) {
+            for (ConnectorFactory connectorFactory : connectorFactories) {
                 connectorFactory.shutdown();
             }
         }
     }
 
-    // TODO assess thread-safety of these invalidation methods
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public synchronized <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(ConnectorType.class) || type.isAssignableFrom(ConnectorHostType.class)) {
             if (StringUtils.isEmpty(oid)) {
                 dispose();

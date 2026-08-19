@@ -215,7 +215,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
 
     private Behavior getButtonContainerAdditionalCssClassBehavior() {
         return AttributeAppender.append("class", () ->
-                getButtonContainerAdditionalCssClass() + (isOnlyChildCentered() ? " only-child-centered" : "") + (isOnlyChildLeft() ? " only-child-left" : ""));
+                getButtonContainerAdditionalCssClass() + (isOnlyChildCentered() ? " only-child-centered" : "") + (isOnlyChildLeft() ? " only-child-start" : ""));
     }
 
     protected String getButtonContainerAdditionalCssClass() {
@@ -254,7 +254,7 @@ public abstract class AbstractWizardBasicInitializer extends BasePanel<String> {
     }
 
     protected String getExitButtonCssClass() {
-        return "btn-default";
+        return "btn-light border";
     }
 
     protected String getSubmitIcon() {

@@ -52,7 +52,7 @@ public class UpgradeObjectsOptions extends ExportOptions {
     private List<UpgradePhase> phases = new ArrayList<>();
 
     @Parameter(names = { P_TYPE }, descriptionKey = "upgradeObjects.types", variableArity = true)
-    private List<UpgradeType> types = new ArrayList<>();
+    private List<UpgradeType> types = new ArrayList<>(List.of(UpgradeType.SEAMLESS));
 
     @Parameter(names = { P_PRIORITY }, descriptionKey = "upgradeObjects.priorities", variableArity = true)
     private List<UpgradePriority> priorities = new ArrayList<>();

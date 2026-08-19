@@ -13,7 +13,9 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -56,7 +58,7 @@ public class OrganizationalUnitLdapMappingProvider implements WellKnownSchemaPro
         String suffix = extractSuffixFromSamples(sampleShadows);
 
         if (suffix != null) {
-            String script = "basic.composeDnWithSuffix('ou', name, '%s')".formatted(suffix);
+            String script = "ldap.composeDnWithSuffix(['ou', name, '%s'])".formatted(suffix);
             String description = "Compose DN: ou=<name>,%s".formatted(suffix);
             mappings.add(SystemMappingSuggestion.createScriptSuggestion("dn", OrgType.F_NAME, script, description, MappingStrengthType.STRONG));
             mappings.add(SystemMappingSuggestion.createAsIsSuggestion("ou", OrgType.F_NAME, MappingStrengthType.WEAK));

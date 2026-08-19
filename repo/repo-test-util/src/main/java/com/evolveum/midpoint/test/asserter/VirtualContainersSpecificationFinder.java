@@ -6,15 +6,7 @@
 
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.assertj.core.api.Assertions;
 

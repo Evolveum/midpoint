@@ -82,15 +82,11 @@ public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStep
 
     @Override
     public boolean isCompleted() {
-        if (ConnectorDevelopmentWizardUtil.existPropertyValue(
+        return ConnectorDevelopmentWizardUtil.existContainerValue(
                 getDetailsModel().getObjectWrapper(),
                 ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
                         ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
-                        ConnDevSchemaType.F_OBJECT_CLASS))) {
-            return true;
-        }
-
-        return super.isCompleted();
+                        ConnDevSchemaType.F_OBJECT_CLASS));
     }
 
     @Override

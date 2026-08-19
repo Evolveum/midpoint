@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.correlation.CorrelatorSuggestion;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -19,12 +20,14 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 
 import org.assertj.core.data.Offset;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
@@ -42,6 +45,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     private static DummyScenario dummyScenario;
     private static Task task;
     private static OperationResult result;
+
+    @Autowired
+    private ObjectsSamplerProvider samplerProvider;
 
     private static final TestObject<UserType> USER1 = TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-990000000001");
     private static final TestObject<UserType> USER2 = TestObject.file(TEST_DIR, "user2.xml", "00000000-0000-0000-0000-990000000002");
@@ -138,11 +144,13 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = ItemPath.create(UserType.F_EMAIL);
         ItemPath shadowPath = EMAIL.path();
-        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
-                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                List.of(suggestion)
+                ctx,
+                List.of(suggestion),
+                samplerProvider
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
@@ -161,11 +169,13 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = null;
         ItemPath shadowPath = EMAIL.path();
-        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
-                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                List.of(suggestion)
+                ctx,
+                List.of(suggestion),
+                samplerProvider
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
@@ -189,11 +199,13 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         ItemPath focusPath = ItemPath.create(UserType.F_PERSONAL_NUMBER);
         ItemPath shadowPath = null;
-        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null);
+        CorrelatorSuggestion suggestion = new CorrelatorSuggestion(focusPath, shadowPath, null, false);
 
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
-                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                List.of(suggestion)
+                ctx,
+                List.of(suggestion),
+                samplerProvider
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
@@ -211,9 +223,11 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
-                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                List.of()
+                ctx,
+                List.<CorrelatorSuggestion>of(),
+                samplerProvider
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 
@@ -229,9 +243,11 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
 
+        TypeOperationContext ctx = TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
         CorrelatorEvaluator evaluator = new CorrelatorEvaluator(
-                TypeOperationContext.init(new MockServiceClientImpl(), RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result),
-                Arrays.asList(new CorrelatorSuggestion(null, null, null))
+                ctx,
+                Arrays.asList(new CorrelatorSuggestion(null, null, null, false)),
+                samplerProvider
         );
         List<Double> scores = evaluator.evaluateSuggestions(result);
 

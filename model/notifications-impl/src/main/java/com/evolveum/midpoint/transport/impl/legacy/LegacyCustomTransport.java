@@ -167,7 +167,7 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
     private void evaluateExpression(
             ExpressionType expressionBean, VariablesMap VariablesMap, String shortDesc, SendingContext ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");

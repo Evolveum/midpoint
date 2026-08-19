@@ -44,7 +44,7 @@ public class TransitionConstraintEvaluator
             @NotNull PolicyRuleEvaluationContext<O> rctx,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -78,7 +78,7 @@ public class TransitionConstraintEvaluator
             PolicyRuleEvaluationContext<O> rctx, ObjectState state, Boolean expected,
             List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (expected == null) {
             return true;
         }
@@ -95,7 +95,7 @@ public class TransitionConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
                 .build();
@@ -107,7 +107,7 @@ public class TransitionConstraintEvaluator
             PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
                 .build();

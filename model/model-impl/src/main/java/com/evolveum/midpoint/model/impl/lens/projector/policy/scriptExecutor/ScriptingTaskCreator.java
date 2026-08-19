@@ -55,14 +55,14 @@ abstract class ScriptingTaskCreator {
      */
     abstract TaskType createTask(ExecuteScriptType executeScript, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Creates empty task of given type (single run, iterative), not related to any specific script.
      */
     TaskType createEmptyTask(OperationResult result)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         MidPointPrincipal principal = beans.securityContextManager.getPrincipal();
         if (principal == null) {
             throw new SecurityViolationException("No current user");
@@ -120,7 +120,7 @@ abstract class ScriptingTaskCreator {
 
     TaskType customizeTask(TaskType preparedTask, OperationResult result) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ExpressionType customizer = asynchronousScriptExecution.getTaskCustomizer();
         if (customizer == null) {
             return preparedTask;

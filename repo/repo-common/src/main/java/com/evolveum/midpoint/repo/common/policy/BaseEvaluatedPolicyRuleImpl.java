@@ -29,7 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
 
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.*;
+import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.extractMessages;
+import static com.evolveum.midpoint.repo.common.policy.TriggerPresentationUtil.MessageKind;
 
 /**
  * Implementation of the most generic features in {@link EvaluatedPolicyRule} interface.
@@ -46,6 +47,17 @@ public abstract class BaseEvaluatedPolicyRuleImpl implements EvaluatedPolicyRule
 
     /** Triggers that resulted from the rule evaluation. */
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+
+    /**
+     * The count computed for *this* evaluation, i.e. for the item currently being processed; see
+     * {@link #setCount(Integer, Integer)}. It belongs to a single evaluation, so it must not be kept in any object
+     * shared by the whole activity run - all worker threads of an activity evaluate the very same rule, each with its
+     * own count.
+     */
+    private Integer localCount;
+
+    /** Total count for this evaluation - the value the threshold is checked against. @see #setCount(Integer, Integer) */
+    private Integer totalCount;
 
     public BaseEvaluatedPolicyRuleImpl(
             @NotNull AbstractPolicyRuleConfigItem<?> policyRuleCI,
@@ -71,12 +83,23 @@ public abstract class BaseEvaluatedPolicyRuleImpl implements EvaluatedPolicyRule
 
     @Override
     public Integer getCount() {
-        return 0; // TODO
+        return totalCount;
     }
 
+    /**
+     * Local value is the count computed for the current activity, total value is that one plus the counts contributed
+     * by the other activities of the tree; see {@code PolicyRuleCounterUpdater}. The threshold is checked against the
+     * total one.
+     */
     @Override
     public void setCount(Integer localValue, Integer totalValue) {
-        // TODO
+        this.localCount = localValue;
+        this.totalCount = totalValue;
+    }
+
+    /** The part of {@link #getCount()} that was computed for the current activity only. */
+    public Integer getLocalCount() {
+        return localCount;
     }
 
     @Override

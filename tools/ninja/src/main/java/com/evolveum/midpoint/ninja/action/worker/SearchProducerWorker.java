@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Created by Viliam Repan (lazyman).
  */
 public class SearchProducerWorker extends BaseWorker<ExportOptions, ObjectType> {
+
+    private static final String OPERATION_SEARCH = SearchProducerWorker.class.getName() + ".search";
 
     private final ObjectTypes type;
     private final ObjectQuery query;
@@ -45,6 +48,7 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, ObjectType> 
     @Override
     public void run() {
         Log log = context.getLog();
+        OperationResult result = new OperationResult(OPERATION_SEARCH + "." + type.getValue());
 
         try {
             GetOperationOptionsBuilder optionsBuilder = context.getSchemaService().getOperationOptionsBuilder();
@@ -69,7 +73,7 @@ public class SearchProducerWorker extends BaseWorker<ExportOptions, ObjectType> 
 
             RepositoryService repository = context.getRepository();
             if (repository.supports(type.getClassDefinition())) {
-                repository.searchObjectsIterative(type.getClassDefinition(), query, handler, optionsBuilder.build(), true, operation.getResult());
+                repository.searchObjectsIterative(type.getClassDefinition(), query, handler, optionsBuilder.build(), true, result);
             } else {
                 log.debug("Type {} is not supported on current repository", type);
             }

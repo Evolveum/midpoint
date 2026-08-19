@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -44,7 +47,7 @@ public class ExpressionEvaluationHelper {
             VariablesMap variables, String contextDescription,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         List<ObjectReferenceType> retval = new ArrayList<>();
         for (ExpressionType expression : expressions) {
             retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
@@ -56,7 +59,7 @@ public class ExpressionEvaluationHelper {
             ExpressionType expressionType, VariablesMap variables,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return evaluateExpression(
                 expressionType, variables, contextDescription, ObjectReferenceType.class,
                 ObjectReferenceType.COMPLEX_TYPE, false,
@@ -69,7 +72,7 @@ public class ExpressionEvaluationHelper {
             String contextDescription, Class<T> clazz, QName typeName,
             boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ItemDefinition<?> resultDef;
         ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
         if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {

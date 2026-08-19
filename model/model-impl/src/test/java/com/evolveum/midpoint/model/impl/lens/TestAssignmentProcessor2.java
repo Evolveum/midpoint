@@ -223,8 +223,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private void processAssignments(LensContext<UserType> context, OperationResult result, Task task)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            throws CommonException {
         if (STORE_TRACE) {
             TracingProfileType profile = createModelLoggingTracingProfile();
             profile.setFileNamePattern(profile.getFileNamePattern().replace("%{testNameShort}", getTestNameShort()));

@@ -343,7 +343,7 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
                     setBusinessSuffix(businessSuffixField.getModelObject());
                     this.add(AttributeAppender.replace("value",
                             createStringResource("roleMiningExportPanel.edit.options")));
-                    this.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+                    this.add(AttributeAppender.replace("class", "btn btn-light border btn-sm"));
                 } else {
                     setEditOptions(true);
                     this.add(AttributeAppender.replace("value",
@@ -437,7 +437,7 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
                                 orgQuery = getPrismContext().createQueryParser().parseFilter(objectType, midPointQuery);
                             }
                             filterForm.setVisible(false);
-                            this.add(AttributeAppender.replace("class", "ml-4 btn btn-success btn-sm"));
+                            this.add(AttributeAppender.replace("class", "ms-4 btn btn-success btn-sm"));
                         } catch (CommonException | RuntimeException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, getString(
                                     "roleMiningExportPanel.message.couldNotExecuteQuery"), e);
@@ -447,18 +447,18 @@ public class ExportMiningPanel extends BasePanel<String> implements Popupable {
                             result.recordFatalError(getString("roleMiningExportPanel.message.couldNotExecuteQuery"), e);
 
                             showResultFeedback(result, operationResultPanel, target);
-                            this.add(AttributeAppender.replace("class", "ml-4 btn btn-danger btn-sm"));
+                            this.add(AttributeAppender.replace("class", "ms-4 btn btn-danger btn-sm"));
                             target.add(this);
                         }
                     } else {
                         filterForm.setVisible(false);
-                        this.add(AttributeAppender.replace("class", "ml-4 btn btn-default btn-sm"));
+                        this.add(AttributeAppender.replace("class", "ms-4 btn btn-light border btn-sm"));
                     }
                 } else {
                     operationResultPanel.setVisible(false);
                     target.add(operationResultPanel);
                     filterForm.setVisible(true);
-                    this.add(AttributeAppender.replace("class", "ml-4 btn btn-primary btn-sm"));
+                    this.add(AttributeAppender.replace("class", "ms-4 btn btn-primary btn-sm"));
                 }
                 target.add(filterForm);
                 target.add(this);

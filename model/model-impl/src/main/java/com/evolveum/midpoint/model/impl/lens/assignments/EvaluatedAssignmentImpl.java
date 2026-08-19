@@ -394,7 +394,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      */
     public void evaluateConstructions(ObjectDeltaObject<AH> focusOdoAbsolute, Consumer<ResourceType> resourceConsumer,
             Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         for (AssignedResourceObjectConstruction<AH> construction : constructionTriple.getAllValues()) {
             construction.setFocusOdoAbsolute(focusOdoAbsolute);
             construction.setWasValid(wasValid);

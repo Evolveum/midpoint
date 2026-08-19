@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ou
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
-import com.evolveum.midpoint.common.mining.utils.values.*;
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
+import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAnalyzeModel;
@@ -24,7 +25,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.*;
 

@@ -121,8 +121,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 
     protected LensProjectionContext fillContextWithAccount(
             LensContext<UserType> context, String accountOid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         // This is better than using repository directly
         var account = provisioningService.getObject(ShadowType.class, accountOid, createNoFetchCollection(), task, result);
         return fillContextWithAccount(context, account, task, result);
@@ -131,8 +130,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     @SuppressWarnings("UnusedReturnValue")
     protected LensProjectionContext fillContextWithAccountFromFile(
             LensContext<UserType> context, File file, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, IOException, SchemaException {
+            throws CommonException, IOException {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
         provisioningService.applyDefinition(account, task, result);
         provisioningService.determineShadowState(account, task, result);
@@ -144,8 +142,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             LensContext<UserType> context,
             PrismObject<ShadowType> account,
             Task task,
-            OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            OperationResult result) throws CommonException {
         ShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();

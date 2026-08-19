@@ -13,6 +13,8 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -117,7 +119,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         buttonsView.add(suggestButton);
 
         AjaxIconButton showSuggestionsButton = new AjaxIconButton(buttonsView.newChildId(),
-                Model.of("ml-2 fa fa-mouse-pointer"),
+                Model.of("ms-2 fa fa-mouse-pointer"),
                 createStringResource("SmartGeneratingPanel.button.ai.suggestions.show")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -125,7 +127,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             }
         };
         showSuggestionsButton.add(AttributeModifier.append(
-                "class", "ml-auto bg-purple d-flex flex-row-reverse"));
+                "class", "btn btn-purple ms-auto d-flex flex-row-reverse"));
         showSuggestionsButton.showTitleAsLabel(true);
         showSuggestionsButton.add(new VisibleBehaviour(() -> getModelObject().isShowSuggestionButtonVisible()));
         buttonsView.add(showSuggestionsButton);
@@ -243,7 +245,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             return true;
         }
 
-        return dto.isFinished() || dto.isFailed() || dto.isSuspended();
+        return dto.getStatusInfo() == null || dto.isFinished() || dto.isFailed() || dto.isSuspended();
     }
 
     private void generatePerformed(AjaxRequestTarget target,
@@ -268,11 +270,11 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         final AjaxIconButton suggestButton;
         if (getConfirmationOptions().getObject().isEmpty()) {
             suggestButton = buttonWithoutDialog(buttonId);
-            suggestButton.add(AttributeModifier.append("class", "btn rounded bg-purple"));
+            suggestButton.add(AttributeModifier.append("class", "btn btn-purple"));
         } else {
             suggestButton = buttonWithDialog(buttonId);
         }
-        suggestButton.add(AttributeModifier.append("class", "ml-auto"));
+        suggestButton.add(AttributeModifier.append("class", "ms-auto"));
         suggestButton.showTitleAsLabel(true);
         suggestButton.add(new VisibleBehaviour(() -> getModelObject().isSuggestionButtonVisible()
                 || getModelObject().isRefreshButtonVisible()));
@@ -282,7 +284,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     private AjaxIconButton buttonWithoutDialog(String buttonId) {
         return new AjaxIconButton(buttonId,
                 () -> getModelObject().isSuggestionButtonVisible()
-                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        ? "me-2 fa fa-wand-magic-sparkles"
                         : "fa fa-arrows-rotate",
                 () -> getModelObject().isSuggestionButtonVisible()
                         ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")
@@ -304,9 +306,9 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                         ? translate("SmartGeneratingPanel.button.ai.suggestions.suggest")
                         : translate("SmartGeneratingPanel.button.ai.suggestions.refresh"),
                 () -> getModelObject().isSuggestionButtonVisible()
-                        ? "mr-2 fa fa-wand-magic-sparkles"
+                        ? "me-2 fa fa-wand-magic-sparkles"
                         : "fa fa-arrows-rotate",
-                getConfirmationOptions().getObject(),
+                SuggestionOption.of(getConfirmationOptions().getObject()),
                 () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                 },
                         getModelObject().isSuggestionButtonVisible()

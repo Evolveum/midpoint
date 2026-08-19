@@ -12,10 +12,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.security.api.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +31,20 @@ import com.evolveum.midpoint.model.impl.lens.LoginAssignmentCollector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -96,7 +95,7 @@ public class GuiProfileCompiler {
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
@@ -114,7 +113,7 @@ public class GuiProfileCompiler {
             Task task,
             OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (options == null) {
             options = ProfileCompilerOptions.create();
@@ -242,7 +241,6 @@ public class GuiProfileCompiler {
                 }
             }
 
-
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
                     collectedOtherPrivilegesLimitations.addDelegationTarget(target.getTarget(),
@@ -323,14 +321,14 @@ public class GuiProfileCompiler {
     public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         return compileFocusProfile(adminGuiConfigurations, systemConfiguration, null, task, result);
     }
 
     public CompiledGuiProfile compileFocusProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
             PrismObject<SystemConfigurationType> systemConfiguration, GuiProfiledPrincipal principal, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (principal != null) {
             LOGGER.debug("Going to compile focus profile (inner) for {}", principal.getName());
@@ -385,7 +383,7 @@ public class GuiProfileCompiler {
 
     private void applyAdminGuiConfiguration(CompiledGuiProfile composite, AdminGuiConfigurationType adminGuiConfiguration, GuiProfiledPrincipal principal, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (adminGuiConfiguration == null) {
             return;
         }
@@ -496,6 +494,10 @@ public class GuiProfileCompiler {
 
         if (adminGuiConfiguration.getAccessRequest() != null) {
             mergeAccessRequestConfiguration(composite, adminGuiConfiguration.getAccessRequest());
+        }
+
+        if (adminGuiConfiguration.getFileUploadConfiguration() != null) {
+            mergeFileUploadConfiguration(composite, adminGuiConfiguration.getFileUploadConfiguration());
         }
 
         if (adminGuiConfiguration.getHomePage() != null) {
@@ -642,6 +644,15 @@ public class GuiProfileCompiler {
         }
     }
 
+    private void mergeFileUploadConfiguration(CompiledGuiProfile composite, FileUploadConfigurationType fileUploadConfiguration)
+            throws ConfigurationException {
+        for (EffectiveFileUploadPolicy newPolicy : FileUploadConfigurationResolver.compileConfiguredPolicies(fileUploadConfiguration)) {
+            composite.getFileUploadPolicies().removeIf(existingPolicy ->
+                    existingPolicy.getPath().equivalent(newPolicy.getPath()));
+            composite.getFileUploadPolicies().add(newPolicy);
+        }
+    }
+
     private void applyConfigurableDashboard(CompiledGuiProfile composit, ConfigurableUserDashboardType configurableUserDashboard, Task task, OperationResult result) {
         if (configurableUserDashboard == null) {
             return;
@@ -672,7 +683,7 @@ public class GuiProfileCompiler {
 
             composit.getConfigurableDashboards().add(compiledDashboard);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException e) {
+                 SecurityViolationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
             LOGGER.warn("Failed to resolve dashboard {}", configurableUserDashboard);
             // probably we should not fail here, just log warn and continue as if there is no dashboard specification
         }
@@ -680,7 +691,7 @@ public class GuiProfileCompiler {
 
     private void applyViews(CompiledGuiProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (viewsType == null) {
             return;
         }
@@ -768,7 +779,7 @@ public class GuiProfileCompiler {
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         collectionProcessor.compileView(existingView, objectListViewType, task, result);
     }
 
@@ -927,7 +938,9 @@ public class GuiProfileCompiler {
         return UserInterfaceElementVisibilityType.VACANT;
     }
 
-    public CompiledGuiProfile getGlobalCompiledGuiProfile(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public CompiledGuiProfile getGlobalCompiledGuiProfile(Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
         if (systemConfiguration == null) {
             return null;

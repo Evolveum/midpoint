@@ -34,7 +34,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.util.ClusterServiceConsts;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -84,7 +84,7 @@ public class ClusterRestController extends AbstractRestController {
 
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
-    @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
 
     public ClusterRestController() {
         // nothing to do

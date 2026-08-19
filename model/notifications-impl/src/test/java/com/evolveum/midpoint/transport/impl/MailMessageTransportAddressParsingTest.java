@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.transport.impl;
 
-import java.util.*;
+import java.util.List;
+import java.util.Properties;
 
 import com.evolveum.midpoint.notifications.api.transports.TransportSupport;
 
@@ -26,7 +27,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportConfigurationType;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests for address parsing behavior in {@link MailMessageTransport}

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemValueImpl;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class PlainTextPropertiesFormatterTest {
 

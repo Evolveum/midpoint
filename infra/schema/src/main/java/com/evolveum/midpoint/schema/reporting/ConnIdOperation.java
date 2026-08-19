@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.schema.reporting;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;

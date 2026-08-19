@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.schema.simulations;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
@@ -16,7 +16,8 @@ import com.evolveum.midpoint.schema.util.SimulationResultTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricValuesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 import org.testng.annotations.Test;
 

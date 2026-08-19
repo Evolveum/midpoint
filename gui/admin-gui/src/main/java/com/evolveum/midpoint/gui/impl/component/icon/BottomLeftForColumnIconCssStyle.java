@@ -23,7 +23,7 @@ public class BottomLeftForColumnIconCssStyle implements LayeredIconCssStyle {
 
     @Override
     public String getLayerCssClass() {
-        return "bottom-left-layer-for-column";
+        return "bottom-start-layer-for-column";
     }
 
     @Override

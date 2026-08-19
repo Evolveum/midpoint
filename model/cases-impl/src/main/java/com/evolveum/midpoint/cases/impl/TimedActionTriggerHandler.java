@@ -231,7 +231,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                     WorkItemActionsType actions, // normally not null
                     OperationResult result)
                     throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-                    CommunicationException, ConfigurationException {
+                    CommunicationException, ConfigurationException, SubscriptionComplianceException {
                 if (actions == null) {
                     LOGGER.warn("Trigger without workItemActions; ignoring it. In:\n{}", aCase.debugDump(1));
                     return;
@@ -282,7 +282,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
                     boolean escalate,
                     @NotNull OperationResult result)
                     throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-                    ExpressionEvaluationException, CommunicationException, ConfigurationException {
+                    ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
                 LOGGER.trace("Executing delegation/escalation action: {}", delegateAction);
                 WorkItemDelegationRequestType request = new WorkItemDelegationRequestType();
                 request.getDelegate().addAll(
@@ -302,7 +302,7 @@ public class TimedActionTriggerHandler implements MultipleTriggersHandler {
 
             private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, OperationResult result)
                     throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                    ConfigurationException, SecurityViolationException {
+                    ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
                 List<ObjectReferenceType> rv = CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef());
                 if (!delegateAction.getApproverExpression().isEmpty()) {
                     VariablesMap variables = miscHelper.getDefaultVariables(

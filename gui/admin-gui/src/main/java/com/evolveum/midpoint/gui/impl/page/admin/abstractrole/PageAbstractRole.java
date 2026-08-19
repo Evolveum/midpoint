@@ -12,12 +12,9 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;

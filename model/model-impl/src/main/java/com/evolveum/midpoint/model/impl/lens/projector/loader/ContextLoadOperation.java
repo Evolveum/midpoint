@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,7 +59,8 @@ class ContextLoadOperation<F extends ObjectType> {
 
     public void load(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
         createTraceIfNeeded(result);
@@ -124,14 +127,15 @@ class ContextLoadOperation<F extends ObjectType> {
 
     private void updateProjection(LensProjectionContext projectionContext, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         new ProjectionUpdateOperation<>(context, projectionContext, task)
                 .update(result);
     }
 
     private void loadProjections(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         //noinspection unchecked
         new ProjectionsLoadOperation<>((LensContext<? extends FocusType>) context, task)
                 .load(result); // this also removes the accountRef deltas (???)
@@ -139,7 +143,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
     private void loadFocusContext(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         new FocusLoadOperation<>(context, task)
                 .load(result);
     }
@@ -174,7 +178,7 @@ class ContextLoadOperation<F extends ObjectType> {
      */
     private void updatePolicies(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         // maybe not really needed; the update is also done at the beginning of the clockwork run
         context.updateSystemConfiguration(result);

@@ -41,7 +41,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.AUTOMATIC;
 
 /**
  * Parts of {@link SchemaTransformer} devoted to modifying prism data and definitions according to policies

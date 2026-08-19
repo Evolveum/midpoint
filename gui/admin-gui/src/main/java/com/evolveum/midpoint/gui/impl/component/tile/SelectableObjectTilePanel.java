@@ -40,7 +40,7 @@ public class SelectableObjectTilePanel<O extends ObjectType> extends ObjectTileP
             }
         });
 
-        add(AttributeAppender.append("class", "card catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0 selectable"));
+        add(AttributeAppender.append("class", "card shadow-sm catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0 selectable"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
     }
 

@@ -95,7 +95,7 @@ public class TogglePanel<O extends Serializable> extends BasePanel<List<Toggle<O
     }
 
     protected String getButtonCssClass() {
-        return "btn btn-default";
+        return "btn btn-light border";
     }
 
     private IModel<String> getTitleModel(ListItem<Toggle<O>> item) {

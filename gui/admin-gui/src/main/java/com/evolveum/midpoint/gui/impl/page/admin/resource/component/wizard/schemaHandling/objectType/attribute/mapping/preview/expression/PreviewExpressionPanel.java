@@ -8,15 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.Arrays;
 import java.util.Optional;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.AttributeModifier;
@@ -28,12 +19,16 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.web.util.ExpressionUtil.ExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 /**
  * Preview panel for {@link ExpressionType}.
  */
 public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PreviewExpressionPanel.class);
 
     private static final String ID_EXPRESSION_LABEL = "expressionLabel";
     private static final String ID_TYPE_BADGE = "typeBadge";
@@ -54,7 +49,11 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
         SHADOW_OWNER_REFERENCE_SEARCH(ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH,
                 "ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH"),
         PATH(ExpressionEvaluatorType.PATH,
-                "ExpressionEvaluatorType.PATH");
+                "ExpressionEvaluatorType.PATH"),
+        FILTER(ExpressionEvaluatorType.FILTER,
+                "ExpressionEvaluatorType.FILTER"),
+        NULL(ExpressionEvaluatorType.NULL,
+                "ExpressionEvaluatorType.NULL");
 
         private final ExpressionEvaluatorType type;
         private final String translationKey;
@@ -88,7 +87,7 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
                 : createStringResource("PreviewExpressionPanel.expression").getString()));
 
         add(new Label(ID_TYPE_BADGE, Model.of(getBadgeLabel(evaluator)))
-                .add(AttributeModifier.append("class", "badge badge-primary px-2 py-1")));
+                .add(AttributeModifier.append("class", "badge text-bg-primary px-2 py-1")));
 
         add(new Label(ID_DESCRIPTION, Model.of(getDescription())).setEscapeModelStrings(false));
 
@@ -125,8 +124,7 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
     }
 
     private RecognizedEvaluator resolveEvaluator() {
-        String expression = ExpressionUtil.loadExpression(getModelObject(), PrismContext.get(), LOGGER);
-        ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(expression);
+        ExpressionEvaluatorType type = ExpressionUtil.getExpressionType(getModelObject());
         return recognizeEvaluator(type);
     }
 
@@ -140,6 +138,7 @@ public class PreviewExpressionPanel extends BasePanel<ExpressionType> {
             case LITERAL -> new LiteralExpressionPreviewDetailsPanel(PreviewExpressionPanel.ID_DETAILS, getModel());
             case PATH -> new PathExpressionPreviewDetailsPanel(PreviewExpressionPanel.ID_DETAILS, getModel());
             case GENERATE -> new GenerateExpressionPreviewDetailsPanel(PreviewExpressionPanel.ID_DETAILS, getModel());
+            case FILTER -> new FilterExpressionPreviewDetailsPanel(PreviewExpressionPanel.ID_DETAILS, getModel());
             default -> invisiblePanel();
         };
     }

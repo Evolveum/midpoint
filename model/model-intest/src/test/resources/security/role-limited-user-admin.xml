@@ -29,6 +29,7 @@
         <item>description</item>
         <item>givenName</item>
         <item>fullName</item>
+        <item>displayName</item>
         <item>familyName</item>
         <item>title</item>
         <item>locality</item>
@@ -49,6 +50,7 @@
         <item>description</item>
         <item>givenName</item>
         <item>fullName</item>
+        <item>displayName</item>
         <item>nickName</item> <!-- Set by user template to modifier OID -->
         <item>familyName</item>
         <item>title</item>

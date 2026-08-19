@@ -126,7 +126,7 @@ public class CaseEngineImpl implements CaseCreationListener, CaseEngine {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         int attempt = 1;
         for (;;) {
             OperationResult result = parentResult.subresult(OP_EXECUTE_REQUEST)

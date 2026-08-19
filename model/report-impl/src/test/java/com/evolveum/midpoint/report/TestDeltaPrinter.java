@@ -72,7 +72,7 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                                 + "  2:\n"
                                 + "   description: Approved Two\n"
                                 + "   targetRef: 123a49bc-6f5b-4746-8461-2e1a63307777 (RoleType)",
-                        "assignment/[25]/description: \n"
+                        "assignment[25]/description: \n"
                                 + " Add: simple assignment description"
                 ));
     }
@@ -179,13 +179,13 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 DELTA,
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION),
                 createDefaultOptions(),
-                List.of("assignment/1/description: \n"
+                List.of("assignment[1]/description: \n"
                                 + " Add: Default",
                         "assignment/description: \n"
                                 + " Delete: Approved",
-                        "assignment/2/description: \n"
+                        "assignment[2]/description: \n"
                                 + " Delete: Approved Two",
-                        "assignment/[25]/description: \n"
+                        "assignment[25]/description: \n"
                                 + " Add: simple assignment description"));
     }
 
@@ -197,7 +197,7 @@ public class TestDeltaPrinter extends AbstractModelIntegrationTest {
                 createDefaultOptions(),
                 List.of("assignment/description: \n"
                                 + " Add: Approved",
-                        "assignment/2/description: \n"
+                        "assignment[2]/description: \n"
                                 + " Add: Approved Two"));
     }
 

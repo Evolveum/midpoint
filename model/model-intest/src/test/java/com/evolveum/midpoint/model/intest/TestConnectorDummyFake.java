@@ -426,7 +426,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         assertDowngrade(dummyResourceModelBefore);
     }
 
-    private void assertUpgrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    private void assertUpgrade(PrismObject<ResourceType> dummyResourceModelBefore) throws CommonException {
         Task task = createPlainTask("assertUpgrade");
         OperationResult result = task.getResult();
 
@@ -460,7 +460,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         testResources(3, 3);
     }
 
-    private void assertDowngrade(PrismObject<ResourceType> dummyResourceModelBefore) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    private void assertDowngrade(PrismObject<ResourceType> dummyResourceModelBefore) throws CommonException {
         Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertDowngrade");
         OperationResult result = task.getResult();
         // Check if the changes went well in the repo
@@ -490,7 +490,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         testResources(3, 1);
     }
 
-    private void testResources(int numDummyAccounts, int numFakeAccounts) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void testResources(int numDummyAccounts, int numFakeAccounts) throws CommonException {
         Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".testResources");
 
         // We have to purge fake resource schema here. As the new connector provides a different schema
@@ -508,7 +508,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         assertResourceAccounts(resourceDummyFake, numFakeAccounts);
     }
 
-    private void assertResourceAccounts(PrismObject<ResourceType> resource, int numAccounts) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertResourceAccounts(PrismObject<ResourceType> resource, int numAccounts) throws CommonException {
         Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertResourceAccounts");
         OperationResult result = task.getResult();
 

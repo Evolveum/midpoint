@@ -56,7 +56,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         String oid = reference.getOid();
 
         Class<? extends ObjectType> targetClass = getTargetClass(reference);
@@ -87,7 +87,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source, Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.trace("Resolving {}:{} from {}", targetClass.getSimpleName(), oid, source);
         return switch (source) {
             case REPOSITORY -> repositoryService.getObject(targetClass, oid, options, result);
@@ -100,7 +100,7 @@ public class ReferenceResolverImpl implements ReferenceResolver {
             ObjectReferenceType reference, Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
             FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LOGGER.trace("Resolving filter on {} from {}", targetClass.getSimpleName(), source);
         SearchFilterType filterBean = reference.getFilter();
         if (filterBean == null) {

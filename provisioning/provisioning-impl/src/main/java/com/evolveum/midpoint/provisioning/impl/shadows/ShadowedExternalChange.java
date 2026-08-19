@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExternalResourceObjectChange;
@@ -21,6 +23,6 @@ public class ShadowedExternalChange extends ShadowedChange<ExternalResourceObjec
 
     @Override
     protected String getDefaultChannel() {
-        return null; // TODO ?
+        return SchemaConstants.CHANNEL_NOTIFY_CHANGE_URI;
     }
 }

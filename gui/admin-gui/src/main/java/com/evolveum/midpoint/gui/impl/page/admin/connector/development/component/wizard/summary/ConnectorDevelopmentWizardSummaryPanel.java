@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.NextStepsActionsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.BaseUrlConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.EndpointConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.sql.connection.SqlConnectionParametersConnectorStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -41,6 +42,8 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author lskublik
@@ -191,7 +194,7 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
 
                 @Override
                 public boolean isEditButtonVisible() {
-                    return ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel);
+                    return ConnectorDevelopmentWizardUtil.isBasicSettingsComplete(detailsModel.getObjectWrapper());
                 }
             }.setStatusCssIcon(() -> ConnectorDevelopmentWizardUtil.isConnectionComplete(detailsModel) ?
                     "fa fa-circle-check" : "fa fa-circle-xmark"));
@@ -248,6 +251,12 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
     }
 
     private @NotNull IModel<StringValuesWidgetDetailsDto> createMapForConnectionWidgetModel() {
+        return ConnectorDevelopmentWizardUtil.isSql(detailsModel)
+                ? createMapForSqlConnectionWidgetModel()
+                : createMapForRestConnectionWidgetModel();
+    }
+
+    private @NotNull IModel<StringValuesWidgetDetailsDto> createMapForRestConnectionWidgetModel() {
         return new LoadableDetachableModel<>() {
             @Override
             protected StringValuesWidgetDetailsDto load() {
@@ -266,6 +275,37 @@ public class ConnectorDevelopmentWizardSummaryPanel extends WizardStepPanel impl
                 return new StringValuesWidgetDetailsDto(values);
             }
         };
+    }
+
+    /** Matches the {@code jdbc:<driver>://} prefix and captures {@code host:port/database}, stopping
+     * before any {@code ?}- or {@code ;}-separated connection parameters (which can be arbitrarily long). */
+    private static final Pattern JDBC_URL_PATTERN = Pattern.compile("^jdbc:[^:]+://([^?;]+)");
+
+    private @NotNull IModel<StringValuesWidgetDetailsDto> createMapForSqlConnectionWidgetModel() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected StringValuesWidgetDetailsDto load() {
+                Map<IModel<String>, IModel<String>> values = new LinkedHashMap<>();
+                String jdbcUrl = (String) ConnectorDevelopmentWizardUtil.getTestingResourcePropertyValue(
+                        detailsModel, null, SqlConnectionParametersConnectorStepPanel.JDBC_URL);
+                values.put(
+                        createStringResource("ConnectorDevelopmentWizardSummaryPanel.baseUrl"),
+                        defineValueModel(shortenJdbcUrl(jdbcUrl)));
+                values.put(
+                        createStringResource("ConnectorDevelopmentWizardSummaryPanel.username"),
+                        defineValueModel((String) ConnectorDevelopmentWizardUtil.getTestingResourcePropertyValue(
+                                detailsModel, null, SqlConnectionParametersConnectorStepPanel.USERNAME)));
+                return new StringValuesWidgetDetailsDto(values);
+            }
+        };
+    }
+
+    private static String shortenJdbcUrl(String jdbcUrl) {
+        if (jdbcUrl == null) {
+            return null;
+        }
+        Matcher matcher = JDBC_URL_PATTERN.matcher(jdbcUrl);
+        return matcher.find() ? matcher.group(1) : jdbcUrl;
     }
 
     private @NotNull IModel<StringValuesWidgetDetailsDto> createMapForBasicInformationWidgetModel() {

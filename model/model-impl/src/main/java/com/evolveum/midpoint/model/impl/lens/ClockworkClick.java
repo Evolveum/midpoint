@@ -66,7 +66,7 @@ public class ClockworkClick<F extends ObjectType> {
     public HookOperationMode click(OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, SubscriptionComplianceException {
 
         // DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
         // that. Check consistency afterwards (and it is also checked inside projector several times).
@@ -120,8 +120,8 @@ public class ClockworkClick<F extends ObjectType> {
             return moveStateForward(parentResult, result, state);
 
         } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
-                PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
-                ObjectAlreadyExistsException | ConflictDetectedException e) {
+                 PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
+                 ObjectAlreadyExistsException | ConflictDetectedException | SubscriptionComplianceException e) {
             processClockworkException(e, result, parentResult);
             throw e;
         } finally {
@@ -156,7 +156,7 @@ public class ClockworkClick<F extends ObjectType> {
     private void projectIfNeeded(OperationResult result)
             throws SchemaException, ConfigurationException, PolicyViolationException, ExpressionEvaluationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, SubscriptionComplianceException {
         boolean recompute;
         if (!context.isFresh()) {
             LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
@@ -186,7 +186,7 @@ public class ClockworkClick<F extends ObjectType> {
     private HookOperationMode moveStateForward(OperationResult parentResult,
             OperationResult result, ModelState state) throws PolicyViolationException, ObjectNotFoundException, SchemaException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ConflictDetectedException {
+            ExpressionEvaluationException, ConflictDetectedException, SubscriptionComplianceException {
         switch (state) {
             case INITIAL:
                 processInitialToPrimary(result);
@@ -222,7 +222,7 @@ public class ClockworkClick<F extends ObjectType> {
 
     private void processSecondary(OperationResult result, OperationResult overallResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException, SubscriptionComplianceException {
 
         context.clearLastChangeExecutionResult();
 
@@ -260,7 +260,7 @@ public class ClockworkClick<F extends ObjectType> {
 
     private HookOperationMode processFinal(OperationResult result, OperationResult overallResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException {
         beans.clockworkAuditHelper.auditFinalExecution(context, task, result, overallResult);
         logFinalReadable(context);
         beans.migrator.executeAfterOperationMigration(context, result);

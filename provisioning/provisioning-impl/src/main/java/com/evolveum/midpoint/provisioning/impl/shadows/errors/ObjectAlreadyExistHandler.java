@@ -66,7 +66,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             OperationResult result)
             throws SchemaException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ProvisioningContext ctx = operation.getCtx();
 
@@ -85,7 +85,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ProvisioningContext ctx = operation.getCtx();
 
@@ -103,7 +103,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     private void discoverConflictingShadow(
             ProvisioningContext ctx, AbstractShadow targetObjectState, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
@@ -184,8 +184,8 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
      * But a side-effect of this search is that the shadow for the conflicting account is created in the repo.
      */
     private List<PrismObject<ShadowType>> findConflictingShadowsOnResource(ObjectQuery query, Task task, OperationResult parentResult)
-        throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
-                SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // noDiscovery option to avoid calling notifyChange from ShadowManager (in case that new resource object is discovered)
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
         return provisioningService.searchObjects(ShadowType.class, query, options, task, parentResult);

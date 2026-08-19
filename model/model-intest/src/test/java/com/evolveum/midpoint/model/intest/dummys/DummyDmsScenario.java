@@ -13,8 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
-import static com.evolveum.midpoint.test.AttrName.*;
-import static com.evolveum.midpoint.test.ObjectClassName.*;
+import static com.evolveum.midpoint.test.AttrName.icfsName;
+import static com.evolveum.midpoint.test.AttrName.ri;
+import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 /** Represents the Document Management System scenario residing on given dummy resource. */
 @SuppressWarnings("WeakerAccess") // there are a lot of constants that will be eventually used from the outside

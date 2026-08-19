@@ -28,7 +28,10 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.evolveum.midpoint.schema.TestConstants.*;
 import static org.testng.AssertJUnit.*;

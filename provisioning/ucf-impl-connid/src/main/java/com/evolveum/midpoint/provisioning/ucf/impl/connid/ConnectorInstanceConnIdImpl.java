@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.MiscUtil;
 

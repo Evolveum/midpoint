@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
@@ -14,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.SuggestionUiStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,7 +28,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -47,6 +52,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getAiCustomTextBadgeModel;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.getSystemCustomTextBadgeModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TITLE_CSS;
 
 public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<ItemsSubCorrelatorType>>
@@ -129,7 +135,15 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
             initActionSuggestionButton(fragment);
         } else {
             initLabelComponent(ID_STATE_LABEL, createStringResource("SmartCorrelationTilePanel.state.label"), fragment);
-            initLabelComponent(ID_STATE_PANEL, () -> getModelObject().getEnabled(), fragment);
+
+            Label enableLabel = new Label(ID_STATE_PANEL,
+                    createStringResource("SmartCorrelationTilePanel.enabled", getModelObject().getEnabled()));
+
+            enableLabel.add(AttributeModifier.append("class", Boolean.TRUE.equals(getModelObject().getEnabled())
+                    ? "success-light" : ""));
+
+            enableLabel.setOutputMarkupId(true);
+            fragment.add(enableLabel);
         }
         initCheckBox(fragment);
         initBadgePanel(fragment);
@@ -141,7 +155,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initCorrelationItemPanel(@NotNull Fragment fragment) {
         CorrelationItemTypePanel correlationItemTypePanel =
-                new CorrelationItemTypePanel(ID_CORRELATION_ITEMS_PANEL, () -> getModelObject().getCorrelationItems(), 1) {
+                new CorrelationItemTypePanel(ID_CORRELATION_ITEMS_PANEL, () -> getModelObject().getCorrelationItems(), 3) {
                     @Override
                     protected boolean isIconStatusVisible() {
                         return statusModel.getObject() != null;
@@ -154,8 +168,6 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     private void initLabelComponent(String id, IModel<?> model, @NotNull Fragment fragment) {
         Label label = new Label(id, model);
         label.setOutputMarkupId(true);
-        label.add(AttributeModifier.append("class", model.getObject().equals(Boolean.TRUE)
-                ? "success-light" : ""));
         fragment.add(label);
     }
 
@@ -203,7 +215,7 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
 
     private void initActionButton(@NotNull Fragment fragment) {
         DropdownButtonPanel buttonPanel = new DropdownButtonPanel(ID_MORE_ACTION, new DropdownButtonDto(
-                null, "fa-ellipsis-h ml-1", null, buildMenuItems())) {
+                null, "fa-solid fa-ellipsis-vertical ms-1", null, buildMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;
@@ -254,7 +266,21 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
     }
 
     private void initBadgePanel(@NotNull Fragment fragment) {
-        BadgePanel badge = new BadgePanel(ID_BADGE_PANEL, getAiCustomTextBadgeModel("Suggestion"));
+        LoadableModel<Badge> badgeModelProvider = new LoadableModel<>() {
+            @Override
+            protected Badge load() {
+                String badgeText = createStringResource("SmartIntegration.suggestion.text").getObject();
+                SuggestionUiStyle uiStyle = SuggestionUiStyle.from(statusModel.getObject(), getModelObject().getValue());
+                if (uiStyle == SuggestionUiStyle.DEFAULT_SYSTEM) {
+                    String tooltip = createStringResource("SmartIntegration.badge.tooltip.system").getObject();
+                    return getSystemCustomTextBadgeModel(badgeText, tooltip).getObject();
+                } else {
+                    String tooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
+                    return getAiCustomTextBadgeModel(badgeText, tooltip).getObject();
+                }
+            }
+        };
+        BadgePanel badge = new BadgePanel(ID_BADGE_PANEL, badgeModelProvider);
         badge.setOutputMarkupId(true);
         badge.add(new VisibleBehaviour(() -> statusModel.getObject() != null));
         fragment.add(badge);
@@ -310,7 +336,6 @@ public class SmartCorrelationTilePanel<C extends PrismContainerValueWrapper<Item
         }, false) {
             @Override
             protected void createButtons(@NotNull RepeatingView buttonsView) {
-                initActionButton(buttonsView);
                 initDiscardButton(buttonsView);
             }
 

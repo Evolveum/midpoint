@@ -64,5 +64,6 @@ public class ScriptCache<I,C,K> {
 
     public synchronized void clear() {
         codeCache.clear();
+        interpreterCache.clear();
     }
 }

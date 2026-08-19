@@ -33,10 +33,9 @@ public class TOtpServiceImpl extends OtpServiceImpl {
             OtpAlgorithm algorithm,
             Integer secretLength,
             Integer digits,
-            Integer window,
             Integer period) {
 
-        super(OtpType.TOTP, clock, issuer, algorithm, secretLength, digits, window);
+        super(OtpType.TOTP, clock, issuer, algorithm, secretLength, digits);
 
         this.period = period != null && period > 0 ? period : DEFAULT_PERIOD;
     }

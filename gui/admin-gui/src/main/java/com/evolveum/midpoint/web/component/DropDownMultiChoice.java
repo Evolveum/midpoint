@@ -66,7 +66,7 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
     private Map<String, String> createDefaultOptions() {
         Map<String, String> map = new HashMap<>();
         map.put("buttonContainer", "<div class=\"dropdown\">");
-        map.put("buttonClass", "custom-select custom-select-sm shadow-none");
+        map.put("buttonClass", "form-select form-select-sm shadow-none");
         map.put("buttonTextAlignment", "left");
 
         return map;

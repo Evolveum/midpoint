@@ -14,6 +14,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -45,7 +46,8 @@ public class LifecycleStatePanel extends InputPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(LifecycleStatePanel.class);
 
-    private static final String ID_PANEL = "panel";
+    private static final String ID_DROPDOWN_PANEL = "dropdownPanel";
+    private static final String ID_LIFECYCLE_PANEL = "lifecyclePanel";
 
     private final IModel<PrismPropertyWrapper<String>> model;
 
@@ -76,6 +78,11 @@ public class LifecycleStatePanel extends InputPanel {
 
     private <T> void initLayout() {
         setOutputMarkupId(true);
+
+        WebMarkupContainer lifecyclePanel = new WebMarkupContainer(ID_LIFECYCLE_PANEL);
+        lifecyclePanel.setOutputMarkupId(true);
+        lifecyclePanel.add(AttributeAppender.append("class", getLifecyclePanelStyle()));
+        add(lifecyclePanel);
 
         IModel<List> choicesModel = Model.ofList(getChoices());
 
@@ -122,7 +129,7 @@ public class LifecycleStatePanel extends InputPanel {
         IChoiceRenderer renderer = new DisplayableChoiceRenderer();
 
         DropDownChoice input = new DropDownChoice<T>(
-                ID_PANEL,
+                ID_DROPDOWN_PANEL,
                 (IModel<T>) model,
                 (List<? extends T>) choicesModel.getObject(),
                 renderer) {
@@ -207,12 +214,12 @@ public class LifecycleStatePanel extends InputPanel {
                 name = value.getValue();
             }
             DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(name);
-            return display.getCssClass() + " form-control form-select form-control-sm resizing-select " + customCssClassForInputField();
+            return display.getCssClass() + " form-control form-control-sm resizing-select " + customCssClassForInputField();
         }));
 
         input.add(AttributeAppender.append("aria-label", createStringResource("ObjectType.lifecycleState")));
 
-        add(input);
+        lifecyclePanel.add(input);
     }
 
     private PrismPropertyWrapper<String> getModelObject() {
@@ -253,8 +260,12 @@ public class LifecycleStatePanel extends InputPanel {
         return choices;
     }
 
+    protected String getLifecyclePanelStyle() {
+        return "form-item-parent";
+    }
+
     @Override
     public FormComponent getBaseFormComponent() {
-        return (FormComponent) get(ID_PANEL);
+        return (FormComponent) get(ID_LIFECYCLE_PANEL).get(ID_DROPDOWN_PANEL);
     }
 }

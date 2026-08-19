@@ -17,7 +17,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.smart.api.synchronization.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 @ContextConfiguration(locations = { "classpath:ctx-smart-integration-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

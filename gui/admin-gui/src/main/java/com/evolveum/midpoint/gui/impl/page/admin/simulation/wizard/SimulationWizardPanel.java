@@ -25,7 +25,10 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.dialog.AdditionalOperationConfirmationPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
  * Base wizard panel providing a reusable flow for simulation tasks and results.

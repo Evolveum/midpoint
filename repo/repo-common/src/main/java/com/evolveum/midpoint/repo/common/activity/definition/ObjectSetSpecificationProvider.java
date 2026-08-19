@@ -8,7 +8,10 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedObjectsSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

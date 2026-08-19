@@ -530,8 +530,7 @@ public class TestAccessesValueMetadata extends AbstractEmptyModelIntegrationTest
                                 RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)));
     }
 
-    private void assertNoRoleMembershipRefMetadata(String userOid, String... roleMembershipRefTargetOids)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertNoRoleMembershipRefMetadata(String userOid, String... roleMembershipRefTargetOids) throws CommonException {
         UserAsserter<Void> userAsserter = assertUser(userOid, "no-value-metadata")
                 .displayXml() // XML also shows the metadata
                 .assertRoleMembershipRefs(roleMembershipRefTargetOids.length);

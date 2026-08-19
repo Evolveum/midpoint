@@ -17,7 +17,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;

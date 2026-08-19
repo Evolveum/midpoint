@@ -173,7 +173,7 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
         autoComplete.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
         autoComplete.getBaseFormComponent().add(
-                AttributeAppender.append("class", "border-top-right-radius:0;"));
+                AttributeAppender.append("style", "border-top-right-radius:0;"));
         autoComplete.getBaseFormComponent().add(
                 AttributeAppender.append("style", "border-top-right-radius:0; border-bottom-right-radius:0;"));
         autoComplete.getBaseFormComponent().add(AttributeAppender.append(

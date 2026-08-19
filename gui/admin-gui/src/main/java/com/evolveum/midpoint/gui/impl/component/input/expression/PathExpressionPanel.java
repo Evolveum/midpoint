@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.gui.impl.component.input.expression;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -16,12 +14,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowOwnerReferenceSearchExpressionEvaluatorType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.commons.lang3.StringUtils;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,9 +26,6 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
 
 public class PathExpressionPanel extends EvaluatorExpressionPanel {
 
@@ -41,12 +35,16 @@ public class PathExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_PATH_LABEL = "pathLabel";
 
     public PathExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public PathExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("OptionObjectSelectorType.path");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("OptionObjectSelectorType.path");
     }
 
     protected void initLayout(MarkupContainer parent) {

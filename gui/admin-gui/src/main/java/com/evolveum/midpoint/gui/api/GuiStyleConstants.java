@@ -18,56 +18,56 @@ public class GuiStyleConstants {
     public static final String ICON_FA_POWER_OFF = "fa fa-power-off";
     public static final String ICON_FA_SPINNER = "fa fa-spinner";
 
-    public static final String CLASS_BOX = "card";
-    public static final String CLASS_BOX_DEFAULT = "card-default";
+    public static final String CLASS_BOX = "card shadow-sm mb-3";
+    public static final String CLASS_BOX_DEFAULT = "card shadow-sm mb-3 border";
 
     public static final String CLASS_DASHBOARD_ICON = "fa fa-tachometer-alt";
 
     public static final String CLASS_OBJECT_USER_ICON = "fa fa-user";
     public static final String CLASS_OBJECT_USER_ICON_COLORED = CLASS_OBJECT_USER_ICON + " object-user-color";
-    public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "card-outline object-user-box";
-    public static final String CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES = "object-user-box-thin";
+    public static final String CLASS_OBJECT_USER_BOX_CSS_CLASSES = "card-outline card-user";
+    public static final String CLASS_OBJECT_USER_BOX_THIN_CSS_CLASSES = "card-user-thin";
 
     public static final String CLASS_OBJECT_ROLE_ICON = "fe fe-role";
     public static final String CLASS_OBJECT_ROLE_BG = "object-role-bg";
     public static final String CLASS_DISABLED_OBJECT_ROLE_BG = "object-disabled-bg";
     public static final String CLASS_OBJECT_ROLE_ICON_COLORED = CLASS_OBJECT_ROLE_ICON + " object-role-color";
-    public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "card-outline object-role-box";
-    public static final String CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES = "object-role-box-thin";
+    public static final String CLASS_OBJECT_ROLE_BOX_CSS_CLASSES = "card-outline card-role";
+    public static final String CLASS_OBJECT_ROLE_BOX_THIN_CSS_CLASSES = "card-role-thin";
 
     public static final String CLASS_OBJECT_ORG_ICON = "fa fa-building";
     public static final String CLASS_OBJECT_ORG_BG = "object-org-bg";
     public static final String CLASS_OBJECT_ORG_ICON_COLORED = CLASS_OBJECT_ORG_ICON + " object-org-color";
-    public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "card-outline object-org-box";
-    public static final String CLASS_OBJECT_ORG_BOX_THIN_CSS_CLASSES = "object-org-box-thin";
+    public static final String CLASS_OBJECT_ORG_BOX_CSS_CLASSES = "card-outline card-org";
+    public static final String CLASS_OBJECT_ORG_BOX_THIN_CSS_CLASSES = "card-org-thin";
 
     public static final String CLASS_OBJECT_SERVICE_ICON = "fa fa-cloud";
     public static final String CLASS_OBJECT_SERVICE_BG = "object-service-bg";
     public static final String CLASS_OBJECT_SERVICE_ICON_COLORED = CLASS_OBJECT_SERVICE_ICON + " object-service-color";
-    public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "card-outline object-service-box";
-    public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "object-service-box-thin";
+    public static final String CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES = "card-outline card-service";
+    public static final String CLASS_OBJECT_SERVICE_BOX_THIN_CSS_CLASSES = "card-service-thin";
 
     public static final String CLASS_OBJECT_POLICY_ICON = "fa fa-balance-scale";
     public static final String CLASS_OBJECT_POLICY_BG = "object-policy-bg";
     public static final String CLASS_OBJECT_POLICY_ICON_COLORED = CLASS_OBJECT_POLICY_ICON + " object-policy-color";
-    public static final String CLASS_OBJECT_POLICY_BOX_CSS_CLASSES = "card-outline object-policy-box";
-    public static final String CLASS_OBJECT_POLICY_BOX_THIN_CSS_CLASSES = "object-policy-box-thin";
+    public static final String CLASS_OBJECT_POLICY_BOX_CSS_CLASSES = "card-outline card-policy";
+    public static final String CLASS_OBJECT_POLICY_BOX_THIN_CSS_CLASSES = "card-policy-thin";
 
     public static final String CLASS_OBJECT_RESOURCE_ICON = "fa fa-database";
     public static final String CLASS_OBJECT_RESOURCE_TEMPLATE_ICON = "fa-regular fa-file";
     public static final String CLASS_OBJECT_RESOURCE_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-resource-color";
-    public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "card-outline object-resource-box";
-    public static final String CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES = "object-resource-box-thin";
+    public static final String CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES = "card-outline card-resource";
+    public static final String CLASS_OBJECT_RESOURCE_BOX_THIN_CSS_CLASSES = "card-resource-thin";
 
     public static final String CLASS_OBJECT_SHADOW_ICON = "fa fa-eye";
     public static final String CLASS_OBJECT_SHADOW_ICON_COLORED = CLASS_OBJECT_RESOURCE_ICON + " object-shadow-color";
-    public static final String CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES = "card-outline object-shadow-box";
-    public static final String CLASS_OBJECT_SHADOW_BOX_THIN_CSS_CLASSES = "object-shadow-box-thin";
+    public static final String CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES = "card-outline card-object-shadow";
+    public static final String CLASS_OBJECT_SHADOW_BOX_THIN_CSS_CLASSES = "card-object-shadow-thin";
 
     public static final String CLASS_OBJECT_TASK_ICON = "fa fa-tasks";
     public static final String CLASS_OBJECT_TASK_ICON_COLORED = CLASS_OBJECT_TASK_ICON + " object-task-color";
-    public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "card-outline object-task-box";
-    public static final String CLASS_OBJECT_TASK_BOX_THIN_CSS_CLASSES = "object-task-box-thin";
+    public static final String CLASS_OBJECT_TASK_BOX_CSS_CLASSES = "card-outline card-task";
+    public static final String CLASS_OBJECT_TASK_BOX_THIN_CSS_CLASSES = "card-task-thin";
 
     public static final String CLASS_OBJECT_NODE_ICON = "fa fa-server";
     public static final String CLASS_OBJECT_NODE_ICON_COLORED = CLASS_OBJECT_NODE_ICON + " object-node-color";
@@ -76,11 +76,11 @@ public class GuiStyleConstants {
 
     public static final String CLASS_OBJECT_WORK_ITEM_ICON = "fa fa-inbox";
     public static final String CLASS_OBJECT_WORK_ITEM_ICON_COLORED = CLASS_OBJECT_WORK_ITEM_ICON + " object-task-color";        // TODO
-    public static final String CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES = "card-outline object-task-box"; // TODO
+    public static final String CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES = "card-outline card-task"; // TODO
 
     public static final String CLASS_OBJECT_CERT_DEF_ICON = "fa fa-certificate";
     public static final String CLASS_OBJECT_CERT_DEF_ICON_COLORED = CLASS_OBJECT_CERT_DEF_ICON + " object-task-color";        // TODO
-    public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "card-outline object-task-box";                                    // TODO
+    public static final String CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES = "card-outline card-task";                                    // TODO
 
     public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
     public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";        // TODO
@@ -189,11 +189,11 @@ public class GuiStyleConstants {
     public static final String CLASS_NAVIGATE_ARROW = "fa fa-share";
     public static final String CLASS_SELECTION_HAND = "far fa-hand-point-up";
 
-    public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
+    public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-light border";
     public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
 
-    public static final String CLASS_BADGE_ACTIVE = "badge-primary";
-    public static final String CLASS_BADGE_PASSIVE = "badge-secondary";
+    public static final String CLASS_BADGE_ACTIVE = "bg-primary";
+    public static final String CLASS_BADGE_PASSIVE = "bg-secondary";
 
     public static final String DEFAULT_BG_COLOR = "#357DA7"; //blue-light theme
 
@@ -309,8 +309,6 @@ public class GuiStyleConstants {
     public static final String CLASS_TRACING_BUTTON_ICON = "fa fa-stethoscope";
 
     public static final String CLASS_ICON_HISTORY = "fa fa-history";
-
-    public static final String CLASS_TODO_FIXME_NOT_YET_DEFINED = "fas fa-question-circle text-fuchsia";
 
     public static final String CLASS_SIMULATION_RESULT = "fa-solid fa-flask";
 

@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.allowedconnectorslist.QAllowedConnectorsList;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorDevelopment;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlier;
@@ -98,7 +99,8 @@ public enum MObjectType {
     TASK(QTask.class, TaskType.class, TaskType::new),
     USER(QUser.class, UserType.class, UserType::new),
     VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class, ValuePolicyType::new),
-    POLICY(QPolicy.class, PolicyType.class, PolicyType::new);
+    POLICY(QPolicy.class, PolicyType.class, PolicyType::new),
+    ALLOWED_CONNECTORS_LIST(QAllowedConnectorsList.class, AllowedConnectorsListType.class, AllowedConnectorsListType::new);
 
 
     private final Class<? extends QObject<?>> queryType;

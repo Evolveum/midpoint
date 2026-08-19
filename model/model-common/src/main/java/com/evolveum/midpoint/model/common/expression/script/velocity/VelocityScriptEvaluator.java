@@ -43,7 +43,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
             @NotNull String codeString,
             @NotNull ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         VelocityContext velocityCtx = createVelocityContext(context);
 
@@ -57,7 +57,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
     private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VelocityContext velocityCtx = new VelocityContext();
         Map<String, Object> scriptVariables = prepareUnifiedScriptVariablesValueMap(context);
         for (Map.Entry<String, Object> scriptVariable : scriptVariables.entrySet()) {

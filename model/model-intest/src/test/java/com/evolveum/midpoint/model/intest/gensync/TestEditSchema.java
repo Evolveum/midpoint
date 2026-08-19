@@ -834,7 +834,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         AssertJUnit.fail("Row with key '" + key + "' was not found in lookup table");
     }
 
-    private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws CommonException {
         GetOperationOptionsBuilder optionsBuilder = schemaService.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW).retrieve();
         return modelService.getObject(LookupTableType.class, oid, optionsBuilder.build(), task, result);

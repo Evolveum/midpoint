@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createNewVirtualMappingValue;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.isExcludedMapping;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.*;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createToggleSuggestionVisibilityButton;
 import static com.evolveum.midpoint.prism.PrismConstants.VARIABLE_BINDING_DEF_MATCHING_RULE_NAME;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_MAPPINGS;
@@ -156,6 +154,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         this::getColumns) {
 
                     @Override
+                    public void refreshAndDetach(AjaxRequestTarget target) {
+                        super.refreshAndDetach(target);
+                        refreshAssociatedComponents(target);
+                    }
+
+                    @Override
                     protected @NotNull Component createTile(
                             String id,
                             @NotNull IModel<ColumnTile<MappingDataDto, PrismContainerValueWrapper<MappingType>>> model) {
@@ -234,7 +238,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                         };
                         refreshTableButton.setOutputMarkupId(true);
                         refreshTableButton.showTitleAsLabel(false);
-                        refreshTableButton.add(AttributeAppender.append("class", "btn btn-default"));
+                        refreshTableButton.add(AttributeAppender.append("class", "btn btn-light border"));
                         return refreshTableButton;
                     }
 
@@ -345,8 +349,8 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         return columns.getColumns();
     }
 
-    protected boolean displayNoValuePanel() {
-        if(searchTextModel.getObject() != null && !searchTextModel.getObject().isEmpty()) {
+    public boolean displayNoValuePanel() {
+        if (searchTextModel.getObject() != null && !searchTextModel.getObject().isEmpty()) {
             return false;
         }
         return Boolean.TRUE.equals(noValuePanelModel.getObject());
@@ -507,7 +511,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     }
 
     protected String getNewObjectButtonCssClass() {
-        return "btn btn-outline-primary ml-auto";
+        return "btn btn-outline-primary";
     }
 
     protected void initPanelToolbarButtons(@NotNull RepeatingView toolbar) {
@@ -521,6 +525,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         toggleButton.add(new VisibleBehaviour(this::isSuggestionSwitchSupported));
         toolbar.add(toggleButton);
         toolbar.add(actions.createLegend(toolbar.newChildId()));
+        toolbar.add(actions.createSettingPanel(toolbar.newChildId()));
     }
 
     protected void performOnEditMapping(
@@ -567,7 +572,8 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 getMappingDirectionType());
     }
 
-    protected @Nullable PrismContainerValueWrapper<MappingType> createNewValue(
+    @Nullable
+    public PrismContainerValueWrapper<MappingType> createNewValue(
             @Nullable PrismContainerValue<MappingType> value,
             @Nullable AjaxRequestTarget target) {
         return createNewVirtualMappingValue(
@@ -589,7 +595,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         actions.resolveMappingDeletedItem(value);
     }
 
-    protected void deleteItemPerform(@NotNull PrismContainerValueWrapper<MappingType> value) {
+    public void deleteItemPerform(@NotNull PrismContainerValueWrapper<MappingType> value) {
         actions.deleteItemPerform(value);
     }
 
@@ -600,16 +606,20 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         }
     }
 
+    public void refreshAssociatedComponents(AjaxRequestTarget target) {
+    }
+
     public void updateTileView(AjaxRequestTarget target) {
         getTable().updateTileView(target);
     }
 
-    protected @Nullable StatusInfo<?> getStatusInfo(
+    @Nullable
+    public StatusInfo<?> getStatusInfo(
             PrismContainerValueWrapper<MappingType> value) {
         return getTable().getStatusInfo(value);
     }
 
-    protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> findResourceObjectTypeDefinition() {
+    public PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> findResourceObjectTypeDefinition() {
         return refAttributeDefValue.getObject()
                 .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
     }
@@ -655,12 +665,11 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         // extension hook
     }
 
-    public PrismContainerValueWrapper<MappingType> acceptSuggestionItemPerformed(
+    public void acceptSuggestionItemPerformed(
             @NotNull IModel<PrismContainerValueWrapper<MappingType>> rowModel,
             @NotNull AjaxRequestTarget target) {
         PrismContainerValueWrapper<MappingType> newValue = createNewValue(rowModel.getObject().getNewValue(), target);
         deleteItemPerform(rowModel.getObject());
-        return newValue;
     }
 
     protected Component createMappingTypeDropdownButton(String idButton) {
@@ -687,4 +696,12 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
         return actions;
     }
 
+    /**
+     * Additional items displayed in the Settings dropdown.
+     *
+     * <p>Subclasses can override this to add context-specific actions.
+     */
+    protected @NotNull List<InlineMenuItem> getCustomSettingsMenuItems() {
+        return List.of();
+    }
 }

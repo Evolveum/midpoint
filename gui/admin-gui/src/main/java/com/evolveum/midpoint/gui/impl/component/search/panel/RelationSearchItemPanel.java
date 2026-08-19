@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.RelationSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -22,7 +21,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionTy
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;

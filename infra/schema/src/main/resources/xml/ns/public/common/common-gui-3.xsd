@@ -364,6 +364,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="fileUploadConfiguration" type="tns:FileUploadConfigurationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Per-item upload validation and optional image processing configuration.
+                        If the whole configuration is absent, the built-in default applies only to jpegPhoto:
+                        content type checking is enabled, image/jpeg and image/png are allowed, and no conversion
+                        or metadata stripping is performed. If no rule matches another item, this feature does not
+                        enable checking or processing by default. Content validation determines the actual MIME type
+                        from uploaded bytes. Detection is not limited to JPEG and PNG, but only MIME types supported by
+                        the content detector can be recognized.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AdminGuiConfigurationType.fileUploadConfiguration</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -428,7 +445,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression that can be used to return String value which describes user object returned by search.
-                        By default, `user.getFullName() + "(" + user.getName() + ")"` is used.
+                        By default, `user.getDisplayName() + " (" + user.getName() + ")"` is used.
 
                         DEPRECATED:
                         Use autocompleteConfiguration.
@@ -4091,6 +4108,20 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
+                    <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of objects that belong to this collection. This is used when the collection
+                                is specified by an inline filter and the type cannot be derived from a referenced
+                                collection or from the containing configuration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                                <a:displayName>CollectionSpecificationType.type</a:displayName>
+                                <a:displayOrder>5</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:choice>
                         <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0">
                             <xsd:annotation>
@@ -5142,38 +5173,109 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!--<xsd:simpleType name="GuiParameterTypeType">-->
-    <!--    <xsd:annotation>-->
-    <!--        <xsd:documentation>-->
-    <!--            if the parameter is request from user, or if it is derived from other parameters.-->
-    <!--        </xsd:documentation>-->
-    <!--        <xsd:appinfo>-->
-    <!--            <a:since>4.9</a:since>-->
-    <!--        </xsd:appinfo>-->
-    <!--    </xsd:annotation>-->
-    <!--    <xsd:restriction base="xsd:string">-->
-    <!--        <xsd:enumeration value="manual">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Requires user input-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="MANUAL"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--        <xsd:enumeration value="automatic">-->
-    <!--            <xsd:annotation>-->
-    <!--                <xsd:documentation>-->
-    <!--                    Gives the possibility to select individual items without possibility to select all at once.-->
-    <!--                </xsd:documentation>-->
-    <!--                <xsd:appinfo>-->
-    <!--                    <jaxb:typesafeEnumMember name="AUTOMATIC"/>-->
-    <!--                </xsd:appinfo>-->
-    <!--            </xsd:annotation>-->
-    <!--        </xsd:enumeration>-->
-    <!--    </xsd:restriction>-->
-    <!--</xsd:simpleType>-->
+    <xsd:complexType name="FileUploadConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines upload validation and optional image processing rules for binary item values.
+                Rules are matched by exact normalized ItemPath; wildcards are not supported. Multiple rules
+                with the same normalized path are invalid.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="item" minOccurs="0" maxOccurs="unbounded" type="tns:FileUploadItemConfigurationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Upload rule for one exact item path.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
+    <xsd:complexType name="FileUploadItemConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Upload validation and processing rule for a single item path.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" minOccurs="1" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Exact item path to which this rule applies, for example jpegPhoto.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="checkContentType" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enables content validation. If absent, defaults to true. When enabled, midPoint determines the
+                        actual MIME type from uploaded bytes, rejects unknown or unidentifiable content, checks the
+                        detected MIME type against allowedContentType, and requires the declared MIME type to match the
+                        detected type when a declared type is present. If false, allowedContentType values are ignored
+                        and this content validation is skipped.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="allowedContentType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Allowed MIME type for the actual content detected from uploaded bytes. MIME wildcards are
+                        supported by MIME matching, for example image/*. The built-in jpegPhoto default remains
+                        image/jpeg and image/png. For other items, an absent or empty list with checkContentType=true is
+                        a configuration error; it is never interpreted as allow-all.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="convertImageTo" minOccurs="0" type="tns:ImageFormatType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional output image format. Existing ImageFormatType values are jpg and png.
+                        If absent, the original format is preserved unless stripMetadata requests an image rewrite.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stripMetadata" minOccurs="0" type="xsd:boolean" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Requests image rewrite through the existing image sanitization implementation to remove metadata.
+                        If absent, defaults to false.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
+    <xsd:simpleType name="ImageFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Image format that is used to store uploaded image.
+                Used by fileUploadConfiguration/item/convertImageTo.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="jpg">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JPG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="png">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PNG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

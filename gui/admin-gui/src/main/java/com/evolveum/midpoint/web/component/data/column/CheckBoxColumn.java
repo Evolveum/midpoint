@@ -104,7 +104,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
     public Component getHeader(String componentId) {
         if (getDisplayModel() == null || StringUtils.isBlank(getDisplayModel().getObject())) {
             Label label = new Label(componentId, () -> LocalizationUtil.translate("CheckBoxColumn.header"));
-            label.add(AttributeAppender.append("class", "sr-only"));
+            label.add(AttributeAppender.append("class", "visually-hidden"));
         }
         return super.getHeader(componentId);
     }

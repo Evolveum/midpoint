@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.util.Collections;
 import javax.xml.XMLConstants;
 
-import com.evolveum.prism.xml.ns._public.annotation_3.AccessAnnotationType;
-
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 

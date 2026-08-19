@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,14 +50,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.SimulationTransaction;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -146,8 +140,22 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
             } else {
                 objectDelta = null;
             }
-        } finally {
+        } catch (CommonException e) {
+            // Result must be closed before writing simulation data because close() calls computeStatus() which propagates error message from subresults to root result
             evaluationResult.close();
+            final SimulationTransaction failSimulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
+                    "Required simulation transaction does not exist.");
+            try {
+                failSimulationTransaction.writeSimulationData(
+                        new MappingSimulationData(targetFocus, null, evaluationResult), task, result);
+            } catch (Exception writeException) {
+                e.addSuppressed(writeException);
+            }
+            throw e;
+        } finally {
+            if (!evaluationResult.isClosed()) {
+                evaluationResult.close();
+            }
         }
 
         final SimulationTransaction simulationTransaction = Objects.requireNonNull(getSimulationTransaction(),
@@ -179,7 +187,7 @@ public class MappingSimulationActivityRun extends SearchBasedActivityRun<ShadowT
     private Collection<ItemDelta<?, ?>> evaluateMappings(ShadowType shadow, FocusType targetFocus,
             OperationResult result, RunningTask task)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final MappingEvaluationEnvironment evaluationEnvironment = new MappingEvaluationEnvironment(
                 "simulating inbounds processing of " + shadow,
                 ModelBeans.get().clock.currentTimeXMLGregorianCalendar(), task);

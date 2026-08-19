@@ -76,9 +76,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
     //// should be in AbstractModelIntegrationTest
 
     protected void modifyOrgAssignment(String orgOid, String roleOid, QName refType, QName relation, Task task,
-            PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+            PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result) throws CommonException {
         ObjectDelta<OrgType> orgDelta = createAssignmentOrgDelta(orgOid, roleOid, refType, relation, extension,
                 activationType, add);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(orgDelta);
@@ -92,29 +90,21 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
         return prismContext.deltaFactory().object().createModifyDelta(orgOid, modifications, OrgType.class);
     }
 
-    protected void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    protected void assignRoleToOrg(String orgOid, String roleOid, Task task, OperationResult result) throws CommonException {
         assignRoleToOrg(orgOid, roleOid, null, task, result);
     }
 
     protected void assignRoleToOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+            OperationResult result) throws CommonException {
         modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
     }
 
-    protected void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    protected void unassignRoleFromOrg(String orgOid, String roleOid, Task task, OperationResult result) throws CommonException {
         unassignRoleFromOrg(orgOid, roleOid, null, task, result);
     }
 
     protected void unassignRoleFromOrg(String orgOid, String roleOid, ActivationType activationType, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+            OperationResult result) throws CommonException {
         modifyOrgAssignment(orgOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
     }
 
@@ -136,16 +126,12 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
         }
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstances)
-            throws NumberFormatException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, CommonException {
         assertLdapConnectorInstances(expectedConnectorInstances, expectedConnectorInstances);
     }
 
     protected void assertLdapConnectorInstances(
-            int expectedConnectorInstancesMin, int expectedConnectorInstancesMax)
-            throws NumberFormatException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            int expectedConnectorInstancesMin, int expectedConnectorInstancesMax) throws NumberFormatException, CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getLdapResourceOid(), task, result);

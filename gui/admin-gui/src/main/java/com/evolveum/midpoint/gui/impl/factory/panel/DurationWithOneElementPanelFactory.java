@@ -10,15 +10,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.input.DurationPanel;
 import com.evolveum.midpoint.web.component.input.DurationWithOneElementPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.input.validator.DurationValidator;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DelayedDeleteActivationMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PreProvisionActivationMappingType;
 import jakarta.annotation.PostConstruct;
-import org.apache.wicket.markup.html.form.Form;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;

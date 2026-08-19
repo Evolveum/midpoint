@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.CorrelationSimulationData;
 import com.evolveum.midpoint.provisioning.api.ShadowSimulationData;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.SimulationData;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.CheckedProducer;
@@ -105,6 +106,7 @@ class ProcessedObjectsWriter {
                     if (projectionContext.isSynchronizationSource()) {
                         LOGGER.trace("Result recorded to {}", projectionContext);
                         projectionRecord.setResultAndStatus(resultToRecord);
+                        projectionRecord.addFailedEventMarkIfNeeded();
                         resultRecordedToProjection = true;
                     }
                     projectionRecords.add(projectionRecord);
@@ -117,6 +119,7 @@ class ProcessedObjectsWriter {
                 if (focusRecord != null) {
                     LOGGER.trace("Result recorded to focus");
                     focusRecord.setResultAndStatus(resultToRecord);
+                    focusRecord.addFailedEventMarkIfNeeded();
                 } else if (!result.isError()) {
                     LOGGER.trace("Result not recorded, but it is not an error -> ignoring");
                 } else {
@@ -125,6 +128,7 @@ class ProcessedObjectsWriter {
                         ProcessedObjectImpl<ShadowType> any = projectionRecords.get(0);
                         LOGGER.warn("Couldn't find the element context where an error should be recorded, using any: {}", any);
                         any.setResultAndStatus(resultToRecord);
+                        any.addFailedEventMarkIfNeeded();
                     } else {
                         LOGGER.warn("Error during simulated processing couldn't be recorded: {}", result.getMessage());
                     }
@@ -188,9 +192,10 @@ class ProcessedObjectsWriter {
         try {
             LOGGER.trace("Storing data in {} into {}", mappingData, simulationTransaction);
 
+            boolean failed = isMappingFailed(mappingData.getMappingEvaluationResult());
             final ProcessedObjectImpl<FocusType> processedFocus =
                     ProcessedObjectImpl.createForMapping(FocusType.class, mappingData.getFocusBefore(),
-                            mappingData.getSimulationDelta().orElse(null), simulationTransaction);
+                            mappingData.getSimulationDelta().orElse(null), simulationTransaction, failed);
 
             processedFocus.setResultAndStatus(mappingData.getMappingEvaluationResult());
             processedFocus.setProjectionRecords(1);
@@ -199,6 +204,11 @@ class ProcessedObjectsWriter {
             // TODO which exception to treat?
             throw SystemException.unexpected(e, "when storing processed object information");
         }
+    }
+
+    private static boolean isMappingFailed(@NotNull OperationResult mappingResult) {
+        OperationResultStatus status = mappingResult.getStatus();
+        return status == OperationResultStatus.FATAL_ERROR || status == OperationResultStatus.PARTIAL_ERROR;
     }
 
     private void storeProcessedObjects(

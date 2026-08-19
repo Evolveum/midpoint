@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.repo.cache.local;
 
-import static com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler.QUERY_RESULT_SIZE_LIMIT;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

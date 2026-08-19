@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;

@@ -39,7 +39,7 @@ public class PreMappingsEvaluator {
     static <F extends FocusType> void computePreFocus(
             @NotNull SingleShadowInboundsProcessingContext<F> ctx, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SingleShadowInboundsProcessing.evaluate(ctx, result);
     }
 
@@ -52,7 +52,7 @@ public class PreMappingsEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var preFocus = PrismContext.get().createObjectable(focusClass);
         computePreFocus(shadowedResourceObject, objectTypeDefinition, objectTypeDefinition, resource, preFocus, task, result);
         return preFocus;
@@ -67,7 +67,7 @@ public class PreMappingsEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SingleShadowInboundsProcessing.evaluate(
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         AbstractShadow.of(shadowedResourceObject),
@@ -101,7 +101,7 @@ public class PreMappingsEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SingleShadowInboundsProcessing.evaluate(
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,

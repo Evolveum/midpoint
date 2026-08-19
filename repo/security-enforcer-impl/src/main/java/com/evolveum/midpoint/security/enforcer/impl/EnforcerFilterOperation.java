@@ -85,7 +85,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
 
     F computeSecurityFilter(@Nullable AuthorizationPhaseType phase, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         traceOperationStart();
         F securityFilter;
         if (phase != null) {
@@ -144,7 +144,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
          */
         private F computeFilter(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             queryObjectsAutzCoverage.addRequiredItems(filterType, origFilter); // MID-3916, MID-9670
 
@@ -358,7 +358,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
          */
         abstract boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException;
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
         static class ForObject extends AuthorizationSelectorExtractor {
 
@@ -403,7 +403,7 @@ class EnforcerFilterOperation<T, F> extends EnforcerOperation {
             @Override
             boolean isAuthorizationApplicable(AuthorizationFilterEvaluation<?> autzEvaluation)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 return autzEvaluation.isApplicableToObject(object);
             }
 

@@ -8,12 +8,12 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div class="btn-group btn-group-sm">
         <a class="btn" wicket:id="actionButton">
-            <i class="mr-1" wicket:id="actionButtonIcon"/>
+            <i class="me-1" wicket:id="actionButtonIcon"/>
             <span wicket:id="actionButtonLabel"/>
         </a>
-        <a aria-expanded="false" type="button" class="btn btn-sm dropdown-toggle dropdown-icon" data-toggle="dropdown"
+        <a aria-expanded="false" type="button" class="btn btn-sm dropdown-toggle dropdown-icon" data-bs-toggle="dropdown"
                 wicket:id="dropdownButton"></a>
-        <ul class="dropdown-menu dropdown-menu-right" role="menu">
+        <ul class="dropdown-menu dropdown-menu-end" role="menu">
             <wicket:container wicket:id="items">
                 <a class="dropdown-item" wicket:id="item" role="menuitem"/>
             </wicket:container>

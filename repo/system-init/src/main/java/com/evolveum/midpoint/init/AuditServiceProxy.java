@@ -184,7 +184,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         HttpConnectionInformation connInfo = determineHttpConnectionInformation();
         if (connInfo != null) {
             if (record.getSessionIdentifier() == null) {
-                record.setSessionIdentifier(connInfo.getSessionId());
+                record.setSessionIdentifier(connInfo.getPublicSessionId());
             }
             if (record.getRemoteHostAddress() == null) {
                 record.setRemoteHostAddress(connInfo.getRemoteHostAddress());

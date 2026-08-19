@@ -12,7 +12,6 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -47,7 +46,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.common.subscription.JarSignatureHolder;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.LabeledString;
@@ -546,8 +545,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException |
-                ConfigurationException | CommunicationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -825,7 +823,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         ModelService modelService = context.getBean(ModelService.class);
         ModelInteractionService modelInteractionService = context.getBean(ModelInteractionService.class);
-        CacheDispatcher cacheDispatcher = context.getBean(CacheDispatcher.class);
+        ClusterwideCacheInvalidationDispatcher cacheDispatcher = context.getBean(ClusterwideCacheInvalidationDispatcher.class);
         TaskManager taskManager = context.getBean(TaskManager.class);
         PrismContext prismContext = context.getBean(PrismContext.class);
         MidpointConfiguration midpointConfiguration = context.getBean(MidpointConfiguration.class);

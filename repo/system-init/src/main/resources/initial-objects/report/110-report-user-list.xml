@@ -199,6 +199,11 @@
                 </export>
                 <previousColumn>orgColumn</previousColumn>
             </column>
+            <column id="12">
+                <name>displayNameColumn</name>
+                <path>displayName</path>
+                <previousColumn>accountColumn</previousColumn>
+            </column>
             <type>UserType</type>
         </view>
     </objectCollection>

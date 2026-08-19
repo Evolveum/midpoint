@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.Serial;
+import java.io.Serializable;
+import java.io.StringWriter;
 import java.net.URI;
 import java.text.Collator;
 import java.text.DateFormat;
@@ -342,14 +345,9 @@ public final class WebComponentUtil {
             return getReferencedObjectDisplayNamesAndNames(ref, false, true);
         }
         ObjectType object = prismObject.asObjectable();
-        String displayName = null;
-        if (object instanceof UserType) {
-            displayName = getTranslatedPolyString(((UserType) object).getFullName());
-        } else if (object instanceof AbstractRoleType) {
-            displayName = getTranslatedPolyString(((AbstractRoleType) object).getDisplayName());
-        }
+        String displayName = getTranslatedPolyString(ObjectTypeUtil.getDisplayName(object));
         String name = getTranslatedPolyString(object.getName());
-        return StringUtils.isNotEmpty(displayName) ? displayName + " (" + name + ")" : name;
+        return StringUtils.isNotEmpty(displayName) && !Objects.equals(displayName, name) ? displayName + " (" + name + ")" : name;
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(List<ObjectReferenceType> refs, boolean showTypes) {
@@ -1501,7 +1499,14 @@ public final class WebComponentUtil {
     }
 
     public static String getLocalizedDatePattern(String style) {
-        return DateTimeFormat.patternForStyle(style, getCurrentLocale());
+        Locale locale = getCurrentLocale();
+        if (com.evolveum.midpoint.gui.api.util.LocalizationUtil.isEnglishEuropeLocale(locale)) {
+            String override = com.evolveum.midpoint.gui.api.util.LocalizationUtil.EN_EU_PATTERNS.get(style);
+            if (override != null) {
+                return override;
+            }
+        }
+        return DateTimeFormat.patternForStyle(style, locale);
     }
 
     public static Locale getCurrentLocale() {
@@ -1619,7 +1624,7 @@ public final class WebComponentUtil {
                     pageBase.getExpressionFactory(),
                     "collection filter", pageBase.createSimpleTask(result.getOperation()), result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                ConfigurationException | SecurityViolationException ex) {
+                 ConfigurationException | SecurityViolationException | SubscriptionComplianceException ex) {
             result.recordPartialError("Unable to evaluate filter exception, ", ex);
             pageBase.error("Unable to evaluate filter exception, " + ex.getMessage());
         }
@@ -1993,9 +1998,7 @@ public final class WebComponentUtil {
 
             pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
 
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource lifecycle state", e);
             parentResult.recordFatalError(
                     pageBase.createStringResource("OperationalButtonsPanel.changeLifecycleState.failed").getString(), e);
@@ -3216,8 +3219,8 @@ public final class WebComponentUtil {
             caseService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
-                ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+                ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                 SubscriptionComplianceException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {
@@ -3247,8 +3250,8 @@ public final class WebComponentUtil {
             caseService.releaseWorkItem(WorkItemId.of(workItemToClaim), task, result);
             result.computeStatusIfUnknown();
         } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
-                ObjectAlreadyExistsException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+                ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                 SubscriptionComplianceException e) {
             result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.released").getString(), e);
         }
         if (mainResult.isUnknown()) {
@@ -3291,27 +3294,27 @@ public final class WebComponentUtil {
             OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<VisualizationDto> changes = new ArrayList<>();
         if (!changesByState.getApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-outline-left-success", changesByState.getApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-outline-start-success", changesByState.getApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getBeingApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-outline-left-info", changesByState.getBeingApplied(),
+            changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "card-outline-start-info", changesByState.getBeingApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-outline-left-warning",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "card-outline-start-warning",
                     changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-outline-left-primary",
+            changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "card-outline-start-primary",
                     changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getRejected().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-outline-left-danger", changesByState.getRejected(),
+            changes.add(createTaskChangesDto("TaskDto.changesRejected", "card-outline-start-danger", changesByState.getRejected(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         if (!changesByState.getCanceled().isEmpty()) {
-            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-outline-left-danger", changesByState.getCanceled(),
+            changes.add(createTaskChangesDto("TaskDto.changesCanceled", "card-outline-start-danger", changesByState.getCanceled(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
         }
         return changes;
@@ -4088,7 +4091,7 @@ public final class WebComponentUtil {
             //couldn't get deltas of items
         }
 
-        if (!deltas.isEmpty()) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())
@@ -4101,7 +4104,7 @@ public final class WebComponentUtil {
     }
 
     public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, PrismPropertyWrapper property) {
-        Collection<ItemDelta> deltas = List.of();
+        Collection<ItemDelta<?,?>> deltas = List.of();
         try {
             deltas = property.getDelta();
         } catch (SchemaException e) {
@@ -4111,8 +4114,8 @@ public final class WebComponentUtil {
         showToastForRecordedButUnsavedChanges(target, deltas);
     }
 
-    private static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta> deltas) {
-        if (!deltas.isEmpty()) {
+    public static void showToastForRecordedButUnsavedChanges(AjaxRequestTarget target, Collection<ItemDelta<?,?>> deltas) {
+        if (deltas != null && !deltas.isEmpty()) {
             new Toast()
                     .warning()
                     .title(PageBase.createStringResourceStatic("WebComponentUtil.recordedButUnsavedChanges.title").getString())

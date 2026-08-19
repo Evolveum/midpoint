@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeObjectTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runSuggestionAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 import java.util.List;
-import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -46,7 +46,10 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
@@ -103,7 +106,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.create(buttons.newChildId(),
                         createStringResource("ResourceObjectClassTableWizardPanel.saveButton"),
                         () -> GuiStyleConstants.CLASS_MAGIC_WAND,
-                        ConfirmationOption.delineationPermissionsOptions(),
+                        SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions()),
                         () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                         },
                                 (target, confirmedOptions) -> {
@@ -145,7 +148,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 getPageBase(), resourceOid, objectClassName, task, result);
 
         return isSuccessfulSuggestion(suggestions);
@@ -162,7 +165,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 getPageBase(), resourceOid, objectClassName, task, result);
 
         if (suggestions != null && suggestions.isSuspended()) {
@@ -293,6 +296,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 });
             }
 
+            //TODO support dialog
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target,
                     IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,

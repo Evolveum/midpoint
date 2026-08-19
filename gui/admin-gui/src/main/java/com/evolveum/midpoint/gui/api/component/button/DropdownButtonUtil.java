@@ -38,12 +38,12 @@ public final class DropdownButtonUtil {
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn btn-default btn-sm";
+                return "btn btn-light border btn-sm";
             }
 
             @Override
             protected String getSpecialDropdownMenuClass() {
-                return "dropdown-menu-left";
+                return "dropdown-menu-start";
             }
 
             @Override

@@ -70,6 +70,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -181,7 +182,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<ProgressListener> listeners,
             OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            SubscriptionComplianceException {
 
         var originalExecutionMode = switchModeToSimulationIfNeeded(task);
         try {
@@ -234,7 +236,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return LensContext.fromLensContextBean(wrappedContext, task, result);
     }
 
@@ -242,7 +246,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
         try {
             // Re-read the object from the repository to make sure we have all the properties.
@@ -262,7 +266,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 applyObjectClassDefinition(objectDefinition, object, phase, task, result);
             }
             return objectDefinition;
-        } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException e) {
+        } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException |
+                 SubscriptionComplianceException e) {
             result.recordException(e);
             throw e;
         } finally {
@@ -273,7 +278,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private <O extends ObjectType> void applyObjectClassDefinition(TransformableObjectDefinition<O> objectDefinition,
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         //noinspection unchecked
         PrismObject<ShadowType> shadow = (PrismObject<ShadowType>) object;
         String resourceOid = ShadowUtil.getResourceOid(shadow);
@@ -281,7 +286,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             PrismObject<ResourceType> resource;
             try {
                 resource = provisioning.getObject(ResourceType.class, resourceOid, readOnly(), task, result);
-            } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
+            } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException
+                     | SubscriptionComplianceException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
             ResourceObjectDefinition resourceObjectDefinition =
@@ -325,7 +331,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         // HACK hack hack
         // Make a dummy shadow instance here and evaluate the schema for that. It is not 100% correct. But good enough for now.
         // TODO: refactor when we add better support for multi-tenancy
@@ -352,7 +358,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Validate.notNull(resource, "Resource must not be null");
 
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -437,7 +443,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <O extends ObjectType> MetadataItemProcessingSpec getMetadataItemProcessingSpec(ItemPath metadataItemPath,
             PrismObject<O> object, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
         PrismObject<O> fullObject = getFullObjectReadOnly(object, result);
         ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(fullObject, result);
@@ -481,7 +487,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
             PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         return securityEnforcer.getAllowedRequestAssignmentItems(
                 securityContextManager.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, task, result);
     }
@@ -495,7 +501,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(
             @NotNull PrismObject<H> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
 
         ObjectSecurityConstraints securityConstraints;
@@ -503,7 +509,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             securityConstraints = securityEnforcer.compileSecurityConstraints(
                     focus, true, SecurityEnforcer.Options.create(), task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
-                SecurityViolationException e) {
+                 SecurityViolationException | SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -576,7 +582,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction,
             Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.preProcessObjectFilter(
                 securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY,
                 ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
@@ -588,7 +594,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <T extends ObjectType> ObjectFilter getAccessibleForAssignmentObjectsFilter(
             Class<T> searchResultType, ObjectFilter origFilter, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.preProcessObjectFilter(
                 securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
                 ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
@@ -756,7 +762,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @NotNull
     public CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // If the security context disappears during request processing (e.g. logout mid-request), the exception should propagate.
         MidPointPrincipal principal = securityContextManager.getPrincipal();
 
@@ -954,13 +960,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(GET_CONNECTOR_OPERATIONAL_STATUS);
         List<ConnectorOperationalStatus> status;
         try {
             status = provisioning.getConnectorOperationalStatus(resourceOid, task, result);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+                 ExpressionEvaluationException | SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -971,7 +978,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, String leftOid,
             String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_DELTA);
 
         try {
@@ -982,7 +990,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return mergeDeltas;
 
         } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
-                CommunicationException | SecurityViolationException | RuntimeException | Error e) {
+                 CommunicationException | SecurityViolationException | RuntimeException | Error |
+                 SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -991,7 +1000,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type, String leftOid,
             String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(MERGE_OBJECTS_PREVIEW_OBJECT);
 
         try {
@@ -1016,7 +1026,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return objectLeft;
 
         } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
-                CommunicationException | SecurityViolationException | RuntimeException | Error e) {
+                 CommunicationException | SecurityViolationException | RuntimeException | Error |
+                 SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -1026,7 +1037,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ValuePolicyType policy = null;
 
         if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
@@ -1044,7 +1055,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ValuePolicyType policy, int defaultLength, boolean generateMinimalSize, PrismObject<O> object, String shortDesc,
             Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return policyProcessor.generate(
                 null, policy, defaultLength,
                 createOriginResolver(object, parentResult),
@@ -1055,7 +1066,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <O extends ObjectType> void generateValue(
             PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
         try {
@@ -1214,7 +1225,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private <O extends ObjectType> void generateValue(PrismObject<O> object, ValuePolicyType defaultPolicy,
             PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         PolicyItemTargetType target = policyItemDefinition.getTarget();
         if ((target == null || ItemPathTypeUtil.isEmpty(target.getPath())) && isExecute(policyItemDefinition)) {
@@ -1251,7 +1262,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private ValuePolicyType resolveValuePolicy(
             PolicyItemDefinitionType policyItemDefinition, ValuePolicyType defaultPolicy, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (policyItemDefinition.getValuePolicyRef() != null) {
             LOGGER.trace("Trying to resolve value policy {} for policy item definition", policyItemDefinition);
             return objectResolver.resolve(policyItemDefinition.getValuePolicyRef(), ValuePolicyType.class, null,
@@ -1264,7 +1275,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public <O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
             Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
         ValuePolicyType valuePolicy = getValuePolicy(object, task, parentResult);
         for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
             validateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
@@ -1276,7 +1287,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     //  Then consider moving to [Model]SecurityPolicyFinder.
     private <O extends ObjectType> ValuePolicyType getValuePolicy(PrismObject<O> object, Task task,
             OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // user-level policy
         CredentialsPolicyType credentialsPolicy = null;
         if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
@@ -1321,7 +1332,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return false;
     }
 
-    private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, ValuePolicyType policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+    private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, ValuePolicyType policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         ValuePolicyType stringPolicy = resolveValuePolicy(policyItemDefinition, policy, task, parentResult);
 
@@ -1446,7 +1457,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return parentResult.isAcceptable();
     }
 
-    private ValuePolicyType resolveSecurityQuestionsPolicy(SecurityPolicyType securityPolicy, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private ValuePolicyType resolveSecurityQuestionsPolicy(SecurityPolicyType securityPolicy, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (securityPolicy == null) {
             return null;
         }
@@ -1696,7 +1709,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         MidPointPrincipal attorneyPrincipal = securityContextManager.getPrincipal();
         MidPointPrincipal donorPrincipal = securityEnforcer.createDonorPrincipal(
                 attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
@@ -1744,7 +1757,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public <T> T runUnderPowerOfAttorney(Producer<T> producer,
             PrismObject<? extends FocusType> donor, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         assumePowerOfAttorney(donor, task, result);
         try {
             return producer.run();
@@ -1758,7 +1771,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public LocalizableMessageType createLocalizableMessageType(
             LocalizableMessageTemplateType template, VariablesMap variables, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         VariablesMap vars = new VariablesMap();
         vars.putAll(variables);
         return LensExpressionUtil.interpretLocalizableMessageTemplate(template, vars, null, task, result);
@@ -1768,7 +1781,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user,
             ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException {
         LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
         ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
@@ -1882,7 +1895,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
         try {
             var principalRef = SecurityUtil.getPrincipalRequired().toObjectReference();
@@ -1916,7 +1929,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException,
+            SubscriptionComplianceException {
         PrismContainerDefinition<?> extDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
         List<Item<?, ?>> extensionItems = ObjectTypeUtil.mapToExtensionItems(extensionValues, extDef, prismContext);
@@ -2131,7 +2145,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return collectionProcessor.evaluateCollectionPolicyRules(collection, preCompiledView, targetTypeClass, task, result);
     }
 
@@ -2140,7 +2154,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @NotNull
     public CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collectionRef, @Nullable Class<? extends Containerable> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         return collectionProcessor.compileObjectCollectionView(collectionRef, targetTypeClass, task, result);
     }
 
@@ -2149,7 +2163,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @NotNull
     public CollectionStats determineCollectionStats(
             @NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException,
+            CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return collectionProcessor.determineCollectionStats(collectionView, task, result);
     }
 
@@ -2159,7 +2174,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         collectionProcessor.compileView(existingView, objectListViewsType, task, result);
     }
 
@@ -2171,7 +2188,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return policyProcessor.validateValue(
                 getClearValue(protectedStringValue),
                 valuePolicy,
@@ -2186,7 +2203,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,
             Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         SearchSpec<T> searchSpec = new SearchSpec<>();
 
@@ -2247,7 +2264,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging,
             VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Class<? extends Containerable> type = null;
 
         if (collectionConfig == null) {
@@ -2287,7 +2304,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         Class<? extends Containerable> type;
 
@@ -2311,7 +2328,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private Integer countObjectsFromCollectionByType(Class<? extends Containerable> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (AuditEventRecordType.class.equals(type)) {
             return modelAuditService.countObjects(query, options, task, result);
         } else if (ObjectType.class.isAssignableFrom(type)) {
@@ -2345,7 +2362,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     private ObjectQuery parseFilterFromCollection(CompiledObjectCollectionView compiledCollection, VariablesMap variables,
             ObjectPaging usedPaging, Task task, OperationResult result) throws ConfigurationException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
+            SubscriptionComplianceException {
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(
                 compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, "collection filter", task, result);
@@ -2363,7 +2381,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public void expandConfigurationObject(
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         provisioning.expandConfigurationObject(configurationObject, task, result);
     }
 
@@ -2430,16 +2448,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         bulkActionsExecutor.authorizeBulkActionExecution(action, phase, task, result);
     }
 
     public void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, SubscriptionComplianceException {
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
     }
 
-    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+    public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result)
+            throws SchemaException, ConfigurationException {
         return archetypeManager.isOfArchetype(assignmentHolderType, archetypeOid, result);
     }
 
@@ -2459,11 +2479,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return archetypeManager.determineArchetypes(object, result);
     }
 
+    @Deprecated
     @Override
     public boolean updateAllActivityPoliciesEnabledStatus(
             @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         Holder<S_ItemEntry> deltaBuilderHolder = new Holder<>(PrismContext.get().deltaFor(TaskType.class));
 
@@ -2504,10 +2525,42 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public boolean updateActivityPoliciesProcessing(
+            @NotNull PrismObject<TaskType> object, @Nullable ActivityPoliciesProcessingType processing,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
+
+        TaskType taskBean = object.asObjectable();
+        ActivityDefinitionType activity = taskBean.getActivity();
+        if (activity == null) {
+            return false;
+        }
+
+        ActivityPoliciesProcessingType current = activity.getPolicies() != null
+                ? activity.getPolicies().getProcessing() : null;
+        if (Objects.equals(current, processing)) {
+            return false;
+        }
+
+        S_ValuesEntry entry = PrismContext.get().deltaFor(TaskType.class)
+                .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_POLICIES, ActivityPoliciesType.F_PROCESSING);
+        ObjectDelta<TaskType> delta = (processing != null
+                ? entry.replace(processing.clone())
+                : entry.replace())
+                .asObjectDelta(taskBean.getOid());
+
+        modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
+        return true;
+    }
+
+    @Override
     public boolean clearAllActivityPolicyStates(
             @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         TaskType taskObject = object.asObjectable();
 
@@ -2543,7 +2596,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         TaskActivityStateType taskActivityState = taskToClean.getActivitiesStateOrClone();
         if (taskActivityState == null) {

@@ -60,12 +60,4 @@ public class LocaleTopMenuPanel extends LocalePanel {
         };
         add(localesMenu);
     }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        String selectId = get(createComponentPath(ID_LINK, ID_ICON)).getMarkupId();
-        response.render(OnDomReadyHeaderItem.forScript("$('#" + selectId + "').selectpicker({});"));
-    }
 }

@@ -20,9 +20,7 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.HttpModuleAuthentication;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 /**

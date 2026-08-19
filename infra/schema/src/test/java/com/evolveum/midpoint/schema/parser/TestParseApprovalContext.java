@@ -15,8 +15,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 @SuppressWarnings({ "Convert2MethodRef", "Duplicates" })
 public class TestParseApprovalContext extends AbstractContainerValueParserTest<ApprovalContextType> {
 

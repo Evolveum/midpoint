@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class FocusVerificationToken extends AbstractAuthenticationToken {
@@ -17,7 +18,7 @@ public class FocusVerificationToken extends AbstractAuthenticationToken {
     private Map<ItemPath, String> attributes;
 
     public FocusVerificationToken(Map<ItemPath, String> attributes) {
-        super(null);
+        super(Collections.emptyList());
         this.attributes = attributes;
     }
 

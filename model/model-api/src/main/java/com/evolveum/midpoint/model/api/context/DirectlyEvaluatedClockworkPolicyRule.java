@@ -6,16 +6,11 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import java.util.List;
-
 import com.evolveum.midpoint.schema.policy.PolicyRuleApplicabilityUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link EvaluatedClockworkPolicyRule} that was directly evaluated against an object or an assignment.

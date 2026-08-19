@@ -115,7 +115,8 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
     protected abstract @Nullable Integer getPreexistingValue(ActivityPolicyRuleEvaluationContext context);
 
     protected LocalizableMessage createEvaluatorName() {
-        return new SingleLocalizableMessage("DurationConstraintEvaluator.name", new String[0], "Measured duration");
+        return new SingleLocalizableMessage(
+                "NumericConstraintEvaluator.name", new String[0], DEFAULT_CONSTRAINT_EVALUATOR_NAME);
     }
 
     private String createDefaultEvaluatorName() {

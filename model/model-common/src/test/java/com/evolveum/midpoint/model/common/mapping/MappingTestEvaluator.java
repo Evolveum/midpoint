@@ -281,7 +281,7 @@ public class MappingTestEvaluator {
             String filename, String testName, ItemPath defaultTargetPropertyPath)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mapping =
                 createMapping(filename, testName, defaultTargetPropertyPath, null);
         OperationResult opResult = new OperationResult(testName);
@@ -298,7 +298,7 @@ public class MappingTestEvaluator {
             String filename, String testName, ItemName defaultTargetPropertyName)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mapping =
                 createMapping(filename, testName, defaultTargetPropertyName, null);
         OperationResult opResult = new OperationResult(testName);
@@ -315,7 +315,7 @@ public class MappingTestEvaluator {
             String filename, String testName, String defaultTargetPropertyName)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mapping =
                 createMapping(filename, testName, defaultTargetPropertyName, null);
         OperationResult opResult = new OperationResult(testName);
@@ -342,7 +342,7 @@ public class MappingTestEvaluator {
             String changedPropertyName, I... valuesToAdd)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         return evaluateMappingDynamicAdd(filename, testName,
                 toPath(defaultTargetPropertyName), changedPropertyName, valuesToAdd);
     }
@@ -352,7 +352,7 @@ public class MappingTestEvaluator {
             String changedPropertyName, I... valuesToAdd)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         ObjectDelta<UserType> userDelta =
                 prismContext.deltaFactory().object().createModificationAddProperty(
                         UserType.class, USER_OLD_OID, toPath(changedPropertyName), valuesToAdd);
@@ -373,7 +373,7 @@ public class MappingTestEvaluator {
             String changedPropertyName, I... valuesToAdd)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         ObjectDelta<UserType> userDelta =
                 prismContext.deltaFactory().object().createModificationDeleteProperty(
                         UserType.class, USER_OLD_OID, toPath(changedPropertyName), valuesToAdd);
@@ -394,7 +394,7 @@ public class MappingTestEvaluator {
             String changedPropertyName, I... valuesToReplace)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         ObjectDelta<UserType> userDelta =
                 prismContext.deltaFactory().object().createModificationReplaceProperty(
                         UserType.class, USER_OLD_OID, toPath(changedPropertyName), valuesToReplace);
@@ -415,7 +415,7 @@ public class MappingTestEvaluator {
             ItemPath changedPropertyName, I... valuesToReplace)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         ObjectDelta<UserType> userDelta =
                 prismContext.deltaFactory().object().createModificationReplaceProperty(
                         UserType.class, USER_OLD_OID, changedPropertyName, valuesToReplace);
@@ -436,7 +436,7 @@ public class MappingTestEvaluator {
             String changedPropertyName, I... valuesToReplace)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         ObjectDelta<UserType> userDelta =
                 prismContext.deltaFactory().object().createModificationReplaceProperty(
                         UserType.class, USER_OLD_OID, toPath(changedPropertyName), valuesToReplace);
@@ -458,7 +458,7 @@ public class MappingTestEvaluator {
             ItemPath changedPropertyName, I... valuesToReplace)
             throws SchemaException, IOException, ExpressionEvaluationException,
             ObjectNotFoundException, EncryptionException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName,
                         valuesToReplace);

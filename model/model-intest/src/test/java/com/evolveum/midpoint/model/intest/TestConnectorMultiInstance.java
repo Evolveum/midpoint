@@ -358,7 +358,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         assertEquals("Connector static val mismatch", expectedVal, connectorStaticVal);
     }
 
-    private void assertConnectorInstances(String msg, String resourceOid, int expectedActive, int expectedIdle) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertConnectorInstances(String msg, String resourceOid, int expectedActive, int expectedIdle) throws CommonException {
         Task task = taskManager.createTaskInstance(TestConnectorMultiInstance.class.getName() + ".assertConnectorInstances");
         OperationResult result = task.getResult();
         List<ConnectorOperationalStatus> opStats = modelInteractionService.getConnectorOperationalStatus(resourceOid, task, result);

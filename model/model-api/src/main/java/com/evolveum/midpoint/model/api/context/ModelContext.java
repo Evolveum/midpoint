@@ -117,4 +117,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     ExpressionProfile getPrivilegedExpressionProfile();
 
     @NotNull TaskExecutionMode getTaskExecutionMode();
+
+    int getProjectionWave();
 }

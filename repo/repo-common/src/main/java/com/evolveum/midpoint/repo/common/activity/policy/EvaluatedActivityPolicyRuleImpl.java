@@ -51,11 +51,6 @@ public class EvaluatedActivityPolicyRuleImpl
         this.policyRule = policyRule;
     }
 
-    @Override
-    public Integer getCount() {
-        return policyRule.getTotalCount();
-    }
-
     /** Activity for which this rule was defined. */
     @NotNull
     public ActivityPath getActivityPath() {
@@ -66,11 +61,6 @@ public class EvaluatedActivityPolicyRuleImpl
     public Collection<? extends PolicyActionConfigItem<?>> getEnabledActions() {
         // For activity policies, we consider all actions as enabled
         return getPolicyRuleConfigItem().getAllActions();
-    }
-
-    @Override
-    public void setCount(Integer localValue, Integer totalValue) {
-        policyRule.setCount(localValue, totalValue);
     }
 
     @Override

@@ -92,7 +92,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
     }
 
     public void evaluate() throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         checkNotEvaluatedTwice();
 
         projectionOdo = projectionContext != null ? projectionContext.getObjectDeltaObject() : null;
@@ -117,7 +117,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
     private void evaluateAttributes()
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         for (var attributeMapper : evaluatedConstruction.getAttributeMappers(this)) {
             if (attributeMapper.isEnabled()) {
@@ -130,7 +130,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
     private void evaluateAssociations()
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         for (var associationMapper : evaluatedConstruction.getAssociationMappers(this)) {
             if (associationMapper.isEnabled()) {
@@ -145,7 +145,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
     void loadFullShadowIfNeeded(ShadowItemMapper<?, ?, ?> itemMapper)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemMapper);
         if (loadReason != null) {
             projectionOdo = evaluatedConstruction.loadFullShadow(loadReason, task, result);

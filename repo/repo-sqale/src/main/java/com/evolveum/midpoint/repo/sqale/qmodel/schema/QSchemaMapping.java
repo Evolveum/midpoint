@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMark;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
 
 /**
- * Mapping between {@link QMark} and {@link MarkType}.
+ * Mapping between {@link QSchema} and {@link SchemaType}.
  */
 public class QSchemaMapping
         extends QObjectMapping<SchemaType, QSchema, MObject> {

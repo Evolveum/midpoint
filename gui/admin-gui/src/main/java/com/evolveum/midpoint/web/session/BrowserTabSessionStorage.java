@@ -14,7 +14,6 @@ import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

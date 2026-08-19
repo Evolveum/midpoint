@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.model.impl.correlator.items;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -78,7 +81,7 @@ class CorrelationItems implements DebugDumpable {
             @NotNull Set<String> candidateOids,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         assert !items.isEmpty();
 

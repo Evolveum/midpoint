@@ -14,7 +14,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 import java.util.Collection;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.test.TestObject;

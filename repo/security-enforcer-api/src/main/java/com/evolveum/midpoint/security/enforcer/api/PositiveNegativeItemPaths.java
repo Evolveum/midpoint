@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseTy
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.prism.path.ItemPath.*;
+import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 
 /**
  * Supports "intelligent" specification of a set of item paths formed by three kinds of primitives:

@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -28,7 +29,10 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -1242,6 +1246,60 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         System.out.println("Generated encrypted value: " + value1);
         assertNotNull(value1);
         assertNotNull(value1.getEncryptedDataType());
+    }
+
+    /**
+     * The "null" evaluator alone produces no values - and removes nothing (there is no range).
+     */
+    @Test
+    public void testNullNoRange() throws Exception {
+        // GIVEN
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createEmptyModifyDelta(UserType.class, MappingTestEvaluator.USER_OLD_OID);
+
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping("mapping-null.xml", getTestNameShort(), "fullName", delta);
+
+        // WHEN
+        mapping.evaluate(createTask(), createOperationResult());
+
+        // THEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        assertNotNull("No output triple", outputTriple);
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
+    /**
+     * The "null" evaluator combined with the "all" range removes all existing target values.
+     */
+    @Test
+    public void testNullWithRangeAll() throws Exception {
+        // GIVEN
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createEmptyModifyDelta(UserType.class, MappingTestEvaluator.USER_OLD_OID);
+
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluator.createMapping("mapping-null-range-all.xml", getTestNameShort(), "fullName", delta,
+                        builder -> {
+                            //noinspection unchecked,rawtypes
+                            ((MappingBuilder) builder).originalTargetValues((List) List.of(
+                                    evaluator.getPrismContext().itemFactory()
+                                            .createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"))));
+                        });
+
+        // WHEN
+        mapping.evaluate(createTask(), createOperationResult());
+
+        // THEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        assertNotNull("No output triple", outputTriple);
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
     }
 
     private PrismObject<UserType> getOldObject(MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping) {

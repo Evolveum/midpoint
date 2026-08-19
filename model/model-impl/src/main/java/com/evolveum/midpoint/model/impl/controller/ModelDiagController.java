@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.init.SystemUtil;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -118,7 +119,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     public void repositoryTestOrgClosureConsistency(
             Task task, boolean repairIfNecessary, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY);
         try {
             securityEnforcer.authorizeAll(task, result); // only admin can do this
@@ -135,7 +136,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     public RepositoryQueryDiagResponse executeRepositoryQuery(
             RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException, CommunicationException {
+            ExpressionEvaluationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
         try {
             boolean isAdmin;
@@ -165,7 +166,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     public MappingEvaluationResponseType evaluateMapping(
             MappingEvaluationRequestType request, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException, ConfigurationException {
+            CommunicationException, SecurityViolationException, ConfigurationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(EVALUATE_MAPPING);
         try {
@@ -183,7 +184,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     public @NotNull AuthorizationEvaluationResponseType evaluateAuthorizations(
             @NotNull AuthorizationEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(EVALUATE_AUTHORIZATIONS);
         try {
             securityEnforcer.authorizeAll(task, result); // May be lifted in the future to allow e.g. power users to do this
@@ -567,7 +568,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     @Override
     public String exportDataModel(Collection<String> resourceOids,
             DataModelVisualizer.Target target, Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
         try {
             String rv = dataModelVisualizer.visualize(resourceOids, DataModelVisualizer.Target.DOT, task, result);
@@ -594,12 +595,21 @@ public class ModelDiagController implements ModelDiagnosticService {
         }
     }
 
+    /**
+     * Note about authorizations: This method (and {@link #getLogFileSize(Task, OperationResult)}) is covered by the
+     * {@link ModelAuthorizationAction#READ_LOG} authorization. To avoid the need of having `rest-3#all` authorization
+     * to use the corresponding REST methods, there are also special (much more specific, i.e. weaker) REST
+     * authorizations: `rest-3#getLog` and `rest-3#getLogSize` (see `RestAuthorizationAction`).
+     * So, a user reading the log needs just these (rather weak) authorizations, instead of the `authorization-3#all`
+     * one that was required before.
+     */
     @Override
     public LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
-            throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(GET_LOG_FILE_CONTENT);
         try {
-            securityEnforcer.authorizeAll(task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.READ_LOG.getUrl(), task, result);
             File logFile = getLogFile(result);
             LogFileContentType rv = getLogFileFragment(logFile, fromPosition, maxSize);
             result.recordSuccess();
@@ -648,10 +658,10 @@ public class ModelDiagController implements ModelDiagnosticService {
     @Override
     public long getLogFileSize(Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(GET_LOG_FILE_SIZE);
         try {
-            securityEnforcer.authorizeAll(task, result);
+            securityEnforcer.authorize(ModelAuthorizationAction.READ_LOG.getUrl(), task, result);
             File logFile = getLogFile(result);
             long size = logFile.length();
             result.recordSuccess();
@@ -686,7 +696,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     @Override
     public String getMemoryInformation(Task task, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, IOException {
+            ConfigurationException, ExpressionEvaluationException, IOException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(GET_MEMORY_INFORMATION);
         try {
             securityEnforcer.authorizeAll(task, result);

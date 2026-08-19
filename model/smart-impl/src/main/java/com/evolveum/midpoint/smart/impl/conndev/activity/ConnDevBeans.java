@@ -4,8 +4,10 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorExportService;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
@@ -31,7 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.net.ssl.SSLContext;
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +47,9 @@ public class ConnDevBeans {
 
     @Autowired public ModelService modelService;
     @Autowired public RepositoryService repositoryService;
+    @Autowired public ClusterwideCacheInvalidationDispatcher cacheDispatcher;
     @Autowired public ConnectorInstallationService connectorService;
+    @Autowired public ConnectorExportService connectorExportService;
     @Autowired public ProvisioningService provisioningService;
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public MidpointConfiguration configuration;
@@ -99,6 +105,18 @@ public class ConnDevBeans {
             var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
             if (systemConfiguration != null && systemConfiguration.getSmartIntegration() != null) {
                 return systemConfiguration.getSmartIntegration().getConnectorFrameworkUrl();
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Could not get system configuration.", e);
+        }
+        return null;
+    }
+
+    public String getSqlFrameworkUrl(OperationResult result) {
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            if (systemConfiguration != null && systemConfiguration.getSmartIntegration() != null) {
+                return systemConfiguration.getSmartIntegration().getConnectorSqlFrameworkUrl();
             }
         } catch (SchemaException e) {
             throw new SystemException("Could not get system configuration.", e);

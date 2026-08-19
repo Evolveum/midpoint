@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import static java.util.Objects.requireNonNull;
-
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -83,7 +81,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     public <F extends FocusType> void process(LensContext<F> context, LensProjectionContext projectionContext,
             String activityDescription, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            SubscriptionComplianceException {
         processProjectionValues(context, projectionContext, activityDescription, task, result);
         context.checkConsistenceIfNeeded();
     }
@@ -91,7 +90,8 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
     private <F extends FocusType> void processProjectionValues(LensContext<F> context,
             LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            SubscriptionComplianceException {
 
         RememberedElementState<ShadowType> rememberedProjectionState = projContext.rememberElementState();
         LOGGER.trace("Remembered projection state:\n{}", DebugUtil.debugDumpLazily(rememberedProjectionState));
@@ -118,8 +118,9 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             }
         }
 
+        int iterationStart = determineIterationStart(projContext);
         int maxIterations = determineMaxIterations(projContext);
-        int iteration = 0;
+        int iteration = iterationStart;
         String iterationToken = null;
         boolean wasResetIterationCounter = false;
 
@@ -187,9 +188,9 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                     // we cannot do that before because the mappings are not yet evaluated and the triples and not
                     // consolidated to deltas. We can do it only now. It means that we will waste the first run
                     // but I don't see any easier way to do it now.
-                    if (iteration != 0 && !wasResetIterationCounter && willResetIterationCounter(projContext)) {
+                    if (iteration != iterationStart && !wasResetIterationCounter && willResetIterationCounter(projContext)) {
                         wasResetIterationCounter = true;
-                        iteration = 0;
+                        iteration = iterationStart;
                         iterationToken = null;
                         cleanupContext(projContext, null, rememberedProjectionState);
                         LOGGER.trace("Resetting iteration counter and token because we have rename");
@@ -339,7 +340,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult iterationResult)
             throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
         ResourceType resource = projContext.getResourceRequired();
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
@@ -504,6 +505,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
         return def != null ? def.getDefinitionBean().getIteration() : null;
     }
 
+    private int determineIterationStart(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+        return LensUtil.determineIterationStart(
+                getIterationSpecification(projCtx));
+    }
+
     private int determineMaxIterations(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
         return LensUtil.determineMaxIterations(
                 getIterationSpecification(projCtx));
@@ -516,10 +522,10 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
-            return LensUtil.formatIterationTokenDefault(iteration);
+            return LensUtil.formatIterationTokenDefault(iteration, 0, true);
         }
         VariablesMap variables = createVariablesMap(context, projCtx);
         return LensUtil.formatIterationToken(
@@ -545,7 +551,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
             return true;

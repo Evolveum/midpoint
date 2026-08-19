@@ -10,7 +10,6 @@ import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;

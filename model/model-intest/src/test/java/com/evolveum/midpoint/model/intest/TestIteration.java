@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
@@ -62,6 +63,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final File RESOURCE_DUMMY_PINK_FILE = new File(TEST_DIR, "resource-dummy-pink.xml");
     private static final String RESOURCE_DUMMY_PINK_OID = "10000000-0000-0000-0000-00000000a104";
     private static final String RESOURCE_DUMMY_PINK_NAME = "pink";
+
+    // Iteration with start and end (1..10) and name + iterationToken mapping
+    private static final File RESOURCE_DUMMY_PINK_START_END_FILE = new File(TEST_DIR, "resource-dummy-pink-start-end.xml");
+    private static final String RESOURCE_DUMMY_PINK_START_END_OID = "10000000-0000-0000-0000-00000000a10a";
+    private static final String RESOURCE_DUMMY_PINK_START_END_NAME = "pink-start-end";
 
     // Iteration with token expression, pre-iteration condition and post-iteration condition
     private static final File RESOURCE_DUMMY_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-violet.xml");
@@ -172,6 +178,48 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME = TestObject.file(
             TEST_DIR, "user-template-iteration-but-constant-name.xml", "2ebfbbf4-e680-455d-a64f-a49d779a4a53");
 
+    // start=5, no end, maxIterations=2 -> effective range is 5..7
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_START = TestObject.file(
+            TEST_DIR, "user-template-iteration-start.xml", "10000000-0000-0000-0000-0000000d0020");
+
+    // start=5, end=6 (end takes precedence over maxIterations=100) -> effective range is 5..6
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_START_END = TestObject.file(
+            TEST_DIR, "user-template-iteration-start-end.xml", "10000000-0000-0000-0000-0000000d0021");
+
+    // Test templates for useTokenOnlyOnConflict flag
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_START1_END10_TRUE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-start1-end10-true.xml", "10000000-0000-0000-0000-0000000d1001");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_START1_END10_FALSE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-start1-end10-false.xml", "10000000-0000-0000-0000-0000000d1002");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_START2_END10_TRUE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-start2-end10-true.xml", "10000000-0000-0000-0000-0000000d1003");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_START2_END10_FALSE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-start2-end10-false.xml", "10000000-0000-0000-0000-0000000d1004");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_TRUE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-maxiter10-true.xml", "10000000-0000-0000-0000-0000000d1005");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_FALSE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-maxiter10-false.xml", "10000000-0000-0000-0000-0000000d1006");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_START1_TRUE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-maxiter10-start1-true.xml", "10000000-0000-0000-0000-0000000d1007");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_START1_FALSE = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-maxiter10-start1-false.xml", "10000000-0000-0000-0000-0000000d1008");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_TOKEN_CONFLICT_ATTEMPT = TestObject.file(
+            TEST_DIR, "user-template-token-conflict-attempt.xml", "10000000-0000-0000-0000-0000000d1010");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_ATTEMPT_MAPPING = TestObject.file(
+            TEST_DIR, "user-template-iteration-attempt-mapping.xml", "10000000-0000-0000-0000-0000000d1011");
+
+    private static final TestObject<ObjectTemplateType> USER_TEMPLATE_ITERATION_ATTEMPT_CONDITION = TestObject.file(
+            TEST_DIR, "user-template-iteration-attempt-condition.xml", "10000000-0000-0000-0000-0000000d1012");
+
     private String jupiterUserOid;
 
     private String iterationTokenDiplomatico;
@@ -183,6 +231,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
         initDummyResourcePirate(RESOURCE_DUMMY_PINK_NAME,
                 RESOURCE_DUMMY_PINK_FILE, RESOURCE_DUMMY_PINK_OID, initTask, initResult);
+
+        initDummyResourcePirate(RESOURCE_DUMMY_PINK_START_END_NAME,
+                RESOURCE_DUMMY_PINK_START_END_FILE, RESOURCE_DUMMY_PINK_START_END_OID, initTask, initResult);
 
         initDummyResourcePirate(RESOURCE_DUMMY_VIOLET_NAME,
                 RESOURCE_DUMMY_VIOLET_FILE, RESOURCE_DUMMY_VIOLET_OID, initTask, initResult);
@@ -215,6 +266,21 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         ROLE_CS_101.init(this, initTask, initResult);
 
         USER_TEMPLATE_ITERATION_BUT_CONSTANT_NAME.init(this, initTask, initResult);
+
+        USER_TEMPLATE_ITERATION_START.init(this, initTask, initResult);
+        USER_TEMPLATE_ITERATION_START_END.init(this, initTask, initResult);
+
+        USER_TEMPLATE_TOKEN_CONFLICT_START1_END10_TRUE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_START1_END10_FALSE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_START2_END10_TRUE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_START2_END10_FALSE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_TRUE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_FALSE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_START1_TRUE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_START1_FALSE.init(this, initTask, initResult);
+        USER_TEMPLATE_TOKEN_CONFLICT_ATTEMPT.init(this, initTask, initResult);
+        USER_TEMPLATE_ITERATION_ATTEMPT_MAPPING.init(this, initTask, initResult);
+        USER_TEMPLATE_ITERATION_ATTEMPT_CONDITION.init(this, initTask, initResult);
     }
 
     /**
@@ -474,6 +540,72 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
     }
 
+    /**
+     * End-to-end test for resource-level iteration with explicit start and end values.
+     * The resource maps account name from user name using the iterationToken variable.
+     * With iteration start=1 and end=10, a conflicting account name is resolved by
+     * appending a numeric token. The first attempt (iteration=1) yields the original name
+     * (empty token), which conflicts; the second attempt (iteration=2) yields the token "2".
+     */
+    @Test
+    public void test225JohnAssignAccountDummyPinkStartEndConflicting() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        dummyAuditService.clear();
+
+        // Create a new user in the repository which will be projected through outbound mapping to resource.
+        PrismObject<UserType> userJohn = createUser("john", "John", "Smith", true);
+        addObject(userJohn);
+        String userJohnOid = userJohn.getOid();
+
+        // Simulate a pre-existing conflicting account on the target resource. The account "john"
+        // already exists on the dummy resource, so the projection must iterate to a different name.
+        String accountJohnName = "john";
+        DummyAccount account = new DummyAccount(accountJohnName);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "John Pinky");
+        getDummyResource(RESOURCE_DUMMY_PINK_START_END_NAME).addAccount(account);
+
+        // Add a corresponding shadow for the conflicting account to the repository.
+        repoAddObject(createRepoShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_START_END_NAME), accountJohnName).getPrismObject(), result);
+
+        // Build the assignment delta that assigns the dummy resource to the user. This triggers
+        // projection and account creation on the resource.
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(userJohnOid, RESOURCE_DUMMY_PINK_START_END_OID, null, true);
+
+        // The model will compute  account name using the iteration token mapping, and handle the naming conflict.
+        when();
+        executeChanges(accountAssignmentUserDelta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        // Verify the user state after the operation. The user's name and full name remain unchanged.
+        PrismObject<UserType> userJohnAfter = getUser(userJohnOid);
+        display("User after change execution", userJohnAfter);
+        assertUser(userJohnAfter, userJohnOid, "john", "John Smith", "John", "Smith");
+
+        assertLiveLinks(userJohnAfter, 1);
+
+        String accountStartEndOid = getSingleLinkOid(userJohnAfter);
+
+        // Check the shadow as stored directly in the repository. The account name should be "john2"
+        var accountStartEndShadow = getShadowRepo(accountStartEndOid);
+        assertAccountShadowRepo(accountStartEndShadow, accountStartEndOid, "john2", getDummyResourceType(RESOURCE_DUMMY_PINK_START_END_NAME));
+
+        // Check the shadow through the model layer. This validates that the projection logic and
+        // schema handling also see the same account name "john2".
+        PrismObject<ShadowType> accountStartEndModel = modelService.getObject(ShadowType.class, accountStartEndOid, null, task, result);
+        assertAccountShadowModel(accountStartEndModel, accountStartEndOid, "john2", getDummyResourceType(RESOURCE_DUMMY_PINK_START_END_NAME));
+
+        // Verify the dummy resource state. The original conflicting account "john" remains unchanged.
+        assertDummyAccount(RESOURCE_DUMMY_PINK_START_END_NAME, accountJohnName, "John Pinky", true);
+
+        // The projected account should be "john2" with the user's full name "John Smith".
+        assertDummyAccount(RESOURCE_DUMMY_PINK_START_END_NAME, "john2", "John Smith", true);
+    }
+
     @Test
     public void test230ScroogeAddAccountDummyConflictingNoShadow() throws Exception {
         // GIVEN
@@ -691,11 +823,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         cleanUpJupiter();
     }
 
-    private void cleanUpJupiter()
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException, SchemaViolationException,
-            ConflictException, InterruptedException {
+    private void cleanUpJupiter() throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
 
         // GIVEN
         Task task = getTestTask();
@@ -2180,11 +2308,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         assertUser(userLargo, USER_LARGO_OID, USER_LARGO_NAME, null, "Largo", "LaGrande", null);
     }
 
-    private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws CommonException {
         assertUserNick(accountName, accountFullName, expectedUserName, null);
     }
 
-    private void assertUserNick(String accountName, String accountFullName, String expectedUserName, String expectedLocality) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertUserNick(String accountName, String accountFullName, String expectedUserName, String expectedLocality) throws CommonException {
         PrismObject<UserType> user = findUserByUsername(expectedUserName);
         assertNotNull("No user for " + accountName + " (" + expectedUserName + ")", user);
         display("Created user for " + accountName, user);
@@ -2198,15 +2326,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         }
     }
 
-    private void assertNoUserNick(String accountName, String expectedUserName)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertNoUserNick(String accountName, String expectedUserName) throws CommonException {
         PrismObject<UserType> user = findUserByUsername(expectedUserName);
         display("User for " + accountName, user);
         assertNull("User for " + accountName + " (" + expectedUserName + ") exists but it should be gone", user);
     }
 
-    private String lookupIterationTokenByAdditionalName(String additionalName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private String lookupIterationTokenByAdditionalName(String additionalName) throws CommonException {
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + ".lookupIterationTokenByAdditionalName");
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(UserType.class)
@@ -2316,6 +2442,499 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
             then("user is there");
             assertUserAfterByUsername(name);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Tests the `start` property of the iteration specification, combined with `maxIterations` (no `end` defined).
+     * With `start=5` and `maxIterations=2`, the effective (inclusive) range of the iteration variable is 5..7.
+     */
+    @Test
+    public void test930IterationStart() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_START.oid);
+        try {
+            given("no user named 'Anne Bonny' exists yet");
+
+            when("first user 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration starts at 5, so the token is empty");
+            assertUserAfterByUsername("Anne Bonny")
+                    .assertName("Anne Bonny");
+
+            when("second conflicting 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration is 6");
+            assertUserAfterByUsername("Anne Bonny6")
+                    .assertName("Anne Bonny6");
+
+            when("third conflicting 'Anne Bonny' is added");
+            addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result);
+
+            then("iteration is 7 (start + maxIterations)");
+            assertUserAfterByUsername("Anne Bonny7")
+                    .assertName("Anne Bonny7");
+
+            when("fourth conflicting 'Anne Bonny' is added");
+            then("the iteration limit (7) is exceeded and the operation fails");
+            assertThatThrownBy(() ->
+                    addObject(new UserType().givenName("Anne").familyName("Bonny").asPrismObject(), task, result))
+                    .isInstanceOf(ObjectAlreadyExistsException.class);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Tests the `start` and `end` properties of the iteration specification. `end` must take precedence
+     * over `maxIterations` when both are defined. With `start=5` and `end=6`, the effective (inclusive)
+     * range of the iteration variable is 5..6, regardless of the (much higher) `maxIterations=100`.
+     */
+    @Test
+    public void test940IterationStartEnd() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_START_END.oid);
+        try {
+            given("no user named 'Jack Rackham' exists yet");
+
+            when("first user 'Jack Rackham' is added");
+            addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result);
+
+            then("iteration starts at 5, so the token is empty");
+            assertUserAfterByUsername("Jack Rackham")
+                    .assertName("Jack Rackham");
+
+            when("second conflicting 'Jack Rackham' is added");
+            addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result);
+
+            then("iteration is 6 (end)");
+            assertUserAfterByUsername("Jack Rackham6")
+                    .assertName("Jack Rackham6");
+
+            when("third conflicting 'Jack Rackham' is added");
+            then("the iteration limit (end=6) is exceeded, even though maxIterations=100, and the operation fails");
+            assertThatThrownBy(() ->
+                    addObject(new UserType().givenName("Jack").familyName("Rackham").asPrismObject(), task, result))
+                    .isInstanceOf(ObjectAlreadyExistsException.class);
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: start=1, end=10, useTokenOnlyOnConflict=true
+     * Expected: John Smith, John Smith2, John Smith3, ...
+     */
+    @Test
+    public void test950TokenOnConflictStart1End10True() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_START1_END10_TRUE.oid);
+        try {
+            given("no user named 'John Smith' exists yet");
+
+            when("first user 'John Smith' is added");
+            addObject(new UserType().givenName("John").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 1 (start), token is empty because useTokenOnlyOnConflict=true");
+            assertUserAfterByUsername("John Smith")
+                    .assertName("John Smith");
+
+            when("second conflicting 'John Smith' is added");
+            addObject(new UserType().givenName("John").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2, token is '2'");
+            assertUserAfterByUsername("John Smith2")
+                    .assertName("John Smith2");
+
+            when("third conflicting 'John Smith' is added");
+            addObject(new UserType().givenName("John").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 3");
+            assertUserAfterByUsername("John Smith3")
+                    .assertName("John Smith3");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: start=1, end=10, useTokenOnlyOnConflict=false
+     * Expected: Jane Smith1, Jane Smith2, Jane Smith3, ...
+     */
+    @Test
+    public void test951TokenOnConflictStart1End10False() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_START1_END10_FALSE.oid);
+        try {
+            given("no user named 'Jane Smith' exists yet");
+
+            when("first user 'Jane Smith' is added");
+            addObject(new UserType().givenName("Jane").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 1 (start), token is '1' because useTokenOnlyOnConflict=false");
+            assertUserAfterByUsername("Jane Smith1")
+                    .assertName("Jane Smith1");
+
+            when("second conflicting 'Jane Smith' is added");
+            addObject(new UserType().givenName("Jane").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2, token is '2'");
+            assertUserAfterByUsername("Jane Smith2")
+                    .assertName("Jane Smith2");
+
+            when("third conflicting 'Jane Smith' is added");
+            addObject(new UserType().givenName("Jane").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 3");
+            assertUserAfterByUsername("Jane Smith3")
+                    .assertName("Jane Smith3");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: start=2, end=10, useTokenOnlyOnConflict=true
+     * Expected: Jim Smith, Jim Smith3, Jim Smith4, ...
+     */
+    @Test
+    public void test952TokenOnConflictStart2End10True() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_START2_END10_TRUE.oid);
+        try {
+            given("no user named 'Jim Smith' exists yet");
+
+            when("first user 'Jim Smith' is added");
+            addObject(new UserType().givenName("Jim").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2 (start), token is empty because useTokenOnlyOnConflict=true");
+            assertUserAfterByUsername("Jim Smith")
+                    .assertName("Jim Smith");
+
+            when("second conflicting 'Jim Smith' is added");
+            addObject(new UserType().givenName("Jim").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 3, token is '3'");
+            assertUserAfterByUsername("Jim Smith3")
+                    .assertName("Jim Smith3");
+
+            when("third conflicting 'Jim Smith' is added");
+            addObject(new UserType().givenName("Jim").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 4");
+            assertUserAfterByUsername("Jim Smith4")
+                    .assertName("Jim Smith4");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: start=2, end=10, useTokenOnlyOnConflict=false
+     * Expected: Joe Smith2, Joe Smith3, Joe Smith4, ...
+     */
+    @Test
+    public void test953TokenOnConflictStart2End10False() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_START2_END10_FALSE.oid);
+        try {
+            given("no user named 'Joe Smith' exists yet");
+
+            when("first user 'Joe Smith' is added");
+            addObject(new UserType().givenName("Joe").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2 (start), token is '2' because useTokenOnlyOnConflict=false");
+            assertUserAfterByUsername("Joe Smith2")
+                    .assertName("Joe Smith2");
+
+            when("second conflicting 'Joe Smith' is added");
+            addObject(new UserType().givenName("Joe").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 3, token is '3'");
+            assertUserAfterByUsername("Joe Smith3")
+                    .assertName("Joe Smith3");
+
+            when("third conflicting 'Joe Smith' is added");
+            addObject(new UserType().givenName("Joe").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 4");
+            assertUserAfterByUsername("Joe Smith4")
+                    .assertName("Joe Smith4");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: maxIterations=10, useTokenOnlyOnConflict=true
+     * Expected: Jack Smith, Jack Smith1, Jack Smith2, ...
+     */
+    @Test
+    public void test954TokenOnConflictMaxIter10True() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_TRUE.oid);
+        try {
+            given("no user named 'Jack Smith' exists yet");
+
+            when("first user 'Jack Smith' is added");
+            addObject(new UserType().givenName("Jack").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 0 (default start when maxIterations defined), token is empty because useTokenOnlyOnConflict=true");
+            assertUserAfterByUsername("Jack Smith")
+                    .assertName("Jack Smith");
+
+            when("second conflicting 'Jack Smith' is added");
+            addObject(new UserType().givenName("Jack").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 1, token is '1'");
+            assertUserAfterByUsername("Jack Smith1")
+                    .assertName("Jack Smith1");
+
+            when("third conflicting 'Jack Smith' is added");
+            addObject(new UserType().givenName("Jack").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2");
+            assertUserAfterByUsername("Jack Smith2")
+                    .assertName("Jack Smith2");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: maxIterations=10, useTokenOnlyOnConflict=false
+     * Expected: Jacob Smith0, Jacob Smith1, Jacob Smith2, ...
+     */
+    @Test
+    public void test955TokenOnConflictMaxIter10False() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_FALSE.oid);
+        try {
+            given("no user named 'Jacob Smith' exists yet");
+
+            when("first user 'Jacob Smith' is added");
+            addObject(new UserType().givenName("Jacob").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 0 (default start when maxIterations defined), token is '0' because useTokenOnlyOnConflict=false");
+            assertUserAfterByUsername("Jacob Smith0")
+                    .assertName("Jacob Smith0");
+
+            when("second conflicting 'Jacob Smith' is added");
+            addObject(new UserType().givenName("Jacob").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 1, token is '1'");
+            assertUserAfterByUsername("Jacob Smith1")
+                    .assertName("Jacob Smith1");
+
+            when("third conflicting 'Jacob Smith' is added");
+            addObject(new UserType().givenName("Jacob").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2");
+            assertUserAfterByUsername("Jacob Smith2")
+                    .assertName("Jacob Smith2");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: maxIterations=10, start=1, useTokenOnlyOnConflict=true
+     * Expected: James Smith, James Smith2, James Smith3, ...
+     */
+    @Test
+    public void test956TokenOnConflictMaxIter10Start1True() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_START1_TRUE.oid);
+        try {
+            given("no user named 'James Smith' exists yet");
+
+            when("first user 'James Smith' is added");
+            addObject(new UserType().givenName("James").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 1 (start), token is empty because useTokenOnlyOnConflict=true");
+            assertUserAfterByUsername("James Smith")
+                    .assertName("James Smith");
+
+            when("second conflicting 'James Smith' is added");
+            addObject(new UserType().givenName("James").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2, token is '2'");
+            assertUserAfterByUsername("James Smith2")
+                    .assertName("James Smith2");
+
+            when("third conflicting 'James Smith' is added");
+            addObject(new UserType().givenName("James").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 3");
+            assertUserAfterByUsername("James Smith3")
+                    .assertName("James Smith3");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: maxIterations=10, start=1, useTokenOnlyOnConflict=false
+     * Expected: Jeremy Smith1, Jeremy Smith2, Jeremy Smith3, ...
+     */
+    @Test
+    public void test957TokenOnConflictMaxIter10Start1False() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_MAXITER10_START1_FALSE.oid);
+        try {
+            given("no user named 'Jeremy Smith' exists yet");
+
+            when("first user 'Jeremy Smith' is added");
+            addObject(new UserType().givenName("Jeremy").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 1 (start), token is '1' because useTokenOnlyOnConflict=false");
+            assertUserAfterByUsername("Jeremy Smith1")
+                    .assertName("Jeremy Smith1");
+
+            when("second conflicting 'Jeremy Smith' is added");
+            addObject(new UserType().givenName("Jeremy").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 2, token is '2'");
+            assertUserAfterByUsername("Jeremy Smith2")
+                    .assertName("Jeremy Smith2");
+
+            when("third conflicting 'Jeremy Smith' is added");
+            addObject(new UserType().givenName("Jeremy").familyName("Smith").asPrismObject(), task, result);
+
+            then("iteration is 3");
+            assertUserAfterByUsername("Jeremy Smith3")
+                    .assertName("Jeremy Smith3");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: tokenExpression using the 'attempt' variable alias.
+     * Expected: Arthur Dent+0 (attempt=0, token="+0"), Arthur Dent_1 (attempt=1, token="_1"), Arthur Dent_2 (attempt=2, token="_2")
+     */
+    @Test
+    public void test959AttemptVariableInTokenExpression() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_TOKEN_CONFLICT_ATTEMPT.oid);
+        try {
+            given("no user named 'Arthur Dent' exists yet");
+
+            when("first user 'Arthur Dent' is added");
+            addObject(new UserType().givenName("Arthur").familyName("Dent").asPrismObject(), task, result);
+
+            then("attempt is 0, token is '+0'");
+            assertUserAfterByUsername("Arthur Dent+0")
+                    .assertName("Arthur Dent+0");
+
+            when("second conflicting 'Arthur Dent' is added");
+            addObject(new UserType().givenName("Arthur").familyName("Dent").asPrismObject(), task, result);
+
+            then("attempt is 1, token is '_1'");
+            assertUserAfterByUsername("Arthur Dent_1")
+                    .assertName("Arthur Dent_1");
+
+            when("third conflicting 'Arthur Dent' is added");
+            addObject(new UserType().givenName("Arthur").familyName("Dent").asPrismObject(), task, result);
+
+            then("attempt is 2, token is '_2'");
+            assertUserAfterByUsername("Arthur Dent_2")
+                    .assertName("Arthur Dent_2");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: 'attempt' variable used directly inside a focal mapping expression (without iterationToken).
+     * Expected: Ford Prefect (attempt=0), Ford Prefect_1 (attempt=1), Ford Prefect_2 (attempt=2)
+     */
+    @Test
+    public void test960AttemptVariableInPropertyMapping() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_ATTEMPT_MAPPING.oid);
+        try {
+            given("no user named 'Ford Prefect' exists yet");
+
+            when("first user 'Ford Prefect' is added");
+            addObject(new UserType().givenName("Ford").familyName("Prefect").asPrismObject(), task, result);
+
+            then("attempt is 0, mapping produces name without suffix");
+            assertUserAfterByUsername("Ford Prefect")
+                    .assertName("Ford Prefect");
+
+            when("second conflicting 'Ford Prefect' is added");
+            addObject(new UserType().givenName("Ford").familyName("Prefect").asPrismObject(), task, result);
+
+            then("attempt is 1, mapping produces name with '_1'");
+            assertUserAfterByUsername("Ford Prefect_1")
+                    .assertName("Ford Prefect_1");
+
+            when("third conflicting 'Ford Prefect' is added");
+            addObject(new UserType().givenName("Ford").familyName("Prefect").asPrismObject(), task, result);
+
+            then("attempt is 2, mapping produces name with '_2'");
+            assertUserAfterByUsername("Ford Prefect_2")
+                    .assertName("Ford Prefect_2");
+        } finally {
+            setDefaultUserTemplate(null);
+        }
+    }
+
+    /**
+     * Test case: 'attempt' variable used in preIterationCondition (e.g. attempt != 1).
+     * Expected: Tricia McMillan (attempt=0), Tricia McMillan.2 (attempt=1 is skipped, goes to attempt=2)
+     */
+    @Test
+    public void test961AttemptVariableInPreIterationCondition() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultUserTemplate(USER_TEMPLATE_ITERATION_ATTEMPT_CONDITION.oid);
+        try {
+            given("no user named 'Tricia McMillan' exists yet");
+
+            when("first user 'Tricia McMillan' is added");
+            addObject(new UserType().givenName("Tricia").familyName("McMillan").asPrismObject(), task, result);
+
+            then("attempt is 0, token is empty");
+            assertUserAfterByUsername("Tricia McMillan")
+                    .assertName("Tricia McMillan");
+
+            when("second conflicting 'Tricia McMillan' is added");
+            addObject(new UserType().givenName("Tricia").familyName("McMillan").asPrismObject(), task, result);
+
+            then("attempt=1 is skipped due to preIterationCondition, so attempt=2 is used");
+            assertUserAfterByUsername("Tricia McMillan.2")
+                    .assertName("Tricia McMillan.2");
         } finally {
             setDefaultUserTemplate(null);
         }

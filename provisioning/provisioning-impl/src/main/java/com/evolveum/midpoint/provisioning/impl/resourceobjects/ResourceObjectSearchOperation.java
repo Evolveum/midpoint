@@ -78,7 +78,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             @Nullable FetchErrorReportingMethodType errorReportingMethod,
             @NotNull OperationResult parentResult)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(ResourceObjectConverter.OP_SEARCH_RESOURCE_OBJECTS);
         try {
             var queryWithConstraints = DelineationProcessor.determineQueryWithConstraints(ctx, query, result);
@@ -106,7 +106,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             @SuppressWarnings("SameParameterValue") boolean fetchAssociations,
             @NotNull OperationResult parentResult)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(ResourceObjectConverter.OP_SEARCH_RESOURCE_OBJECTS);
         try {
             wildcardCtx.assertWildcard();
@@ -125,7 +125,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
 
     public SearchResultMetadata execute(OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
 

@@ -22,10 +22,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationAttemptDataType;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
-
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +62,7 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
     public <D extends ItemDelta<PrismValue, ? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException {
         switch (status) {
             case ADDED:
-                if (getNewValue().isEmpty()) {
+                if (isEmptyForDelta(getNewValue())) {
                     break;
                 }
                 Object realValue = getNewValue().getRealValueIfExists();
@@ -98,9 +97,9 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             case MODIFIED:
 
                 if (parent.isSingleValue()) {
-                    if (getNewValue().isEmpty())  {
+                    if (isEmptyForDelta(getNewValue())) {
                         // if old value is empty, nothing to do.
-                        if (!getOldValue().isEmpty()) {
+                        if (!isEmptyForDelta(getOldValue())) {
                             delta.addValueToDelete(getOldValue().clone());
                         }
                     } else {
@@ -109,15 +108,15 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                     break;
                 }
 
-                if (!getNewValue().isEmpty()) {
+                if (!isEmptyForDelta(getNewValue())) {
                     delta.addValueToAdd(getNewValueWithMetadataApplied());
                 }
-                if (!getOldValue().isEmpty()) {
+                if (!isEmptyForDelta(getOldValue())) {
                     delta.addValueToDelete(getOldValue().clone());
                 }
                 break;
             case DELETED:
-                if (getOldValue() != null && !getOldValue().isEmpty()) {
+                if (!isEmptyForDelta(getOldValue())) {
                     delta.addValueToDelete(getOldValue().clone());
                 }
                 break;
@@ -125,6 +124,15 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                 break;
         }
 
+    }
+
+    private boolean isEmptyForDelta(PrismValue value) {
+        if (value == null || value.isEmpty()) {
+            return true;
+        }
+
+        // Empty ExpressionType is structurally non-empty in Prism but should not produce a delta value.
+        return value.getRealValue() instanceof ExpressionType expression && ExpressionUtil.isEmpty(expression);
     }
 
 

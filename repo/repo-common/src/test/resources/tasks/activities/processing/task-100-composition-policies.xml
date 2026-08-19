@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+    Composition with a policy on the root and another one on the first child. No processing flag here:
+    the tests apply it in code (on the root or on the child) to exercise the suppression semantics.
+-->
+<task oid="9c1de6a2-08f1-4a51-9d21-6e0b3c1a0100"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
+    <name>task-100-composition-policies</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>closed</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <identifier>first</identifier>
+                <order>1</order>
+                <work>
+                    <extension>
+                        <ext:simpleMock>
+                            <ext:message>#1</ext:message>
+                        </ext:simpleMock>
+                    </extension>
+                </work>
+                <policies>
+                    <policy id="2">
+                        <name>child-rule</name>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT8S</exceeds>
+                            </executionTime>
+                        </policyConstraints>
+                        <policyActions>
+                            <suspendTask/>
+                        </policyActions>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <identifier>second</identifier>
+                <order>2</order>
+                <work>
+                    <extension>
+                        <ext:simpleMock>
+                            <ext:message>#2</ext:message>
+                        </ext:simpleMock>
+                    </extension>
+                </work>
+            </activity>
+        </composition>
+        <policies>
+            <policy id="1">
+                <name>root-rule</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT8S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+            </policy>
+        </policies>
+    </activity>
+</task>

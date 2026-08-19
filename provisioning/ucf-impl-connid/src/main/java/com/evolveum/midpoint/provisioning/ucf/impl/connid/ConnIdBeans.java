@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import jakarta.annotation.PostConstruct;

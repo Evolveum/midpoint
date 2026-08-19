@@ -13,8 +13,6 @@ import java.util.Objects;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
 /**
  * Created by Viliam Repan (lazyman).

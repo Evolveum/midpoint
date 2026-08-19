@@ -49,6 +49,17 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     private static final TestTask TASK_RECONCILIATION_SIMULATE_EXECUTE =
             TestTask.file(TEST_DIR, "task-000-reconciliation-simulate-execute.xml", "53734bf9-7068-4ee6-8804-2be3f4fe31ee");
 
+    /**
+     * Counter values captured at the first suspension. The repeated-execution assertions must be relative
+     * to these (each worker thread may add at most one increment before the suspension propagates),
+     * not to the original threshold value.
+     */
+    private int addNotificationCounterAfterFirstRun;
+    private int addSuspendCounterAfterFirstRun;
+    private int modifyNotificationCounterAfterFirstRun;
+    private int modifySuspendCounterAfterFirstRun;
+    private int deleteNotificationCounterAfterFirstRun;
+
     @Override
     protected Consumer<PrismObject<TaskType>> getPoliciesImportAdd10SimulateCustomizer() {
         return transplantRolePolicyForSimulateOrExecuteTask(ROLE_ADD_10);
@@ -184,6 +195,12 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
             .end();
         // @formatter:on
+
+        var counters = assertTaskTree(importTask.oid, "counters after")
+                .rootActivityState()
+                .previewModePolicyRulesCounters();
+        addNotificationCounterAfterFirstRun = counters.getCounterValue(ruleAddNotificationId);
+        addSuspendCounterAfterFirstRun = counters.getCounterValue(suspendPolicyIdentifier);
     }
 
     @Override
@@ -212,8 +229,10 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .display()
                     .end()
                 .previewModePolicyRulesCounters()
-                    .assertCounter(ruleAddNotificationId, USER_ADD_ALLOWED + 2 )
-                    .assertCounter(suspendPolicyIdentifier, USER_ADD_ALLOWED + 2)
+                    .assertCounterMinMax(ruleAddNotificationId,
+                            addNotificationCounterAfterFirstRun + 1, addNotificationCounterAfterFirstRun + getThreads())
+                    .assertCounterMinMax(suspendPolicyIdentifier,
+                            addSuspendCounterAfterFirstRun + 1, addSuspendCounterAfterFirstRun + getThreads())
                     .assertCounterCount(2)
                     .end()
                 .progress()
@@ -327,6 +346,12 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 1, 0)
                     .end();
         // @formatter:on
+
+        var counters = assertTaskTree(importTask.oid, "counters after")
+                .rootActivityState()
+                .previewModePolicyRulesCounters();
+        modifyNotificationCounterAfterFirstRun = counters.getCounterValue(ruleModifyCostCenterNotificationId);
+        modifySuspendCounterAfterFirstRun = counters.getCounterValue(suspendPolicyIdentifier);
     }
 
     @Override
@@ -347,8 +372,10 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .display()
                 .previewModePolicyRulesCounters()
                     .display()
-                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 2)
-                    .assertCounter(suspendPolicyIdentifier, USER_MODIFY_ALLOWED + 2)
+                    .assertCounterMinMax(ruleModifyCostCenterNotificationId,
+                            modifyNotificationCounterAfterFirstRun + 1, modifyNotificationCounterAfterFirstRun + getThreads())
+                    .assertCounterMinMax(suspendPolicyIdentifier,
+                            modifySuspendCounterAfterFirstRun + 1, modifySuspendCounterAfterFirstRun + getThreads())
                     .assertCounterCount(2)
                     .end()
                 .itemProcessingStatistics()
@@ -385,7 +412,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .end()
                 .previewModePolicyRulesCounters()
                     .display()
-                    .assertCounter(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1)
+                    .assertCounterMinMax(ruleModifyCostCenterNotificationId, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
                     .assertCounterMinMax(suspendPolicyIdentifier, USER_MODIFY_ALLOWED + 1, USER_MODIFY_ALLOWED + getThreads())
                     .assertCounterCount(2)
                     .end()
@@ -399,7 +426,6 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest220TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertSuspended()
@@ -416,7 +442,6 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest300TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .assertClosed()
@@ -450,7 +475,6 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest310TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
             .assertClosed()
@@ -486,7 +510,6 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest400TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .display()
@@ -499,11 +522,15 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                         .assertCounterMinMax(ruleDeleteNotificationId, USER_DELETE_ALLOWED + 1, USER_DELETE_ALLOWED + getThreads())
                         .end();
         // @formatter:on
+
+        deleteNotificationCounterAfterFirstRun = assertTaskTree(reconTask.oid, "counters after")
+                .rootActivityState()
+                .previewModePolicyRulesCounters()
+                .getCounterValue(ruleDeleteNotificationId);
     }
 
     @Override
     void assertTest400TaskAfterRepeatedExecution(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(reconTask.oid, "after repeated execution")
             .assertSuspended()
@@ -512,14 +539,14 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .display()
                 .previewModePolicyRulesCounters()
                     .display()
-                    .assertCounter(ruleDeleteNotificationId, USER_DELETE_ALLOWED + 2)
+                    .assertCounterMinMax(ruleDeleteNotificationId,
+                            deleteNotificationCounterAfterFirstRun + 1, deleteNotificationCounterAfterFirstRun + getThreads())
                     .end();
         // @formatter:on
     }
 
     @Override
     void assertTest410TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .display()
@@ -554,7 +581,6 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     @Override
     void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert notifications, counters
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
             .display()

@@ -1244,6 +1244,11 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             public @NotNull TaskExecutionMode getTaskExecutionMode() {
                 return TaskExecutionMode.PRODUCTION;
             }
+
+            @Override
+            public int getProjectionWave() {
+                return 0;
+            }
         };
     }
 

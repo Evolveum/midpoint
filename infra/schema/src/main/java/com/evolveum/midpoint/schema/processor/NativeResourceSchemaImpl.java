@@ -9,7 +9,10 @@ package com.evolveum.midpoint.schema.processor;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 

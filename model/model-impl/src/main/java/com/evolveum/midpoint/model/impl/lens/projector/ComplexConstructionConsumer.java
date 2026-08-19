@@ -11,7 +11,8 @@ import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionP
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author Radovan Semancik

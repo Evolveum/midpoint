@@ -11,7 +11,10 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
@@ -458,7 +461,7 @@ public class TestLdap extends AbstractLongTest {
         assertOpenDjAccountShadows(1, false, task, result);
     }
 
-    private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void assertOpenDjAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws CommonException {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
                 RESOURCE_OPENDJ_OID,
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"));

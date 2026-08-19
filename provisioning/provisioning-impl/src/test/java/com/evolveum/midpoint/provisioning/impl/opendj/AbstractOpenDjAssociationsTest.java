@@ -18,7 +18,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;

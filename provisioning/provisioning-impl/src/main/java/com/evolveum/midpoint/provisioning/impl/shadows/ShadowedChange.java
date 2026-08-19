@@ -212,7 +212,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     private @NotNull ExistingResourceObjectShadow determineCurrentResourceObject(@NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, NotApplicableException {
+            SecurityViolationException, NotApplicableException, SubscriptionComplianceException {
 
         assert !isDelete();
         assert repoShadow != null;

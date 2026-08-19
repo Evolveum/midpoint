@@ -41,7 +41,7 @@ public class ObjectTemplateIncludeProcessor {
     public void processThisAndIncludedTemplates(
             ObjectTemplateType objectTemplate, String contextDesc, Task task, OperationResult result, TemplateProcessor processor)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!SimulationUtil.isVisible(objectTemplate, task.getExecutionMode())) {
             LOGGER.trace("Ignoring template {} as it is not visible for the current task", objectTemplate);
             return;

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
@@ -25,7 +26,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.LambdaColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -40,7 +40,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.*;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.CombinedRelatedObjectsProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -200,26 +203,17 @@ public abstract class SimulationResultObjectPanel extends BasePanel<SimulationRe
 
                     @Override
                     public Component createValueComponent(String id) {
-                        IModel<String> model = new LoadableDetachableModel<>() {
+                        IModel<List<Badge>> badgesModel = new LoadableDetachableModel<>() {
 
                             @Override
-                            protected String load() {
+                            protected List<Badge> load() {
                                 SimulationResultProcessedObjectType object = objectModel.getObject();
-
-                                Object[] names = object.getEventMarkRef().stream()
-                                        .map(ref -> WebModelServiceUtils.resolveReferenceName(ref, getPageBase()))
-                                        .filter(Objects::nonNull)
-                                        .sorted()
-                                        .toArray();
-
-                                return StringUtils.joinWith("\n", names);
+                                return SimulationsGuiUtil.createEventMarkBadges(
+                                        object.getEventMarkRef(), getPageBase());
                             }
                         };
 
-                        MultiLineLabel label = new MultiLineLabel(id, model);
-                        label.setRenderBodyOnly(true);
-
-                        return label;
+                        return new BadgeListPanel(id, badgesModel);
                     }
                 });
 

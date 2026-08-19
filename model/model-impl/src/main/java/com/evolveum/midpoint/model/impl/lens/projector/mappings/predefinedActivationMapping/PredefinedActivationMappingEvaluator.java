@@ -77,7 +77,7 @@ public abstract class PredefinedActivationMappingEvaluator {
     public <F extends FocusType> void defineActivationProperty(
             LensContext<F> context, LensProjectionContext projCtx, ItemPath path, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(path)) {
             getLogger().trace("Start evaluating predefined activation mapping for administrative status");
             defineAdministratorStatus(context, projCtx, task, result);
@@ -116,7 +116,7 @@ public abstract class PredefinedActivationMappingEvaluator {
     protected <F extends FocusType> void defineAdministratorStatus(
             LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         // nothing here by default
     }
 
@@ -216,7 +216,7 @@ public abstract class PredefinedActivationMappingEvaluator {
     <V extends PrismValue, D extends ItemDefinition<?>> void setTargetPropertyValue(
             LensProjectionContext projCtx, ItemPath path, Object value, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         loadFullShadowIfNeeded(projCtx, task, result);
 
@@ -247,7 +247,7 @@ public abstract class PredefinedActivationMappingEvaluator {
 
     private void loadFullShadowIfNeeded(LensProjectionContext projCtx, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, MappingLoader.NotLoadedException {
+            SecurityViolationException, ExpressionEvaluationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         if (!projCtx.isActivationLoaded()) {
             var loader = new ProjectionMappingLoader(projCtx, ModelBeans.get().contextLoader, projCtx::isActivationLoaded);
             String loadReason = "target property going to be set by " + getName();

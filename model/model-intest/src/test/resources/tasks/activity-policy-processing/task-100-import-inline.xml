@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+    Import from the faulty resource with an inline suspend-on-errors policy: the "err*" accounts fail
+    with a fatal item error (see dummy-faulty.xml), tripping the threshold of 2.
+-->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0100">
+    <name>task-100-import-inline</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0004" type="ResourceType"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+        <policies>
+            <policy>
+                <name>suspend-on-errors</name>
+                <policyConstraints>
+                    <itemProcessingResult>
+                        <status>fatal_error</status>
+                    </itemProcessingResult>
+                </policyConstraints>
+                <policyThreshold>
+                    <lowWaterMark>
+                        <count>2</count>
+                    </lowWaterMark>
+                </policyThreshold>
+                <policyActions>
+                    <suspendTask/>
+                </policyActions>
+            </policy>
+        </policies>
+    </activity>
+</task>

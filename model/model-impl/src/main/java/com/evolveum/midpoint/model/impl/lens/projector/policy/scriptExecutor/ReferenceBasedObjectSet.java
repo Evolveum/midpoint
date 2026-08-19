@@ -24,7 +24,7 @@ class ReferenceBasedObjectSet extends PartlyReferenceBasedObjectSet {
 
     @Override
     void collectLinkSources() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         try (LinkSourceFinder sourceFinder = new LinkSourceFinder(actx, result)) {
             addReferences(sourceFinder.getSourcesAsReferences());
         }

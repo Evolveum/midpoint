@@ -15,10 +15,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 

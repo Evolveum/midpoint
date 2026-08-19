@@ -74,7 +74,7 @@ public abstract class AbstractContainerValueCelValue<C extends Containerable> ex
     }
 
     protected ItemPath keyToPath(Object key) {
-        if (CelTypeMapper.isCellNull(key)) {
+        if (CelTypeMapper.isCelNull(key)) {
             return null;
         }
         if (key instanceof QNameCelValue celQname) {

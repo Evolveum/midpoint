@@ -21,7 +21,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -207,7 +208,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     protected String getButtonCssClass() {
-        return "btn btn-primary btn-sm mr-2";
+        return "btn btn-primary btn-sm me-2";
     }
 
     protected IModel<String> getDisabledClassModel() {

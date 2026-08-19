@@ -20,7 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationMonitoringLevelType.FULL;
 

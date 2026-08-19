@@ -6,12 +6,15 @@
 
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -81,7 +84,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         item.add(AttributeModifier.append("class", () -> {
             MainMenuItem mmi = getModelObject();
 
-            return mmi.hasActiveSubmenu(getPageBase()) ? "menu-is-opening menu-open" : null;
+            return mmi.hasActiveSubmenu(getPageBase()) ? "menu-open" : null;
         }));
         add(item);
 
@@ -107,6 +110,15 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+
+                if (getModelObject().containsSubMenu()) {
+                    attributes.setPreventDefault(true);
+                }
+            }
+
+            @Override
             protected void onEvent(AjaxRequestTarget target) {
                 target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageForMenu('%s', %d, '%s', %d);",
                         item.getMarkupId(), 300, itemStatus.getMarkupId(), 100));
@@ -115,7 +127,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         link.add(AttributeModifier.append("class", () -> {
             MainMenuItem mmi = getModelObject();
 
-            return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ? "active" : null;
+            return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ?
+                    "active text-white " + WebComponentUtil.getMidPointSkin().getBackgroundCss() : null;
         }));
 
         if (getModelObject().containsSubMenu()) {

@@ -33,7 +33,7 @@
         </target>
         <condition>
             <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>subtype == 'PIRATE'</code>
             </script>
         </condition>
@@ -58,7 +58,7 @@
         </target>
         <condition>
             <script>
-                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                 <code>subtype == 'BUCCANEER'</code>
             </script>
         </condition>

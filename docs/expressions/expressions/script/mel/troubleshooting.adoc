@@ -9,6 +9,12 @@ doc-type: config
 
 == Common Errors
 
+`No matching overload for function 'startsWith'. Overload candidates: starts_with_string,polystring_startswith`
+-> use of function on list instead of scalar, e.g. `assignment.subtype.startswith('foo')
+-> `assignment.subtype.exists(s, s.startsWith('foo'))
+
+// TODO: REVIEW & UPDATE w.r.t. nullability
+
 Expression written in midPoint expression language (MEL) are interpreted by common expression language (CEL) interpreter.
 CEL is a foundational language on which MEL expressions are built.
 However, the CEL compiler and runtime which is used to evaluate MEL expressions is very technical in nature.

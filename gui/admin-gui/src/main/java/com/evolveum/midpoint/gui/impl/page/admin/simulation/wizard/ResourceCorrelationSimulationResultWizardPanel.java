@@ -68,7 +68,7 @@ public abstract class ResourceCorrelationSimulationResultWizardPanel extends Abs
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass mr-2",
+        AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass me-2",
                 () -> getString("PageSimulationResult.viewProcessedObjects")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -80,7 +80,7 @@ public abstract class ResourceCorrelationSimulationResultWizardPanel extends Abs
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeAppender.append("class", "btn btn-primary ml-auto"));
+        button.add(AttributeAppender.append("class", "btn btn-primary ms-auto"));
         button.setOutputMarkupId(true);
         buttons.add(button);
     }

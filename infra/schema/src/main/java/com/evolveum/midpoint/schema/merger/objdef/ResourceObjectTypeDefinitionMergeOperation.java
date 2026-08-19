@@ -12,7 +12,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.prism.impl.GenericItemMerger;
-import com.evolveum.midpoint.schema.merger.*;
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
+import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
 
 import org.jetbrains.annotations.NotNull;
 

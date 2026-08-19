@@ -26,11 +26,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
+import org.springframework.boot.web.error.ErrorPageRegistrarBeanPostProcessor;
+import org.springframework.boot.web.server.WebServerFactoryCustomizerBeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 
@@ -48,8 +48,17 @@ import org.springframework.util.unit.DataSize;
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 @Configuration
 @ConditionalOnWebApplication
-@Import(BeanPostProcessorsRegistrar.class)
 public class EmbeddedTomcatAutoConfiguration {
+
+    @Bean
+    static WebServerFactoryCustomizerBeanPostProcessor webServerFactoryCustomizerBeanPostProcessor() {
+        return new WebServerFactoryCustomizerBeanPostProcessor();
+    }
+
+    @Bean
+    static ErrorPageRegistrarBeanPostProcessor errorPageRegistrarBeanPostProcessor() {
+        return new ErrorPageRegistrarBeanPostProcessor();
+    }
 
     @Profile("!test")
     @Configuration
@@ -115,7 +124,7 @@ public class EmbeddedTomcatAutoConfiguration {
                     ajpConnector.setMaxPartCount(getMaxPartCount());
                 }
 
-                tomcat.addAdditionalTomcatConnectors(ajpConnector);
+                tomcat.addAdditionalConnectors(ajpConnector);
                 tomcat.setJvmRoute(jvmRoute); // will be set on Engine there
             }
 

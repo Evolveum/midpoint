@@ -94,6 +94,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element minOccurs="0" name="apiVersion" type="xsd:string"/>
             <xsd:element minOccurs="0" name="baseApiEndpoint" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -112,6 +113,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="suggestedEndpoint" type="c:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -316,6 +318,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ConnDevNamedInfoType">
                 <xsd:sequence>
+                    <xsd:element name="displayName" type="xsd:string"/>
                     <xsd:element name="shortDescription" type="xsd:string"/>
                     <xsd:element name="subject" type="xsd:string"/>
                     <xsd:element name="subjectAttribute" type="xsd:string"/>
@@ -363,6 +366,7 @@
             <xsd:element name="type" type="tns:ConnDevHttpAuthTypeType"/>
             <xsd:element name="description" type="xsd:string"/>
             <xsd:element name="quirks" type="xsd:string"/>
+            <xsd:element name="recommended" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="connDevAuthInfo" type="tns:ConnDevAuthInfoType"/>
@@ -602,6 +606,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="sql">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Integration using SQL database connectivity
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SQL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <!-- Dummy integration is hidden, will be replaced by multitable
             <xsd:enumeration value="dummy">
                 <xsd:annotation>
@@ -675,6 +689,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="jwtBearer">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        JWT Bearer Token Authorization
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JWT_BEARER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="apiKey">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -685,13 +709,72 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="oauth2">
+            <xsd:enumeration value="oauth2ClientCredentials">
                 <xsd:annotation>
                     <xsd:documentation>
                         OAuth2 Client Credentials Authorization
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OAUTH2"/>
+                        <jaxb:typesafeEnumMember name="OAUTH2_CLIENT_CREDENTIALS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="digest">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIGEST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2Password">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_PASSWORD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2Jwt">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_JWT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oauth2Saml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OAUTH2_SAML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="hawk">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HAWK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="awsSignature">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AWS_SIGNATURE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ntlm">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NTLM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="other">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Other / unknown authorization type
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OTHER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -753,7 +836,14 @@
     <xsd:simpleType name="ConnDevRelevancyLevelType">
         <xsd:annotation>
             <xsd:documentation>
-                Relevancy / Confidendce Levels
+                Relevancy / Confidendce Levels.
+
+                IMPORTANT: The declaration order of the enumeration values is significant.
+                Values MUST be declared from the lowest confidence to the highest (low, medium, high),
+                because consuming code relies on the generated enum's natural order (ordinal) to
+                compare confidence levels (e.g. to show only the highest-confidence object classes
+                first in the connector wizard). Reordering or inserting a value in the middle would
+                silently change the ranking.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">

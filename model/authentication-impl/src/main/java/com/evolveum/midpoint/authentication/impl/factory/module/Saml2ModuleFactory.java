@@ -11,10 +11,10 @@ import java.util.List;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
@@ -53,7 +53,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory<SamlModuleWebSecurit
         for (Filter f : filter.getFilters()){
             if (f instanceof MidpointSaml2WebSsoAuthenticationRequestFilter samlFilter) {
                 samlFilter.getAuthenticationRequestResolver().setRequestMatcher(
-                        new AntPathRequestMatcher(configurer.getPrefix()
+                        pathMatcher(configurer.getPrefix()
                                 + RemoteModuleAuthenticationImpl.AUTHENTICATION_REQUEST_PROCESSING_URL_SUFFIX_WITH_REG_ID));
                 break;
             }

@@ -9,26 +9,18 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.MimeTypeUtil;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
 
 /**
  * @author katkav
@@ -70,10 +62,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
             public String getDownloadFileName() {
                 ItemName name = panelCtx.getDefinitionName();
                 if (name != null) {
-                    String fileName = name.getLocalPart();
-                    String extension = MimeTypeUtil.getExtension(getDownloadContentType());
-
-                    return extension != null ? fileName + extension : fileName;
+                    return UploadDownloadPanelFactory.getDownloadFileName(name, getDownloadContentType());
                 }
 
                 return super.getDownloadFileName();
@@ -87,26 +76,18 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
             @Override
             public void uploadFileFailed(AjaxRequestTarget target) {
                 super.uploadFileFailed(target);
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-
-            @Override
-            public List<String> getAllowedUploadContentTypes() {
-                ItemPath path = panelCtx.getValueWrapperModel().getObject().getParent().getPath();
-
-                if (Objects.equals(path, ItemPath.create(FocusType.F_JPEG_PHOTO))) {
-                    return FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES;
-                }
-
-                return super.getAllowedUploadContentTypes();
-            }
-
-            @Override
-            public String getDownloadContentType() {
-                return MIME_IMAGE_JPEG;
+                target.add(getParentPage().getFeedbackPanel());
             }
         };
+        panel.setUploadItemPath(panelCtx.getValueWrapperModel().getObject().getParent().getPath());
 
         return panel;
+    }
+
+    public static String getDownloadFileName(ItemName name, String contentType) {
+        String fileName = name.getLocalPart();
+        String extension = MimeTypeUtil.getDotExtension(contentType);
+
+        return extension != null ? fileName + extension : fileName;
     }
 }

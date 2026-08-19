@@ -12,7 +12,10 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.jetbrains.annotations.NotNull;
 

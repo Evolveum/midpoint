@@ -7,25 +7,25 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="detailBoxMessage" class="sr-only" aria-live="polite"></div>
-    <div class="feedback-message card" role="alert" wicket:id="detailsBox">
+    <div wicket:id="detailBoxMessage" class="visually-hidden" aria-live="polite"></div>
+    <div class="feedback-message alert shadow-sm mb-3 p-0" role="alert" wicket:id="detailsBox">
         <div class="card-header">
             <div class="card-title mw-100 h3" style="word-break: break-all" wicket:id="message">
-                <i class="mr-2 fa" wicket:id="iconType"></i>
+                <i class="me-2 fa" wicket:id="iconType"></i>
                 <span wicket:id="messageLabel"/>
-                <a class="text-sm" wicket:id="backgroundTaskLink">
+                <a class="fs-7" wicket:id="backgroundTaskLink">
                     <wicket:message key="OperationResultPanel.showTask"/>
                 </a>
-                <span class="text-sm" wicket:id="backgroundTaskExists"></span>
-                <a class="text-sm" wicket:id="case">
+                <span class="fs-7" wicket:id="backgroundTaskExists"></span>
+                <a class="fs-7" wicket:id="case">
                     <wicket:message key="OperationResultPanel.showCase"/>
                 </a>
-                <a class="text-sm" wicket:id="processedObject">
+                <a class="fs-7" wicket:id="processedObject">
                     <wicket:message key="OperationResultPanel.showObject"/>
                 </a>
             </div>
 
-            <div wicket:id="subResultsActiveStatus" class="sr-only" role="alert"></div>
+            <div wicket:id="subResultsActiveStatus" class="visually-hidden" role="alert"></div>
             <div class="card-tools">
                 <a wicket:id="showAll" class="btn btn-tool" aria-expanded="false" wicket:message="title:OperationResultPanel.button.showAll">
                     <i class="fa fa-chevron-left"></i>
@@ -36,12 +36,12 @@
                 <a wicket:id="downloadXml" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.downloadXml">
                     <i class="fa fa-download"></i>
                 </a>
-                <a wicket:id="close" data-widget="remove" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.close">
+                <a wicket:id="close" data-lte-toggle="remove" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.close">
                     <i class="fa fa-times"></i>
                 </a>
             </div>
         </div>
-        <div class="feedback-message card-body" wicket:id="detailsContainer">
+        <div class="feedback-message card-body bg-light" wicket:id="detailsContainer">
             <dl class="feedback-message row" wicket:id="details">
                 <wicket:container wicket:id="operation">
                     <b wicket:id="operationBody"/>

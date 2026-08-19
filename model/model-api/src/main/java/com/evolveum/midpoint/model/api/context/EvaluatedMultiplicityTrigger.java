@@ -9,7 +9,8 @@ package com.evolveum.midpoint.model.api.context;
 import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedMultiplicityTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
 public class EvaluatedMultiplicityTrigger extends EvaluatedClockworkPolicyRuleTrigger<MultiplicityPolicyConstraintType> {

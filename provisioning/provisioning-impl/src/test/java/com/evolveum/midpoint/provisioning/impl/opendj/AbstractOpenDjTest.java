@@ -13,6 +13,8 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 
@@ -28,8 +30,11 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -160,6 +165,8 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     static final QName GROUP_UNIQUE_MEMBER_ATTR_QNAME = new QName(NS_RI, "uniqueMember");
 
     static final QName ASSOCIATION_GROUP_NAME = new QName(NS_RI, "group");
+    private static final String NS_CONNECTOR_LDAP = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
+    static final QName Q_CONF_MANAGED_ASSOCIATION_PAIRS_NAME = new QName(NS_CONNECTOR_LDAP, "managedAssociationPairs");
 
     MatchingRule<String> dnMatchingRule;
 
@@ -237,5 +244,29 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         return assertRepoShadow(oid, getCachedAccountAttributes());
+    }
+
+    protected Object[] getSuggestedPropertyValues(PrismProperty<?> discoveredProperty) {
+        PrismPropertyDefinition<?> def = discoveredProperty.getDefinition();
+
+        // We can not load the full list of association pairs and apply it because of exclusive values
+        if (isDiscoveredProperty(discoveredProperty, Q_CONF_MANAGED_ASSOCIATION_PAIRS_NAME)) {
+            return def.getSuggestedValues().stream()
+                    .map(DisplayableValue::getValue)
+                    .findFirst()
+                    .map(v -> new Object[] { v })
+                    .orElseGet(() -> new Object[0]);
+        }
+
+        Collection<? extends DisplayableValue<?>> suggestions =
+                def.getAllowedValues() != null ? def.getAllowedValues() : def.getSuggestedValues();
+
+        return suggestions.stream()
+                .map(DisplayableValue::getValue)
+                .toArray();
+    }
+
+    private boolean isDiscoveredProperty(PrismProperty<?> discoveredProperty, QName configurationPropertyQName) {
+        return configurationPropertyQName.equals(discoveredProperty.getElementName());
     }
 }

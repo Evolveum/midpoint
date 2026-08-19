@@ -46,7 +46,7 @@ public class ProjectionMappingLoader implements MappingLoader<ShadowType> {
     @Override
     public PrismObject<ShadowType> load(String loadReason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, NotLoadedException {
+            SecurityViolationException, ExpressionEvaluationException, NotLoadedException, SubscriptionComplianceException {
         contextLoader.loadFullShadow(projectionContext, loadReason, task, result);
         if (projectionContext.isBroken()) {
             LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext);

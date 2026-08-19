@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionStatsPolicyConstraintType;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.COLLECTION_STATS;

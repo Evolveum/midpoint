@@ -13,7 +13,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelatorCompositionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

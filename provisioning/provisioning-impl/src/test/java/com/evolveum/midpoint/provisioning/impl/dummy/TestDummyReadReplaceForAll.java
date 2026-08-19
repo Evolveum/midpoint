@@ -8,9 +8,6 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 

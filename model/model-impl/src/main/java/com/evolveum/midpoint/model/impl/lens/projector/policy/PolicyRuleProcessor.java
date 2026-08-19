@@ -55,7 +55,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(OP_EVALUATE_ASSIGNMENT_POLICY_RULES);
         try {
             new AssignmentPolicyRuleEvaluator<>(focusContext, task)
@@ -91,7 +91,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     public <AH extends AssignmentHolderType> void evaluateAndRecordFocusPolicyRules(
             LensContext<AH> context, XMLGregorianCalendar ignoredNow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         if (context.getFocusContextRequired().isDeleted()) {
             LOGGER.trace("Focus is gone, therefore we will skip processing focus policy rules");
             result.setNotApplicable("focus is gone");
@@ -114,7 +114,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         // No need for custom operation result, as this already has one (because it's a projector component)
         ProjectionPolicyRulesEvaluator evaluator = new ProjectionPolicyRulesEvaluator(projectionContext, task);
         evaluator.evaluate(result);

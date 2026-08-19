@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -13,7 +14,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -458,14 +462,14 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
                 createStringResource("MainObjectListPanel.newObject")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 newAssignmentClickPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         bar.add(newObjectButton);
 
         newObjectButton.add(new VisibleEnableBehaviour() {

@@ -113,7 +113,7 @@ public class OidcClientLogoutSuccessHandler extends AuditedLogoutHandler {
             return null;
         }
         if (StringUtils.isEmpty(publicUrlPrefix)) {
-            return UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+            return UriComponentsBuilder.fromUriString(UrlUtils.buildFullRequestUrl(request))
                     .replacePath(request.getContextPath())
                     .pathSegment(AuthUtil.stripStartingSlashes(this.postLogoutRedirectUri))
                     .build()

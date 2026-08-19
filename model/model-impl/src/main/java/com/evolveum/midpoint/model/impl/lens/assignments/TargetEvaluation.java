@@ -66,7 +66,7 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
     }
 
     void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         assert ctx.assignmentPath.last() == segment;
         assert assignmentOverallConditionState.isNotAllFalse();
@@ -121,7 +121,7 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
     private void evaluateInternal()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException, PolicyViolationException {
+            ConfigurationException, CommunicationException, PolicyViolationException, SubscriptionComplianceException {
         assert targetOverallConditionState.isNotAllFalse();
 
         collectEvaluatedAssignmentTarget();
@@ -166,7 +166,8 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
     }
 
     private void evaluateAssignments() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException,
+            SubscriptionComplianceException {
         for (AssignmentType assignment : target.getAssignment()) {
             new TargetAssignmentEvaluation<>(
                     segment,
@@ -181,7 +182,7 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
     }
 
     private void evaluateInducements() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         if (target instanceof AbstractRoleType abstractRole) {
             for (AssignmentType inducement : abstractRole.getInducement()) {
                 new TargetInducementEvaluation<>(
@@ -200,7 +201,7 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
     private void evaluateArchetypeHierarchy()
             throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!(target instanceof ArchetypeType archetype)) {
             return;
         }
@@ -249,7 +250,7 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
     private @NotNull ConditionState determineTargetConditionState()
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         MappingType conditionBean = target instanceof AbstractRoleType abstractRole ? abstractRole.getCondition() : null;
         if (conditionBean == null) {
             return ConditionState.allTrue();

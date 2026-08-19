@@ -86,7 +86,7 @@ public class ModelObjectResolver implements ObjectResolver {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         var type = ObjectTypeUtil.getTypeClass(ref, expectedType);
         var oid = ref.getOid();
         return getObject(type, oid, options, task, result);
@@ -142,7 +142,7 @@ public class ModelObjectResolver implements ObjectResolver {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         T objectType;
         try {
             PrismObject<T> object;
@@ -181,7 +181,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // This is maybe not strictly necessary, beause there's no processing here.
         // But we're definitely at the components boundary, so let us mark it in the operation result.
         var resultProvidingHandler = handler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND);
@@ -201,7 +201,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         switch (getObjectManager(type, options)) {
             case PROVISIONING:
                 return provisioning.searchObjects(type, query, options, task, result);
@@ -215,7 +215,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         switch (getObjectManager(type, options)) {
             case PROVISIONING:
                 return provisioning.countObjects(type, query, options, task, result);
@@ -272,8 +272,8 @@ public class ModelObjectResolver implements ObjectResolver {
                     resultObject =
                             searchOrgTreeWithFirstResolve(object, resultObject, org, resolvedOrgs, function, shortDesc, task, result);
                 }
-            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
-                    | SecurityViolationException | ExpressionEvaluationException ex) {
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException |
+                     ExpressionEvaluationException | SubscriptionComplianceException ex) {
                 // Just log the error, but do not fail on that. Failing would prohibit login
                 // and that may mean the misconfiguration could not be easily fixed.
                 LoggingUtils.logException(LOGGER, "Error resolving parent org refs in batch {} while resolving {}", ex, Arrays.toString(oids), shortDesc);

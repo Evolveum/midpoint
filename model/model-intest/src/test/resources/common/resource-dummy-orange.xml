@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -74,10 +74,11 @@
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 name + iterationToken
                             </code>
@@ -88,7 +89,7 @@
                     <!-- This avoids "kickback" of a name from account to a user. -->
                     <strength>weak</strength>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -101,13 +102,13 @@
                 <displayName>Full Name</displayName>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </source>
                 </outbound>
                 <inbound>
                     <strength>weak</strength>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -117,6 +118,7 @@
                 <inbound>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'The crew of ' + input</code>
                         </script>
                     </expression>
@@ -151,14 +153,9 @@
                 <inbound>
                     <expression> <!-- MID-2421 -->
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                if (input == null) {
-                                    return null;
-                                }
-                                if (input.contains("rrr")) {
-                                    return input;
-                                }
-                                return null;
+                                input.contains('rrr') ? input : nil
                             </code>
                         </script>
                     </expression>
@@ -180,6 +177,7 @@
                     <name>gossip-inbound</name>
                     <expression>
                         <script>
+                            <!-- TODO: convert to MEL -->
                             <code>
                                 import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
@@ -318,10 +316,11 @@
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 'T' + name + iterationToken
                             </code>
@@ -333,13 +332,14 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input?.substring(1)
+                                input.substring(1)
                             </code>
                         </script>
                     </expression>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -347,10 +347,11 @@
                 <ref>ri:fullname</ref>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>fullName + ' (test)'</code>
                         </script>
                     </expression>
@@ -358,7 +359,7 @@
                 <inbound>
                     <strength>weak</strength>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -368,7 +369,7 @@
                     <strength>strong</strength>
                     <source>
                         <path>
-                            $user/locality
+                            $focus/locality
                         </path>
                     </source>
                 </outbound>
@@ -495,7 +496,8 @@
                     </source>
                     <expression>
                         <script>
-                            <code>name.getNorm() + '-wannabe'</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>name.norm + '-wannabe'</code>
                         </script>
                     </expression>
                 </outbound>
@@ -576,7 +578,7 @@ end
             <host>resource</host>
             <language>Gibberish</language>
             <argument>
-                <path>$user/costCenter</path>
+                <path>$focus/costCenter</path>
                 <name>howMuch</name>
             </argument>
             <argument>
@@ -584,11 +586,11 @@ end
                 <name>howLong</name>
             </argument>
             <argument>
-                <path>$user/name</path>
+                <path>$focus/name</path>
                 <name>who</name>
             </argument>
             <argument>
-                <path>$user/fullName</path>
+                <path>$focus/fullName</path>
                 <name>whatchacallit</name>
             </argument>
             <code>Beware the Jabberwock, my son!</code>
@@ -620,7 +622,7 @@ end
             <host>resource</host>
             <language>Gibberish</language>
             <argument>
-                <path>$shadow/activation/administrativeStatus</path>
+                <path>$projection/activation/administrativeStatus</path>
                 <name>how</name>
             </argument>
             <code>He left it dead, and with its head</code>
@@ -651,7 +653,7 @@ end
                     <q:path>name</q:path>
                     <expression>
                         <path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            $account/attributes/icfs:name</path>
+                            $projection/attributes/icfs:name</path>
                     </expression>
                 </q:equal>
             </correlation>
@@ -697,7 +699,8 @@ end
                     <q:path>name</q:path>
                     <expression>
                         <script>
-                            <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                            <code>projection.attributes.name.substring(1)</code>
                         </script>
                     </expression>
                 </q:equal>

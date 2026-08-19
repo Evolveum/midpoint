@@ -2123,6 +2123,61 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="preferredName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Preferred name of the user. This is the name that the user prefers
+                                    to use for display purposes. It does not replace legal-name attributes
+                                    such as given name, family name, or full name, and it is not intended
+                                    to be used as a login name, account identifier, or correlation identifier.
+                                </p>
+                                <p>
+                                    Examples:
+                                    <ul>
+                                        <li>Jack Smith</li>
+                                        <li>Liz Johnson</li>
+                                    </ul>
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.preferredName</a:displayName>
+                                <a:displayOrder>105</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
+                                <a:help>UserType.preferredName.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Effective visible name of the user for presentation-oriented display.
+                                    This property is intended to hold the user's preferred display value
+                                    for UI, reporting, and outbound provisioning scenarios where a visible
+                                    name is needed. It is distinct from the legal/full name and from login
+                                    or account identifiers.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>UserType.displayNameProperty</a:displayName>
+                                <a:displayOrder>106</a:displayOrder>
+                                <a:displayHint>emphasized</a:displayHint>
+                                <a:access>read</a:access>
+                                <a:diagram>
+                                    <a:name>user-overview</a:name>
+                                    <a:inclusion>include</a:inclusion>
+                                </a:diagram>
+                                <a:help>UserType.displayNameProperty.help</a:help>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="givenName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3670,6 +3725,25 @@
                             was disabled explicitly, that the disable status was computed or other source of the
                             disabled event.
                         </p>
+                        <p>
+                            Currently used only for projections (shadows), not for focus objects.
+                        </p>
+                        <p>
+                            Known values:
+                            <ul>
+                                <li><pre>http://midpoint.evolveum.com/xml/ns/public/model/disableReason#explicit</pre>: The
+                                    projection was disabled explicitly by providing a user-specified (primary) delta.</li>
+                                <li><pre>http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision</pre>: The
+                                    projection was disabled because the _deprovisioning_ (i.e., deletion) was requested, but
+                                    disable-instead-of-delete behavior was in place. So instead of deleting, the account is
+                                    disabled. The common use is to delete the account later (see "delayed delete" feature).</li>
+                                <li><pre>http://midpoint.evolveum.com/xml/ns/public/model/disableReason#mapped</pre>: The
+                                    projection was disabled because some mapping determined the value of "administratorStatus"
+                                    to be "DISABLED". A typical case of such mapping is "asIs" outbound mapping from the focus
+                                    effective status to account (projection) administrative status. Hence, if the owning user is
+                                    disabled, their accounts get automatically disabled too.</li>
+                            </ul>
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
@@ -5154,11 +5228,40 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="start" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                            The number at which the iteration will start. This is inclusive, i.e., if set to 1,
+                            then the lowest number in the iteration variable will be 1.
+                            If not specified, the default value is 0.
+                            <p/>
+                            The first non-conflicting attempt is also considered an iteration and uses the
+                            value of the start property.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.start</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="end" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number at which the iteration will stop. This is inclusive, i.e., if set to 10,
+                        then the largest number in the iteration variable will be 10.
+                        If not specified, the maxIterations property must be defined.
+                        If both maxIterations and end are defined, then end takes precedence.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.end</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="maxIterations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Maximum number of iteration attempts. The number specifies attempts
-                        beyond the first one, which is not considered to be an iteration.
+                        Maximum number of iteration attempts.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.maxIterations</a:displayName>
@@ -5196,6 +5299,22 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.postIterationCondition</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, the token expression will not be evaluated on the first attempt
+                        (when there is no conflict yet). The token will only be generated starting from
+                        the second attempt when a conflict is detected.
+                        If set to false, the token expression will be evaluated on every attempt including
+                        the first one.
+                        Default value is true.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.useTokenOnlyOnConflict</a:displayName>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6388,6 +6507,9 @@
                 set of values should be constructed. E.g. setting
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
+                However, this behavior is not reliable (e.g. it changes when
+                empty values are explicitly allowed). Please use the "null"
+                evaluator to construct an empty set of values instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:rawType/>
@@ -6404,6 +6526,22 @@
     </xsd:complexType>
 
     <xsd:element name="asIs" type="tns:AsIsExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+    <xsd:complexType name="NullExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Returns no value. The result of the evaluation is an empty set of values.
+
+                Combined with a target set (range) definition, e.g. the predefined "all" range,
+                it can be used to remove all values of the target item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:element name="null" type="tns:NullExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
     <!-- Here we use complexType to create a Java class named ConstExpressionEvaluatorType -->
     <xsd:complexType name="ConstExpressionEvaluatorType">
@@ -6700,10 +6838,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TransformExpressionEvaluatorType">
                 <xsd:sequence>
-                    <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                    <xsd:element name="language" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Language of the expression. Groovy is the default language if other language is not specified.
+                                Language of the expression.
+                                If not specified, default scripting language is used
+                                (specified in defaultScriptLanguage in system configuration).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -7940,6 +8080,9 @@
              <xsd:appinfo>
                  <a:container/>
                  <a:since>3.7</a:since>
+                 <a:schemaContext>
+                     <a:typePath>selector/type</a:typePath>
+                 </a:schemaContext>
              </xsd:appinfo>
          </xsd:annotation>
          <xsd:sequence>
@@ -10657,6 +10800,12 @@
                         Column that contains a user-friendly label for corresponding to the key.
                         This label will be displayed in user interface as a representation of the key.
                         The label has no meaning when the lookup table is used to map values.
+                        Due to the specialized repository representation used for lookup tables, only a subset
+                        of the PolyStringType functionality is supported for row labels. While labels are modeled
+                        as PolyStringType in the Prism schema, only the original value (orig) and its normalized
+                        form (norm) are persisted in the repository. Language-specific values stored in the lang map,
+                        as well as translation data, are not preserved. Therefore, lookup table labels are
+                        always resolved from the stored original value and cannot provide locale-dependent translations.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -11216,7 +11365,7 @@
     <xsd:complexType name="OperationResultType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Provides rich information about an operation being executed; mainly for the sake of error reporting and functional/performance troubleshooting.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:schemaMigration>
@@ -12475,6 +12624,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="defaultScriptLanguage" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default language for script expressions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -15108,7 +15264,8 @@
                     <xsd:documentation>
                         Operation should be end with an error.
                         This is a recoverable error (precondition failed).
-                        TODO: align with "fail"
+
+                        (Currently, this option is not implemented.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ERROR"/>
@@ -15118,7 +15275,7 @@
             <xsd:enumeration value="restart">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Operation should be restarted.
+                        Concurrent execution is prevented. After the failure, the operation is restarted.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RESTART"/>
@@ -15128,7 +15285,8 @@
             <xsd:enumeration value="recompute">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECOMPUTE"/>
@@ -15138,7 +15296,9 @@
             <xsd:enumeration value="reconcile">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The focus object should be recomputed and all projections reconciled.
+                        Concurrent execution is not prevented: the original operation is executed in full.
+                        However, if there was a conflict present, the focus object is recomputed, with all projections
+                        reconciled.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECONCILE"/>
@@ -15151,7 +15311,6 @@
                         The whole operation should fail. This is to be used mainly for testing purposes,
                         to check if conflict detection algorithm does not yield false positive results.
                         This fails with a system error. This is a definitive, non-recoverable failure.
-                        TODO: align with "error"
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="FAIL"/>
@@ -16604,7 +16763,19 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether the policy rule will be evaluated.
+
+                        DEPRECATED:
+                        This swich was moved here from ActivityPolicyType for backward compatibility.
+                        Different approach was taken in 4.11 when switching policies on/off for specfic task,
+                        see ActivityPoliciesProcessingType for more info.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecated/>
+                        <a:since>4.11</a:since>
+                        <a:displayName>PolicyRuleType.enabled</a:displayName>
+                        <a:help>PolicyRuleType.enabled.help</a:help>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
@@ -16656,8 +16827,8 @@
                         interval for counter, ...
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>PolicyRuleType.policySituation</a:displayName>
-                        <a:help>PolicyRuleType.policySituation.help</a:help>
+                        <a:displayName>PolicyRuleType.policyThreshold</a:displayName>
+                        <a:help>PolicyRuleType.policyThreshold.help</a:help>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -17741,6 +17912,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="3a7de4b1-8c5f-4e9a-b2d6-0f1e8c3d7a5b">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ITEM_VALUE_FAILED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -19208,7 +19386,8 @@
     <xsd:complexType name="ObjectDeltaOperationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Object delta operation represents an executed change of an midPoint object.
+                Simply speaking, it describes an object delta that was already applied, including results of the operation that applied the delta.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -19220,8 +19399,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0"/>
-            <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0"/>
+            <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delta that was applied to the object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="executionResult" type="tns:OperationResultType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result of the operation that applied the delta.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectName" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

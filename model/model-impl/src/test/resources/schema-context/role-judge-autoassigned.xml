@@ -1,0 +1,162 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role oid="41190e78-f53f-472c-b2e3-b9f49c3ffc69"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>Judge</name>
+    <description>Role with role exclusions</description>
+    <assignment>
+        <policyRule>
+            <name>criminal exclusion</name>
+            <policyConstraints>
+                <exclusion>
+                    <description>A judge cannot be a pirate at the same time. At least not openly.</description>
+                    <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>unassignment</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>delete</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <notification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-additions-on-jack</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+                <objectState>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>jack</q:value>
+                        </q:equal>
+                    </filter>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <certification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations-on-elaine</name>
+            <policyConstraints>
+                <assignment/>
+                <objectState>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>elaine</q:value>
+                        </q:equal>
+                    </filter>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <certification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-additions-on-jack-via-script</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+                <objectState>
+                    <expression>
+                        <script>
+                            <code>
+                                basic.stringify(focus.name) == 'jack'
+                            </code>
+                        </script>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <certification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations-disabled</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval/>
+            </policyActions>
+        </policyRule>
+        <condition>
+            <expression>
+                <value>false</value>
+            </expression>
+        </condition>
+    </assignment>
+    <inducement id="100">
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                    <expression>
+                        <value>Honorable Justice</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </inducement>
+    <autoassign>
+        <focus>
+            <mapping id="12345">
+                <condition>
+                    <filter>
+                        <filter>
+                            <q:text>url startsWith "http://evolveum.com/"</q:text>
+                        </filter>
+                    </filter>
+                </condition>
+            </mapping>
+            <selector>
+                <type>ServiceType</type>
+            </selector>
+        </focus>
+    </autoassign>
+</role>

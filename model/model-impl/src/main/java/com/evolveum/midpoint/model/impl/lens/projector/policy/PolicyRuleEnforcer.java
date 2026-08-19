@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPoli
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.notifications.api.PolicyRuleNotificationPublisher;
@@ -46,10 +48,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Code used to enforce the policy rules that have the `enforce` and `suspendTask` actions.
+ * Code used to enforce the policy rules that have the `enforce` action, and the threshold-based
+ * `suspendTask`/`restartActivity`/`skipActivity` actions.
  *
- * An interesting difference is the execution in the preview mode: the former are only simulated, whereas the latter
- * do really throw an exception. This behavior may change in the future.
+ * In the policy-rules-enforcement preview mode, nothing is really enforced: the enforcement is recorded
+ * into the preview output, and the threshold-based actions are skipped altogether.
  *
  * Originally this was a regular {@link ChangeHook}. However, when invoked among other hooks, it is too late (see MID-4797).
  * So we had to convert it into regular code and run it right after the first {@link Projector} run.
@@ -193,29 +196,41 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
+            LOGGER.trace("enforceThresholds: {} object policy rules in focus context", focusContext.getObjectPolicyRules().size());
             for (DirectlyEvaluatedClockworkPolicyRule policyRule : focusContext.getObjectPolicyRules()) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("enforceThresholds: rule '{}' ({}, instance {}): evaluated={}, triggered={}, count={}, "
+                                    + "hasThreshold={}, overThreshold={}, enabledActions={}",
+                            policyRule.getName(), policyRule.getRuleIdentifier(), System.identityHashCode(policyRule),
+                            policyRule.isEvaluated(), policyRule.isTriggered(), policyRule.getCount(),
+                            policyRule.hasThreshold(), policyRule.isOverThreshold(),
+                            policyRule.isEvaluated()
+                                    ? policyRule.getEnabledActions().stream().map(a -> a.getTypeName()).toList()
+                                    : "(not computed)");
+                }
+
                 if (!policyRule.isOverThreshold()) {
                     continue;
                 }
 
+                LocalizableMessage message = createViolationMessage(policyRule);
+                String defaultMessage = ModelCommonBeans.get().localizationService
+                        .translate(message, Locale.getDefault());
+
                 for (PolicyActionConfigItem<?> actionCI : policyRule.getEnabledActions()) {
                     PolicyActionType action = actionCI.value();
-
-                    String defaultMessage = "Policy rule violation: " + policyRule.getPolicyRuleBean();
-                    LocalizableMessage message =
-                            new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRuleBean() });
 
                     if (action instanceof SuspendTaskPolicyActionType) {
                         enforceNotificationAction(policyRule, "suspend task", task, result);
 
-                        LOGGER.debug("Suspending task because of policy violation, rule: {}", policyRule);
+                        LOGGER.debug("Going to suspend the task because of policy violation, rule: {}", policyRule);
                         var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
 
                         throw new ThresholdPolicyViolationException(message, defaultMessage, cause);
                     } else if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
                         enforceNotificationAction(policyRule, "skip/restart activity", task, result);
 
-                        LOGGER.debug("Aborting activity because of policy violation, rule: {}", policyRule);
+                        LOGGER.debug("Going to abort the activity because of policy violation, rule: {}", policyRule);
 
                         var activityPath = getActivityPath(policyRule);
 
@@ -229,6 +244,35 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                 }
             }
         }
+    }
+
+    /**
+     * Builds a human-readable, localizable violation message. The trigger messages are collected the same way the
+     * non-threshold enforcement path does (see {@link #computeEnforcementForTriggeredRules}), which avoids dumping
+     * the whole {@link PolicyRuleType} bean into the operation execution.
+     *
+     * The result is "Policy rule '{name}' violation: {triggers}", or - if no trigger carries a message - just
+     * "Policy rule '{name}' violation" (a separate localization key, as there is no trigger argument to render).
+     */
+    private LocalizableMessage createViolationMessage(DirectlyEvaluatedClockworkPolicyRule policyRule) {
+        String ruleName = Objects.requireNonNullElse(policyRule.getName(), "Unnamed policy rule");
+        List<LocalizableMessage> triggerMessages = extractMessages(policyRule.getTriggers(), NORMAL).stream()
+                .map(TreeNode::getUserObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (triggerMessages.isEmpty()) {
+            return new SingleLocalizableMessage(
+                    "PolicyRuleEnforces.policyViolationMessageWithoutTriggers", new Object[] { ruleName });
+        }
+
+        LocalizableMessage triggers = new LocalizableMessageListBuilder()
+                .messages(triggerMessages)
+                .separator(LocalizableMessageList.SEMICOLON)
+                .buildOptimized();
+
+        return new SingleLocalizableMessage(
+                "PolicyRuleEnforces.policyViolationMessage", new Object[] { ruleName, triggers });
     }
 
     private void enforceNotificationAction(

@@ -27,9 +27,10 @@ import java.util.List;
 public class XlsxDataExporter extends AbstractDataExporter {
 
     private static final int SHEET_DEFAULT_COLUMN_WIDTH = 5000;
+    public static final String XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     public XlsxDataExporter() {
-        super(Model.of("XLSX"), "text/xlsx", "xlsx");
+        super(Model.of("XLSX"), XLSX_CONTENT_TYPE, "xlsx");
     }
 
     @Override
@@ -38,15 +39,18 @@ public class XlsxDataExporter extends AbstractDataExporter {
             List<IExportableColumn<T, ?>> columns,
             OutputStream outputStream
     ) throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet();
-        writeHeaders(columns, sheet);
-        writeData(dataProvider, columns, sheet);
-        workbook.write(outputStream);
-        workbook.close();
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet();
+
+            writeHeaders(columns, sheet);
+            writeData(dataProvider, columns, sheet);
+
+            workbook.write(outputStream);
+            outputStream.close();
+        }
     }
 
-    private <T> void writeHeaders(List<IExportableColumn<T, ?>> columns, Sheet sheet) {
+    protected  <T> void writeHeaders(List<IExportableColumn<T, ?>> columns, Sheet sheet) {
         Row header = sheet.createRow(0);
         int index = 0;
         for (IExportableColumn<T, ?> col : columns) {

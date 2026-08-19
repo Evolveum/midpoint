@@ -7,10 +7,10 @@
 package com.evolveum.midpoint.authentication.impl.module.configurer;
 
 import jakarta.servlet.ServletRequest;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.security.autoconfigure.web.servlet.SecurityFilterProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.authentication.impl.handler.MidpointAuthenticationF
 import com.evolveum.midpoint.authentication.impl.module.configuration.LoginFormModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentificationAuthenticationModuleType;
 
-@Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
+@Order(SecurityFilterProperties.BASIC_AUTH_ORDER - 10)
 public class FocusIdentificationModuleWebSecurityConfigurer
         extends ModuleWebSecurityConfigurer<LoginFormModuleWebSecurityConfiguration, FocusIdentificationAuthenticationModuleType> {
 
@@ -52,11 +52,11 @@ public class FocusIdentificationModuleWebSecurityConfigurer
         getOrApply(http, new MidpointExceptionHandlingConfigurer<>())
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/focusIdentification"));
 
-        http.logout().clearAuthentication(true)
+        http.logout(configurer -> configurer.clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler());
+                .logoutSuccessHandler(createLogoutHandler()));
 
         http.addFilterAfter(identificationFilter, UsernamePasswordAuthenticationFilter.class);
     }

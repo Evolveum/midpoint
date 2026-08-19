@@ -8,10 +8,15 @@ package com.evolveum.midpoint.authentication.impl.module.configuration;
 
 import static com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil.getBasePath;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.*;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -128,7 +133,7 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
                 .entityId(serviceProviderType.getEntityId())
                 .assertionConsumerServiceLocation(ssoBuilder.build().toUriString())
                 .singleLogoutServiceLocation(logoutBuilder.build().toUriString())
-                .assertingPartyDetails(party -> {
+                .assertingPartyMetadata(party -> {
                     party.entityId(providerType.getEntityId());
 
                     if (serviceProviderType.isSignRequests() != null) {

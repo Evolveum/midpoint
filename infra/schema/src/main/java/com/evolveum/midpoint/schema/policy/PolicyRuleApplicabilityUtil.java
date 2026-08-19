@@ -8,11 +8,12 @@ package com.evolveum.midpoint.schema.policy;
 
 import com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ApplicabilityHint;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEvaluationTargetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 import javax.xml.namespace.QName;
 
-import java.util.*;
+import java.util.Collection;
 
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.ApplicabilityHint.*;
 import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.getConstraintNamesForApplicabilityRequirement;
@@ -27,11 +28,14 @@ import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.getConstr
  *
  * General algorithm for applicability determination is:
  *
- * . If `evaluationTarget` (`assignment`, `object`, `projection`, `activity`) for the rule is set, it is used as authoritative
+ * . If `evaluationTarget` (`assignment`, `object`, `projection`) for the rule is set, it is used as authoritative
  * information.
  *
  * . If it's not (which is good for simplicity), we apply some heuristics based on the constraints used in the rule.
  * See specific methods for details.
+ *
+ * The applicability to an activity is an exception: it is determined solely by the presence of activity-specific
+ * constraints, and `evaluationTarget` plays no role there (there is no `activity` value for it).
  */
 public class PolicyRuleApplicabilityUtil {
 
@@ -96,7 +100,7 @@ public class PolicyRuleApplicabilityUtil {
     }
 
     /**
-     * Returns {@code true} if this policy rule can be applied to a projection.
+     * Returns {@code true} if this policy rule can be applied to an activity.
      *
      * Currently, we don't support `evaluationTarget` setting here, because the distinction can be based solely on the presence
      * of activity-specific constraints.

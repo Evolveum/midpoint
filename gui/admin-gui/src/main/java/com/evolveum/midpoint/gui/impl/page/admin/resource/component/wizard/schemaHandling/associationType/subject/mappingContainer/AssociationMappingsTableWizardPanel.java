@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.AssociationMappingEvaluatorModelBuilder;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -22,20 +24,16 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceNavigationWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -48,9 +46,6 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "rw-association-mappings")
@@ -140,59 +135,10 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
     private @NotNull IModel<PrismContainerValueWrapper<AssociationSynchronizationExpressionEvaluatorType>> evalModel(
             @NotNull ItemPath containerPath) {
 
-        boolean isInbound = containerPath.equals(ShadowAssociationDefinitionType.F_INBOUND);
-        IModel<PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType>> assocSubjectModel =
-                PrismContainerValueWrapperModel.fromContainerValueWrapper(
-                        getValueModel(),
-                        ItemPath.create(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION));
-
-        PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType> subject = assocSubjectModel.getObject();
-
-        try {
-            PrismContainerWrapper<MappingType> container = subject.findContainer(containerPath);
-
-            PrismContainerValueWrapper<MappingType> valueWrapper;
-            if (container.getValues().isEmpty()) {
-                PrismContainerValue<MappingType> newValue = container.getItem().createNewValue();
-
-                ExpressionType expression = newValue.asContainerable().beginExpression();
-                if (isInbound) {
-                    ExpressionUtil.updateAssociationSynchronizationExpressionValue(
-                            expression,
-                            new AssociationSynchronizationExpressionEvaluatorType());
-                } else {
-                    ExpressionUtil.updateAssociationConstructionExpressionValue(
-                            expression,
-                            new AssociationConstructionExpressionEvaluatorType());
-                }
-
-                valueWrapper = WebPrismUtil.createNewValueWrapper(
-                        container,
-                        newValue,
-                        getPageBase(),
-                        getAssignmentHolderDetailsModel().createWrapperContext());
-
-                valueWrapper.setStatus(ValueStatus.ADDED);
-                container.getValues().add(valueWrapper);
-            } else {
-                valueWrapper = container.getValues().get(0);
-            }
-
-            ItemPath evaluatorPath = ItemPath.create(
-                    isInbound
-                            ? SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION
-                            : SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION);
-
-            PrismContainerValueWrapper<MappingType> finalValueWrapper = valueWrapper;
-            return PrismContainerValueWrapperModel.fromContainerValueWrapper(
-                    () -> finalValueWrapper,
-                    evaluatorPath);
-
-        } catch (SchemaException e) {
-            throw new RuntimeException(
-                    "Cannot load " + (isInbound ? "inbound" : "outbound") + " association evaluator",
-                    e);
-        }
+        return new AssociationMappingEvaluatorModelBuilder(
+                getPageBase(),
+                getAssignmentHolderDetailsModel().createWrapperContext())
+                .build(getValueModel(), containerPath);
     }
 
     private boolean isAttributeVisible() {
@@ -325,7 +271,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
         };
 
         newObjectButton.showTitleAsLabel(true);
-        newObjectButton.add(AttributeAppender.replace("class", "btn btn-link ml-auto"));
+        newObjectButton.add(AttributeAppender.replace("class", "btn btn-link ms-auto"));
         repeatingView.add(newObjectButton);
     }
 
@@ -394,7 +340,7 @@ public abstract class AssociationMappingsTableWizardPanel<C extends Containerabl
 
     @Override
     protected String getSubmitButtonCssClass() {
-        return "ml-auto btn-primary";
+        return "ms-auto btn-primary";
     }
 
     @Override

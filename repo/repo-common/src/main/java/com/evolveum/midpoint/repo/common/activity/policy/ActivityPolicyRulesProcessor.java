@@ -169,12 +169,20 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void executeActions(EvaluatedActivityPolicyRuleImpl rule, OperationResult result) throws ActivityRunPolicyException {
+        // Notifications are sent first, regardless of where they appear among the actions:
+        // the order of actions in the parsed rule is not guaranteed, and the first enforcing
+        // action below ends the processing by throwing an exception.
         for (PolicyActionType action : rule.getActions()) {
             if (action instanceof NotificationPolicyActionType) {
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
 
                 activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
-                continue;
+            }
+        }
+
+        for (PolicyActionType action : rule.getActions()) {
+            if (action instanceof NotificationPolicyActionType) {
+                continue; // already processed above
             }
 
             String ruleName = rule.getName();
@@ -185,14 +193,14 @@ public class ActivityPolicyRulesProcessor {
                     "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName }, defaultMessage);
 
             if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {
-                LOGGER.debug("Aborting activity because of policy violation, rule: {}", rule);
+                LOGGER.debug("Going to abort the activity because of policy violation, rule: {}", rule);
                 var abortInfo = new ActivityAbortingInformationType()
                         .activityPath(rule.getActivityPath().toBean())
                         .policyAction(action.clone());
                 var cause = new ActivityPolicyBasedAbortException(message, defaultMessage, abortInfo);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
             } else if (action instanceof SuspendTaskPolicyActionType) {
-                LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
+                LOGGER.debug("Going to suspend the task because of policy violation, rule: {}", rule);
                 var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, cause);
             } else {

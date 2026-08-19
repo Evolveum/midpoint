@@ -9,7 +9,10 @@ package com.evolveum.midpoint.repo.common.activity.policy.evaluator;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.repo.common.activity.policy.*;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedItemProcessingResultTrigger;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.stereotype.Component;
 

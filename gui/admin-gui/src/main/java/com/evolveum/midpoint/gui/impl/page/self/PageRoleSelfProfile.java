@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.self;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
 import com.evolveum.midpoint.prism.PrismObject;

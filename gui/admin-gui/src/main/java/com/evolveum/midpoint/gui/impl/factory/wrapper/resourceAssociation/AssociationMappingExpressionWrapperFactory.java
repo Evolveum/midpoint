@@ -92,11 +92,21 @@ public abstract class AssociationMappingExpressionWrapperFactory<C extends Conta
         }
 
         if (childItem == null) {
+            @SuppressWarnings("unchecked")
+            PrismProperty<ExpressionType> expressionIns = (PrismProperty<ExpressionType>) parent.getDefinition().findItemDefinition(name).instantiate();
+            PrismPropertyValue<ExpressionType> newValue = getPrismContext().itemFactory().createPropertyValue();
+            newValue.setValue(new ExpressionType());
+            expressionIns.add(newValue);
+            parent.getNewValue().add(expressionIns);
+
             childItem = def.instantiate();
+            updateAssociationExpressionValue(expressionIns.getRealValue(), childItem.getRealValue());
         }
 
         return createWrapper(parent, childItem, status, context);
     }
+
+    protected abstract void updateAssociationExpressionValue(ExpressionType expression, C evaluator);
 
     protected ExpressionType getExpressionBean(PrismContainerValueWrapper<?> parent) {
         PrismProperty<ExpressionType> expression = parent.getNewValue().findProperty(getExpressionPropertyItemName());

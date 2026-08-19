@@ -10,12 +10,15 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
@@ -23,6 +26,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.buildStatusRows;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
 
 /**
  * DTO backing the SmartGeneratingPanel.
@@ -129,5 +133,14 @@ public class SmartGeneratingDto implements Serializable {
             return null;
         }
         return statusInfo.getObject().getRealizationEndTimestamp();
+    }
+
+    public void removeExistingSuggestionTask(@NotNull PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("Remove suggestion task");
+        OperationResult result = task.getResult();
+        TaskType taskObject = getTaskObject();
+        if (taskObject != null) {
+            removeWholeTaskObject(pageBase, task, result, taskObject.getOid());
+        }
     }
 }

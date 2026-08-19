@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 
 import java.util.ArrayList;
@@ -43,7 +43,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 @Component
 public class AccCertQueryHelper {

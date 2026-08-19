@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.schema.parser;
 
 import static com.evolveum.midpoint.schema.TestConstants.*;
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;

@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.schema.result.OperationResult;

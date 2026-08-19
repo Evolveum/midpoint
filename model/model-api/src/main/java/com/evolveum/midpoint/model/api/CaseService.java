@@ -31,7 +31,7 @@ public interface CaseService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * Completes a work item.
@@ -46,7 +46,7 @@ public interface CaseService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException;
+            CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Claims a work item that is assigned to an abstract role, so it becomes assigned to the current princial.
@@ -56,7 +56,7 @@ public interface CaseService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Releases claimed work item.
@@ -66,7 +66,7 @@ public interface CaseService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Delegates a work item.
@@ -77,7 +77,7 @@ public interface CaseService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException,
-            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     //endregion
 
@@ -90,6 +90,6 @@ public interface CaseService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, ObjectAlreadyExistsException;
+            CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
     //endregion
 }

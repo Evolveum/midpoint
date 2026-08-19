@@ -9,13 +9,13 @@
 <wicket:panel>
     <wicket:remove>
         <!-- for the future if we're able to "generate" icon from text & background definition -->
-        <div class="img-circle elevation-2 d-flex align-items-center justify-content-center h-100">
-            <span class="font-weight-bold text-truncate">HQ:LI</span>
+        <div class="rounded-circle shadow d-flex align-items-center justify-content-center h-100">
+            <span class="fw-bold text-truncate">HQ:LI</span>
         </div>
     </wicket:remove>
-    <div class="img-circle d-flex align-items-center justify-content-center h-100" wicket:id="icon"> <!-- elevation-1 -->
+    <div class="rounded-circle d-flex align-items-center justify-content-center h-100" wicket:id="icon"> <!-- shadow-sm -->
         <i wicket:id="cssIcon"/>
     </div>
-    <img class="img-circle h-100" wicket:id="image"/> <!-- elevation-1 -->
+    <img class="rounded-circle h-100" wicket:id="image"/> <!-- shadow-sm -->
 </wicket:panel>
 </html>

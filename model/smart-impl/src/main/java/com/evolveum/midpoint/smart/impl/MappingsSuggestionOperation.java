@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
+import com.evolveum.midpoint.smart.impl.shadowsampling.MappingSampleResult;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
@@ -38,17 +42,11 @@ import com.evolveum.midpoint.smart.impl.mappings.LowQualityMappingException;
 import com.evolveum.midpoint.smart.impl.mappings.MappingDirection;
 import com.evolveum.midpoint.smart.impl.mappings.MissingSourceDataException;
 import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
+import com.evolveum.midpoint.smart.impl.mappings.ShadowsWithOwnerSampleResult;
 import com.evolveum.midpoint.smart.impl.mappings.ValuesPairSample;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.scoring.ScriptValidationException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -70,8 +68,6 @@ class MappingsSuggestionOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingsSuggestionOperation.class);
 
-    private static final int LLM_EXAMPLES_COUNT = 20;
-    private static final int VALIDATION_EXAMPLES_COUNT = 200;
     private static final float MISSING_DATA_THRESHOLD = 0.05f;
     private static final float MINIMUM_QUALITY_THRESHOLD = 0.1f;
 
@@ -81,6 +77,7 @@ class MappingsSuggestionOperation {
     private final MappingsQualityAssessor qualityAssessor;
     private final MappingScriptValidator scriptValidator;
     private final ShadowsWithOwnersProvider shadowsWithOwnersProvider;
+    private final ObjectsSamplerProvider samplerProvider;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final HeuristicRuleMatcher heuristicRuleMatcher;
     private final CategoricalAttributeRegistry categoricalAttributeRegistry;
@@ -93,6 +90,7 @@ class MappingsSuggestionOperation {
             TypeOperationContext ctx,
             MappingsQualityAssessor qualityAssessor,
             ShadowsWithOwnersProvider shadowsWithOwnersProvider,
+            ObjectsSamplerProvider samplerProvider,
             MappingScriptValidator scriptValidator,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
@@ -105,6 +103,7 @@ class MappingsSuggestionOperation {
         this.qualityAssessor = qualityAssessor;
         this.scriptValidator = scriptValidator;
         this.shadowsWithOwnersProvider = shadowsWithOwnersProvider;
+        this.samplerProvider = samplerProvider;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.heuristicRuleMatcher = heuristicRuleMatcher;
         this.categoricalAttributeRegistry = categoricalAttributeRegistry;
@@ -119,6 +118,7 @@ class MappingsSuggestionOperation {
             MappingsQualityAssessor qualityAssessor,
             MappingScriptValidator scriptValidator,
             ShadowsWithOwnersProvider shadowsWithOwnersProvider,
+            ObjectsSamplerProvider samplerProvider,
             WellKnownSchemaService wellKnownSchemaService,
             HeuristicRuleMatcher heuristicRuleMatcher,
             CategoricalAttributeRegistry categoricalAttributeRegistry,
@@ -132,6 +132,7 @@ class MappingsSuggestionOperation {
                 ctx,
                 qualityAssessor,
                 shadowsWithOwnersProvider,
+                samplerProvider,
                 scriptValidator,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
@@ -151,15 +152,14 @@ class MappingsSuggestionOperation {
             SchemaMatchResultType schemaMatch,
             @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException, SubscriptionComplianceException {
         ctx.checkIfCanRun();
 
-        var ownedShadows = collectOwnedShadows(result);
-        int llmDataCount = Math.min(LLM_EXAMPLES_COUNT, ownedShadows.size());
-        int validationDataCount = Math.min(VALIDATION_EXAMPLES_COUNT, ownedShadows.size());
-        var shadowsForLLM = ownedShadows.subList(0, llmDataCount);
-        var shadowsForValidation = ownedShadows.subList(ownedShadows.size() - validationDataCount, ownedShadows.size());
-        LOGGER.trace("LLM data count = {}, Validation data count={}, Total={}.", llmDataCount, validationDataCount, ownedShadows.size());
+        var sampleResult = collectOwnedShadows(result);
+        var shadowsForLLM = sampleResult.llmSamples();
+        var shadowsForValidation = sampleResult.validationSamples();
+
+        LOGGER.info("Using {} shadows for LLM, {} for validation.", shadowsForLLM.size(), shadowsForValidation.size());
         ctx.checkIfCanRun();
 
         var mappingsSuggestionState = ctx.stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
@@ -248,6 +248,8 @@ class MappingsSuggestionOperation {
 
             mappingCandidates.best()
                     .forEach(suggestion.getAttributeMappings()::add);
+
+            addDefaultIterationSpecificationIfNeeded(suggestion);
 
             return suggestion;
         } catch (Exception e) {
@@ -346,14 +348,13 @@ class MappingsSuggestionOperation {
         }
     }
 
-    private List<ShadowWithOwner> collectOwnedShadows(OperationResult result)
+    private ShadowsWithOwnerSampleResult collectOwnedShadows(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         var state = ctx.stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
-        state.setExpectedProgress(LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
         state.flush(result); // because finding an owned shadow can take a while
         try {
-            return shadowsWithOwnersProvider.fetch(ctx, state, result, LLM_EXAMPLES_COUNT + VALIDATION_EXAMPLES_COUNT);
+            return shadowsWithOwnersProvider.fetch(ctx, state, result);
         } catch (Exception e) {
             state.recordException(e);
             throw e;
@@ -455,7 +456,9 @@ class MappingsSuggestionOperation {
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(script)));
+                                new ScriptExpressionEvaluatorType()
+                                        .language("mel")
+                                        .code(script)));
     }
 
     private SiSuggestMappingResponseType askMicroserviceAsync(
@@ -496,7 +499,7 @@ class MappingsSuggestionOperation {
                 if (attrStats.isPresent()) {
                     int missingCount = attrStats.get().getMissingValueCount();
                     int totalSize = objectTypeStatistics.getSize();
-                    if (totalSize > 0 && missingCount > MISSING_DATA_THRESHOLD * totalSize) {
+                    if (totalSize > 0 && missingCount > (1 - MISSING_DATA_THRESHOLD) * totalSize) {
                         LOGGER.trace("Skipping inbound mapping: attribute {} has low missingCount ({}) relative to total ({}).",
                                 matchPair.getShadowAttributePath(), missingCount, totalSize);
                         throw new MissingSourceDataException(matchPair.getShadowAttributePath(), matchPair.getFocusPropertyPath());
@@ -596,7 +599,9 @@ class MappingsSuggestionOperation {
                 var result = new OperationResult("validateCategoricalMappingScript");
                 String variableName = isInbound ? ExpressionConstants.VAR_INPUT : matchPair.getFocusProperty().getName();
                 String testValue = attrStats.get().getValueCount().get(0).getValue();
-                scriptValidator.testCategoricalMappingScript(expression, variableName, testValue, ctx.task, result);
+                Class<?> testValueClass = testValue != null ? testValue.getClass() : String.class;
+                scriptValidator.testCategoricalMappingScript(
+                        expression, variableName, testValue, testValueClass, ctx.task, result);
             } catch (ScriptValidationException e) {
                 LOGGER.warn("Categorical mapping script validation failed for {}: {}",
                         matchPair.getShadowAttributePath(), e.getMessage());
@@ -744,6 +749,68 @@ class MappingsSuggestionOperation {
                 boolean isSystemProvided) {
             return new MappingEvaluationResult(expression, expectedQuality, isSystemProvided);
         }
+    }
+
+    private void addDefaultIterationSpecificationIfNeeded(MappingsSuggestionType suggestion) {
+        for (AttributeMappingsSuggestionType mapping : suggestion.getAttributeMappings()) {
+            if (mappingUsesIterationToken(mapping)) {
+                IterationSpecificationType existingIterationSpec = ctx.typeDefinition.getDefinitionBean().getIteration();
+                if (existingIterationSpec != null) {
+                    suggestion.setIterationSpecification(existingIterationSpec);
+                    return;
+                }
+
+                IterationSpecificationType iterationSpec = new IterationSpecificationType();
+                iterationSpec.setStart(1);
+                iterationSpec.setEnd(10);
+                suggestion.setIterationSpecification(iterationSpec);
+                return;
+            }
+        }
+    }
+
+    private boolean mappingUsesIterationToken(AttributeMappingsSuggestionType mapping) {
+        String script = extractScriptFromAttributeMapping(mapping);
+        return script != null && (script.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
+                || script.contains(ExpressionConstants.VAR_ITERATION)
+                || script.contains(ExpressionConstants.VAR_ATTEMPT));
+    }
+
+    private String extractScriptFromAttributeMapping(AttributeMappingsSuggestionType mapping) {
+        ResourceAttributeDefinitionType definition = mapping.getDefinition();
+        if (definition == null) {
+            return null;
+        }
+        if (isInbound) {
+            if (definition.getInbound() != null && !definition.getInbound().isEmpty()) {
+                InboundMappingType inbound = definition.getInbound().get(0);
+                if (inbound != null) {
+                    return extractScriptFromExpression(inbound.getExpression());
+                }
+            }
+        } else {
+            MappingType outbound = definition.getOutbound();
+            if (outbound != null) {
+                return extractScriptFromExpression(outbound.getExpression());
+            }
+        }
+        return null;
+    }
+
+    private String extractScriptFromExpression(ExpressionType expression) {
+        if (expression == null) {
+            return null;
+        }
+        var evaluators = expression.getExpressionEvaluator();
+        if (evaluators == null) {
+            return null;
+        }
+        for (var evaluator : evaluators) {
+            if (evaluator.getValue() instanceof ScriptExpressionEvaluatorType scriptEval) {
+                return scriptEval.getCode();
+            }
+        }
+        return null;
     }
 
 }

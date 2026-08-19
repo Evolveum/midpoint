@@ -14,7 +14,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ShadowAssociation;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +78,7 @@ public class AssociationFromLinkExpressionEvaluator
     public PrismValueDeltaSetTriple<ShadowAssociationValue> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -222,7 +224,7 @@ public class AssociationFromLinkExpressionEvaluator
     private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg, List<String> candidateShadowsOidList,
             Collection<SelectorOptions<GetOperationOptions>> options, String desc, ExpressionEvaluationContext context,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
             OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, context.getTask(), result);

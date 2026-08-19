@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.impl.visualizer.output.NameImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationDeltaItemImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemValueImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class ContainerPropertiesModificationFormatterTest {
 

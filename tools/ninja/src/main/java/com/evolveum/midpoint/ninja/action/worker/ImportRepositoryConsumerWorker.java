@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
-
 import org.springframework.context.ApplicationContext;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;

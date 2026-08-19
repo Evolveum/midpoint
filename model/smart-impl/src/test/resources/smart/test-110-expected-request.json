@@ -9,6 +9,11 @@
         "minOccurs" : 0,
         "maxOccurs" : 1
       }, {
+        "name" : "c:attributes/ri:cn",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
+      }, {
         "name" : "c:attributes/ri:created",
         "type" : "xsd:dateTime",
         "minOccurs" : 0,

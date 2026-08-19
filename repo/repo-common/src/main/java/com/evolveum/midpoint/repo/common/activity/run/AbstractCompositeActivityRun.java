@@ -137,6 +137,9 @@ public abstract class AbstractCompositeActivityRun<
                     } else {
                         assert childRunResult.isToBeRestarted();
                         // We need to reach the nearest task boundary, and request the restart there.
+                        LOGGER.debug("Child activity '{}' is to be restarted (attempt {}); "
+                                        + "propagating RESTART_REQUESTED towards the nearest task boundary",
+                                child.getPath(), child.getRun().getActivityState().getExecutionAttempt());
                         updateOperationResultStatus(childResults); // the result is most probably FATAL_ERROR
                         runResult.setRunResultStatus(RESTART_REQUESTED); // throwable is not important here
                         runResult.setRestartRequestingInformation(
@@ -147,6 +150,9 @@ public abstract class AbstractCompositeActivityRun<
                     }
                 } else if (child.getPath().startsWith(pathToSkipOrRestart)) {
                     // Some of the ancestors is to be skipped or restarted. We have to abort the whole run.
+                    LOGGER.debug("Child activity '{}' aborted with target '{}' (an ancestor of ours at '{}'); "
+                                    + "aborting this composite run as well",
+                            child.getPath(), pathToSkipOrRestart, getActivityPath());
                     updateOperationResultStatus(childResults); // the result is most probably FATAL_ERROR
                     runResult.setRunResultStatus(ABORTED, childRunResult.getThrowable());
                     runResult.setAbortingInformation(abortingInformation);

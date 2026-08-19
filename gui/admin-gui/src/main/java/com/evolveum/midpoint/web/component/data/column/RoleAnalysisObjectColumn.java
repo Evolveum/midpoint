@@ -113,7 +113,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         };
         compressButton.titleAsLabel(true);
         compressButton.setOutputMarkupId(true);
-        compressButton.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        compressButton.add(AttributeModifier.append("class", "btn btn-light border btn-sm"));
         compressButton.add(AttributeModifier.append("style",
                 "  writing-mode: vertical-lr;  -webkit-transform: rotate(90deg);"));
 

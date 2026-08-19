@@ -44,9 +44,12 @@ If you are used to create Groovy scripts, xref:../migration/[MEL Migration Guide
 |
 
 | Null
-| `null`
-| `null`
-|
+| `null` +
+`nil`
+| `null` +
+`nil`
+| `nil` is dynamically-typed,
+see xref:../null/[nullability notes].
 
 | List
 | `[]` (square brackets)
@@ -152,19 +155,10 @@ Following _operators_ can be used in MEL expressions:
 | Selection
 | Used to resolve structured data, assumes non-null operand.
 
-|`.?`
-| Optional selection
-| Used to resolve structured data, can handle null operand.
-
 |`[]`
 | Index
 | Used to retrieve specific value from a list, map or structured data.
 Assumes non-null operand.
-
-|`[?]`
-| Optional Index
-| Used to retrieve specific value from a list, map or structured data.
-Can handle null operand.
 
 |====
 
@@ -256,6 +250,19 @@ ASCII characters with diacritical marks are converted to their basic variants (r
 ascii('Čórtův hrád, tam Strašá!')
 ----
 
+=== capitalize
+
+`string.capitalize()` -> string
+
+Converts first character of a string to upper case.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+'midPoint'.capitalize()   // Returns 'MidPoint'
+----
+
 
 === charAt
 
@@ -270,24 +277,44 @@ If the position is negative, or greater than the length of the string, the funct
 'midpoint'.charAt(1)   // Returns 'i'
 ----
 
-=== contains
+=== contains(string)
 
-`string.contains(substring)` -> bool
+`string.contains(substring)` -> bool +
+`contains(string, substring)` -> bool
 
 Function that tests whether the string contains the substring.
 Works on strings as well as polystrings.
+Global version of this function is `null` resistant, returning `null` in case that the input string is `null`.
 
 .Example
 [source,mel]
 ----
 // Checks whether the full name contains substring 'Mr.'
 focus.fullName.contains('Mr.')
+
+// Checks whether the full name contains substring 'Mr.' (null resistant)
+contains(focus.?fullName, 'Mr.')
+----
+
+=== contains(list)
+
+`list.contains(any)` -> bool
+
+Function that tests whether provided list contains specified item.
+
+.Example
+[source,mel]
+----
+['Alpha', 'Bravo', 'Charlie'].contains('Bravo')  // Returns true
+
+focus.organizationUnit.contains('Sales')
 ----
 
 
-=== containsIgnoreCase
+=== containsIgnoreCase(string)
 
-`string.containsIgnoreCase(substring)` -> bool
+`string.containsIgnoreCase(substring)` -> bool +
+`containsIgnoreCase(string, substring)` -> bool
 
 Function that tests whether the string contains the substring without regard to character case.
 Works on strings as well as polystrings.
@@ -295,9 +322,26 @@ Works on strings as well as polystrings.
 .Example
 [source,mel]
 ----
-// Checks whether the full name contains substring 'Mr.'
-focus.fullName.contains('Mr.')
+// Checks whether the full name contains substring 'phd.' in any combination of cases
+focus.fullName.containsIgnoreCase('phd.')
 ----
+
+=== containsIgnoreCase(list)
+
+`list.containsIgnoreCase(any)` -> bool
+
+Function that tests whether provided list contains specified item without regard to case.
+
+.Example
+[source,mel]
+----
+['Alpha', 'Bravo', 'Charlie'].contains('Bravo')            // Returns true
+
+['Alpha', 'Bravo', 'Charlie'].containsIgnoreCase('bravo')  // Returns true
+
+focus.organizationUnit.contains('sales')
+----
+
 
 === debugDump
 
@@ -348,6 +392,20 @@ Works on strings as well as polystrings.
 focus.fullName.endsWith('PhD.')
 ----
 
+=== equalsIgnoreCase
+
+`string.equalsIgnoreCase(string)` -> bool +
+`equalsIgnoreCase(string, string)` -> bool
+
+Function that tests whether strings equally match without regard to character case.
+Works on strings as well as polystrings.
+
+.Example
+[source,mel]
+----
+'FooBar'.equalsIgnoreCase('foobar')  // Returns true
+----
+
 === exists
 
 `list(A).exists(A, predicate(A))` -> bool +
@@ -392,21 +450,31 @@ focus.assignment.filter(a, has(a.targetRef))
 
 === format
 
-`string.format(list)` -> string
+`string.format(list)` -> string +
+`format(string, list)` -> string
 
 Format strings according to specified template, filling in data from the arguments.
 
 Format specification follows https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html[Java formatter conventions].
+
+The `format()` function is null-safe in the Java way.
+I.e. the `format()` function will not fail if a null argument is provided as input.
+However, the null values of are rendered as string `null`.
 
 .Example
 [source,mel]
 ----
 // Returns 'Jack has 3 apples'
 '%s has %d apples'.format(['Jack', 3])
+format('%s has %d apples', ['Jack', 3])
 ----
 
-It is strongly recommended to use `format()` function instead of add operator (`\+`) for string concatenation.
-Unlike the add operator (`+`), the `format()` function can work reliably with all data types and values, including `null` values.
+.Example
+[source,mel]
+----
+// Returns 'null has null apples'
+'%s has %d apples'.format([null, null])
+----
 
 === has
 
@@ -443,7 +511,7 @@ If the search string is not found the function returns -1.
 `isBlank(string)` -> bool +
 `string.isBlank()` -> bool
 
-Returns true if string is blank (has zero length or contains only white characters).
+Returns true if string is blank (is null, has zero length or contains only white characters).
 
 .Example
 [source,mel]
@@ -471,44 +539,13 @@ Also returns true if the argument is an empty list.
 isEmpty([])      // Returns true
 ----
 
-=== isNull
-
-`isNull(any)` -> bool
-
-Returns true if the argument is `null` or any of its equivalents.
-This function works reliably in all the cases when a test for "nullness" would be done.
-E.g. it works with variables as well as _optionals_ that are result of `.?` operator use.
-
-Use of this function is strongly recommended for null checks in all places.
-
-.Example
-[source,mel]
-----
-isNull(null)     // Returns true
-isNull('foo')    // Returns false
-----
-
-Function `isNull()` can be used with structured data as well.
-The following expression returns `false` only if (non-null) value of `validFrom` property is present.
-It returns `true` in all other cases, such as when `focus` variable contains `null`, if the object in `focus` variable does not have `activation` container, if the container does not contain `validFrom` property or if that property is `null`.
-
-.Example
-[source,mel]
-----
-isNull(focus.?activation.?validFrom)
-----
-
-It is strongly recommended to use `isNull()` function instead of `null` equality check (e.g. `foo == null`) in all cases.
-
 === isPresent
 
 `isPresent(any)` -> bool
 
 Returns true if the argument is present, i.e. if it is not `null` nor any of its equivalents.
 This function works reliably in all the cases when a test for presence would be done.
-E.g. it works with variables as well as _optionals_ that are result of `.?` operator use.
-
-Use of this function is strongly recommended for presence checks in all places.
+E.g. it works with primitive types as well as items of structured types.
 
 .Example
 [source,mel]
@@ -524,25 +561,27 @@ It returns `false` in all other cases, such as when `focus` variable contains `n
 .Example
 [source,mel]
 ----
-isPresent(focus.?activation.?validFrom)
+isPresent(focus.activation.validFrom)
 ----
-
-It is strongly recommended to use `isPresent()` function instead of `null` inequality check (e.g. `foo != null`) in all cases.
-
 
 === join
 
 `list(string).join()` -> string +
-`list(string).join(separator)` -> string
+`list(string).join(separator)` -> string +
+join(`list(string))` -> string +
+join(`list(string), separator)` -> string
+
 
 Returns a new string where the elements of string list are concatenated using the separator.
 If no separator is specified, empty string is used as separator.
+List items that are `null` are ignored during processing.
 
 .Example
 [source,mel]
 ----
-['foo','bar','baz'].join()     // Returns 'foobarbaz'
-['foo','bar','baz'].join(',')  // Returns 'foo,bar,baz'
+['foo','bar','baz'].join()       // Returns 'foobarbaz'
+['foo','bar','baz'].join(',')    // Returns 'foo,bar,baz'
+join(['foo', null, 'bar'], '/')  // Returns 'foo/bar'
 ----
 
 === lastIndexOf
@@ -582,12 +621,16 @@ Returns list composed of specified argument.
 If a scalar argument is provided, it returns a single-element list containing that argument.
 If a list is provided as argument, the same list is returned.
 
+This function always returns list.
+Even if `null` or `nil` input is provided, empty list is returned.
+
 .Example
 [source,mel]
 ----
 list('foo')          // Returns ['foo']
 list(['foo'])        // Returns ['foo']
 list(['foo','bar'])  // Returns ['foo','bar']
+list(nil)            // Returns []
 ----
 
 === lowerAscii
@@ -643,7 +686,7 @@ focus.assignment.map(a, has(a.targetRef) a.targetRef.oid)
 Function that tests whether the string matches a specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
 Works on strings as well as polystrings.
 
-The `match` function tests for a _partial_ match of regular expression.
+The `match` function tests for a _partial_ (non-anchored) match of regular expression.
 I.e. the function returns true if any substring of the specified string matches specified regular expression.
 If a different behavior is needed, the regular expression needs to be _anchored_, e.g. by using `^` and `$` anchors.
 
@@ -660,6 +703,10 @@ focus.telephoneNumber.matches('^[0-9]+$')
 focus.fullName.matches('[0-9]+')
 ----
 
+See also `reMatches()` function, which is effectively a copy of this function.
+The `matches()` function is provided only for compatibility with CEL conventions.
+Use of `reMatches()` and other `re*` regular expression functions is recommended.
+
 === norm
 
 `norm(string)` -> string
@@ -673,6 +720,100 @@ This function works on strings as well as polystrings.
 ----
 norm('  Semančík')    // Returns 'semancik'
 ----
+
+=== prefix
+
+`string.prefix(string)` -> string +
+`prefix(string, string)` -> string
+
+Returns string prefixed with another string.
+
+This function is null-safe. It returns null if the first string is null.
+
+.Example
+[source,mel]
+----
+'foo'.prefix('bar')  // Returns 'barfoo'
+prefix('foo', 'bar') // Returns 'barfoo'
+prefix(null, 'bar')  // Returns null
+----
+
+=== quote
+
+`string.quote()` -> string
+
+Takes orig part of the given string and makes it safe to print
+(without any formatting due to escape sequences).
+If any invalid UTF-8 characters are encountered, they are replaced with \uFFFD.
+
+.Example
+[source,mel]
+----
+'foo\nbar'.quote()  // Returns '"foo\\nbar"'
+----
+
+=== reFind
+
+`string.reFind(regex)` -> string
+
+Function that returns the string that corresponds to the fist occurrence of specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+'foo 123 bar 456'.reFind('[0-9]+')    // Returns '123'
+----
+
+=== reFindAll
+
+`string.reFindAll(regex)` -> list
+
+Function that returns list of string that corresponds to all occurrences of specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+Empty list is returned in case there are no occurences, or in case the input text is `null`.
+
+.Examples
+[source,mel]
+----
+'foo 123 bar 456'.reFindAll('[0-9]+')    // Returns ['123', '456']
+----
+
+=== reMatches
+
+`string.reMatches(regex)` -> bool +
+`reMatches(string, regex)` -> bool
+
+Function that tests whether the string matches a specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression].
+Works on strings as well as polystrings.
+
+The `match` function tests for a _partial_ (non-anchored) match of regular expression.
+I.e. the function returns true if any substring of the specified string matches specified regular expression.
+If a different behavior is needed, the regular expression needs to be _anchored_, e.g. by using `^` and `$` anchors.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+// Checks whether the telephone number contains numbers only
+focus.telephoneNumber.reMatches('^[0-9]+$')
+
+// Checks whether the full name contains a number anywhere in the string
+focus.fullName.reMatches('[0-9]+')
+----
+
+The `matches()` function described above is effectively a copy of this function.
+The `matches()` function is provided only for compatibility with CEL conventions.
+Use of `reMatches()` and other `re*` regular expression functions is recommended.
 
 === replace
 
@@ -690,6 +831,39 @@ When the limit is a negative number, the function behaves the same as replace al
 'sailpoint'.replace('sail','mid')  // Returns 'midpoint'
 ----
 
+=== reReplace
+
+`string.reReplace(regex, replacement)` -> string +
+`string.reReplace(regex, replacement, replaceAll)` -> string
+
+Function that returns the string that corresponds to the input string,
+with matches of the specified link:https://github.com/google/re2/blob/main/README.md[RE2 regular expression] replaced.
+The last argument specified whether to replace all occurrences (`true`) or just the first one (`false`).
+The default behavior is to replace all occurrences.
+Works on strings as well as polystrings.
+
+RE2 expressions are a subset of Perl/PCRE regular expressions.
+See also link:https://github.com/google/re2/wiki/Syntax[RE2 syntax definition].
+
+.Examples
+[source,mel]
+----
+'foo 123 bar 456'.reReplace('[0-9]+', 'X')          // Returns 'foo X bar X'
+'foo 123 bar 456'.reReplace('[0-9]+', 'X', false)   // Returns 'foo X bar 456'
+----
+
+=== reverse
+
+`string.reverse()` -> string
+
+Returns a new string whose characters are the same as the target string,
+only formatted in reverse order.
+
+.Example
+[source,mel]
+----
+'foobar'.reverse()  // Returns 'raboof'
+----
 
 === single
 
@@ -805,13 +979,17 @@ For type conversion function see `str()`.
 ----
 stringify(['foo','bar'])  // Returns '["foo","bar"]'
 stringify(3)              // Returns '3'
-stringify(null, '?')      // Returns '*'
+stringify(null)           // Returns ''
+stringify(null, '?')      // Returns '?'
 ----
 
 === substring
 
 `string.substring(beginIndex)` -> string +
-`string.substring(beginIndex, endIndex)` -> string
+`string.substring(beginIndex, endIndex)` -> string +
+`substring(string, beginIndex)` -> string +
+`substring(string, beginIndex, endIndex)` -> string
+
 
 Returns a string that is a substring of this string.
 The substring begins at the specified `beginIndex` and extends to the character at index `endIndex - 1`.
@@ -820,27 +998,51 @@ If `endIndex` is not specified, the substring extends to the end of original str
 
 Empty string is returned in case that the indexes extend beyond the original string.
 
+Global version of this function is `null` resistant, returning `null` in case that the input string is `null`.
+
 .Example
 [source,mel]
 ----
 'midpoint'.substring(0,3)   // Returns 'mid'
+substring('midpoint',0,3)   // Returns 'mid' (null resistant)
 ----
 
 NOTE: The `substring` function does not fail in case the indexes extend beyond the original string.
 This behavior differs from stock behavior of Google CEL string extensions.
 This behavior change is very intentional, enabling creation of simpler expressions.
 
+=== suffix
+
+`string.suffix(string)` -> string +
+`suffix(string, string)` -> string
+
+Returns string suffix by another string.
+
+This function is null-safe. It returns null if the first string is null.
+
+.Example
+[source,mel]
+----
+'foo'.suffix('bar')  // Returns 'foobar'
+suffix('foo', 'bar') // Returns 'foobar'
+suffix(null, 'bar')  // Returns null
+----
+
 === trim
 
-`string.trim()` -> string
+`string.trim()` -> string +
+`trim(string)` -> string
 
 Returns a new string which removes the leading and trailing whitespace in the target string.
 The trim function uses the Unicode definition of whitespace which does not include the zero-width spaces.
+
+Global version of this function is `null` resistant, returning `null` in case that the input string is `null`.
 
 .Example
 [source,mel]
 ----
 ' midpoint  '.trim()   // Returns 'midpoint'
+trim(' midpoint  ')    // Returns 'midpoint' (null resistant)
 ----
 
 === upperAscii
@@ -1422,9 +1624,9 @@ such as resources or shadows.
 Functions in this language extension does not have a prefix.
 They are invoked as a _member_ functions on appropriate value or variable containing midPoint object.
 
-==== find
+==== findItem
 
-`object.find(path)` -> item
+`object.findItem(path)` -> item
 
 Returns an item to which the specified item path refers.
 
@@ -1432,7 +1634,7 @@ Returns an item to which the specified item path refers.
 [source,mel]
 ----
 // Returns a value of administrativeStatus property
-focus.find('activation/administrativeStatus')
+focus.findItem('activation/administrativeStatus')
 ----
 
 ==== isEffectivelyEnabled
@@ -1451,6 +1653,184 @@ If the `activation/effectiveStatus` is not present, the return value of the meth
 ----
 focus.isEffectivelyEnabled()
 ----
+
+==== type
+
+`object.type()` -> qname
+
+Returns type of the object in QName form.
+The type corresponds to types as specified in midPoint schema, (e.g. `UserType`, `RoleType`).
+
+.Example
+[source,mel]
+----
+focus.type() == 'UserType'
+----
+
+
+==== hasRelation
+
+`assignment.hasRelation(relation)` -> bool
+
+Returns true if `targetRef` of the assignment has specified relation.
+
+Relation can be specified as string or qname.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasRelation('owner')
+----
+
+==== has*Relation
+
+`assignment.hasDefaultRelation()` -> bool +
+`assignment.hasApproverRelation()` -> bool +
+`assignment.hasConsentRelation()` -> bool +
+`assignment.hasDeputyRelation()` -> bool +
+`assignment.hasMetaRelation()` -> bool +
+`assignment.hasOwnerRelation()` -> bool +
+`assignment.hasRelatedRelation()` -> bool
+
+
+Returns true if `targetRef` of the assignment has specified relation.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasOwnerRelation()
+----
+
+==== isTarget
+
+`assignment.isTarget(type)` -> bool +
+`assignment.isTarget(type, archetypeOid)` -> bool
+
+Returns true if `targetRef` of the assignment is of specified type.
+When archetype OID is specified, the function also checks for presence of specified archetype in target object.
+
+Type can be specified as string or qname.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTarget('RoleType')
+
+// Checks whether the target is business role.
+assignment.isTarget('RoleType', '00000000-0000-0000-0000-000000000321')
+----
+
+==== isTarget*
+
+`assignment.isTargetRole()` -> bool +
+`assignment.isTargetRole(archetypeOid)` -> bool +
+`assignment.isTargetOrg()` -> bool +
+`assignment.isTargetOrg(archetypeOid)` -> bool +
+`assignment.isTargetService()` -> bool +
+`assignment.isTargetService(archetypeOid)` -> bool +
+`assignment.isTargetPolicy()` -> bool +
+`assignment.isTargetPolicy(archetypeOid)` -> bool +
+`assignment.isTargetUser()` -> bool +
+`assignment.isTargetUser(archetypeOid)` -> bool
+
+
+Returns true if `targetRef` of the assignment is of specified type.
+When archetype OID is specified, the function also checks for presence of specified archetype in target object.
+
+When archetype parameter is specified, invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTargetRole()
+
+// Checks whether the target is business role.
+assignment.isTargetRole('00000000-0000-0000-0000-000000000321')
+----
+
+==== target
+
+`assignment.target()` -> object
+
+Returns object that the targetRef of the assignment refers to.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
+
+Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+.Example
+[source,mel]
+----
+assignment.target().description
+----
+
+==== targetName
+
+`assignment.targetName()` -> polystring
+
+Returns name of the object that the targetRef of the assignment refers to.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
+
+Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+.Example
+[source,mel]
+----
+'Target:' + assignment.targetName()
+----
+
+==== targetOid
+
+`assignment.targetOid()` -> oid
+
+Returns OID of targetRef of the assignment.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetOid() == '9dbea12d-81dc-11f1-9bfe-9c6b00360713'
+----
+
+==== targetRelation
+
+`assignment.targetRelation()` -> qname
+
+Returns relation of targetRef of the assignment.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetRelation() == 'owner'
+----
+
+
+==== targetType
+
+`assignment.targetType()` -> qname
+
+Returns type of targetRef of the assignment.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetType() == 'RoleType'
+----
+
 
 ==== connectorConfiguration
 
@@ -1522,7 +1902,271 @@ As most identifiers as single-valued, this function is often combined with `sing
 single(shadow.secondaryIdentifiers())
 ----
 
-== Timestamps and Durations
+=== MidPoint Extension
+
+MidPoint extension provides functions that interact with midPoint, such as functions for reading midPoint objects from repository, searching for objects and so on.
+
+Due to the nature of MEL, only functions that are safe and free of side effects are provided.
+This means that the functions have read-only character.
+
+==== midpoint.getLinkedShadow
+
+`midpoint.getLinkedShadow(focus, resourceOid)` -> shadow +
+`midpoint.getLinkedShadow(focus, resourceOid, repositoryObjectOnly)` -> shadow +
+`midpoint.getLinkedShadow(focus, resourceOid, kind, intent)` -> shadow +
+`midpoint.getLinkedShadow(focus, resourceOid, kind, intent, repositoryObjectOnly)` -> shadow
+
+Returns a shadow on specified resource (`resourceOid`), which is linked to the specified focus.
+The `repositoryOnly` parameter specifies whether the shadow has to be retrieved only from midPoint repository (`true`), or whether the data corresponding to the shadow can be retrieved from the resource (`false`, default).
+Shadow _kind_ and _intent_ can be specified as well.
+Null values of resource oid, kind, and intent mean "any".
+
+This function assumes that at most one such shadow is linked to the focus.
+If more than one shadow is linked, function behavior is unspecified.
+
+.Example
+[source,mel]
+----
+// Returns shadow on resource specified by OID, which has account kind and any intent.
+midpoint.getLinkedShadow(focus, '5b1b59f6-805c-11f1-be6c-e3515ff454a8', 'account', null)
+----
+
+==== midpoint.getLinkedShadows
+
+`midpoint.getLinkedShadows(focus, resourceOid)` -> list(shadow) +
+`midpoint.getLinkedShadows(focus, resourceOid, repositoryObjectOnly)` -> list(shadow)
+
+Returns a list of shadows on specified resource (`resourceOid`), which is linked to the specified focus.
+The `repositoryOnly` parameter specifies whether the shadow has to be retrieved only from midPoint repository (`true`), or whether the data corresponding to the shadow can be retrieved from the resource (`false`, default).
+
+.Example
+[source,mel]
+----
+// Returns list of shadows on resource specified by OID
+midpoint.getLinkedShadows(focus, '5b1b59f6-805c-11f1-be6c-e3515ff454a8')
+----
+
+==== midpoint.getManagersOids
+
+`midpoint.getManagersOids(user)` -> list(string)
+
+Returns a list of OIDs of user's managers.
+Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+
+.Example
+[source,mel]
+----
+midpoint.getManagersOids(focus)
+----
+
+==== midpoint.getManagersOidsExceptUser
+
+`midpoint.getManagersOidsExceptUser(user)` -> list(string)
+
+Returns a list of OIDs of user's managers.
+Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+The list excludes OID of the user itself.
+
+.Example
+[source,mel]
+----
+midpoint.getManagersOidsExceptUser(focus)
+----
+
+==== midpoint.getObject
+
+`midpoint.getObject(type, oid)` -> object
+
+Returns object for provided OID.
+It retrieves the object from an appropriate source for an object type
+(e.g. internal repository, resource or both), merging data as necessary,
+processing any policies, caching mechanisms, etc.
+
+Object type can be specified as qname or as string.
+
+.Example
+[source,mel]
+----
+midpoint.getObject('user', '06407948-8061-11f1-96a1-631cb39ca677')
+----
+
+==== midpoint.getObjectsInConflictOnPropertyValue
+
+`getObjectsInConflictOnPropertyValue(object, propertyPath, propertyValue, getAllConflicting)` -> list(object)
+
+Returns a list of objects that are conflicting with the specified object on specified property.
+The `propertyPath` parameter specifies xref:/midpoint/reference/concepts/item-path/[item path] of the item to be checked.
+The `propertyValue` specifies the candidate value of that item.
+Uniqueness of that value will be checked.
+The `getAllConflicting` boolean parameter specifies whether to get all conflicting objects (`true`) or just the first one (`false`).
+
+The object specified as the first parameter is used to determine type of objects to look for.
+It is also always filtered out of list of conflicting objects.
+
+.Example
+[source,mel]
+----
+// Check for all objects that conflict on emailAddress property with the current focus
+midpoint.getObjectsInConflictOnPropertyValue(focus, 'emailAddresses', focus.emailAddress, true)
+----
+
+==== midpoint.getOrgByName
+
+`midpoint.getOrgByName(name)` -> object
+
+Returns organization object (org) specified by name.
+
+.Example
+[source,mel]
+----
+midpoint.getOrgByName('F00101')
+----
+
+==== midpoint.hasLinkedObjectOnResource
+
+`midpoint.hasLinkedObjectOnResource(resourceOid, kind,  intent)` -> boolean
+
+Returns `true` if current focus has link to resource object on specified resource.
+
+.Example
+[source,mel]
+----
+midpoint.hasLinkedObjectOnResource('5b1b59f6-805c-11f1-be6c-e3515ff454a8', 'account', 'default')
+----
+
+==== midpoint.isFocusActivated
+
+`midpoint.isFocusActivated()` -> boolean
+
+Returns `true` if current clockwork operation brings the focus into existence, being effectively enabled, assuming previously it was either non-existent or effectively disabled.
+
+.Example
+[source,mel]
+----
+midpoint.isFocusActivated()
+----
+
+==== midpoint.isFocusDeactivated
+
+`midpoint.isFocusDeactivated()` -> boolean
+
+Returns `true` if current clockwork operation deletes or effectively disables the focus,
+assuming previously it existed and was effectively enabled.
+
+.Example
+[source,mel]
+----
+midpoint.isFocusDeactivated()
+----
+
+==== midpoint.isFocusDeleted
+
+`midpoint.isFocusDeleted()` -> boolean
+
+Returns `true` if current clockwork operation deletes the focus.
+
+.Example
+[source,mel]
+----
+midpoint.isFocusDeleted()
+----
+
+==== midpoint.isUniquePropertyValue
+
+`isUniquePropertyValue(object, propertyPath, propertyValue)` -> boolean
+
+Checks uniqueness of property value.
+Returns true if specified property value is unique.
+Returns false if an object exists, conflicting with the specified object on specified property.
+
+The `propertyPath` parameter specifies xref:/midpoint/reference/concepts/item-path/[item path] of the item to be checked.
+The `propertyValue` specifies the candidate value of that item.
+Uniqueness of that value will be checked.
+
+.Example
+[source,mel]
+----
+midpoint.isUniquePropertyValue(focus, 'emailAddresses', focus.emailAddress)
+----
+
+==== midpoint.isUniqueAccountValue
+
+`isUniqueAccountValue(resource, shadow, attributeName, attributeValue)` -> boolean
+
+Checks uniqueness of account attribute value.
+Returns true if specified attribute value is unique.
+Returns false if an account exists, conflicting with the specified shadow on specified attribute.
+
+The `resource` and `shadow` parameters specify resource and shadow objects (usually present in `resource` and `projection` variables during computation).
+The `attributeName` parameter specifies name of account attribute to be checked.
+The `attributeValue` specifies the candidate value of that attribute.
+Uniqueness of that value will be checked.
+
+.Example
+[source,mel]
+----
+midpoint.isUniqueAccountValue(resource, projection, 'uid', 'foobar')
+----
+
+==== midpoint.resolveReference
+
+`midpoint.resolveReference(ref)` -> object
+
+Resolves specified reference, returning an object that the reference references.
+Error is raised in case that the referenced object does not exist.
+
+.Example
+[source,mel]
+----
+// Returns shadow linked to the current focus (assuming there is only one link)
+midpoint.resolveReference(single(focus.linkRef))
+----
+
+==== midpoint.resolveReferenceIfExists
+
+`midpoint.resolveReferenceIfExists(ref)` -> object
+
+Resolves specified reference, returning an object that the reference references.
+If the referenced object does not exist, null is returned.
+
+.Example
+[source,mel]
+----
+// Returns shadow linked to the current focus (assuming there is only one link)
+midpoint.resolveReferenceIfExists(single(focus.linkRef))
+----
+
+==== midpoint.searchObjects
+
+`midpoint.searchObjects(type, filter)` -> list(object)
+
+Searches through all object of a specified type.
+Returns a list of objects that match search criteria.
+
+The `type` parameter may be a string (e.g. `UserType`) or QName.
+The `filter` parameter is a string containing search filter specified in xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language (MQL)].
+
+.Example
+[source,mel]
+----
+midpoint.searchObjects('UserType', 'name = \'jack\'')
+----
+
+==== midpoint.searchShadowOwner
+
+`midpoint.searchShadowOwner(oid)` -> object
+
+Returns the Focus object representing owner of specified shadow.
+The function may return `null` if there is no owner specified for the shadow.
+
+.Example
+[source,mel]
+----
+midpoint.searchShadowOwner('3699defe-8133-11f1-b274-5b07c17a83bc')
+----
+
+
+== Timestamp and Duration
 
 Timestamps can be constructed by using the `timestamp()` function.
 The `timestamp()` constructor expect a string argument, specifying a timestamp formatted according to RFC 3339/ISO8601 format.
@@ -1543,7 +2187,8 @@ duration('-300ms')
 The duration string used by CEL is not following any standardized format.
 It is built on common conventions, where characters `h`, `m`, `s`, `ms`, `us` and `ns` specifying units of time.
 
-CEL timestamps follow _protocol buffer_ convention, which means that the timestamps are fixed to UTC (`Z`) timezone.
+CEL timestamps follow _protocol buffer_ convention, which means that the timestamps are kept as a combination of _epoch second_ and _nanosecond fraction_, referring to UNIX epoch (00:00:00 UTC on January 1, 1970).
+There is no timezone information in timestamps, which means they are effectively fixed to UTC (`Z`) timezone.
 Functions that work with timestamps in a timezone-specific manner (e.g. `atStartOfDay()`) assume system timezone as default, allowing optional explicit specification of a time zone.
 Timezone specification follows _IANA Time Zone Database_ (a.k.a _Olson_ or _tz database_).
 
@@ -1555,9 +2200,18 @@ timestamp('2026-03-15T12:34:56Z') + duration('1h30m')
 timestamp('2026-03-15T12:34:56Z') < timestamp('2026-03-15T14:30:00Z')
 ----
 
+Conversion of timestamp to integer (e.g. using `int(ts)`) renders the epoch second.
+
 Timestamp referring to the "current" time instant is available in variable `now`.
 The value of this variable refers to an approximate moment of the start of expression evaluation.
 Value of this variable is fixed through the evaluation of the expression.
+
+.Reference time vs "now"
+TIP: Some expression provide a xref:/midpoint/reference/expressions/mappings/#time-constraints[reference time] in `referenceTime` variable.
+This timestamp is different than the one provided in `now` variable.
+Variable `now` always contains "current" time instant, which is usually a time when an expression evaluation started.
+On the other hand, `referenceTime` variable contains a timestamp which is relevant for evaluation of a particular mapping, such as a timestamp when relevant object was disabled.
+When dealing with time-constrained mappings, use of `referenceTime` is usually correct and use of `now` is usually wrong.
 
 === atStartOfDay
 
@@ -1668,6 +2322,30 @@ timestamp('2026-02-11T12:34:56Z').getDayOfYear()     // Returns 40
 timestamp('2026-02-11T12:34:56Z').getDayOfYear('Z')  // Returns 40
 ----
 
+=== getEpochMillisecond
+
+`timestamp.getEpochMillisecond()` -> int
+
+Returns the number of milliseconds since the UNIX epoch.
+
+.Example
+[source,mel]
+----
+timestamp('2026-07-15T12:34:56.987Z').getEpochMillisecond()  // Returns 1784118896987
+----
+
+=== getEpochSecond
+
+`timestamp.getEpochSecond()` -> int
+
+Returns the number of seconds since the UNIX epoch.
+
+.Example
+[source,mel]
+----
+timestamp('2026-07-15T12:34:56.987Z').getEpochSecond()  // Returns 1784118896
+----
+
 === getFullYear
 
 `timestamp.getFullYear()` -> int +
@@ -1759,6 +2437,19 @@ timestamp('2026-02-11T12:34:56Z').getMonth()     // Returns 1
 timestamp('2026-02-11T12:34:56Z').getMonth('Z')  // Returns 1
 ----
 
+=== getNanos
+
+`timestamp.getNanos()` -> int
+
+Returns the number of fractional nanoseconds following the epoch second.
+This value measures the total number of nanoseconds from the second returned by getEpochSecond.
+
+.Example
+[source,mel]
+----
+timestamp('2026-07-15T12:34:56.987Z').getNanos()  // Returns 987000000
+----
+
 === getSeconds
 
 `timestamp.getSeconds()` -> int +
@@ -1795,7 +2486,7 @@ timestamp.longAgo()    // Returns timestamp 1970-01-01T00:00:00Z
 ----
 
 
-== Polystrings
+== Polystring
 
 xref:/midpoint/reference/concepts/polystring/[Polystrings] are midPoint data structured used to store string values, together with their normalized and localized variants.
 
@@ -1827,7 +2518,7 @@ If the normalized part of polystring is to be used, it must be explicitly refere
 
 NOTE: The localization functionality of polystrings is not available in MEL at this time.
 
-== Protected Strings
+== Protected String
 
 xref:/midpoint/reference/concepts/protectedstring/[Protected strings] are midPoint data structure meant to provide extra protection to string data.
 They are usually used to contain passwords, API keys and similar sensitive data.
@@ -1846,7 +2537,7 @@ Ordinary string value can be encrypted, to gain additional protection of a _prot
 
 [source,mel]
 ----
-string.endecrypt()
+string.encrypt()
 ----
 
 === decrypt
@@ -1863,7 +2554,7 @@ Encrypts a string value, creating protected string.
 Works with strings as well as polystrings.
 
 
-== QNames
+== QName
 
 MEL can work with QNames as simple structured objects.
 QNames can be constructed using `qname()` function:
@@ -1889,20 +2580,76 @@ QNames can be used instead of strings to access structured midPoint data when us
 focus.extension[qname('http://example.com/ns', 'ship')]
 ----
 
+QNames can be compared with strings.
+Namespace part is ignored in such case.
+
+[source,mel]
+----
+qname('http://example.com/ns', 'ship') == 'ship'    // Returns true
+----
+
+Fully-qualified qnames can be compared with qnames without a namespace.
+Namespace part is ignored in such case.
+
+[source,mel]
+----
+qname('http://example.com/ns', 'ship') == qname(null, 'ship')    // Returns true
+----
+
 === qname
 
 `qname(namespaceURI, localPart)` -> qname +
 `qname(localPart)` -> qname
 
 Creates a qname value.
+When namespace is not specified, qname with unspecified (null) namespace is created.
 
-=== encrypt
 
-`string.encrypt()` -> protectedString
+== Item Path
 
-Encrypts a string value, creating protected string.
-Works with strings as well as polystrings.
+xref:/midpoint/reference/concepts/item-path/[Item path] is a simple syntax for addressing properties, containers, references, attributes and similar items in data structures used in midPoint.
+Simply speaking, item path is a sequence of item names (QNames) and optionally container identifiers.
 
+In MEL, item path is part of some data structures (e.g. item delta), or it can be used as a parameter to some functions (e.g. `object.findItem()`).
+Item path can be constructed using the `itemPath()` function:
+
+[source,mel]
+----
+itemPath(['activation', 'effectiveStatus'])
+----
+
+Segments of the item path can be accessed as `segments` field using the _dot notation_:
+
+[source,mel]
+----
+path.segments
+----
+
+Item path can be used to access specific part of midPoint objects using the `findItem()` function:
+
+[source,mel]
+----
+object.findItem[itemPath(['activation', 'effectiveStatus'])]
+----
+
+Item path can be compared with strings and QNames.
+
+[source,mel]
+----
+itemPath(['activation', 'effectiveStatus']) == 'activation/effectiveStatus'    // Returns true
+----
+
+=== itemPath
+
+`itemPath(list(any))` -> itemPath +
+`itemPath(string)` -> itemPath
+
+Creates an item path value.
+
+When list parameter is specified, item path is created from the list of segments provided as parameter.
+The segments representing item names may be specified as strings or QNames, the container identifier segments are specified as integers.
+
+When string parameter is used, the item path is constructed from its string representation.
 
 == Structured Data
 
@@ -1942,51 +2689,62 @@ focus.extension['ship']
 
 When working with midPoint (prism) objects, both strings and qnames can be used as indexes.
 
-The `has()` macro can be used for tests regarding presence of items in structured objects and maps:
+Similar approach works with xref:/midpoint/architecture/concepts/shadow/[shadow attributes] as well:
 
 [source,mel]
 ----
-has(focus.fullName)
+projection.attributes.cn
+projection.attributes['cn']
 ----
 
-However, the `has()` macro is not null-safe.
-E.g. the expression above fails in case the `focus` variable is `null`.
-It is recommended to use `isNull()` and `isPresent()` functions instead (see below).
+The `isPresent()` function can be used for tests regarding presence of value:
+
+[source,mel]
+----
+isPresent(foo)
+----
+
+The `isPresent()` function returns true value in case that the variable `foo` has value, i.e. it is not null.
+The `isPresent()` function works on plain data (variables) as well as structured data:
+
+[source,mel]
+----
+isPresent(focus.fullName)
+----
+
+Note that some MEL operators may not be able to work with `null` values.
+E.g. addition operator (`+`) when dealing with numeric values.
 
 === Optional Values in Structured Data
 
-CEL interpreter that evaluates MEL expressions assumes that the data structures accessed by the expression exist when the expression is evaluated.
-E.g. the following expression assumes that variable `focus` contains structured data value, which has field `activation`, which has field `administrativeStatus`.
-The expression fails if any of that assumptions is false, e.g. if variable `focus` does not contain a value (is `null`).
+The data structures are seldom complete.
+In usual case, the data are only partially populated.
+E.g. a focus may not have activation at all, and objects with `administrativeStatus` explicitly defined are quite rare.
+MEL _selection_ operator (`.`) is null-safe.
+The following expression does not fail when variable `focus` does not contain any value, or in case that there is no `activation` container or `administrativeStatus` property.
+In such cases the expression evaluates to `null` without any error.
 
 [source,mel]
 ----
 focus.activation.administrativeStatus
 ----
 
-However, the data are seldom complete.
-In usual case, the data are only partially populated.
-E.g. a focus may not have activation at all, and objects with `administrativeStatus` explicitly defined are quite rare.
-MEL allows specification of _optional selection_ by adding question mark (`?`) after the dot when working with incomplete data.
+The `isPresent()` function can be used for tests regarding presence of items in structured objects and maps:
 
 [source,mel]
 ----
-focus.?activation.?administrativeStatus
+isPresent(focus.activation.administrativeStatus)
 ----
 
-The expression above does not fail when variable `focus` does not contain any value, or in case that there is no `activation` container or `administrativeStatus` property.
-In such cases the expression evaluates to an _empty optional_, which is supposed to be equivalent to `null`.
-
-MidPoint interprets the value correctly when it is a result value of an expression.
-Most of MEL functions can interpret the value correctly as well.
-However, interpretation of some built-in CEL operators (e.g. `==` and `+`) can be confusing.
-Therefore, it is recommended to use functions `isPresent()` and `isNull()` for checks, and `format()` for string formatting when dealing with optional values.
-E.g. the `isPresent()` function can be used to determine whether a particular item is present in data:
+CEL provides the `has()` macro, which can also be used for tests regarding presence of items in structured objects and maps:
 
 [source,mel]
 ----
-isPresent(focus.?activation.?administrativeStatus)
+has(focus.fullName)
 ----
+
+However, the `has()` macro cannot be used to check presence of plain values (e.g. variables).
+Therefore, as a rule of thumb, it is recommended to use `isPresent()` function instead of `has()` macro.
 
 See xref:#null-and-optional-values[Null and Optional Values section] below.
 
@@ -2011,118 +2769,573 @@ xref:/midpoint/reference/concepts/item-path/[Item path] can be used to locate an
 focus.find('activation/administrativeStatus')
 ----
 
+== Data Structures
+
+MEL brings support for several midPoint-specific data structures, such as assignments and deltas.
+These data structures are represented by structured objects in MEL.
+
+MidPoint objects and containers defined by xref:/midpoint/reference/schema/[midPoint schema] are represented in MEL in the same form as they are defined in the schema (see xref:/midpoint/reference/schema/schemadoc/[SchemaDoc]).
+
+=== Object Reference
+
+Object reference MEL data structure corresponds to the `ObjectReferenceType` of midPoint schema.
+It is used to reference one object from another object.
+Following table summarizes the most frequently used fields.
+
+.Object Reference Data Structure Fields
+|===
+| Field | Type | Description
+
+| `oid`
+| string
+| OID of an object which is the target of the reference.
+
+| `type`
+| qname
+| Type of an object which is the target of the reference.
+
+| `relation`
+| qname
+| The relation or a "role" of this reference.
+It may further specify the meaning of the reference.
+See xref:/midpoint/reference/concepts/relation/[relation page] for more details.
+
+|===
+
+
+=== Assignment
+
+Fields of _assignment_ data structure in MEL are given by `AssignmentType` midPoint type, as specified in midPoint schema.
+Following table summarizes the most frequently used fields.
+
+.Assignment Data Structure Fields
+|===
+| Field | Type | Description
+
+| `identifier`
+| string
+| Identifier of assignment, unique to the object.
+
+| `description`
+| string
+| TODO
+
+| `targetRef`
+| Object reference
+| TODO
+
+|===
+
+==== Assignment Functions
+
+===== hasRelation
+
+`assignment.hasRelation(any)` -> boolean
+
+Returns true if `targetRef` of the assignment has specified xref:/midpoint/reference/concepts/relation/[relation].
+String or QName representation of the relation can be used.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasRelation('owner')
+----
+
+===== hasDefaultRelation
+
+`assignment.hasDefaultRelation()` -> boolean
+
+Returns true is the assignment has default xref:/midpoint/reference/concepts/relation/[relation].
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasDefaultRelation()
+----
+
+===== has*Relation
+
+`assignment.hasApproverRelation()` -> boolean +
+`assignment.hasConsentRelation()` -> boolean +
+`assignment.hasDeputyRelation()` -> boolean +
+`assignment.hasMetaRelation()` -> boolean +
+`assignment.hasOwnerRelation()` -> boolean +
+`assignment.hasRelatedRelation()` -> boolean
+
+Returns true if `targetRef` of the assignment has specified xref:/midpoint/reference/concepts/relation/[relation].
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasOwnerRelation()
+----
+
+===== isTarget
+
+`assignment.isTarget(any)` -> boolean
+
+Returns true if `targetRef` of the assignment is of specified type.
+String or QName representation of the type can be used.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTarget('RoleType')
+----
+
+===== isTarget*
+
+`assignment.isTargetRole()` -> boolean +
+`assignment.isTargetOrg()` -> boolean +
+`assignment.isTargetService()` -> boolean +
+`assignment.isTargetPolicy()` -> boolean +
+`assignment.isTargetUser()` -> boolean
+
+Returns true if `targetRef` of the assignment is of specified type.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.isTargetRole()
+----
+
+===== targetOid
+
+`assignment.targetOid()` -> string
+
+Returns OID of targetRef of the assignment.
+This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetOid()   // Returns '847ab384-8a63-11f1-ad15-9c6b00360713'
+----
+
+===== targetRelation
+
+`assignment.targetRelation()` -> qname
+
+Returns relation of targetRef of the assignment in QName form.
+
+As QNames can be safely compared with strings, string representation of relations can be used in comparisons.
+This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetRelation() == 'owner'
+----
+
+===== targetType
+
+`assignment.targetType()` -> qname
+
+Returns relation of targetRef of the assignment in QName form.
+
+As QNames can be safely compared with strings, string representation of the type can be used in comparisons.
+This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.targetType() == 'RoleType'
+----
+
+
+=== Object Delta
+
+xref:/midpoint/devel/prism/concepts/deltas/[Object delta] data structure represents a change of an midPoint object.
+The MEL _object delta_ data structure represents xref:/midpoint/devel/prism/concepts/deltas/[internal representation of object delta] used by midPoint (or more exactly the xref:/midpoint/devel/prism/[Prism] data representation library).
+It roughly corresponds to `ObjectDeltaType` from Prism schema.
+
+.Object Delta Structure Fields
+|===
+| Field | Type | Description
+
+| `oid`
+| string
+| OID of object which is modified or deleted by the delta.
+
+| `objectType`
+| qname
+| Type of object which is modified or deleted by the delta.
+
+| `changeType`
+| string
+| Type of change described by the delta:
+
+* `add`: new object is added
+* `modify`: existing object is modified
+* `delete`: existing object is deleted
+
+| `objectToAdd`
+| object
+| Object being added.
+
+The value is provided only if `changeType` of the delta is `add`.
+
+| `itemDelta`
+| list(Item Delta)
+| List of item deltas, specifying changes of individual items of the object.
+
+The value is provided only if `changeType` of the delta is `modify`.
+
+|===
+
+// ==== Object Delta Functions
+
+// TODO: later, when implemented
+
+=== Item Delta
+
+xref:/midpoint/devel/prism/concepts/deltas/[Item delta] data structure represents a change of one individual item of an midPoint object.
+The MEL _item delta_ data structure represents xref:/midpoint/devel/prism/concepts/deltas/[internal representation of item delta] used by midPoint (or more exactly the xref:/midpoint/devel/prism/[Prism] data representation library).
+It very roughly corresponds to `ItemDeltaType` from Prism schema, although the MEL data structure has a slightly different fields.
+
+.Item Delta Structure Fields
+|===
+| Field | Type | Description
+
+| `path`
+| Item Path
+| Path of the item (container of property) being changed.
+
+| `valuesToAdd`
+| list(any)
+| List of values that are added to this item.
+New values are added to the existing values of the object.
+Existing values of the object are not affected.
+
+Contains `null` value if no values are added.
+
+| `valuesToDelete`
+| list(any)
+| List of values that are deleted from this item.
+Existing values not specified by this field are not affected.
+
+Contains `null` value if no values are deleted.
+
+| `valuesToReplace`
+| list(any)
+| List of values that are set to this item.
+Existing values of the item are discarded, and replaced by the values provided in this field.
+
+Contains `null` value if no values are replaced.
+
+| `estimatedOldValues`
+| list(any)
+| List of values that are estimated to be present in the item before the delta was applied.
+
+Contains empty list if it is estimated that the item had no value.
+Contains `null` value if the old values are unknown.
+
+|===
+
+The item delta can contain either added/deleted values, or replaced values, but not both.
+
+// ==== Item Delta Functions
+
+// TODO: later, when implemented
+
+
+
+=== Audit Event Record
+
+_Audit event record_ data structure describes a single event (usually data change) in a format suitable for xref:/midpoint/reference/security/audit/[auditing].
+
+It roughly corresponds to `AuditEventRecordType` from MidPoint schema, which is a representation of one record in midPoint xref:/midpoint/reference/security/audit/[audit log].
+
+.Audit Event Record Structure Fields
+|===
+| Field | Type | Description
+
+| `timestamp`
+| timestamp
+| Timestamp when the event occurred.
+
+| `eventIdentifier`
+| string
+| Unique identification of the event.
+Every record should have unique event identifier.
+
+| `sessionIdentifier`
+| string
+| Identification of (interactive) session in which the event occurred.
+
+| `requestIdentifier`
+| string
+| Identifier of a request (operation). All the records that are result of
+processing of a single request should have the same identifier.
+
+| `taskIdentifier`
+| string
+| Task identifier. Operations are executed in a context of a task.
+This field is an identifier of the task.
+
+| `resourceName`
+| polystring
+| Name of the resource that is related to this operation - typically
+if the object being processed is a shadow of a resource object.
+Useful for informational purposes, typically in audit records.
+
+| `taskOID`
+| string
+| Task OID. This field is used for records that are executed in the context
+of a persistent task.
+
+| `hostIdentifier`
+| string
+| Identifier of a host that generated the audit record.
+This is the host name corresponding to a network interface that accepted the HTTP request.
+
+| `nodeIdentifier`
+| string
+| Identifier of a node in a midPoint cluster that generated the audit record.
+
+| `remoteHostAddress`
+| string
+| Network address of a remote host that originated the request causing this event.
+
+| `initiatorRef`
+| Object Reference
+| Initiator is the (legal) entity on behalf of whom is the action executed.
+It is the subject of the operation. Authorizations of the initiator are
+used to evaluate access to the operation.
+
+| `attorneyRef`
+| Object Reference
+| Attorney is the (physical) user who have executed the action.
+This is the user that have logged-in to the user interface. This is the
+user that pressed the button to execute the action.
+
+| `effectivePrincipalRef`
+| Object Reference
+| The effective principal that was used to execute the action.
+This is the subject whose authorizations were evaluated to determine whether the action is allowed or not.
+
+| `effectivePrivilegesModification`
+| structured(EffectivePrivilegesModificationType)
+| resent if the effective privileges used to execute the operation differ or may differ from the regular
+(declared) privileges of the "effectivePrincipalRef".
+This is usually the case e.g. when "runPrivileged" mechanism is used for expression evaluation.
+
+| `targetRef`
+| Object Reference
+| Object that is a primary target of an operation (if applicable).
+In case that operation targets more than one object, the "primary" or the most important is recorded (e.g. the user object)
+
+| `targetOwnerRef`
+| Object Reference
+| Owner of the object that is a target of this operation (if applicable).
+E.g. a owner of a task that is being stopped, owner of an account that is being modified, etc.
+
+| `eventType`
+| string
+| TODO
+
+* `getObject`: todo
+* `addObject`: todo
+* `modifyObject`: todo
+* `deleteObject`: todo
+* `executeChangesRaw`: todo
+* `synchronization`: todo
+* `createSession`: todo
+* `terminateSession`: todo
+* `workItem`: todo
+* `workflowProcessInstance`: todo
+* `reconciliation`: todo
+* `suspendTask`: todo
+* `resumeTask`: todo
+* `runTaskImmediately`: todo
+* `discoverObject`: todo
+* `informationDisclosure`: todo
+
+
+| `delta`
+| Object Delta Operation
+| Data structure describing the changes (delta) and results of application of the changes (operation result).
+
+| `channel`
+| string
+| The channel that was the source of the operation that the record describes.
+
+| `outcome`
+| string
+| Type of result of the operation:
+
+* `success`: Operation was executed successfully.
+* `warning`: Operation was executed successfully, but there were warnings.
+* `partial_error`: Operation was executed with partial error. Some parts of the operation were successful, other parts have failed.
+* `fatal_error`: Operation was not executed, it ended up in an error that prohibited completion of operation.
+* `handled_error`: Execution of an operation caused an error, which was successfully handled. Effects of the operation are equivalent to successful operation.
+* `not_applicable`: Result does not make any sense for the operation. E.g. unsupported operation which was skipped.
+* `in_progress`: The operation is still being executed.
+* `unknown`: No information about operation is present, which usually means programming bug.
+
+| `result`
+| string
+| Result of the operation (e.g. number of entries, returned object, business result of workflow task or process instance - approved, rejected).
+
+| `parameter`
+| string
+| Parameter string, the usage depends on the event type.
+E.g. username for session start/stop, etc.
+
+| `message`
+| string
+| Optional human readable message, if necessary, e.g. an error message.
+
+| `changedItem`
+| list(itemPath)
+| Represents searchable list of changed item paths related to this audit record.
+
+| `property`
+| list(AuditEventRecordPropertyType)
+| Represents additional information for which specific property is not available.
+
+| `reference`
+| list(AuditEventRecordReferenceType)
+| Represents additional reference information for which specific property is not available.
+
+| `resourceOid`
+| string
+| Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+
+| `customColumnProperty`
+| list(AuditEventRecordCustomColumnPropertyType)
+| Field of custom column for audit record table.
+
+|===
+
+// ==== Object Delta Functions
+
+// TODO: later, when implemented
+
+
+=== Object Delta Operation
+
+_Object delta operation_ data structure represents an executed change of an midPoint object.
+Simply speaking, it describes an xref:/midpoint/devel/prism/concepts/deltas/[object delta] that was already applied, including results of the operation that applied the delta.
+_Object delta operation_ data structure is mostly used in midPoint xref:/midpoint/reference/security/audit/[audit records].
+It roughly corresponds to `ObjectDeltaOperationType` from MidPoint schema.
+
+.Object Delta Operation Structure Fields
+|===
+| Field | Type | Description
+
+| `objectOid`
+| string
+| OID of object which was added, modified or deleted by the delta.
+
+| `objectDelta`
+| Object Delta
+| Delta that was applied to the object.
+
+| `executionResult`
+| Operation Result
+| Result of the operation that applied the delta.
+
+| `objectName`
+| string
+| Name of the object that was the target of this delta, if known.
+Useful for informational purposes, typically in audit records.
+
+| `resourceOid`
+| string
+| OID of the resource that is related to this operation - typically
+if the object being processed is a shadow of a resource object.
+
+| `resourceName`
+| polystring
+| Name of the resource that is related to this operation - typically
+if the object being processed is a shadow of a resource object.
+Useful for informational purposes, typically in audit records.
+
+| `shadowKind`
+| string
+| Shadow kind of the shadow, that is related to this operation.
+Useful for informational purposes, typically in audit records.
+
+| `shadowIntent`
+| string
+| Shadow intent of the shadow, that is related to this operation.
+Useful for informational purposes, typically in audit records.
+
+|===
+
+// ==== Object Delta Functions
+
+// TODO: later, when implemented
+
+
+=== Operation Result
+
+xref:/midpoint/architecture/concepts/operation-result/[_Operation result_] data structure provides rich information about an operation being executed, primarily for recording, error reporting and troubleshooting.
+It is also used in xref:/midpoint/reference/security/audit/[audit records] as part of _object delta operation_ data structure.
+It roughly corresponds to `OperationResultType` from MidPoint schema.
+
+.Operation Result Structure Fields
+|===
+| Field | Type | Description
+
+| `operation`
+| string
+| Operation identifier.
+
+| `status`
+| string
+| Type of result of the operation:
+
+* `success`: Operation was executed successfully.
+* `warning`: Operation was executed successfully, but there were warnings.
+* `partial_error`: Operation was executed with partial error. Some parts of the operation were successful, other parts have failed.
+* `fatal_error`: Operation was not executed, it ended up in an error that prohibited completion of operation.
+* `handled_error`: Execution of an operation caused an error, which was successfully handled. Effects of the operation are equivalent to successful operation.
+* `not_applicable`: Result does not make any sense for the operation. E.g. unsupported operation which was skipped.
+* `in_progress`: The operation is still being executed.
+* `unknown`: No information about operation is present, which usually means programming bug.
+
+| `message`
+| string
+| Error or warning message.
+This is optional, as some statuses do not need a message (e.g. success).
+
+|===
+
+// ==== Operation Result Functions
+
+// TODO: later, when implemented
+
+
 == Null and Optional Values
 
-MEL expressions often need to deal with `null` and optional values, values which may or may not be present.
-This applies to script variables, which may have value in some cases, and may not have value (`null`) in others.
-Then there are structured data (midPoint/prism objects), which have many optional items.
+MEL data structures and functions are generally null-safe.
+I.e. expression authors do not need to worry about passing `null` values into functions, or even invoking member functions on `null` values.
+MEL interpreter substitutes a reasonable return value in such a case, which is usually also `null` value.
+However, some functions may return empty string (`''`), zero (`0`) or appropriate boolean value instead.
 
-CEL language provides some mechanisms to deal with such optional values.
-Unfortunately, there are two mechanisms to represent value which is not present: _null values_ and _optionals_.
-These mechanisms are not perfectly aligned, which may cause a lot of confusion.
+Navigation of structured data is also null-safe.
+See section xref:#optional-values-in-structured-data[Optional Values in Structured Data] for more details.
 
-When it comes to structured types, CEL assumes that all the items in a structured data referenced by an expression exist, and are present in the data.
-E.g. following expression fails in case that the object in the `focus` variable does not have `activation` container, that container does not have `administrativeStatus` property, or even if `focus` variable has `null` value.
+However, there is one unpleasant detail regarding `null` literal.
+CEL interpreter is regarding `null` as a special data type.
+The `null` literal is considered to be statically-typed, which may cause problems in some cases.
+The conditionals (`?:`) are the most notorious (see xref:../tips[] for details).
+As a rule of thumb, use `nil` instead of `null` literal if your code does not work with `null`.
+The `nil` provides a dynamically-typed null value, which usually fixes the situation.
 
-.Fragile processing of structured data, not recommended
-[source,mel]
-----
-focus.activation.administrativeStatus
-----
-
-The method used in expression above is not recommended in MEL expressions.
-Such expressions are reliable only if you are absolutely sure that all the referenced items are present in the data, which usually means that the expressions have explicitly checked their existence before.
-In general case, the use of `.?` operator is recommended instead:
-
-.Robust processing of structured data, recommended
-[source,mel]
-----
-focus.?activation.?administrativeStatus
-----
-
-The `.?` operator is using _optionals_, which means it does not fail even if there is no `activation` container, that container does not have `administrativeStatus` property, or even if `focus` variable is `null`.
-In all such cases the expression evaluates to _empty optional_, which is supposed to have the same meaning as `null` value.
-However, it is not _completely_ equivalent to `null`, as _empty optional_ is formally a non-null value.
-This means that CEL/MEL has two mechanisms for representing values that may or may not be present.
-Therefore, simple equality check for `null` is not reliable:
-
-.Not recommended, not reliable
-[source,mel]
-----
-foo == null
-----
-
-This equality operator checks whether the value is `null`.
-As optional are always non-null, the expression above returns non-intuitive result (`false`) for empty optionals.
-The expression above is likely to work correctly when used with variables which contain primitive values, but it will not work with optionals.
-This can be counter-intuitive when dealing with structured data:
-
-.Incorrect, counter-intuitive expression
-[source,mel]
-----
-focus.?activation.?administrativeStatus == null
-----
-
-The expression above never evaluates to `false`, as optionals are always non-null values, even if the item that they reference does not exist.
-As a rule of thumb, it is recommended to *always avoid use of null equality check (`foo == null`)*.
-
-MEL provides a special purpose functions `isNull()` and `isPresent()` which can be reliably used in all the cases.
-All the expressions below will be evaluated correctly, providing results that the user would intuitively expect.
-
-.Recommended check for optional/null values
-[source,mel]
-----
-isNull(foo)
-isNull(focus.?activation.?validFrom)
-isPresent(focus.?activation.?administrativeStatus)
-----
-
-NOTE: There is a `has()` macro in CEL, which can be used to check for presence of a particular element in structured data.
-However, the `has()` macro has limitations, which makes it difficult to use in some cases.
-The use of `isNull()` and `isPresent()` functions is recommended instead of use of `has()` macro, especially for new users.
-
-Moreover, there is a `default()` function which is very handy, and it reliably detects present or missing value in all the cases:
-
-.Recommended check for optional/null values
-[source,mel]
-----
-default(focus.?lifecycleState, 'active')
-----
-
-The expression above will always return a valid string value, even in case that `focus` variable is `null`, or that the object present in `focus` variable does not have `lifecycleState` property.
-
-While MEL provides functions that work reliably (`isNull()`, `isPresent()`) and even some convenience functions (`default()`) which make it easy to work with null and optional values, there is still one drawback given by the nature of CEL.
-
-While the `.?` operator works reliably with structured data, it cannot be used for function invocation.
-E.g. the following expression is invalid:
-
-.Invalid expression
-[source,mel]
-----
-foo.?contains('#')
-----
-
-Assuming that `foo` is a string variable, which may either contain a string or `null`, the expression above is specifying execution of `contains()` function on that variable.
-However, the use of `.?` operator in this way is illegal in CEL, and currently there is no practical way for MEL extensions to implement this behavior.
-Therefore, the only practical option in this case is to explicitly check for `null` value using a conditional operator (`?:`):
-
-.Correct expression
-[source,mel]
-----
-isPresent(foo) ? foo.contains('#') : null
-----
-
-When working with strings, `stringify()` function can be very handy.
-As `stringify()` never returns null, any string function can be safely invoked on stringified value:
-
-.Simpler correct expression
-[source,mel]
-----
-stringify(foo).contains('#')
-----
-
-Such use of `stringify()` can be very handy in case of string formatting as well.
-If your intent is to return empty string instead of null
+See xref:../null[] for details.
 
 == Custom Function Libraries
 
@@ -2254,6 +3467,10 @@ Java classes and libraries are intentionally _not_ exposed to MEL expressions.
 MEL expressions are living in their own safe little world.
 
 // TODO: later: types and conversions
+
+// TODO: cel.bind(var, val, expression)
+
+// TODO: midpoint.* extension
 
 == See Also
 

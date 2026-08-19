@@ -13,7 +13,10 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -67,11 +70,16 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "dn",
                     AbstractRoleType.F_IDENTIFIER,
-                    "basic.composeDnWithSuffix('cn', identifier, '%s')".formatted(ouSuffix),
-                    "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier + iterationToken, '%s'])".formatted(ouSuffix),
+                    "Compose DN: cn=<identifier + iterationToken>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
         }
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER, MappingStrengthType.WEAK));
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                "cn",
+                AbstractRoleType.F_IDENTIFIER,
+                "identifier + iterationToken",
+                "CN: identifier + iterationToken",
+                MappingStrengthType.WEAK));
         return mappings;
     }
 

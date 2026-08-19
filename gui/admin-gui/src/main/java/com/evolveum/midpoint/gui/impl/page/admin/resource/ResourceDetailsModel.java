@@ -314,8 +314,8 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                     smartIntegrationService.listObjectTypeRelatedSuggestionTasks(
                             objectTypeIdentification,
                             resourceOid,
+                            null,
                             OBJECT_TYPE_SUGGESTION_ACTIVITY_TYPES,
-                            task,
                             result);
 
             for (PrismObject<TaskType> taskToDelete : relatedTasks) {

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.assignment;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-
 public class MAssignmentMark extends MReference {
 
     public Long assignmentCid;

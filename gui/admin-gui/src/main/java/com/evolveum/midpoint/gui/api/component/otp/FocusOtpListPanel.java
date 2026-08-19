@@ -42,6 +42,7 @@ public class FocusOtpListPanel extends BasePanel<FocusType> {
 
     private static final String DOT_CLASS = FocusOtpListPanel.class.getName() + ".";
     private static final String OPERATION_SAVE_OTP_CREDENTIALS = DOT_CLASS + "saveOtpCredentials";
+    private static final String OPERATION_CREATE_WRAPPER = DOT_CLASS + "createWrapper";
 
     private static final String ID_FORM = "form";
     private static final String ID_OTP = "otp";
@@ -72,11 +73,13 @@ public class FocusOtpListPanel extends BasePanel<FocusType> {
                 PageBase page = WebComponentUtil.getPageBase(getPage());
 
                 PrismObjectWrapperFactory<? extends FocusType> factory = page.findObjectWrapperFactory(object.getDefinition());
-                Task task = page.createSimpleTask("createWrapper");
+                Task task = page.createSimpleTask(OPERATION_CREATE_WRAPPER);
                 OperationResult result = task.getResult();
 
                 try {
-                    return factory.createObjectWrapper(object, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
+                    WrapperContext wrapperContext = new WrapperContext(task, result);
+                    wrapperContext.setCreateIfEmpty(true);
+                    return factory.createObjectWrapper(object, ItemStatus.NOT_CHANGED, wrapperContext);
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot create wrapper for {} \nReason: {]", e, object, e.getMessage());
                     result.recordFatalError("Cannot create wrapper for " + object + ", because: " + e.getMessage(), e);
@@ -96,9 +99,9 @@ public class FocusOtpListPanel extends BasePanel<FocusType> {
                 PrismContainerWrapperModel.fromContainerWrapper(
                         objectWrapperModel,
                         ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_OTPS, OtpCredentialsType.F_TOTP),
-                        () -> getPageBase());
+                        this::getPageBase);
 
-        OtpListPanel otp = new OtpListPanel(ID_OTP, getModel(), credentialModel, null);
+        OtpListPanel<?> otp = new OtpListPanel<>(ID_OTP, getModel(), credentialModel, null);
         form.add(otp);
 
         form.add(new AjaxSubmitLink(ID_SAVE) {

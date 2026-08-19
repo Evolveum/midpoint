@@ -11,7 +11,7 @@ import com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
 
 public interface CorrelationDefinitionProvider {
 

@@ -58,7 +58,7 @@ public class ReferenceSearchExpressionEvaluator
                     PrismObject<ObjectType> object,
                     List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> newValueDeltas)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var relation =
                         determineRelation(expressionEvaluatorBean.getRelation(), expressionEvaluatorBean.getRelationExpression());
                 return createReferenceValue(oid, objectTypeName, object, relation);

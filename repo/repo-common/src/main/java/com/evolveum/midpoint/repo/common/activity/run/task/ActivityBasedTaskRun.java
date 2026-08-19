@@ -69,9 +69,11 @@ public class ActivityBasedTaskRun implements TaskRun {
     /**
      * The activity that is the local root for this task. I.e. what part of the activity tree is executed within this task.
      *
+     * Volatile because it is read by other threads (see {@link #heartbeat()}).
+     *
      * @see Activity#localRoot
      */
-    private Activity<?, ?> localRootActivity;
+    private volatile Activity<?, ?> localRootActivity;
 
     ActivityBasedTaskRun(@NotNull RunningTask runningTask, @NotNull ActivityBasedTaskHandler activityBasedTaskHandler) {
         this.runningTask = runningTask;
@@ -170,18 +172,22 @@ public class ActivityBasedTaskRun implements TaskRun {
 
         assert activityRunResultStatus == ABORTED;
         var activityState = localRootRun.getActivityState();
+        TaskRunResultStatus status;
         if (activityState.isBeingRestartedOrSkipped() && !activityState.isWorker()) {
             // We are at the place where restart/skip is being processed: decide accordingly
             if (activityState.isBeingRestarted()) {
-                return TaskRunResultStatus.RESTART_REQUESTED;
+                status = TaskRunResultStatus.RESTART_REQUESTED;
             } else {
                 assert activityState.isBeingSkipped();
-                return TaskRunResultStatus.FINISHED;
+                status = TaskRunResultStatus.FINISHED;
             }
         } else {
             // We are not at the place where restart/skip is being processed, so let's just close this task
-            return TaskRunResultStatus.FINISHED;
+            status = TaskRunResultStatus.FINISHED;
         }
+        LOGGER.trace("Aborted run of local root '{}': aborting information = {}, worker = {} -> task run result {}",
+                localRootPath, activityState.getAbortingInformation(), activityState.isWorker(), status);
+        return status;
     }
 
     private long determineRestartAfter(AbstractActivityRun<?, ?, ?> localRootRun, ActivityRunResult activityRunResult) {
@@ -338,6 +344,9 @@ public class ActivityBasedTaskRun implements TaskRun {
 
     @Override
     public Long heartbeat() {
+        if (localRootActivity == null) {
+            return null;
+        }
         return LegacyProgressUpdater.compute(this);
     }
 

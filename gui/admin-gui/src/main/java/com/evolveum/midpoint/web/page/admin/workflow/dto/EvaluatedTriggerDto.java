@@ -10,7 +10,8 @@ import com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil;
 import com.evolveum.midpoint.repo.common.policy.TriggerBeanPresentationUtil.TriggerWithData;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto.HighlightingInformation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

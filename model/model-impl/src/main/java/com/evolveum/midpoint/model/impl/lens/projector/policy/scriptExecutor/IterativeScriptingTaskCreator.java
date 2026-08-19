@@ -35,7 +35,7 @@ class IterativeScriptingTaskCreator extends ScriptingTaskCreator {
     @Override
     public TaskType createTask(ExecuteScriptType executeScript, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (executeScript.getInput() != null) {
             throw new UnsupportedOperationException("Explicit input with iterative task execution is not supported yet.");
         }
@@ -61,7 +61,7 @@ class IterativeScriptingTaskCreator extends ScriptingTaskCreator {
 
     private @NotNull ObjectSetType createObjectSet(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         CompleteQuery<?> completeQuery = createCompleteQuery(result);
         return new ObjectSetType(PrismContext.get())
                 .type(getTypeName(completeQuery))
@@ -70,7 +70,7 @@ class IterativeScriptingTaskCreator extends ScriptingTaskCreator {
 
     private @NotNull CompleteQuery<?> createCompleteQuery(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         QueryBasedObjectSet objectSet = new QueryBasedObjectSet(actx, result);
         objectSet.collect();

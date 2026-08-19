@@ -91,7 +91,7 @@ public class SyncTaskHelper {
     @NotNull
     public ProcessingScope getProcessingScopeCheckingMaintenance(
             @NotNull ResourceObjectSetType resourceObjectSet, Task task, OperationResult opResult)
-            throws ActivityRunException {
+            throws ActivityRunException, SubscriptionComplianceException {
         ProcessingScope spec = createProcessingScope(resourceObjectSet, true, task, opResult);
         LOGGER.debug("Bare processing scope specification:\n{}", spec.debugDumpLazily());
         return spec;
@@ -105,7 +105,7 @@ public class SyncTaskHelper {
      */
     public ResourceSearchSpecification createSearchSpecification(
             @NotNull ResourceObjectSetType set, Task task, OperationResult opResult)
-            throws ActivityRunException, SchemaException {
+            throws ActivityRunException, SchemaException, SubscriptionComplianceException {
 
         ProcessingScope processingScope =
                 createProcessingScope(set, false, task, opResult);
@@ -154,7 +154,7 @@ public class SyncTaskHelper {
     @NotNull
     private ProcessingScope createProcessingScope(@NotNull ResourceObjectSetType resourceObjectSet,
             boolean checkForMaintenance, Task task, OperationResult opResult)
-            throws ActivityRunException {
+            throws ActivityRunException, SubscriptionComplianceException {
 
         String resourceOid = getResourceOid(resourceObjectSet);
         ResourceType resource = getResource(resourceOid, task, opResult);
@@ -168,7 +168,7 @@ public class SyncTaskHelper {
     @NotNull
     public ProcessingScope createProcessingScopeForShadow(
             @NotNull ShadowType shadow, Task task, OperationResult opResult)
-            throws ActivityRunException, SchemaException {
+            throws ActivityRunException, SchemaException, SubscriptionComplianceException {
         String resourceOid = ShadowUtil.getResourceOid(shadow);
         ResourceType resource = getResource(resourceOid, task, opResult);
         checkNotInMaintenance(resource);
@@ -184,7 +184,7 @@ public class SyncTaskHelper {
     }
 
     private @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult opResult)
-            throws ActivityRunException {
+            throws ActivityRunException, SubscriptionComplianceException {
         try {
             return provisioningService
                     .getObject(ResourceType.class, resourceOid, readOnly(), task, opResult)

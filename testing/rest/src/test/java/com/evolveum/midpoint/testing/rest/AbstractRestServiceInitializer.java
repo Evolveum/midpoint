@@ -13,18 +13,10 @@ import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -77,11 +69,15 @@ public abstract class AbstractRestServiceInitializer extends AbstractGuiIntegrat
     public static final File USER_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "user-rest-limited.xml");
     public static final String USER_REST_LIMITED_NAME = "rest-limited";
     public static final String USER_REST_LIMITED_PASSWORD = "r3stL1m1t3d";
+    public static final File USER_REST_LOG_FILE = new File(BASE_REPO_DIR, "user-rest-log.xml");
+    public static final String USER_REST_LOG_NAME = "rest-log";
+    public static final String USER_REST_LOG_PASSWORD = "r3stL0gR34d";
 
     public static final File ROLE_SUPERUSER_FILE = new File(BASE_REPO_DIR, "role-superuser.xml");
     public static final File ROLE_ENDUSER_FILE = new File(BASE_REPO_DIR, "role-enduser.xml");
     public static final File ROLE_REST_FILE = new File(BASE_REPO_DIR, "role-rest.xml");
     public static final File ROLE_REST_LIMITED_FILE = new File(BASE_REPO_DIR, "role-rest-limited.xml");
+    public static final File ROLE_REST_LOG_FILE = new File(BASE_REPO_DIR, "role-rest-log.xml");
     public static final File ROLE_READER_FILE = new File(BASE_REPO_DIR, "role-reader.xml");
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(BASE_REPO_DIR, "system-configuration.xml");

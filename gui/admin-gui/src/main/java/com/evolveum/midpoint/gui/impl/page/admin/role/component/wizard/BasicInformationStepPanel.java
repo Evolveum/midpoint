@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;

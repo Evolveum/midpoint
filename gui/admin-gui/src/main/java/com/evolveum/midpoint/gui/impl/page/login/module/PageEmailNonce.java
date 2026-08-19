@@ -244,8 +244,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
                             SchemaConstants.PATH_NONCE_VALUE, nonceCredentials);
 
             WebModelServiceUtils.save(nonceDelta, result, task, PageEmailNonce.this);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(getString("PageForgotPassword.message.saveUserNonce.fatalError"));
             LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
                     e);
@@ -256,8 +255,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     }
 
     private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task,
-                                                        PrismObject<O> user, OperationResult result)
-            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+                                                        PrismObject<O> user, OperationResult result) throws CommonException {
         ValuePolicyType policy = resolveValuePolicy(noncePolicy, task, result);
         return getModelInteractionService().generateValue(policy, 24, false, user, "nonce generation", task, result);
     }

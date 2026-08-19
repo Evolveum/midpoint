@@ -10,7 +10,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.Ab
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionProcessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration {
 

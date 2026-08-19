@@ -1218,9 +1218,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUser(user, user.getOid(), username, firstName + " " + lastName, firstName, lastName);
     }
 
-    private PrismObject<OrgType> getAndAssertReplicatedOrg(String orgName)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private PrismObject<OrgType> getAndAssertReplicatedOrg(String orgName) throws CommonException,
+            DirectoryException {
         PrismObject<OrgType> org = getOrg(orgName);
         PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, "replicated");
         assertAssignedRole(org, ROLE_META_REPLICATED_ORG_OID);
@@ -1238,8 +1237,7 @@ public class TestOrgSync extends AbstractStoryTest {
         return org;
     }
 
-    private void assertBasicRoleAndResources(PrismObject<UserType> user) throws ObjectNotFoundException,
-            SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertBasicRoleAndResources(PrismObject<UserType> user) throws CommonException {
         assertAssignedRole(user, ROLE_BASIC_OID);
         PrismReferenceValue linkRef = getLiveLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
@@ -1248,9 +1246,8 @@ public class TestOrgSync extends AbstractStoryTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private String assertResponsibility(PrismObject<UserType> user, String respName)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private String assertResponsibility(PrismObject<UserType> user, String respName) throws CommonException,
+            DirectoryException {
         String respRoleName = "R_" + respName;
         PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
         assertNotNull("No role for responsibility " + respName, respRole);
@@ -1277,9 +1274,8 @@ public class TestOrgSync extends AbstractStoryTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private String assertNoResponsibility(PrismObject<UserType> user, String respName)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private String assertNoResponsibility(PrismObject<UserType> user, String respName) throws CommonException,
+            DirectoryException {
         String respRoleName = "R_" + respName;
         PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
         assertNotNull("No role for responsibility " + respName, respRole);

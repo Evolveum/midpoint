@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 
@@ -94,6 +95,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
     String resourceOid;
     Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache;
+    Map<QName, String> objectClassDescriptionCache;
 
     private final IModel<String> searchTextModel = Model.of("");
 
@@ -102,11 +104,13 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
             UserProfileStorage.@NotNull TableId tableId,
             @NotNull IModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> model,
             @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedModel,
-            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache) {
+            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache,
+            @NotNull Map<QName, String> objectClassDescriptionCache) {
         super(id, tableId, model);
         this.selectedTileModel = selectedModel;
         this.resourceOid = resourceOid;
         this.objectClassSizeEstimationCache = objectClassSizeEstimationCache;
+        this.objectClassDescriptionCache = objectClassDescriptionCache;
         setDefaultPagingSize(tableId);
     }
 
@@ -146,7 +150,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         }
         ViewToggle value = item.getObject().getValue();
         if (value.equals(ViewToggle.TABLE)) {
-            add(AttributeModifier.replace("class", "card"));
+            add(AttributeModifier.replace("class", "card shadow-sm mb-3"));
         } else {
             add(AttributeModifier.replace("class", ""));
         }
@@ -255,7 +259,13 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         ComplexTypeDefinitionType realValue = object.getRealValue();
 
         ObjectClassSizeEstimationType sizeEstimation = objectClassSizeEstimationCache.get(realValue.getName());
-        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation);
+        String description = getObjectClassDescription(realValue.getName());
+        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation, description);
+    }
+
+    private @NotNull String getObjectClassDescription(@NotNull QName objectClassName) {
+        return objectClassDescriptionCache.getOrDefault(objectClassName,
+                translate("SmartObjectClassTable.objectClass.description.not.defined"));
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
@@ -439,7 +449,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
                     Item<ICellPopulator<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> item,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> rowModel) {
-                String description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
+                String description = getObjectClassDescription(rowModel.getObject().getRealValue().getName());
                 item.add(new Label(componentId, description));
             }
 
@@ -557,7 +567,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileContainerCssClass() {
-        return "h-100 justify-content-left pt-2 ";
+        return "h-100 justify-content-start pt-2 ";
     }
 
     @Override

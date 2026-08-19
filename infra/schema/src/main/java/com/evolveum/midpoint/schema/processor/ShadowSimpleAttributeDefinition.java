@@ -8,7 +8,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -49,7 +49,7 @@ public class InboundProcessor implements ProjectorProcessor {
     <F extends FocusType> void processInbounds(
             LensContext<F> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         var env = new MappingEvaluationEnvironment(activityDescription, now, task);
 

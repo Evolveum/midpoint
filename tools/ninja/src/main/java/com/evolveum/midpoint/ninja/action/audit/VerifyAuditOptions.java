@@ -10,7 +10,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 import com.evolveum.midpoint.ninja.action.BasicExportOptions;
-import com.evolveum.midpoint.ninja.action.VerifyOptions;
 import com.evolveum.midpoint.ninja.util.EnumConverterValidator;
 
 import java.io.File;

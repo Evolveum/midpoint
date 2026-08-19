@@ -13,8 +13,6 @@ import static com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil.findIte
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -131,7 +130,7 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
 
                 if (!skipDeltaExecution) {
                     DeltaExecution<O, ShadowType> deltaExecution =
-                            new DeltaExecution<>(projCtx, projectionDelta, null, task, changeExecutionResult);
+                            new DeltaExecution<>(projCtx, projectionDelta, task, changeExecutionResult);
                     try {
                         deltaExecution.execute(result);
                     } catch (ConflictDetectedException e) {

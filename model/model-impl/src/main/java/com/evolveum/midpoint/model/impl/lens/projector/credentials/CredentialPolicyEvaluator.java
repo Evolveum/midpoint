@@ -13,7 +13,9 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.stringpolicy.*;
+import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
+import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -21,7 +23,10 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,14 +37,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
@@ -52,10 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -178,7 +172,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
      * Main entry point.
      */
     public void process() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException,
+            SubscriptionComplianceException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext.isAdd()) {
             processAdd(focusContext);
@@ -191,7 +186,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
     private void processAdd(LensFocusContext<F> focusContext)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (focusContext.wasAddExecuted()) {
             LOGGER.trace("Skipping processing {} policies. Focus addition was already executed.", getCredentialHumanReadableName());
         } else {
@@ -208,7 +203,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
     private void processModify(LensFocusContext<F> focusContext)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         boolean credentialValueChanged = false;
         boolean checkMinOccurs = false;
         ObjectDelta<F> focusDelta = focusContext.getCurrentDelta();
@@ -317,7 +312,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
      */
     private void processCredentialContainerValue(PrismContainerValue<R> cVal) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         addMissingMetadata(cVal);
         validateCredentialContainerValues(cVal);
     }
@@ -344,7 +339,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
      *  This implementation is OK for the password, nonce and similar simple cases. It needs to be
      *  overridden for more complex cases.
      */
-    private void processValueDelta(ObjectDelta<F> focusDelta) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void processValueDelta(ObjectDelta<F> focusDelta) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PropertyDelta<ProtectedStringType> valueDelta = focusDelta.findPropertyDelta(getCredentialValuePath());
         if (valueDelta != null) {
             processPropertyValueCollection(valueDelta.getValuesToAdd());
@@ -354,7 +349,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
         }
     }
 
-    private void processPropertyValueCollection(Collection<PrismPropertyValue<ProtectedStringType>> collection) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private void processPropertyValueCollection(Collection<PrismPropertyValue<ProtectedStringType>> collection) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (collection == null) {
             return;
         }
@@ -365,7 +360,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
     protected void validateCredentialContainerValues(PrismContainerValue<R> cVal) throws PolicyViolationException,
             SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismProperty<ProtectedStringType> credentialValueProperty = cVal.findProperty(getCredentialRelativeValuePath());
         if (credentialValueProperty != null) {
             for (PrismPropertyValue<ProtectedStringType> credentialValuePropertyValue : credentialValueProperty.getValues()) {
@@ -376,7 +371,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
     void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         OperationResult validationResult = getObjectValuePolicyEvaluator().validateProtectedStringValue(value, result);
         processValidationResult(validationResult);
     }

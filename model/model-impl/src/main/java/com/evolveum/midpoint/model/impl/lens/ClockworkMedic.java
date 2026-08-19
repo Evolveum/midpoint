@@ -10,9 +10,13 @@ import java.util.function.Supplier;
 
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.util.*;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethodRef;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProjectionAwareProcessorMethodRef;
+import com.evolveum.midpoint.model.impl.lens.projector.util.SimplifiedProcessorMethodRef;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
 
@@ -30,14 +34,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -159,7 +155,8 @@ public class ClockworkMedic {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException,
+            SubscriptionComplianceException {
         if (shouldExecute(componentName, processor, context, projectionContext)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -177,7 +174,8 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context, @NotNull String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException,
+            SubscriptionComplianceException {
         if (shouldExecute(componentName, processor, context, null)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -195,7 +193,7 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context,
             XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, SubscriptionComplianceException {
         if (shouldExecute(componentName, processor, context, null)) {
             partialExecute(componentName, (result1) -> {
                 //noinspection unchecked
@@ -288,7 +286,7 @@ public class ClockworkMedic {
             Supplier<PartialProcessingTypeType> optionSupplier,
             Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult initialParentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException {
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, SubscriptionComplianceException {
 
         context.checkAbortRequested();
 
@@ -348,7 +346,8 @@ public class ClockworkMedic {
                 LOGGER.trace("Projector component finished: {}", componentName);
             } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
                     SecurityViolationException | PolicyViolationException | ExpressionEvaluationException |
-                    ObjectAlreadyExistsException | ConflictDetectedException | RuntimeException | Error e) {
+                    ObjectAlreadyExistsException | ConflictDetectedException | RuntimeException | Error |
+                     SubscriptionComplianceException e) {
                 LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
                 result.recordException(e);
                 throw e;

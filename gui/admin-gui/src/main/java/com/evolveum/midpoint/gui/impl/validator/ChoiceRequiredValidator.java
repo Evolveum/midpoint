@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -27,7 +26,6 @@ import org.apache.wicket.validation.ValidationError;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ChoiceRequiredValidator<T> implements INullAcceptingValidator<T> {
 

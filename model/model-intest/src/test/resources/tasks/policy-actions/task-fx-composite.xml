@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task oid="e2f00000-0000-0000-0000-000000000005"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+
+    <name>task-fx-composite</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+
+    <activity>
+        <composition>
+            <!-- alpha: import resource A, multithreaded (worker threads) -->
+            <activity>
+                <order>1</order>
+                <identifier>alpha</identifier>
+                <work>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000001"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </import>
+                </work>
+                <distribution>
+                    <workerThreads>3</workerThreads>
+                </distribution>
+            </activity>
+            <!-- beta: import resource B, distributed into worker subtasks (multinode) -->
+            <activity>
+                <order>2</order>
+                <identifier>beta</identifier>
+                <work>
+                    <import>
+                        <resourceObjects>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000002"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </import>
+                </work>
+                <distribution>
+                    <buckets>
+                        <stringSegmentation>
+                            <discriminator>attributes/icfs:name</discriminator>
+                            <boundary>
+                                <position>1</position>
+                                <characters>b</characters>
+                            </boundary>
+                            <boundary>
+                                <position>2</position>
+                                <characters>0-9</characters>
+                            </boundary>
+                        </stringSegmentation>
+                    </buckets>
+                    <workers>
+                        <workersPerNode>
+                            <count>2</count>
+                        </workersPerNode>
+                    </workers>
+                </distribution>
+            </activity>
+        </composition>
+    </activity>
+</task>

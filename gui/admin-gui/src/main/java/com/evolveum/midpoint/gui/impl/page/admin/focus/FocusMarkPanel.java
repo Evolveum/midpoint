@@ -8,13 +8,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ShadowDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @PanelType(name = "focusMarks")
 @PanelInstance(

@@ -6,15 +6,9 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
-import com.evolveum.midpoint.repo.sqlbase.filtering.item.ItemValueFilterProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import com.querydsl.core.types.Predicate;
 

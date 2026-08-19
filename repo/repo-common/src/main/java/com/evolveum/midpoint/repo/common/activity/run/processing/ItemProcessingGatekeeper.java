@@ -171,14 +171,13 @@ class ItemProcessingGatekeeper<I> {
             writeOperationExecutionRecord(result);
 
             boolean skipPolicyEvaluation = false;
-            if (processingResult != null && processingResult.exception() instanceof ThresholdPolicyViolationException thresholdEx) {
-                if (thresholdEx.getCause() instanceof ActivityPolicyViolationException violationEx) {
-                    processingResult = ItemProcessingResult.fromException(result, violationEx);
-                    var activityRunResult = ActivityRunResult.handleException(violationEx, result, activityRun);
-                    activityRun.getErrorState().requestImmediateStop(activityRunResult);
+            ThresholdPolicyViolationException thresholdEx = findThresholdPolicyViolation();
+            if (thresholdEx != null && thresholdEx.getCause() instanceof ActivityPolicyViolationException violationEx) {
+                processingResult = ItemProcessingResult.fromException(result, violationEx);
+                var activityRunResult = ActivityRunResult.handleException(violationEx, result, activityRun);
+                activityRun.getErrorState().requestImmediateStop(activityRunResult);
 
-                    skipPolicyEvaluation = true;
-                }
+                skipPolicyEvaluation = true;
             }
 
             if (!skipPolicyEvaluation) {
@@ -388,6 +387,40 @@ class ItemProcessingGatekeeper<I> {
             LOGGER.error("{} of object {}{} failed: {}", activityRun.getShortName(), iterationItemInformation,
                     activityRun.getContextDescriptionSpaced(), processingResult.getMessage(), processingResult.exception());
         }
+    }
+
+    /**
+     * Finds a threshold policy violation connected to the just finished item processing, even if it is not the
+     * "primary" exception of the processing result. The violation thrown in the clockwork may be swallowed on the way
+     * here (e.g. by {@code SynchronizationActionExecutor}, which only records it into the operation result), and the
+     * exception that {@link ItemProcessingResult#fromOperationResult(OperationResult)} then scavenges from the result
+     * tree is simply the last cause recorded anywhere in it - so any unrelated (even handled) exception recorded later
+     * would hide the violation, and the activity would continue past its threshold.
+     */
+    private ThresholdPolicyViolationException findThresholdPolicyViolation() {
+        if (processingResult == null) {
+            return null;
+        }
+        if (processingResult.exception() instanceof ThresholdPolicyViolationException thresholdEx) {
+            return thresholdEx;
+        }
+        if (!processingResult.isError()) {
+            return null;
+        }
+        return findThresholdViolationCause(processingResult.operationResult());
+    }
+
+    private static ThresholdPolicyViolationException findThresholdViolationCause(OperationResult result) {
+        if (result.getCause() instanceof ThresholdPolicyViolationException thresholdEx) {
+            return thresholdEx;
+        }
+        for (OperationResult subresult : result.getSubresults()) {
+            ThresholdPolicyViolationException found = findThresholdViolationCause(subresult);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     /**

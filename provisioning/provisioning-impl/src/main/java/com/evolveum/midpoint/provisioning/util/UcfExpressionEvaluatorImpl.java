@@ -44,7 +44,7 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
     @Override
     public <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
             String ctxDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();

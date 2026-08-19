@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.*;
+import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.EnumerationTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.EnumerationTypeDefinitionImpl.ValueDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDomSerializer;
@@ -34,8 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * Util methods for PrismSchemaTypeUtil for converting xsd schema to PrismSchemaType and PrismSchemaType to xsd schema

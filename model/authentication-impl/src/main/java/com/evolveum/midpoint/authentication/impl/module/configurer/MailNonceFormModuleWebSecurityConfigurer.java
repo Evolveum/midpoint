@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MailNonceAuthenticat
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 
@@ -76,10 +76,10 @@ public class MailNonceFormModuleWebSecurityConfigurer extends ModuleWebSecurityC
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint(
                         getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl()));
 
-        http.logout().clearAuthentication(true)
+        http.logout(configurer -> configurer.clearAuthentication(true)
                 .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(createLogoutHandler());
+                .logoutSuccessHandler(createLogoutHandler()));
     }
 }

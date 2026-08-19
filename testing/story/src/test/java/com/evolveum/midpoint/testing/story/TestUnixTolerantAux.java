@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.Arrays;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.directory.api.util.GeneralizedTime;

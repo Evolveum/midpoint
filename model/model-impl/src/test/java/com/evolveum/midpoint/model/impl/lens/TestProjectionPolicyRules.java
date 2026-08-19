@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;

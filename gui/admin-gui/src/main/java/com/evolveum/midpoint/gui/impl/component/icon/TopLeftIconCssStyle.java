@@ -23,7 +23,7 @@ public class TopLeftIconCssStyle implements LayeredIconCssStyle {
 
     @Override
     public String getLayerCssClass() {
-        return "top-left-layer";
+        return "top-start-layer";
     }
 
     @Override

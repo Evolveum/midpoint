@@ -73,7 +73,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     void evaluate()
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
+            ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         assert !ctx.assignmentPath.isEmpty();
         assert ctx.assignmentPath.last() == segment;
@@ -130,7 +130,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     private void addSkippedTargetsToMembershipLists()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
 //        boolean resolvedTargets = false;
         // TODO CLEAN THIS UP
         // Important: but we still want this to be reflected in roleMembershipRef
@@ -198,7 +198,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     @NotNull
     private List<? extends PrismObject<? extends ObjectType>> getTargets()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         try {
             return resolveTargets();
         } catch (ObjectNotFoundException ex) {
@@ -219,7 +219,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             ctx.evalAssignment.setForceRecon(true);
             return List.of();
         } catch (SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException |
-                SecurityViolationException | RuntimeException e) {
+                 SecurityViolationException | RuntimeException | SubscriptionComplianceException e) {
             MiscUtil.throwAsSame(
                     e,
                     String.format("Couldn't resolve targets in %s in %s: %s",
@@ -231,7 +231,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     @NotNull
     private List<PrismObject<? extends ObjectType>> resolveTargets()
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         boolean oidBasedRef = targetRef.getOid() != null && targetRef.getType() != null;
         if (oidBasedRef) {
             PrismObject<? extends ObjectType> cachedTarget = ctx.ae.getCachedTarget(targetRef);

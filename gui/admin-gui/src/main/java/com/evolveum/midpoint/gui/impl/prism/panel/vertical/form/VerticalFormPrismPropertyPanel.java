@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
