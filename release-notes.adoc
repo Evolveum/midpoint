@@ -184,7 +184,6 @@ including import of signed allowed-connectors list and subscription compliance e
 * Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
 * Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
-* Fixed internal server error when opening the OTP tab for a new application. See bug:MID-11927[]
 * Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
 * Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
 * Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
