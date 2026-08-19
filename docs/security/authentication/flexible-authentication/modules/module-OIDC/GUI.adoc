@@ -50,6 +50,8 @@ This is a simple example of OIDC module configuration, using sample values.
 
 === Available fields in `oidc` section
 
+#TODO consider single article: OIDC section#
+
 NOTE: While `client` is not mandatory as per specification, in order to successfully configure OIDC GUI authentication, it is necessary to use it.
 
 [cols="1,1,1,1", options="header"]
@@ -93,7 +95,9 @@ Deprecated, use `identifier` instead.
 |Name | Description | Required | Type 
 
 |`registrationId` 
-|Unique identifier of the client. RegistrationId is used in url path, so it has to contain only correct symbols. #TODO description is copy/paste from schema. What is it used for, where etc.?#
+|Unique identifier of the client.
+
+RegistrationId is used in different URLs path in OIDC workflows, so only correct symbols should be used.
 |true
 |String
 
@@ -127,7 +131,7 @@ Possible values: `clientSecretBasic`, `clientSecretPost`, `clientSecretJwt`, `pr
 |Complex xref:#simpleProofKey[simpleProofKey type]
 
 |`keyStoreProofKey`
-|Parent element holding information about the private key and the keystore holding it. #TODO private, really?#
+|Parent element holding information about the private key and the keystore holding it. #TODO DEVS private, really?#
 |false
 |Complex xref:#AbstractKeyStoreKeyType[AbstractKeyStoreKeyType]
 
@@ -328,6 +332,8 @@ This is a simple example of OIDC module configuration, using sample values.
 
 [#sequence]
 === Available fields in `sequence` section
+
+#TODO consider single article: Sequence section#
 
 [cols="1,1,1,1", options="header"]
 |===

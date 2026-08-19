@@ -45,6 +45,8 @@ This is a simple example of OIDC module configuration, using sample values.
 [#oidc]
 === Available fields in `oidc` section
 
+#TODO consider single article: OIDC section#
+
 NOTE: While `resourceServer` is not mandatory as per specification, in order to successfully configure OIDC REST authentication, it is necessary to use it.
 
 [cols="1,1,1,1", options="header"]
@@ -388,6 +390,8 @@ This is a simple example of OIDC module configuration, using sample values.
 
 [#sequence]
 === Available fields in `sequence` section
+
+#TODO consider single article: Sequence section#
 
 [cols="1,1,1,1", options="header"]
 |===
