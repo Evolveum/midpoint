@@ -3947,7 +3947,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
      *
      * MID-10206
      *
-     * See also {@link TestSecurityAdvanced#test390AutzJackCannotFilterUnpermittedItems()}
      */
     @Test
     public void test500SearchForAbstractRolesWithLimitedAuthorizations() throws Exception {
