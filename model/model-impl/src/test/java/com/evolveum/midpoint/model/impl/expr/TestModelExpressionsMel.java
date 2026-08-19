@@ -165,7 +165,7 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
         assertExecuteScriptExpressionStringList(
                 createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition()),
                 "assignment-target-description",
-                "xF0006", "xP0002", "xF0001");
+                "Hosting the worst scumm of the Caribbean.", null, "The office of the most respectful Governor.");
     }
 
     @Test
