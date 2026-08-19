@@ -43,6 +43,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Fixed model loading for unassign action popup. See bug:MID-11584[]
 * Fixed breaking too long labels into lines. See bug:MID-11711[]
 * Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
+* Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
 
 == Changes with Respect To Version 4.8.11
 
