@@ -1,0 +1,557 @@
+= OIDC client auth for REST
+:page-toc: top
+:page-nav-title: OIDC for REST
+:page-keywords: oidc, openid connect, authentication, flexible authentication, rest, api, oauth2
+:page-description: This page describes how to configure midPoint to use an OIDC authentication provider for REST API authentication.
+
+This page describes how to configure midPoint to use an OIDC authentication provider for REST API authentication.
+
+This configuration consists of two steps, both of which take place in Security Policy configuration:
+
+* xref:#create-oidc-module[Create an OIDC module]
+* xref:#create-oidc-sequence[Add a sequence referencing the OIDC module]
+
+[#create-oidc-module]
+== Create an OIDC module
+
+=== Example
+
+This is a simple example of OIDC module configuration, using sample values.
+
+[source, xml]
+----
+<securityPolicy>
+    <authentication>
+        <modules>
+            ...
+
+            <!-- OIDC module for REST demo -->
+            <oidc>
+                <identifier>oidcResourceServer</identifier>
+                <resourceServer>
+                    <jwt> <!-- or opaqueToken -->
+                        <issuerUri>https://keycloak.lab.evolveum.com/auth/realms/test</issuerUri>
+                        <nameOfUsernameClaim>preferred_username</nameOfUsernameClaim>
+                    </jwt>
+                </resourceServer>
+            </oidc>
+
+            ...
+        </modules>
+    </authentication>
+</securityPolicy>
+----
+
+[#oidc]
+=== Available fields in `oidc` section
+
+NOTE: While `resourceServer` is not mandatory as per specification, in order to successfully configure OIDC REST authentication, it is necessary to use it.
+
+[cols="1,1,1,1", options="header"]
+|===
+|Name | Description | Required | Type
+|`identifier`
+|Unique identifier among `module` elements.
+
+This identifier will be used to reference this module.
+|true
+|String
+
+|`name`
+|Unique name of the authentication module
+
+Deprecated, use `identifier` instead.
+|false
+|String
+
+|`description`
+|Free form description (administrator comment).
+|false
+|String
+
+|`resourceServer`
+|Contains configuration of the OIDC resource server
+|false
+|Complex xref:#resourceServer[resourceServer type]
+
+|===
+
+[#resourceServer]
+=== Available fields in `resourceServer` section
+
+NOTE: While neither of `jwt` or `opaqueToken` is mandatory, at least one of them must be present. If both are present, the `jwt` configuration will be used.
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`jwt`
+|Defines that resource server expects token in JWT format.
+|false
+|Complex jwt type. Described in <<tokenConfiguration>>
+
+|`opaqueToken`
+|Defines that resource server expects token in opaque format.
+|false
+|Complex opaqueToken type. Described in <<tokenConfiguration>>
+
+|===
+
+.Deprecated fields in `resourceServer` section
+[%collapsible]
+====
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`realm`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`issuerUri`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`jwkSetUri`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`nameOfUsernameClaim`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`singleSymmetricKey`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`trustedAlgorithm`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`trustingAsymmetricCertificate`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|`keyStoreTrustingAsymmetricKey`
+|Deprecated. This configuration now resides inside th token of your choosing.
+|false
+|String
+
+|===
+====
+
+#TODO: Token configuration and Token configuration2 below displays the same information differently. Evaluate which one is better.#
+[[tokenConfiguration]]
+=== Token configuration 1
+
+This table contains methods to obtain public key. They are all mutually exclusive and evaluted in the order they are listed:
+
+. `trustingAsymmetricCertificate`
+. `keyStoreTrustingAsymmetricKey`
+. `singleSymmetricKey`
+. `jwkSetUri`
+. `issuerUri`
+
+In this table, the mandatory field is omitted, because all of the listed options are *not mandatory*.
+
+[cols="1,1,1,1,1", options="header"]
+|===
+|Name | Description | JWT-relevant | Opaque-relevant | Type
+
+|`realm`
+|Realm name midPoint will use in WWW-Authenticate header.
+|true
+|true
+|String
+
+|`issuerUri`
+|URI for the OIDC authentication provider.
+
+Relies on the `<issuerUri>/.well-known/openid-configuration` endpoint.
+|true
+|true
+|String
+
+|`nameOfUsernameClaim`
+|Name of the attribute, included in the token, refering to the subject of authentication, such as `preferred_username`.
+
+Default value is `sub`.
+|true
+|true
+|String
+
+|`jwkSetUri`
+|Uri for the JSON Web Key (JWK) Set endpoint.
+|true
+|false
+|String
+
+|`singleSymmetricKey`
+|OICD provider's public key
+|true
+|false
+|ProtectedStringType
+
+|`trustedAlgorithm`
+|It specifies the cryptographic algorithm used by the OIDC provider for digital signatures.
+
+Potential values are link:https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 §3.1] algorithms.
+
+It is only valid in combination with the following: `trustingAsymmetricCertificate`, `keyStoreTrustingAsymmetricKey`, `singleSymmetricKey`, `jwkSetUri`.
+|true
+|false
+|String
+
+|`trustingAsymmetricCertificate`
+|Certificate of trust for a single asymmetric RSA public key.
+|true
+|false
+|ProtectedStringType
+
+|`keyStoreTrustingAsymmetricKey`
+|Complex type holding information about a a key and a keystore holding it.
+|true
+|false
+|Complex xref:#AbstractKeyStoreKeyType[AbstractKeyStoreKeyType]
+
+|`userInfoUri`
+|Uri for the user info endpoint of the OIDC authentication provider.
+
+When not present, midPoint will rely on the information available on the OIDC discovery endpoint `<openIdProvider / issuerUri>/.well-known/openid-configuration`.
+|false
+|true
+|String
+
+|===
+
+[[tokenConfiguration2]]
+=== Token configuration 2
+
+NOTE: For better clarity, we'll list token related fields in two tables. First table lists public key retrieval methods. Second table the miscelaneous fields.
+
+==== Token validation methods
+
+Fields in this table are all mutually exclusive and evaluted in the order they are listed:
+
+[cols="1,1,1,1,1", options="header"]
+|===
+|Name | Description | JWT-relevant | Opaque-relevant | Type
+
+|`trustingAsymmetricCertificate`
+|Certificate of trust for a single asymmetric RSA public key.
+|true
+|false
+
+|ProtectedStringType
+|`keyStoreTrustingAsymmetricKey`
+|Complex type holding information about a a key and a keystore holding it.
+|true
+|false
+|Complex xref:#AbstractKeyStoreKeyType[AbstractKeyStoreKeyType]
+
+|`singleSymmetricKey`
+|OICD provider's public key
+|true
+|false
+|ProtectedStringType
+
+|`jwkSetUri`
+|Uri for the JSON Web Key (JWK) Set endpoint.
+|true
+|false
+|String
+
+|`issuerUri`
+|URI for the OIDC authentication provider.
+
+Relies on the `<issuerUri>/.well-known/openid-configuration` endpoint.
+|true
+|true
+|String
+
+|===
+
+==== Miscelaneous fields
+
+[cols="1,1,1,1,1", options="header"]
+|===
+|Name | Description | JWT-relevant | Opaque-relevant | Type
+
+|`realm`
+|Realm name midPoint will use in WWW-Authenticate header.
+|true
+|true
+|String
+
+|`nameOfUsernameClaim`
+|Name of the attribute, included in the token, refering to the subject of authentication, such as `preferred_username`.
+
+Default value is `sub`.
+|true
+|true
+|String
+
+|`trustedAlgorithm`
+|It specifies the cryptographic algorithm used by the OIDC provider for digital signatures.
+
+Potential values are link:https://datatracker.ietf.org/doc/html/rfc7518#section-3.1[RFC7518 §3.1] algorithms.
+
+It is only valid in combination with the following: `trustingAsymmetricCertificate`, `keyStoreTrustingAsymmetricKey`, `singleSymmetricKey`, `jwkSetUri`.
+|true
+|false
+|String
+
+|`userInfoUri`
+|Uri for the user info endpoint of the OIDC authentication provider.
+
+When not present, midPoint will rely on the information available on the OIDC discovery endpoint `<openIdProvider / issuerUri>/.well-known/openid-configuration`.
+|false
+|true
+|String
+
+|===
+
+[#AbstractKeyStoreKeyType]
+=== `AbstractKeyStoreKeyType` section
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`keyStorePath`
+|Path to the keystore file
+|true
+|String
+
+|`keyStorePassword`
+|Password for the keystore
+|true
+|ProtectedStringType
+
+|`keyAlias`
+|Alias of the private key in the keystore
+|true
+|ProtectedStringType
+
+|`keyPassword`
+|Password for the private key with the _keyAlias_ in the keystore
+|true
+|ProtectedStringType
+
+|===
+
+[#create-oidc-sequence]
+== Add a sequence referencing the OIDC module
+
+=== Example
+
+This is a simple example of OIDC module configuration, using sample values.
+
+[source, xml]
+----
+<securityPolicy>
+    <authentication>
+        ...
+
+        <!-- Sequence referencing the OIDC REST module demo -->
+        <sequence>
+            <identifier>rest</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</channelId>
+                <default>true</default>
+                <urlSuffix>rest-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>oidcResourceServer</identifier>
+                <order>10</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        
+        ...
+    </authentication>
+</securityPolicy>
+----
+
+
+[#sequence]
+=== Available fields in `sequence` section
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`identifier`
+|Unique sequence identifier. Can be used to reference the `sequence`.
+|true
+|String
+
+|`channel`
+|Specification of the channel(s) this authentication sequence applies to (GUI, REST, etc.)
+|true
+|Complex xref:#channel[channel type]
+
+|`module`
+|Specification of an authentication module used in this sequence.
+
+At least one module is required
+|true
+|Complex xref:#module[module type]
+
+|`name`
+|A short identifier for administrator diagnostics. Not meant as a user-friendly label. Must be unique.
+
+Deprecated, use `identifier` instead.
+|false
+|String
+
+|`displayName`
+|Display name of the sequence, shown for identifying the authentication sequence in the GUI.
+|false
+|String
+
+|`description`
+|Free form description (administrator comment).
+|false
+|String
+
+|`requireAssignmentTarget`
+|Required assignment target(s).
+
+The authenticated user must hold all of the listed assignment targets. If not, the authentication sequence will fail.
+
+For multiple targets, add this parameter multiple times, each time with a single value.
+
+Example usecase: emergency administrator access - can only work for administrator roles.
+
+Example value: `<requireAssignmentTarget oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType"/>`
+|false
+|ObjectReferenceType
+
+|`nodeGroup`
+|Required node group(s)
+
+The authenticated user must carry one of the listed node groups (archetypes). If none applies, the authentication sequence will fail.
+
+For multiple targets, add this parameter multiple times, each time with a single value.
+
+Example usecase: Only manageers can log in to the GUI, but not regular users.
+
+Example value: `<nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee" relation="org:default" type="c:ArchetypeType"/>`
+|false
+|ObjectReferenceType
+
+|`focusBehaviorUpdate`
+|Controls updating of focus authentication behaviour attributes (e.g. failed login count, lockout state)
+
+Possible values:
+
+enabled - update focus authentication behaviour attributes on every login
+
+disabled - never update focus authentication behaviour attributes
+
+failureOnly - update focus authentication behaviour attributes only on failure
+
+Default value is `enabled`.
+|false
+|String
+
+|===
+
+[#channel]
+=== Available fields in `channel` section
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`channelId`
+|Name (URI) of the channel this configuration applies to.
+
+The value for OIDC REST sequence is: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest
+|true
+|String
+
+|`description`
+|Free form description (administrator comment).
+|false
+|String
+
+|`default`
+|Specifies whether this sequence is the default one for the given channel.
+
+It is used, when no specific sequence is requested (e.g. via URL suffix).
+
+It is recommended to keep one default sequence for each channel in use.
+|false
+|Boolean
+
+|`urlSuffix`
+|URL suffix used to select this authentication sequence specifically.
+
+_Must not contain a slash (`/`)_.
+|true
+|String
+
+|===
+
+[#module]
+=== Available fields in `module` section
+
+[cols="1,1,1,1", options="header"]
+|===
+
+|Name | Description | Required | Type
+
+|`identifier`
+|Unique module identifier. Used to reference the module by `module` / `identifier`.
+|true
+|String
+
+|`name`
+|Reference to the authentication module name.
+
+Value must match the name of an existing authentication module.
+
+Deprecated, use `identifier` instead.
+|false
+|String
+
+|`description`
+|Free form description (administrator comment).
+|false
+|String
+
+|`order`
+|Ordering number for the module within the sequence.
+
+Modules are sorted by `order` value
+
+Modules sharing the same order may be evaluated in parallel where the authentication mechanism allows it.
+
+Default value is `100`.
+|false
+|Integer
+
+|`necessity`
+|Level of requirement for this module.
+
+Possible values are: `sufficient`, `required`, `requisite`, or `optional`.
+
+Default value is: `sufficient`.
+|false
+|String
+
+|===
