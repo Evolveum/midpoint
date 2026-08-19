@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import org.testng.annotations.Test;
 
@@ -64,6 +65,22 @@ public class TestTaskInformation extends AbstractSchemaTest {
                 .isEqualTo("42");
     }
 
+    /**
+     * Verifies that the root (coordinator) task progress bar value reflects bucket progress,
+     * so it matches the textual bucket-percentage label instead of being hidden or zeroed.
+     */
+    @Test
+    public void testRootProgressUsesBucketPercentage() {
+        TaskType root = createRootTaskWithWorkerOverview();
+
+        TaskInformation information = TaskInformation.createForTask(root, root);
+
+        assertThat(information).isInstanceOf(ActivityBasedTaskInformation.class);
+        assertThat(information.getProgress())
+                .as("root progress bar value")
+                .isEqualTo(140.0 / 257, within(0.0001));
+    }
+
     private static TaskType createRootTaskWithWorkerOverview() {
         ActivityStateOverviewType overview = new ActivityStateOverviewType()
                 .bucketProgress(
@@ -77,6 +94,13 @@ public class TestTaskInformation extends AbstractSchemaTest {
                 .oid(ROOT_OID)
                 .activityState(
                         new TaskActivityStateType()
+                                .localRoot(new ActivityPathType())
+                                .activity(
+                                        new ActivityStateType()
+                                                .realizationState(ActivityRealizationStateType.IN_PROGRESS_DISTRIBUTED)
+                                                .bucketing(
+                                                        new ActivityBucketingStateType()
+                                                                .bucketsProcessingRole(BucketsProcessingRoleType.COORDINATOR)))
                                 .tree(
                                         new ActivityTreeStateType()
                                                 .activity(overview)));

@@ -122,9 +122,7 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     }
 
     private static boolean isWorkerTask(@NotNull TaskType task) {
-        ActivityBucketingStateType bucketing = getLocalRootActivityState(task).getBucketing();
-        return bucketing != null
-                && bucketing.getBucketsProcessingRole() == BucketsProcessingRoleType.WORKER;
+        return BucketingUtil.isWorker(getLocalRootActivityState(task));
     }
 
     /**
@@ -189,9 +187,19 @@ public class ActivityBasedTaskInformation extends TaskInformation {
             return 1.0;
         }
 
-        // Use direct item progress for leaf activities. If there is no expected total,
-        // return -1 so the GUI shows only the textual progress label.
+        // For leaf activities, use bucket progress (multi-bucket tasks, matching the label),
+        // then direct item progress. If no expected total is known, return -1 so the GUI
+        // shows only the textual progress label.
         if (progressInformation.getChildren().isEmpty()) {
+            BucketsProgressInformation bucketsProgress = progressInformation.getBucketsProgress();
+            if (bucketsProgress != null
+                    && bucketsProgress.getExpectedBuckets() != null
+                    && bucketsProgress.getExpectedBuckets() > 1) {
+                float percentage = bucketsProgress.getPercentage();
+                if (!Float.isNaN(percentage)) {
+                    return percentage;
+                }
+            }
             ItemsProgressInformation itemsProgress = progressInformation.getItemsProgress();
             if (itemsProgress != null) {
                 float percentage = itemsProgress.getPercentage();
