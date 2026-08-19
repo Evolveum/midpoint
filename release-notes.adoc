@@ -31,11 +31,9 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 == Changes with Respect To Version 4.8.12
 
 * Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_8_12[behavior changes since 4.8.12].
-* Updated Spring Boot to 4.0 and Hibernate to 7.1.8. See bug:MID-11002[]
-* Updated spring boot to 4.1 and Hibernate to 7.4.1. See bug:MID-11547[]
+* Updated multiple libraries, mainly spring boot to 4.1 and hibernate to 7.4.1, cxf to 4.2.2. See bug:MID-11547[], bug:MID-11002[], bug:MID-11948[].
 * Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
 * Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[]
-* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
 * Fixed download report file extension. See bug:MID-11312[]
 * Fixed sending notification to multiple recipients. See bug:MID-11038[]
 * Fixed reference value update in search panel. See bug:MID-11400[]
