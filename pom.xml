@@ -260,7 +260,7 @@
 
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.7.0.1-SNAPSHOT</connid.version>
+        <connid.version>1.7.0.0-SNAPSHOT</connid.version>
 
         <poi.version>5.5.1</poi.version>
         <tika.version>3.3.2</tika.version>
