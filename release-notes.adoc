@@ -431,6 +431,7 @@ If localization is required, explicitly define translation keys or language-spec
 * Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
 By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
 The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments (even when adding `end`), ensuring that new records continue to be iterated starting from 0 consistently with existing records.
 This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
 In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 

@@ -5233,7 +5233,9 @@
                     <xsd:documentation>
                             The number at which the iteration will start. This is inclusive, i.e., if set to 1,
                             then the lowest number in the iteration variable will be 1.
-                            If not specified, the default value is 0.
+                            If not specified, the default value is 0 when maxIterations is defined and 1 otherwise.
+                            The default of 0 when maxIterations is present preserves backward compatibility for existing
+                            deployments, ensuring that new records continue to be iterated starting from 0.
                             <p/>
                             The first non-conflicting attempt is also considered an iteration and uses the
                             value of the start property.
