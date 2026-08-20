@@ -1,12 +1,12 @@
-MidPoint 4.10 "Braille" Update 3
+MidPoint 4.10 "Braille" Update 4
 --------------------------------
 
-Release 4.10.3 is a seventy-ninth midPoint release code-named Braille.
-The 4.10.3 release brings accessibility improvements and miscellaneous bugfixes.
+Release 4.10.4 is an eighty-second midPoint release code-named Braille.
+The 4.10.4 release brings security, stability and miscellaneous bug fixes.
 
-Release date: 1st June 2026
+Release date: 20st August 2026
 Release type: Maintenance release
 End of support: 25th November 2027
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.10.3/
+https://docs.evolveum.com/midpoint/release/4.10.4/
