@@ -45,17 +45,19 @@ public class CorrelationObjectsSamplerWhenShadowCacheDisabled implements Objects
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationObjectsSamplerWhenShadowCacheDisabled.class);
 
-    private static final int SAMPLE_SIZE = 2000;
+    public static final int DEFAULT_SAMPLE_SIZE = 2000;
 
     private final ModelService modelService;
     private final ResourceType resource;
     private final ResourceObjectDefinition typeDefinition;
+    private final int sampleSize;
 
     public CorrelationObjectsSamplerWhenShadowCacheDisabled(
-            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition) {
+            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition, int sampleSize) {
         this.modelService = modelService;
         this.resource = resource;
         this.typeDefinition = typeDefinition;
+        this.sampleSize = sampleSize;
     }
 
     @Override
@@ -67,9 +69,9 @@ public class CorrelationObjectsSamplerWhenShadowCacheDisabled implements Objects
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         LOGGER.debug("Sampling shadows for correlation: {}/{}, sampleSize={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), SAMPLE_SIZE);
+                resource.getOid(), typeDefinition.getTypeIdentification(), sampleSize);
 
-        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(SAMPLE_SIZE);
+        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(sampleSize);
         AtomicInteger totalCount = new AtomicInteger(0);
         Random random = new Random(1);
 
@@ -85,7 +87,7 @@ public class CorrelationObjectsSamplerWhenShadowCacheDisabled implements Objects
                         int i = totalCount.getAndIncrement();
 
                         // Decide if this shadow should go into reservoir based on reservoir sampling algorithm
-                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, SAMPLE_SIZE);
+                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, sampleSize);
 
                         // If shadow should go into reservoir, load it fully from resource
                         if (reservoirPosition != null) {
@@ -111,7 +113,7 @@ public class CorrelationObjectsSamplerWhenShadowCacheDisabled implements Objects
                 result);
 
         if (totalCount.get() == 0) {
-            sampleDirectlyFromResource(query, reservoir, totalCount, acceptancePredicate, task, result);
+            sampleDirectlyFromResource(query, reservoir, totalCount, sampleSize, acceptancePredicate, task, result);
         }
 
         if (reservoir.isEmpty()) {
@@ -127,6 +129,7 @@ public class CorrelationObjectsSamplerWhenShadowCacheDisabled implements Objects
             ObjectQuery query,
             List<PrismObject<ShadowType>> reservoir,
             AtomicInteger totalCount,
+            int sampleSize,
             Predicate<PrismObject<ShadowType>> acceptancePredicate,
             Task task,
             OperationResult result)
@@ -141,7 +144,7 @@ public class CorrelationObjectsSamplerWhenShadowCacheDisabled implements Objects
                 (shadow, lResult) -> {
                     try {
                         int i = totalCount.getAndIncrement();
-                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, SAMPLE_SIZE);
+                        Integer reservoirPosition = getReservoirPosition(reservoir.size(), i, random, sampleSize);
 
                         if (reservoirPosition != null && acceptancePredicate.test(shadow)) {
                             addToReservoir(reservoir, reservoirPosition, shadow);
