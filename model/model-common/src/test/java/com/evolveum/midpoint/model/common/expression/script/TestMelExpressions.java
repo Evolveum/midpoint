@@ -3793,6 +3793,14 @@ public class TestMelExpressions extends AbstractScriptTest {
                 true);
     }
 
+    @Test
+    public void testAuditDeltaDeltaEstimateNewValuesModifyTitle() throws Exception {
+        evaluateAndAssertStringListExpression(
+        "expression-audit-delta-delta-estimatenewvalues.xml",
+                createAuditVariables(this::produceModifyDelta,
+                        "path", UserType.F_TITLE, PrimitiveType.QNAME),
+                "Captain");
+    }
 
     @FunctionalInterface
     public interface DeltaProducer<O extends ObjectType> {
