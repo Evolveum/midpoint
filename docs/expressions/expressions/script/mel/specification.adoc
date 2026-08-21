@@ -1668,170 +1668,6 @@ focus.type() == 'UserType'
 ----
 
 
-==== hasRelation
-
-`assignment.hasRelation(relation)` -> bool
-
-Returns true if `targetRef` of the assignment has specified relation.
-
-Relation can be specified as string or qname.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.hasRelation('owner')
-----
-
-==== has*Relation
-
-`assignment.hasDefaultRelation()` -> bool +
-`assignment.hasApproverRelation()` -> bool +
-`assignment.hasConsentRelation()` -> bool +
-`assignment.hasDeputyRelation()` -> bool +
-`assignment.hasMetaRelation()` -> bool +
-`assignment.hasOwnerRelation()` -> bool +
-`assignment.hasRelatedRelation()` -> bool
-
-
-Returns true if `targetRef` of the assignment has specified relation.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.hasOwnerRelation()
-----
-
-==== isTarget
-
-`assignment.isTarget(type)` -> bool +
-`assignment.isTarget(type, archetypeOid)` -> bool
-
-Returns true if `targetRef` of the assignment is of specified type.
-When archetype OID is specified, the function also checks for presence of specified archetype in target object.
-
-Type can be specified as string or qname.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.isTarget('RoleType')
-
-// Checks whether the target is business role.
-assignment.isTarget('RoleType', '00000000-0000-0000-0000-000000000321')
-----
-
-==== isTarget*
-
-`assignment.isTargetRole()` -> bool +
-`assignment.isTargetRole(archetypeOid)` -> bool +
-`assignment.isTargetOrg()` -> bool +
-`assignment.isTargetOrg(archetypeOid)` -> bool +
-`assignment.isTargetService()` -> bool +
-`assignment.isTargetService(archetypeOid)` -> bool +
-`assignment.isTargetPolicy()` -> bool +
-`assignment.isTargetPolicy(archetypeOid)` -> bool +
-`assignment.isTargetUser()` -> bool +
-`assignment.isTargetUser(archetypeOid)` -> bool
-
-
-Returns true if `targetRef` of the assignment is of specified type.
-When archetype OID is specified, the function also checks for presence of specified archetype in target object.
-
-When archetype parameter is specified, invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.isTargetRole()
-
-// Checks whether the target is business role.
-assignment.isTargetRole('00000000-0000-0000-0000-000000000321')
-----
-
-==== target
-
-`assignment.target()` -> object
-
-Returns object that the targetRef of the assignment refers to.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
-
-Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
-
-.Example
-[source,mel]
-----
-assignment.target().description
-----
-
-==== targetName
-
-`assignment.targetName()` -> polystring
-
-Returns name of the object that the targetRef of the assignment refers to.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
-
-Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
-
-.Example
-[source,mel]
-----
-'Target:' + assignment.targetName()
-----
-
-==== targetOid
-
-`assignment.targetOid()` -> oid
-
-Returns OID of targetRef of the assignment.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.targetOid() == '9dbea12d-81dc-11f1-9bfe-9c6b00360713'
-----
-
-==== targetRelation
-
-`assignment.targetRelation()` -> qname
-
-Returns relation of targetRef of the assignment.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.targetRelation() == 'owner'
-----
-
-
-==== targetType
-
-`assignment.targetType()` -> qname
-
-Returns type of targetRef of the assignment.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.targetType() == 'RoleType'
-----
-
-
 ==== connectorConfiguration
 
 `resource.connectorConfiguration(propertyName)` -> list
@@ -2828,20 +2664,7 @@ Following table summarizes the most frequently used fields.
 
 ==== Assignment Functions
 
-===== hasRelation
 
-`assignment.hasRelation(any)` -> boolean
-
-Returns true if `targetRef` of the assignment has specified xref:/midpoint/reference/concepts/relation/[relation].
-String or QName representation of the relation can be used.
-
-This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.hasRelation('owner')
-----
 
 ===== hasDefaultRelation
 
@@ -2855,6 +2678,30 @@ This function is null-safe, it returns `false` in case that assignment has no `t
 [source,mel]
 ----
 assignment.hasDefaultRelation()
+----
+
+
+
+
+
+
+
+
+
+
+===== hasRelation
+
+`assignment.hasRelation(any)` -> boolean
+
+Returns true if `targetRef` of the assignment has specified xref:/midpoint/reference/concepts/relation/[relation].
+String or QName representation of the relation can be used.
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasRelation('owner')
 ----
 
 ===== has*Relation
@@ -2876,50 +2723,106 @@ This function is null-safe, it returns `false` in case that assignment has no `t
 assignment.hasOwnerRelation()
 ----
 
+
+
 ===== isTarget
 
-`assignment.isTarget(any)` -> boolean
+`assignment.isTarget(type)` -> bool +
+`assignment.isTarget(type, archetypeOid)` -> bool
 
 Returns true if `targetRef` of the assignment is of specified type.
-String or QName representation of the type can be used.
+When archetype OID is specified, the function also checks for presence of specified archetype in target object.
 
-This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+Type can be specified as string or qname.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
 
 .Example
 [source,mel]
 ----
 assignment.isTarget('RoleType')
+
+// Checks whether the target is business role.
+assignment.isTarget('RoleType', '00000000-0000-0000-0000-000000000321')
 ----
 
 ===== isTarget*
 
-`assignment.isTargetRole()` -> boolean +
-`assignment.isTargetOrg()` -> boolean +
-`assignment.isTargetService()` -> boolean +
-`assignment.isTargetPolicy()` -> boolean +
-`assignment.isTargetUser()` -> boolean
+`assignment.isTargetRole()` -> bool +
+`assignment.isTargetRole(archetypeOid)` -> bool +
+`assignment.isTargetOrg()` -> bool +
+`assignment.isTargetOrg(archetypeOid)` -> bool +
+`assignment.isTargetService()` -> bool +
+`assignment.isTargetService(archetypeOid)` -> bool +
+`assignment.isTargetPolicy()` -> bool +
+`assignment.isTargetPolicy(archetypeOid)` -> bool +
+`assignment.isTargetUser()` -> bool +
+`assignment.isTargetUser(archetypeOid)` -> bool
+
 
 Returns true if `targetRef` of the assignment is of specified type.
+When archetype OID is specified, the function also checks for presence of specified archetype in target object.
 
-This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+When archetype parameter is specified, invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
 
 .Example
 [source,mel]
 ----
 assignment.isTargetRole()
+
+// Checks whether the target is business role.
+assignment.isTargetRole('00000000-0000-0000-0000-000000000321')
 ----
+
+===== target
+
+`assignment.target()` -> object
+
+Returns object that the targetRef of the assignment refers to.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
+
+Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+.Example
+[source,mel]
+----
+assignment.target().description
+----
+
+===== targetName
+
+`assignment.targetName()` -> polystring
+
+Returns name of the object that the targetRef of the assignment refers to.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
+
+Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+.Example
+[source,mel]
+----
+'Target:' + assignment.targetName()
+----
+
 
 ===== targetOid
 
 `assignment.targetOid()` -> string
 
 Returns OID of targetRef of the assignment.
+
 This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
 
 .Example
 [source,mel]
 ----
 assignment.targetOid()   // Returns '847ab384-8a63-11f1-ad15-9c6b00360713'
+
+assignment.targetOid() == '9dbea12d-81dc-11f1-9bfe-9c6b00360713'
 ----
 
 ===== targetRelation
