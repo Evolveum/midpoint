@@ -11,6 +11,8 @@ import java.time.Instant;
 
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QProjectionHolder;
+
 import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
@@ -28,7 +30,7 @@ import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
  * Querydsl query type for {@value #TABLE_NAME} table.
  */
 @SuppressWarnings("unused")
-public class QFocus<R extends MFocus> extends QAssignmentHolder<R> {
+public class QFocus<R extends MFocus> extends QProjectionHolder<R> {
 
     private static final long serialVersionUID = -535915621882761789L;
 

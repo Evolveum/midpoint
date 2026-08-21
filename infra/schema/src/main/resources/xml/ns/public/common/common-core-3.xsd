@@ -1702,12 +1702,14 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    Abstract supertype for all object types that can be focus of full midPoint computation.
-                    This basically means objects that have projections.
+                    Abstract supertype for all object types that can have projections on resources.
 
-                    Use subtype FocusType for  focal objects that also have activation, they may have personas, etc.
+                    Use subtype FocusType for  focal objects that also have activation, t
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
@@ -1755,9 +1757,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <!-- No element definition for FocusType, because it is abstract.
-         [med] OK but later :) We need this to be able to find PCD for FocusType ... see MID-5010 -->
-    <xsd:element name="baseFocus" type="tns:ProjectionHolderType"/>
+    <xsd:element name="projectionHolder" type="tns:ProjectionHolderType"/>
 
     <xsd:complexType name="FocusType" abstract="true">
         <xsd:annotation>

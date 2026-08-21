@@ -22,9 +22,9 @@ Abstract base table for focus objects such as users, roles, services, and organi
 
 XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#FocusType`
 
-Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+Inherits from: xref:infrastructure.adoc#m_projection_holder[`m_projection_holder`]
 
-No primary key is defined directly on this table. The table inherits from xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`].
+No primary key is defined directly on this table. The table inherits from xref:infrastructure.adoc#m_projection_holder[`m_projection_holder`].
 
 ==== Columns
 

@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QProjectionHolderMapping;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -32,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
  * Mapping between {@link QCase} and {@link CaseType}.
  */
 public class QCaseMapping
-        extends QAssignmentHolderMapping<CaseType, QCase, MCase> {
+        extends QProjectionHolderMapping<CaseType, QCase, MCase> {
 
     public static final String DEFAULT_ALIAS_NAME = "cs";
     private static QCaseMapping instance;
@@ -74,9 +76,6 @@ public class QCaseMapping
                 q -> q.targetRefTargetType,
                 q -> q.targetRefRelationId,
                 QObjectMapping::getObjectMapping);
-
-        addRefMapping(ProjectionHolderType.F_LINK_REF,
-                QObjectReferenceMapping.initForProjection(repositoryContext));
 
         addContainerTableMapping(F_WORK_ITEM,
                 QCaseWorkItemMapping.initCaseWorkItemMapping(repositoryContext),
@@ -124,9 +123,6 @@ public class QCaseMapping
     public void storeRelatedEntities(
             @NotNull MCase row, @NotNull CaseType schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
-
-        storeRefs(row, schemaObject.getLinkRef(),
-                QObjectReferenceMapping.getForProjection(), jdbcSession);
 
         List<CaseWorkItemType> workItems = schemaObject.getWorkItem();
         if (!workItems.isEmpty()) {

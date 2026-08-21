@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 
 import com.querydsl.core.Tuple;
@@ -23,10 +24,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplateMapping;
@@ -152,7 +149,7 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
                     ProjectionHolderType.F_LINK_REF,
                     "m_ref_projection", "refpj", repositoryContext,
                     QShadowMapping::getShadowMapping,
-                    QAssignmentHolderMapping::getAssignmentHolderMapping,
+                    QProjectionHolderMapping::getProjectionHolderMapping,
                     (q, oq) -> q.ownerOid.eq(oq.oid),
                     ProjectionHolderType.class,
                     ProjectionHolderType.F_LINK_REF);
