@@ -62,7 +62,8 @@ public class TicketingServiceImpl implements TicketingService {
     }
 
     @Override
-    public @NotNull CaseType getCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult result) {
+    public @NotNull CaseType getCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException {
         try {
             // Obtaining shadow OID (there should be exactly one)
             var aCase = modelService.getObject(CaseType.class, caseOid, null, task, result).asObjectable();
@@ -77,6 +78,9 @@ public class TicketingServiceImpl implements TicketingService {
             // Re-reading the case object after synchronization, to be returned
             return modelService.getObject(CaseType.class, caseOid, null, task, result).asObjectable();
 
+        } catch (ObjectNotFoundException e) {
+            // Let the caller (e.g. the pending-operation refresh) handle the (deleted) case gracefully.
+            throw e;
         } catch (Throwable t) {
             throw SystemException.unexpected(t, "Couldn't get a ticket for " + caseOid);
         }
