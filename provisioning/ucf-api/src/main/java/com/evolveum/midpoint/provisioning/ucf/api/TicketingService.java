@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,10 +32,11 @@ public interface TicketingService {
     @NotNull CaseType getCase(
             @NotNull String caseOid,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException;
 
     /**
-     * Specificiation of where the ticket should be created: the resource and its object type.
+     * Specification of where the ticket should be created: the resource and its object type.
      * All relevant mappings must be in place for the mechanism to work.
      */
     record TicketingResourceSpec(

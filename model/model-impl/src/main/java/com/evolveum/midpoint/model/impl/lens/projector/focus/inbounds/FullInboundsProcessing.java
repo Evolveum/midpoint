@@ -52,7 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Evaluation of inbound mappings from all projections in given lens context. This is the "full mode".
  * See the description in {@link AbstractInboundsProcessing}.
  */
-public class FullInboundsProcessing<F extends FocusType> extends AbstractInboundsProcessing<F> {
+public class FullInboundsProcessing<F extends ProjectionHolderType> extends AbstractInboundsProcessing<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(FullInboundsProcessing.class);
 
@@ -340,7 +340,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
                         builder.defaultSource(source)
                                 .addVariableDefinition(ExpressionConstants.VAR_USER, focus, UserType.class)
-                                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, FocusType.class)
+                                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, AssignmentHolderType.class)
                                 .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
                         PrismObject<ShadowType> account = this.inboundsSource.getSourceData().getShadowVariableValue();
