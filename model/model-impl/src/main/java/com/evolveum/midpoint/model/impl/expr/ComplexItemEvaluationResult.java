@@ -20,14 +20,17 @@ import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismValueDeltaSe
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
- * Result of the evaluation of {@link AssociationSynchronizationExpressionEvaluator}.
- * It contains the main result (triple of values) but also other results, namely triples for inner paths.
+ * Result of the evaluation of evaluators that produces triples for inner paths, in addition to the main triple.
  *
- * Currently quite experimental. It can be generalized to contain inner delta set triples only, which would be
- * applicable to more expression evaluators than just association synchronization.
+ * For example, this is used by:
+ *
+ * - {@link AssociationSynchronizationExpressionEvaluator}
+ * - {@link ComplexAttributeSynchronizationExpressionEvaluator}
+ *
+ * Currently tailored for the use with inbound mappings only.
  */
 @Experimental
-public class AssociationSynchronizationResult<V extends PrismValue> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
+public class ComplexItemEvaluationResult<V extends PrismValue> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
 
     /** Delta set triples for inner values. Keyed by absolute path. */
     @NotNull private final DeltaSetTripleIvwoMap innerDeltaSetTriplesMap = new DeltaSetTripleIvwoMap();
@@ -35,7 +38,7 @@ public class AssociationSynchronizationResult<V extends PrismValue> extends Abst
     /** Definitions for inner items. Keyed by absolute path. */
     @NotNull private final PathKeyedMap<ItemDefinition<?>> innerItemDefinitionsMap = new PathKeyedMap<>();
 
-    /** Evaluation requests for inner items. Keyed by absolute path. */
+    /** Inbound mapping evaluation requests for inner items. Keyed by absolute path. */
     @NotNull private final MappingEvaluationRequestsMap innerMappingEvaluationRequestsMap = new MappingEvaluationRequestsMap();
 
     public @NotNull DeltaSetTripleIvwoMap getInnerDeltaSetTriplesMap() {
@@ -50,18 +53,19 @@ public class AssociationSynchronizationResult<V extends PrismValue> extends Abst
         return innerMappingEvaluationRequestsMap;
     }
 
-    /** Merges the specified triple map into the map of other triples, prefixing each entry with given path prefix. */
-    void mergeIntoOtherTriples(ItemPath pathPrefix, DeltaSetTripleIvwoMap tripleMap) {
+    /** Merges the specified triple map into the map of inner triples, prefixing each entry with given path prefix. */
+    void mergeIntoInnerTriples(ItemPath pathPrefix, DeltaSetTripleIvwoMap tripleMap) {
         innerDeltaSetTriplesMap.putOrMergeAll(pathPrefix, tripleMap);
     }
 
-    void mergeIntoItemDefinitionsMap(ItemPath pathPrefix, PathKeyedMap<ItemDefinition<?>> itemDefinitionsMap) {
+    void mergeIntoInnerItemDefinitionsMap(ItemPath pathPrefix, PathKeyedMap<ItemDefinition<?>> itemDefinitionsMap) {
         for (var entry : itemDefinitionsMap.entrySet()) {
             innerItemDefinitionsMap.put(pathPrefix.append(entry.getKey()), entry.getValue());
         }
     }
 
-    void mergeIntoMappingEvaluationRequestsMap(ItemPath pathPrefix, MappingEvaluationRequestsMap mappingEvaluationRequestsMap) {
+    void mergeIntoInnerMappingEvaluationRequestsMap(
+            ItemPath pathPrefix, MappingEvaluationRequestsMap mappingEvaluationRequestsMap) {
         for (var entry : mappingEvaluationRequestsMap.entrySet()) {
             innerMappingEvaluationRequestsMap.put(pathPrefix.append(entry.getKey()), entry.getValue());
         }

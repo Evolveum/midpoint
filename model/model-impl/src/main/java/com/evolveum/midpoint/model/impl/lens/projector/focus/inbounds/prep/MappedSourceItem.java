@@ -255,7 +255,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     .mappingSpecification(inboundsSource.createMappingSpec(mappingCI.getName(), itemDefinition))
                     .now(inboundsContext.env.now);
 
-            if (isComplexAttribute(defaultSource)) {
+            if (isComplexAttribute()) {
                 // "<asIs>" won't work for complex attributes -> the reasonable default is "<complexAttributeSynchronization>"
                 builder.defaultExpressionSupplier(
                         () -> new ExpressionType()
@@ -294,27 +294,9 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         }
     }
 
-    /**
-     * HACK. After complex attributes are distinguished from genuine reference attributes and complex associations
-     * right at the level of definition, we will remove this hack.
-     */
-    private boolean isComplexAttribute(Source<V, D> defaultSource) {
-        if (!(itemDefinition instanceof ShadowReferenceAttributeDefinition)) {
-            return false;
-        }
-        var item = defaultSource.getAnyItem();
-        var itemValue = item != null ? item.getAnyValue() : null;
-        if (!(itemValue instanceof ShadowReferenceAttributeValue refAttrValue)) {
-            return false;
-        }
-        var shadow = refAttrValue.getShadowIfPresent();
-        if (shadow == null) {
-            return false;
-        }
-        var identification = shadow.getTypeIdentification();
-        // This may be the case for association definition. But in that case, the item definition would be
-        // ShadowAssociationDefinition, not ShadowReferenceAttributeDefinition.
-        return identification != null && identification.getKind() == ShadowKindType.ASSOCIATION;
+    private boolean isComplexAttribute() {
+        return itemDefinition instanceof ShadowReferenceAttributeDefinition referenceAttributeDefinition
+                && referenceAttributeDefinition.getNativeDefinition().isComplexAttribute();
     }
 
     // FIXME brutal hack

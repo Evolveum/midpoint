@@ -39,6 +39,7 @@ Notes & References:
 * Iteration specification (`IterationType`) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
 By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
 The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments (even when adding `end`), so that new records continue to be iterated starting from 0 consistently with existing records.
 This can break existing custom token expressions that expect to be evaluated on the first (non conflicting) attempt.
 In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 == 4.11-M5
