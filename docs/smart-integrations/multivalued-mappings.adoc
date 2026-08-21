@@ -1,0 +1,43 @@
+= Multivalued Attributes in Mapping Suggestions
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+This document summarizes the behavior and analysis of **multivalued attributes** (`maxOccurs > 1`) during Smart Integration mapping suggestions across **midPoint** and the **AI Microservice**.
+
+== Test Methodology
+
+The behavior was tested with the following setup:
+
+* **LDAP with multivalue attributes**: Verified in gui `Resource -> Schema -> InetOrgPerson` to confirm multivalued attributes.
+* **Enabled TRACE logging**: Monitored `MappingsSuggestionOperation` in midPoint.
+* **Added microservice logging**: Logged request parsing, sample formatting, and responses in the AI microservice.
+
+== Findings
+
+=== 1. When a multivalued attribute contains only one value
+
+Everything works identically to standard single-value attributes:
+
+* The microservice automatically unwraps the single-item list into a scalar value.
+* The LLM infers and generates a scalar MEL script.
+* The midPoint quality assessor validates the single-item sample and accepts the mapping.
+
+=== 2. When an attribute contains multiple values
+
+* **Inbound import into empty midPoint (Initial load):**
+  When midPoint has no existing data for correlation/validation, the mapping passes without value checks and falls back to a direct **As-Is** mapping.
+
+* **Target attribute has no data:**
+  If the target system has objects but the specific target attribute is empty/missing across samples, the mapping passes without value checks as a direct **As-Is** mapping.
+
+* **Target attribute has data (As-Is check):**
+  midPoint checks if the collections match identically across all samples:
+  ** **Matches:** If all values match across the entire collection for every sample, the mapping passes as **As-Is** with quality `1.0`.
+  ** **Mismatches / Incompatible cardinality:** midPoint cannot match a multivalued attribute (List) with a single-value attribute (String) or collections with different sizes. The As-Is check fails and midPoint proceeds to script suggestion.
+
+* **Script suggestion for multiple values:**
+  If values differ and require transformation:
+  ** The AI microservice fails when parsing multi-item lists against single-value expectations (raises a 500 error).
