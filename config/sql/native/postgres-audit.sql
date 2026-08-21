@@ -76,6 +76,7 @@ DO $$ BEGIN
         'OBJECT_TEMPLATE',
         'ORG',
         'POLICY',
+        'PROJECTION_HOLDER',
         'REPORT',
         'REPORT_DATA',
         'RESOURCE',
@@ -506,4 +507,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(12, $$ SELECT 1 $$, true);
+call apply_audit_change(13, $$ SELECT 1 $$, true);

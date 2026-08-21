@@ -13,7 +13,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Changes range
 
 | xref:postgres-upgrade/4.11.adoc[midPoint 4.11]
-| 52-58
+| 52-64
 
 | xref:postgres-upgrade/4.10.adoc[midPoint 4.10]
 | 51
@@ -46,6 +46,24 @@ This page documents schema changes applied to existing databases by `config/sql/
 |===
 | Change
 | Description
+
+| xref:postgres-upgrade/4.11.adoc#change-64[Change 64]
+| Moves case table under the projection holder table.
+
+| xref:postgres-upgrade/4.11.adoc#change-63[Change 63]
+| Moves focus table under the projection holder table.
+
+| xref:postgres-upgrade/4.11.adoc#change-62[Change 62]
+| Adds abstract projection holder table, the base of foci and cases.
+
+| xref:postgres-upgrade/4.11.adoc#change-61[Change 61]
+| Adds `PROJECTION_HOLDER` object type value.
+
+| xref:postgres-upgrade/4.11.adoc#change-60[Change 60]
+| Adds allowed connectors list object table and triggers.
+
+| xref:postgres-upgrade/4.11.adoc#change-59[Change 59]
+| Adds `ALLOWED_CONNECTORS_LIST` object type value.
 
 | xref:postgres-upgrade/4.11.adoc#change-58[Change 58]
 | Adds display and preferred name columns and indexes to users.

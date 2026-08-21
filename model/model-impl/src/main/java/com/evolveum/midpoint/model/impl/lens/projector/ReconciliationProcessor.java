@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author Radovan Semancik
  */
 @Component
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class)
+@ProcessorExecution(focusRequired = true, focusType = ProjectionHolderType.class)
 public class ReconciliationProcessor implements ProjectorProcessor {
 
     @Autowired private ProvisioningService provisioningService;

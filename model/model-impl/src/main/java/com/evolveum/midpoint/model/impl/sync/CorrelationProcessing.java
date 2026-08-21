@@ -50,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * (although the {@link CorrelationCaseManager} and some other classes manipulate the state as well);
  * 2. calls {@link CorrelationCaseManager} to open, update, or cancel cases (if needed)
  */
-class CorrelationProcessing<F extends FocusType> {
+class CorrelationProcessing<F extends ProjectionHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationProcessing.class);
 

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<resource oid="c3d122b6-afe3-4a34-bee4-6033b388a3e6"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>itsm-new</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:text>connectorType = "com.evolveum.icf.dummy.connector.DummyConnector" and connectorVersion = "2.0"</q:text>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>itsm-new</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <projection>
+        <assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+    </projection>
+    <schemaHandling>
+        <objectType>
+            <kind>generic</kind>
+            <intent>ticket</intent>
+            <delineation>
+                <objectClass>ri:ticket</objectClass>
+            </delineation>
+            <focus>
+                <type>CaseType</type>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <!-- The name is currently required for the dummy resource. Real ITSM systems probably don't need this. -->
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <code>midpoint.focusContext.oid</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>Some description here...</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:state</ref>
+                <inbound>
+                    <target>
+                        <path>state</path>
+                    </target>
+                    <condition>
+                        <script>
+                            <!-- We don't want to propagate (initial) empty state back to the case. -->
+                            <code>input != null</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:outcome</ref>
+                <inbound>
+                    <target>
+                        <path>outcome</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>
