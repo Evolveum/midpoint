@@ -7,3 +7,8 @@ For more information about behavior capabilities, see xref:../capabilities[].
 
 Behavior for last login timestamp currently contains only one setting - attribute fetch strategy.
 See xref:attributes/fetch-strategy[] for more information.
+
+[INFO]
+====
+If you want to map the `Last login timestamp` to a standard property of the focus object, see xref:mapping-shadow-items.adoc[]
+====
