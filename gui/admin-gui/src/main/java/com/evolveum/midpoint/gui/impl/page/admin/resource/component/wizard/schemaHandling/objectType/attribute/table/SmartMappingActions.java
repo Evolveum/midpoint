@@ -90,6 +90,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 
 /**
  * Encapsulates user actions for {@link SmartMappingTable}.
@@ -759,7 +760,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 .label(table.createStringResource("SmartMappingPanel.simulate"))
                 .icon("fa fa-flask")
                 .headerMenuItem(false)
-                .visibilityChecker((rowModel, isHeader) -> !isHeader && table.isInbound())
+                .visibilityChecker((rowModel, isHeader) -> !isHeader)
                 .action(new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -767,30 +768,41 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                             return;
                         }
 
-                        InlineInboundMappingsDefinitionType mappingToSimulate = new InlineInboundMappingsDefinitionType();
-                        ItemPathType refPath = getRefPath(getRowModel().getObject());
+                        MappingDirection direction = table.getMappingDirectionType();
+                        PrismContainerValueWrapper<MappingType> mappingWrapper = getRowModel().getObject();
+                        ItemPathType refPath = getRefPath(mappingWrapper);
                         if (refPath == null) {
                             return;
                         }
-                        mappingToSimulate.setRef(refPath);
 
-                        MappingType mappingRealValue = getRowModel().getObject().getRealValue();
+                        MappingType mappingRealValue = mappingWrapper.getRealValue();
                         //noinspection unchecked
                         WebPrismUtil.cleanupEmptyContainerValue(
                                 mappingRealValue.asPrismContainerValue());
 
-                        if (mappingRealValue instanceof InboundMappingType inbound) {
-                            mappingToSimulate.getInbound().add(inbound.clone());
-                        }
+                        SimulationParams<?> params;
 
-                        SimulationParams<?> params = new SimulationParams<>(
-                                table.getPageBase(),
-                                table.getResourceType(),
-                                table.findResourceObjectTypeDefinition().getRealValue(),
-                                ResourceTaskFlavors.MAPPING_PREVIEW_ACTIVITY,
-                                mappingToSimulate.clone(),
-                                ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
-                        );
+                        if (direction == MappingDirection.INBOUND) {
+                            params = new SimulationParams<>(
+                                    table.getPageBase(),
+                                    table.getResourceType(),
+                                    table.findResourceObjectTypeDefinition().getRealValue(),
+                                    ResourceTaskFlavors.INBOUND_MAPPING_PREVIEW_ACTIVITY,
+                                    (InlineInboundMappingsDefinitionType) createInlineMappingDefinition(direction,
+                                            mappingRealValue, refPath),
+                                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
+                            );
+                        } else {
+                            params = new SimulationParams<>(
+                                    table.getPageBase(),
+                                    table.getResourceType(),
+                                    table.findResourceObjectTypeDefinition().getRealValue(),
+                                    ResourceTaskFlavors.OUTBOUND_MAPPING_PREVIEW_ACTIVITY,
+                                    (InlineOutboundMappingsDefinitionType) createInlineMappingDefinition(direction,
+                                            mappingRealValue, refPath),
+                                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
+                            );
+                        }
 
                         SimulationActionFlow<?> flow = getSimulationActionFlow(params);
                         flow.start(target);
@@ -887,6 +899,31 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
         };
 
+    }
+
+    private static @NotNull Containerable createInlineMappingDefinition(MappingDirection direction,
+            MappingType mappingRealValue, ItemPathType refPath) {
+        switch (direction) {
+            case INBOUND -> {
+                InlineInboundMappingsDefinitionType mappingToSimulate = new InlineInboundMappingsDefinitionType();
+                mappingToSimulate.setRef(refPath);
+
+                if (mappingRealValue instanceof InboundMappingType inbound) {
+                    mappingToSimulate.getInbound().add(inbound.clone());
+                }
+                return mappingToSimulate;
+            }
+            case OUTBOUND -> {
+                InlineOutboundMappingsDefinitionType mappingToSimulate = new InlineOutboundMappingsDefinitionType();
+                mappingToSimulate.setRef(refPath);
+                if (mappingRealValue instanceof OutboundMappingType outbound) {
+                    mappingToSimulate.getOutbound().add(outbound.clone());
+                }
+                return mappingToSimulate;
+            }
+            default -> throw SystemException.unexpected(
+                    new UnsupportedOperationException("Illegal value of the mapping direction"));
+        }
     }
 
     private @NotNull CollapsedItem<DrawerModel> getMappingPreviewBasicDrawerItem(

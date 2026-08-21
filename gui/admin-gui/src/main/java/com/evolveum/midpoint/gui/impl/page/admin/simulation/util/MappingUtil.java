@@ -10,10 +10,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjects
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -92,35 +92,6 @@ public class MappingUtil {
         }
     }
 
-    private static @Nullable InboundMappingsSimulationWorkDefType findMappingWorkDefinition(
-            @NotNull PageBase page, @NotNull SimulationResultType result) {
-
-        PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
-        if (task == null) {
-            LOGGER.warn("Simulation task not found for simulation result {}", result.getOid());
-            return null;
-        }
-
-        InboundMappingsSimulationWorkDefType mappingWorkDefinition = findMappingWorkDefinition(task);
-        if (mappingWorkDefinition == null) {
-            LOGGER.debug("No mapping work definition found in task {}", task.getOid());
-            return null;
-        }
-        return mappingWorkDefinition;
-    }
-
-    private static @Nullable InboundMappingsSimulationWorkDefType findMappingWorkDefinition(
-            @NotNull PrismObject<TaskType> task) {
-
-        PrismContainer<InboundMappingsSimulationWorkDefType> container =
-                task.findContainer(ItemPath.create(
-                        TaskType.F_ACTIVITY,
-                        ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION
-                ));
-        return container != null ? container.getRealValue() : null;
-    }
-
     public record MappingInfo(
             String mappingName,
             String source,
@@ -129,50 +100,97 @@ public class MappingUtil {
     ) implements Serializable {
     }
 
-    //Support only one mapping
-    private static @Nullable InlineInboundMappingsDefinitionType findInlineMappingDefinition(@NotNull InboundMappingsSimulationWorkDefType mappingWorkDefinition) {
-        List<InlineInboundMappingsDefinitionType> inlineMappings = mappingWorkDefinition.getInlineMappings();
-        if (inlineMappings == null || inlineMappings.isEmpty()) {
-            LOGGER.debug("No inline mapping definitions found in mapping work definition");
-            return null;
-        }
-
-        InlineInboundMappingsDefinitionType inlineMappingDefinitionType = inlineMappings.get(0);
-        if (inlineMappingDefinitionType == null) {
-            LOGGER.debug("No inline mapping definition found in mapping work definition");
-            return null;
-        }
-        return inlineMappingDefinitionType;
+    /**
+     * Extract information about mapping from simulation results.
+     *
+     * This method considers only one (the first) mapping from whole simulation mappings hierarchy.
+     * That means the following: `mappings simulation work def -> inline mappings -> take first -> inbound/outbound
+     * mappings -> take first`.
+     *
+     * @return the extracted mapping info or empty Optional.
+     */
+    public static Optional<MappingInfo> extractMappingSimulationInfo(PageBase page, SimulationResultType result) {
+        return findMappingWorkDefinition(page, result)
+                .flatMap(workDef -> {
+                    final ItemPathType attributeRef = new ItemPathType();
+                    if (workDef instanceof InboundMappingsSimulationWorkDefType inboundMappingWorkDef) {
+                        return Optional.ofNullable(inboundMappingWorkDef.getInlineMappings())
+                                .flatMap(inlineMappings -> inlineMappings.stream().findFirst())
+                                .map(inlineMapping -> {
+                                    attributeRef.setItemPath(inlineMapping.getRef().getItemPath());
+                                    return inlineMapping.getInbound();
+                                })
+                                .flatMap(inboundMappings -> inboundMappings.stream().findFirst())
+                                .map(mapping -> new AttributeMapping(attributeRef, mapping, false));
+                    } else if (workDef instanceof OutboundMappingsSimulationWorkDefType outboundMappingWorkDef) {
+                        return Optional.ofNullable(outboundMappingWorkDef.getInlineMappings())
+                                .flatMap(inlineMappings -> inlineMappings.stream().findFirst())
+                                .map(inlineMapping -> {
+                                    attributeRef.setItemPath(inlineMapping.getRef().getItemPath());
+                                    return inlineMapping.getOutbound();
+                                })
+                                .flatMap(outboundMappings -> outboundMappings.stream().findFirst())
+                                .map(mapping -> new AttributeMapping(attributeRef, mapping, true));
+                    }
+                    return Optional.empty();
+                })
+                .map(MappingUtil::extractMappingSimulationInfo);
     }
 
-    private static @Nullable MappingInfo extractMappingInfo(@NotNull InlineInboundMappingsDefinitionType inlineMappingDefinition) {
-        ItemPathType ref = inlineMappingDefinition.getRef();
-
-        List<InboundMappingType> inbound = inlineMappingDefinition.getInbound();
-        if (inbound != null && !inbound.isEmpty()) {
-            InboundMappingType inboundMappingType = inbound.get(0);
-            return new MappingInfo(
-                    inboundMappingType.getName(),
-                    ref != null ? ref.getItemPath().toString() : null,
-                    inboundMappingType.getTarget() != null ? inboundMappingType.getTarget().getPath().toString() : null,
-                    inboundMappingType.getStrength()
-            );
+    private static MappingInfo extractMappingSimulationInfo(AttributeMapping attributeMapping) {
+        final MappingType mapping = attributeMapping.mapping();
+        final String source;
+        final String target;
+        if (attributeMapping.outbound()) {
+            source = Optional.ofNullable(mapping.getSource())
+                    .flatMap(sources -> sources.stream().findFirst())
+                    .map(VariableBindingDefinitionType::getPath)
+                    .map(ItemPathType::toString)
+                    .orElse("");
+            target = attributeMapping.attributeRef.toString();
+        } else {
+            source = attributeMapping.attributeRef.toString();
+            target = mapping.getTarget() != null ? mapping.getTarget().getPath().toString() : "";
         }
-
-        return null;
+        return new MappingInfo(mapping.getName(), source, target, mapping.getStrength()
+        );
     }
 
-    public static @Nullable MappingInfo extractMappingInfo(PageBase page, SimulationResultType result) {
-        InboundMappingsSimulationWorkDefType mappingWorkDefinition = findMappingWorkDefinition(page, result);
-        if (mappingWorkDefinition == null) {
-            return null;
+    private record AttributeMapping(ItemPathType attributeRef, MappingType mapping, boolean outbound){}
+
+    private static Optional<AbstractWorkDefinitionType> findMappingWorkDefinition(
+            @NotNull PageBase page, @NotNull SimulationResultType result) {
+
+        PrismObject<TaskType> task = WebModelServiceUtils.loadObject(result.getRootTaskRef(), page);
+        if (task == null) {
+            LOGGER.warn("Simulation task not found for simulation result {}", result.getOid());
+            return Optional.empty();
         }
 
-        InlineInboundMappingsDefinitionType inlineMappingDefinition = findInlineMappingDefinition(mappingWorkDefinition);
-        if (inlineMappingDefinition == null) {
-            return null;
+        // Try inbound mappings simulation first
+        PrismContainer<InboundMappingsSimulationWorkDefType> inboundContainer =
+                task.findContainer(ItemPath.create(
+                        TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION
+                ));
+        if (inboundContainer != null) {
+            return Optional.of(inboundContainer.getRealValue());
         }
 
-        return extractMappingInfo(inlineMappingDefinition);
+        // Try outbound mappings simulation
+        PrismContainer<OutboundMappingsSimulationWorkDefType> outboundContainer =
+                task.findContainer(ItemPath.create(
+                        TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_OUTBOUND_MAPPINGS_SIMULATION
+                ));
+        if (outboundContainer != null) {
+            return Optional.of(outboundContainer.getRealValue());
+        }
+
+        LOGGER.debug("No mapping work definition found in task {}", task.getOid());
+        return Optional.empty();
     }
+
 }

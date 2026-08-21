@@ -26,10 +26,18 @@ public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
                                     .correlators(correlators))
     );
 
-    public static final ResourceTaskFlavors<InlineInboundMappingsDefinitionType> MAPPING_PREVIEW_ACTIVITY =
+    public static final ResourceTaskFlavors<InlineInboundMappingsDefinitionType> INBOUND_MAPPING_PREVIEW_ACTIVITY =
             new ResourceTaskFlavors<>("Mapping", (resourceObjectSetType, mappings) ->
                     new WorkDefinitionsType()
                             .inboundMappingsSimulation(new InboundMappingsSimulationWorkDefType()
+                                    .resourceObjects(resourceObjectSetType)
+                                    .inlineMappings(mappings))
+            );
+
+    public static final ResourceTaskFlavors<InlineOutboundMappingsDefinitionType> OUTBOUND_MAPPING_PREVIEW_ACTIVITY =
+            new ResourceTaskFlavors<>("OutboundMapping", (resourceObjectSetType, mappings) ->
+                    new WorkDefinitionsType()
+                            .outboundMappingsSimulation(new OutboundMappingsSimulationWorkDefType()
                                     .resourceObjects(resourceObjectSetType)
                                     .inlineMappings(mappings))
             );

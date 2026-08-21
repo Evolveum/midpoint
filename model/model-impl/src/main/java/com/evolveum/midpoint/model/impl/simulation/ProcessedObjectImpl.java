@@ -490,11 +490,17 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     /**
-     * Returns {@code true} if the change modifies a multi-value item while preserving
-     * at least one existing value.
+     * Returns {@code true} if the change modifies a multi-value item.
      *
-     * <p>This means the item is neither a pure add nor a pure delete operation,
-     * because some values remain unchanged between {@code before} and {@code after}.</p>
+     * This means the item is neither a pure add nor a pure delete operation (in the context of whole item),
+     * because some values remain unchanged between {@code before} and {@code after}.
+     *
+     * Examples (old -> new):
+     * (A, B, C) -> (A, B, C ,D) = true
+     * (A, B, C) -> (B, C) = true
+     * (A, B, C) -> (E, F, G) = true
+     * (A, B, C) -> () = false
+     * () -> (A, B, C) = false
      *
      * @param before object state before the change
      * @param after object state after the change
@@ -507,6 +513,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             @NotNull List<? extends ItemDelta> modifications) {
 
         for (ItemDelta<?, ?> modification : modifications) {
+            if (modification.isAdd() && modification.isDelete()) {
+                return true;
+            }
+
             Item<?, ?> beforeItem = before.findItem(modification.getPath());
             Item<?, ?> afterItem = after.findItem(modification.getPath());
 

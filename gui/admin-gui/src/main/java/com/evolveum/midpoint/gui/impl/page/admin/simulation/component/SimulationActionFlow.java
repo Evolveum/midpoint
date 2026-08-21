@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.Resour
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -113,20 +114,22 @@ public class SimulationActionFlow<T> implements Serializable {
             return true;
         }
 
-        T config = context.workDefinitionConfiguration();
-        if (config instanceof InlineInboundMappingsDefinitionType mappingDefinition) {
-            return hasProposedMapping(mappingDefinition);
-        }
-
-        return false;
+        return hasProposedMappings(context.workDefinitionConfiguration());
     }
 
-    private boolean hasProposedMapping(@NotNull InlineInboundMappingsDefinitionType mappingDefinition) {
-        List<InboundMappingType> inbound = mappingDefinition.getInbound() != null
-                ? mappingDefinition.getInbound()
-                : Collections.emptyList();
+    private boolean hasProposedMappings(T workDefinition) {
+        final List<MappingType> mappings = new ArrayList<>();
+        if (workDefinition instanceof InlineInboundMappingsDefinitionType inboundMappings) {
+            if (inboundMappings.getInbound() != null) {
+                mappings.addAll(inboundMappings.getInbound());
+            }
+        } else if (workDefinition instanceof InlineOutboundMappingsDefinitionType outboundMappings) {
+            if (outboundMappings.getOutbound() != null) {
+                mappings.addAll(outboundMappings.getOutbound());
+            }
+        }
 
-        return inbound.stream().anyMatch(this::isProposed);
+        return mappings.stream().anyMatch(this::isProposed);
     }
 
     private boolean isProposed(MappingType mapping) {
