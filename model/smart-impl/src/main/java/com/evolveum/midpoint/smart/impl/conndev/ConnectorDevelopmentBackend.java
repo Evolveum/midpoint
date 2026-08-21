@@ -11,14 +11,21 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
 import com.evolveum.midpoint.smart.impl.mappings.ConnDevJsonMapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import jakarta.xml.bind.JAXBElement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,11 +44,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public abstract class ConnectorDevelopmentBackend {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentBackend.class);
 
     private static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
     private static final String CONNECTOR_MANIFEST = "connector.manifest.yaml";
@@ -206,7 +216,10 @@ public abstract class ConnectorDevelopmentBackend {
         }
 
         saveConnectorFile(artifact.getFilename(), artifact.getContent());
-        var modelArtifact = artifact.clone().content(null);
+        // Saving through the script's own step is the user's declaration that it's fixed and back
+        // in use - clears a stale disabled:true left over from disabling it as a broken sibling
+        // (see disableArtifact()) after a schema change, rather than requiring a separate re-enable step.
+        var modelArtifact = artifact.clone().content(null).disabled(false);
 
         var delta = deltaBuilder
                 .item(itemPath).replace(modelArtifact)
@@ -215,6 +228,50 @@ public abstract class ConnectorDevelopmentBackend {
         reload();
         recomputeConnectorManifest();
         invalidateConnector();
+    }
+
+    /**
+     * Marks an already-deployed script as disabled in the manifest: the connector then skips it
+     * both when initializing for real and when reloading siblings during script validation (see
+     * conndev's manifest {@code disabled} flag). Lets the wizard offer a "Disable operation" action
+     * for a sibling script a schema change breaks, without deleting the script's content.
+     *
+     * @throws IllegalArgumentException if no deployed artifact has this filename
+     */
+    public void disableArtifact(String filename) throws IOException, CommonException {
+        var artifact = findArtifactByFilename(filename);
+        if (artifact == null) {
+            throw new IllegalArgumentException("No connector artifact found for filename " + filename);
+        }
+        var itemPath = ConnDevScriptIntentType.RELATION.equals(artifact.getIntent())
+                ? itemPathFor(artifact, ConnDevConnectorType.F_RELATION)
+                : itemPathFor(artifact, ConnDevConnectorType.F_OBJECT_CLASS);
+        if (itemPath == null) {
+            throw new IllegalArgumentException("No connector artifact found for filename " + filename);
+        }
+
+        var delta = PrismContext.get().deltaFor(ConnectorDevelopmentType.class)
+                .item(itemPath.append(ConnDevArtifactType.F_DISABLED)).replace(true)
+                .<ConnectorDevelopmentType>asObjectDelta(development.getOid());
+        beans.modelService.executeChanges(List.of(delta), null, task, result);
+        reload();
+        recomputeConnectorManifest();
+        invalidateConnector();
+    }
+
+    /**
+     * Finds the connector-scoped artifact whose filename matches {@code filename} (leading slash
+     * optional, since a validation error's {@code source} carries one but {@link
+     * ConnDevArtifactType#getFilename()} doesn't).
+     */
+    private ConnDevArtifactType findArtifactByFilename(String filename) {
+        if (filename == null) {
+            return null;
+        }
+        var normalized = filename.startsWith("/") ? filename.substring(1) : filename;
+        return ConnectorDevelopmentArtifacts.allArtifacts(development.getConnector()).stream()
+                .filter(a -> normalized.equals(a.getFilename()))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -247,6 +304,74 @@ public abstract class ConnectorDevelopmentBackend {
 
         editableConnector().saveFile(CONNECTOR_MANIFEST, manifest);
         editableConnector().deleteFileIfExists(CONNECTOR_MANIFEST_JSON_LEGACY);
+    }
+
+    /**
+     * Validates the script by the connector itself (supported only in development mode) using
+     * the testing resource. If the testing resource isn't configured yet, or the artifact isn't
+     * a groovy script, the script is considered valid (nothing to check against). Any failure to
+     * even run the check (testing resource unreachable, deployed connector broken, doesn't
+     * support script validation, ...) is reported as an error, blocking the save.
+     */
+    public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact) {
+        if (artifact.getFilename() == null || !artifact.getFilename().endsWith(".groovy")) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        var testing = developmentObject().getTesting();
+        if (testing == null || testing.getTestingResource() == null || testing.getTestingResource().getOid() == null) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        var testingResourceOid = testing.getTestingResource().getOid();
+
+        var script = new ProvisioningScriptType()
+                .language("groovy")
+                .code(artifact.getContent())
+                .host(ProvisioningScriptHostType.RESOURCE);
+        script.getArgument().add(scriptArgument("operation", "build"));
+        script.getArgument().add(scriptArgument("artifactKind",
+                ConnDevOperationType.SCHEMA.equals(artifact.getOperation()) ? "schema" : "operation"));
+        script.getArgument().add(scriptArgument("filename", "/" + artifact.getFilename()));
+
+        Object response;
+        try {
+            response = beans.provisioningService.executeScript(
+                    testingResourceOid, script, task, result);
+        } catch (CommonException | RuntimeException e) {
+            LOGGER.warn("Couldn't validate script {}.", artifact.getFilename(), e);
+            return ConnDevArtifactValidationResult.errors(List.of(
+                    new ConnDevArtifactValidationResult.Error(
+                            "initialization", e.getMessage(), null, null, null)));
+        }
+
+        if (!(response instanceof Map<?, ?> map) || !"error".equals(map.get("status"))) {
+            return ConnDevArtifactValidationResult.success();
+        }
+        if (map.get("errors") instanceof List<?> errorList) {
+            return ConnDevArtifactValidationResult.errors(
+                    errorList.stream()
+                            .filter(Map.class::isInstance)
+                            .map(entry -> validationError((Map<?, ?>) entry))
+                            .toList());
+        }
+        return ConnDevArtifactValidationResult.errors(List.of(validationError(map)));
+    }
+
+    private static ConnDevArtifactValidationResult.Error validationError(Map<?, ?> map) {
+        return new ConnDevArtifactValidationResult.Error(
+                map.get("phase") != null ? map.get("phase").toString() : null,
+                map.get("message") != null ? map.get("message").toString() : null,
+                map.get("line") instanceof Integer line ? line : null,
+                map.get("column") instanceof Integer column ? column : null,
+                map.get("source") != null ? map.get("source").toString() : null);
+    }
+
+    private static ProvisioningScriptArgumentType scriptArgument(String name, String value) {
+        var argument = new ProvisioningScriptArgumentType();
+        argument.setName(name);
+        var node = PrismContext.get().xnodeFactory().primitive(value, DOMUtil.XSD_STRING);
+        argument.getExpressionEvaluator().add(
+                new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(node.frozen())));
+        return argument;
     }
 
     private EditableConnector editableConnector() {

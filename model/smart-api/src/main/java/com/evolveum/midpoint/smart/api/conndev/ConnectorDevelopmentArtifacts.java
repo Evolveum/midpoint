@@ -9,7 +9,9 @@ package com.evolveum.midpoint.smart.api.conndev;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class ConnectorDevelopmentArtifacts {
@@ -87,5 +89,39 @@ public class ConnectorDevelopmentArtifacts {
                 .findFirst();
 
         return classification.orElse(null);
+    }
+
+    /**
+     * Every script artifact declared anywhere on the connector - object class schema/search/
+     * create/update/delete scripts, relation schema scripts, the authentication script, and the
+     * test-connection operation - in a fixed, deterministic order, skipping unset slots. The
+     * single source both {@code ConnectorManifestWriter} and any filename-based artifact lookup
+     * (e.g. resolving a validation error's source file back to its artifact) should use, instead
+     * of separately re-enumerating the same fields.
+     */
+    public static List<ConnDevArtifactType> allArtifacts(ConnDevConnectorType connector) {
+        var artifacts = new ArrayList<ConnDevArtifactType>();
+        addIfPresent(artifacts, connector.getAuthenticationScript());
+        addIfPresent(artifacts, connector.getTestOperation());
+        for (var objClass : connector.getObjectClass()) {
+            addIfPresent(artifacts, objClass.getNativeSchemaScript());
+            addIfPresent(artifacts, objClass.getConnidSchemaScript());
+            addIfPresent(artifacts, objClass.getSearchAllOperation());
+            addIfPresent(artifacts, objClass.getSearchIdOperation());
+            addIfPresent(artifacts, objClass.getSearchFilterOperation());
+            addIfPresent(artifacts, objClass.getCreateScript());
+            addIfPresent(artifacts, objClass.getUpdateScript());
+            addIfPresent(artifacts, objClass.getDeleteScript());
+        }
+        for (var relation : connector.getRelation()) {
+            addIfPresent(artifacts, relation.getSchemaScript());
+        }
+        return artifacts;
+    }
+
+    private static void addIfPresent(List<ConnDevArtifactType> artifacts, ConnDevArtifactType artifact) {
+        if (artifact != null) {
+            artifacts.add(artifact);
+        }
     }
 }
