@@ -17,38 +17,21 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-    import com.evolveum.midpoint.prism.polystring.PolyString;
-
-    import com.evolveum.midpoint.schema.constants.ObjectTypes;
-    import com.evolveum.midpoint.schema.util.Resource;
-    import com.evolveum.midpoint.test.DummyResourceContoller;
-    import com.evolveum.midpoint.test.DummyTestResource;
-    import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-
-    import com.evolveum.midpoint.util.DOMUtil;
-    import com.evolveum.midpoint.util.exception.*;
-
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
-    import org.springframework.test.context.ContextConfiguration;
-    import org.testng.AssertJUnit;
-    import org.testng.annotations.BeforeClass;
-    import org.testng.annotations.Listeners;
-    import org.testng.annotations.Optional;
-    import org.testng.annotations.Parameters;
-    import org.testng.annotations.Test;
-    import org.w3c.dom.Element;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -79,6 +62,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
 
 /**
  * @author Radovan Semancik
@@ -214,6 +209,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         setConflictResolutionAction(UserType.COMPLEX_TYPE, null, ConflictResolutionActionType.RECOMPUTE, initResult);
+
+        initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_MANUAL_CASE);
 
         // Turns on checks for connection in manual connector
         InternalsConfig.setSanityChecks(true);
@@ -573,6 +571,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // WHEN
         when();
         modelService.importObjectsFromFile(getResourceFile(), options, task, result);
+        configureModernItsmIfNeeded(task, result);
 
         // THEN
         then();
@@ -609,6 +608,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // WHEN
         when();
         modelService.importObjectsFromFile(getResourceFile(), options, task, result);
+        configureModernItsmIfNeeded(task, result);
 
         // THEN
         then();
@@ -775,7 +775,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         then();
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, modernItsm ? 2 : 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0, 1);
 
@@ -2587,8 +2587,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
                         .replaceAttributeValues(DummyItsmScenario.Ticket.AttributeNames.STATE.local(), SchemaConstants.CASE_STATE_CLOSED)
                         .replaceAttributeValues(DummyItsmScenario.Ticket.AttributeNames.OUTCOME.local(), outcome.value());
             } catch (Exception e) {
-                // Ticket may not be available in ITSM in all tests; fall back to local closing
-                super.closeCase(caseOid, outcome);
+                throw SystemException.unexpected(e, "while closing case " + caseOid);
             }
         } else {
             // The original behavior is to close the case right in midPoint (as the local case management module would do).
@@ -2603,7 +2602,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
             try {
                 displayDumpable("Ticket", itsmScenario.ticket.getByNameRequired(oid));
             } catch (Exception e) {
-                // Ticket may not be available in ITSM in all tests
+                throw SystemException.unexpected(e, "while retrieving case " + oid);
             }
         }
         return aCase;

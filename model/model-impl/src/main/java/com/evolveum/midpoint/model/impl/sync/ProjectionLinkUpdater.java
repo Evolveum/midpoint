@@ -35,7 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -78,10 +77,10 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
         try {
             String shadowOid = event.getOid();
             ShadowLivenessState newState = event.getNewState();
-            List<PrismObject<FocusType>> owners = findShadowOwners(shadowOid, result);
+            List<PrismObject<ProjectionHolderType>> owners = findShadowOwners(shadowOid, result);
             LOGGER.trace("Found {} owner(s)", owners.size());
-            for (PrismObject<FocusType> owner : owners) {
-                FocusType ownerBean = owner.asObjectable();
+            for (PrismObject<ProjectionHolderType> owner : owners) {
+                ProjectionHolderType ownerBean = owner.asObjectable();
                 Class<? extends ProjectionHolderType> ownerType = ownerBean.getClass();
                 List<ObjectReferenceType> currentReferences = ownerBean.getLinkRef();
 
@@ -107,7 +106,7 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
 
                 if (!referencesToAdd.isEmpty() || !referencesToDelete.isEmpty()) {
                     Collection<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ownerType)
-                            .item(FocusType.F_LINK_REF)
+                            .item(ProjectionHolderType.F_LINK_REF)
                             .deleteRealValues(referencesToDelete)
                             .addRealValues(referencesToAdd)
                             .asItemDeltas();
@@ -126,11 +125,11 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
     /**
      * Currently should return 0 or 1 owner. But for robustness let us update really all owners.
      */
-    private List<PrismObject<FocusType>> findShadowOwners(String shadowOid, OperationResult result) throws SchemaException {
-        ObjectQuery query = prismContext.queryFor(FocusType.class)
-                .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
+    private List<PrismObject<ProjectionHolderType>> findShadowOwners(String shadowOid, OperationResult result) throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(ProjectionHolderType.class)
+                .item(ProjectionHolderType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
                 .build();
-        return repositoryService.searchObjects(FocusType.class, query, readOnly(), result);
+        return repositoryService.searchObjects(ProjectionHolderType.class, query, readOnly(), result);
     }
 
     @Override

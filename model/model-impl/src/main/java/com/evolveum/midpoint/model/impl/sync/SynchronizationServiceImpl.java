@@ -154,13 +154,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         ShadowType shadow = syncCtx.getShadowedResourceObject();
 
-        // FIXME: Use BaseFocusType for linked owners, may require changes
-        //  in repository
-
         var owners = repositoryService.searchObjects(
-                FocusType.class,
-                prismContext.queryFor(FocusType.class)
-                        .item(FocusType.F_LINK_REF)
+                ProjectionHolderType.class,
+                prismContext.queryFor(ProjectionHolderType.class)
+                        .item(ProjectionHolderType.F_LINK_REF)
                         .ref(shadow.getOid(), null, PrismConstants.Q_ANY)
                         .build(),
                 readOnly(),
