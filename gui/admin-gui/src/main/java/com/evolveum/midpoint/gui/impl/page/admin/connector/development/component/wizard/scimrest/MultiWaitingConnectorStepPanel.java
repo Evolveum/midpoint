@@ -85,6 +85,14 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
     private org.apache.wicket.ajax.AbstractAjaxTimerBehavior refreshTimer;
     private boolean isReloaded = false;
 
+    /**
+     * Object class name this panel's cached {@link #statusesModel} was last computed for.
+     * Step panel instances (and therefore their lazily-loaded models) are reused by the
+     * wizard across different object classes, so a stale cached model has to be invalidated
+     * whenever the object class we are now tracking has changed.
+     */
+    private String statusesModelObjectClassName;
+
     public MultiWaitingConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
@@ -95,6 +103,25 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
 
     protected final boolean isReloaded() {
         return isReloaded;
+    }
+
+    /**
+     * Invalidates {@link #statusesModel} if the object class it was computed for no longer
+     * matches the current one (i.e. this reused panel instance has moved on to a different
+     * object class).
+     */
+    private void ensureFreshForCurrentObjectClass() {
+        String currentObjectClassName;
+        try {
+            currentObjectClassName = getObjectClassName();
+        } catch (Exception e) {
+            currentObjectClassName = null;
+        }
+        if (statusesModel != null && statusesModel.isLoaded() && !StringUtils.equals(statusesModelObjectClassName, currentObjectClassName)) {
+            statusesModel.reset();
+            isReloaded = false;
+        }
+        statusesModelObjectClassName = currentObjectClassName;
     }
 
     @Override
@@ -425,6 +452,7 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
 
     @Override
     public boolean isCompleted() {
+        ensureFreshForCurrentObjectClass();
         List<TaskStatusDto> dtos = statusesModel.getObject();
         if (dtos == null || dtos.isEmpty()) {
             return false;
@@ -481,6 +509,7 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
     @Override
     public IModel<Boolean> isStepVisible() {
         return () -> {
+            ensureFreshForCurrentObjectClass();
             if (statusesModel == null || !statusesModel.isLoaded()) {
                 boolean completed = isCompleted();
                 return !completed;

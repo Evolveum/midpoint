@@ -556,8 +556,14 @@ public class TaskOperationalButtonsPanel extends AssignmentHolderOperationalButt
         Task task = getPageBase().createSimpleTask(OPERATION_EXECUTE_TASK_CHANGES);
         OperationResult result = task.getResult();
         try {
-            boolean changed = getPageBase().getModelInteractionService().updateAllActivityPoliciesEnabledStatus(
-                    getPrismObject(), enable, task, result);
+            ActivityPoliciesProcessingType processing = enable
+                    ? null
+                    : new ActivityPoliciesProcessingType()
+                            .activityPolicies(PolicyProcessingModeType.NONE)
+                            .virtualAssignmentPolicies(PolicyProcessingModeType.NONE);
+
+            boolean changed = getPageBase().getModelInteractionService().updateActivityPoliciesProcessing(
+                    getPrismObject(), processing, task, result);
 
             if (!changed) {
                 getPageBase().info(getString("TaskOperationalButtonsPanel.toggleActivityPoliciesStatus.noChanges"));

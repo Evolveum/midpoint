@@ -525,7 +525,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
-            return LensUtil.formatIterationTokenDefault(iteration, 0);
+            return LensUtil.formatIterationTokenDefault(iteration, 0, true);
         }
         VariablesMap variables = createVariablesMap(context, projCtx);
         return LensUtil.formatIterationToken(

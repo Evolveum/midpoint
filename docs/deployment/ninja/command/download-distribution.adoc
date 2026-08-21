@@ -26,7 +26,7 @@ If not specified, Ninja downloads the next supported target version based on the
 For example, if the current midPoint version is 4.7.1, Ninja downloads version 4.8, and if the current midPoint version is 4.4.6 (LTS), Ninja downloads version 4.8. +
 Alternatively, to download the latest development (snapshot) build, use `--distribution-version latest`.
 Note that the latest development build may not be as stable as an official release. +
-For more information on release versions, see xref:/midpoint/install/containers/container-image-naming/[].
+For more information on release versions, see xref:/midpoint/get-started/install/containers/container-image-naming/[].
 
 | `--distribution-archive <PATH_TO_ZIP>`
 | Specifies the path to an existing ZIP archive of the distribution.

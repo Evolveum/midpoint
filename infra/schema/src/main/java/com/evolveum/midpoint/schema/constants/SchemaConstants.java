@@ -296,6 +296,9 @@ public abstract class SchemaConstants {
     public static final String CHANNEL_REMEDIATION_URI = qNameToUri(CHANNEL_REMEDIATION_QNAME);
 
     public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
+
+    // keeping these constants public, as they can be referenced from scripts
+
     public static final String MODEL_DISABLE_REASON_EXPLICIT =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
     public static final String MODEL_DISABLE_REASON_DEPROVISION =
@@ -303,6 +306,7 @@ public abstract class SchemaConstants {
     public static final String MODEL_DISABLE_REASON_MAPPED =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 
+    /** Please see the documentation for {@code ActivationType#disableReason} in XSD. */
     public enum ModelDisableReason {
 
         EXPLICIT(MODEL_DISABLE_REASON_EXPLICIT),

@@ -93,6 +93,8 @@ public class MappingScriptValidator {
         variables.put(variableName, value, valueClass);
         // Provide default iteration variables for validation
         variables.put(ExpressionConstants.VAR_ITERATION, 0, Integer.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, 0, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "", String.class);
         final ExpressionProfile profile = ExpressionProfile.safeScriptingOnly();
 

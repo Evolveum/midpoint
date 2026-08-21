@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -54,7 +55,7 @@ public class CompareObjectDto<C extends Containerable> implements Serializable {
     public CompareObjectDto(
             @NotNull IModel<PrismContainerValueWrapper<C>> comparedValue,
             @NotNull IModel<List<PrismContainerValueWrapper<C>>> candidateValues,
-            @NotNull ItemPath identifierPath,
+            @Nullable ItemPath identifierPath,
             List<ItemPath> comparedPaths) {
 
         this.comparedPaths = comparedPaths;
@@ -102,9 +103,14 @@ public class CompareObjectDto<C extends Containerable> implements Serializable {
             @NotNull PrismContainerValueWrapper<C> containerValueWrapper,
             @NotNull String blankIdentifierName) {
         try {
+
+            if(identifierPath == null) {
+                return blankIdentifierName;
+            }
+
             PrismPropertyWrapper<?> property = containerValueWrapper.findProperty(identifierPath);
             if (property == null || property.getValue() == null) {
-                return null;
+                return blankIdentifierName;
             }
             Object realValue = property.getValue().getRealValue();
 

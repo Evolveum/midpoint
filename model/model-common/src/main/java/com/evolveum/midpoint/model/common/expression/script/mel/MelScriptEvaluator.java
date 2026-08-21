@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script.mel;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
@@ -17,6 +18,9 @@ import com.evolveum.midpoint.model.common.expression.script.mel.extension.MidPoi
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.api.CacheInvalidationDispatcher;
+import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
+import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -26,6 +30,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import dev.cel.common.*;
@@ -42,6 +48,7 @@ import dev.cel.runtime.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -53,8 +60,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  * MidPoint Expression Language (MEL) is based on Common Expression Language (CEL),
  * extended with midPoint-specific functionality.
  */
-public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree, CelScriptCacheKey> {
-
+public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree, CelScriptCacheKey>
+        implements CacheInvalidationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(MelScriptEvaluator.class);
 
@@ -79,12 +86,17 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
             Protector protector,
             LocalizationService localizationService,
             BasicExpressionFunctions basicExpressionFunctions,
-            MidpointFunctions midpointExpressionFunctions) {
+            MidpointFunctions midpointExpressionFunctions,
+            CacheInvalidationDispatcher cacheInvalidationDispatcher) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
                 basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality);
         functionLibraryProcessor = new FunctionLibraryProcessor();
+
+        if (cacheInvalidationDispatcher != null) {
+            cacheInvalidationDispatcher.registerListener(this);
+        }
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
     }
@@ -151,6 +163,20 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         return new CelScriptCacheKey(codeString, celTypeMap, resultType);
     }
 
+    @Override
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.setOf(FunctionLibraryType.class);
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
+        if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
+            // Currently we don't try to select libraries to be cleared.
+            // We just purge everything when any library changes.
+            // Libraries should not change often, therefore this should not be a big deal.
+            clearScriptCache();
+        }
+    }
 
     private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,

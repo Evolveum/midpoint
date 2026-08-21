@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -16,8 +15,10 @@ import com.evolveum.midpoint.repo.common.subscription.SubscriptionStateCache;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -26,7 +27,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,21 +44,25 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
- * Verifies connector signatures in production environments without an active
- * subscription.
+ * Verifies whether currently used connector is in the list of (allowed) open source connectors.
+ * This check is applied in production environments without an active subscription.
  *
- * The verifier validates that a connector is present in the configured list of
- * allowed signed connectors and that its signature matches one of the trusted
- * public keys. Newly discovered connectors are temporarily exempt from
- * verification during the configured grace period.
+ * The check is done according to objects of type {@link AllowedConnectorsListType} containing signed records
+ * of allowed connectors, including checking that the signature is valid with regard to at least one trusted public key.
+ *
+ * Newly discovered connectors are temporarily exempt from verification during the configured grace period.
+ *
+ * See (internal) document "Import and Verification of Allowed Connectors in midPoint".
  */
 @Component
 public class ConnectorSignatureVerifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorSignatureVerifier.class);
 
-    //grace period for connector in days
-    static final long GRACE_PERIOD_FOR_CONNECTOR = 90;
+    static final long GRACE_PERIOD_FOR_CONNECTOR_IN_DAYS = 90;
+
+    /** Clocks within the cluster can be a little off - by this value. */
+    private static final long MARGIN_FOR_CLUSTERWIDE_TIME_SYNC_MILLIS = 3000L;
 
     private static final Map<String, String> TRUSTED_CERTIFICATES_PATHS = new HashMap<>();
 
@@ -67,7 +71,6 @@ public class ConnectorSignatureVerifier {
     }
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired private PrismContext prismContext;
     @Autowired private SubscriptionStateCache subscriptionStateCache;
     @Autowired private Protector protector;
 
@@ -94,7 +97,9 @@ public class ConnectorSignatureVerifier {
                 PublicKey publicKey = certificate.getPublicKey();
                 publicKeys.put(keyId.getKey(), publicKey);
             } catch (CertificateException | IOException e) {
-                LOGGER.error("Couldn't load public key from certificate '%s' from resources with path '/certs/%s'".formatted(keyId.getKey(), keyId.getValue()), e);
+                LoggingUtils.logUnexpectedException(
+                        LOGGER, "Couldn't load public key from certificate '{}' from resources with path '/certs/{}'",
+                        e, keyId.getKey(), keyId.getValue());
             }
         }
         return publicKeys;
@@ -108,92 +113,125 @@ public class ConnectorSignatureVerifier {
      * a valid signature matching one of the configured trusted public keys.
      *
      * @param connectorBean connector to verify
-     * @param connOid connector OID
      * @param result operation result
+     *
      * @throws SubscriptionComplianceException if the connector cannot be used because
      * of a failed signature verification or an invalid discovery timestamp
      * @throws SchemaException if repository access fails
      */
-    public void verifyConnectorInProduction(ConnectorType connectorBean, String connOid, OperationResult result)
+    void verifyConnectorInProduction(ConnectorType connectorBean, OperationResult result)
             throws SubscriptionComplianceException, SchemaException {
+        String connectorTypeName = connectorBean.getConnectorType();
+        String connectorBundleName = connectorBean.getConnectorBundle();
+        String connectorVersion = connectorBean.getConnectorVersion();
         LOGGER.debug(
-                "Production environment detected. Verifying connector '{}' version '{}' from bundle '{}' against the list of allowed signed connectors.",
-                connectorBean.getNamespace(),
-                connectorBean.getVersion(),
-                connectorBean.getConnectorBundle());
+                "Production environment detected. Verifying connector '{}' version '{}' from bundle '{}' against "
+                        + "the list of allowed open source connectors.",
+                connectorTypeName, connectorVersion, connectorBundleName);
 
+        var publicKeys = getPublicKeys();
         if (publicKeys.isEmpty()) {
-            throw new SubscriptionComplianceException("Unable to find any public key for verification connector signature.");
+            throw createSubscriptionComplianceException(
+                    "Couldn't check the connector '%s' against the public list of open source connectors: "
+                            + "Unable to find any public key for verification of signatures.",
+                    "ConnectorSignatureVerifier.unableToFindAnyPublicKey",
+                    connectorTypeName);
         }
 
         if (isConnectorInGracePeriod(connectorBean)) {
+            LOGGER.trace("Connector is in grace period, not checking the signature");
             return;
         }
 
-        boolean found = false;
-        @NotNull SearchResultList<PrismObject<AllowedConnectorsListType>> allowedConnectorsLists =
+        @NotNull SearchResultList<PrismObject<AllowedConnectorsListType>> allowedConnectorsListObjects =
                 repositoryService.searchObjects(AllowedConnectorsListType.class, null, null, result);
-        for (PrismObject<AllowedConnectorsListType> allowedConnectorsList : allowedConnectorsLists) {
-            if (found) {
-                break;
-            }
-            List<SignedConnectorType> matchedContainers = allowedConnectorsList.asObjectable().getSignedConnector().stream()
-                    .filter(signedConnectorBean -> {
-                        ConnectorIdentifierType allowedConnectorBean = signedConnectorBean.getConnector();
-                        return allowedConnectorBean.getClassName().equals(connectorBean.getConnectorType())
-                                && allowedConnectorBean.getBundle().equals(connectorBean.getConnectorBundle());
-                    }).toList();
 
-            if (matchedContainers.isEmpty()) {
-                throw new SubscriptionComplianceException("No signature found for connector '%s' version '%s' from bundle '%s'."
-                        .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()));
-            }
+        if (allowedConnectorsListObjects.isEmpty()) {
+            LOGGER.error("Couldn't check connector against the public list of open source connectors, as no list"
+                    + " is present in the repository. Please import one from the Integration catalog.");
+        }
 
-            for (SignedConnectorType signedConnectorBean : matchedContainers) {
+        // There may be more "allowed connector list" objects. We are OK if the connector is present in at least one of them.
+        boolean found = false;
+        main: for (PrismObject<AllowedConnectorsListType> allowedConnectorsListObject : allowedConnectorsListObjects) {
+            List<SignedConnectorType> matchingSignedConnectorBeans =
+                    allowedConnectorsListObject.asObjectable().getSignedConnector().stream()
+                            .filter(signedAllowedConnectorBean -> {
+                                ConnectorIdentifierType allowedConnectorBean = signedAllowedConnectorBean.getConnector();
+                                // We assume the list is well-formed i.e. className and bundle are both present
+                                return allowedConnectorBean.getClassName().equals(connectorTypeName)
+                                        && allowedConnectorBean.getBundle().equals(connectorBundleName);
+                            }).toList();
 
-                if (found) {
-                    break;
-                }
+            LOGGER.trace("Found {} matching signed allowed connector records in {}",
+                    matchingSignedConnectorBeans.size(), allowedConnectorsListObject);
 
-                ConnectorIdentifierType allowedConnectorBean = signedConnectorBean.getConnector();
+            for (SignedConnectorType signedAllowedConnectorBean : matchingSignedConnectorBeans) {
+
+                ConnectorIdentifierType allowedConnectorBean = signedAllowedConnectorBean.getConnector();
 
                 byte[] payload;
                 try {
                     payload = toJson(allowedConnectorBean);
                 } catch (JsonProcessingException e) {
-                    throw new SubscriptionComplianceException("Unable to create json payload for verifying the connector signature for connector '%s' version '%s' from bundle '%s'."
-                            .formatted(allowedConnectorBean.getClassName(), allowedConnectorBean.getVersion(), allowedConnectorBean.getBundle()), e);
+                    throw createSubscriptionComplianceException(
+                            "Unable to create JSON payload for verifying the connector signature for connector '%s' from bundle '%s'.",
+                            "ConnectorSignatureVerifier.unableToCreateJson",
+                            allowedConnectorBean.getClassName(), allowedConnectorBean.getBundle());
                 }
 
-                for (Map.Entry<String, PublicKey> publicKey : getPublicKeys().entrySet()) {
+                // We have potentially multiple signatures and potentially multiple public keys in the system.
+                // We try to find at least one match.
+
+                for (ConnectorSignatureType signatureBean : signedAllowedConnectorBean.getSignature()) {
+
+                    var keyIdInSignature = signatureBean.getKeyId();
+                    LOGGER.trace("Trying to check the signature using key ID '{}'", keyIdInSignature);
+                    PublicKey publicKey = publicKeys.get(keyIdInSignature);
+                    if (publicKey == null) {
+                        // This can happen e.g. if Integration Catalog gets a new key but existing midPoint deployment does
+                        // not know about it. Hence, DEBUG level is OK to avoid cluttering the logs.
+                        LOGGER.debug("Ignoring unknown public key '{}' in the signature for connector record: {}",
+                                keyIdInSignature, allowedConnectorBean);
+                        continue;
+                    }
 
                     try {
                         Signature verifier = Signature.getInstance("Ed25519");
-                        verifier.initVerify(publicKey.getValue());
+                        verifier.initVerify(publicKey);
                         verifier.update(payload);
 
-                        ConnectorSignatureType signatureBean = signedConnectorBean.getSignature().stream()
-                                .filter(signature -> Strings.CS.equals(signature.getKeyId(), publicKey.getKey()))
-                                .findFirst()
-                                .orElse(null);
-
-                        if (signatureBean == null) {
-                            throw new InvalidKeyException("No signature found for keyId '%s'".formatted(publicKey.getKey()));
+                        if (verifier.verify(signatureBean.getValue())) {
+                            LOGGER.trace("Successfully verified the signature for {}: {}", allowedConnectorBean, signatureBean);
+                            found = true;
+                            break main;
+                        } else {
+                            LOGGER.error(
+                                    "Couldn't verify the signature in 'open source connector record' using public key ID '{}' "
+                                            + "(verifier returned 'false'), will try other signatures for the connector, "
+                                            + "if there are any.\n{}",
+                                    keyIdInSignature, signedAllowedConnectorBean);
+                            // Do not update the operation result. If the operation succeeds, we're OK. If not, the (overall)
+                            // "not found" exception will be reported.
                         }
-
-                        found = verifier.verify(Base64.getUrlDecoder().decode(signatureBean.getValue()));
-                    } catch (InvalidKeyException | NoSuchAlgorithmException |
-                            SignatureException e) {
-                        throw new SubscriptionComplianceException("Unable to verify the connector signature for connector '%s' version '%s' from bundle '%s'."
-                                .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()), e);
+                    } catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
+                        LoggingUtils.logUnexpectedException(
+                                LOGGER,
+                                "Couldn't verify the signature in 'open source connector record' using public key ID '{}', "
+                                        + "will try other signatures for the connector, if there are any.\n{}",
+                                e, keyIdInSignature, signedAllowedConnectorBean);
+                        // Also here we don't update the operation result.
                     }
                 }
             }
         }
 
         if (!found) {
-            throw new SubscriptionComplianceException("Connector '%s' version '%s' from bundle '%s' is not present in the current list of allowed signed connectors."
-                    .formatted(connectorBean.getConnectorType(), connectorBean.getVersion(), connectorBean.getConnectorBundle()));
+            // Details are to be found in the log.
+            throw createSubscriptionComplianceException(
+                    "Connector '%s' version '%s' from bundle '%s' is not present in the current public list of open source connectors.",
+                    "ConnectorSignatureVerifier.isNotPresent",
+                    connectorTypeName, connectorVersion, connectorBundleName);
         }
     }
 
@@ -224,30 +262,36 @@ public class ConnectorSignatureVerifier {
     }
 
     private boolean isConnectorInGracePeriod(ConnectorType connectorBean) throws SubscriptionComplianceException {
-        Long discoverTimestamp;
+        long discoveryTimestamp;
         if (connectorBean.getDiscoveryTimestamp() == null || connectorBean.getDiscoveryTimestamp().isEmpty()) {
-            throw new SubscriptionComplianceException("Discovery timestamp for the connector '%s' is empty."
-                    .formatted(connectorBean.getName()));
+            throw createSubscriptionComplianceException(
+                    "Discovery timestamp for the connector '%s' is empty.",
+                    "ConnectorSignatureVerifier.discoverTimestampIsEmpty",
+                    connectorBean.getName());
         } else {
-            ProtectedStringType discoverTimestampBean = connectorBean.getDiscoveryTimestamp();
+            ProtectedStringType discoveryTimestampPS = connectorBean.getDiscoveryTimestamp();
             try {
-                discoverTimestamp = Long.valueOf(protector.decryptString(discoverTimestampBean));
+                discoveryTimestamp = Long.parseLong(protector.decryptString(discoveryTimestampPS));
             } catch (EncryptionException e) {
-                throw new SubscriptionComplianceException("Couldn't encrypt discovery timestamp of the connector '%s'."
-                        .formatted(connectorBean.getName()));
+                throw createSubscriptionComplianceException(
+                        "Couldn't decrypt discovery timestamp of the connector '%s'.",
+                        "ConnectorSignatureVerifier.couldntDecryptDiscoveryTimestamp",
+                        connectorBean.getName());
             }
         }
 
-        if (discoverTimestamp > Instant.now().toEpochMilli()) {
-            throw new SubscriptionComplianceException("A discovery timestamp of the connector '%s' is in the future."
-                    .formatted(connectorBean.getName()));
+        if (discoveryTimestamp > Instant.now().toEpochMilli() + MARGIN_FOR_CLUSTERWIDE_TIME_SYNC_MILLIS) {
+            throw createSubscriptionComplianceException(
+                    "A discovery timestamp of the connector '%s' is in the future.",
+                    "ConnectorSignatureVerifier.discoverTimestampIsInFuture",
+                    connectorBean.getName());
         }
 
-        long gracePeriodTimestamp = Instant.ofEpochMilli(discoverTimestamp)
-                .plus(GRACE_PERIOD_FOR_CONNECTOR, ChronoUnit.DAYS)
+        long gracePeriodEndTimestamp = Instant.ofEpochMilli(discoveryTimestamp)
+                .plus(GRACE_PERIOD_FOR_CONNECTOR_IN_DAYS, ChronoUnit.DAYS)
                 .toEpochMilli();
 
-        return gracePeriodTimestamp >= Instant.now().toEpochMilli();
+        return gracePeriodEndTimestamp >= Instant.now().toEpochMilli();
     }
 
     private SubscriptionState getSubscriptionState() {
@@ -257,15 +301,18 @@ public class ConnectorSignatureVerifier {
     protected byte[] toJson(ConnectorIdentifierType connectorIdentifierType) throws JsonProcessingException {
         ActiveConnectorDto dto = new ActiveConnectorDto(
                 connectorIdentifierType.getClassName(),
-                connectorIdentifierType.getVersion(),
                 connectorIdentifierType.getBundle());
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsBytes(dto);
     }
 
+    private SubscriptionComplianceException createSubscriptionComplianceException(String baseOfTechMessage, String key, Object... objects) {
+        String technicalMessage = baseOfTechMessage.formatted(objects);
+        return new SubscriptionComplianceException(new SingleLocalizableMessage(key, objects, technicalMessage));
+    }
+
     private record ActiveConnectorDto(
             String className,
-            String version,
             String bundle
     ) {
     }

@@ -162,13 +162,17 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
             Assertions.assertThat(record.getRunStartTimestamp()).isNotNull();
 
             if (i + 1 == records.size()) {
-                if (finishedRun) {
-                    Assertions.assertThat(record.getRunEndTimestamp()).isNotNull();
-                } else {
-                    // last run record will not have finished timestamp if the task is
-                    // running or was suspended before run finished
+                // The last record may be open (no end timestamp) when the suspension cut a run that
+                // was in progress. Whether that happened cannot be derived from the task result
+                // status: a new run can start (writing its start record) right before the suspend,
+                // while the result status still holds SUCCESS of the previously completed run.
+                // So: IN_PROGRESS implies an open record; SUCCESS allows both.
+                if (!finishedRun) {
                     Assertions.assertThat(record.getRunEndTimestamp()).isNull();
                 }
+            } else {
+                // all records except the last one belong to completed runs
+                Assertions.assertThat(record.getRunEndTimestamp()).isNotNull();
             }
         }
     }

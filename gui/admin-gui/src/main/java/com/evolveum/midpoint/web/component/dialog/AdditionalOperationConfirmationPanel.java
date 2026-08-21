@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -27,6 +29,7 @@ public abstract class AdditionalOperationConfirmationPanel extends ConfirmationP
 
     private static final String ID_PROCESS = "process";
     private static final String ID_WARNING_MESSAGE = "warningMessage";
+    private static final String ID_CONTAINER = "container";
 
     private final IModel<String> warningMessageModel;
 
@@ -51,6 +54,12 @@ public abstract class AdditionalOperationConfirmationPanel extends ConfirmationP
         warningMessage.setOutputMarkupId(true);
         warningMessage.add(new VisibleBehaviour(() -> warningMessageModel != null));
         add(warningMessage);
+
+        add(createAdditionalContainer(ID_CONTAINER));
+    }
+
+    protected Component createAdditionalContainer(String id) {
+        return new EmptyPanel(id);
     }
 
     @Override

@@ -227,6 +227,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         return createHelpPanel(
                 id, () -> {
                     ContainerPanelConfigurationType config = getSettings() != null ? getSettings().getConfig() : null;
+                    if(getModelObject() == null) {
+                        return null;
+                    }
                     return GuiConfigUtil.findItemSpecForPath(config, getModelObject().getPath());
                 });
     }

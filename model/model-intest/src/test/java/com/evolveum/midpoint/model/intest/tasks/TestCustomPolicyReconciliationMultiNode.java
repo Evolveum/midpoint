@@ -87,11 +87,15 @@ public class TestCustomPolicyReconciliationMultiNode extends AbstractEmptyModelI
         createAccounts();
         TASK_IMPORT.init(this, initTask, initResult);
 
-        // clockwork (focus) policy-rule notifier, redirected to a dummy transport
+        // clockwork (focus) and activity policy-rule notifiers, redirected to a dummy transport;
+        // the activity one handles e.g. the max-restarts suspend trip, which is an activity-side event
         SimplePolicyRuleNotifierType policyNotifier = new SimplePolicyRuleNotifierType();
         policyNotifier.getTransport().add(DUMMY_POLICY_NOTIFIER);
+        SimpleActivityPolicyRuleNotifierType activityNotifier = new SimpleActivityPolicyRuleNotifierType();
+        activityNotifier.getTransport().add(DUMMY_POLICY_NOTIFIER);
         EventHandlerType handler = new EventHandlerType();
         handler.getSimplePolicyRuleNotifier().add(policyNotifier);
+        handler.getSimpleActivityPolicyRuleNotifier().add(activityNotifier);
         modifyObjectAddContainer(
                 SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(),

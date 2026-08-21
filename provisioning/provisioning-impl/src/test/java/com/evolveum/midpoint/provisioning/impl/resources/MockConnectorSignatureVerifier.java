@@ -12,69 +12,73 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.security.*;
-import java.util.Base64;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Mock implementation of {@link ConnectorSignatureVerifier} used in place of
  * the production verifier during testing.
  *
- * It overrides the production environment check to always return {@code true},
- * enabling testing of production-only functionality. Instead of using the
- * Integration Catalog signing keys, it generates a dedicated key pair for
- * signing and verification.
+ * Main differences of the regular verifier:
+ *
+ * - It overrides the check for being in production environment (by overriding {@link #isVerificationNeeded(ConnectorType)}),
+ * in order to enable signature-checking functionality during tests.
+ *
+ * - Instead of using the Integration Catalog signing keys, it generates a single dedicated key pair for signing and verification.
  */
 public class MockConnectorSignatureVerifier extends ConnectorSignatureVerifier {
 
-    private final static String KEY_ID = "test-key-id";
+    /** Used to create and check signatures. */
+    private final static String MAIN_KEY_ID = "test-key-id";
+
+    /** This is to test scenarios with multiple known public keys. The key itself is not used in any signature operations. */
+    private final static String UNUSED_KEY_ID = "unused-key-id";
 
     private KeyPair keyPair;
+    private KeyPair unusedKeyPair;
 
     public MockConnectorSignatureVerifier() {
-        loadKeyPair();
+        generateKeyPairs();
     }
 
-    private void loadKeyPair() {
+    private void generateKeyPairs() {
         try {
-            KeyPairGenerator generator =
-                    KeyPairGenerator.getInstance("Ed25519");
-
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("Ed25519");
             this.keyPair = generator.generateKeyPair();
+            this.unusedKeyPair = generator.generateKeyPair();
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    protected void refreshKeyPair() {
-        loadKeyPair();
+    void refreshKeyPair() {
+        generateKeyPairs();
     }
 
-    public String sign(ConnectorIdentifierType connector) throws JsonProcessingException, GeneralSecurityException {
+    byte[] sign(ConnectorIdentifierType connector) throws JsonProcessingException, GeneralSecurityException {
         byte[] payload = toJson(connector);
 
         Signature signer = Signature.getInstance("Ed25519");
         signer.initSign(keyPair.getPrivate());
         signer.update(payload);
 
-        return Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(signer.sign());
+        return signer.sign();
     }
 
     @Override
     public boolean isVerificationNeeded(ConnectorType connectorBean) {
-        return isConnIdConnector(connectorBean);
+        return isConnIdConnector(connectorBean); // intentionally not checking whether we are in production
     }
 
     @Override
     protected Map<String, PublicKey> getPublicKeys() {
-        Map<String, PublicKey> keys = new HashMap<>();
-        keys.put(KEY_ID, keyPair.getPublic());
+        Map<String, PublicKey> keys = new LinkedHashMap<>();
+        keys.put(UNUSED_KEY_ID, unusedKeyPair.getPublic()); // putting this first to confuse the checker even more
+        keys.put(MAIN_KEY_ID, keyPair.getPublic());
         return keys;
     }
 
-    public String getKeyId() {
-        return KEY_ID;
+    String getKeyId() {
+        return MAIN_KEY_ID;
     }
 }

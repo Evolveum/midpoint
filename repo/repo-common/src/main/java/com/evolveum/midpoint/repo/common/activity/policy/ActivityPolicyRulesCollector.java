@@ -108,10 +108,14 @@ public class ActivityPolicyRulesCollector {
 
         List<ActivityPolicyRule> activityRules = new ArrayList<>();
 
-        collectRulesFromActivityPolicies(activityPoliciesBean, activityPath, activityRules, task);
+        if (ActivityPolicyUtils.isActivityPolicyProcessingDisabled(activity)) {
+            LOGGER.trace("Activity policy processing is disabled for '{}', skipping rules declared there", activityPath);
+        } else {
+            collectRulesFromActivityPolicies(activityPoliciesBean, activityPath, activityRules, task);
 
-        collectRulesFromActivityPolicyRefs(
-                activityPoliciesBean, activityPath, activityRules, objectResolver, task, result);
+            collectRulesFromActivityPolicyRefs(
+                    activityPoliciesBean, activityPath, activityRules, objectResolver, task, result);
+        }
 
         activityRules.sort(
                 Comparator.comparing(

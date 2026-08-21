@@ -194,6 +194,13 @@ call apply_audit_change(9, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
 $aa$);
 
+-- Compatibility fix for standalone audit databases upgraded through older scripts.
+-- `ROLE_ANALYSIS_OUTLIER` was present in postgres-audit.sql since 4.9,
+-- but was missing from postgres-audit-upgrade.sql.
+DO $$ BEGIN
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
+END $$;
+
 -- Schema Type
 -- @change: Adds schema object type value.
 -- @since: 4.10

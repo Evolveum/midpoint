@@ -57,11 +57,6 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
         return new AttributeMappingsTableWizardPanel<>(getIdOfChoicePanel(), getHelper(), initialTab) {
 
             @Override
-            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                showChoiceFragment(target, buildSimulationWizard(initialTab));
-            }
-
-            @Override
             protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
                 showChoiceFragment(target, buildSimulationWizard(simulationResultTypeIModel));
             }

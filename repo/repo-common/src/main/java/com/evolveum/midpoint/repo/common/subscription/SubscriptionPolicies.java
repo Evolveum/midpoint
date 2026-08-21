@@ -45,7 +45,9 @@ class SubscriptionPolicies {
                 features.areRealNotificationsEnabled(),
                 features.isPublicHttpsUrlPatternDefined(),
                 features.isRemoteHostAddressHeaderDefined(),
-                features.isCustomLoggingDefined());
+                features.isCustomLoggingDefined(),
+                // Customized look and feel of the deployment counts as a single indication, regardless of its extent.
+                features.isCustomDeploymentColorsDefined() || features.isCustomLogoDefined());
         return productionFeatures >= 2;
     }
 

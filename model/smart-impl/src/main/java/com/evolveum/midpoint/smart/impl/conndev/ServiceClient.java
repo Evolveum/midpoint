@@ -20,10 +20,12 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BooleanSupplier;
 
@@ -55,15 +57,15 @@ public class ServiceClient {
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
     }
 
-    public Job postJob(String endpoint, boolean skipCache) throws IOException {
-        var job = new Job(apiBase+endpoint, skipCache);
+    public Job postJob(String endpoint, String apiType, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
         job.startJob(request);
         return job;
     }
 
-    public Job postJob(String endpoint, ObjectNode body, boolean skipCache) throws IOException {
-        var job = new Job(apiBase+endpoint, skipCache);
+    public Job postJob(String endpoint, ObjectNode body, String apiType, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
         request.setEntity(new StringEntity(body.toPrettyString(), ContentType.APPLICATION_JSON));
         job.startJob(request);
@@ -129,6 +131,7 @@ public class ServiceClient {
     public class Job implements AutoCloseable {
 
         private final String uri;
+        private final String apiType;
         private final boolean skipCache;
         private String jobId = null;
 
@@ -136,15 +139,13 @@ public class ServiceClient {
         private ObjectNode latestResult;
 
         public Job(String uri, boolean skipCache) {
-            this.uri = appendSession(uri);
-            this.skipCache =skipCache;
+            this(uri, null, skipCache);
         }
 
-        private String appendSkipCache(String uri) {
-            if (!skipCache) {
-                return uri;
-            }
-            return uri + ( !uri.contains("?") ? "?" : "&" ) + "skipCache=true";
+        public Job(String uri, String apiType, boolean skipCache) {
+            this.uri = appendSession(uri);
+            this.apiType = apiType;
+            this.skipCache =skipCache;
         }
 
         @Override
@@ -153,7 +154,18 @@ public class ServiceClient {
         }
 
         public HttpPost postBuilder() {
-            return new HttpPost(appendSkipCache(uri));
+            try {
+                var builder = new URIBuilder(uri);
+                if (skipCache) {
+                    builder.addParameter("skipCache", "true");
+                }
+                if (apiType != null) {
+                    builder.addParameter("apiType", apiType);
+                }
+                return new HttpPost(builder.build());
+            } catch (URISyntaxException e) {
+                throw new SystemException(e);
+            }
         }
 
         public void startJob(HttpPost request) throws IOException {

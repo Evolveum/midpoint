@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class MessagePanel<T extends Serializable> extends BasePanel<T> {
@@ -100,17 +101,18 @@ public class MessagePanel<T extends Serializable> extends BasePanel<T> {
     private void initHeader(WebMarkupContainer box) {
         WebMarkupContainer iconType = new WebMarkupContainer(ID_ICON_TYPE);
         iconType.setOutputMarkupId(true);
-        iconType.add(AttributeAppender.append("class", () -> getIconTypeCss()));
+        iconType.add(AttributeAppender.append("class", this::getIconTypeCss));
 
         box.add(iconType);
 
         Label message = new Label(ID_MESSAGE, getModel());
         message.setRenderBodyOnly(true);
+        message.setEscapeModelStrings(getEscapeModelStrings());
         box.add(message);
 
         AjaxLink<Void> close = new AjaxLink<>(ID_CLOSE) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

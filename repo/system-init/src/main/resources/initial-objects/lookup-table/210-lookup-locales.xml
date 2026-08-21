@@ -96,4 +96,8 @@
         <key>lv</key>
         <label>Latvių</label>
     </row>
+    <row id="23">
+        <key>eu</key>
+        <label>English (Europe)</label>
+    </row>
 </lookupTable>

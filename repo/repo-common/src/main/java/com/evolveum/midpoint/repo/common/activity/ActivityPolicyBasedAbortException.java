@@ -32,4 +32,9 @@ public class ActivityPolicyBasedAbortException extends ActivityPolicyViolationEx
     public @NotNull ActivityAbortingInformationType getAbortingInformation() {
         return abortingInformation;
     }
+
+    @Override
+    public @NotNull ActivityRunResultStatus getRunResultStatus() {
+        return ActivityRunResultStatus.ABORTED;
+    }
 }

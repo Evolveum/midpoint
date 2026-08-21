@@ -61,6 +61,14 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     private boolean isReloaded = false;
     private String restartedTaskToken;
 
+    /**
+     * Object class name {@link #tokenModel}/{@link #statusModel} were last computed for.
+     * Step panel instances are reused by the wizard across different object classes, so
+     * a stale cached token/status has to be invalidated whenever the object class we are
+     * now tracking has changed.
+     */
+    private String tokenModelObjectClassName;
+
     public WaitingConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
@@ -71,6 +79,29 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     protected final boolean isReloaded() {
         return isReloaded;
+    }
+
+    /**
+     * Invalidates {@link #tokenModel} and {@link #statusModel} if the object class they were
+     * computed for no longer matches the current one (i.e. this reused panel instance has
+     * moved on to a different object class).
+     */
+    private void ensureFreshForCurrentObjectClass() {
+        String currentObjectClassName;
+        try {
+            currentObjectClassName = getObjectClassName();
+        } catch (Exception e) {
+            currentObjectClassName = null;
+        }
+        if (tokenModel != null && tokenModel.isLoaded() && !StringUtils.equals(tokenModelObjectClassName, currentObjectClassName)) {
+            tokenModel.reset();
+            if (statusModel != null) {
+                statusModel.reset();
+            }
+            isReloaded = false;
+            restartedTaskToken = null;
+        }
+        tokenModelObjectClassName = currentObjectClassName;
     }
 
     @Override
@@ -294,6 +325,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     @Override
     public IModel<Boolean> isStepVisible() {
         return () -> {
+            ensureFreshForCurrentObjectClass();
             if (statusModel == null || !statusModel.isLoaded()) {
                 return !isCompleted();
             }
@@ -338,6 +370,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     @Override
     public boolean isCompleted() {
+        ensureFreshForCurrentObjectClass();
         String token = tokenModel.getObject();
         if (StringUtils.isEmpty(token)) {
             return false;

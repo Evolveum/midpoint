@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -56,8 +57,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
     private final ExecutorService executorService;
 
     /** Timeout for receiving answer from the Python service. Later it will be configurable. */
-    private static final long RECEIVE_TIMEOUT = 120_000;
-
+    private static final long DEFAULT_RECEIVE_TIMEOUT = 120_000;
     /** Default thread pool size for parallel AI service calls. */
     private static final int DEFAULT_THREAD_POOL_SIZE = 20;
 
@@ -66,7 +66,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
         var policy = new HTTPClientPolicy();
-        policy.setReceiveTimeout(RECEIVE_TIMEOUT);
+        policy.setReceiveTimeout(getReceiveTimeout(configurationBean));
         conduit.setClient(policy);
 
         this.executorService = Executors.newFixedThreadPool(
@@ -77,6 +77,14 @@ public class DefaultServiceClientImpl implements ServiceClient {
                     t.setDaemon(true);
                     return t;
                 });
+    }
+
+    private static long getReceiveTimeout(@Nullable SmartIntegrationConfigurationType configurationBean) {
+        if (configurationBean == null || configurationBean.getServiceResponseTimeout() == null) {
+            return DEFAULT_RECEIVE_TIMEOUT;
+        }
+
+        return configurationBean.getServiceResponseTimeout().getTimeInMillis(new Date());
     }
 
     private static String getServiceUrl(@Nullable SmartIntegrationConfigurationType configurationBean)

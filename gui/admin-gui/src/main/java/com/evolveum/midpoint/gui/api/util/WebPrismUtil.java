@@ -303,6 +303,37 @@ public class WebPrismUtil {
         }
     }
 
+    /**
+     * Resets the values of the given container value wrapper and its child item wrappers to their old values.
+     *
+     * @param valueWrapper the container value wrapper to reset
+     */
+    public static <C extends Containerable> void resetContainerValueWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+        if (valueWrapper == null) {
+            return;
+        }
+
+        for (ItemWrapper<?, ?> itemWrapper : new ArrayList<>(valueWrapper.getItems())) {
+            resetItemWrapper(itemWrapper);
+        }
+    }
+
+    private static void resetItemWrapper(@NotNull ItemWrapper<?, ?> itemWrapper) {
+
+        for (Object valueObject : new ArrayList<>(itemWrapper.getValues())) {
+            PrismValueWrapper<?> valueWrapper = (PrismValueWrapper<?>) valueObject;
+
+            if (valueWrapper instanceof PrismContainerValueWrapper<?> containerValueWrapper) {
+                resetContainerValueWrapper(containerValueWrapper);
+                valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
+            } else {
+                PrismValue oldValue = valueWrapper.getOldValue();
+                valueWrapper.setRealValue(oldValue != null ? oldValue.getRealValue() : null);
+                valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
+            }
+        }
+    }
+
     public static void cleanupValueMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             cleanupEmptyValues(value.getValueMetadata());
@@ -651,9 +682,7 @@ public class WebPrismUtil {
         if (showExpression) {
             ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
             if (expressionBean != null) {
-                String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
-                evaluatorType = ExpressionUtil.getExpressionType(expression);
-
+                evaluatorType = ExpressionUtil.getExpressionType(expressionBean);
             }
 
             if (evaluatorType == null) {

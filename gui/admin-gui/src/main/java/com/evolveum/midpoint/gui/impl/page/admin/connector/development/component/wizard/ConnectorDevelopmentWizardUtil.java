@@ -219,13 +219,13 @@ public class ConnectorDevelopmentWizardUtil {
 
     private static <C extends PrismContainerWrapper<?>> Object getPropertyValue(C container, ItemPath path) {
         if (container == null) {
-            return false;
+            return null;
         }
 
         try {
             PrismPropertyWrapper<?> propertyWrapper = container.findProperty(path);
             if (propertyWrapper == null || propertyWrapper.getValues().isEmpty()) {
-                return false;
+                return null;
             }
             if (propertyWrapper.getValues().get(0).getNewValue() != null) {
                 return propertyWrapper.getValues().get(0).getNewValue().getRealValue();
@@ -636,6 +636,21 @@ public class ConnectorDevelopmentWizardUtil {
         } catch (SchemaException e) {
             return false;
         }
+    }
+
+    /**
+     * Resolves the {@link ConnectorWizardStrategy} for this connector's integration type, so wizard
+     * step panels can delegate connector-type-specific decisions instead of branching themselves.
+     * Mirrors {@code ConnectorDevelopmentBackend.backendFor(...)} on the model layer.
+     */
+    public static ConnectorWizardStrategy wizardStrategyFor(ConnectorDevelopmentDetailsModel detailsModel) {
+        if (isSql(detailsModel)) {
+            return new SqlConnectorWizardStrategy();
+        }
+        if (isScim(detailsModel)) {
+            return new ScimConnectorWizardStrategy();
+        }
+        return new RestConnectorWizardStrategy();
     }
 
     public static List<ItemName> getVisibleAuthorizationAttributes(

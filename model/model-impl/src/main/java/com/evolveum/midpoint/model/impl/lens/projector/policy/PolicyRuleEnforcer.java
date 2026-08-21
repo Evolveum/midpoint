@@ -48,10 +48,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Code used to enforce the policy rules that have the `enforce` and `suspendTask` actions.
+ * Code used to enforce the policy rules that have the `enforce` action, and the threshold-based
+ * `suspendTask`/`restartActivity`/`skipActivity` actions.
  *
- * An interesting difference is the execution in the preview mode: the former are only simulated, whereas the latter
- * do really throw an exception. This behavior may change in the future.
+ * In the policy-rules-enforcement preview mode, nothing is really enforced: the enforcement is recorded
+ * into the preview output, and the threshold-based actions are skipped altogether.
  *
  * Originally this was a regular {@link ChangeHook}. However, when invoked among other hooks, it is too late (see MID-4797).
  * So we had to convert it into regular code and run it right after the first {@link Projector} run.
@@ -195,7 +196,19 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
+            LOGGER.trace("enforceThresholds: {} object policy rules in focus context", focusContext.getObjectPolicyRules().size());
             for (DirectlyEvaluatedClockworkPolicyRule policyRule : focusContext.getObjectPolicyRules()) {
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("enforceThresholds: rule '{}' ({}, instance {}): evaluated={}, triggered={}, count={}, "
+                                    + "hasThreshold={}, overThreshold={}, enabledActions={}",
+                            policyRule.getName(), policyRule.getRuleIdentifier(), System.identityHashCode(policyRule),
+                            policyRule.isEvaluated(), policyRule.isTriggered(), policyRule.getCount(),
+                            policyRule.hasThreshold(), policyRule.isOverThreshold(),
+                            policyRule.isEvaluated()
+                                    ? policyRule.getEnabledActions().stream().map(a -> a.getTypeName()).toList()
+                                    : "(not computed)");
+                }
+
                 if (!policyRule.isOverThreshold()) {
                     continue;
                 }

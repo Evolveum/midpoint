@@ -49,10 +49,26 @@ public class ActivityPolicyProcessorHelper {
     }
 
     public static void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityRunPolicyException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        new ActivityPolicyRulesProcessor(getCurrentActivityRunRequired())
-                .evaluateAndExecuteRules(processingResult, result);
+        AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRunRequired();
+
+        // The end timestamp of the current run record is normally refreshed by item processing.
+        // A non-iterative activity processes no items, so we have to refresh the record here;
+        // otherwise the execution time constraint would see a zero-length run.
+        if (activityRun.areRunRecordsSupported()) {
+            activityRun.getActivityState().getLiveItemProcessingStatistics()
+                    .recordRunStart(activityRun.getStartTimestampRequired());
+        }
+
+        try {
+            new ActivityPolicyRulesProcessor(activityRun)
+                    .evaluateAndExecuteRules(processingResult, result);
+        } catch (ActivityRunPolicyException e) {
+            // The dedicated carrier type is recognized by the activity framework even when wrapped
+            // by intermediate layers (e.g. the scripting infrastructure) on its way up.
+            throw new ActivityPolicyEnforcementException(e);
+        }
     }
 
     public static Collection<ActivityPolicyRule> getActivityPolicyRules() {

@@ -6,23 +6,34 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable.createChangeNameColumnAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeMappingTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.SuggestionUiStyle;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.bySuggestion;
+import static com.evolveum.midpoint.web.util.ExpressionUtil.usesIterationVariables;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.ContainerDrawerPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerFooterPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.ChangeLifecycleSelectedMappingsPopup;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.MappingDataDto;
 
@@ -30,6 +41,7 @@ import com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 
 import org.apache.wicket.AttributeModifier;
@@ -133,6 +145,49 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
         return fragment;
     }
 
+    @NotNull
+    Component createSettingPanel(String id) {
+
+        // Adds menu items supplied by SmartMappingTable subclasses.
+        List<InlineMenuItem> items = new ArrayList<>(table.getCustomSettingsMenuItems());
+
+        DropdownButtonDto dto = DropdownButtonDto.create(
+                null,
+                null,
+                table.createStringResource("SmartMappingTable.settings"),
+                items);
+
+        DropdownButtonPanel dropdown = buildDropdownButtonPanel(id, dto);
+        dropdown.add(AttributeModifier.append("class", "ms-auto"));
+        dropdown.add(new VisibleBehaviour(() -> !items.isEmpty()));
+        return dropdown;
+    }
+
+    private static @NotNull DropdownButtonPanel buildDropdownButtonPanel(String id, DropdownButtonDto dto) {
+        DropdownButtonPanel dropdown = new DropdownButtonPanel(id, dto) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean showIcon() {
+                return true;
+            }
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn btn-light border";
+            }
+
+            @Override
+            protected String getSpecialDropdownMenuClass() {
+                return "dropdown-menu-end smart-mapping-settings-menu";
+            }
+        };
+
+        dropdown.setOutputMarkupId(true);
+        return dropdown;
+    }
+
     @NotNull Component createMappingTypeDropdownButton(String idButton) {
         DropDownChoicePanel<MappingUsedFor> dropdown = WebComponentUtil.createEnumPanel(
                 idButton,
@@ -180,9 +235,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
             @NotNull PrismContainerValueWrapper<MappingType> selected,
             @NotNull AjaxRequestTarget target) {
 
-        PrismContainerValueWrapper<MappingType> accepted =
-                table.acceptSuggestionItemPerformed(() -> selected, target);
-        table.getAcceptedSuggestionsCache().add(accepted);
+        table.acceptSuggestionItemPerformed(() -> selected, target);
 
         GroupedMappingDataProvider provider = table.getProvider();
         MappingDataDto groupedDto = provider != null ? provider.findGroupedDto(selected) : null;
@@ -527,18 +580,14 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 if (getRowModel().getObject() instanceof MappingDataDto dto) {
                     for (PrismContainerValueWrapper<MappingType> value : dto.getMappings()) {
                         if (table.getStatusInfo(value) != null) {
-                            PrismContainerValueWrapper<MappingType> newValue =
-                                    table.acceptSuggestionItemPerformed(() -> value, target);
-                            table.getAcceptedSuggestionsCache().add(newValue);
+                            table.acceptSuggestionItemPerformed(() -> value, target);
                         }
                     }
                 } else if (getRowModel().getObject() instanceof PrismContainerValueWrapper<?> raw) {
                     @SuppressWarnings("unchecked")
                     PrismContainerValueWrapper<MappingType> value = (PrismContainerValueWrapper<MappingType>) raw;
                     if (table.getStatusInfo(value) != null) {
-                        PrismContainerValueWrapper<MappingType> newValue =
-                                table.acceptSuggestionItemPerformed(() -> value, target);
-                        table.getAcceptedSuggestionsCache().add(newValue);
+                        table.acceptSuggestionItemPerformed(() -> value, target);
                     }
                 }
 
@@ -699,9 +748,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                                     .setForceDiscardMappingEnabled(true);
                         }
 
-                        PrismContainerValueWrapper<MappingType> accepted =
-                                table.acceptSuggestionItemPerformed(() -> selected, target);
-                        table.getAcceptedSuggestionsCache().add(accepted);
+                        table.acceptSuggestionItemPerformed(() -> selected, target);
                         groupedDto.getColumnsValues().forEach(table::deleteItemPerform);
                         table.refreshAndDetach(target);
                     }
@@ -794,36 +841,123 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                             return;
                         }
 
-                        PreviewMappingPanel popup = buildPreviewMappingPanelPopup(getRowModel());
-                        table.getPageBase().showMainPopup(popup, target);
+                        @NotNull DrawerModel popup = buildPreviewMappingPanelPopup(getRowModel());
+                        table.getPageBase().showDrawer(popup, target);
                     }
                 })
                 .visibilityChecker(bySuggestion(true, table::getStatusInfo))
                 .buildInlineMenu();
     }
 
-    @NotNull PreviewMappingPanel buildPreviewMappingPanelPopup(
+    @NotNull DrawerModel buildPreviewMappingPanelPopup(
             IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper) {
 
-        return new PreviewMappingPanel(
-                table.getPageBase().getMainPopupBodyId(),
-                mappingWrapper,
-                table.isInbound()) {
+        List<CollapsedItem<DrawerModel>> collapsedItems = new ArrayList<>();
+        CollapsedItem<DrawerModel> collapsedItemBasic = getMappingPreviewBasicDrawerItem(mappingWrapper);
+        collapsedItems.add(collapsedItemBasic);
+        PrismContainerValueWrapper<MappingType> suggestedMapping = mappingWrapper.getObject();
+        StatusInfo<?> statusInfo = table.getStatusInfo(suggestedMapping);
+
+        if (usesIterationVariables(suggestedMapping.getRealValue().getExpression()) && statusInfo != null) {
+            MappingsSuggestionType suggestionResult = (MappingsSuggestionType) statusInfo.getResult();
+            IterationSpecificationType iterationSpecification = suggestionResult.getIterationSpecification();
+            if (iterationSpecification != null) {
+                PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper = getIterationValueWrapper(suggestionResult);
+                CollapsedItem<DrawerModel> collapsedItemIteration = getSuggestionIterationDrawerItem(iterationValueWrapper);
+                collapsedItems.add(collapsedItemIteration);
+            }
+        }
+
+        return new DrawerModel(Model.ofList(collapsedItems)) {
+            @Override
+            public Component getFooter(String id, DrawerModel model) {
+                return new DrawerFooterPanel(id) {
+                    @Override
+                    public void customizeFooterButtons(@NotNull RepeatingView repeater) {
+                        repeater.add(createNoButton(repeater.newChildId()));
+
+                        StatusInfo<?> statusInfo = table.getStatusInfo(mappingWrapper.getObject());
+                        if (statusInfo != null) {
+                            AjaxIconButton discard = buildDiscardButton(repeater, mappingWrapper);
+                            discard.add(AttributeModifier.replace("class", "btn btn-link text-danger ms-auto"));
+                            repeater.add(discard);
+
+                            AjaxIconButton accept = buildAcceptInGroupButton(repeater, mappingWrapper);
+                            accept.add(AttributeModifier.replace("class", "btn btn-primary"));
+                            repeater.add(accept);
+                        }
+                    }
+                };
+            }
+
+        };
+
+    }
+
+    private @NotNull CollapsedItem<DrawerModel> getMappingPreviewBasicDrawerItem(
+            IModel<PrismContainerValueWrapper<MappingType>> mappingWrapper) {
+        CollapsedItem<DrawerModel> collapsedItemBasic = new CollapsedItem<>() {
+            @Override
+            public IModel<String> getIcon() {
+                return Model.of("fa fa-circle");
+            }
 
             @Override
-            public void customizeFooterButtons(@NotNull RepeatingView repeater) {
-                super.customizeFooterButtons(repeater);
+            public IModel<String> getTitle() {
+                return table.createStringResource("SmartMappingPanel.preview.mapping.basic");
+            }
 
-                StatusInfo<?> statusInfo = table.getStatusInfo(mappingWrapper.getObject());
-                if (statusInfo != null) {
-                    AjaxIconButton discard = buildDiscardButton(repeater, mappingWrapper);
-                    discard.add(AttributeModifier.replace("class", "btn btn-link text-danger ms-auto"));
-                    repeater.add(discard);
+            @Override
+            public Component getPanel(String id, DrawerModel model) {
+                return new PreviewMappingPanel(id, mappingWrapper, table.isInbound());
+            }
+        };
+        collapsedItemBasic.setSelected(true);
+        return collapsedItemBasic;
+    }
 
-                    AjaxIconButton accept = buildAcceptInGroupButton(repeater, mappingWrapper);
-                    accept.add(AttributeModifier.replace("class", "btn btn-primary"));
-                    repeater.add(accept);
-                }
+    private @Nullable PrismContainerValueWrapper<IterationSpecificationType> getIterationValueWrapper(MappingsSuggestionType result) {
+        IterationSpecificationType iterationSpecification = result.getIterationSpecification();
+        PrismContainerValue<?> prismContainerValue = iterationSpecification.asPrismContainerValue();
+        PageBase pageBase = table.getPageBase();
+        Task task = pageBase.createSimpleTask("Load suggested iteration");
+        PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper = null;
+        try {
+            if (prismContainerValue.getContainer() != null) {
+                PrismContainerWrapper<IterationSpecificationType> iterationWrapper = pageBase.createItemWrapper(
+                        prismContainerValue.getContainer(), ItemStatus.NOT_CHANGED, new WrapperContext(task, task.getResult()));
+                iterationValueWrapper = iterationWrapper.getValue();
+                WebPrismUtil.setReadOnlyRecursively(iterationValueWrapper);
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't create iteration wrapper: " + e.getMessage(), e);
+        }
+        return iterationValueWrapper;
+    }
+
+    private @NotNull CollapsedItem<DrawerModel> getSuggestionIterationDrawerItem(
+            PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper) {
+        return new CollapsedItem<>() {
+
+            @Override
+            public IModel<String> getIcon() {
+                return Model.of("fa fa-sort-numeric-asc");
+            }
+
+            @Override
+            public IModel<String> getTitle() {
+                return table.createStringResource("IterationSettings.button.iterationSettings.requires");
+            }
+
+            @Override
+            public Component getPanel(String id, DrawerModel model) {
+                ContainerDrawerPanel<IterationSpecificationType> components = new ContainerDrawerPanel<>(
+                        id, () -> iterationValueWrapper, null,
+                        table.createStringResource("IterationSettings.definition.info"));
+
+                components.info(translate("IterationSettings.description"));
+
+                return components;
             }
         };
     }
@@ -838,29 +972,26 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("SmartMappingTable.apply.suggestion")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                table.getPageBase().hideDrawer(target);
+
                 GroupedMappingDataProvider provider = table.getProvider();
                 MappingDataDto groupedDto =
                         provider != null ? provider.findGroupedDto(rowModel.getObject()) : null;
 
                 if (groupedDto != null) {
                     if (isForceDiscardMappingEnabled()) {
-                        PrismContainerValueWrapper<MappingType> accepted =
-                                table.acceptSuggestionItemPerformed(rowModel, target);
-                        table.getAcceptedSuggestionsCache().add(accepted);
+                        table.acceptSuggestionItemPerformed(rowModel, target);
                         groupedDto.getColumnsValues().forEach(table::deleteItemPerform);
                         table.refreshAndDetach(target);
-                        table.getPageBase().hideMainPopup(target);
+                        table.getPageBase().hideDrawer(target);
                     } else {
                         showAcceptConfirmation(rowModel.getObject(), target);
                     }
                     return;
                 }
 
-                PrismContainerValueWrapper<MappingType> accepted =
-                        table.acceptSuggestionItemPerformed(rowModel, target);
-                table.getAcceptedSuggestionsCache().add(accepted);
+                table.acceptSuggestionItemPerformed(rowModel, target);
                 table.refreshAndDetach(target);
-                table.getPageBase().hideMainPopup(target);
             }
         };
 
@@ -879,9 +1010,9 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("SmartMappingTable.dismiss")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                table.getPageBase().hideDrawer(target);
                 deleteItemPerform(rowModel.getObject());
                 table.refreshAndDetach(target);
-                table.getPageBase().hideMainPopup(target);
             }
         };
 

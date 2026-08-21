@@ -1991,6 +1991,9 @@
                     <xsd:documentation>
                         Policies for the activity.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType" minOccurs="0">
@@ -2005,6 +2008,9 @@
                         It is recommended that roles contain only policies; otherwise phantom
                         roleMembershipRefs may be added to the processed object.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
@@ -2020,13 +2026,24 @@
 
     <xsd:complexType name="VirtualAssignmentsType">
         <xsd:annotation>
+            <xsd:documentation>
+                Virtual assignments of an activity. These assignments are applied on top of every focal
+                object while it is being processed by the activity; they are not persisted in the object.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An assignment that is virtually applied to every object processed by the activity.
+                        The target should preferably be a policy (or a role containing only policies).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType"/>
@@ -2042,20 +2059,121 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="policy" type="tns:PolicyRuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="policy" type="tns:PolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inline policy rule for the activity. Activity-based constraints (executionTime,
+                        executionAttempts, itemProcessingResult) are evaluated by the activity itself;
+                        focus-based constraints are evaluated for each object processed by the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="policyRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to AbstractRoleType (or its subtypes) object, preferably PolicyType.
+                        The policy rules are taken from the inducements of the referenced object.
 
                         Inducements with policies located in referenced object must not contain order, condition.
                         Otherwise, configuration exception will be thrown.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processing" type="tns:ActivityPoliciesProcessingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operational switch that controls whether policies related to this activity are processed
+                        at all. Unlike the "enabled" flag on individual rules, this is meant to be flipped
+                        operationally (e.g. to resume a task after a threshold was met) without touching
+                        the rule definitions. It applies to rules declared at this activity and at all
+                        of its child activities, regardless of where they are evaluated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityPolicies" type="tns:ActivityPoliciesType"/>
+
+    <xsd:complexType name="ActivityPoliciesProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Controls processing of policies related to an activity. Each scope covers a different
+                source of policy rules. Suppression declared on an activity applies also to all of its
+                child activities. Rules declared on ancestor activities are NOT affected.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="activityPolicies" type="tns:PolicyProcessingModeType" default="full" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of activity policies declared in the "policy" and "policyRef" elements
+                        of this activity (and its children). When set to "none", these rules are not collected,
+                        evaluated, nor counted.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="virtualAssignmentPolicies" type="tns:PolicyProcessingModeType" default="full" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of policies brought in by virtual assignments of this activity (and its
+                        children). When set to "none", the virtual assignments are not applied at all, so the
+                        policy rules they carry are not evaluated. Note that virtual assignments should contain
+                        only policies (as recommended); any other content they carry is suppressed as well.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="activityPoliciesProcessing" type="tns:ActivityPoliciesProcessingType"/>
+
+    <xsd:simpleType name="PolicyProcessingModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Mode of policy processing.
+
+                Deliberately an enumeration, not a boolean: further modes may be added later,
+                e.g. evaluating and counting the rules without enforcing their actions
+                (thresholds observed but not acted upon).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies are processed normally. The default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies are not processed at all: not collected, not evaluated, not counted.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="WorkDefinitionsType">
         <xsd:annotation>
@@ -2790,7 +2908,9 @@
     <xsd:complexType name="ActivityPoliciesDefinitionTailoringType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Tailoring of the activity policies definition for predefined child activities.
+                Extends the policies definition with a tailoring mode that controls how the values
+                are combined with the original definition.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.10</a:since>

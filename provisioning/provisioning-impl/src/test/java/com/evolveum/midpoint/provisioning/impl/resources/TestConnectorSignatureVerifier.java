@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,8 +36,6 @@ import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
 import static org.testng.Assert.*;
@@ -71,85 +68,86 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
     }
 
     /**
-     * Verifies that a connector with a valid signature can be loaded successfully.
+     * Verifies that a connector with a valid signature can be loaded successfully after the grace period has expired.
      */
     @Test
-    public void test100Success() throws Exception {
+    public void test100SuccessWithValidSignatureAfterGrace() throws Exception {
         basicTest(
-                (connector, lastConnectorOid) -> {
-                    lastConnectorOid.set(connector.getOid());
-                    return true;
+                (connector, lastConnectorOidRef) -> {
+                    lastConnectorOidRef.set(connector.getOid());
+                    setDiscoveryTimestampToDistantPast(connector);
+                    return true; // will be added to the allowed list
                 },
-                processSuccess(),
+                useConnectorAssertSuccess(),
                 mockConnectorSignatureVerifier.getKeyId()
         );
     }
 
     /**
-     * Verifies that a connector without a signature is rejected after the grace
-     * period has expired.
+     * Verifies that a connector without an entry in the list is rejected after the grace period has expired.
      */
     @Test
-    public void test110FailVerification() throws Exception {
+    public void test110FailureDueToMissingEntry() throws Exception {
         basicTest(
-                (connector, lastConnectorOid) -> {
-                    lastConnectorOid.set(connector.getOid());
-                    finishGracePeriod(connector);
-                    return false;
+                (connector, lastConnectorOidRef) -> {
+                    lastConnectorOidRef.set(connector.getOid());
+                    setDiscoveryTimestampToDistantPast(connector);
+                    return false; // won't be added to the allowed list
                 },
-                checkExceptionWithPrefix("No signature found for connector"),
+                useConnectorAssertExceptionWithStandardSuffix(),
                 mockConnectorSignatureVerifier.getKeyId()
         );
     }
 
     /**
-     * Verifies that a connector signed with an unknown key is rejected after the
-     * grace period has expired.
+     * Verifies that a connector signed with an unknown key is rejected after the grace period has expired.
      */
     @Test
-    public void test120WrongKeyId() throws Exception {
+    public void test120FailureDueToWrongKeyId() throws Exception {
         basicTest(
-                (connector, lastConnectorOid) -> {
-                    lastConnectorOid.set(connector.getOid());
-                    finishGracePeriod(connector);
-                    return true;
+                (connector, lastConnectorOidRef) -> {
+                    lastConnectorOidRef.set(connector.getOid());
+                    setDiscoveryTimestampToDistantPast(connector);
+                    return true; // will be added to allowed list
                 },
-                checkExceptionWithPrefix("Unable to verify the connector signature for connector"),
+                useConnectorAssertExceptionWithStandardSuffix(),
                 "wrongKeyId"
         );
     }
 
     /**
-     * Verifies that a connector with an invalid signature is rejected after the
-     * grace period has expired.
+     * Verifies that a connector with an invalid signature is rejected after the grace period has expired.
      */
     @Test
-    public void test100WrongSignature() throws Exception {
+    public void test130FailureDueToWrongSignature() throws Exception {
         basicTest(
-                (connector, lastConnectorOid) -> {
-                    if (!StringUtils.isEmpty(lastConnectorOid.get())) {
+                (connector, lastConnectorOidRef) -> {
+                    if (lastConnectorOidRef.get() == null) {
+                        // First run
+                        setDiscoveryTimestampToDistantPast(connector);
+                        lastConnectorOidRef.set(connector.getOid());
+                        return true;
+                    } else {
+                        // Second run - we just invalidate the key and exit (not updating lastConnectorOidRef)
                         mockConnectorSignatureVerifier.refreshKeyPair();
                         return false;
                     }
-                    finishGracePeriod(connector);
-                    lastConnectorOid.set(connector.getOid());
-                    return true;
                 },
-                checkExceptionWithSuffix(" is not present in the current list of allowed signed connectors."),
+                useConnectorAssertExceptionWithStandardSuffix(),
                 mockConnectorSignatureVerifier.getKeyId()
         );
     }
 
     /**
-     * Verifies that connector verification fails when the discovery timestamp is
-     * missing.
+     * Verifies that connector verification fails when the discovery timestamp is missing.
      */
     @Test
-    public void test100UndefinedGracePeriod() throws Exception {
+    public void test140FailureDueToMissingDiscoveryTimestamp() throws Exception {
         basicTest(
-                (connector, lastConnectorOid) -> {
-                    if (StringUtils.isEmpty(lastConnectorOid.get())) {
-                        lastConnectorOid.set(connector.getOid());
+                (connector, lastConnectorOidRef) -> {
+                    if (lastConnectorOidRef.get() == null) {
+                        // first run
+                        lastConnectorOidRef.set(connector.getOid());
                         try {
                             repositoryService.modifyObject(
                                     ConnectorType.class,
@@ -162,122 +160,142 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
                         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
                             throw new RuntimeException(e);
                         }
-                    }
-                    return true;
-                },
-                checkExceptionWithPrefix("Discovery timestamp for the connector "),
-                mockConnectorSignatureVerifier.getKeyId()
-        );
-    }
-
-    /**
-     * Verifies that a connector with a discovery timestamp in the future is
-     * rejected.
-     */
-    @Test
-    public void test100GracePeriodInFuture() throws Exception {
-        basicTest(
-                (connector, lastConnectorOid) -> {
-                    if (StringUtils.isEmpty(lastConnectorOid.get())) {
-                        lastConnectorOid.set(connector.getOid());
-                        replaceGracePeriod(Instant.now().plus(10, ChronoUnit.DAYS), connector);
-                    }
-                    return true;
-                },
-                checkExceptionWithPrefix("A discovery timestamp of the connector "),
-                mockConnectorSignatureVerifier.getKeyId()
-        );
-    }
-
-    /**
-     * Verifies that a connector can be loaded while it is still within the grace..
-     */
-    @Test
-    public void test100InGracePeriod() throws Exception {
-        basicTest(
-                (connector, lastConnectorOid) -> {
-                    if (StringUtils.isEmpty(lastConnectorOid.get())) {
-                        lastConnectorOid.set(connector.getOid());
-                        replaceGracePeriod(
-                                Instant.now().minus(ConnectorSignatureVerifier.GRACE_PERIOD_FOR_CONNECTOR - 1, ChronoUnit.DAYS),
-                                connector);
+                        return true; // add to allowed list
+                    } else {
+                        // second run - just exit
                         return false;
                     }
-                    return true;
                 },
-                processSuccess(),
+                useConnectorAssertExceptionWithPrefix("Discovery timestamp for the connector "),
                 mockConnectorSignatureVerifier.getKeyId()
         );
     }
 
-    private void finishGracePeriod(ConnectorType connector) {
-        replaceGracePeriod(
-                Instant.now().minus(ConnectorSignatureVerifier.GRACE_PERIOD_FOR_CONNECTOR + 10, ChronoUnit.DAYS),
+    /**
+     * Verifies that a connector with a discovery timestamp in the future is rejected.
+     */
+    @Test
+    public void test150FailureDueToDiscoveryTimestampInTheFuture() throws Exception {
+        basicTest(
+                (connector, lastConnectorOidRef) -> {
+                    if (lastConnectorOidRef.get() == null) {
+                        // first run
+                        lastConnectorOidRef.set(connector.getOid());
+                        replaceDiscoveryTimestamp(Instant.now().plus(10, ChronoUnit.DAYS), connector);
+                        return true; // add to allowed list
+                    } else {
+                        // second run - just exit
+                        return false;
+                    }
+                },
+                useConnectorAssertExceptionWithPrefix("A discovery timestamp of the connector "),
+                mockConnectorSignatureVerifier.getKeyId()
+        );
+    }
+
+    /**
+     * Verifies that a connector can be loaded while it is still within the grace period (even if not in the list).
+     */
+    @Test
+    public void test160SuccessWithinGracePeriod() throws Exception {
+        basicTest(
+                (connector, lastConnectorOidRef) -> {
+                    lastConnectorOidRef.set(connector.getOid());
+                    setDiscoveryTimestampToNearPast(connector);
+                    return false;
+                },
+                useConnectorAssertSuccess(),
+                "just-any-key"
+        );
+    }
+
+    /** We set discovery timestamp so that now we're in the grace period. */
+    private void setDiscoveryTimestampToNearPast(ConnectorType connector) {
+        replaceDiscoveryTimestamp(
+                Instant.now().minus(ConnectorSignatureVerifier.GRACE_PERIOD_FOR_CONNECTOR_IN_DAYS - 1, ChronoUnit.DAYS),
                 connector);
     }
 
-    private void replaceGracePeriod(Instant gracePeriod, ConnectorType connector) {
+    /** We set discovery timestamp so that now we're after grace period. */
+    private void setDiscoveryTimestampToDistantPast(ConnectorType connector) {
+        replaceDiscoveryTimestamp(
+                Instant.now().minus(ConnectorSignatureVerifier.GRACE_PERIOD_FOR_CONNECTOR_IN_DAYS + 10, ChronoUnit.DAYS),
+                connector);
+    }
+
+    private void replaceDiscoveryTimestamp(Instant discoveryInstant, ConnectorType connector) {
         try {
-            long discoverTimestamp = gracePeriod.toEpochMilli();
-            ProtectedStringType discoverTimestampBean = new ProtectedStringType()
+            long discoveryTimestamp = discoveryInstant.toEpochMilli();
+            ProtectedStringType discoveryTimestampBean = new ProtectedStringType()
                     .clearValue(
-                            String.valueOf(discoverTimestamp));
-            protector.encrypt(discoverTimestampBean);
+                            String.valueOf(discoveryTimestamp));
+            protector.encrypt(discoveryTimestampBean);
 
             repositoryService.modifyObject(ConnectorType.class, connector.getOid(),
                     prismContext.deltaFor(ConnectorType.class)
                             .item(ConnectorType.F_DISCOVERY_TIMESTAMP)
-                            .replace(discoverTimestampBean)
+                            .replace(discoveryTimestampBean)
                             .asItemDeltas(), createOperationResult());
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException | EncryptionException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private @NotNull BiConsumer<AtomicReference<String>, OperationResult> processSuccess() {
+    /** Use connector, then assert success. */
+    private @NotNull TestSpecificMethod useConnectorAssertSuccess() {
         return (lastConnectorOid, result) -> {
             try {
-                connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid.get(), result);
+                connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid, result);
             } catch (ObjectNotFoundException | SchemaException | SubscriptionComplianceException e) {
                 throw new RuntimeException(e);
             }
         };
     }
 
-    private @NotNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithSuffix(String prefix) {
+    /** Use connector, then assert exception (using standard suffix). */
+    private @NotNull TestSpecificMethod useConnectorAssertExceptionWithStandardSuffix() {
         return (lastConnectorOid, result) -> {
-            SubscriptionComplianceException exception = checkException(lastConnectorOid, result);
-
-            assertTrue(exception.getMessage().endsWith(prefix));
+            SubscriptionComplianceException exception = useConnectorAssertException(lastConnectorOid, result);
+            assertExpectedException(exception)
+                    .hasMessageEndingWith(" is not present in the current public list of open source connectors.");
         };
     }
 
-    private @NotNull BiConsumer<AtomicReference<String>, OperationResult> checkExceptionWithPrefix(String prefix) {
+    /** Use connector, then assert exception (using a prefix). */
+    private @NotNull TestSpecificMethod useConnectorAssertExceptionWithPrefix(String prefix) {
         return (lastConnectorOid, result) -> {
-            SubscriptionComplianceException exception = checkException(lastConnectorOid, result);
-
-            assertTrue(exception.getMessage().startsWith(prefix));
+            SubscriptionComplianceException exception = useConnectorAssertException(lastConnectorOid, result);
+            assertExpectedException(exception)
+                    .hasMessageStartingWith(prefix);
         };
     }
 
-    private SubscriptionComplianceException checkException(AtomicReference<String> lastConnectorOid, OperationResult result) {
+    /** Use connector, assert {@link SubscriptionComplianceException} is thrown. */
+    private SubscriptionComplianceException useConnectorAssertException(String lastConnectorOid, OperationResult result) {
         return expectThrows(
                 SubscriptionComplianceException.class,
-                () -> connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid.get(), result));
+                () -> connectorManager.getUnconfiguredConnectorInstance(lastConnectorOid, result));
     }
 
+    /**
+     * Executes a test.
+     *
+     * @param connectorFoundProcessor Code that is called for each ConnId connector in the repository.
+     * @param testMethod Code that is called after connectors are processed
+     * @param keyId The key ID to use for the test
+     */
     private void basicTest(
-            BiFunction<ConnectorType, AtomicReference<String>, Boolean> searchFunction,
-            BiConsumer<AtomicReference<String>, OperationResult> operationConsumer,
+            ConnectorFoundProcessor connectorFoundProcessor,
+            TestSpecificMethod testMethod,
             String keyId)
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
         OperationResult result = createOperationResult();
         String nameOfAllowedConnectorList = "test100Success-AllowedConnectorList";
 
-        when();
-        AllowedConnectorsListType allowedConnectorsListType = new AllowedConnectorsListType();
-        allowedConnectorsListType.name(nameOfAllowedConnectorList);
-        AtomicReference<String> lastConnectorOid = new AtomicReference<>();
+        when("processing connectors from the repository");
+        AllowedConnectorsListType allowedConnectorsListBean = new AllowedConnectorsListType();
+        allowedConnectorsListBean.name(nameOfAllowedConnectorList);
+        AtomicReference<String> lastConnectorOidRef = new AtomicReference<>();
         repositoryService.searchObjectsIterative(
                 ConnectorType.class,
                 null,
@@ -287,35 +305,55 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
                         return true;
                     }
 
-                    boolean canContinue = searchFunction.apply(connectorBean, lastConnectorOid);
-                    if (!canContinue) {
+                    boolean addToAllowedAndContinue =
+                            connectorFoundProcessor.processConnectorFound(connectorBean, lastConnectorOidRef);
+                    if (addToAllowedAndContinue) {
+                        addConnectorToAllowedConnectorList(
+                                connectorBean, allowedConnectorsListBean, keyId);
+                        return true;
+                    } else {
                         return false;
                     }
-
-                    return createAllowedConnectorList(
-                            connectorBean, allowedConnectorsListType, keyId);
-                }
-                ,
+                },
                 null,
                 true,
                 result);
-        repoAddObject(allowedConnectorsListType.asPrismObject(), result);
+        repoAddObject(allowedConnectorsListBean.asPrismObject(), result);
 
-        then();
+        then("calling test-specific method");
         try {
-            operationConsumer.accept(lastConnectorOid, result);
+            testMethod.call(lastConnectorOidRef.get(), result);
         } finally {
             connectorManager.invalidate(null, null, null);
             clearAllowedConnectorsList(result);
         }
     }
 
-    private boolean createAllowedConnectorList(ConnectorType connectorBean, AllowedConnectorsListType allowedConnectorsListType, String keyId) {
+    interface ConnectorFoundProcessor {
+        /**
+         * Test-specific processing of a ICF connector found in the repo.
+         *
+         * @param lastConnectorOidRef reference to store last connector OID seen; caller should set this
+         * @return {@code true} if the connector should be added to "allowed list", {@code false} if not, and also to stop
+         * iterating (this is mixing of two meanings of the boolean return value)
+         */
+        boolean processConnectorFound(ConnectorType connectorBean, AtomicReference<String> lastConnectorOidRef);
+    }
+
+    interface TestSpecificMethod {
+        /**
+         * Test-specific method to be called after connectors are processed.
+         */
+        void call(String lastConnectorOid, OperationResult result);
+    }
+
+    private void addConnectorToAllowedConnectorList(
+            ConnectorType connectorBean, AllowedConnectorsListType allowedConnectorsListBean, String keyId) {
         ConnectorIdentifierType connectorIdentifier = new ConnectorIdentifierType()
                 .className(connectorBean.getConnectorType())
                 .bundle(connectorBean.getConnectorBundle());
         try {
-            allowedConnectorsListType.signedConnector(
+            allowedConnectorsListBean.signedConnector(
                     new SignedConnectorType()
                             .connector(connectorIdentifier)
                             .signature(new ConnectorSignatureType()
@@ -324,7 +362,6 @@ public class TestConnectorSignatureVerifier extends AbstractIntegrationTest {
         } catch (JsonProcessingException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }
-        return true;
     }
 
     private void clearAllowedConnectorsList(OperationResult result) throws SchemaException {

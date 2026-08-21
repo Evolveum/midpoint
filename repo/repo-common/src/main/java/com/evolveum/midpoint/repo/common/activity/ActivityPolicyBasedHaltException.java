@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
@@ -17,5 +19,10 @@ public class ActivityPolicyBasedHaltException extends ActivityPolicyViolationExc
     public ActivityPolicyBasedHaltException(LocalizableMessage userFriendlyMessage, String technicalMessage) {
 
         super(userFriendlyMessage, technicalMessage);
+    }
+
+    @Override
+    public @NotNull ActivityRunResultStatus getRunResultStatus() {
+        return ActivityRunResultStatus.HALTING_ERROR;
     }
 }

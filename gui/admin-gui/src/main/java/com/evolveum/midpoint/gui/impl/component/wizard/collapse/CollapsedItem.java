@@ -16,6 +16,7 @@ public abstract class CollapsedItem<M extends DrawerDescriptor>
         implements Serializable {
 
     private boolean selected;
+    private IModel<String> titleModel;
 
     public abstract IModel<String> getIcon();
 
@@ -23,7 +24,13 @@ public abstract class CollapsedItem<M extends DrawerDescriptor>
         return Model.of();
     }
 
-    public abstract IModel<String> getTitle();
+    protected void setTitleModel(IModel<String> titleModel) {
+        this.titleModel = titleModel;
+    }
+
+    public IModel<String> getTitle() {
+        return titleModel;
+    }
 
     public abstract Component getPanel(String id, M model);
 

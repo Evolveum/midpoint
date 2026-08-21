@@ -212,7 +212,7 @@
         <commons.io.version>2.22.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
         <commons.configuration.version>2.15.1</commons.configuration.version>
-        <cxf.version>4.0.11</cxf.version>
+        <cxf.version>4.2.2</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
@@ -238,14 +238,17 @@
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
-        <log4j2.version>2.26.0</log4j2.version>
+        <log4j2.version>2.26.1</log4j2.version>
         <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
         <!-- remove whole dependency tools.jackson.core:jackson-databind dependency
             definition when its above 3.1.4 (around L296) -->
         <jackson-databind.version>3.1.5</jackson-databind.version>
         <logback.version>1.5.38</logback.version>
         <postgresql.version>42.7.12</postgresql.version>
-        <netty.version>4.2.16.Final</netty.version>
+        <netty.version>4.2.17.Final</netty.version>
+        <httpclient5.version>5.6.4</httpclient5.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
+        <rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
@@ -257,9 +260,10 @@
 
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.7.0.1-SNAPSHOT</connid.version>
+        <connid.version>1.7.0.0-SNAPSHOT</connid.version>
 
         <poi.version>5.5.1</poi.version>
+        <tika.version>3.3.2</tika.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>32.1.2-jre</guava.version>
@@ -687,6 +691,68 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+            <dependency>
+                <!-- Used only for its content-type detectors (OOXML, OLE2); the parser-only
+                     transitive dependencies are excluded. POI comes from our own managed version. -->
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-microsoft-module</artifactId>
+                <version>${tika.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-html-module</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-text-module</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-xml-module</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.tika</groupId>
+                        <artifactId>tika-parser-mail-commons</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.pff</groupId>
+                        <artifactId>java-libpst</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.healthmarketscience.jackcess</groupId>
+                        <artifactId>jackcess</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.healthmarketscience.jackcess</groupId>
+                        <artifactId>jackcess-encrypt</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcjmail-jdk18on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk18on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.poi</groupId>
+                        <artifactId>poi-scratchpad</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.poi</groupId>
+                        <artifactId>poi-ooxml-full</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
@@ -2180,7 +2246,7 @@
                     <configuration>
                         <dependencyTrackBaseUrl>${env.DTRACK_URL}</dependencyTrackBaseUrl>
                         <apiKey>${env.DTRACK_TOKEN}</apiKey>
-                        <parentName>midPoint</parentName>
+                        <parentName>midpoint</parentName>
                         <parentVersion>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</parentVersion>
                     </configuration>
                 </plugin>

@@ -70,6 +70,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="serviceResponseTimeout" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximum time to wait for a response from the smart integration service.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationConfigurationType.serviceResponseTimeout</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="statisticsTtl" type="xsd:duration" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -106,9 +117,101 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="shadowSampling" type="tns:SmartIntegrationShadowSamplingConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of shadow sampling limits used during smart integration operations.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationConfigurationType.shadowSampling</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="smartIntegrationConfiguration" type="tns:SmartIntegrationConfigurationType"/>
+
+    <xsd:complexType name="SmartIntegrationShadowSamplingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of shadow sampling limits used during smart integration operations (correlation, mapping suggestions).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlationSampleSizeCached" type="xsd:int" minOccurs="0" default="5000">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Sample size for correlation suggestions when shadow caching is enabled (with all required attributes cached).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationShadowSamplingConfigurationType.correlationSampleSizeCached</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="correlationSampleSizeUncached" type="xsd:int" minOccurs="0" default="2000">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Sample size for correlation suggestions when shadow caching is disabled (or not all required attributes are cached).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationShadowSamplingConfigurationType.correlationSampleSizeUncached</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingLlmSampleSizeCached" type="xsd:int" minOccurs="0" default="50">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        LLM sample size for mapping suggestions when shadow caching is enabled (with all attributes cached).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingLlmSampleSizeCached</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingValidationSampleSizeCached" type="xsd:int" minOccurs="0" default="1000">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validation sample size for mapping suggestions when shadow caching is enabled (with all attributes cached).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingValidationSampleSizeCached</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingLlmSampleSizeUncached" type="xsd:int" minOccurs="0" default="20">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        LLM sample size for mapping suggestions when shadow caching is disabled (or not all attributes are cached).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingLlmSampleSizeUncached</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingValidationSampleSizeUncached" type="xsd:int" minOccurs="0" default="200">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Validation sample size for mapping suggestions when shadow caching is disabled (or not all attributes are cached).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SmartIntegrationShadowSamplingConfigurationType.mappingValidationSampleSizeUncached</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="smartIntegrationShadowSamplingConfiguration" type="tns:SmartIntegrationShadowSamplingConfigurationType"/>
 
     <!-- ================================================================================================================== -->
     <!--                              Complex types for the API of SmartIntegrationService                                  -->

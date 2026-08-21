@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 public interface DrawerDescriptor<M extends DrawerDescriptor<M>>
@@ -19,11 +20,14 @@ public interface DrawerDescriptor<M extends DrawerDescriptor<M>>
 
     Optional<CollapsedItem<M>> getSelectedCollapsedItem();
 
-    boolean isCollapsedItemsVisible();
+    default boolean isCollapsedItemsVisible() {
+        return getCollapsedItems().getObject().stream()
+                .anyMatch(CollapsedItem::isSelected);
+    }
 
-    default boolean isShowedCollapsedMenu(){
+    default boolean isShowedCollapsedMenu() {
         return true;
-    };
+    }
 
     default void clearSelection() {
         getCollapsedItems().getObject()
@@ -34,4 +38,13 @@ public interface DrawerDescriptor<M extends DrawerDescriptor<M>>
         getCollapsedItems().getObject()
                 .forEach(item -> item.setSelected(item == selectedItem));
     }
+
+    default Component getFooter(String id, M model) {
+        return new DrawerFooterPanel(id);
+    }
+
+    default boolean isFooterVisible() {
+        return false;
+    }
+
 }

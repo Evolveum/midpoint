@@ -1505,6 +1505,12 @@ td .prism-property-value {
   margin-right: 0px !important;
 }
 
+.row > div:has(> .additionalButton) {
+  width: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
 .compositedButton {
   display: flex;
   flex-direction: column;
@@ -1882,6 +1888,11 @@ button.tooltip-button[data-tooltip]:hover::after {
 }
 
 .card-outline-start {
+  &.card:not(.card-outline) > .card-header {
+    color: var(--bs-body-color);
+    background-color: transparent;
+  }
+
   @each $name, $color in $theme-colors {
     &.card-outline-start-#{$name} {
       border-left: 5px solid $color;
@@ -2393,26 +2404,36 @@ footer.app-footer a {
     .select2-selection__choice__remove {
       order: 2;
       flex: 0 0 auto;
-      margin-left: 0.25rem;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       width: auto;
       height: auto;
+      padding: 0;
+      margin-left: 0.25rem;
+      margin-right: 0;
+      line-height: 1;
       overflow: visible;
       text-indent: 0;
 
       color: var(--bs-white);
-      background: transparent;
+      background-color: transparent;
+      background-image: none !important;
       opacity: 0.6;
 
       span {
-        display: inline;
+        display: block;
+        line-height: 1;
         color: var(--bs-white);
       }
 
       &:hover,
       &:focus {
         color: var(--bs-white);
-        background: transparent;
+        background-color: transparent !important;
+        background-image: none !important;
         opacity: 1;
 
         span {
@@ -2563,6 +2584,11 @@ footer.app-footer a {
   }
 }
 
+.mx-n2 {
+  margin-left: -0.5rem !important;
+  margin-right: -0.5rem !important;
+}
+
 .fw-semibold {
   font-weight: 600 !important;
 }
@@ -2626,9 +2652,19 @@ footer.app-footer a {
     }
 }
 
-.prism-property-value-label {
-  white-space: pre-wrap;
+.prism-value-label-readonly {
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  display: block;
+  min-height: 31px;
+  padding: 4px 8px;
+  background-color: var(--bs-gray-200);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-gray-700);
+  border-radius: 4px;
+  line-height: 1.5;
+  font-family: var(--bs-body-font-family);
+  font-size: 14px;
 }
 
 .info-box-progress-bar {
@@ -2651,4 +2687,14 @@ footer.app-footer a {
   width: auto;
   flex-shrink: 0;
   flex-grow: 0;
+}
+
+.midpoint-drawer {
+  z-index: 1060;
+  min-width: 30vw;
+}
+
+.construction-lifecycle-state {
+  display: inline-block;
+  width: fit-content;
 }

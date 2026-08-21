@@ -17,6 +17,8 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import javax.xml.namespace.QName;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,12 +49,16 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String C_DATA_SUFFIX = "]]>";
 
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public ScriptExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("ScriptExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("ScriptExpressionPanel.label");
     }
 
     protected void initLayout(MarkupContainer parent) {

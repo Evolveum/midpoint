@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -461,7 +462,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
                 createStringResource("MainObjectListPanel.newObject")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

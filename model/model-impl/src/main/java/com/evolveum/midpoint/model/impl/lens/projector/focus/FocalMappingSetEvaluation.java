@@ -280,6 +280,8 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         variables.put(ExpressionConstants.VAR_USER, focusOdo, focusOdo.getDefinition());
         variables.registerAlias(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
         variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, SystemConfigurationType.class);
         variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);

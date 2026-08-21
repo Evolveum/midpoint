@@ -80,7 +80,7 @@ class AssociationSynchronizationExpressionEvaluator
     }
 
     @Override
-    public AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> evaluate(
+    public ComplexItemEvaluationResult<PrismContainerValue<AssignmentType>> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
@@ -112,8 +112,8 @@ class AssociationSynchronizationExpressionEvaluator
     class Evaluation {
 
         @NotNull private final Collection<? extends PrismValue> inputValues;
-        @NotNull private final AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> evaluatorResult =
-                new AssociationSynchronizationResult<>();
+        @NotNull private final ComplexItemEvaluationResult<PrismContainerValue<AssignmentType>> evaluatorResult =
+                new ComplexItemEvaluationResult<>();
         @NotNull private final ShadowAssociationDefinition associationDefinition;
         @NotNull private final ExpressionEvaluationContext context;
 
@@ -141,7 +141,7 @@ class AssociationSynchronizationExpressionEvaluator
             this.candidateAssignments = getCandidateAssignments();
         }
 
-        public AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> process(OperationResult result)
+        public ComplexItemEvaluationResult<PrismContainerValue<AssignmentType>> process(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
@@ -500,9 +500,9 @@ class AssociationSynchronizationExpressionEvaluator
                         createShadowProcessingContext(targetAssignment, result),
                         result);
                 var assignmentPath = AssignmentHolderType.F_ASSIGNMENT.append(Objects.requireNonNull(targetAssignment.getId()));
-                evaluatorResult.mergeIntoOtherTriples(assignmentPath, innerProcessing.getOutputTripleMap());
-                evaluatorResult.mergeIntoItemDefinitionsMap(assignmentPath, innerProcessing.getItemDefinitionMap());
-                evaluatorResult.mergeIntoMappingEvaluationRequestsMap(assignmentPath, innerProcessing.getEvaluationRequestsMap());
+                evaluatorResult.mergeIntoInnerTriples(assignmentPath, innerProcessing.getOutputTripleMap());
+                evaluatorResult.mergeIntoInnerItemDefinitionsMap(assignmentPath, innerProcessing.getItemDefinitionMap());
+                evaluatorResult.mergeIntoInnerMappingEvaluationRequestsMap(assignmentPath, innerProcessing.getEvaluationRequestsMap());
             }
 
             private @NotNull DefaultSingleShadowInboundsProcessingContextImpl<AssignmentType> createShadowProcessingContext(

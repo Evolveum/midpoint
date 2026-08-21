@@ -42,13 +42,18 @@ public class ShadowOwnerReferenceSearchExpressionPanel extends EvaluatorExpressi
     private static final String ID_RELATION_EXPRESSION_LABEL = "relationExpressionLabel";
 
     public ShadowOwnerReferenceSearchExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public ShadowOwnerReferenceSearchExpressionPanel(
+            String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
         updateEvaluatorValue();
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("ShadowOwnerReferenceSearchExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("ShadowOwnerReferenceSearchExpressionPanel.label");
     }
 
     private void updateEvaluatorValue() {

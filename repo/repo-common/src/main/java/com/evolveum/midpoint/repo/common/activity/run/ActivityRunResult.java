@@ -11,9 +11,10 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import com.evolveum.midpoint.repo.common.activity.AbortingInformationAware;
-import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedAbortException;
-import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyViolationException;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyEnforcementException;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -105,19 +106,30 @@ public class ActivityRunResult implements ShortDumpable {
     static ActivityRunResult fromException(Throwable throwable) {
         if (throwable instanceof ActivityRunException aee) {
             return fromException(aee.getOpResultStatus(), aee.getRunResultStatus(), aee.getCause());
-        } else if (throwable instanceof ActivityPolicyBasedAbortException abortException) {
-            return fromException(FATAL_ERROR, ABORTED, abortException);
-        } else if (throwable instanceof ActivityPolicyBasedHaltException haltException) {
-            return fromException(FATAL_ERROR, HALTING_ERROR, haltException);
-        } else {
-            return fromException(FATAL_ERROR, computeRunResultStatus(throwable), throwable);
         }
+
+        // Policy violations (thrown by the activity policy processing, or attached by the model as causes
+        // of threshold violations, e.g. from within a script) may come wrapped by the intermediate layers,
+        // so we look them up in the cause chain. The run result status is carried by the exception itself.
+        ActivityPolicyViolationException policyViolation =
+                ExceptionUtil.findCause(throwable, ActivityPolicyViolationException.class);
+        if (policyViolation != null) {
+            return fromException(FATAL_ERROR, policyViolation.getRunResultStatus(), policyViolation);
+        }
+        ActivityPolicyEnforcementException enforcementException =
+                ExceptionUtil.findCause(throwable, ActivityPolicyEnforcementException.class);
+        if (enforcementException != null) {
+            return fromException(enforcementException.getPolicyException());
+        }
+
+        return fromException(FATAL_ERROR, computeRunResultStatus(throwable), throwable);
     }
 
     private static @NotNull ActivityRunResultStatus computeRunResultStatus(Throwable throwable) {
         if (throwable instanceof ActivityRunException activityRunException) {
             return activityRunException.getRunResultStatus(); // just in case, should not happen now
-        } else if (throwable instanceof ThresholdPolicyViolationException) {
+        } else if (ExceptionUtil.findCause(throwable, ThresholdPolicyViolationException.class) != null) {
+            // Threshold violations can be wrapped by script/expression evaluation.
             return HALTING_ERROR;
         } else {
             // TODO In the future we should distinguish between permanent and temporary errors here.

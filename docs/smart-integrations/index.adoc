@@ -1,0 +1,19 @@
+= Smart Integration
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+Smart Integration provide AI-assisted and automated capabilities for resource configuration and data integration in midPoint, including:
+
+* Automated correlation rule suggestion and evaluation
+* AI-assisted mapping script generation and validation
+
+== Configuration
+
+Setting relevant to Smart Integration are configured globally in the midPoint system configuration (`SystemConfigurationType`) within the `<smartIntegration>` container.
+
+== Topics
+
+* xref:shadow-sampling.adoc[Shadow Sampling Configuration] - Configure sample size constraints for correlation and mapping suggestions based on shadow caching availability.

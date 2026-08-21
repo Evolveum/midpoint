@@ -70,6 +70,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
+import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -2478,6 +2479,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return archetypeManager.determineArchetypes(object, result);
     }
 
+    @Deprecated
     @Override
     public boolean updateAllActivityPoliciesEnabledStatus(
             @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
@@ -2519,6 +2521,37 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
 
+        return true;
+    }
+
+    @Override
+    public boolean updateActivityPoliciesProcessing(
+            @NotNull PrismObject<TaskType> object, @Nullable ActivityPoliciesProcessingType processing,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
+
+        TaskType taskBean = object.asObjectable();
+        ActivityDefinitionType activity = taskBean.getActivity();
+        if (activity == null) {
+            return false;
+        }
+
+        ActivityPoliciesProcessingType current = activity.getPolicies() != null
+                ? activity.getPolicies().getProcessing() : null;
+        if (Objects.equals(current, processing)) {
+            return false;
+        }
+
+        S_ValuesEntry entry = PrismContext.get().deltaFor(TaskType.class)
+                .item(TaskType.F_ACTIVITY, ActivityDefinitionType.F_POLICIES, ActivityPoliciesType.F_PROCESSING);
+        ObjectDelta<TaskType> delta = (processing != null
+                ? entry.replace(processing.clone())
+                : entry.replace())
+                .asObjectDelta(taskBean.getOid());
+
+        modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
         return true;
     }
 

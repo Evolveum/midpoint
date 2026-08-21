@@ -35,6 +35,11 @@ A focus policy rule in an activity is an ordinary policy rule: it has policy con
 
 When the activity processes an object, the rule is evaluated against that object as part of clockwork processing.
 If the rule's constraints are satisfied, its trigger is recorded; if a threshold is configured, the configured count must be reached before the policy actions are executed.
+The rules are enforced after the changes for the processed object are computed, but before they are executed.
+When a policy action suspends the task or aborts the activity, the changes of the object that tripped the policy are therefore not executed.
+
+The `record` policy action can be used in activity-contributed rules as well: it writes the policy situation (and optionally the triggered rules) to each processed object that triggers the rule.
+Like all policy actions, it is executed only when the configured `policyThreshold` (if any) is reached.
 This is the same evaluation that happens for focus policy rules assigned to objects in a regular way, except that here the rule is contributed by the activity itself.
 
 There are three ways to contribute a focus policy rule to an activity:
@@ -186,23 +191,33 @@ Otherwise, phantom `roleMembershipRef` values may be added to the processed obje
 * Use *policyRef* when the same rule set should be reused across multiple activities or tasks, and you want to manage it in one place.
 * Use *virtual assignments* when the rule should apply to each processed object as though the object held the assignment, for example to reuse a policy that is normally delivered through role assignment.
 
+== Migrating from task-wide policies
+
+Before midPoint 4.11, focus-based thresholds were configured by assigning a policy-bearing role to the task object (see xref:./thresholds[Thresholds]).
+That mechanism continues to work, but the two differ in several aspects:
+
+* *Scope*: a role assigned to the task applies to the whole task.
+Policies defined in an activity apply to that activity and its child activities, so different activities of a composite task can have different policies.
+* *Inducement order*: when a role is assigned to the task, the policy rules travel through the task object, so the role must use `inducement/order` set to `2`.
+The same role used as a virtual assignment target is applied directly to the processed object, so plain inducements (without `order`) must be used.
+Inducements used via `policyRef` must not define `order` at all.
+* *Activity-targeted actions*: the `skipActivity` and `restartActivity` actions act on the activity where the policy is declared.
+Policies from task-assigned roles are not bound to any activity, so these actions fall back to the activity that is currently running.
+
 == Limitations
 
 * Focus-based policies are only ever triggered within the clockwork context, i.e., when a focal object is being processed (added, modified, or deleted) by the activity.
 They are never triggered outside clockwork processing.
-* A single policy constraint cannot combine focus-based constraints with activity-based constraints (such as `executionTime`).
-The two kinds of policies are evaluated in different places, so combining them in one constraint is not possible.
+* A single policy rule cannot combine focus-based constraints with activity-based constraints (such as `executionTime`).
+Each rule must use only one of the two kinds.
+Note that mixing them is not reported as a configuration error: such a rule is evaluated as an activity policy and its focus-based constraints are silently ignored.
 * Like other activity policies, focus policies are evaluated only for iterative (plain iterative or search based) activities.
 See xref:./activity-policies#_limitations[activity policy limitations] for the full list.
 * Virtual assignment targets should contain policies only, as noted above.
 * Focus-based policies in activities are configured in XML only.
 The GUI does not support configuring composite tasks or policies, and does not display configured policies.
-* The task-details GUI actions for activity policies fully support inline policies only.
-The _disable activity policies_ action does not disable focus policies contributed via `policyRef` or virtual assignments.
-This matters when a threshold-based focus policy has suspended the task; see xref:./activity-policies#_limitations[activity policy limitations].
-* In implicit composite activities (such as reconciliation), a policy defined on a parent activity may currently be collected more than once for its embedded child activities when no tailoring is in place.
-This can affect threshold counts.
-Be careful when relying on precise thresholds for policies defined on parent activities of a implicit composite task.
+* When a threshold-based focus policy has suspended the task, use the policy processing switch to resume it: the task-details _disable activity policies_ action (or the `processing` element set by hand) suppresses focus policies from all sources, including `policyRef` and virtual assignments.
+See xref:./activity-policies#_disabling_policy_processing[Disabling policy processing].
 
 == See also
 

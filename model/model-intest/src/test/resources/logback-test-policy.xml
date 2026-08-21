@@ -18,7 +18,8 @@
                     ActivityPolicyRulesProcessor "Starting/Completed evaluation of rule ..."
     counters      - PolicyRuleCounterUpdater "Incrementing counter for rule ..."
                     CountersIncrementOperation "Counter deltas: ..."
-    enforcement   - PolicyRuleEnforcer "Going to abort/suspend ... because of policy violation"
+    enforcement   - PolicyRuleEnforcer "enforceThresholds: rule ... count=N, overThreshold=..., enabledActions=..."
+                    (one line per rule per item), "Going to abort/suspend ... because of policy violation"
     abort/restart - ItemProcessingGatekeeper, AbstractCompositeActivityRun,
                     ActivityBasedTaskRun (RESTART_REQUESTED, delays, execution attempts)
 
@@ -73,6 +74,12 @@
     <!-- clockwork side: PolicyRulesCollector, FocusPolicyRulesEvaluator + constraint
          evaluators, PolicyRuleProcessor (counter updates), PolicyRuleEnforcer -->
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.policy" level="TRACE"/>
+    <!-- explicit, so the per-item "enforceThresholds: rule ..." diagnostics (count, overThreshold,
+         enabledActions) survive even if the package level above is ever lowered -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer" level="TRACE"/>
+    <!-- enabled-actions computation ("Computing enabled actions for ...", per-action accept/skip);
+         lives outside the projector.policy package, hence the explicit logger -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl" level="TRACE"/>
 
     <!-- activity side: ActivityPolicyRulesCollector/Processor, PolicyRuleCounterUpdater,
          PreexistingValues, evaluators -->

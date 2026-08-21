@@ -44,20 +44,6 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     }
 
     @Override
-    public ConnDevArtifactType generateArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return new ConnDevArtifactType();
-    }
-
-    @Override
-    public ConnDevArtifactType generateObjectClassArtifact(ConnDevGenerateArtifactDefinitionType artifactSpec, boolean skipCache) {
-        // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
-        LOGGER.warn(NOT_YET_IMPLEMENTED);
-        return new ConnDevArtifactType();
-    }
-
-    @Override
     public List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache) {
         // Not yet implemented: SQL discovery/generation logic is a separate follow-up task.
         LOGGER.warn(NOT_YET_IMPLEMENTED);

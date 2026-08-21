@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.util.exception.*;
 
 import jakarta.annotation.PostConstruct;
@@ -40,9 +41,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -70,22 +68,25 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
  * @author Radovan Semancik
  */
 @Component
-public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
+public class ConnectorManager implements CacheInvalidationListener, CacheDiagnostics, ConnectorDiscoveryListener {
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired ApplicationContext springContext;
     @Autowired private PrismContext prismContext;
-    @Autowired CacheRegistry cacheRegistry;
+    @Autowired CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired ConnectorSignatureVerifier connectorSignatureVerifier;
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
@@ -394,7 +395,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         ConnectorType connectorBean = connector.asObjectable();
 
         if (connectorSignatureVerifier.isVerificationNeeded(connectorBean)) {
-            connectorSignatureVerifier.verifyConnectorInProduction(connectorBean, connOid, result);
+            connectorSignatureVerifier.verifyConnectorInProduction(connectorBean, result);
         }
 
         if (connectorBean.getConnectorHostRef() != null) {
@@ -733,9 +734,13 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         }
     }
 
-    // TODO assess thread-safety of these invalidation methods
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public synchronized <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(ConnectorType.class) || type.isAssignableFrom(ConnectorHostType.class)) {
             if (StringUtils.isEmpty(oid)) {
                 dispose();

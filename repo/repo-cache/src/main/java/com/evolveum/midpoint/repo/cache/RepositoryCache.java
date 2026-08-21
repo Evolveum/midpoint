@@ -48,12 +48,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Read-through write-through repository cache.
- * <p>
- * This is an umbrella class providing RepositoryService and {@link Cache} interfaces.
+ *
+ * This is an umbrella class providing {@link RepositoryService} and caching-related interfaces.
  * Majority of the work is delegated to operation handlers (and other classes).
  */
 @Component(value = "cacheRepositoryService")
-public class RepositoryCache implements RepositoryService, Cache {
+public class RepositoryCache implements RepositoryService, CacheInvalidationListener, CacheDiagnostics {
 
     public static final String CLASS_NAME_WITH_DOT = RepositoryCache.class.getName() + ".";
 
@@ -73,7 +73,8 @@ public class RepositoryCache implements RepositoryService, Cache {
     public static final String OP_HANDLE_OBJECT_FOUND_IMPL = CLASS_NAME_WITH_DOT + OperationResult.HANDLE_OBJECT_FOUND;
 
     @Autowired private RepositoryService repositoryService;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
 
     // individual caches
     @Autowired private GlobalQueryCache globalQueryCache;
@@ -105,6 +106,11 @@ public class RepositoryCache implements RepositoryService, Cache {
      */
     public static void exitLocalCaches() {
         LocalRepoCacheCollection.exit();
+    }
+
+    @Override
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS;
     }
 
     //region --- GET, SEARCH and COUNT operations ------------------------------------------------------------------
@@ -205,7 +211,9 @@ public class RepositoryCache implements RepositoryService, Cache {
     @Override
     @NotNull
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            @NotNull Class<T> type, String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, parentResult);
@@ -442,19 +450,23 @@ public class RepositoryCache implements RepositoryService, Cache {
         globalObjectCache.initialize();
         globalVersionCache.initialize();
         globalQueryCache.initialize();
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     //region Cacheable interface
 
-    // This is what is called from cache dispatcher (on local node with the full context; on remote nodes with reduced context)
+    /**
+     * This is what is called from cache dispatcher (on local node with the full context; on remote nodes with reduced context).
+     */
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         invalidator.invalidate(type, oid, context);
     }
 

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +37,16 @@ public class SystemFeaturesEnquirer {
 
     public @NotNull SystemFeatures getSystemFeatures(@NotNull OperationResult result) {
         var enquiry = new Enquiry(getSystemConfiguration(result));
-        return new SystemFeatures(
-                enquiry.isPublicHttpsUrlPatternDefined(),
-                enquiry.isRemoteHostAddressHeaderDefined(),
-                enquiry.isCustomLoggingDefined(),
-                enquiry.areRealNotificationsEnabled(),
-                enquiry.isClusteringEnabled(),
-                enquiry.isGenericDatabaseUsed());
+        return SystemFeatures.builder()
+                .publicHttpsUrlPatternDefined(enquiry.isPublicHttpsUrlPatternDefined())
+                .remoteHostAddressHeaderDefined(enquiry.isRemoteHostAddressHeaderDefined())
+                .customLoggingDefined(enquiry.isCustomLoggingDefined())
+                .realNotificationsEnabled(enquiry.areRealNotificationsEnabled())
+                .customDeploymentColorsDefined(enquiry.isCustomDeploymentColorsDefined())
+                .customLogoDefined(enquiry.isCustomLogoDefined())
+                .clusteringEnabled(enquiry.isClusteringEnabled())
+                .genericDatabaseUsed(enquiry.isGenericDatabaseUsed())
+                .build();
     }
 
     private @Nullable SystemConfigurationType getSystemConfiguration(OperationResult result) {
@@ -124,6 +128,29 @@ public class SystemFeaturesEnquirer {
         private boolean areLegacySmsNotificationsEnabled(Collection<SmsConfigurationType> configs) {
             return configs.stream()
                     .anyMatch(c -> !c.getGateway().isEmpty() && c.getRedirectToFile() == null);
+        }
+
+        /**
+         * Are the colors of the deployment customized? Both the header color and the AdminLTE skin are considered here,
+         * as both are used to distinguish the individual environments, or to match the corporate identity.
+         */
+        boolean isCustomDeploymentColorsDefined() {
+            var deploymentInformation = getDeploymentInformation();
+            return deploymentInformation != null
+                    && (StringUtils.isNotBlank(deploymentInformation.getHeaderColor())
+                    || StringUtils.isNotBlank(deploymentInformation.getSkin()));
+        }
+
+        /** Is there a custom logo? The rule is basically the same as the one used by the GUI when displaying it. */
+        boolean isCustomLogoDefined() {
+            var deploymentInformation = getDeploymentInformation();
+            var logo = deploymentInformation != null ? deploymentInformation.getLogo() : null;
+            return logo != null
+                    && (StringUtils.isNotBlank(logo.getImageUrl()) || StringUtils.isNotBlank(logo.getCssClass()));
+        }
+
+        private @Nullable DeploymentInformationType getDeploymentInformation() {
+            return systemConfiguration != null ? systemConfiguration.getDeploymentInformation() : null;
         }
 
         boolean isClusteringEnabled() {
