@@ -2664,8 +2664,6 @@ Following table summarizes the most frequently used fields.
 
 ==== Assignment Functions
 
-
-
 ===== hasDefaultRelation
 
 `assignment.hasDefaultRelation()` -> boolean
@@ -2896,9 +2894,204 @@ The value is provided only if `changeType` of the delta is `modify`.
 
 |===
 
-// ==== Object Delta Functions
+==== Object Delta Functions
 
-// TODO: later, when implemented
+===== estimateAddedValuesFor
+
+`objectDelta.estimateAddedValuesFor(path)` -> list(any)
+
+Returns estimation of added values for specified item.
+
+This method computes the best estimate of added values of the item.
+Final (new) state of the values is presented, a state as it should look like after the delta is applied.
+Only the values that were added by the delta are returned,
+i.e. the values that were not present before the operation and are present after the operation.
+
+This method has "relativistic" character, as it present relative change of the values.
+It is designed to be used *primarily for multi-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on single-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no added values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+This function is null-safe, it returns `null` in case that the delta or path are `null`.
+
+.Example
+[source,mel]
+----
+delta.estimateAddedValuesFor('assignment')
+----
+
+===== estimateChangedValuesFor
+
+`objectDelta.estimateChangedValuesFor(path)` -> list(any)
+
+Returns estimated changed values for specified item.
+This method computes the best estimate of changed values of the item.
+Final (new) state of the values is presented, a state as it should look like after the delta is applied.
+Only the values that were changed by the delta are returned.
+
+This method has somehow "absolutists" character, as it present the "absolute" state of the changed values.
+It is designed to be used *primarily for single-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on multi-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no changed values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+LIMITATION: This method does not work reliably for object delete deltas.
+In that case the delta does not contain any information regarding the deleted items.
+
+.Example
+[source,mel]
+----
+delta.estimateChangedValuesFor('fullName')
+----
+
+
+===== estimateDeletedValuesFor
+
+`objectDelta.estimateDeletedValuesFor(path)` -> list(any)
+
+Returns estimation of deleted values for specified item.
+
+This method computes the best estimate of deleted values of the item.
+Original (old) state of the values is presented, a state as they looked like before the delta was applied.
+Only the values that were deleted by the delta are returned,
+i.e. the values that were present before the operation and are supposed to be not present after the operation.
+
+This method has "relativistic" character, as it present relative change of the values.
+It is designed to be used *primarily for multi-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on single-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no deleted values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+This function is null-safe, it returns `null` in case that the delta or path are `null`.
+
+.Example
+[source,mel]
+----
+delta.estimateDeletedValuesFor('assignment')
+----
+
+===== estimateModifiedValuesFor
+
+`objectDelta.estimateModifiedValuesFor(path)` -> list(any)
+
+Returns estimation of modified values for specified item.
+
+This method computes the best estimate of modified values of the item.
+Final (new) state of the values is presented, a state as it should look like after the delta is applied.
+Only the values that were modified by the delta are returned,
+i.e. the values that were present before the operation and are present after the operation, however their content is different.
+
+This method has "relativistic" character, as it present relative change of the values.
+It is designed to be used *primarily for multi-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on single-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no modified values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+This function is null-safe, it returns `null` in case that the delta or path are `null`.
+
+.Example
+[source,mel]
+----
+delta.estimateModifiedValuesFor('assignment')
+----
+
+===== estimateNewValuesFor
+
+`objectDelta.estimateNewValuesFor(path)` -> list(any)
+
+Returns estimated new values for specified item.
+
+This method computes the best estimate of the new values the item could have after delta is applied.
+All (known) new values are returned, both those that were changed by the delta and those that were not.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that the item will have no values when the delta is applied (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+.Example
+[source,mel]
+----
+delta.estimateNewValuesFor('fullName')
+----
+
+===== hasDeltaFor
+
+`objectDelta.hasDeltaFor(path)` -> boolean
+
+Returns true if object delta contains delta for specified item, or any of its subitems.
+This method only checks whether the delta is present,
+it does not check whether real value of the item changed value in any way.
+E.g. in case that there is a REPLACE delta for the same value, it returns true.
+
+Limitation: For OBJECT DELETE deltas, we do not know the values that were deleted.
+In that case the method returns false for any path.
+
+.Example
+[source,mel]
+----
+delta.hasDeltaFor('fullName')
+----
+
+===== findItemDelta
+
+`objectDelta.findItemDelta(path)` -> itemDelta
+
+Returns item delta for specified item.
+
+.Example
+[source,mel]
+----
+delta.findItemDelta('fullName')
+----
+
+===== isItemChanged
+
+`objectDelta.isItemChanged(path)` -> boolean
+
+Returns true if the item identified by path was changed.
+This method checks whether the real value of the item changed value in any way.
+E.g. in case that there is a REPLACE delta for the same value as was the original value, it returns false.
+
+Limitation: This function relies on estimated old values,
+therefore it may not be entirely reliable in some situations.
+For OBJECT DELETE deltas, we do not know the values that were deleted.
+In that case the method returns false for any path.
+
+.Example
+[source,mel]
+----
+delta.isItemChanged('fullName')
+----
+
 
 === Item Delta
 
