@@ -1,0 +1,60 @@
+= Mapping Shadow Items
+
+Inbound mappings typically obtain their values from resource attributes stored in the shadow and exposed through the resource schema.
+However, not all resource information is represented as a standard resource attribute.
+Some values with specific semantics in midPoint are stored in dedicated shadow containers, for example:
+
+* `activation` for the account activation state,
+* `behavior` for behavioral data such as the last login timestamp.
+
+You can map these items to a focus object using an inbound mapping.
+
+== Configuration
+
+The inbound mapping is defined within an `attribute` element representing an existing resource attribute.
+The attribute element acts as a wrapper for the inbound mapping, even if the attribute itself is not used as the mapping source.
+Use the `ref` element to reference the resource attribute under which the mapping is defined.
+
+The inbound mapping from a shadow item should contain the following elements:
+
+`name`::
+Optional name used to identify the mapping.
+
+`source`::
+Explicitly defines the shadow item from which the mapping obtains its value.
+Use a path starting with `$projection` to reference the item.
+
+`expression`::
+See xref:/midpoint/reference/expressions/mappings/#expression[Expression configuration].
+An expression has to be explicitly defined when mapping a shadow item this way.
+Otherwise the mapping fails.
+
+`target`::
+The target is configured in the standard way. See xref:/midpoint/reference/expressions/mappings/#target[Target configuration] for more information.
+
+== Example
+
+[source,xml]
+----
+<attribute>
+        <ref>ri:cn</ref> <1>
+        <inbound>
+            <name>last-login-from-behavior</name>
+            <source>
+                <path>$projection/behavior/lastLoginTimestamp</path> <2>
+            </source>
+            <expression>
+                <script>
+                    <code>lastLoginTimestamp</code> <3>
+                </script>
+            </expression>
+            <target>
+                <path>$focus/extension/lastLoginTimestamp</path> <4>
+            </target>
+        </inbound>
+</attribute>
+----
+<1> Existing `cn` resource attribute to which the inbound mapping is attached.
+<2> `lastLoginTimestamp` property from the `behavior` container of the shadow.
+<3> Expression that returns the `lastLoginTimestamp` source value unchanged.
+<4> Target path on the focus object, in this case an extension property defined by the schema extension.
