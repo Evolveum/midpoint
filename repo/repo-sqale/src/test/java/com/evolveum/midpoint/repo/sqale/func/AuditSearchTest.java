@@ -23,6 +23,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventRecordPayload;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,6 +31,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.MAuditPayload;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayload;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayloadMapping;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -58,6 +62,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
     public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
     public static final long TIMESTAMP_4 = 1600000000000L; // 2020-04...
+    private static final String RECORD1_PAYLOAD =
+            "Alice payloadFulltextOne togetherOne togetherTwo \u0164\u00e4sk";
 
     private String initiatorOid;
     private String attorneyOid;
@@ -102,6 +108,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.setSessionIdentifier("session-1");
         record1.setTarget(target);
         record1.setTargetOwner(targetOwner);
+        record1.addPayload(new AuditEventRecordPayload("main", "text/plain", RECORD1_PAYLOAD));
 
         var kindDelta = createDelta(UserType.F_FULL_NAME);
         kindDelta.setResourceOid(resourceOid);
@@ -131,6 +138,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record1.setEffectivePrivilegesModification(EffectivePrivilegesModificationType.FULL_ELEVATION);
         auditService.audit(record1, NullTaskImpl.INSTANCE, result);
         record1EventIdentifier = record1.getEventIdentifier();
+        record1RepoId = record1.getRepoId();
 
         AuditEventRecord record2 = new AuditEventRecord();
         record2.setParameter("2");
@@ -156,6 +164,8 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
         record2.getCustomColumnProperty().put("foo", "foo-value-2");
         record2.getCustomColumnProperty().put("bar", "bar-val");
         record2.setTaskOid(UUID.randomUUID().toString());
+        record2.addPayload(new AuditEventRecordPayload("first", "text/plain", "splitOne"));
+        record2.addPayload(new AuditEventRecordPayload("second", "text/plain", "splitTwo"));
         auditService.audit(record2, NullTaskImpl.INSTANCE, result);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -410,6 +420,67 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
 
         then("only audit events with the message containing the specified value ignoring case are returned");
         assertThat(result).hasSize(3);
+    }
+
+    @Test
+    public void test127AuditFullTextSearchesPayloadText() throws Exception {
+        assertAuditFullTextSearch("payloadFulltextOne", "1");
+    }
+
+    @Test
+    public void test127AuditFullTextWithNonmatchingWord() throws Exception {
+        assertAuditFullTextSearch("payloadFulltextMissing");
+    }
+
+    @Test
+    public void test127AuditFullTextDoesNotSearchMessage() throws Exception {
+        assertAuditFullTextSearch("record1");
+    }
+
+    @Test
+    public void test127AuditFullTextNormalizesCase() throws Exception {
+        assertAuditFullTextSearch("alice", "1");
+    }
+
+    @Test
+    public void test127AuditFullTextNormalizesDiacritics() throws Exception {
+        assertAuditFullTextSearch("task", "1");
+    }
+
+    @Test
+    public void test127AuditFullTextUsesAndForMultipleWordsInSamePayload() throws Exception {
+        assertAuditFullTextSearch("togetherTwo togetherOne", "1");
+    }
+
+    @Test
+    public void test127AuditFullTextDoesNotMatchWordsSplitAcrossPayloadRows() throws Exception {
+        assertAuditFullTextSearch("splitOne splitTwo");
+    }
+
+    @Test
+    public void test127AuditPayloadSearchableTextIsNormalizedButContentIsOriginal() throws Exception {
+        QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
+        MAuditPayload row;
+        try (var jdbcSession = startReadOnlyTransaction()) {
+            row = jdbcSession.newQuery()
+                    .select(payload)
+                    .from(payload)
+                    .where(payload.recordId.eq(record1RepoId)
+                            .and(payload.name.eq("main")))
+                    .fetchOne();
+        }
+
+        assertThat(row).isNotNull();
+        assertThat(row.searchableText).isEqualTo(" alice payloadfulltextone togetherone togethertwo task ");
+
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_REPO_ID).eq(record1RepoId)
+                .build());
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getPayload()).singleElement()
+                .extracting(AuditEventRecordPayloadType::getContent)
+                .isEqualTo(RECORD1_PAYLOAD);
     }
 
     @Test
@@ -1635,6 +1706,17 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
         return searchObjects(query, createOperationResult(), selectorOptions);
+    }
+
+    private void assertAuditFullTextSearch(String text, String... expectedParameters) throws SchemaException {
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .fullText(text)
+                .build());
+
+        assertThat(result)
+                .extracting(AuditEventRecordType::getParameter)
+                .containsExactlyInAnyOrder(expectedParameters);
     }
 
     @NotNull

@@ -55,6 +55,7 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -321,7 +322,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             row.name = payload.getName();
             row.contentType = payload.getContentType();
             row.content = payloadMapping.contentToJsonb(payload.getContent(), payload.getContentType());
-            row.searchableText = payload.getContent();
+            row.searchableText = FullTextSearchUtil.createSearchableText(payload.getContent());
             rows.add(row);
         }
         return rows;

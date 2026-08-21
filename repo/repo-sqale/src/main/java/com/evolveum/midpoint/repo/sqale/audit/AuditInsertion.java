@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.DeltaConversionOptions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.util.ChangedItemPath;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
@@ -245,7 +246,7 @@ public class AuditInsertion {
             row.name = payload.getName();
             row.contentType = payload.getContentType();
             row.content = payloadMapping.contentToJsonb(payload.getContent(), payload.getContentType());
-            row.searchableText = payload.getContent();
+            row.searchableText = FullTextSearchUtil.createSearchableText(payload.getContent());
             rows.add(row);
         }
         return rows;
