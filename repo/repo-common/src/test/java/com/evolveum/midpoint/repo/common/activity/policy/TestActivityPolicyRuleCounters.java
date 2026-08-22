@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPolicyRuleIdentifier;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -52,7 +54,8 @@ public class TestActivityPolicyRuleCounters extends AbstractRepoCommonTest {
                 .policyThreshold(new PolicyThresholdType()
                         .lowWaterMark(new WaterMarkType().count(THRESHOLD)));
 
-        return new ActivityPolicyRuleBuilder(bean, ActivityPath.empty(), ConfigurationItemOrigin.generated())
+        var ruleId = ActivityPolicyRuleIdentifier.of(bean, ActivityPath.empty());
+        return new ActivityPolicyRuleBuilder(bean, ActivityPath.empty(), ruleId, ConfigurationItemOrigin.generated())
                 .build();
     }
 

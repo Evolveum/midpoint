@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -52,6 +56,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and "kept" assignments.
@@ -112,7 +118,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Assignment current delta (i.e. from current to new object):\n{}", currentAssignmentDelta.debugDumpLazily());
 
-        Collection<AssignmentConfigItem> virtualAssignments = getVirtualAssignments(); // [EP:APSO] DONE
+        Collection<VirtualAssignment> virtualAssignments = getVirtualAssignments(); // [EP:APSO] DONE
 
         SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
         assignmentCollection.collectAndFreeze( // [EP:APSO] DONE
@@ -147,8 +153,23 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return evaluatedAssignmentTriple;
     }
 
+    /**
+     * Virtual assignment may or may not be defined in relation to an activity.
+     *
+     * @see AssignmentOrigin#activityPath
+     */
+    public record VirtualAssignment(@NotNull AssignmentConfigItem assignmentConfigItem, @Nullable ActivityPath activityPath) {
+
+        public static Collection<VirtualAssignment> wrap(Collection<AssignmentConfigItem> configItems) {
+            return configItems.stream()
+                    .map(ci -> new VirtualAssignment(ci, null))
+                    .toList();
+        }
+    }
+
+
     // [EP:APSO] DONE
-    private @NotNull Collection<AssignmentConfigItem> getVirtualAssignments()
+    private @NotNull Collection<VirtualAssignment> getVirtualAssignments()
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Collection<AssignmentConfigItem> forcedAssignments = // [EP:APSO] DONE
@@ -170,11 +191,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         .toList();
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
-        Collection<AssignmentConfigItem> taskActivityAssignments = createActivityAssignments(task);
+        Collection<VirtualAssignment> taskActivityAssignments = createActivityAssignments(task);
         LOGGER.trace("Task activity assignments: {}", taskActivityAssignments);
 
-        List<AssignmentConfigItem> virtualAssignments = new ArrayList<>(forcedAssignments);
-        virtualAssignments.addAll(taskAssignments);
+        List<VirtualAssignment> virtualAssignments = new ArrayList<>(VirtualAssignment.wrap(forcedAssignments));
+        virtualAssignments.addAll(VirtualAssignment.wrap(taskAssignments));
         virtualAssignments.addAll(taskActivityAssignments);
 
         return virtualAssignments;
@@ -183,15 +204,15 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     /**
      * Collects all virtual assignments from current activity up to root activity.
      */
-    private Collection<AssignmentConfigItem> createActivityAssignments(Task fromTask) {
+    private Collection<VirtualAssignment> createActivityAssignments(Task fromTask) {
         ExecutionSupport support = fromTask.getExecutionSupport();
         if (!(support instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
             return List.of();
         }
 
-        return ActivityUtil.getAllVirtualAssignments(activityRun.getActivity())
-                .stream()
-                .map(p -> AssignmentConfigItem.of(p.getLeft(), OriginProvider.generated(), p.getRight()))
+        var rootTask = activityRun.getRunningTask().getRootTask().getRawTaskObjectClonedIfNecessary().asObjectable();
+        return ActivityUtil.getAllVirtualAssignments(activityRun.getActivity(), rootTask).stream()
+                .map(a -> new VirtualAssignment(a.assignmentConfigItem(), a.activityPath()))
                 .toList();
     }
 

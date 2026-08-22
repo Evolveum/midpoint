@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -151,7 +151,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
         // todo assert notifications
 
         PrismObject<TaskType> task = getTask(importTask.oid);
-        var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+        var suspendPolicyIdentifier = TestActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after")
@@ -192,7 +192,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
         // todo assert notifications
 
         PrismObject<TaskType> task = getTask(importTask.oid);
-        var suspendPolicyIdentifier = ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
+        var suspendPolicyIdentifier = TestActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), "add-10");
 
         // @formatter:off
         assertTaskTree(importTask.oid, "after repeated execution")

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.policy.PlainPolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.policy.PlainPolicyRuleIdentifier;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.test.TestObject;
