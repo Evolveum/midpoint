@@ -2512,6 +2512,9 @@ public final class WebComponentUtil {
         if (objectType.getKind() == ShadowKindType.GENERIC) {
             return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
         }
+        if (objectType.getKind() == ShadowKindType.WORK) {
+            return GuiStyleConstants.CLASS_SHADOW_ICON_WORK;
+        }
         return GuiStyleConstants.CLASS_CIRCLE_FULL;
     }
 

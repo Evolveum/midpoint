@@ -19,7 +19,7 @@ public class ManualConnectorConfiguration {
     private String ticketingResourceOid;
 
     /** Shadow kind for the object type for tickets. */
-    private String ticketingObjectKind = ShadowKindType.GENERIC.value();
+    private String ticketingObjectKind = ShadowKindType.WORK.value();
 
     /** Intent for the object type for tickets. */
     private String ticketingObjectIntent = "ticket";

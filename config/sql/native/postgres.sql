@@ -215,7 +215,7 @@ CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
 -- @description: Stores shadow kind values used to classify resource object shadows.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowKindType
-CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATION', 'UNKNOWN');
+CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATION', 'WORK', 'UNKNOWN');
 
 -- @description: Stores synchronization situation values used by shadow lifecycle and synchronization processing.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#SynchronizationSituationType
@@ -4263,4 +4263,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(64, $$ SELECT 1 $$, true);
+call apply_change(65, $$ SELECT 1 $$, true);

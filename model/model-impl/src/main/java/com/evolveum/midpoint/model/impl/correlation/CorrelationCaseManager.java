@@ -161,6 +161,8 @@ public class CorrelationCaseManager {
                 return "account";
             case ENTITLEMENT:
                 return "entitlement";
+            case WORK:
+                return "work";
             case GENERIC:
             default:
                 return "object";

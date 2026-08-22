@@ -28,7 +28,7 @@
     </projection>
     <schemaHandling>
         <objectType>
-            <kind>generic</kind>
+            <kind>work</kind>
             <intent>ticket</intent>
             <delineation>
                 <objectClass>ri:ticket</objectClass>

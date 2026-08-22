@@ -1541,6 +1541,13 @@ ALTER TABLE m_case NO INHERIT m_assignment_holder;
 ALTER TABLE m_case INHERIT m_projection_holder;
 $aa$);
 
+-- @change: Adds `WORK` shadow kind value.
+-- @since: 4.11
+-- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
+call apply_change(65, $aa$
+    ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'ASSOCIATION';
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
