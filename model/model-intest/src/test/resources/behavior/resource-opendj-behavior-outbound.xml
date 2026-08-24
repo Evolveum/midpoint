@@ -77,7 +77,7 @@
                 <ref>ri:uid</ref>
                 <inbound>
                     <target>
-                        <path>$user/name</path>
+                        <path>$user/name</path> <!-- legacy, just for testing -->
                     </target>
                 </inbound>
             </attribute>
@@ -87,10 +87,10 @@
                     <name>last-login-to-behavior</name>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/extension/piracy:funeralTimestamp</path>
+                        <path>$focus/extension/piracy:funeralTimestamp</path>
                     </source>
                     <target>
-                        <path>$shadow/behavior/lastLoginTimestamp</path>
+                        <path>$projection/behavior/lastLoginTimestamp</path>
                     </target>
                 </outbound>
             </attribute>
