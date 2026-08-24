@@ -3,7 +3,7 @@ midpoint-feature: access-certification
 doc-type: intro
 ---
 = Determining certification case outcome
-:page-nav-title: Determining Case Outcome
+:page-nav-title: Determining case outcome
 :page-wiki-name: Determining Certification Case Outcome
 :page-wiki-id: 22282427
 :page-wiki-metadata-create-user: mederly

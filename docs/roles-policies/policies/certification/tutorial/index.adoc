@@ -13,15 +13,15 @@ doc-type: guide
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/tutorial/
-:page-description: This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
-:page-keywords: certification campaign, create campaign, campaign definition, review campaign
+:page-description: A quick access certification tutorial: how to configure a certification campaign definition, create and start a campaign, and how to review its results.
+:page-keywords: certification campaign, access campaign, campaign definition, review campaign
 :experimental:
 :page-display-order: 100
 :page-toc: top
 
 This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
 
-== Add Campaign Definition
+== Add campaign definition
 
 By default, there are no campaign definitions in the repository.
 You have to add one.
@@ -37,7 +37,7 @@ Alternatively, you can create your own definition, however for the purposes of t
 .Certification definitions table
 image::left-menu-cert-items.png[width=85%]
 
-== Create and Start Campaign
+== Create and start campaign
 
 Once you have added a certification definition to the system, you can create a campaign based on it:
 
@@ -63,7 +63,7 @@ The link to the task page is also displayed at the top of the page within the fe
 At this point, the campaign has started.
 
 
-== Review Campaign
+== Review campaign
 
 To check the campaign details:
 
