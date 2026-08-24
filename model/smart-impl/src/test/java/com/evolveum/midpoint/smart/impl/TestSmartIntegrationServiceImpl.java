@@ -607,6 +607,32 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(client.getLastCallContext()).isSameAs(context);
     }
 
+    @Test
+    public void test097ComputeSchemaMatchPassesOperationContext() throws CommonException {
+        skipIfRealService();
+
+        var mockClient = new MockServiceClientImpl(new SiMatchSchemaResponseType());
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
+
+        var task = getTestTask();
+        var result = task.getResult();
+        var resource = RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.getObjectable();
+
+        smartIntegrationService.computeSchemaMatch(
+                resource.getOid(),
+                ACCOUNT_DEFAULT,
+                true,
+                task,
+                result);
+
+        var context = mockClient.getLastCallContext();
+        assertThat(mockClient.getLastMethod()).isEqualTo(ServiceClient.Method.MATCH_SCHEMA);
+        assertThat(context.task()).isSameAs(task);
+        assertThat(context.result()).isSameAs(result.getLastSubresult());
+        assertThat(context.resource()).isNotNull();
+        assertThat(context.resource().getOid()).isEqualTo(resource.getOid());
+    }
+
     /** Calls the remote service directly. */
     @Test
     public void test100SuggestObjectTypes() throws CommonException, IOException {

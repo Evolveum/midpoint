@@ -25,6 +25,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventRecordPayload;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -98,7 +99,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
 
         var response = audited(delegate, recordEvents, recordData).invoke(
                 ServiceClient.Method.SUGGEST_OBJECT_TYPES,
-                recordData ? request() : new Object(),
+                recordData ? request() : unserializableRequest(),
                 SiSuggestObjectTypesResponseType.class,
                 ClientCallContext.empty());
 
@@ -117,6 +118,29 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         } else {
             assertNoRequestPayload(records.get(0));
         }
+        assertNoResponsePayload(records.get(1));
+    }
+
+    @Test
+    public void test112RecordDataFalseSkipsRequestSerialization() throws Exception {
+        var delegate = new RecordingServiceClient();
+        var unserializableRequest = unserializableRequest();
+
+        assertThatThrownBy(() -> SmartServiceSerialization.serializeRequest(unserializableRequest))
+                .isInstanceOf(RuntimeException.class);
+
+        var response = audited(delegate, true, false).invoke(
+                ServiceClient.Method.SUGGEST_OBJECT_TYPES,
+                unserializableRequest,
+                SiSuggestObjectTypesResponseType.class,
+                ClientCallContext.empty());
+
+        assertThat(response).isNotNull();
+        assertThat(delegate.syncCalls).isEqualTo(1);
+
+        var records = smartServiceCallRecords();
+        assertRequestExecutionPair(records);
+        assertNoRequestPayload(records.get(0));
         assertNoResponsePayload(records.get(1));
     }
 
@@ -161,6 +185,22 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
                 .isSameAs(auditFailure);
 
         assertThat(delegate.syncCalls).isZero();
+    }
+
+    @Test
+    public void test135AsyncRequestAuditFailureCompletesExceptionallyAndSkipsDelegate() {
+        var delegate = new RecordingServiceClient();
+        var auditFailure = new SystemException("audit failed");
+
+        var future = audited(delegate, new ThrowingAuditHelper(auditFailure, AuditEventStage.REQUEST)).invokeAsync(
+                ServiceClient.Method.SUGGEST_OBJECT_TYPES,
+                request(),
+                SiSuggestObjectTypesResponseType.class,
+                ClientCallContext.empty());
+
+        assertThat(future).isCompletedExceptionally();
+        assertThat(delegate.asyncCalls).isZero();
+        assertThat(smartServiceCallRecords()).isEmpty();
     }
 
     @Test
@@ -212,6 +252,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         var records = smartServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records).hasSize(2);
+        assertDurationMillis(records.get(1));
     }
 
     @Test
@@ -230,6 +271,26 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         var records = smartServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records.get(1).getOutcome()).isEqualTo(OperationResultStatus.FATAL_ERROR);
+    }
+
+    @Test
+    public void test175AsyncExceptionalCompletionEmitsExecutionFailure() {
+        var original = new SystemException("async failed");
+        var delegate = new RecordingServiceClient(original);
+
+        var future = audited(delegate).invokeAsync(
+                ServiceClient.Method.SUGGEST_OBJECT_TYPES,
+                request(),
+                SiSuggestObjectTypesResponseType.class,
+                ClientCallContext.empty());
+
+        assertThat(delegate.asyncCalls).isEqualTo(1);
+        assertThat(future).isCompletedExceptionally();
+
+        var records = smartServiceCallRecords();
+        assertRequestExecutionPair(records);
+        assertThat(records.get(1).getOutcome()).isEqualTo(OperationResultStatus.FATAL_ERROR);
+        assertNoResponsePayload(records.get(1));
     }
 
     @Test
@@ -263,6 +324,23 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertNoResponsePayload(smartServiceCallRecords().get(1));
     }
 
+    @Test
+    public void test195ServiceClientCompatibilityInvokeAsyncProvidesEmptyContext() {
+        var client = new MockServiceClientImpl(new SiSuggestObjectTypesResponseType());
+
+        client.invokeAsync(
+                        ServiceClient.Method.SUGGEST_OBJECT_TYPES,
+                        new SiSuggestObjectTypesRequestType(),
+                        SiSuggestObjectTypesResponseType.class)
+                .join();
+
+        var context = client.getLastCallContext();
+        assertThat(client.getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_OBJECT_TYPES);
+        assertThat(context.task()).isNull();
+        assertThat(context.result()).isNull();
+        assertThat(context.resource()).isNull();
+    }
+
     private AuditingServiceClient audited(ServiceClient delegate) {
         return audited(delegate, auditHelper);
     }
@@ -277,6 +355,10 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
 
     private SiSuggestObjectTypesRequestType request() {
         return new SiSuggestObjectTypesRequestType();
+    }
+
+    private Object unserializableRequest() {
+        return new Object();
     }
 
     private ClientCallContext contextWithResource() {
@@ -326,6 +408,12 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertThat(record.getPayloads())
                 .extracting(AuditEventRecordPayload::getName)
                 .doesNotContain(name);
+    }
+
+    private void assertDurationMillis(AuditEventRecord record) {
+        assertThat(record.getPropertyValues("smartService.durationMillis"))
+                .singleElement()
+                .satisfies(value -> assertThat(Long.parseLong(value)).isNotNegative());
     }
 
     private AuditEventRecordPayload getPayload(AuditEventRecord record, String name) {

@@ -81,7 +81,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         assertThat(payloadRows.get(0).ordinal).isEqualTo(0);
         assertThat(payloadRows.get(0).name).isEqualTo("input");
         assertThat(payloadRows.get(0).contentType).isEqualTo("application/json");
-        assertThat(payloadRows.get(0).searchableText).isEqualTo("{\"id\":1}");
+        assertThat(payloadRows.get(0).searchableText).isEqualTo(" id1 ");
         assertThat(storedJson(payloadRows.get(0)).isObject()).isTrue();
         assertThat(storedJson(payloadRows.get(0)).get("id").asInt()).isEqualTo(1);
 
@@ -107,7 +107,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         then("payload row stores JSON array, not string scalar");
         QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
         MAuditPayload payloadRow = selectPayloads(payload).get(0);
-        assertThat(payloadRow.searchableText).isEqualTo("[{\"id\":1},{\"id\":2}]");
+        assertThat(payloadRow.searchableText).isEqualTo(" id1id2 ");
         JsonNode storedJson = storedJson(payloadRow);
         assertThat(storedJson.isArray()).isTrue();
         assertThat(storedJson.size()).isEqualTo(2);
@@ -135,7 +135,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
         MAuditPayload payloadRow = selectPayloads(payload).get(0);
         assertThat(payloadRow.content.value).isEqualTo("\"hello\"");
-        assertThat(payloadRow.searchableText).isEqualTo("\"hello\"");
+        assertThat(payloadRow.searchableText).isEqualTo(" hello ");
         JsonNode storedJson = storedJson(payloadRow);
         assertThat(storedJson.isTextual()).isTrue();
         assertThat(storedJson.asText()).isEqualTo("hello");
@@ -247,7 +247,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
         MAuditPayload payloadRow = selectPayloads(payload).get(0);
         assertPayload(payloadRow, 0, "plain", "text/plain", "not JSON: {");
-        assertThat(payloadRow.searchableText).isEqualTo("not JSON: {");
+        assertThat(payloadRow.searchableText).isEqualTo(" not json ");
         JsonNode storedJson = storedJson(payloadRow);
         assertThat(storedJson.isTextual()).isTrue();
         assertThat(storedJson.asText()).isEqualTo("not JSON: {");

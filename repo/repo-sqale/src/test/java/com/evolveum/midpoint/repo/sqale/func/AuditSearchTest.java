@@ -31,9 +31,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.MAuditPayload;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayload;
-import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayloadMapping;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -458,21 +455,7 @@ public class AuditSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test127AuditPayloadSearchableTextIsNormalizedButContentIsOriginal() throws Exception {
-        QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
-        MAuditPayload row;
-        try (var jdbcSession = startReadOnlyTransaction()) {
-            row = jdbcSession.newQuery()
-                    .select(payload)
-                    .from(payload)
-                    .where(payload.recordId.eq(record1RepoId)
-                            .and(payload.name.eq("main")))
-                    .fetchOne();
-        }
-
-        assertThat(row).isNotNull();
-        assertThat(row.searchableText).isEqualTo(" alice payloadfulltextone togetherone togethertwo task ");
-
+    public void test127AuditPayloadContentIsLoadedOriginal() throws Exception {
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_REPO_ID).eq(record1RepoId)
