@@ -1,0 +1,97 @@
+---
+midpoint-feature: access-certification
+doc-type: config
+---
+= Access certification campaign template definition
+:page-nav-title: Campaign template
+:page-toc: top
+:page-upkeep-status: orange
+:experimental:
+:page-display-order: 10
+:page-description: This article describes certification campaign template configuration options.
+:page-keywords: certification campaign, campaign definition, campaign configuration, campaign template
+
+Access certification campaigns are created using templates that are usually called *certification campaign definitions*, or certification definitions for short.
+
+You can configure campaign templates using midPoint graphical user interface (GUI) in [.nowrap]#icon:certificate[] Certification**# > [.nowrap]#icon:circle[] *Campaign definitions*#, as well as using XML.
+This article describes the underlying concepts and the related XML definition options.
+
+== Campaign template definition elements
+
+A certification campaign template definition contains the following elements:
+
+name ::
+    The name of the certification campaign definition, e.g. "All user assignments".
+
+description ::
+    A more verbose description of the definition, e.g. "Certifies assignments for all users.
+    Everything is certified by the administrator."
+
+handlerUri ::
+    Defines the software element (handler) that implements all the processing required by the certification campaigns of the given type. +
+    Currently, there is one bundled handler named `http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment` that is able to handle certifications of many types of direct assignments, e.g. user-to-role, user-to-org, role-to-role, etc.
+    However, you can create your own handlers.
+
+scopeDefinition ::
+    While the handler provides basic character of the certification (e.g. "we'll be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
+    For example, the scope can be limited to user-to-role, only certain users, certain roles, etc.
+
+ownerRef ::
+    Defines the owner of the definition and the related campaigns.
+    Campaign owner may be different from the owner of the campaign definition.
+
+remediationDefinition ::
+    Defines the remediation phase, for example, if it is automated or manual.
+
+reiterationDefinition ::
+    Defines the iteration part.
+    For example, if it starts automatically (manual by default), or how many iterations are allowed.
+
+stageDefinition ::
+    Defines the individual review stages.
+    One campaign may contain multiple `stageDefinition` elements, each per stage.
+    It defines, for example, the duration of stages, the reviewer selection process, etc.
+
+reviewStrategy ::
+    Defines the strategy used to compute the review outcome for a given case.
+
+view ::
+    Specifies a view for the presentation of the certification items collections which are created on the basis of the current certification definition.
+    This means that every certification campaign created on the basis of this definition will use this view while displaying certification items collection.
+
+== Campaign definition example
+
+See an example of a campaign definition ():
+
+sampleRef::samples/certification/def-all-user-assignments.xml[]
+
+This example originates from the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[samples/certification/def-all-user-assignments.xml] file
+
+In the example above, the scope definition is missing.
+It means that the default values are used, i.e., all assignments of all users are taken into account.
+
+In the example above, there is only one stage.
+
+Aside *name* and *description*, a stage definition consists of the following:
+
+number ::
+    As lists are generally not ordered in midPoint data structures, each stage has a number that specifies in which order it will be executed.
+Numbers have to start at 1 and increase consecutively.
+
+duration ::
+    This property defines the duration of the stage and influences notifications and automated closure of the stage.
+
+notifyBeforeDeadline ::
+    Defines how long before the deadline (given by the stage duration) notifications are to be sent.
+    This is a multi-valued property, so it is possible to specify more than one notification.
+    In the example above, the first notification is sent 48 hours and the second one 12 hours before the deadline.
+
+notifyOnlyWhenNoDecision ::
+    If set to `true` (the default), notifications are sent only to reviewers that have not decided yet.
+
+reviewerSpecification ::
+    Defines how reviewers are selected.
+    In our example, everything will be reviewed by the administrator.
+
+Refer to xref:/midpoint/reference/roles-policies/policies/certification/certification-campaign-configuration/stages/[] for a complete list of options for stage definitions and a more detailed explanation.
+
