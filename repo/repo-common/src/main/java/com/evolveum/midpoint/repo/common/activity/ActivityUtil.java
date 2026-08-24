@@ -10,47 +10,42 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
+import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ActivityUtil {
 
+    public record ActivityAttachedVirtualAssignment(AssignmentConfigItem assignmentConfigItem, ActivityPath activityPath) {
+    }
     /**
      * Recursively collects all virtual assignment from activity policies.
      */
-    public static @NotNull Collection<Pair<AssignmentType, ActivityPath>> getAllVirtualAssignments(Activity<?, ?> activity) {
-        if (activity == null) {
-            return List.of();
-        }
-
-        List<Pair<AssignmentType, ActivityPath>> result = new ArrayList<>();
-        collectAllVirtualAssignments(activity, result);
-
+    public static Collection<ActivityAttachedVirtualAssignment> getAllVirtualAssignments(
+            Activity<?, ?> activity, TaskType rootTask) {
+        List<ActivityAttachedVirtualAssignment> result = new ArrayList<>();
+        ConfigurationItemOrigin origin = ConfigurationItemOrigin.inObjectApproximate(rootTask, TaskType.F_ACTIVITY);
+        collectAllVirtualAssignments(activity, origin, result);
         return result;
     }
 
     private static void collectAllVirtualAssignments(
-            Activity<?, ?> activity, Collection<Pair<AssignmentType, ActivityPath>> result) {
+            Activity<?, ?> activity, ConfigurationItemOrigin origin, Collection<ActivityAttachedVirtualAssignment> result) {
 
-        if (activity == null) {
-            return;
+        Activity<?, ?> parent = activity.getParent();
+        if (parent != null) {
+            collectAllVirtualAssignments(parent, origin, result);
         }
-
-        collectAllVirtualAssignments(activity.getParent(), result);
 
         if (ActivityPolicyUtils.isVirtualAssignmentPolicyProcessingDisabled(activity)) {
             return;
         }
 
-        ActivityDefinition<?> def = activity.getDefinition();
-        Collection<AssignmentType> virtualAssignments = def.getVirtualAssignmentsDefinition().getVirtualAssignments();
-        ActivityPath path = activity.getPath();
-
-        virtualAssignments.forEach(virtualAssignment -> result.add(Pair.of(virtualAssignment, path)));
+        activity.getDefinition().getVirtualAssignmentsDefinition().getVirtualAssignments().forEach(
+                virtualAssignmentBean -> result.add(new ActivityAttachedVirtualAssignment(
+                        AssignmentConfigItem.of(virtualAssignmentBean, origin),
+                        activity.getPath())));
     }
 }

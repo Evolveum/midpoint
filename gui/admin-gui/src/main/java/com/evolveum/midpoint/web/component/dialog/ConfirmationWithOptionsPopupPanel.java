@@ -50,10 +50,16 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     protected void onInitialize() {
         super.onInitialize();
 
+        detachAiInfo();
+
         ConfirmationWithOptionsContentPanel<T> content = new ConfirmationWithOptionsContentPanel<>(ID_CONTENT, getModel());
         add(content);
 
         initFooter();
+    }
+
+    private void detachAiInfo() {
+        getPanelConfig().getAiInfo().detach();
     }
 
     private void initFooter() {
@@ -117,7 +123,7 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
                 createStringResource("ConfirmationWithOptionsPopupPanel.refresh")) {
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
-                getPanelConfig().getAiInfo().detach();
+                detachAiInfo();
                 target.add(footer);
                 target.add(ConfirmationWithOptionsPopupPanel.this);
                 MainPopupDialog mainPopup = getPageBase().getMainPopup();

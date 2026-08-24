@@ -4,7 +4,7 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-package com.evolveum.midpoint.repo.common.policy;
+package com.evolveum.midpoint.schema.policy;
 
 import org.jetbrains.annotations.NotNull;
 

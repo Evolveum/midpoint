@@ -10,8 +10,11 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 
 import java.util.Set;
 
-import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.policy.PlainPolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
+
+import com.evolveum.midpoint.schema.util.task.ActivityPolicyRuleIdentifier;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,25 +30,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
- * A policy rule that is being evaluated in a context of given activity.
+ * An activity policy rule that lives withing specific activity run. It wraps an activity policy rule
+ * in {@link #policyRuleCI} and provides additional information relevant for its (repeated) evaluation.
+ *
+ * === Lifecycle
  *
  * - These objects are created when an activity run ({@link AbstractActivityRun}) starts - in
  * {@link ActivityPolicyRulesCollector#collectRulesAndPreexistingValues(OperationResult)} method.
  *
- * - They are evaluated periodically during the activity run - currently in
+ * - Rules they contain are evaluated periodically during the activity run - currently in
  * {@link ActivityPolicyRulesProcessor#evaluateAndExecuteRules(ItemProcessingResult, OperationResult)} method.
  *
- * How it is related to {@link EvaluatedActivityPolicyRuleImpl}:
+ * === How it is related to {@link EvaluatedActivityPolicyRuleImpl}?
  *
- * This class represents the rule as defined in the policy, enriched with the state that spans the whole activity run
+ * - This class represents the rule as defined in the policy, enriched with the state that spans the whole activity run
  * (currently: the recorded {@link ActivityPolicyStateType}), and persisted in {@link ActivityPolicyRulesContext}
  * throughout that run.
  *
- * On the other hand, {@link EvaluatedActivityPolicyRuleImpl} is a lightweight wrapper used only during a single evaluation cycle.
+ * - On the other hand, {@link EvaluatedActivityPolicyRuleImpl} is a lightweight wrapper used only during a single evaluation cycle.
  *
  * There is exactly one instance of this class per activity run, so it is shared by all the worker threads of that
  * activity. Hence, only the state that really belongs to the whole run may be kept here; anything belonging to a single
  * evaluation (namely the counts a threshold is checked against) lives in {@link EvaluatedActivityPolicyRuleImpl}.
+ *
+ * TODO choose a better name, maybe "ActivityPolicyRuleInActivityRun"?
+ *
+ * @see ActivityPolicyRulesContext
  */
 public class ActivityPolicyRule implements DebugDumpable {
 
@@ -59,18 +69,21 @@ public class ActivityPolicyRule implements DebugDumpable {
     private final @NotNull Set<DataNeed> dataNeeds;
 
     /**
-     * Useful in case when policy rule comes via activity/policyRef -> identifier should be REF_OID:INDUCEMENT_CID.
+     * Either
+     *
+     * - {@link ActivityPolicyRuleIdentifier} (activityPath:ruleCID) for embedded rules
+     * - or {@link PlainPolicyRuleIdentifier} (objectOID:ruleCID) for referenced rules and virtual assignments
      */
-    private final PolicyRuleIdentifier customPolicyRuleIdentifier;
+    private final PolicyRuleIdentifier policyRuleIdentifier;
 
     public ActivityPolicyRule(
             @NotNull PolicyRuleConfigItem policy,
             @NotNull ActivityPath path,
-            PolicyRuleIdentifier  customPolicyRuleIdentifier,
+            @NotNull PolicyRuleIdentifier policyRuleIdentifier,
             @NotNull Set<DataNeed> dataNeeds) {
         this.policyRuleCI = policy;
         this.path = path;
-        this.customPolicyRuleIdentifier = customPolicyRuleIdentifier;
+        this.policyRuleIdentifier = policyRuleIdentifier;
         this.dataNeeds = dataNeeds;
     }
 
@@ -83,11 +96,7 @@ public class ActivityPolicyRule implements DebugDumpable {
     }
 
     public @NotNull PolicyRuleIdentifier getRuleIdentifier() {
-        if (customPolicyRuleIdentifier != null) {
-            return customPolicyRuleIdentifier;
-        }
-
-        return ActivityPolicyRuleIdentifier.of(getPolicyBean(), path);
+        return policyRuleIdentifier;
     }
 
     public String getName() {

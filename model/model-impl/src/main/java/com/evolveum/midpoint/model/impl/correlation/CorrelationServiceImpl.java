@@ -281,7 +281,7 @@ public class CorrelationServiceImpl implements CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
             CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-        FocusType preFocus = PreMappingsEvaluator.computePreFocus(
+        ProjectionHolderType preFocus = PreMappingsEvaluator.computePreFocus(
                 shadowedResourceObject, synchronizationPolicy.getObjectTypeDefinition(), resource,
                 candidateOwner.getClass(), task, result);
         CompleteContext ctx = CompleteContext.forShadow(
@@ -419,7 +419,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                                 String.format("No %s (kind/intent) type and synchronization definition in %s (for %s)",
                                         objectTypeId, resource, shadow)));
 
-        final FocusType preFocus = PreMappingsEvaluator.computePreFocus(
+        final ProjectionHolderType preFocus = PreMappingsEvaluator.computePreFocus(
                 shadow, policy.getObjectTypeDefinition(), resource, policy.getFocusClass(), task, result);
 
         return CompleteContext.forShadow(
@@ -447,10 +447,10 @@ public class CorrelationServiceImpl implements CorrelationService {
         stateCheck(ShadowUtil.isClassified(shadow), "Shadow %s is not classified: %s/%s", shadow, shadow.getKind(),
                 shadow.getIntent());
 
-        final Class<? extends FocusType> focusClass = PrismContext.get().getSchemaRegistry()
+        final Class<? extends ProjectionHolderType> focusClass = PrismContext.get().getSchemaRegistry()
                 .determineClassForTypeRequired(objectTypeDefinition.getFocusTypeName());
 
-        final FocusType preFocus = PreMappingsEvaluator.computePreFocus(
+        final ProjectionHolderType preFocus = PreMappingsEvaluator.computePreFocus(
                 shadow, objectTypeDefinition, resource, focusClass, task, result);
 
         return CompleteContext.forShadow(
@@ -466,7 +466,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     private @NotNull CompleteContext getCompleteContext(
-            @NotNull FocusType preFocus,
+            @NotNull ProjectionHolderType preFocus,
             @Nullable String archetypeOid,
             @NotNull Set<String> candidateOids,
             @NotNull CorrelatorDiscriminator discriminator,
@@ -536,9 +536,9 @@ public class CorrelationServiceImpl implements CorrelationService {
      * @param explicitArchetypeOid If present, it overrides the archetype OID from the pre-focus (that may or may not be there).
      *                             Used for shadow correlation when specified by the synchronization policy.
      */
-    public <F extends FocusType> ObjectTemplateType determineObjectTemplate(
+    public <F extends ProjectionHolderType> ObjectTemplateType determineObjectTemplate(
             @Nullable String explicitArchetypeOid,
-            @Nullable FocusType preFocus,
+            @Nullable ProjectionHolderType preFocus,
             @Nullable Class<F> objectType,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -568,7 +568,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 @NotNull ResourceType resource,
                 @NotNull ResourceObjectDefinition resourceObjectDefinition,
                 @NotNull CorrelationDefinitionType correlationDefinition,
-                @NotNull FocusType preFocus,
+                @NotNull ProjectionHolderType preFocus,
                 @Nullable ObjectTemplateType objectTemplate,
                 @Nullable SystemConfigurationType systemConfiguration,
                 @NotNull CorrelatorDiscriminator discriminator,
@@ -594,7 +594,7 @@ public class CorrelationServiceImpl implements CorrelationService {
 
         static CompleteContext forFocus(
                 @NotNull CorrelationDefinitionType correlationDefinitionBean,
-                @NotNull FocusType preFocus,
+                @NotNull ProjectionHolderType preFocus,
                 @Nullable String archetypeOid,
                 @NotNull Set<String> candidateOids,
                 @Nullable ObjectTemplateType objectTemplate,

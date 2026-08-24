@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,7 +35,11 @@ public class PathExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_PATH_LABEL = "pathLabel";
 
     public PathExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public PathExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
     }
 
     @Override

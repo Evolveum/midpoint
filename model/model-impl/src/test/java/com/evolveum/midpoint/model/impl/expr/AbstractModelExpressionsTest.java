@@ -545,7 +545,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         List<PrismPropertyValue<String>> scriptOutputs = executeScriptExpressionString(variables, scriptTag, -1);
 
-        return scriptOutputs.stream().map(PrismPropertyValue::getValue).toList();
+        return scriptOutputs.stream().map(v -> v == null ? null : v.getValue()).toList();
     }
 
     protected void assertExecuteScriptExpressionBoolean(

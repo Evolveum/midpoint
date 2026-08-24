@@ -7,10 +7,12 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.expression;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
-import com.evolveum.midpoint.gui.impl.component.input.expression.ScriptExpressionPanel;
+import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
@@ -33,7 +35,14 @@ public class ConditionPanelFactory extends ExpressionPanelFactory implements Ser
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
-        return new ScriptExpressionPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+        return new ExpressionPanel(
+                panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+
+            @Override
+            protected List<RecognizedEvaluator> getChoices() {
+                return new ArrayList<>(List.of(RecognizedEvaluator.SCRIPT, RecognizedEvaluator.FILTER));
+            }
+        };
     }
 
     @Override

@@ -225,6 +225,21 @@ call apply_audit_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
 $aa$);
 
+-- Projection Holder Type
+-- @change: Adds `PROJECTION_HOLDER` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `PROJECTION_HOLDER`.
+call apply_audit_change(13, $aa$
+    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'PROJECTION_HOLDER' AFTER 'POLICY';
+$aa$);
+
+-- @change: Adds `WORK` shadow kind value.
+-- @since: 4.11
+-- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
+call apply_audit_change(14, $aa$
+    ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'GENERIC';
+$aa$);
+
 -- Audit payloads
 -- @change: Adds generic audit payload persistence.
 -- @since: 4.11
@@ -235,7 +250,7 @@ $aa$);
 -- @affects: constraint ma_audit_payload_<month>_fk | New generated foreign key | Links monthly audit payload partitions to matching audit event partitions.
 -- @affects: index ma_audit_payload_searchableText_idx | New index | Supports later full-text-like payload searches.
 -- @affects: routine audit_create_monthly_partitions | Modified procedure | Creates payload partitions and FKs.
-call apply_audit_change(13, $aa$
+call apply_audit_change(15, $aa$
 CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
 ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'SMART_SERVICE_CALL' AFTER 'INFORMATION_DISCLOSURE';

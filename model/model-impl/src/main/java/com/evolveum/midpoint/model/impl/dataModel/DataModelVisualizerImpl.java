@@ -404,6 +404,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
             case ACCOUNT: return UserType.class;
             case ENTITLEMENT: return RoleType.class;
             case GENERIC: return OrgType.class;
+            case WORK: return CaseType.class;
         }
         throw new IllegalStateException();
     }

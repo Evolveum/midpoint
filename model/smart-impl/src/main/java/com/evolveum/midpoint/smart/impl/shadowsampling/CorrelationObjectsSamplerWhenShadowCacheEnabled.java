@@ -42,17 +42,19 @@ public class CorrelationObjectsSamplerWhenShadowCacheEnabled implements ObjectsS
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationObjectsSamplerWhenShadowCacheEnabled.class);
 
-    private static final int SAMPLE_SIZE = 5000;
+    public static final int DEFAULT_SAMPLE_SIZE = 5000;
 
     private final ModelService modelService;
     private final ResourceType resource;
     private final ResourceObjectDefinition typeDefinition;
+    private final int sampleSize;
 
     public CorrelationObjectsSamplerWhenShadowCacheEnabled(
-            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition) {
+            ModelService modelService, ResourceType resource, ResourceObjectDefinition typeDefinition, int sampleSize) {
         this.modelService = modelService;
         this.resource = resource;
         this.typeDefinition = typeDefinition;
+        this.sampleSize = sampleSize;
     }
 
     @Override
@@ -64,9 +66,9 @@ public class CorrelationObjectsSamplerWhenShadowCacheEnabled implements ObjectsS
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         LOGGER.debug("Sampling cached shadows for correlation (cached): {}/{}, sampleSize={}",
-                resource.getOid(), typeDefinition.getTypeIdentification(), SAMPLE_SIZE);
+                resource.getOid(), typeDefinition.getTypeIdentification(), sampleSize);
 
-        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(SAMPLE_SIZE);
+        List<PrismObject<ShadowType>> reservoir = new ArrayList<>(sampleSize);
         AtomicInteger totalCount = new AtomicInteger(0);
         Random random = new Random(1);
 
@@ -80,13 +82,13 @@ public class CorrelationObjectsSamplerWhenShadowCacheEnabled implements ObjectsS
                         int i = totalCount.getAndIncrement();
 
                         // Reservoir sampling algorithm on all shadows, but only accept those passing predicate
-                        if (reservoir.size() < SAMPLE_SIZE) {
+                        if (reservoir.size() < sampleSize) {
                             if (acceptancePredicate.test(shadow)) {
                                 reservoir.add(shadow);
                             }
                         } else {
                             int j = random.nextInt(i + 1);
-                            if (j < SAMPLE_SIZE && acceptancePredicate.test(shadow)) {
+                            if (j < sampleSize && acceptancePredicate.test(shadow)) {
                                 reservoir.set(j, shadow);
                             }
                         }

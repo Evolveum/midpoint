@@ -682,9 +682,7 @@ public class WebPrismUtil {
         if (showExpression) {
             ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
             if (expressionBean != null) {
-                String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
-                evaluatorType = ExpressionUtil.getExpressionType(expression);
-
+                evaluatorType = ExpressionUtil.getExpressionType(expressionBean);
             }
 
             if (evaluatorType == null) {

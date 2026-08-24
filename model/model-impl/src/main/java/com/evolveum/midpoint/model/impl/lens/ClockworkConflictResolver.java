@@ -32,6 +32,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -273,8 +274,8 @@ public class ClockworkConflictResolver {
             return "No focus OID"; // should really never occur
         }
         Class<?> focusClass = context.getFocusContext().getObjectTypeClass();
-        if (!FocusType.class.isAssignableFrom(focusClass)) {
-            return String.format("Focus conflict detection is supported only for FocusType, not for %s", focusClass.getName());
+        if (!ProjectionHolderType.class.isAssignableFrom(focusClass)) {
+            return String.format("Focus conflict detection is supported only for ProjectionHolderType, not for %s", focusClass.getName());
         }
         return null;
     }

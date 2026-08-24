@@ -9,7 +9,7 @@
 | Description
 
 | <<change-13,Change 13>>
-| Adds generic audit payload persistence.
+| Adds `PROJECTION_HOLDER` object type value.
 
 | <<change-12,Change 12>>
 | Adds `CONNECTOR_DEVELOPMENT` object type value.
@@ -24,7 +24,7 @@
 
 Since version: 4.11
 
-Adds generic audit payload persistence.
+Adds `PROJECTION_HOLDER` object type value.
 
 [cols="1,1,3", options="header"]
 |===
@@ -32,33 +32,9 @@ Adds generic audit payload persistence.
 | Change type
 | Description
 
-| `AuditEventTypeType`
+| `ObjectType`
 | Modified enum type
-| Adds `SMART_SERVICE_CALL`.
-
-| `ma_audit_payload`
-| New table
-| Stores payloads attached to audit events.
-
-| `ma_audit_payload_default`
-| New default partition
-| Stores payloads outside monthly partitions.
-
-| `ma_audit_payload_<month>`
-| New generated partition
-| Creates monthly audit payload partitions.
-
-| `ma_audit_payload_<month>_fk`
-| New generated foreign key
-| Links monthly audit payload partitions to matching audit event partitions.
-
-| `ma_audit_payload_searchableText_idx`
-| New index
-| Supports later full-text-like payload searches.
-
-| `audit_create_monthly_partitions`
-| Modified procedure
-| Creates payload partitions and FKs.
+| Adds `PROJECTION_HOLDER`.
 
 |===
 

@@ -69,9 +69,11 @@ public class ActivityBasedTaskRun implements TaskRun {
     /**
      * The activity that is the local root for this task. I.e. what part of the activity tree is executed within this task.
      *
+     * Volatile because it is read by other threads (see {@link #heartbeat()}).
+     *
      * @see Activity#localRoot
      */
-    private Activity<?, ?> localRootActivity;
+    private volatile Activity<?, ?> localRootActivity;
 
     ActivityBasedTaskRun(@NotNull RunningTask runningTask, @NotNull ActivityBasedTaskHandler activityBasedTaskHandler) {
         this.runningTask = runningTask;
@@ -342,6 +344,9 @@ public class ActivityBasedTaskRun implements TaskRun {
 
     @Override
     public Long heartbeat() {
+        if (localRootActivity == null) {
+            return null;
+        }
         return LegacyProgressUpdater.compute(this);
     }
 

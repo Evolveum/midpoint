@@ -45,7 +45,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Description
 
 | xref:postgres-audit-upgrade/4.11.adoc#change-13[Change 13]
-| Adds generic audit payload persistence.
+| Adds `PROJECTION_HOLDER` object type value.
 
 | xref:postgres-audit-upgrade/4.11.adoc#change-12[Change 12]
 | Adds `CONNECTOR_DEVELOPMENT` object type value.

@@ -45,7 +45,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContent
  * (Before 4.6 it was called `handle`. Now the {@link SynchronizationAction#handle(OperationResult)} is more
  * generic, as it's not bound to the clockwork execution.)
  */
-abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
+abstract class BaseClockworkAction<F extends ProjectionHolderType> extends BaseAction<F> {
 
     private static final String OP_HANDLE = BaseClockworkAction.class.getName() + ".handle";
 

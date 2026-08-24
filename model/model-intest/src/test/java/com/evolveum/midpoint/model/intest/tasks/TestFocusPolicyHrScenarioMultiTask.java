@@ -9,8 +9,8 @@ package com.evolveum.midpoint.model.intest.tasks;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySubtaskDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -61,8 +61,8 @@ public class TestFocusPolicyHrScenarioMultiTask extends TestFocusPolicyHrScenari
 
     @Override
     protected void assertRunSucceeded(String taskOid) throws Exception {
-        String simulateId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), SIMULATE, "max-deleted", true);
-        String executeId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), EXECUTE, "max-deleted-execute", true);
+        String simulateId = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), SIMULATE, "max-deleted", true);
+        String executeId = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), EXECUTE, "max-deleted-execute", true);
         // @formatter:off
         assertTaskTree(taskOid, "after successful run")
                 .display()
