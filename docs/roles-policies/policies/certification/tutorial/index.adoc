@@ -2,7 +2,8 @@
 midpoint-feature: access-certification
 doc-type: guide
 ---
-= Access Certification Tutorial
+= Access certification tutorial
+:page-nav-title: Get started
 :page-wiki-name: Access Certification - a very quick tutorial
 :page-wiki-id: 22282316
 :page-wiki-metadata-create-user: mederly
@@ -15,6 +16,7 @@ doc-type: guide
 :page-description: This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
 :page-keywords: certification campaign, create campaign, campaign definition, review campaign
 :experimental:
+:page-display-order: 100
 :page-toc: top
 
 This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.

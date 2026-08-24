@@ -1,6 +1,6 @@
 = Certification campaigns GUI configuration
 :page-nav-title: GUI configuration
-:page-display-order: 140
+:page-display-order: 50
 :page-toc: top
 :page-upkeep-status: orange
 :experimental:

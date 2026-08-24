@@ -2,7 +2,7 @@
 midpoint-feature: access-certification
 doc-type: example
 ---
-= Access Certification Notifications
+= Access certification notifications
 :page-nav-title: Notifications
 :page-wiki-name: Access Certification Notifications
 :page-wiki-id: 22282406
@@ -14,6 +14,7 @@ doc-type: example
 :page-alias: { "parent" : "/midpoint/reference/misc/notifications/", "slug" : "certification",  "title" : "Access Certification" }
 :page-toc: top
 :page-moved-from: /midpoint/reference/roles-policies/certification/notifications/
+:page-display-order: 700
 :page-description: This page describes how midPoint sends email alerts at key moments during certification campaigns, such as when a campaign starts, when it is about to close, or as reminders to reviewers who have not responded yet.
 :page-keywords: campaign, email notification, campaign notification, notification, notificationConfiguration
 
