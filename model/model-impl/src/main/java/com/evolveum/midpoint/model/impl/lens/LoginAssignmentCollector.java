@@ -131,7 +131,7 @@ public class LoginAssignmentCollector {
                     evaluateAssignments(
                             focusBean,
                             forcedAssignments, // [EP:APSO] DONE (see above)
-                            origin -> AssignmentOrigin.virtual(origin),
+                            origin -> AssignmentOrigin.virtual(null, origin),
                             assignmentEvaluator, task, result));
         }
 

@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +55,7 @@ class PreexistingValuesComputer {
     private final Map<ActivityPath, Integer> executionAttemptNumberMap = new HashMap<>();
 
     /**
-     * Counters summarized from all relevant activities. Key should be {@link ActivityPolicyRuleIdentifier} but it's not that
+     * Counters summarized from all relevant activities. Key should be {@link PolicyRuleIdentifier} but it's not that
      * easy, because in tasks they are stored as strings - and there's no reliable way to parse strings back to
      * {@link ActivityPath}. Hence, let's stick with strings here.
      */

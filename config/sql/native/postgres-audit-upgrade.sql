@@ -225,6 +225,21 @@ call apply_audit_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
 $aa$);
 
+-- Projection Holder Type
+-- @change: Adds `PROJECTION_HOLDER` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `PROJECTION_HOLDER`.
+call apply_audit_change(13, $aa$
+    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'PROJECTION_HOLDER' AFTER 'POLICY';
+$aa$);
+
+-- @change: Adds `WORK` shadow kind value.
+-- @since: 4.11
+-- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
+call apply_audit_change(14, $aa$
+    ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'GENERIC';
+$aa$);
+
 
 
 -- WRITE CHANGES ABOVE ^^

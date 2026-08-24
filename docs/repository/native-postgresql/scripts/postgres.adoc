@@ -54,6 +54,7 @@ drop schema current_user cascade;
 * xref:postgres/simulations.adoc[Simulations] - Simulation result objects, processed simulation objects, and simulation event mark references.
 * xref:postgres/marks.adoc[Marks] - Mark objects used to classify and annotate repository objects and events.
 * xref:postgres/schema-objects.adoc[Schema objects] - Schema repository objects.
+* xref:postgres/allowed-connectors-list.adoc[Allowed connectors list] - $region.description()
 * xref:postgres/extension-items.adoc[Extension items] - Extension item catalog and indexed extension value storage support.
 * xref:postgres/schema-versioning.adoc[Schema versioning] - Procedures and metadata used to track and apply native repository schema changes.
 
@@ -94,6 +95,10 @@ drop schema current_user cascade;
 | xref:postgres/cases-and-certification.adoc#m_access_cert_wi_candidate[`m_access_cert_wi_candidate`]
 | xref:postgres/cases-and-certification.adoc[Cases and certification]
 | Stores candidate references for access certification work items.
+
+| xref:postgres/allowed-connectors-list.adoc#m_allowed_connectors_list[`m_allowed_connectors_list`]
+| xref:postgres/allowed-connectors-list.adoc[Allowed connectors list]
+| Stores allowed connectors list definitions.
 
 | xref:postgres/roles-and-services.adoc#m_application[`m_application`]
 | xref:postgres/roles-and-services.adoc[Roles and services]
@@ -253,6 +258,10 @@ Represents OrgType, see https://docs.evolveum.com/midpoint/architecture/archive/
 | xref:postgres/simulations.adoc#m_processed_object_event_mark_default[`m_processed_object_event_mark_default`]
 | xref:postgres/simulations.adoc[Simulations]
 | Default partition for processed object event mark references.
+
+| xref:postgres/infrastructure.adoc#m_projection_holder[`m_projection_holder`]
+| xref:postgres/infrastructure.adoc[Infrastructure]
+| Abstract base table for projection holders such as foci and cases, all of which can hold projections (linkRef).
 
 | xref:postgres/references.adoc#m_ref_archetype[`m_ref_archetype`]
 | xref:postgres/references.adoc[References]
@@ -705,6 +714,21 @@ of isParent/ChildOf searches and they never return parameter OID as a result.
 | xref:postgres/cases-and-certification.adoc#trigger_m_access_cert_definition_update_tr[`m_access_cert_definition_update_tr`]
 | xref:postgres/cases-and-certification.adoc[Cases and certification]
 | Maintains object update metadata before rows are updated in `m_access_cert_definition`.
+| trigger
+
+| xref:postgres/allowed-connectors-list.adoc#trigger_m_allowed_connectors_list_oid_delete_tr[`m_allowed_connectors_list_oid_delete_tr`]
+| xref:postgres/allowed-connectors-list.adoc[Allowed connectors list]
+| Removes the object OID registry entry when rows are deleted from `m_allowed_connectors_list`.
+| trigger
+
+| xref:postgres/allowed-connectors-list.adoc#trigger_m_allowed_connectors_list_oid_insert_tr[`m_allowed_connectors_list_oid_insert_tr`]
+| xref:postgres/allowed-connectors-list.adoc[Allowed connectors list]
+| Maintains the object OID registry when rows are inserted into `m_allowed_connectors_list`.
+| trigger
+
+| xref:postgres/allowed-connectors-list.adoc#trigger_m_allowed_connectors_list_update_tr[`m_allowed_connectors_list_update_tr`]
+| xref:postgres/allowed-connectors-list.adoc[Allowed connectors list]
+| Maintains object update metadata before rows are updated in `m_allowed_connectors_list`.
 | trigger
 
 | xref:postgres/roles-and-services.adoc#trigger_m_application_oid_delete_tr[`m_application_oid_delete_tr`]

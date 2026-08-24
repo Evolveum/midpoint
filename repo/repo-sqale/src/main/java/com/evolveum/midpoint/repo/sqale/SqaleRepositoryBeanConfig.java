@@ -49,6 +49,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QProjectionHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
@@ -179,6 +180,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(OperationExecutionType.COMPLEX_TYPE,
                         QOperationExecutionMapping.init(repositoryContext))
                 .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
+                .register(ProjectionHolderType.COMPLEX_TYPE,
+                        QProjectionHolderMapping.initProjectionHolderMapping(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))

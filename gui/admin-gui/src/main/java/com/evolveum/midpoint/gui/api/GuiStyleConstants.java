@@ -115,6 +115,7 @@ public class GuiStyleConstants {
     public static final String CLASS_SHADOW_ICON_ACCOUNT = "fa fa-male";
     public static final String CLASS_SHADOW_ICON_ENTITLEMENT = "fa fa-users";
     public static final String CLASS_SHADOW_ICON_GENERIC = "far fa-circle";
+    public static final String CLASS_SHADOW_ICON_WORK = "fa fa-briefcase";
     public static final String CLASS_SHADOW_ICON_PROTECTED = "fa fa-shield-alt";
     public static final String CLASS_SHADOW_ICON_UNKNOWN = "fa fa-eye";
 

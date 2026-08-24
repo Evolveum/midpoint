@@ -13,7 +13,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Changes range
 
 | xref:postgres-audit-upgrade/4.11.adoc[midPoint 4.11]
-| 11-12
+| 11-13
 
 | xref:postgres-audit-upgrade/4.10.adoc[midPoint 4.10]
 | 10
@@ -43,6 +43,9 @@ This page documents schema changes applied to existing databases by `config/sql/
 |===
 | Change
 | Description
+
+| xref:postgres-audit-upgrade/4.11.adoc#change-13[Change 13]
+| Adds `PROJECTION_HOLDER` object type value.
 
 | xref:postgres-audit-upgrade/4.11.adoc#change-12[Change 12]
 | Adds `CONNECTOR_DEVELOPMENT` object type value.

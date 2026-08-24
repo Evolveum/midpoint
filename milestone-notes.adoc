@@ -12,6 +12,21 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC1
 == 4.11-M6
 
+=== 2026-08-21 Removed obsolete xercesImpl dependency
+
+Task: https://support.evolveum.com/wp/12034[12034]
+Description: Obsolete xercesImpl dependency was removed.
+
+Required Upgrade Steps:
+
+- Only if you used this dependency in custom Groovy code or overlay code: please find a replacement.
+
+Notes & References:
+
+* Related commits:
+** https://github.com/Evolveum/prism/commit/67c1c669ed7bce7037e8ed762007eda9d266e270[67c1c669 in prism]
+** https://github.com/Evolveum/midpoint/commit/a88393b3a457fd4162f3c50ad81295a9abb12e06[a88393b3 in midPoint]
+
 === 2026-08-17 Cleaned-up internal APIs related to caching
 
 Task: https://support.evolveum.com/wp/11992[11992]
@@ -30,6 +45,7 @@ Required Upgrade Steps:
 - If you need cache diagnostics, check the `repo.api.CacheDiagnosticsService`.
 
 Notes & References:
+
 * Related commits: <this one>
 * Docs: See `CacheInvalidationListener`, `ClusterwideCacheInvalidationDispatcher`, `CacheDiagnostics`, and `CacheDiagnosticsService` interfaces.
 

@@ -216,7 +216,7 @@ public abstract class SchemaConstants {
             UserType.F_CREDENTIALS, CredentialsType.F_NONCE, PasswordType.F_FAILED_LOGINS);
     public static final ItemPath PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS = ItemPath.create(
             UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, PasswordType.F_FAILED_LOGINS);
-    public static final ItemPath PATH_LINK_REF = ItemPath.create(FocusType.F_LINK_REF);
+    public static final ItemPath PATH_LINK_REF = ItemPath.create(ProjectionHolderType.F_LINK_REF);
     public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF);
     public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
             .create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);

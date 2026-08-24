@@ -2564,6 +2564,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         TaskType taskObject = object.asObjectable();
 
+        // TODO what about policy states for policyRef and virtual assignments?
+
         // all policy identifiers needed when searching to counters which should be deleted
         Collection<String> identifiers =
                 ActivityPolicyUtils.listPolicyRuleIdentifiers(taskObject.getActivity(), ActivityPath.empty())

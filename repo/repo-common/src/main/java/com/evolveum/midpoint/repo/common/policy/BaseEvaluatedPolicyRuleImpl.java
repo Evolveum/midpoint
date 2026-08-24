@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 
