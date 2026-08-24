@@ -199,6 +199,11 @@ public class SimulationActionFlow<T> implements Serializable {
         pageBase.showMainPopup(popup, target);
     }
 
+    private boolean isOutboundMapping() {
+        T workDefinition = context.workDefinitionConfiguration();
+        return workDefinition instanceof InlineOutboundMappingsDefinitionType;
+    }
+
     private void runSamplingSimulation(
             PageBase pageBase,
             AjaxRequestTarget target,
@@ -209,7 +214,8 @@ public class SimulationActionFlow<T> implements Serializable {
 
         SimulationDataSamplingPanel panel = new SimulationDataSamplingPanel(
                 pageBase.getMainPopupBodyId(),
-                Model.of(resourceModel)) {
+                Model.of(resourceModel),
+                isOutboundMapping()) {
 
             @Override
             protected ResourceObjectTypeDefinition getObjectTypeDefinition() {
