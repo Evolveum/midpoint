@@ -1,7 +1,13 @@
+---
+midpoint-feature: access-certification
+doc-type: guide
+---
 = Automated campaign scheduling
 :page-nav-title: Campaign scheduling
 :page-upkeep-status: orange
 :experimental:
+:page-toc: top
+:toclevels: 1
 :page-description: This guide explains how to set up automated task to run a certification campaign automatically at scheduled times.
 :page-keywords: access, campaign, schedule, certification, access certification campaign, task, cron
 
@@ -14,14 +20,21 @@ See xref:/midpoint/features/current/task-management/[] for more information abou
 This article describes basics of configuring a simple scheduled task referencing an access certification campaign.
 The goal is to launch the campaign periodically at times defined by a xref:/midpoint/reference/tasks/task-manager/#schedule-recurring-tasks[cron-like pattern] in the task.
 
+:sectnums:
+
+== Define certification campaign
+
 Firstly, define an access certification campaign.
 Refer to xref:/midpoint/reference/roles-policies/policies/certification/certification-campaign-configuration/[] regarding the campaign configuration options.
 See xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[] if you need help getting started with campaign definition.
 
 For testing purposes, we suggest starting with something small affecting low number of people willing to help you debug the setup.
-Set the schedule to short intervals (minutes, hours, then days) get meaningful results faster.
+
+== Set up task launching the campaign
 
 Once your campaign is ready, define a task that will launch it at defined times.
+Set the schedule to short intervals (minutes, hours, then days) get meaningful results faster.
+
 As an example, here is a task that runs a campaign every five minutes:
 
 sampleRef::samples/certification/start-all-user-assignments.xml[]
@@ -34,6 +47,8 @@ You can reference a campaign by OID like this:
 <objectRef type="AccessCertificationDefinitionType" oid="12345678-9012-3245-6789-012345678901"/>
 ----
 
+=== Get started with examples from samples repository
+
 The link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/certification[midPoint samples repository] contains examples to get you started.
 For testing purposes, you can:
 
@@ -42,7 +57,9 @@ For testing purposes, you can:
 
 After importing the campaigns and tasks, the campaigns are automatically scheduled to run at given times.
 
-You can check the current status of a campaign in midPoint GUI under [.nowrap]#icon:certificate[] *Certification*# > [.nowrap]#icon:circle[] *Campaign scheduling*#.
+== Manage and review scheduled campaigns in GUI
+
+You can check the current status of a campaign in midPoint graphical user interface (GUI) under [.nowrap]#icon:certificate[] *Certification*# > [.nowrap]#icon:circle[] *Campaign scheduling*#.
 All certification-related tasks are shown.
 // (Besides tasks for starting campaigns, there are also remediation tasks, but that will eventually be fixed.)
 
