@@ -8,8 +8,8 @@ doc-type: config
 :page-upkeep-status: orange
 :experimental:
 :page-display-order: 200
-:page-description: This article describes certification campaign configuration options.
-:page-keywords: certification campaign, campaign definition, campaign configuration, campaign dashboard widget
+:page-description: This section describes access certification campaign configuration options.
+:page-keywords: certification campaign, campaign definition, campaign configuration
 
 This section describes access certification campaign configuration options.
 

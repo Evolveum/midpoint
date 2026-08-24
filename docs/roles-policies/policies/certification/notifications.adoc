@@ -15,12 +15,12 @@ doc-type: example
 :page-toc: top
 :page-moved-from: /midpoint/reference/roles-policies/certification/notifications/
 :page-display-order: 800
-:page-description: This page describes how midPoint sends email alerts at key moments during certification campaigns, such as when a campaign starts, when it is about to close, or as reminders to reviewers who have not responded yet.
-:page-keywords: campaign, email notification, campaign notification, notification, notificationConfiguration
+:page-description: This article shows examples of configuration for midPoint to send email alerts at key moments during certification campaigns.
+:page-keywords: access certification, campaign, email notification, campaign notification, notification, notificationConfiguration
 
-This page describes how midPoint sends email alerts at key moments during certification campaigns, such as when a campaign starts, when it is about to close, or as reminders to reviewers who have not responded yet.
+This article shows examples of configuration for midPoint to send email alerts at key moments during certification campaigns, such as when a campaign starts, when it is about to close, or as reminders to reviewers who have not responded yet.
 
-This page also demonstrates how midPoint uses `notificationConfiguration` blocks for certification notifications, and provides examples of how to define notification subject, body, and recipients.
+This article also demonstrates how midPoint uses `notificationConfiguration` blocks for certification notifications, and provides examples of how to define notification subject, body, and recipients.
 
 This helps administrators set up automated communications tailored for certification lifecycle events.
 

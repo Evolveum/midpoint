@@ -1,5 +1,9 @@
-= Access Certification Authorization
-:page-nav-title: Authorization
+---
+midpoint-feature: access-certification
+doc-type: config
+---
+= Access certification authorizations
+:page-nav-title: Authorizations
 :page-wiki-name: Access Certification Security
 :page-wiki-id: 22282369
 :page-wiki-metadata-create-user: mederly

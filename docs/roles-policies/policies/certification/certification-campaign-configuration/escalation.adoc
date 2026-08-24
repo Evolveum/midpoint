@@ -2,7 +2,7 @@
 midpoint-feature: escalation
 doc-type: config
 ---
-= Escalation in Certification Campaigns
+= Escalation in certification campaigns
 :page-wiki-name: Escalation in certification campaigns HOWTO
 :page-wiki-id: 24085861
 :page-wiki-metadata-create-user: mederly
@@ -12,13 +12,18 @@ doc-type: config
 :page-nav-title: Escalation
 :page-display-order: 60
 :page-upkeep-status: yellow
-:page-description: This page describes how escalations can be used in certification campaigns. You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
+:page-description: This article describes what escalations are, how to use them in campaigns to enforce accountability, ensure higher scrutiny for risky items, and prevent stalled certifications.
 :page-keywords: escalation, certification campaign, escalate, timed action
 :page-toc: top
 :page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
 :page-moved-from: /midpoint/reference/roles-policies/policies/certification/escalation/
 
-This page describes how escalations can be used in certification campaigns.
+This article describes what escalations are, how to use them in campaigns to enforce accountability, ensure higher scrutiny for risky items, and prevent stalled certifications.
+
+== What is an access certification campaign escalation
+
+Access certification campaign escalation is a mechanism that automatically reassigns a case or notifies additional users when the reviewer of the case has not acted on their assigned certification items within the defined time frame.
+Escalation is configured through timed actions in the stage definition.
 
 You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
 

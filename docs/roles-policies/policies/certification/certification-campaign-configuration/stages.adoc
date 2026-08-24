@@ -1,4 +1,4 @@
-= Configuring Certification Campaign Stages
+= Configuring certification campaign stages
 :page-nav-title: Stages
 :page-wiki-name: Configuring certification campaign stages
 :page-wiki-id: 22741204
@@ -9,14 +9,13 @@
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/stages/
 :page-moved-from: /midpoint/reference/roles-policies/policies/certification/stages/
-:page-description: This page describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
+:page-description: This article describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 :page-keywords: certification stage, certification campaign, stage duration, deadline notification, reviewer
 :page-display-order: 30
 :page-toc: top
 :experimental:
 
-
-This page describes how to configure individual stages within an access certification campaign.
+This article describes how to configure individual stages within an access certification campaign.
 It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 
 Also, it explains how midPoint determines and assigns reviewers based on properties such as role owner, approver, or organizational manager, and shows how these are defined in XML under `<stageDefinition>` elements.

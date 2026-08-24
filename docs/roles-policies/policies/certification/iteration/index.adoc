@@ -13,12 +13,12 @@ doc-type: intro
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/iteration/
 :page-display-order: 700
-:page-description: This page describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
+:page-description: This article describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
 :page-keywords: certification campaign, reiteration, iteration, iteration limit, automatic iterations, campaign close
 :page-toc: top
 :experimental:
 
-This page describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
+This article describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
 
 A reiteration means that after a certification campaigns closes, any certification cases that remained without response can be run again.
 This gives reviewers who have not responded in the previous run another chance to respond.

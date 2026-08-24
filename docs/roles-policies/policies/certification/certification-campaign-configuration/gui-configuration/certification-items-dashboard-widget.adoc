@@ -1,15 +1,16 @@
 ---
 midpoint-feature: access-certification
-doc-type: config
+doc-type: example
 ---
 = Certifications items dashboard widget
 :page-nav-title: Dashboard widget
-:page-display-order: 146
-:page-description:
-:page-keywords:
+:page-display-order: 30
+:page-description: This article shows an example of a certification dashboard widget to be displayed on the self-service dashboard page.
+:page-keywords: certification campaign, GUI, dashboard, widget
 
 You can configure a certification dashboard widget to be displayed on the self-service dashboard page.
-The widget configuration is done as a part of the system configuration initial object.
+The widget configuration is done as a part of the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration initial object].
+
 The configuration can be found in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
 It is hidden in the `End user` initial object by default and can be adapted to meet the specific needs of your project (see xref:/midpoint/reference/admin-gui/admin-gui-config/#how-it-works[Admin GUI configuration merging mechanism]).
 

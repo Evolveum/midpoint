@@ -1,15 +1,18 @@
+---
+midpoint-feature: escalation
+doc-type: config
+---
 = Certification campaigns GUI configuration
 :page-nav-title: GUI configuration
 :page-display-order: 50
-:page-toc: top
 :page-upkeep-status: orange
 :experimental:
-:page-description:
-:page-keywords:
+:page-description: This section describes options for certification of campaign configuration in the GUI.
+:page-keywords: certification campaign, campaign definition, campaign configuration, gui
 
 This section describes options for certification of campaign configuration in the GUI.
 
-There are several facets you can configure regarding certification campaigns in the GUI:
+There are several facets which you can configure regarding certification campaigns in the GUI:
 
 ++++
 {% children style: table %}
