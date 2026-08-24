@@ -1,7 +1,7 @@
 = Scope definition
 :page-nav-title: Scope
 :page-toc: top
-:page-display-order: 110
+:page-display-order: 20
 :page-upkeep-status: orange
 :experimental:
 :page-description:

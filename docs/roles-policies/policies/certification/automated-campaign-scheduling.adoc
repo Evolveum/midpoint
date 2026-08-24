@@ -6,6 +6,7 @@ doc-type: guide
 :page-nav-title: Campaign scheduling
 :page-upkeep-status: orange
 :experimental:
+:page-display-order: 300
 :page-toc: top
 :toclevels: 1
 :page-description: This guide explains how to set up automated task to run a certification campaign automatically at scheduled times.
