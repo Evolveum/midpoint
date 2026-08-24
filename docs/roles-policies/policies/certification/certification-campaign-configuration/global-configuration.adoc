@@ -1,6 +1,6 @@
 = Global access certification settings in system configuration
 :page-nav-title: Global configuration
-:page-display-order: 130
+:page-display-order: 40
 :page-toc: top
 :page-upkeep-status: orange
 :experimental:

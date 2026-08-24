@@ -2,7 +2,7 @@
 midpoint-feature: access-certification
 doc-type: intro
 ---
-= Certification Campaign Iteration
+= Certification campaign iteration
 :page-nav-title: Iteration
 :page-wiki-name: Certification Campaign Iteration
 :page-wiki-id: 25591911
@@ -12,6 +12,7 @@ doc-type: intro
 :page-wiki-metadata-modify-date: 2018-09-17T13:32:56.839+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/iteration/
+:page-display-order: 600
 :page-description: This page describes how certification campaigns can be reiterated (re-run) in midPoint, and how iterations can be configured.
 :page-keywords: certification campaign, reiteration, iteration, iteration limit, automatic iterations, campaign close
 :page-toc: top

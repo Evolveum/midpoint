@@ -29,6 +29,8 @@ When the time is up, the campaign closes and the decisions are carried out in a 
 To illustrate, you may want to, for example, validate assignment of roles to users where the roles entitle the users licences to 3rd-party services, such as Zoom conferencing, Microsoft cloud storage, etc.
 The goal is to identify users who do not need the licences anymore, take the corresponding role away from them, thus revoke the licence and, ultimately, save money.
 
+Read the <<cert-campaign-workflow>> section below to understand the general structure and flow of certification campaigns.
+
 == Configuration options of campaigns and related functionality
 
 There are many aspects of what you can configure regarding certification campaigns and related midPoint functionality.
@@ -38,6 +40,7 @@ Refer to the following articles for options to configure scope, stages, GUI, not
 {% children style: table %}
 ++++
 
+[[cert-campaign-workflow]]
 == Certification campaign workflow
 
 This section describes basic access certification campaign workflow to help you connect the dots and understand better how the whole process works.

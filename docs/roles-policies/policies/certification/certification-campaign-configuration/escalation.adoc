@@ -10,7 +10,7 @@ doc-type: config
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
 :page-nav-title: Escalation
-:page-display-order: 150
+:page-display-order: 60
 :page-upkeep-status: yellow
 :page-description: This page describes how escalations can be used in certification campaigns. You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
 :page-keywords: escalation, certification campaign, escalate, timed action
