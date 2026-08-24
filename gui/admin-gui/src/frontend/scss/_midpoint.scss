@@ -2497,6 +2497,8 @@ footer.app-footer a {
 .dropdown-menu .dropdown-item:focus-visible {
   position: relative;
   z-index: 2;
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
 }
 
 .help-icon-after-label {
