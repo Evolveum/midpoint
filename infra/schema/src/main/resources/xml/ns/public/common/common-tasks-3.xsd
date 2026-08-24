@@ -2041,6 +2041,11 @@
                     <xsd:documentation>
                         An assignment that is virtually applied to every object processed by the activity.
                         The target should preferably be a policy (or a role containing only policies).
+
+                        As for regular assignments, a target that cannot be resolved is tolerated: an error is
+                        logged and the object is processed as if this assignment carried no rules. The activity
+                        is not stopped. (This is unlike the "policyRef" element, where unresolvable reference
+                        means a failure of the activity.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2076,6 +2081,10 @@
 
                         Inducements with policies located in referenced object must not contain order, condition.
                         Otherwise, configuration exception will be thrown.
+
+                        If the reference cannot be resolved, the activity fails at its start and the task is
+                        suspended. (Since 4.11; before that, such reference was skipped with a warning. Note that
+                        unresolvable targets of virtual assignments are tolerated - they do not stop the activity.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
