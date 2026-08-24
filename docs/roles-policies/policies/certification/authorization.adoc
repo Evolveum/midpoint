@@ -9,6 +9,7 @@
 :page-upkeep-status: orange
 :page-alias: { "parent" : "/midpoint/reference/security/authorization/", "slug" : "certification",  "title" : "Access Certification" }
 :page-moved-from: /midpoint/reference/roles-policies/certification/authorization/
+:page-display-order: 400
 :page-description: This page explains how access to midPoint's certification features is controlled through specific authorizations.
 :page-keywords: certification authorization, action URI, model level actions, GUI actions
 :page-toc: top

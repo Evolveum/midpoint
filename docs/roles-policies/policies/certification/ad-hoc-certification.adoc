@@ -11,6 +11,7 @@ doc-type: guide
 :page-wiki-metadata-modify-date: 2017-06-16T12:23:59.558+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/ad-hoc-certifications/
+:page-display-order: 900
 :page-description: This instructs on how to create ad-hoc certifications in midPoint.
 :page-keywords: ad-hoc certification, policy rule, certification campaign
 :page-toc: top
