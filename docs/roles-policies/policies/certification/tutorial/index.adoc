@@ -3,7 +3,7 @@ midpoint-feature: access-certification
 doc-type: guide
 ---
 = Access certification tutorial
-:page-nav-title: Get started
+:page-nav-title: Quick tutorial
 :page-wiki-name: Access Certification - a very quick tutorial
 :page-wiki-id: 22282316
 :page-wiki-metadata-create-user: mederly
