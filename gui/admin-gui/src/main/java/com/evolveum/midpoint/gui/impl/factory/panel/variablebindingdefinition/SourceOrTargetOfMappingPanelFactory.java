@@ -149,7 +149,12 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
     }
 
     protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
-        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel);
+        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel){
+            @Override
+            protected boolean showContainerChoices() {
+                return true;
+            }
+        };
         return provider.collectAvailableDefinitions(input);
     }
 
