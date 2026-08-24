@@ -104,7 +104,7 @@ CREATE TYPE AuditEventTypeType AS ENUM ('GET_OBJECT', 'ADD_OBJECT', 'MODIFY_OBJE
     'DELETE_OBJECT', 'EXECUTE_CHANGES_RAW', 'SYNCHRONIZATION', 'CREATE_SESSION',
     'TERMINATE_SESSION', 'WORK_ITEM', 'WORKFLOW_PROCESS_INSTANCE', 'RECONCILIATION',
     'SUSPEND_TASK', 'RESUME_TASK', 'RUN_TASK_IMMEDIATELY', 'DISCOVER_OBJECT', 'INFORMATION_DISCLOSURE',
-    'SMART_SERVICE_CALL');
+    'EXTERNAL_SERVICE_CALL');
 
 -- @description: Describes whether an audit event records the request, execution, or resource stage.
 CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION', 'RESOURCE');
@@ -268,7 +268,7 @@ CREATE TABLE ma_audit_payload (
     contentType TEXT,
     -- @description: Payload content stored as JSON.
     content JSONB,
-    -- @description: Text representation used for later full-text search.
+    -- @description: Text representation used for full-text search.
     searchableText TEXT,
 
     PRIMARY KEY (recordId, timestamp, ordinal)
@@ -277,7 +277,7 @@ CREATE TABLE ma_audit_payload (
 /* FK is created per partition only, see audit_create_monthly_partitions
    and the *_default tables below. */
 
--- @description: Speeds up later full-text-like audit payload searches.
+-- @description: Speeds up full-text-like audit payload searches.
 -- @usedFor: full-text-like audit payload searches
 CREATE INDEX ma_audit_payload_searchableText_idx
     ON ma_audit_payload USING gin(searchableText gin_trgm_ops);
@@ -552,4 +552,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(14, $$ SELECT 1 $$, true);
+call apply_audit_change(15, $$ SELECT 1 $$, true);

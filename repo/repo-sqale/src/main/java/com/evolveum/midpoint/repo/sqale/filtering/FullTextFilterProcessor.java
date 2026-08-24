@@ -52,7 +52,7 @@ public class FullTextFilterProcessor implements FilterProcessor<FullTextFilter> 
             return auditPayloadExistsPredicate(words);
         }
 
-        throw new QueryException("Fulltext currently supported only on objects");
+        throw new QueryException("FullText filter is not supported for this type");
     }
 
     /**

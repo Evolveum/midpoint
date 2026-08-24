@@ -466,7 +466,7 @@ Stores audit payloads attached to audit events.
 | `searchableText`
 | `TEXT`
 | 
-| Text representation used for later full-text search.
+| Text representation used for full-text search.
 
 |===
 
@@ -480,7 +480,7 @@ Stores audit payloads attached to audit events.
 
 | `ma_audit_payload_searchableText_idx`
 | `USING gin (searchableText)`
-| Speeds up later full-text-like audit payload searches. Used for: full-text-like audit payload searches
+| Speeds up full-text-like audit payload searches. Used for: full-text-like audit payload searches
 
 |===
 
@@ -626,7 +626,7 @@ Enum types define allowed database values for selected columns.
 [[enum_AuditEventTypeType]]
 | `AuditEventTypeType`
 | Describes the type of operation recorded in an audit event.
-| `GET_OBJECT`, `ADD_OBJECT`, `MODIFY_OBJECT`, `DELETE_OBJECT`, `EXECUTE_CHANGES_RAW`, `SYNCHRONIZATION`, `CREATE_SESSION`, `TERMINATE_SESSION`, `WORK_ITEM`, `WORKFLOW_PROCESS_INSTANCE`, `RECONCILIATION`, `SUSPEND_TASK`, `RESUME_TASK`, `RUN_TASK_IMMEDIATELY`, `DISCOVER_OBJECT`, `INFORMATION_DISCLOSURE`, `SMART_SERVICE_CALL`
+| `GET_OBJECT`, `ADD_OBJECT`, `MODIFY_OBJECT`, `DELETE_OBJECT`, `EXECUTE_CHANGES_RAW`, `SYNCHRONIZATION`, `CREATE_SESSION`, `TERMINATE_SESSION`, `WORK_ITEM`, `WORKFLOW_PROCESS_INSTANCE`, `RECONCILIATION`, `SUSPEND_TASK`, `RESUME_TASK`, `RUN_TASK_IMMEDIATELY`, `DISCOVER_OBJECT`, `INFORMATION_DISCLOSURE`, `EXTERNAL_SERVICE_CALL`
 
 [[enum_ChangeType]]
 | `ChangeType`

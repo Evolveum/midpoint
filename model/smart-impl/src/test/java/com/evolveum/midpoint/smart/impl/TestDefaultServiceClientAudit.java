@@ -70,7 +70,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertThat(response).isNotNull();
         assertThat(delegate.syncCalls).isEqualTo(1);
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertCommon(records.get(0), AuditEventStage.REQUEST);
         assertCommon(records.get(1), AuditEventStage.EXECUTION);
@@ -79,6 +79,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertResourceTarget(records.get(1));
         assertRequestPayload(records.get(0));
         assertNoResponsePayload(records.get(1));
+        assertDurationMillis(records.get(1));
     }
 
     @DataProvider
@@ -106,7 +107,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertThat(response).isNotNull();
         assertThat(delegate.syncCalls).isEqualTo(1);
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         if (!expectedRecords) {
             assertThat(records).isEmpty();
             return;
@@ -138,7 +139,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertThat(response).isNotNull();
         assertThat(delegate.syncCalls).isEqualTo(1);
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertNoRequestPayload(records.get(0));
         assertNoResponsePayload(records.get(1));
@@ -167,9 +168,11 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
                 ClientCallContext.empty()))
                 .isSameAs(original);
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records.get(1).getOutcome()).isEqualTo(OperationResultStatus.FATAL_ERROR);
+        assertNoResponsePayload(records.get(1));
+        assertDurationMillis(records.get(1));
     }
 
     @Test
@@ -200,7 +203,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
 
         assertThat(future).isCompletedExceptionally();
         assertThat(delegate.asyncCalls).isZero();
-        assertThat(smartServiceCallRecords()).isEmpty();
+        assertThat(externalServiceCallRecords()).isEmpty();
     }
 
     @Test
@@ -249,7 +252,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
 
         assertThat(delegate.asyncCalls).isEqualTo(1);
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records).hasSize(2);
         assertDurationMillis(records.get(1));
@@ -268,7 +271,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
                 ClientCallContext.empty()))
                 .isSameAs(original);
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records.get(1).getOutcome()).isEqualTo(OperationResultStatus.FATAL_ERROR);
     }
@@ -287,7 +290,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         assertThat(delegate.asyncCalls).isEqualTo(1);
         assertThat(future).isCompletedExceptionally();
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records.get(1).getOutcome()).isEqualTo(OperationResultStatus.FATAL_ERROR);
         assertNoResponsePayload(records.get(1));
@@ -303,7 +306,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
                 SiSuggestObjectTypesResponseType.class,
                 ClientCallContext.empty());
 
-        var records = smartServiceCallRecords();
+        var records = externalServiceCallRecords();
         assertRequestExecutionPair(records);
         assertThat(records.get(0).getTargetRef()).isNull();
         assertThat(records.get(1).getTargetRef()).isNull();
@@ -312,16 +315,19 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
     }
 
     @Test
-    public void test190ResponsePayloadIsAbsentFromExecution() throws Exception {
-        var delegate = new RecordingServiceClient();
+    public void test190ServiceClientCompatibilityInvokeProvidesEmptyContext() throws Exception {
+        var client = new MockServiceClientImpl(new SiSuggestObjectTypesResponseType());
 
-        audited(delegate).invoke(
+        client.invoke(
                 ServiceClient.Method.SUGGEST_OBJECT_TYPES,
-                request(),
-                SiSuggestObjectTypesResponseType.class,
-                ClientCallContext.empty());
+                new SiSuggestObjectTypesRequestType(),
+                SiSuggestObjectTypesResponseType.class);
 
-        assertNoResponsePayload(smartServiceCallRecords().get(1));
+        var context = client.getLastCallContext();
+        assertThat(client.getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_OBJECT_TYPES);
+        assertThat(context.task()).isNull();
+        assertThat(context.result()).isNull();
+        assertThat(context.resource()).isNull();
     }
 
     @Test
@@ -365,8 +371,8 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         return ClientCallContext.of(getTestTask(), getTestTask().getResult(), new ResourceType().oid(RESOURCE_OID));
     }
 
-    private List<AuditEventRecord> smartServiceCallRecords() {
-        return dummyAuditService.getRecordsOfType(AuditEventType.SMART_SERVICE_CALL);
+    private List<AuditEventRecord> externalServiceCallRecords() {
+        return dummyAuditService.getRecordsOfType(AuditEventType.EXTERNAL_SERVICE_CALL);
     }
 
     private void assertRequestExecutionPair(List<AuditEventRecord> records) {
@@ -378,7 +384,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
     }
 
     private void assertCommon(AuditEventRecord record, AuditEventStage stage) {
-        assertThat(record.getEventType()).isEqualTo(AuditEventType.SMART_SERVICE_CALL);
+        assertThat(record.getEventType()).isEqualTo(AuditEventType.EXTERNAL_SERVICE_CALL);
         assertThat(record.getEventStage()).isEqualTo(stage);
         assertThat(record.getParameter()).isEqualTo(ServiceClient.Method.SUGGEST_OBJECT_TYPES.name());
     }
@@ -411,7 +417,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
     }
 
     private void assertDurationMillis(AuditEventRecord record) {
-        assertThat(record.getPropertyValues("smartService.durationMillis"))
+        assertThat(record.getPropertyValues("externalService.durationMillis"))
                 .singleElement()
                 .satisfies(value -> assertThat(Long.parseLong(value)).isNotNegative());
     }

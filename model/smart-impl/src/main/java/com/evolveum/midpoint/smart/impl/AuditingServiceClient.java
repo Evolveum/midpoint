@@ -39,11 +39,11 @@ class AuditingServiceClient implements ServiceClient {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditingServiceClient.class);
 
-    private static final String OP_AUDIT_SMART_SERVICE_CALL =
-            AuditingServiceClient.class.getName() + ".auditSmartServiceCall";
+    private static final String OP_AUDIT_EXTERNAL_SERVICE_CALL =
+            AuditingServiceClient.class.getName() + ".auditExternalServiceCall";
 
     private static final String CONTENT_TYPE_JSON = "application/json";
-    private static final String AUDIT_DURATION_MILLIS = "smartService.durationMillis";
+    private static final String AUDIT_DURATION_MILLIS = "externalService.durationMillis";
 
     private final ServiceClient delegate;
     private final AuditHelper auditHelper;
@@ -186,11 +186,7 @@ class AuditingServiceClient implements ServiceClient {
     private void auditRequest(Method method, ClientCallContext callContext,
             String requestIdentifier, @Nullable String requestText) {
 
-        var record = createRecord(
-                method,
-                callContext,
-                requestIdentifier,
-                AuditEventStage.REQUEST);
+        var record = createRecord(method, callContext, requestIdentifier, AuditEventStage.REQUEST);
 
         if (requestText != null) {
             record.addPayload(
@@ -207,11 +203,7 @@ class AuditingServiceClient implements ServiceClient {
             OperationResultStatus outcome, String message, long startNanos) {
 
         try {
-            var record = createRecord(
-                    method,
-                    callContext,
-                    requestIdentifier,
-                    AuditEventStage.EXECUTION);
+            var record = createRecord(method, callContext, requestIdentifier, AuditEventStage.EXECUTION);
 
             record.setOutcome(outcome);
             record.setMessage(message);
@@ -229,9 +221,7 @@ class AuditingServiceClient implements ServiceClient {
     private AuditEventRecord createRecord(Method method, ClientCallContext callContext,
             String requestIdentifier, AuditEventStage stage) {
 
-        var record = new AuditEventRecord(
-                AuditEventType.SMART_SERVICE_CALL,
-                stage);
+        var record = new AuditEventRecord(AuditEventType.EXTERNAL_SERVICE_CALL, stage);
 
         record.setRequestIdentifier(requestIdentifier);
         record.setParameter(method.name());
@@ -266,7 +256,7 @@ class AuditingServiceClient implements ServiceClient {
     private OperationResult auditResult(ClientCallContext callContext) {
         return callContext.result() != null
                 ? callContext.result()
-                : new OperationResult(OP_AUDIT_SMART_SERVICE_CALL);
+                : new OperationResult(OP_AUDIT_EXTERNAL_SERVICE_CALL);
     }
 
     private static String generateRequestIdentifier() {

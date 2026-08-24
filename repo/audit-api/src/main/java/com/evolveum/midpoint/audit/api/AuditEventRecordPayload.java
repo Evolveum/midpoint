@@ -9,6 +9,11 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPayloadType;
 
+/**
+ * Generic payload attached to an audit event record.
+ *
+ * Represents named audit data together with its content type and serialized content.
+ */
 public class AuditEventRecordPayload implements Serializable {
 
     private final String name;

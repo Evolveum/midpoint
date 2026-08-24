@@ -243,17 +243,17 @@ $aa$);
 -- Audit payloads
 -- @change: Adds generic audit payload persistence.
 -- @since: 4.11
--- @affects: enum AuditEventTypeType | Modified enum type | Adds `SMART_SERVICE_CALL`.
+-- @affects: enum AuditEventTypeType | Modified enum type | Adds `EXTERNAL_SERVICE_CALL`.
 -- @affects: table ma_audit_payload | New table | Stores payloads attached to audit events.
 -- @affects: table ma_audit_payload_default | New default partition | Stores payloads outside monthly partitions.
 -- @affects: table ma_audit_payload_<month> | New generated partition | Creates monthly audit payload partitions.
 -- @affects: constraint ma_audit_payload_<month>_fk | New generated foreign key | Links monthly audit payload partitions to matching audit event partitions.
--- @affects: index ma_audit_payload_searchableText_idx | New index | Supports later full-text-like payload searches.
+-- @affects: index ma_audit_payload_searchableText_idx | New index | Supports full-text-like payload searches.
 -- @affects: routine audit_create_monthly_partitions | Modified procedure | Creates payload partitions and FKs.
 call apply_audit_change(15, $aa$
 CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
-ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'SMART_SERVICE_CALL' AFTER 'INFORMATION_DISCLOSURE';
+ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'EXTERNAL_SERVICE_CALL' AFTER 'INFORMATION_DISCLOSURE';
 
 CREATE TABLE ma_audit_payload (
     recordId BIGINT NOT NULL,

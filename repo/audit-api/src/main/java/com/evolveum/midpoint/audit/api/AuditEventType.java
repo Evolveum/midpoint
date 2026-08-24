@@ -52,7 +52,7 @@ public enum AuditEventType {
 
     DISCOVER_OBJECT,
     INFORMATION_DISCLOSURE,
-    SMART_SERVICE_CALL;
+    EXTERNAL_SERVICE_CALL;
 
 
 
@@ -93,8 +93,8 @@ public enum AuditEventType {
                 return AuditEventType.DISCOVER_OBJECT;
             case INFORMATION_DISCLOSURE:
                 return AuditEventType.INFORMATION_DISCLOSURE;
-            case SMART_SERVICE_CALL:
-                return AuditEventType.SMART_SERVICE_CALL;
+            case EXTERNAL_SERVICE_CALL:
+                return AuditEventType.EXTERNAL_SERVICE_CALL;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }
@@ -151,8 +151,8 @@ public enum AuditEventType {
                 return AuditEventTypeType.DISCOVER_OBJECT;
             case INFORMATION_DISCLOSURE:
                 return AuditEventTypeType.INFORMATION_DISCLOSURE;
-            case SMART_SERVICE_CALL:
-                return AuditEventTypeType.SMART_SERVICE_CALL;
+            case EXTERNAL_SERVICE_CALL:
+                return AuditEventTypeType.EXTERNAL_SERVICE_CALL;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }

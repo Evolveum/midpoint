@@ -17,8 +17,7 @@ public class ConfigBasedServiceClientFactory implements ServiceClientFactory {
     private final SystemObjectCache systemObjectCache;
     private final AuditHelper auditHelper;
 
-    ConfigBasedServiceClientFactory(SystemObjectCache systemObjectCache,
-            AuditHelper auditHelper) {
+    ConfigBasedServiceClientFactory(SystemObjectCache systemObjectCache, AuditHelper auditHelper) {
         this.systemObjectCache = systemObjectCache;
         this.auditHelper = auditHelper;
     }
@@ -26,8 +25,7 @@ public class ConfigBasedServiceClientFactory implements ServiceClientFactory {
     @Override
     public ServiceClient getServiceClient(OperationResult parentResult) throws SchemaException, ConfigurationException {
         var systemConfiguration = systemObjectCache.getSystemConfigurationBean(parentResult);
-        var smartIntegrationConfiguration =
-                SystemConfigurationTypeUtil.getSmartIntegrationConfiguration(systemConfiguration);
+        var smartIntegrationConfiguration = SystemConfigurationTypeUtil.getSmartIntegrationConfiguration(systemConfiguration);
         var auditConfiguration = auditHelper.getAuditConfiguration(systemConfiguration);
         return new AuditingServiceClient(
                 new DefaultServiceClientImpl(smartIntegrationConfiguration),

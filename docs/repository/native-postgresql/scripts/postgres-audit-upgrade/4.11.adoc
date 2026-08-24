@@ -8,6 +8,12 @@
 | Change
 | Description
 
+| <<change-15,Change 15>>
+| Adds generic audit payload persistence.
+
+| <<change-14,Change 14>>
+| Adds `WORK` shadow kind value.
+
 | <<change-13,Change 13>>
 | Adds `PROJECTION_HOLDER` object type value.
 
@@ -16,6 +22,68 @@
 
 | <<change-11,Change 11>>
 | Adds application object type value.
+
+|===
+
+[[change-15]]
+== Change 15
+
+Since version: 4.11
+
+Adds generic audit payload persistence.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `AuditEventTypeType`
+| Modified enum type
+| Adds `EXTERNAL_SERVICE_CALL`.
+
+| `ma_audit_payload`
+| New table
+| Stores payloads attached to audit events.
+
+| `ma_audit_payload_default`
+| New default partition
+| Stores payloads outside monthly partitions.
+
+| `ma_audit_payload_<month>`
+| New generated partition
+| Creates monthly audit payload partitions.
+
+| `ma_audit_payload_<month>_fk`
+| New generated foreign key
+| Links monthly audit payload partitions to matching audit event partitions.
+
+| `ma_audit_payload_searchableText_idx`
+| New index
+| Supports full-text-like payload searches.
+
+| `audit_create_monthly_partitions`
+| Modified procedure
+| Creates payload partitions and FKs.
+
+|===
+
+[[change-14]]
+== Change 14
+
+Since version: 4.11
+
+Adds `WORK` shadow kind value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ShadowKindType`
+| Modified enum type
+| Adds `WORK` shadow kind value.
 
 |===
 

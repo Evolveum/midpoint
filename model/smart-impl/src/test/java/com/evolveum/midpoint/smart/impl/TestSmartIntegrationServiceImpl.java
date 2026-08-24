@@ -574,23 +574,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test090ServiceClientCompatibilityInvokeProvidesEmptyContext() throws Exception {
-        var client = new MockServiceClientImpl(new SiSuggestObjectTypesResponseType());
-
-        client.invoke(
-                ServiceClient.Method.SUGGEST_OBJECT_TYPES,
-                new SiSuggestObjectTypesRequestType(),
-                SiSuggestObjectTypesResponseType.class);
-
-        var context = client.getLastCallContext();
-        assertThat(client.getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_OBJECT_TYPES);
-        assertThat(context.task()).isNull();
-        assertThat(context.result()).isNull();
-        assertThat(context.resource()).isNull();
-    }
-
-    @Test
-    public void test095ServiceClientAsyncPreservesExplicitContext() {
+    public void test090ServiceClientAsyncPreservesExplicitContext() {
         var task = getTestTask();
         var result = task.getResult();
         var context = ClientCallContext.of(task, result, null);
@@ -608,7 +592,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test097ComputeSchemaMatchPassesOperationContext() throws CommonException {
+    public void test091ComputeSchemaMatchPassesOperationContext() throws CommonException {
         skipIfRealService();
 
         var mockClient = new MockServiceClientImpl(new SiMatchSchemaResponseType());
