@@ -4,7 +4,6 @@ doc-type: config
 ---
 = Certification campaign configuration
 :page-nav-title: Configuration
-:page-toc: top
 :page-upkeep-status: orange
 :experimental:
 :page-display-order: 200
