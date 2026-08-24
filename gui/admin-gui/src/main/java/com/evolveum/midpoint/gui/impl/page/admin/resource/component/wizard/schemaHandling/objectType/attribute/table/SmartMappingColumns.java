@@ -227,7 +227,12 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                         createSourceMultiselectModel(rowModel, table.getPageBase());
                 FocusDefinitionsMappingProvider provider =
                         new FocusDefinitionsMappingProvider(
-                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
+                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel){
+                            @Override
+                            protected boolean showContainerChoices() {
+                                return true;
+                            }
+                        };
 
                 return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
             }
