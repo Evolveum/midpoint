@@ -13,7 +13,7 @@ doc-type: example
 :page-upkeep-status: green
 :page-alias: { "parent" : "/midpoint/reference/misc/reports/", "slug" : "certification",  "title" : "Access Certification" }
 :page-moved-from: /midpoint/reference/roles-policies/certification/reports/
-:page-display-order: 500
+:page-display-order: 600
 :page-description: This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
 :page-keywords: access certification reports, certification definitions report, certification campaigns report, certification cases report, certification work items report
 :page-toc: top
