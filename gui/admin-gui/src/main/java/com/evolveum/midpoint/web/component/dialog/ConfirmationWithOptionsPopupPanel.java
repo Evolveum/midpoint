@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.dialog;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.Describable;
 
@@ -59,7 +60,10 @@ public class ConfirmationWithOptionsPopupPanel<T extends Describable>
     }
 
     private void detachAiInfo() {
-        getPanelConfig().getAiInfo().detach();
+        IModel<AiInfo> aiInfo = getPanelConfig().getAiInfo();
+        if(aiInfo != null) {
+            aiInfo.detach();
+        }
     }
 
     private void initFooter() {

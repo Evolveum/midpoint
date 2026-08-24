@@ -192,6 +192,22 @@ There is additional variable available to all MEL expressions:
 It is a fixed timestamp of an approximate moment of the script execution.
 Value of the variable does not change during script execution.
 
+=== Local Variable Binding
+
+The `cel.bind` macro binds result of an expression to a local variable name:
+
+`cel.bind(_variable_, _value expression_, _result expression_)`
+
+This macro can be used to avoid duplicating an expensive computation.
+For example:
+
+[source,mel]
+----
+cel.bind(x, expensiveComputation(), x > 0 ? x * 100 : 0)
+----
+
+In this case the `expensiveComputation()` is evaluated only once, with the result stored in local variable `x`.
+Subsequent expression can use variable `x` in its computation.
 
 == Functions and Macros
 
@@ -3314,7 +3330,7 @@ E.g. username for session start/stop, etc.
 
 |===
 
-// ==== Object Delta Functions
+// ==== Audit Event Record Functions
 
 // TODO: later, when implemented
 
@@ -3370,7 +3386,7 @@ Useful for informational purposes, typically in audit records.
 
 |===
 
-// ==== Object Delta Functions
+// ==== Object Delta Operation Functions
 
 // TODO: later, when implemented
 

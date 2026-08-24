@@ -53,7 +53,18 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
 
-        return new ExpressionPanel(panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+        return new ExpressionPanel(panelCtx.getComponentId(),
+                panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+
+            @Override
+            protected boolean isReadOnly() {
+                IModel<PrismPropertyWrapper<ExpressionType>> itemWrapperModel = panelCtx.getItemWrapperModel();
+                if (itemWrapperModel != null && itemWrapperModel.getObject() != null) {
+                    return itemWrapperModel.getObject().isReadOnly();
+                }
+                return super.isReadOnly();
+            }
+
             @Override
             public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
                 List<CollapsedItem<DrawerModel>> drawerCollapsedItems = super.getDrawerCollapsedItems();
@@ -92,7 +103,16 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
                 return drawerCollapsedItems;
 
             }
+
+            @Override
+            protected String getAdditionalCssClassForTypeChoice() {
+                return getAdditionalLabelClass(panelCtx.unwrapWrapperModel());
+            }
         };
+    }
+
+    private String getAdditionalLabelClass(PrismPropertyWrapper<ExpressionType> wrapper) {
+        return !wrapper.isMetadata() && wrapper.isReadOnly() ? "prism-value-label-readonly" : null;
     }
 
     private static PrismContainerValueWrapper<IterationSpecificationType> findIterationValueWrapper(
