@@ -2,7 +2,7 @@
 midpoint-feature: micro-certification
 doc-type: guide
 ---
-= Ad-Hoc Certification
+= Ad-hoc certification
 :page-wiki-name: Ad-hoc certification HOWTO
 :page-wiki-id: 24085921
 :page-wiki-metadata-create-user: mederly
@@ -12,15 +12,15 @@ doc-type: guide
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/ad-hoc-certifications/
 :page-display-order: 900
-:page-description: This instructs on how to create ad-hoc certifications in midPoint.
+:page-description: This guide instructs on how to create ad-hoc certifications in midPoint.
 :page-keywords: ad-hoc certification, policy rule, certification campaign
 :page-toc: top
 
+This guide shows you how to create ad-hoc certification campaigns.
+This can be useful in specific cases for which regular scheduled certification campaigns are not a good fit, such as when a new user is added to an organization and its manager should review and certify all of the user's assignments (roles, etc.).
+The regular campaigns are not the best fit for this scenario because this _single-person certification_ needs to be done right away and cannot wait several months until the next scheduled "full" certification campaign.
 
-This page shows you how to create ad-hoc certification campaigns.
-This can be useful in more specific cases, such as when a new user is added to an organization and its manager should review and certify all of the user's assignments (roles, etc.).
-
-== Define Ad-hoc Certification Campaigns
+== Define ad-hoc certification campaigns
 
 To define an ad-hoc certification campaign:
 
@@ -28,7 +28,7 @@ To define an ad-hoc certification campaign:
 . Define the actual <<certification_campaign,ad-hoc certification campaign>>.
 
 [[policy_rules]]
-=== Policy Rule
+=== Policy rule
 
 Policy rules can be configured to trigger a creation of a new _ad-hoc certification campaign_ (not to be confused with the standard multi-object scheduled campaigns).
 
@@ -61,7 +61,7 @@ So, it is expected that this rule should be assigned to organizations for which 
 More specifically, `definitionRef` points to the certification definition that specifies what the certification should look like; e.g. how many stages it should have, how to select reviewers for those stages, and so on.
 
 [[certification_campaign]]
-=== Certification Campaign
+=== Certification campaign
 
 See an example of an ad-hoc certification campaign below:
 

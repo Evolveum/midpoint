@@ -4,8 +4,8 @@
 :page-display-order: 20
 :page-upkeep-status: orange
 :experimental:
-:page-description:
-:page-keywords:
+:page-description: This article describes access certification campaign scope definition, i.e., an algorithm to select objects and targets to certify.
+:page-keywords: certification campaign, campaign definition, campaign configuration, scope
 
 Scope definition controls the set of certification cases that are created when the certification campaign is started.
 You can configure the following:

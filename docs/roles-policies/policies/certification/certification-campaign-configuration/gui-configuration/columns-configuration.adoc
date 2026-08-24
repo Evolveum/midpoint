@@ -1,17 +1,17 @@
-= Predefined Columns Configuration
+= Predefined columns configuration
 :page-moved-from: /midpoint/reference/roles-policies/policies/certification/columns-configuration/
 :page-nav-title: Predefined Columns Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/columns-configuration/
-:page-display-order: 142
-:page-description: This page shows how you can configure columns for your certification items collection view.
+:page-display-order: 10
+:page-description: This article shows how you can configure columns in GUI for your certification items collection view.
 :page-keywords: columns configuration, predefined columns, accessCertification, certification
 :page-toc: top
 
-This page shows how you can configure columns for your certification items collection view.
+This article shows how you can configure columns in GUI for your certification items collection view.
 It shows you how to configure column visibility, labels, and ordering by using column identifiers and custom path/expression settings.
 
-== General Information
+== General information
 
 MidPoint enables you to configure columns within the object collection view configuration.
 This configuration is based on the _path_ element, or the _export -> expression_ element value.
@@ -21,12 +21,13 @@ Starting with midPoint-4.9, a predefined columns configuration is introduced.
 
 Predefined columns are the default view columns which are already implemented in the code.
 To apply a configuration to a predefined column, the identifier (column name in this case) is used.
-This page shows you how to customize the predefined columns configuration.
+This article shows you how to customize the predefined columns configuration.
 
 WARNING: This feature is still under development and the configuration may change in the future.
 For now, predefined columns configuration can be defined only for the certification items collection view.
+// verified as valid on 2026-08-24 (it is actually more "frozen" rather then experimental
 
-== Predefined Columns Configuration
+== Predefined columns configuration
 
 Predefined columns configuration is done within the _Object Collection View_ configuration.
 
@@ -99,7 +100,7 @@ For example:
 ----
 
 [[available_predefined_columns]]
-== Available Predefined Columns
+== Available predefined columns
 
 As mentioned above, predefined columns can be configured only for the certification items collection view.
 Therefore, the list of the available predefined columns is limited to the certification items columns.

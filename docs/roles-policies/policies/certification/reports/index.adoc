@@ -3,7 +3,7 @@ midpoint-feature: access-certification
 doc-type: example
 ---
 = Access certification reports
-:page-nav-title: Certification Reports
+:page-nav-title: Certification reports
 :page-wiki-name: Access Certification Reports
 :page-wiki-id: 22282416
 :page-wiki-metadata-create-user: mederly
@@ -14,12 +14,11 @@ doc-type: example
 :page-alias: { "parent" : "/midpoint/reference/misc/reports/", "slug" : "certification",  "title" : "Access Certification" }
 :page-moved-from: /midpoint/reference/roles-policies/certification/reports/
 :page-display-order: 600
-:page-description: This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
+:page-description: This article shows examples of access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
 :page-keywords: access certification reports, certification definitions report, certification campaigns report, certification cases report, certification work items report
 :page-toc: top
 
-
-This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
+This article shows examples of the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
 
 Each of the provided reports provides a different level of detail, from high-level campaign overviews to individual reviewer decisions.
 You can export reports and use them for auditing and certification tracking.

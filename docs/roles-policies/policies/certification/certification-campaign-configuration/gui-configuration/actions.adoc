@@ -1,17 +1,17 @@
-= GUI Action Configuration
+= GUI action configuration
 :page-moved-from: /midpoint/reference/roles-policies/policies/certification/actions/
 :page-nav-title: GUI Action Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/actions/
-:page-display-order: 144
+:page-display-order: 20
 :page-toc: top
-:page-description: This page explains the different certification actions that reviewers can use in the midPoint user interface.
+:page-description: This article explains the different certification actions that reviewers can use in the midPoint graphical user interface.
 :page-keywords: certification campaign, GUI actions, inline menu actions
 
-This page explains the different certification actions that reviewers can use in the midPoint user interface.
+This article explains the different certification actions that reviewers can use in the midPoint graphics user interface (GUI).
 You can use this information to better understand what each action does and how it affects the certification process.
 
-== General Information
+== General information
 
 Reviewers come across certification actions throughout the midPoint GUI.
 These actions control what happens next in campaigns.
@@ -21,8 +21,9 @@ In this document, we'll have a look at the inline menu actions configuration.
 
 WARNING: This feature is still under development and the configuration may change in the future.
 For now, inline menu actions can be configured only for the certification items collection view.
+// verified as valid on 2026-08-24 (it is actually more "frozen" rather then experimental
 
-== Configure Inline Menu Actions
+== Configure inline menu actions
 
 Action configuration is done within the _Object Collection View_ configuration.
 
@@ -62,7 +63,7 @@ The configuration above defines an Accept action for certification items.
 The action requires a confirmation and a comment to be filled in.
 
 [[available_actions]]
-=== Available Actions
+=== Available actions
 
 As mentioned above, inline menu actions can be configured only for the certification items collection view for now.
 Therefore, the list of the available actions is limited to the certification items actions.

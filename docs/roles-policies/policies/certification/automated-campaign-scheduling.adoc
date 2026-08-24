@@ -9,7 +9,7 @@ doc-type: guide
 :page-display-order: 300
 :page-toc: top
 :toclevels: 1
-:page-description: This guide explains how to set up automated task to run a certification campaign automatically at scheduled times.
+:page-description: This guide explains how to set up a scheduled task to run a certification campaign automatically at scheduled times.
 :page-keywords: access, campaign, schedule, certification, access certification campaign, task, cron
 
 Access certification campaigns can be automatically started using tasks.

@@ -1,11 +1,10 @@
 = Global access certification settings in system configuration
 :page-nav-title: Global configuration
 :page-display-order: 40
-:page-toc: top
 :page-upkeep-status: orange
 :experimental:
-:page-description:
-:page-keywords:
+:page-description: This article describes the global access certification configuration concerning all campaigns regardless the template on which they are based.
+:page-keywords: certification campaign, campaign definition, campaign configuration
 
 Some aspects of access certification campaigns configuration are defined in the system configuration object.
 These configuration aspects are used globally and applied to all campaigns.
@@ -36,4 +35,4 @@ availableResponse ::
         ** _accept_
         ** _revoke_
         ** _noResponse_
-// TODO: Deprecated since 4.9.
+// Deprecated since 4.9.
