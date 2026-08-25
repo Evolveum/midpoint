@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +20,7 @@ import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Asserts on the collections of {@link ProcessedObject} instances.
@@ -81,9 +83,32 @@ public class ProcessedObjectsAsserter<RA> extends AbstractAsserter<RA> {
         return new ProcessedObjectFinder<>(this);
     }
 
+    public ProcessedObjectsAsserter<RA> each(
+            Consumer<ProcessedObjectAsserter<ObjectType, ProcessedObjectsAsserter<RA>>> test, String description) {
+        this.processedObjects.forEach(po -> {
+            //noinspection unchecked
+            test.accept(spawn((ProcessedObject<ObjectType>) po, description));
+        });
+        return this;
+    }
+
+    public ProcessedObjectsAsserter<?> then(
+            Function<? super ProcessedObjectsAsserter<?>, ? extends ProcessedObjectsAsserter<?>> asserter) {
+        return asserter.apply(this);
+    }
+
     public <O extends ObjectType> ProcessedObjectAsserter<O, ProcessedObjectsAsserter<RA>> spawn(ProcessedObject<O> delta, String message) {
         var asserter = new ProcessedObjectAsserter<>(delta, this, message + " in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
+
+    ProcessedObjectsAsserter<ProcessedObjectsAsserter<RA>> slice(
+            Collection<? extends ProcessedObject<?>> processedObjects, String details) {
+        final ProcessedObjectsAsserter<ProcessedObjectsAsserter<RA>> sliced = new ProcessedObjectsAsserter<>(
+                processedObjects, this, details);
+        copySetupTo(sliced);
+        return sliced;
+    }
+
 }

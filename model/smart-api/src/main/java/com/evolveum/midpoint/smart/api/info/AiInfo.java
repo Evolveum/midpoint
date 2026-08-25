@@ -8,6 +8,8 @@
 
 package com.evolveum.midpoint.smart.api.info;
 
+import java.io.Serializable;
+
 /**
  * AI provider and model information returned by the microservice health endpoint.
  *
@@ -18,5 +20,5 @@ package com.evolveum.midpoint.smart.api.info;
  * model: The specific AI model being used.
  * status: The operational status of the AI provider.
  */
-public record AiInfo(String provider, String model, HealthStatus status) {
+public record AiInfo(String provider, String model, HealthStatus status) implements Serializable {
 }

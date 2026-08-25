@@ -81,7 +81,7 @@
                 <ref>ri:uid</ref>
                 <inbound>
                     <target>
-                        <path>$user/name</path>
+                        <path>$user/name</path> <!--legacy, just for testing-->
                     </target>
                 </inbound>
             </attribute>
@@ -89,13 +89,13 @@
                 <ref>ri:cn</ref>
                 <inbound>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
                 <inbound>
                     <name>last-login-from-behavior</name>
                     <source>
-                        <path>$shadow/behavior/lastLoginTimestamp</path>
+                        <path>$projection/behavior/lastLoginTimestamp</path>
                     </source>
                     <expression>
                         <script>
@@ -103,7 +103,7 @@
                         </script>
                     </expression>
                     <target>
-                        <path>$user/extension/piracy:funeralTimestamp</path>
+                        <path>$focus/extension/piracy:funeralTimestamp</path>
                     </target>
                 </inbound>
             </attribute>

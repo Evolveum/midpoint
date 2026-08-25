@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesProcessingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyProcessingModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyType;
@@ -45,6 +46,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  *
  * Covers all three policy sources: inline activity policies, {@code policyRef}, and {@code virtualAssignments}
  * (the latter two are exactly the cases the older per-rule "enabled" rewriting could not handle).
+ *
+ * The `test13x`-`test15x` methods cover the other recovery path for the same three sources: clearing the policy
+ * states and counters (via {@link ModelInteractionService#clearAllActivityPolicyStates}) instead of switching
+ * the processing off. They check that a plain resume is not enough, because the counters from the previous run
+ * are taken into account.
  *
  * == Second part (`test2xx`)
  *
@@ -90,6 +96,19 @@ public class TestActivityPolicyProcessing extends AbstractEmptyModelIntegrationT
     private static final TestObject<TaskType> TASK_120_IMPORT_VA = TestObject.file(
             TEST_DIR, "task-120-import-va.xml", "b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0120");
 
+    private static final TestObject<TaskType> TASK_130_RECOVER_INLINE = TestObject.file(
+            TEST_DIR, "task-130-recover-inline.xml", "b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0130");
+
+    private static final TestObject<TaskType> TASK_140_RECOVER_POLICYREF = TestObject.file(
+            TEST_DIR, "task-140-recover-policyref.xml", "b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0140");
+    private static final TestObject<PolicyType> POLICY_140 = TestObject.file(
+            TEST_DIR, "policy-140.xml", "b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0005");
+
+    private static final TestObject<TaskType> TASK_150_RECOVER_VA = TestObject.file(
+            TEST_DIR, "task-150-recover-va.xml", "b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0150");
+    private static final TestObject<RoleType> ROLE_150_VA = TestObject.file(
+            TEST_DIR, "role-150-va.xml", "b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0006");
+
     private static final TestTask TASK_200_RECOMPUTE_INLINE = new TestTask(
             TEST_DIR, "task-200-recompute-inline.xml", "64118b9f-fd06-46da-b9a9-f6f6ae1b999f");
 
@@ -119,8 +138,8 @@ public class TestActivityPolicyProcessing extends AbstractEmptyModelIntegrationT
         faultyResourceCtl.addAccount("err2", "broken user 2");
 
         initTestObjects(initTask, initResult,
-                POLICY_110, POLICY_210,
-                ROLE_120_VA, ROLE_220_VA);
+                POLICY_110, POLICY_140, POLICY_210,
+                ROLE_120_VA, ROLE_150_VA, ROLE_220_VA);
     }
 
     /** Suspend on inline activity policy, then disable processing and resume to completion. */
@@ -261,6 +280,145 @@ public class TestActivityPolicyProcessing extends AbstractEmptyModelIntegrationT
                     .isNotNull();
         }
     }
+
+    /**
+     * Recovery by clearing the policy state: a threshold policy declared inline suspends the task,
+     * a plain resume trips it again (the counter from the previous run is preexisting), and only after
+     * clearing the states and counters the task is able to finish. See {@link #executeRecoveryTest}.
+     */
+    @Test
+    public void test130RecoverInlinePolicy() throws Exception {
+        executeRecoveryTest(
+                TASK_130_RECOVER_INLINE, "ri",
+                () -> TestActivityPolicyUtils.buildPolicyIdentifier(
+                        getTask(TASK_130_RECOVER_INLINE.oid), ActivityPath.empty(), "inline-add-3", true));
+    }
+
+    /** As {@link #test130RecoverInlinePolicy()} but the rule comes via {@code policyRef}. */
+    @Test
+    public void test140RecoverPolicyRef() throws Exception {
+        executeRecoveryTest(
+                TASK_140_RECOVER_POLICYREF, "rp",
+                () -> PlainPolicyRuleIdentifier.of(POLICY_140.oid, 1L).asString());
+    }
+
+    /** As {@link #test130RecoverInlinePolicy()} but the rule comes via {@code virtualAssignments}. */
+    @Test
+    public void test150RecoverVirtualAssignment() throws Exception {
+        executeRecoveryTest(
+                TASK_150_RECOVER_VA, "rv",
+                () -> PlainPolicyRuleIdentifier.of(ROLE_150_VA.oid, 1L).asString());
+    }
+
+    /**
+     * Runs the whole "suspended by a threshold -> cannot be simply resumed -> clear the state -> resume to the end"
+     * cycle for a policy that suspends the task when the number of user adds reaches the threshold.
+     *
+     * There are four accounts to import and the threshold is 3, so the arithmetic is: two users are imported and
+     * the third add trips the threshold (and is aborted). A plain resume trips it immediately again, because the
+     * three counts from the previous run are preexisting ones. After clearing, the two remaining adds stay below
+     * the threshold, so the task finishes.
+     *
+     * @param accountPrefix Prefix of the resource accounts (and hence users) created for this test.
+     * @param counterIdSupplier Provides the identifier under which the rule counter is stored; it differs
+     * for inline rules and for the referenced ones, and can be determined only after the task is in repository.
+     */
+    private void executeRecoveryTest(
+            TestObject<TaskType> testTask, String accountPrefix, CheckedProducer<String> counterIdSupplier)
+            throws Exception {
+        OperationResult result = getTestOperationResult();
+
+        given("four fresh accounts without owners exist on the clean resource");
+        for (int i = 1; i <= 4; i++) {
+            dummyResourceCtl.addAccount(accountPrefix + i, "recovery user " + accountPrefix + i);
+        }
+
+        when("the import guarded by the max-2-adds policy runs");
+        addObject(testTask, getTestTask(), result);
+        waitForTaskCloseOrSuspend(testTask.oid, TIMEOUT);
+
+        then("the task is suspended, with the counter at the threshold; the tripping add was aborted");
+        String counterId = counterIdSupplier.get();
+        // @formatter:off
+        assertTaskTree(testTask.oid, "after first run")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .activityState(ActivityPath.empty())
+                    .fullExecutionModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(counterId, 3)
+                    .end();
+        // @formatter:on
+        assertThat(countUsers(accountPrefix)).as("users imported in the first run").isEqualTo(2);
+
+        when("the task is resumed without clearing the policy state");
+        resumeAndWait(testTask.oid, result);
+
+        then("it is suspended again: the counter from the previous run is still there");
+        // @formatter:off
+        assertTaskTree(testTask.oid, "after plain resume")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .activityState(ActivityPath.empty())
+                    .fullExecutionModePolicyRulesCounters()
+                        .display()
+                    .end();
+        // @formatter:on
+        assertThat(countUsers(accountPrefix)).as("users imported after the plain resume").isEqualTo(2);
+
+        when("all policy states and counters are cleared");
+        boolean changed = modelInteractionService.clearAllActivityPolicyStates(
+                getTask(testTask.oid), getTestTask(), result);
+
+        then("something was cleared, and no counter is left");
+        assertThat(changed).as("task changed by clearAllActivityPolicyStates").isTrue();
+        // @formatter:off
+        assertTaskTree(testTask.oid, "after clearing the policy state")
+                .display()
+                .activityState(ActivityPath.empty())
+                    .fullExecutionModePolicyRulesCounters()
+                        .display()
+                        .assertCounterCount(0)
+                    .end();
+        // @formatter:on
+
+        when("the task is resumed again");
+        resumeAndWait(testTask.oid, result);
+
+        then("it finishes: the two remaining adds are below the threshold");
+        // @formatter:off
+        assertTaskTree(testTask.oid, "after resume with cleared policy state")
+                .display()
+                .assertClosed()
+                .assertSuccess()
+                .activityState(ActivityPath.empty())
+                    .assertComplete()
+                    .fullExecutionModePolicyRulesCounters()
+                        .display()
+                        .assertCounter(counterId, 2)
+                    .end();
+        // @formatter:on
+        assertThat(countUsers(accountPrefix)).as("users imported after the recovery").isEqualTo(4);
+    }
+
+    private void resumeAndWait(String taskOid, OperationResult result) throws Exception {
+        taskManager.resumeTaskTree(taskOid, result);
+        waitForTaskCloseOrSuspend(taskOid, TIMEOUT);
+    }
+
+    /** Counts existing users among {@code prefix1} .. {@code prefix4}. */
+    private int countUsers(String prefix) throws Exception {
+        int count = 0;
+        for (int i = 1; i <= 4; i++) {
+            if (findUserByUsername(prefix + i) != null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 
     private ActivityPoliciesProcessingType processingNone() {
         return new ActivityPoliciesProcessingType()

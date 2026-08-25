@@ -5325,7 +5325,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         If set to true, the token expression will not be evaluated on the first attempt

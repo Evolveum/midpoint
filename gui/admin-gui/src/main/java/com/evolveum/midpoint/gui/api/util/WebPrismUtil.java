@@ -334,6 +334,44 @@ public class WebPrismUtil {
         }
     }
 
+    /**
+     * Removes the wrapper from its parent if it was newly added and contains no meaningful values.
+     *
+     * @param valueWrapper wrapper to check and remove
+     */
+    public static void removeEmptyAddedValue(@NotNull PrismContainerValueWrapper<?> valueWrapper) {
+
+        if (valueWrapper.getStatus() != ValueStatus.ADDED || !isEmptyWrapper(valueWrapper)) {
+            return;
+        }
+
+        WebPrismUtil.cleanupEmptyContainerValue(valueWrapper.getNewValue());
+
+        if (valueWrapper.getParent() instanceof PrismContainerWrapper<?> parent) {
+            parent.getValues().remove(valueWrapper);
+
+            if (valueWrapper.getNewValue() != null) {
+                parent.getItem().getValues().remove(valueWrapper.getNewValue());
+            }
+        }
+    }
+
+    /**
+     * Checks whether the wrapper contains no meaningful values after empty values are cleaned up.
+     */
+    protected static boolean isEmptyWrapper(
+            @NotNull PrismContainerValueWrapper<?> valueWrapper) {
+
+        PrismContainerValue<?> newValue = valueWrapper.getNewValue();
+        if (newValue == null) {
+            return true;
+        }
+
+        PrismContainerValue<?> clone = newValue.clone();
+        WebPrismUtil.cleanupEmptyContainerValue(clone);
+        return clone.isEmpty();
+    }
+
     public static void cleanupValueMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             cleanupEmptyValues(value.getValueMetadata());

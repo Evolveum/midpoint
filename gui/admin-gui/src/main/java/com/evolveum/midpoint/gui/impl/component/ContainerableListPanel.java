@@ -1830,11 +1830,21 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             protected StringResourceModel getCustomSubTitleModel() {
                 return getNoValuePanelCustomSubTitleModel();
             }
+
+            @Override
+            protected String getPanelAdditionalCssClass() {
+                return ContainerableListPanel.this.getNoValuePanelCssClass();
+            }
         };
         components.setOutputMarkupId(true);
         components.setOutputMarkupPlaceholderTag(true);
         components.add(new VisibleBehaviour(this::displayNoValuePanel));
         return components;
+    }
+
+
+    protected String getNoValuePanelCssClass() {
+        return "card shadow-sm mb-3";
     }
 
     protected Component getNoValuePanel() {

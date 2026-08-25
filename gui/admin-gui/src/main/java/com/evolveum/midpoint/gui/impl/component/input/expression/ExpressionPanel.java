@@ -342,7 +342,8 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
                     ? getPageBase().createStringResource(typeModel.getObject().type).getString()
                     : ExpressionPanel.this.getString(RecognizedEvaluator.AS_IS.type));
             label.setOutputMarkupId(true);
-            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap "));
+            label.add(AttributeModifier.replace("class", "form-select form-select-sm text-nowrap "
+                    + getAdditionalCssClassForTypeChoice()));
             label.add(AttributeModifier.replace("style", ""));
             label.add(new ExpressionValidationBehavior(typeModel, getModel()));
             return label;
@@ -377,6 +378,10 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         }));
 
         return dropDown;
+    }
+
+    protected String getAdditionalCssClassForTypeChoice() {
+        return null;
     }
 
     private @NotNull DropDownChoicePanel<RecognizedEvaluator> createDropDownTypeChoice() {
@@ -594,4 +599,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         collapsedItems.add(collapsedItem);
         return collapsedItems;
     }
+
+    protected RecognizedEvaluator getSelectedEvaluatorType() {
+        return typeModel.getObject();
+    }
+
 }

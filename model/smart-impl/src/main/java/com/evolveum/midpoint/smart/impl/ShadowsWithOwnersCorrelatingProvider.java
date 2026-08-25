@@ -14,7 +14,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
-import com.evolveum.midpoint.model.impl.correlation.ResourceCorrelationDefinitionProvider;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.mappings.ShadowWithOwner;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -60,9 +58,6 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
-        final CorrelationDefinitionType correlationDef =
-                new ResourceCorrelationDefinitionProvider(ctx.resource, ctx.getTypeIdentification()).get();
-
         // Set expected progress based on total sample size (llm + validation)
         int expectedSampleSize = samplerProvider.getExpectedMappingSampleSize(ctx.typeDefinition);
         state.setExpectedProgress(expectedSampleSize);
@@ -70,7 +65,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
         // Predicate only checks if shadow has owner (doesn't cache)
         MappingSampleResult sampledResult = samplerProvider.getMappingSampler(
                 ctx.typeDefinition, ctx.resource).sample(
-                shadow -> hasOwner(shadow, ctx, correlationDef, state, result),
+                shadow -> hasOwner(shadow, ctx, state, result),
                 ctx.task,
                 result);
 
@@ -78,7 +73,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
         final ArrayList<ShadowWithOwner> llmOwnedShadows = new ArrayList<>();
         for (PrismObject<ShadowType> shadow : sampledResult.llmSamples()) {
             OperationResult subResult = result.createSubresult("findOwnerForShadow");
-            Optional<FocusType> ownerOptional = findOwner(shadow, ctx, correlationDef, subResult);
+            Optional<FocusType> ownerOptional = findOwner(shadow, ctx, subResult);
             ownerOptional.ifPresent(focusType -> llmOwnedShadows.add(new ShadowWithOwner(shadow.asObjectable(), focusType)));
         }
 
@@ -86,7 +81,7 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
         final ArrayList<ShadowWithOwner> validationOwnedShadows = new ArrayList<>();
         for (PrismObject<ShadowType> shadow : sampledResult.validationSamples()) {
             OperationResult subResult = result.createSubresult("findOwnerForShadow");
-            Optional<FocusType> ownerOptional = findOwner(shadow, ctx, correlationDef, subResult);
+            Optional<FocusType> ownerOptional = findOwner(shadow, ctx, subResult);
             ownerOptional.ifPresent(focusType -> validationOwnedShadows.add(new ShadowWithOwner(shadow.asObjectable(), focusType)));
         }
 
@@ -104,14 +99,13 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
     private boolean hasOwner(
             PrismObject<ShadowType> shadow,
             TypeOperationContext ctx,
-            CorrelationDefinitionType correlationDef,
             OperationContext.StateHolder state,
             OperationResult parentResult) {
 
         state.flushIfNeeded(parentResult);
 
         OperationResult subResult = parentResult.createSubresult("checkIfShadowHasOwner");
-        Optional<FocusType> ownerOptional = findOwner(shadow, ctx, correlationDef, subResult);
+        Optional<FocusType> ownerOptional = findOwner(shadow, ctx, subResult);
         boolean hasOwner = ownerOptional.isPresent();
 
         // Increment progress here where the actual expensive work happens
@@ -129,7 +123,6 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
     private Optional<FocusType> findOwner(
             PrismObject<ShadowType> shadow,
             TypeOperationContext ctx,
-            CorrelationDefinitionType correlationDef,
             OperationResult result) {
         if (!ctx.canRun()) {
             return Optional.empty();
@@ -139,8 +132,6 @@ class ShadowsWithOwnersCorrelatingProvider implements ShadowsWithOwnersProvider 
             return correlationService.findLinkedOrCorrelatedFocus(
                     shadow.asObjectable(),
                     ctx.resource,
-                    ctx.typeDefinition,
-                    correlationDef,
                     ctx.task,
                     result);
         } catch (Exception e) {
