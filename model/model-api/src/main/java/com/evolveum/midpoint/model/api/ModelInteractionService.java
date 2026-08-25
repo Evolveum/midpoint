@@ -820,8 +820,13 @@ public interface ModelInteractionService {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     /**
-     * Clears all activity policy states and related counters recursively inside
-     * {@link ActivityDefinitionType} in the specified task.
+     * Clears the recorded state of policy rules in the activity state tree of the given task and its subtasks:
+     * the policy states (triggers) and all policy rule counters, both full execution and preview mode ones.
+     *
+     * The counters are cleared regardless of where the rule came from. Besides activity policies (inline,
+     * {@code policyRef}, {@code virtualAssignments}), this covers also clockwork-evaluated rules with thresholds,
+     * e.g. those coming from assigned roles, task assignments, or global policy rules. It is intentional: any of
+     * them may be the one keeping the task suspended, and most of them cannot be determined from the task itself.
      *
      * Returns true if any change was made.
      */

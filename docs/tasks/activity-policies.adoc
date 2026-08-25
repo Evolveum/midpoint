@@ -314,6 +314,9 @@ This is useful when the same set of policies should be shared across multiple ac
 
 Inducement-based policy rules used via `policyRef` must not define `order` or `condition`; otherwise a configuration exception is thrown.
 
+A `policyRef` that cannot be resolved is an error as well: the activity fails at its start and the task is suspended.
+Note that virtual assignments behave differently in this respect - an unresolvable target is tolerated there, and the activity continues without the policies; see xref:./focus-policies-in-activities[Focus policies in activities].
+
 Policy rules are identified in the task's activity state (policy triggers and threshold counters) by a string identifier.
 Rules defined inline use the `<activity path>:<rule container id>` form, while rules coming from `policyRef` use the `<referenced object OID>:<inducement container id>` form.
 This is useful to know when inspecting the activity state of a task, e.g. when diagnosing threshold counters.

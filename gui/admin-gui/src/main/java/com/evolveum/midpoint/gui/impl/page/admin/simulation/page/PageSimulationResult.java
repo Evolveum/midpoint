@@ -175,13 +175,25 @@ public class PageSimulationResult extends PageAdmin implements SimulationPage {
             return false;
         }
 
-        PrismContainer<WorkDefinitionsType> container =
+        // Check for inbound mappings simulation
+        PrismContainer<WorkDefinitionsType> inboundContainer =
                 task.findContainer(ItemPath.create(
                         TaskType.F_ACTIVITY,
                         ActivityDefinitionType.F_WORK,
-                        WorkDefinitionsType.F_MAPPINGS));
+                        WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION));
 
-        return container != null && !container.isEmpty();
+        if (inboundContainer != null && !inboundContainer.isEmpty()) {
+            return true;
+        }
+
+        // Check for outbound mappings simulation
+        PrismContainer<WorkDefinitionsType> outboundContainer =
+                task.findContainer(ItemPath.create(
+                        TaskType.F_ACTIVITY,
+                        ActivityDefinitionType.F_WORK,
+                        WorkDefinitionsType.F_OUTBOUND_MAPPINGS_SIMULATION));
+
+        return outboundContainer != null && !outboundContainer.isEmpty();
     }
 
     private void initModels() {

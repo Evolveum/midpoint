@@ -81,6 +81,7 @@ public enum MObjectType {
     OBJECT_COLLECTION(QObjectCollection.class, ObjectCollectionType.class, ObjectCollectionType::new),
     OBJECT_TEMPLATE(QObjectTemplate.class, ObjectTemplateType.class, ObjectTemplateType::new),
     ORG(QOrg.class, OrgType.class, OrgType::new),
+    PROJECTION_HOLDER(QProjectionHolder.CLASS, ProjectionHolderType.class, null),
     REPORT(QReport.class, ReportType.class, ReportType::new),
     REPORT_DATA(QReportData.class, ReportDataType.class, ReportDataType::new),
     RESOURCE(QResource.class, ResourceType.class, ResourceType::new),

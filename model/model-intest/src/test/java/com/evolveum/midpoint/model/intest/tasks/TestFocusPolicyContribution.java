@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -23,7 +24,6 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -270,7 +270,7 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
     private String counterIdentifier(Contribution c, TestObject<TaskType> task, ActivityPath defPath,
             OperationResult result) throws CommonException {
         return switch (c.form()) {
-            case INLINE -> ActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), defPath, c.ruleName(), true);
+            case INLINE -> TestActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), defPath, c.ruleName(), true);
             case POLICY_REF, VIRTUAL_ASSIGNMENT -> determineInducedRuleId(c.policyOid(), c.ruleName(), result);
         };
     }

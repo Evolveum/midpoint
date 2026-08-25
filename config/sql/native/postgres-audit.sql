@@ -76,6 +76,7 @@ DO $$ BEGIN
         'OBJECT_TEMPLATE',
         'ORG',
         'POLICY',
+        'PROJECTION_HOLDER',
         'REPORT',
         'REPORT_DATA',
         'RESOURCE',
@@ -118,7 +119,7 @@ CREATE TYPE ChangeType AS ENUM ('ADD', 'MODIFY', 'DELETE');
 -- @description: Creates the shadow kind enum type for standalone audit databases when it is not already present.
 -- @usedFor: audit schema initialization
 DO $$ BEGIN
-       CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'UNKNOWN');
+       CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATION', 'WORK', 'UNKNOWN');
    EXCEPTION
        WHEN duplicate_object THEN null;
 END $$;
@@ -506,4 +507,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(12, $$ SELECT 1 $$, true);
+call apply_audit_change(14, $$ SELECT 1 $$, true);

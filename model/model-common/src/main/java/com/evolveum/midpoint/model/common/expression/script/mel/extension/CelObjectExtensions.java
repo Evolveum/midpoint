@@ -12,10 +12,10 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -23,8 +23,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -320,6 +318,90 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
             // DELTA FUNCTIONS
 
+            // objectDelta.estimateAddedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateAddedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateAddedValuesFor",
+                                    "Returns estimation of added values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateAddedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateAddedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateDeletedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateDeletedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateDeletedValuesFor",
+                                    "Returns estimation of deleted values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateDeletedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateDeletedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateModifiedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateModifiedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateModifiedValuesFor",
+                                    "Returns estimation of modified values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateModifiedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateModifiedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateChangedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateChangedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateChangedValuesFor",
+                                    "Returns estimation of changed values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateChangedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateChangedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateNewValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateNewValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateNewValuesFor",
+                                    "Returns estimation of a list of new values that would result in delta application.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateNewValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateNewValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.findItemDelta(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "findItemDelta",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-findItemDelta",
+                                    "Returns item delta for specified item.",
+                                    ItemDeltaCelValue.CEL_TYPE,
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-findItemDelta",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::findItemDelta,
+                            NullabilityProperties.NULLABLE_NULL)),
+
             // objectDelta.hasDeltaFor(path)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -346,22 +428,21 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("objectdeltaoperation-hasdeltafor",
                             ObjectDeltaOperationCelValue.class, Object.class,
                             CelObjectExtensions::hasDeltaFor,
-                            NullabilityProperties.NULLABLE_FALSE))
+                            NullabilityProperties.NULLABLE_FALSE)),
 
-// TODO: more complex that it seems
-//            // objectDelta.isValueChanged(path)
-//            new Function(
-//                    CelFunctionDecl.newFunctionDeclaration(
-//                            "isValueChanged",
-//                            CelOverloadDecl.newMemberOverload(
-//                                    "objectdelta-isvaluechanged",
-//                                    "Returns true if the delta has delta for specified item.",
-//                                    SimpleType.BOOL,
-//                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
-//                    CelFunctionBinding.from("objectdelta-isvaluechanged",
-//                            ObjectDeltaCelValue.class, Object.class,
-//                            CelObjectExtensions::isValueChanged,
-//                            NullabilityProperties.NULLABLE_FALSE))
+            // objectDelta.isItemChanged(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "isItemChanged",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-isItemChanged",
+                                    "Returns true if the delta is changing specified item.",
+                                    SimpleType.BOOL,
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-isItemChanged",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::isItemChanged,
+                            NullabilityProperties.NULLABLE_FALSE))
         );
 
     }
@@ -374,14 +455,122 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         return QNameCelValue.create(definition.getTypeName());
     }
 
+    private static Object estimateAddedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateAddedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateDeletedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateDeletedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateModifiedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateModifiedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateChangedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateChangedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateNewValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateNewValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object postProcessPrismValues(Collection<PrismValue> values) {
+        if (values == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return values.stream().map(v -> CelTypeMapper.toCelValue(v.getRealValue())).toList();
+    }
+
+
+    private static Object findItemDelta(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        ItemDelta<PrismValue, ItemDefinition<?>> itemDelta = objectDeltaCelValue.getJavaValue().findItemDelta(toPath(path));
+        if (itemDelta == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return ItemDeltaCelValue.create(itemDelta);
+    }
+
     private static Object hasDeltaFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
         if (isCelNull(path)) {
             return NullValue.NULL_VALUE;
         }
-        return objectDeltaCelValue.getJavaValue().hasItemOrSubitemDelta(toPath(path));
+        return hasDeltaFor(objectDeltaCelValue.getJavaValue(), path);
     }
 
     private static Object hasDeltaFor(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        return hasDeltaFor(objectDeltaOperationCelValue.getObjectDelta(), path);
+    }
+
+    private static Object hasDeltaFor(ObjectDelta<?> objectDelta, Object path) {
+        if (objectDelta == null) {
+            return NullValue.NULL_VALUE;
+        }
+        if (objectDelta.isDelete()) {
+            return true;
+        }
+        return objectDelta.hasItemOrSubitemDelta(toPath(path));
+    }
+
+    private static Object isItemChanged(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return objectDeltaCelValue.getJavaValue().isItemChanged(toPath(path));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object isItemChanged(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
         if (isCelNull(path)) {
             return NullValue.NULL_VALUE;
         }
@@ -389,27 +578,13 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         if (objectDelta == null) {
             return NullValue.NULL_VALUE;
         }
-        return objectDelta.hasItemOrSubitemDelta(toPath(path));
+        try {
+            return objectDelta.isItemChanged(toPath(path));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
     }
-
-//    TODO: more complex that it seems
-//    private static Object isValueChanged(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
-//        if (isCelNull(path)) {
-//            return NullValue.NULL_VALUE;
-//        }
-//        return objectDeltaCelValue.getJavaValue().isValueChanged(toPath(path));
-//    }
-//
-//    private static Object isValueChanged(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
-//        if (isCelNull(path)) {
-//            return NullValue.NULL_VALUE;
-//        }
-//        ObjectDelta<?> objectDelta = objectDeltaOperationCelValue.getObjectDelta();
-//        if (objectDelta == null) {
-//            return NullValue.NULL_VALUE;
-//        }
-//        return objectDelta.isValueChanged(toPath(path));
-//    }
 
     @NotNull
     private static ItemPath toPath(@NotNull Object path) {

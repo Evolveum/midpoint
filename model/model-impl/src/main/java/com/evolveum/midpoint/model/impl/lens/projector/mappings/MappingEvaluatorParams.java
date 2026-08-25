@@ -20,15 +20,15 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * TODO determine the fate of this class
  *
  * @author semancik
  */
-public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefinition<?>, T extends ObjectType, F extends FocusType> {
+public class MappingEvaluatorParams<V extends PrismValue, D extends ItemDefinition<?>, T extends ObjectType, F extends ProjectionHolderType> {
 
     /** [EP:M:IM] [EP:M:OM] 1/1 */
     private Collection<MappingConfigItem> mappingConfigItems;

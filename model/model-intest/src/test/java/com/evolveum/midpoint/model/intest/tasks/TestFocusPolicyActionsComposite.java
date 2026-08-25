@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -20,7 +21,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -404,7 +404,7 @@ public class TestFocusPolicyActionsComposite extends AbstractEmptyModelIntegrati
         waitForRootTermination(task.oid, TIMEOUT);
 
         then("'alpha' completes below threshold, 'beta' trips at preexisting + local = threshold");
-        String counterId = ActivityPolicyUtils.buildPolicyIdentifier(
+        String counterId = TestActivityPolicyUtils.buildPolicyIdentifier(
                 getTask(task.oid), ActivityPath.empty(), RULE_ADD, true);
         // @formatter:off
         assertTaskTree(task.oid, "after")

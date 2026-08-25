@@ -80,7 +80,7 @@ public class ProjectionMappingSetEvaluator {
     public <V extends PrismValue,
             D extends ItemDefinition<?>,
             T extends ObjectType,
-            F extends FocusType>
+            F extends ProjectionHolderType>
     Map<UniformItemPath, MappingOutputStruct<V>> evaluateMappingsToTriples(
             MappingEvaluatorParams<V, D, T, F> params,
             Task task,

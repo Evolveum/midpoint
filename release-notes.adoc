@@ -86,6 +86,8 @@ including import of signed allowed-connectors list and subscription compliance e
 * Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
 * Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
 * Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
+* Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
+* Added English (Europe) locale. See bug:MID-10286[].
 
 
 #TODO#
@@ -188,6 +190,8 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
 * Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
 * Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
+* Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
+* Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11914[]
 * Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 
 === Releases Of Other Components
@@ -432,6 +436,7 @@ If localization is required, explicitly define translation keys or language-spec
 * Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
 By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
 The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments (even when adding `end`), ensuring that new records continue to be iterated starting from 0 consistently with existing records.
 This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
 In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 

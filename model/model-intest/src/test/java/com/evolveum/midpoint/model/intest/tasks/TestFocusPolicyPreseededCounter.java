@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -18,7 +19,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -209,7 +209,7 @@ public class TestFocusPolicyPreseededCounter extends AbstractEmptyModelIntegrati
         waitForTaskCloseOrSuspend(task.oid, TIMEOUT);
 
         then("suspended exactly at the threshold; the tripping item was not imported");
-        String counterId = ActivityPolicyUtils.buildPolicyIdentifier(
+        String counterId = TestActivityPolicyUtils.buildPolicyIdentifier(
                 getTask(task.oid), ActivityPath.empty(), RULE_ADD, true);
         // @formatter:off
         assertTaskTree(task.oid, "after first run")

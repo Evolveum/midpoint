@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.expr.AssociationSynchronizationResult;
+import com.evolveum.midpoint.model.impl.expr.ComplexItemEvaluationResult;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
@@ -170,13 +170,10 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         outputTripleMap.putOrMerge(targetPath, ivwoTriple);
 
         // Let's also treat inner triples and additional data, if there are any
-        if (mapping.getOutputTriple() instanceof AssociationSynchronizationResult<V> associationSynchronizationResult) {
-            outputTripleMap.putOrMergeAll(
-                    associationSynchronizationResult.getInnerDeltaSetTriplesMap());
-            itemDefinitionMap.putAll(
-                    associationSynchronizationResult.getInnerItemDefinitionsMap());
-            evaluationRequestsMap.putAll(
-                    associationSynchronizationResult.getInnerMappingEvaluationRequestsMap());
+        if (mapping.getOutputTriple() instanceof ComplexItemEvaluationResult<V> complexItemEvaluationResult) {
+            outputTripleMap.putOrMergeAll(complexItemEvaluationResult.getInnerDeltaSetTriplesMap());
+            itemDefinitionMap.putAll(complexItemEvaluationResult.getInnerItemDefinitionsMap());
+            evaluationRequestsMap.putAll(complexItemEvaluationResult.getInnerMappingEvaluationRequestsMap());
         }
     }
 

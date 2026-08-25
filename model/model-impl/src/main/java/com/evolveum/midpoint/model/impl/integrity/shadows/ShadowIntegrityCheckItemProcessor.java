@@ -160,7 +160,7 @@ class ShadowIntegrityCheckItemProcessor {
         }
 
         if (cfg.checkOwners) {
-            List<PrismObject<FocusType>> owners = activityRun.searchOwners(shadow, result);
+            List<PrismObject<ProjectionHolderType>> owners = activityRun.searchOwners(shadow, result);
             if (owners != null) {
                 shadow.setUserData(KEY_OWNERS, owners);
                 if (owners.size() > 1) {

@@ -75,7 +75,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
                 updatePolicies(result);
 
-                if (FocusType.class.isAssignableFrom(context.getFocusClass())) {
+                if (ProjectionHolderType.class.isAssignableFrom(context.getFocusClass())) {
                     loadProjections(result);
                 }
 
@@ -137,7 +137,7 @@ class ContextLoadOperation<F extends ObjectType> {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
             SubscriptionComplianceException {
         //noinspection unchecked
-        new ProjectionsLoadOperation<>((LensContext<? extends FocusType>) context, task)
+        new ProjectionsLoadOperation<>((LensContext<? extends ProjectionHolderType>) context, task)
                 .load(result); // this also removes the accountRef deltas (???)
     }
 
