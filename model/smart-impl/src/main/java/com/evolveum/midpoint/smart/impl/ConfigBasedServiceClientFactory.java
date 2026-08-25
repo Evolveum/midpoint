@@ -30,8 +30,7 @@ public class ConfigBasedServiceClientFactory implements ServiceClientFactory {
         return new AuditingServiceClient(
                 new DefaultServiceClientImpl(smartIntegrationConfiguration),
                 auditHelper,
-                auditConfiguration.isRecordSmartServiceEvents(),
-                auditConfiguration.isRecordSmartServiceData());
+                auditConfiguration);
     }
 
 }

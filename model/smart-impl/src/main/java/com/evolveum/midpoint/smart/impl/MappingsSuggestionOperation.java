@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.smart.impl.shadowsampling.MappingSampleResult;
@@ -177,6 +180,7 @@ class MappingsSuggestionOperation {
                     .forEach(mappingCandidates::proposeSystemMapping);
 
             var mappingFutures = new ArrayList<CompletableFuture<Void>>();
+            Authentication authentication = SecurityUtil.getAuthentication();
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
@@ -185,7 +189,10 @@ class MappingsSuggestionOperation {
                 AtomicReference<Operation> operationReference = new AtomicReference<>();
                 AtomicReference<OperationResult> mappingResultReference = new AtomicReference<>();
                 var future = CompletableFuture.supplyAsync(() -> {
+                    Authentication oldAuthentication = SecurityUtil.getAuthentication();
                     try {
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+
                         String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
                         var op = mappingsSuggestionState.recordProcessingStart(matchPairDescription);
 
@@ -208,6 +215,8 @@ class MappingsSuggestionOperation {
                         return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
+                    } finally {
+                        SecurityContextHolder.getContext().setAuthentication(oldAuthentication);
                     }
                 }).thenAccept(aiMapping -> {
                     Operation op = operationReference.get();

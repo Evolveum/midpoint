@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -13,14 +14,19 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventRecordPayload;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.AuditConfiguration;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
@@ -28,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditEventRecordingPropertyType;
 
 /**
  * {@link ServiceClient} decorator that records Smart service communication in the audit trail.
@@ -47,6 +54,7 @@ class AuditingServiceClient implements ServiceClient {
 
     private final ServiceClient delegate;
     private final AuditHelper auditHelper;
+    private final AuditConfiguration auditConfiguration;
     private final boolean recordEvents;
     private final boolean recordData;
 
@@ -55,10 +63,16 @@ class AuditingServiceClient implements ServiceClient {
     }
 
     AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper, boolean recordEvents, boolean recordData) {
+        this(delegate, auditHelper, new AuditConfiguration(false, List.of(), null, recordEvents, recordData));
+    }
+
+    AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper, AuditConfiguration auditConfiguration) {
         this.delegate = delegate;
         this.auditHelper = auditHelper;
-        this.recordEvents = recordEvents || recordData;
-        this.recordData = recordData;
+        this.auditConfiguration = auditConfiguration;
+        this.recordEvents = auditConfiguration.isRecordSmartServiceEvents()
+                || auditConfiguration.isRecordSmartServiceData();
+        this.recordData = auditConfiguration.isRecordSmartServiceData();
     }
 
     @Override
@@ -126,6 +140,7 @@ class AuditingServiceClient implements ServiceClient {
         }
 
         long startNanos = System.nanoTime();
+        Authentication authentication = SecurityUtil.getAuthentication();
 
         CompletableFuture<RESP> delegateFuture;
         try {
@@ -144,29 +159,37 @@ class AuditingServiceClient implements ServiceClient {
 
         CompletableFuture<RESP> auditedFuture = new CompletableFuture<>();
 
+        // Completion may run on a different thread, so restore the caller's security context for auditing.
         delegateFuture.whenComplete((response, throwable) -> {
-            if (throwable != null) {
-                auditExecutionSuppressingFailures(
-                        method,
-                        callContext,
-                        requestIdentifier,
-                        OperationResultStatus.FATAL_ERROR,
-                        "Smart service call %s failed: %s".formatted(
-                                method, rootCauseMessage(throwable)),
-                        startNanos);
+            Authentication oldAuthentication = SecurityUtil.getAuthentication();
+            try {
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                auditedFuture.completeExceptionally(throwable);
+                if (throwable != null) {
+                    auditExecutionSuppressingFailures(
+                            method,
+                            callContext,
+                            requestIdentifier,
+                            OperationResultStatus.FATAL_ERROR,
+                            "Smart service call %s failed: %s".formatted(
+                                    method, rootCauseMessage(throwable)),
+                            startNanos);
 
-            } else {
-                auditExecutionSuppressingFailures(
-                        method,
-                        callContext,
-                        requestIdentifier,
-                        OperationResultStatus.SUCCESS,
-                        "Smart service call %s succeeded".formatted(method),
-                        startNanos);
+                    auditedFuture.completeExceptionally(throwable);
 
-                auditedFuture.complete(response);
+                } else {
+                    auditExecutionSuppressingFailures(
+                            method,
+                            callContext,
+                            requestIdentifier,
+                            OperationResultStatus.SUCCESS,
+                            "Smart service call %s succeeded".formatted(method),
+                            startNanos);
+
+                    auditedFuture.complete(response);
+                }
+            } finally {
+                SecurityContextHolder.getContext().setAuthentication(oldAuthentication);
             }
         });
 
@@ -246,11 +269,58 @@ class AuditingServiceClient implements ServiceClient {
 
     private void audit(AuditEventRecord record, ClientCallContext callContext) {
 
+        OperationResult result = auditResult(callContext);
+        AuditEventRecord processedRecord = applyConfiguredAuditEventRecording(record, callContext, result);
+        if (processedRecord == null) {
+            return;
+        }
+
         auditHelper.audit(
-                record,
+                processedRecord,
                 null,
                 callContext.task(),
-                auditResult(callContext));
+                result);
+    }
+
+    /**
+     * Applies the configured generic audit event-recording processing to the record.
+     *
+     * Evaluates configured audit properties and the event-recording expression.
+     * Returns {@code null} if the expression suppresses the audit event.
+     */
+    private @Nullable AuditEventRecord applyConfiguredAuditEventRecording(
+            AuditEventRecord record, ClientCallContext callContext, OperationResult result) {
+
+        PrismObject<ResourceType> primaryObject = primaryObject(callContext);
+
+        for (SystemConfigurationAuditEventRecordingPropertyType property : auditConfiguration.getPropertiesToRecord()) {
+            auditHelper.evaluateAuditRecordProperty(
+                    property,
+                    record,
+                    primaryObject,
+                    null,
+                    callContext.task(),
+                    result);
+        }
+
+        if (auditConfiguration.getEventRecordingExpression() == null) {
+            return record;
+        }
+
+        return auditHelper.evaluateRecordingExpression(
+                auditConfiguration.getEventRecordingExpression(),
+                record,
+                primaryObject,
+                null,
+                null,
+                callContext.task(),
+                result);
+    }
+
+    private @Nullable PrismObject<ResourceType> primaryObject(ClientCallContext callContext) {
+        return callContext.resource() != null
+                ? callContext.resource().asPrismObject()
+                : null;
     }
 
     private OperationResult auditResult(ClientCallContext callContext) {

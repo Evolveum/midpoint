@@ -177,7 +177,7 @@ public class QAuditEventRecordMapping
         }
     }
 
-    private void mapPayloads(AuditEventRecordType record, List<MAuditPayload> payloads) {
+    private void mapPayloads(AuditEventRecordType record, Collection<MAuditPayload> payloads) {
         if (payloads == null) {
             return;
         }
