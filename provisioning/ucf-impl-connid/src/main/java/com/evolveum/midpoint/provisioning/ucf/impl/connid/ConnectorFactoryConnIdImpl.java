@@ -539,6 +539,20 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     /**
+     * Reloads the local connector bundle at the given URI in the UCF framework so that a
+     * subsequently generated configuration schema and newly created connector instances
+     * reflect any bundle modifications.
+     *
+     * <p>The ICF framework caches {@code ConnectorInfoManager} instances (and their
+     * {@code BundleClassLoader}s) per URL in a singleton; the cache is cleared first so that
+     * the bundle is re-read from disk with a fresh classloader.
+     */
+    void reloadLocalConnector(URI bundle) {
+        connectorInfoManagerFactory.clearLocalCache();
+        localConnectorInfoManager.reloadConnector(bundle);
+    }
+
+    /**
      * Returns ICF connector info manager that manages local connectors. The
      * manager will be created if it does not exist yet.
      *

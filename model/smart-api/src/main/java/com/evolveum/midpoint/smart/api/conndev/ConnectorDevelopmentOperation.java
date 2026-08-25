@@ -218,4 +218,6 @@ public interface ConnectorDevelopmentOperation {
     void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     String submitRefreshSchema(Task task, OperationResult result);
+
+    String submitRefreshConnectorSchema(Task task, OperationResult result);
 }

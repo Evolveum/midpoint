@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.CheckedConsumer;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,5 +25,14 @@ public interface ConnectorInstallationService {
     EditableConnector editableConnectorFor(@NotNull ConnectorType objectable);
 
     EditableConnector editableConnectorFor(String directory);
+
+    /**
+     * Reloads the local connector bundle of the given connector in the UCF framework so that
+     * subsequently generated schemas and created instances reflect the current (possibly
+     * modified) bundle content.
+     *
+     * @throws ObjectNotFoundException if the connector bundle is not registered in the UCF framework
+     */
+    void reloadLocalConnectorBundle(@NotNull ConnectorType connector) throws ObjectNotFoundException;
 
 }

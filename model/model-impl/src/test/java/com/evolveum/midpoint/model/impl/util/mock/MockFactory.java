@@ -184,6 +184,14 @@ public class MockFactory {
             }
 
             @Override
+            public @NotNull OperationResult refreshConnectorConfigurationSchema(
+                    @NotNull String connectorOid,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
+                return new OperationResult("mock");
+            }
+
+            @Override
             public List<ConnectorOperationalStatus> getConnectorOperationalStatus(
                     String resourceOid, Task task, OperationResult parentResult) {
                 return null;

@@ -45,6 +45,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     public static final String START_FROM_NEW = CLASS_DOT + "startFromNew";
     public static final String CONTINUE_FROM = CLASS_DOT + "continueFrom";
     public static final String OPERATION_CREATE_CONNECTOR = CLASS_DOT + "CreateConnector";
+    public static final String OPERATION_REFRESH_CONNECTOR_SCHEMA = CLASS_DOT + "RefreshConnectorSchema";
     public static final String OPERATION_DISCOVER_BASIC_INFORMATION = CLASS_DOT + "DiscoverBasicInformation";
     public static final String OPERATION_DISCOVER_DOCUMENTATION = CLASS_DOT + "DiscoverDocumentation";
     public static final String OPERATION_PROCESS_DOCUMENTATION = CLASS_DOT + "ProcessDocumentation";
@@ -133,6 +134,35 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.getCreateConnectorStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_REFRESH_CONNECTOR_SCHEMA_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationRefreshConnectorSchema(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_REFRESH_CONNECTOR_SCHEMA);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitRefreshConnectorSchema(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_REFRESH_CONNECTOR_SCHEMA_STATUS_INFO)
+    public ResponseEntity<?> getRefreshConnectorSchemaStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_REFRESH_CONNECTOR_SCHEMA);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getRefreshConnectorSchemaStatus(token, task, result)
         );
     }
 
@@ -586,6 +616,8 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassEndpointsResult(connDevDiscoverObjectClassEndpointsResultType);
         } else if (statusInfo.getResult() instanceof ConnDevRefreshSchemaResultType connDevRefreshSchemaResultType) {
             abstractSmartIntegrationOperationResultType.setConnDevRefreshSchemaResult(connDevRefreshSchemaResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevRefreshConnectorSchemaResultType connDevRefreshConnectorSchemaResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevRefreshConnectorSchemaResult(connDevRefreshConnectorSchemaResultType);
         } else if (statusInfo.getResult() instanceof ConnDevDiscoverConnectivityEndpointResultType connDevDiscoverConnectivityEndpointResultType) {
             abstractSmartIntegrationOperationResultType.setConnDevDiscoverConnectivityEndpointResult(connDevDiscoverConnectivityEndpointResultType);
         }

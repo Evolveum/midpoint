@@ -16,7 +16,7 @@ public class ConnectorDevelopmentArtifacts {
 
     public enum KnownArtifactType {
         CONFIGURATION_VISIBILITY(false, null, null,
-                "configuration-override.properties", null),
+                "configurationOverride.properties", null),
         AUTHENTICATION_CUSTOMIZATION(false, null, ConnDevScriptIntentType.AUTH,
                 "authentication.op.groovy", ConnDevConnectorType.F_AUTHENTICATION_SCRIPT),
         SEARCH_ALL_DEFINITION(true, ConnDevOperationType.SEARCH, ConnDevScriptIntentType.ALL,

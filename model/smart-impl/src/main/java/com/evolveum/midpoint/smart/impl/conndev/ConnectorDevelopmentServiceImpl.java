@@ -299,6 +299,14 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     ), task, result);
         }
 
+        @Override
+        public String submitRefreshConnectorSchema(Task task, OperationResult result) {
+            return submitTask("Refreshing connector schema for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().refreshConnectorSchema(new ConnDevRefreshConnectorSchemaWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         private String connectorNameForTasks() {
             return stateObject.getName().getOrig();
         }
@@ -418,6 +426,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token, result),
                 ConnDevRefreshSchemaWorkStateType.F_RESULT,
                 ConnDevRefreshSchemaResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevRefreshConnectorSchemaResultType> getRefreshConnectorSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token, result),
+                ConnDevRefreshConnectorSchemaWorkStateType.F_RESULT,
+                ConnDevRefreshConnectorSchemaResultType.class
         );
     }
 

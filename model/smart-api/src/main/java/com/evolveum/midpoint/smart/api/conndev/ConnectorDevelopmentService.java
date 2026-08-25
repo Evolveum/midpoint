@@ -36,6 +36,8 @@ public interface ConnectorDevelopmentService {
 
     StatusInfo<ConnDevRefreshSchemaResultType> getRefreshSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
+    StatusInfo<ConnDevRefreshConnectorSchemaResultType> getRefreshConnectorSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+
     StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     StatusInfo<ConnDevExportConnectorResultType> getExportConnectorStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;

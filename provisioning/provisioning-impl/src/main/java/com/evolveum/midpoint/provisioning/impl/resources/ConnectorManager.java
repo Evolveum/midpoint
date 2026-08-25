@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -45,13 +47,16 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -418,6 +423,57 @@ public class ConnectorManager implements CacheInvalidationListener, CacheDiagnos
 
         connectorBeanCache.put(connOid, connectorWithSchema);
         return connectorWithSchema;
+    }
+
+    /**
+     * Regenerates the connector configuration schema from the UCF framework and persists it
+     * into the {@code schema} item of the connector object in the repository.
+     *
+     * <p>Cached connector beans and instances for the connector are disposed so that the new
+     * schema takes effect. If the UCF framework does not provide a configuration schema for
+     * the connector, the stored schema is left unchanged (a schema must always be present for
+     * the connector to be usable).
+     *
+     * <p>This method does not reload the connector bundle in the UCF framework; the caller is
+     * expected to do that first (see {@code ConnectorInstallationService.reloadLocalConnectorBundle})
+     * so that the regenerated schema reflects any bundle modifications.
+     */
+    public void refreshConnectorSchema(@NotNull String connectorOid, @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException,
+            ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createSubresult("refreshConnectorSchema");
+        try {
+            PrismObject<ConnectorType> connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result);
+            ConnectorType connectorBean = connector.asObjectable();
+            ConnectorFactory factory = determineConnectorFactory(connectorBean);
+            if (factory == null) {
+                throw new ConfigurationException("No connector factory for connector " + connectorBean);
+            }
+
+            ConnectorSchema newSchema = factory.generateConnectorConfigurationSchema(connectorBean);
+            if (newSchema == null) {
+                LOGGER.warn("No connector configuration schema provided by UCF for {}; keeping the stored schema", connectorBean);
+                return;
+            }
+
+            Document xsdDoc = newSchema.serializeToXsd();
+            Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
+            SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
+            schemaDefinition.setSchema(xsdElement);
+            XmlSchemaType schemaValue = new XmlSchemaType().definition(schemaDefinition);
+
+            Collection<? extends ItemDelta<?, ?>> deltas = prismContext.deltaFor(ConnectorType.class)
+                    .item(ConnectorType.F_SCHEMA)
+                    .replace(schemaValue)
+                    .asItemDeltas();
+            repositoryService.modifyObject(ConnectorType.class, connectorOid, deltas, result);
+
+            invalidateConnectorInstancesByOid(connectorOid);
+            invalidateConnectorBeansByOid(connectorOid);
+            LOGGER.debug("Refreshed connector configuration schema for {}", connectorBean);
+        } finally {
+            result.close();
+        }
     }
 
     public Set<ConnectorType> discoverLocalConnectors(OperationResult result) {

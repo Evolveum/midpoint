@@ -63,6 +63,7 @@ import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.AsyncUpdater;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.LiveSynchronizer;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.SynchronizationOperationResult;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -112,6 +113,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
     @Autowired ConnectorManager connectorManager;
+    @Autowired ConnectorInstallationService connectorInstallationService;
     @Autowired ProvisioningContextFactory ctxFactory;
     @Autowired PrismContext prismContext;
     @Autowired CacheConfigurationManager cacheConfigurationManager;
@@ -779,6 +781,33 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } finally {
             result.close();
             result.cleanup();
+        }
+    }
+
+    @Override
+    public @NotNull OperationResult refreshConnectorConfigurationSchema(
+            @NotNull String connectorOid,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException,
+            ObjectAlreadyExistsException {
+        OperationResult result = parentResult.subresult(OP_REFRESH_CONNECTOR_CONFIGURATION_SCHEMA)
+                .addParam("connectorOid", connectorOid)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
+        try {
+            PrismObject<ConnectorType> connector = repositoryService.getObject(
+                    ConnectorType.class, connectorOid, null, result);
+            // Reload the bundle in the UCF framework first, so the regenerated schema reflects
+            // any bundle modifications (e.g. a changed configuration override).
+            connectorInstallationService.reloadLocalConnectorBundle(connector.asObjectable());
+            connectorManager.refreshConnectorSchema(connectorOid, result);
+            return result;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 
