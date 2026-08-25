@@ -172,6 +172,10 @@ public class ActivityPolicyRulesCollector {
         for (ObjectReferenceType policyRef : activityPoliciesBean.getPolicyRef()) {
             AbstractRoleType role;
             try {
+                // An unresolvable reference fails the whole activity (right at its start): the rules may be
+                // important, so running without them may be worse than not running at all. Note that virtual
+                // assignments are deliberately more benevolent here - a missing target is tolerated there,
+                // just like for regular assignments.
                 role = objectResolver.resolve(
                         policyRef, AbstractRoleType.class, null, "resolving policyRef", task, result);
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException |

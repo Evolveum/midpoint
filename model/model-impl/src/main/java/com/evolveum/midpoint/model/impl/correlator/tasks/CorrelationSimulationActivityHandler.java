@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionProviderForSimulationFactory.SimulatedCorrelatorsSpec;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -37,13 +38,13 @@ public class CorrelationSimulationActivityHandler
         implements ActivityHandler<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> {
 
     private final ActivityHandlerRegistry activityHandlerRegistry;
-    private final CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory;
+    private final CorrelationDefinitionProviderFactory<SimulatedCorrelatorsSpec> correlationDefinitionProviderFactory;
     private final CorrelationService correlationService;
     private final ProvisioningService provisioningService;
     private final RepositoryService repositoryService;
 
     public CorrelationSimulationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
-            CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory,
+            CorrelationDefinitionProviderFactory<SimulatedCorrelatorsSpec> correlationDefinitionProviderFactory,
             CorrelationService correlationService,
             ProvisioningService provisioningService,
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService) {

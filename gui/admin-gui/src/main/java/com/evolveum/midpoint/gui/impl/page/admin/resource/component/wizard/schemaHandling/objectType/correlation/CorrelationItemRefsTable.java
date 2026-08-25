@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
@@ -47,7 +48,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -56,7 +59,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,18 +142,12 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
     }
 
     protected InlineMenuItem createViewEditMappingItemMenu() {
-        StringResourceModel title = createStringResource("CorrelationItemRefsTable.button.edit");
-        if (isReadOnlyTable()) {
-            title = createStringResource("CorrelationItemRefsTable.button.view");
-        }
-        return new ButtonInlineMenuItem(title) {
+        return new ButtonInlineMenuItem(createStringResource("CorrelationItemRefsTable.button.view")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return isReadOnlyTable()
-                        ? getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_PREVIEW)
-                        : getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_PREVIEW);
             }
 
             @Override
@@ -204,13 +200,18 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                         () -> relatedInboundMapping) {
 
                     @Override
-                    protected boolean isCancelButtonVisible() {
-                        return isReadOnlyTable();
+                    protected boolean isReadOnlyMapping() {
+                        return true;
                     }
 
                     @Override
-                    protected boolean isReadOnlyMapping() {
-                        return isReadOnlyTable();
+                    protected IModel<String> getDescriptionTitleLabel() {
+                        return createStringResource("CorrelationMappingFormPanel.description.configuration");
+                    }
+
+                    @Override
+                    protected IModel<String> getSubTextLabel() {
+                        return createStringResource("CorrelationMappingFormPanel.view.subText");
                     }
 
                     @Override
@@ -307,6 +308,26 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                 super.populateItem(cellItem, componentId, rowModel);
             }
 
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                return new PrismPropertyWrapperColumnPanel<>(componentId,
+                        (IModel<PrismPropertyWrapper<CorrelationItemType>>) rowModel, getColumnType()) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected AjaxEventBehavior createEventBehavior(Component formComponent) {
+                        return new OnChangeAjaxBehavior() {
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                                refreshTablePanel(ajaxRequestTarget);
+                            }
+                        };
+                    }
+                };
+            }
+
             @Override
             public String getCssClass() {
                 return isCorrelationForAssociation() ? null : "col-3";
@@ -321,9 +342,9 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
                     Item<ICellPopulator<PrismContainerValueWrapper<CorrelationItemType>>> item,
                     String id,
                     IModel<PrismContainerValueWrapper<CorrelationItemType>> iModel) {
-                var relatedInboundMapping = resolveRelatedMapping(iModel);
-
+                PrismContainerValueWrapper<MappingType> relatedInboundMapping = resolveRelatedMapping(iModel);
                 if (relatedInboundMapping != null && relatedInboundMapping.getRealValue() != null) {
+                    WebPrismUtil.setReadOnlyRecursively(relatedInboundMapping);
                     PrismPropertyWrapperColumnPanel<MappingType> panel = createColumnPanel(id, relatedInboundMapping);
                     item.add(panel);
                 } else {
@@ -599,6 +620,11 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
         return buttons;
     }
 
+    @Override
+    protected String getNoValuePanelCssClass() {
+        return "";
+    }
+
     protected void iniCreateMappingButton(String idButton, @NotNull List<Component> buttons) {
         AjaxIconButton newObjectButton = new AjaxIconButton(
                 idButton,
@@ -728,9 +754,13 @@ public abstract class CorrelationItemRefsTable<P extends Containerable> extends 
 
                     @Override
                     protected void performCreateMapping(AjaxRequestTarget target) {
-                        transformAndAddMappingIntoCorrelationItemContainer(
-                                getPageBase(), getValueModel(), newMappingValue, target);
-                        refreshTablePanel(target);
+                        if (isValidFormComponents()) {
+                            transformAndAddMappingIntoCorrelationItemContainer(
+                                    getPageBase(), getValueModel(), newMappingValue, target);
+                            refreshTablePanel(target);
+                        } else {
+                            target.add(this);
+                        }
                     }
                 };
 

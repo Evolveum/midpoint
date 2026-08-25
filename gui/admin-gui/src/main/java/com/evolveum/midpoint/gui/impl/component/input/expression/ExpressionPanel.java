@@ -599,4 +599,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         collapsedItems.add(collapsedItem);
         return collapsedItems;
     }
+
+    protected RecognizedEvaluator getSelectedEvaluatorType() {
+        return typeModel.getObject();
+    }
+
 }

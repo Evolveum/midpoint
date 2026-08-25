@@ -22,8 +22,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -614,11 +612,20 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             protected StringResourceModel getCustomSubTitleModel() {
                 return getNoValuePanelCustomSubTitleModel();
             }
+
+            @Override
+            protected String getPanelAdditionalCssClass() {
+                return BoxedTablePanel.this.getPanelAdditionalCssClass();
+            }
         };
         components.setOutputMarkupId(true);
         components.setOutputMarkupPlaceholderTag(true);
         components.add(new VisibleBehaviour(this::displayIsolatedNoValuePanel));
         return components;
+    }
+
+    protected String getPanelAdditionalCssClass() {
+        return "card shadow-sm mb-3";
     }
 
     protected Component getNoValuePanel() {

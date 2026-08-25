@@ -513,7 +513,7 @@ Enum types define allowed database values for selected columns.
 [[enum_ShadowKindType]]
 | `ShadowKindType`
 | Stores shadow kind values used to classify resource object shadows.
-| `ACCOUNT`, `ENTITLEMENT`, `GENERIC`, `ASSOCIATION`, `UNKNOWN`
+| `ACCOUNT`, `ENTITLEMENT`, `GENERIC`, `ASSOCIATION`, `WORK`, `UNKNOWN`
 
 [[enum_SynchronizationSituationType]]
 | `SynchronizationSituationType`
