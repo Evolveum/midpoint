@@ -83,18 +83,31 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
         add(formCorrelationMappingPanel);
     }
 
+    private VerticalFormMappingPanel<?> getFormPanel() {
+        return (VerticalFormMappingPanel<?>) get(ID_FORM_PANEL);
+    }
+
+
     protected boolean isShowEmptyButtonVisible() {
         return false;
     }
 
     private void initHeaderDescriptionPart() {
-        Label textLabel = new Label(ID_TEXT, createStringResource("CorrelationMappingFormPanel.text"));
+        Label textLabel = new Label(ID_TEXT, getDescriptionTitleLabel());
         textLabel.setOutputMarkupId(true);
         add(textLabel);
 
-        Label subTextLabel = new Label(ID_SUBTEXT, createStringResource("CorrelationMappingFormPanel.subText"));
+        Label subTextLabel = new Label(ID_SUBTEXT, getSubTextLabel());
         subTextLabel.setOutputMarkupId(true);
         add(subTextLabel);
+    }
+
+    protected IModel<String> getDescriptionTitleLabel() {
+        return createStringResource("CorrelationMappingFormPanel.text");
+    }
+
+    protected IModel<String> getSubTextLabel() {
+        return createStringResource("CorrelationMappingFormPanel.subText");
     }
 
     private @NotNull Fragment initFooter() {
@@ -125,7 +138,6 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
     }
 
     protected void onCancel(AjaxRequestTarget target) {
-        getPageBase().hideMainPopup(target);
     }
 
     private void hidePopup(AjaxRequestTarget target) {
@@ -141,8 +153,10 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                performCreateMapping(target);
-                hidePopup(target);
+                if(getFormPanel().isFormValid(target)){
+                    performCreateMapping(target);
+                    hidePopup(target);
+                }
             }
         };
         createMappingButton.showTitleAsLabel(true);
