@@ -13,7 +13,7 @@ This page documents schema changes applied to existing databases by `config/sql/
 | Changes range
 
 | xref:postgres-upgrade/4.11.adoc[midPoint 4.11]
-| 52-64
+| 52-65
 
 | xref:postgres-upgrade/4.10.adoc[midPoint 4.10]
 | 51
@@ -46,6 +46,9 @@ This page documents schema changes applied to existing databases by `config/sql/
 |===
 | Change
 | Description
+
+| xref:postgres-upgrade/4.11.adoc#change-65[Change 65]
+| Adds `WORK` shadow kind value.
 
 | xref:postgres-upgrade/4.11.adoc#change-64[Change 64]
 | Moves case table under the projection holder table.

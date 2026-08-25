@@ -180,8 +180,8 @@
         JVM args for testing plugins, can be used to add profiling, etc.
         Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
         -->
-        <surefire.args>-Xms1g -Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-        <failsafe.args>-Xms1g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+        <surefire.args>-Xms1g -Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+        <failsafe.args>-Xms1g -Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
         <!-- surefire & failsafe argument line for integration with jacoco code coverage
              by default it is empty (no jacoco) but jacoco-maven-plugin) sets it to actual configuration in build.
              this argLine should be used as @{jacoco.argLine} to not replace it during POM reading for surefire and failsafe
@@ -2283,8 +2283,8 @@
             <properties>
                 <skipTests>true</skipTests>
                 <!-- Long/Story tests require more memory: -->
-                <surefire.args>-Xmx8g --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-                <failsafe.args>-Xmx8g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en</failsafe.args>
+                <surefire.args>-Xmx8g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+                <failsafe.args>-Xmx8g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
             </properties>
         </profile>
 
@@ -2309,8 +2309,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xmx6g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args>-Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args>-Xmx6g -Duser.language=en -Duser.country=US --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
         <profile>
