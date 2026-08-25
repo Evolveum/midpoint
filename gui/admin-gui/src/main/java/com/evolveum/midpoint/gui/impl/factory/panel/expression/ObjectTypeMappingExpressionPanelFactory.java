@@ -69,7 +69,7 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
             public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
                 List<CollapsedItem<DrawerModel>> drawerCollapsedItems = super.getDrawerCollapsedItems();
 
-                if (getSelectedEvaluatorType() != null && !getSelectedEvaluatorType().equals(RecognizedEvaluator.SCRIPT)) {
+                if (getSelectedEvaluatorType() != RecognizedEvaluator.SCRIPT) {
                     return drawerCollapsedItems;
                 }
 
