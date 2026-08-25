@@ -20,6 +20,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -99,18 +100,20 @@ public class CorrelationServiceImpl implements CorrelationService {
     private final ModelBeans beans;
     private final CorrelatorFactoryRegistryImpl correlatorFactoryRegistry;
     private final SystemObjectCache systemObjectCache;
-    private final CorrelationCaseManager correlationCaseManager;
     private final RepositoryService repositoryService;
     private final CorrelationDefinitionProviderFactory<ResourceType> correlationDefinitionProviderFactory;
 
-    public CorrelationServiceImpl(ModelBeans beans, CorrelatorFactoryRegistryImpl correlatorFactoryRegistry,
-            SystemObjectCache systemObjectCache, CorrelationCaseManager correlationCaseManager,
+    @Autowired private CorrelationCaseManager correlationCaseManager;   // this is a circular dependency, can't be autowired
+
+    public CorrelationServiceImpl(
+            ModelBeans beans,
+            CorrelatorFactoryRegistryImpl correlatorFactoryRegistry,
+            SystemObjectCache systemObjectCache,
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             CorrelationDefinitionProviderFactory<ResourceType> correlationDefinitionProviderFactory) {
         this.beans = beans;
         this.correlatorFactoryRegistry = correlatorFactoryRegistry;
         this.systemObjectCache = systemObjectCache;
-        this.correlationCaseManager = correlationCaseManager;
         this.repositoryService = repositoryService;
         this.correlationDefinitionProviderFactory = correlationDefinitionProviderFactory;
     }
