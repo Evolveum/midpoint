@@ -77,65 +77,32 @@ And so on.
 The cases are also used for manual provisioning.
 If no ITSM integration is present then the cases are used in place of the ITSM tickets.
 
+Since midPoint 4.11 the case is also a xref:/midpoint/reference/schema/focus-and-projections/[projection holder].
+Just like a focal object, a case can have xref:/midpoint/reference/resources/shadow/[shadow] objects (projections) linked to it.
+This capability is used by the xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] integration, where the case is linked to the ticket that is managed on a remote ITSM system.
+
 
 == ITSM Integration
 
 System administrator in most environments are used to work with existing IT Service Management (ITSM) system, such as Atlassian Jira, HP Service Manager or Remedy ARS.
-MidPoint has an option to include a custom plug-in for integration with these systems.
-In that case the manual provisioning cases are created as tickets in the ITSM systems.
-The system administrators interact only with the ITSM system and they do not need to interact with midPoint at all.
+MidPoint provides two ways how to integrate with such systems:
+
+* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] (since midPoint 4.11): the manual connector is configured to use a dedicated "ticketing" resource pointing to the ITSM system.
+The manual provisioning cases are created as tickets in the ITSM system and their state is tracked through the regular midPoint synchronization (mappings and the shadow refresh task).
+No custom development is needed - the integration is expressed by the standard xref:/midpoint/reference/resources/resource-configuration/schema-handling/[resource schema handling] and mappings.
+
+* Custom xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM plugin]: a custom connector plugin that implements the ITSM integration.
+This is the original approach and it can be used for ITSM systems that do not fit the ticketing resource approach (or for more advanced integrations).
+
+In both cases the system administrators interact only with the ITSM system and they do not need to interact with midPoint at all.
 
 
-== Implementation Progress
+== Current State
 
-These features are only partially implemented.
-The original plan was to support complete functionality in midPoint 3.6. However existing midPoint subscribers have prioritized other features for midPoint 3.6. Therefore the manual resources were only implemented to the extent that was covered by existing subscription agreements.
-Following table shows implementation progress.
+The core functionality of the manual and semi-manual resources (including the provisioning cases and the provisioning propagation) is implemented.
+The cases can be handled in the midPoint GUI (the case management section with the work items).
 
-[%autowidth,cols="h,1,1"]
-|===
-| Supported in version | 3.6, 3.6.1, 3.7 | 3.7.1
-
-| Manual resources core
-| YES
-| YES
-
-
-| Manual resources GUI
-| NO
-| NO
-
-
-| Provisioning cases
-| NO
-| NO
-
-
-| Semi-manual resources
-| YES +
-(with ITSM plugin only)
-| YES(with ITSM plugin only)
-
-
-| ITSM plugins
-| YES +
-(requires custom development)
-| YES(requires custom development)
-
-
-| Provisioning propagation
-| NO
-| YES
-
-
-|===
-
-As of midPoint 3.6 midPoint does not contain any GUI support for any of these features.
-The core (back-end) functionality is mostly in place (except for _cases_), therefore it is partially usable.
-The goal was to enable functionality with custom ITSM integration plugin.
-However, that requires custom development.
-In practice this means that as of midPoint 3.6 these features are likely to work well only if Evolveum professional services are involved.
-If you are interesting in helping to finish those resources please consider a xref:/support/subscription-sponsoring/[subscription]. These features could be fully productized in midPoint 3.7 given sufficient funding.
+For the ITSM integration, see the two approaches described above: the built-in xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] (new in midPoint 4.11, currently experimental) and the custom xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM plugins].
 
 
 == Provisioning Propagation
@@ -164,5 +131,7 @@ Contributed ITSM sample plugin can be found in our link:https://github.com/Evolv
 == See Also
 
 * xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
+
+* xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing]
 
 * xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]

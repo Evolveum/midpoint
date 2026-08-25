@@ -12,20 +12,35 @@
 
 See xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration] for an introduction to the topic.
 
+NOTE: If you need a standard ITSM integration, consider the built-in xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] (midPoint 4.11 and later) first - it does not require any custom development.
+The custom ITSM plugin is still useful for more advanced integrations, or for ITSM systems that do not fit the ticketing resource approach.
 
 == ITSM Plugin Implementation
 
-The purpose of ITSM plugin is to provide integration between midPoint and IT Service Management (ITSM) system.
-MidPoint ITSM plugins are just a special case of MidPoint connector.
-In fact it is a subclass of midPoint abstract manual connector using xref:/midpoint/architecture/archive/subsystems/provisioning/ucf/interfaces/[Unified Connector Framework Interfaces]. See sample ITSM plugin project here: link:https://github.com/Evolveum/connector-manual-sample[https://github.com/Evolveum/connector-manual-sample]
+The purpose of an ITSM plugin is to provide integration between midPoint and an IT Service Management (ITSM) system.
+MidPoint ITSM plugins are just a special case of a MidPoint connector.
+In fact it is a subclass of the midPoint abstract manual connector, using the xref:/midpoint/architecture/archive/subsystems/provisioning/ucf/interfaces/[Unified Connector Framework Interfaces].
+See a sample ITSM plugin project here: link:https://github.com/Evolveum/connector-manual-sample[https://github.com/Evolveum/connector-manual-sample]
 
-++++
-{% include missing-incomplete.html %}
-++++
+== Ticketing Service
+
+Since midPoint 4.11, an ITSM plugin can also delegate the ticket management to a xref:/midpoint/reference/resources/manual/ticketing/[ticketing resource] instead of implementing it in the plugin itself.
+To do that, the plugin implements the `TicketingServiceAware` interface; midPoint then injects the `TicketingService` into the connector instance (via the `setTicketingService` method).
+
+The `TicketingService` allows manipulating ITSM tickets as xref:/midpoint/reference/schema/focus-and-projections/[projections] of midPoint case objects:
+
+* `addCase(case, ticketingResourceSpec, task, result)` - creates a case with a ticket as a projection.
+The ticket is created on the ITSM system through the ticketing resource specified by the `ticketingResourceSpec` (the resource OID and the object type).
+
+* `getCase(caseOid, task, result)` - retrieves the case, updating it with the current state of the ticket in the remote ITSM system.
+
+This mechanism is used internally by the built-in manual connector; see the xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing] page for the setup details.
 
 == See Also
 
 * xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
+
+* xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing]
 
 * xref:/midpoint/reference/resources/manual/configuration/[Manual Resource Configuration]
 

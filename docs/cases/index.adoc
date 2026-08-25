@@ -5,6 +5,9 @@
 
 Following pages describe mechanism that deal with case management, approvals, workflow integration and similar activities that deal with human interaction in identity management and governance processes.
 
+Since midPoint 4.11 a case is also a xref:/midpoint/reference/schema/focus-and-projections/[projection holder]: it can have xref:/midpoint/reference/resources/shadow/[shadow] objects (projections) linked to it, just like a focal object.
+This is used by the xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] integration, where the case is linked to a ticket that is managed on a remote ITSM system.
+
 ++++
 {% children %}
 ++++

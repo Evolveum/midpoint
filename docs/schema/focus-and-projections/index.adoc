@@ -77,10 +77,16 @@ Following object types may act as a focus:
 
 The common thing that all focal objects have are xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[link]).
 
+Since midPoint 4.11 this capability is described by the `ProjectionHolderType` schema type, which is a common parent of the `FocusType` and the `CaseType`.
+That means the xref:/midpoint/reference/cases/[cases] are also owners of projections: a case can have shadow objects linked to it (through the `linkRef` property), just like a focal object.
+This capability is used e.g. by the xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] integration, where a case is linked to the ticket that is managed on a remote ITSM system.
+
 
 === Projections
 
 Projections are simply resource objects represented by xref:/midpoint/reference/resources/shadow/[shadow objects]. The shadows contain information about xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[kind and intent] that are used in synchronization algorithm to sort out projections of the same focal object.
+
+While the typical projection is linked to a focal object, projections can also be linked to other projection holders, e.g. to a xref:/midpoint/reference/cases/[case] (see the xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] integration).
 
 
 == See Also

@@ -32,7 +32,15 @@ Accounts can be _xref:/midpoint/reference/roles-policies/roles/assignment/assign
 * xref:/midpoint/reference/resources/entitlements/[Entitlement] resource objects represent groupings or privileges of an *account*. Entitlement resource objects represent groups, resource-specific roles, access permissions or even organizational unit membership.
 Entitlements are *associated* to an *account*.
 
-* Other kinds of resource objects may be introduced later (e.g. organizational unit).
+* *Work* resource objects represent work items, such as issues, tickets, cases or work packages.
+Work objects are typically managed by an ITSM system.
+midPoint uses the `work` kind e.g. for the xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing] integration, where the ticket of a midPoint case is managed on a remote ITSM system as a work object.
+
+* *Association* resource objects are used to represent associations between resource objects.
+
+* *Generic* resource objects are the "catch-all" kind for resource objects that do not fit any of the other kinds.
+
+* *Unknown* is a fallback kind for resource objects whose kind cannot be determined.
 
 Kind of a resource object is mostly fixed and it is quite difficult to change.
 However the kind is usually determined by the fixed type of the object (object class) and does not need to be changed.
@@ -183,6 +191,14 @@ Therefore midPoint allows the two grouping mechanisms to coexist (and may keep t
 | priv
 | ri:MiscPrivObjectClass
 | Some custom privilege defined in the resource and supported by the connector.
+
+
+| ITSM ticket
+| work
+| ticket
+| ri:ticket
+| A ticket on an ITSM system (e.g. Jira or ServiceNow), managed through a xref:/midpoint/reference/resources/manual/ticketing/[ticketing resource].
+The ticket is a projection of a midPoint case.
 
 |===
 
