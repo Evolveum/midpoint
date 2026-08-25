@@ -54,6 +54,22 @@ public class SchemaFetcher {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException, SubscriptionComplianceException {
+        return fetchResourceSchema(resource, capabilityMap, productionMode, false, result);
+    }
+
+    /**
+     * @param forceFresh If {@code true}, the connector instance is forced to retrieve the schema from the resource,
+     * instead of returning a previously fetched (possibly stale) copy. Use this when the retrieved schema is going
+     * to be stored in the resource - e.g. after the stored schema was deleted and a fresh one is being fetched.
+     */
+    @Nullable NativeResourceSchema fetchResourceSchema(
+            @NotNull ResourceType resource,
+            @Nullable NativeConnectorsCapabilities capabilityMap,
+            boolean productionMode,
+            boolean forceFresh,
+            @NotNull OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
+            SchemaException, SubscriptionComplianceException {
         var connectorSpec = resourceConnectorsManager.selectConnector(resource, capabilityMap, SchemaCapabilityType.class);
         if (connectorSpec == null) {
             LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
@@ -65,6 +81,6 @@ public class SchemaFetcher {
                         connectorSpec, false, productionMode, result);
 
         LOGGER.debug("Trying to get schema from {}", connectorSpec);
-        return connectorInstance.fetchResourceSchema(result);
+        return connectorInstance.fetchResourceSchema(forceFresh, result);
     }
 }

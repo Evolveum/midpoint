@@ -589,18 +589,19 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         var noFetchShadow = modelService.getObject(
                 ShadowType.class, johnShadowOid, createNoFetchCollection(), task, result);
 
-        then("conversion succeeds and cached attributes remain available");
+        then("conversion succeeds and known cached attributes remain available");
         assertThat(noFetchShadow.findProperty(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.path()))
                 .as("known cached firstName attribute")
                 .isNotNull();
         assertThat(noFetchShadow.findProperty(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.path()))
                 .as("known cached lastName attribute")
                 .isNotNull();
-        // Lax conversion is deliberately tolerant here: the important regression is that this stale item
-        // no longer aborts projection loading with "Unknown attribute".
+        // The refreshed schema is the fresh one, so the obsolete title attribute is no longer part of it
+        // and the lax conversion does not carry the stale cached value over. The important regression
+        // (MID-11030) is that the stale item no longer aborts the (re)computation with "Unknown attribute".
         assertThat(noFetchShadow.findProperty(title.path()))
-                .as("obsolete cached title attribute in laxly converted shadow")
-                .isNotNull();
+                .as("obsolete cached title attribute not present in the refreshed schema")
+                .isNull();
 
         rememberShadowOperations();
 

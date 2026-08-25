@@ -371,8 +371,11 @@ class ResourceCompletionOperation {
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
                 SchemaException, SubscriptionComplianceException {
             LOGGER.trace("Fetching resource schema for {}", resource);
+            // The fetched schema will be stored in the resource. Force a fresh retrieval from the resource,
+            // so a possibly stale copy cached in the connector instance (e.g. from before the stored schema
+            // was deleted) is not stored.
             nativeResourceSchema =
-                    schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, true, result);
+                    schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, true, true, result);
             if (nativeResourceSchema == null) {
                 LOGGER.warn("No resource schema fetched from {}", resource);
             } else if (nativeResourceSchema.isEmpty()) {

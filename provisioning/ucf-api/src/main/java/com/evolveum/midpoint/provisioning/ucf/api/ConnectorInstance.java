@@ -168,13 +168,14 @@ public interface ConnectorInstance {
      *
      * It may return null. Such case means that the schema cannot be determined.
      *
-     * The method may return a schema that was fetched previously, e.g., if the fetch operation was executed
-     * during connector initialization or when fetching native capabilities.
-     *
+     * @param fresh If {@code false}, the method may return a schema that was fetched previously, e.g., if the
+     * fetch operation was executed during connector initialization or when fetching native capabilities.
+     * If {@code true}, the schema is always retrieved from the resource - a previously fetched (possibly stale)
+     * copy is never returned.
      * @return Up-to-date resource schema. Only raw information should be there, no refinements. May be immutable.
      * @throws CommunicationException error in communication to the resource - nothing was fetched.
      */
-    NativeResourceSchema fetchResourceSchema(@NotNull OperationResult result)
+    NativeResourceSchema fetchResourceSchema(boolean fresh, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**

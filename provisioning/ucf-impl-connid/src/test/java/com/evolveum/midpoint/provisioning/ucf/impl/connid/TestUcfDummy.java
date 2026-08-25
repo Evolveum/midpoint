@@ -219,7 +219,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 result);
 
         // WHEN
-        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        var nativeResourceSchema = cc.fetchResourceSchema(false, result);
         resourceSchema = nativeToBare(nativeResourceSchema);
         completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
 
@@ -259,7 +259,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 result);
 
         // WHEN
-        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        var nativeResourceSchema = cc.fetchResourceSchema(false, result);
         resourceSchema = ResourceSchemaFactory.nativeToBare(nativeResourceSchema);
         completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
 
@@ -930,7 +930,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                         result)
                 .initialize(null, null, result);
 
-        var nativeSchema = hrConnectorInstance.fetchResourceSchema(result);
+        var nativeSchema = hrConnectorInstance.fetchResourceSchema(false, result);
         displayDumpable("HR resource schema (native)", nativeSchema);
         assertThat(nativeSchema).as("native HR resource schema").isNotNull();
 

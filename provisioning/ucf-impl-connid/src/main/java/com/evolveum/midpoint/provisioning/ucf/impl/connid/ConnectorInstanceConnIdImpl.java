@@ -252,6 +252,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 oldConnIdConnectorFacade.dispose();
             }
 
+            // Reconfiguration means that the previously fetched capabilities and schema no longer
+            // correspond to the current connection. Invalidate them, so that the next
+            // fetchResourceSchema retrieves them from the resource instead of returning
+            // a possibly stale cached copy.
+            resetFetchedResourceSchemaAndCapabilities();
+
             PrismProperty<Boolean> legacySchemaConfigProperty =
                     configurationPcv != null ?
                             configurationPcv.findProperty(ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT) :
@@ -405,16 +411,30 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
         }
     }
 
-    @Override
-    public synchronized NativeResourceSchema fetchResourceSchema(@NotNull OperationResult parentResult)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
+    /**
+     * The previously fetched capabilities and schema no longer correspond to the current state
+     * (e.g. after reconfiguration). Invalidate them, so that the next
+     * {@link ConnectorInstance#fetchResourceSchema(boolean, OperationResult)} retrieves them from the resource instead of
+     * returning a possibly stale cached copy.
+     */
+    private synchronized void resetFetchedResourceSchemaAndCapabilities() {
+        nativeCapabilitiesAndSchema = new NativeCapabilitiesAndSchema(null, null, null);
+        capabilitiesAndSchemaFetchedFromResource = false;
+    }
 
+
+    /**
+     * If {@code fresh} is {@code false}, the previously fetched (cached) schema is returned if present.
+     * If {@code fresh} is {@code true}, the schema is always retrieved from the resource.
+     */
+    @Override
+    public synchronized NativeResourceSchema fetchResourceSchema(boolean fresh, @NotNull OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
         OperationResult result = parentResult.createSubresult(OP_FETCH_RESOURCE_SCHEMA);
         result.addContext("connector", connectorBean);
 
         try {
-
-            if (capabilitiesAndSchemaFetchedFromResource && nativeCapabilitiesAndSchema.nativeSchema() != null) {
+            if (!fresh && capabilitiesAndSchemaFetchedFromResource && nativeCapabilitiesAndSchema.nativeSchema() != null) {
                 return nativeCapabilitiesAndSchema.nativeSchema();
             }
 
@@ -425,7 +445,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
                 result.recordNotApplicable("Connector does not support schema");
             }
             return fetchedSchema;
-
         } catch (Throwable e) {
             result.recordException(e);
             throw e;

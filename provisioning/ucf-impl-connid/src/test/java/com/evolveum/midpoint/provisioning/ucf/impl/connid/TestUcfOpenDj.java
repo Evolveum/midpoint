@@ -148,7 +148,7 @@ public class TestUcfOpenDj extends AbstractUcfDummyTest {
         cc.initialize(null, null, result);
         // TODO: assert something
 
-        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        var nativeResourceSchema = cc.fetchResourceSchema(false, result);
         resourceSchema = ResourceSchemaFactory.nativeToBare(nativeResourceSchema);
         displayDumpable("Resource schema", resourceSchema);
         AssertJUnit.assertNotNull(resourceSchema);

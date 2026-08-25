@@ -86,7 +86,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        var nativeResourceSchema = cc.fetchResourceSchema(false, result);
         resourceSchema = ResourceSchemaFactory.nativeToBare(nativeResourceSchema);
         completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
         assertNotNull("No resource schema", resourceSchema);

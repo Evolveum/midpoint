@@ -266,7 +266,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     //region Unsupported operations
     @Override
-    public NativeResourceSchema fetchResourceSchema(@NotNull OperationResult parentResult) {
+    public NativeResourceSchema fetchResourceSchema(boolean fresh, @NotNull OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
