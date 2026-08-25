@@ -76,7 +76,7 @@ class ProcessedObjectsWriter {
             writeSimulationData(() ->
                     ProcessedObjectImpl.createForCorrelation(correlationSimulationData, this.simulationTransaction),
                     result);
-        } else if (data instanceof MappingSimulationData mappingSimulationData) {
+        } else if (data instanceof MappingSimulationData<? extends ObjectType> mappingSimulationData) {
             writeMappingSimulationData(mappingSimulationData, result);
         } else {
             LOGGER.warn("Simulation data of unexpected type: {}", MiscUtil.getValueWithClass(data));
@@ -188,14 +188,15 @@ class ProcessedObjectsWriter {
         }
     }
 
-    private void writeMappingSimulationData(MappingSimulationData mappingData, @NotNull OperationResult result) {
+    private <T extends ObjectType> void writeMappingSimulationData(MappingSimulationData<T> mappingData,
+            @NotNull OperationResult result) {
         try {
             LOGGER.trace("Storing data in {} into {}", mappingData, simulationTransaction);
 
             boolean failed = isMappingFailed(mappingData.getMappingEvaluationResult());
-            final ProcessedObjectImpl<FocusType> processedFocus =
-                    ProcessedObjectImpl.createForMapping(FocusType.class, mappingData.getFocusBefore(),
-                            mappingData.getSimulationDelta().orElse(null), simulationTransaction, failed);
+            final T objectBefore = mappingData.getObjectBefore();
+            final ProcessedObjectImpl<T> processedFocus = ProcessedObjectImpl.createForMapping(objectBefore,
+                    mappingData.getSimulationDelta().orElse(null), simulationTransaction, failed);
 
             processedFocus.setResultAndStatus(mappingData.getMappingEvaluationResult());
             processedFocus.setProjectionRecords(1);

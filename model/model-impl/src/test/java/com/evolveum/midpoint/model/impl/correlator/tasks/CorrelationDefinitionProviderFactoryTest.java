@@ -21,7 +21,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationDefinitionProvider;
 import com.evolveum.midpoint.model.impl.correlation.ResourceCorrelationDefinitionProvider;
-import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionProviderFactory.ResourceWithObjectTypeId;
+import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionProviderForSimulationFactory.SimulatedCorrelatorsSpec;
 import com.evolveum.midpoint.model.impl.util.mock.RepositoryServiceMock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -37,8 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class CorrelationDefinitionProviderFactoryTest {
 
-    private static final ResourceWithObjectTypeId
-            DUMMY_RESOURCE_OBJECT_ID = new ResourceWithObjectTypeId("111", ShadowKindType.ACCOUNT, "default");
+    private static final ResourceObjectTypeIdentification OBJECT_TYPE_ID =
+            ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "default");
     private final RepositoryService repositoryService;
     private final PrismContext prism;
 
@@ -54,8 +55,9 @@ public class CorrelationDefinitionProviderFactoryTest {
         final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType().inlineCorrelators(
                 correlationDefinition);
 
-        final CorrelationDefinitionType resolvedDefinition = new CorrelationDefinitionProviderFactory(null)
-                .providerFor(correlatorsSpecification, DUMMY_RESOURCE_OBJECT_ID, null).get();
+        final CorrelationDefinitionType resolvedDefinition = new CorrelationDefinitionProviderForSimulationFactory(null)
+                .providerFor(new SimulatedCorrelatorsSpec(correlatorsSpecification, "1111"), null)
+                .definitionFor( OBJECT_TYPE_ID);
 
         assertSame(resolvedDefinition, correlationDefinition);
     }
@@ -66,8 +68,9 @@ public class CorrelationDefinitionProviderFactoryTest {
         final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType()
                 .includeExistingCorrelators(true);
 
-        final CorrelationDefinitionProvider provider = new CorrelationDefinitionProviderFactory(this.repositoryService)
-                .providerFor(correlatorsSpecification, DUMMY_RESOURCE_OBJECT_ID, null);
+        final CorrelationDefinitionProvider provider =
+                new CorrelationDefinitionProviderForSimulationFactory(this.repositoryService)
+                        .providerFor(new SimulatedCorrelatorsSpec(correlatorsSpecification, "1111"), null);
 
         assertTrue(provider instanceof ResourceCorrelationDefinitionProvider);
     }
@@ -77,11 +80,12 @@ public class CorrelationDefinitionProviderFactoryTest {
         // In practice, at least one source needs to be specified in the specification, but here we create an empty one.
         final SimulatedCorrelatorsType correlatorsSpecification = new SimulatedCorrelatorsType();
 
-        final CorrelationDefinitionProviderFactory providerFactory = new CorrelationDefinitionProviderFactory(
-                this.repositoryService);
+        final CorrelationDefinitionProviderFactory<SimulatedCorrelatorsSpec> providerFactory =
+                new CorrelationDefinitionProviderForSimulationFactory(this.repositoryService);
 
-        assertThrows(IllegalArgumentException.class, () -> providerFactory.providerFor(correlatorsSpecification,
-                DUMMY_RESOURCE_OBJECT_ID, null));
+
+        assertThrows(IllegalArgumentException.class, () -> providerFactory.providerFor(
+                new SimulatedCorrelatorsSpec(correlatorsSpecification, "1111"), null));
     }
 
     @Test
@@ -92,8 +96,10 @@ public class CorrelationDefinitionProviderFactoryTest {
                 .includeExistingCorrelators(true)
                 .inlineCorrelators(correlationDefinition);
 
-        final CorrelationDefinitionProvider provider = new CorrelationDefinitionProviderFactory(this.repositoryService)
-                .providerFor(correlatorsSpecification, DUMMY_RESOURCE_OBJECT_ID, null);
+        final CorrelationDefinitionProvider provider =
+                new CorrelationDefinitionProviderForSimulationFactory(this.repositoryService)
+                        .providerFor(new SimulatedCorrelatorsSpec(correlatorsSpecification, "1111"),
+                                null);
 
         assertNotNull(provider);
 

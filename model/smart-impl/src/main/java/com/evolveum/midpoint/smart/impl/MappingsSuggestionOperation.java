@@ -763,6 +763,7 @@ class MappingsSuggestionOperation {
                 IterationSpecificationType iterationSpec = new IterationSpecificationType();
                 iterationSpec.setStart(1);
                 iterationSpec.setEnd(10);
+                iterationSpec.setUseTokenOnlyOnConflict(true);
                 suggestion.setIterationSpecification(iterationSpec);
                 return;
             }
