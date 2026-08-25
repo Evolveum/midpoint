@@ -326,6 +326,7 @@ export default class MidPointTheme {
 
                 $(document).on("blur", "[data-bs-toggle='tooltip']", function () {
                     isHovered = false;
+                    isEnterPressedOnTooltipIcon = false;
                     checkHide($(this));
                 });
 
@@ -388,6 +389,14 @@ export default class MidPointTheme {
                     const delay = setFocus ? 0 : 1000;
                     clearTimeout($el.data("tooltipShowDelayTimer"));
                     $el.data("tooltipShowDelayTimer", setTimeout(() => {
+
+                        if (setFocus) {
+                            $el.one('shown.bs.tooltip', function () {
+                                $tooltipInner.get(0).focus({ preventScroll: true });
+                                lastTooltipTrigger = $el;
+                            });
+                        }
+
                         $el.tooltip("show");
                         $el.removeAttr("aria-describedby");
                         const $tooltip = $('.tooltip:visible').last()
@@ -435,10 +444,6 @@ export default class MidPointTheme {
                                 checkHide($el);
                             });
 
-                        if (setFocus) {
-                            $tooltipInner.focus();
-                            lastTooltipTrigger = $el;
-                        }
                     }, delay));
                 }
             };
