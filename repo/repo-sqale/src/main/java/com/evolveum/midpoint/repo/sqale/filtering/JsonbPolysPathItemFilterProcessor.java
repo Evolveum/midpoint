@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_NORM_
 import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_ORIG_KEY;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
 
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import com.google.common.base.Strings;
@@ -24,7 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
@@ -121,15 +125,15 @@ public class JsonbPolysPathItemFilterProcessor<T>
 
     private Predicate processPolyStringStrictEq(ValueFilterValues<?, ?> values) throws QueryException {
         PolyString poly = values.singleValuePolyString();
-        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                String.format("[{\"" + JSONB_POLY_ORIG_KEY + "\":\"%s\",\""
-                                + JSONB_POLY_NORM_KEY + "\":\"%s\"}]",
-                        poly.getOrig(), poly.getNorm())));
+        // Jsonb.fromList properly escapes values (via Jackson), unlike String.format, so user input
+        // containing quotes or backslashes can not break the JSON
+        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}", path,
+                Jsonb.fromList(List.of(JsonbUtils.polyStringToMap(poly)))));
     }
 
     private Predicate processPolyStringComponentEq(String subKey, String value) {
-        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}::jsonb", path,
-                String.format("[{\"%s\":\"%s\"}]", subKey, value)));
+        return predicateWithNotTreated(path, booleanTemplate("{0} @> {1}", path,
+                Jsonb.fromList(List.of(Map.of(subKey, value)))));
     }
 
     @Override

@@ -812,6 +812,34 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
+    public void test155SearchByPolystringInJsonbWithJsonBreakingChars() throws Exception {
+        given("user with organization values containing characters that would break raw JSON (quotes, backslash)");
+        String specialValue = "org \"with\" \\quotes";
+        OperationResult result = createOperationResult();
+        String userOid = repositoryService.addObject(
+                new UserType().name("user-jsonb-special")
+                        .organization(specialValue)
+                        .organizationalUnit(specialValue)
+                        .asPrismObject(),
+                null, result);
+        try {
+            searchUsersTest("having organization (polys in JSONB) equal to value with special chars (orig match)",
+                    f -> f.item(UserType.F_ORGANIZATION).eq(specialValue).matchingOrig(),
+                    userOid);
+
+            searchUsersTest("having organization (polys in JSONB) equal to poly-string with special chars (strict match)",
+                    f -> f.item(UserType.F_ORGANIZATION).eq(new PolyString(specialValue)),
+                    userOid);
+
+            searchUsersTest("having organizationalUnit (polys in JSONB) equal to value with special chars (norm match)",
+                    f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).eq(specialValue).matchingNorm(),
+                    userOid);
+        } finally {
+            repositoryService.deleteObject(ObjectType.class, userOid, createOperationResult());
+        }
+    }
+
+    @Test
     public void test160SearchRoleByAssignment() throws SchemaException {
         searchObjectTest("having assignment with specified lifecycle", RoleType.class,
                 f -> f.item(RoleType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE).eq("role-ass-lc"),
