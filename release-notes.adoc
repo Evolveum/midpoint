@@ -193,6 +193,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
 * Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11914[]
 * Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 
 === Releases Of Other Components
 
