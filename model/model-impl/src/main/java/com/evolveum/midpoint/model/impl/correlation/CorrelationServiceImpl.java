@@ -20,7 +20,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -102,8 +101,6 @@ public class CorrelationServiceImpl implements CorrelationService {
     private final SystemObjectCache systemObjectCache;
     private final RepositoryService repositoryService;
     private final CorrelationDefinitionProviderFactory<ResourceType> correlationDefinitionProviderFactory;
-
-    @Autowired private CorrelationCaseManager correlationCaseManager;   // this is a circular dependency, can't be autowired
 
     public CorrelationServiceImpl(
             ModelBeans beans,
@@ -369,33 +366,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     @Override
-    public void completeCorrelationCase(
-            @NotNull CaseType currentCase,
-            @NotNull CaseCloser caseCloser,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        correlationCaseManager.completeCorrelationCase(currentCase, caseCloser, task, result);
-    }
-
-    @Override
-    public void prepareCorrelationCaseClosing(
-            @NotNull CaseType currentCase,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, SubscriptionComplianceException {
-        correlationCaseManager.prepareCorrelationCaseClosing(currentCase, task, result);
-    }
-
-    /**
-     * Resolves the given correlation case - in the correlator.
-     * (For majority of correlators this is no-op. See {@link Correlator#resolve(CaseType, String, Task, OperationResult)}.)
-     *
-     * Note that {@link CaseType#getOutcome()} must not be null.
-     */
-    void resolve(
+    public void resolveCorrelationCase(
             @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult parentResult)

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -74,36 +75,6 @@ public interface CorrelationService {
             SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
-     * Completes given correlation case.
-     *
-     * Preconditions:
-     *
-     * - case is freshly fetched,
-     * - case is a correlation one
-     *
-     * @param caseCloser Makes the case definitely closed. (This functionality must be provided by the caller.)
-     */
-    void completeCorrelationCase(
-            @NotNull CaseType currentCase,
-            @NotNull CaseCloser caseCloser,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * Executes retry-safe business logic required before a correlation case may be
-     * persisted as closing. If this method fails, the case remains open.
-     */
-    default void prepareCorrelationCaseClosing(
-            @NotNull CaseType currentCase,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
-    }
-
-    /**
      * Instantiates a correlator
      */
     PathSet determineCorrelatorConfiguration(@NotNull CorrelatorDiscriminator discriminator, String archetypeOid, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
@@ -127,6 +98,21 @@ public interface CorrelationService {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException;
+
+    /**
+     * Resolves the given correlation case - in the correlator.
+     *
+     * For the majority of correlators this is no-op. See
+     * {@link Correlator#resolve(CaseType, String, Task, OperationResult)}.
+     *
+     * Note that {@link CaseType#getOutcome()} must not be null.
+     */
+    void resolveCorrelationCase(
+            @NotNull CaseType aCase,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     @FunctionalInterface
     interface CaseCloser {
