@@ -8,21 +8,19 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
 import static com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayload.TABLE_NAME;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Objects;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
-import com.evolveum.midpoint.repo.sqale.jsonb.JsonbException;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPayloadType;
 
@@ -60,70 +58,15 @@ public class QAuditPayloadMapping
         return new AuditEventRecordPayloadType()
                 .name(row.name)
                 .contentType(row.contentType)
-                .content(contentToString(row.content, row.contentType));
+                .content(contentToString(row.content));
     }
 
-    public Jsonb contentToJsonb(String content, String contentType) {
-        if (content == null) {
-            return null;
-        }
-
-        if (isJsonContentType(contentType)) {
-            validateJsonContent(content);
-            return new Jsonb(content);
-        }
-
-        return contentStringScalar(content);
+    public byte[] contentToBytes(String content) {
+        return content != null ? MiscUtil.stringToBytes(content) : null;
     }
 
-    private void validateJsonContent(String content) {
-        try {
-            if (Jsonb.MAPPER.readTree(content) == null) {
-                throw new JsonbException("Audit payload content is not valid JSON", null);
-            }
-        } catch (JsonProcessingException e) {
-            throw new JsonbException("Audit payload content is not valid JSON", e);
-        }
-    }
-
-    private Jsonb contentStringScalar(String content) {
-        try {
-            return new Jsonb(Jsonb.MAPPER.writeValueAsString(content));
-        } catch (JsonProcessingException ex) {
-            throw new JsonbException("Unexpected error while writing audit payload content", ex);
-        }
-    }
-
-    private String contentToString(Jsonb content, String contentType) {
-        if (content == null) {
-            return null;
-        }
-
-        if (isJsonContentType(contentType)) {
-            return content.value;
-        }
-
-        try {
-            return Jsonb.MAPPER.readValue(content.value, String.class);
-        } catch (JsonProcessingException e) {
-            throw new JsonbException("Unexpected error while reading audit payload content", e);
-        }
-    }
-
-    private boolean isJsonContentType(String contentType) {
-        if (contentType == null) {
-            return false;
-        }
-
-        String mediaType = contentType;
-        int parameterStart = mediaType.indexOf(';');
-        if (parameterStart >= 0) {
-            mediaType = mediaType.substring(0, parameterStart);
-        }
-        mediaType = mediaType.trim().toLowerCase(Locale.ROOT);
-
-        return mediaType.equals("application/json")
-                || mediaType.startsWith("application/") && mediaType.endsWith("+json");
+    private String contentToString(byte[] content) {
+        return content != null ? new String(content, StandardCharsets.UTF_8) : null;
     }
 
     @Override

@@ -261,7 +261,7 @@ CREATE TABLE ma_audit_payload (
     ordinal INTEGER NOT NULL,
     name TEXT NOT NULL,
     contentType TEXT,
-    content JSONB,
+    content BYTEA,
     searchableText TEXT,
 
     PRIMARY KEY (recordId, timestamp, ordinal)

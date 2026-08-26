@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
 import java.time.Instant;
 
-import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.util.MiscUtil;
 
 /** Querydsl "row bean" type related to {@link QAuditPayload}. */
 @SuppressWarnings("unused")
@@ -19,7 +19,7 @@ public class MAuditPayload {
     public Integer ordinal;
     public String name;
     public String contentType;
-    public Jsonb content;
+    public byte[] content;
     public String searchableText;
 
     @Override
@@ -30,7 +30,7 @@ public class MAuditPayload {
                 ", ordinal=" + ordinal +
                 ", name='" + name + '\'' +
                 ", contentType='" + contentType + '\'' +
-                ", content=" + content +
+                ", content=" + MiscUtil.bytesToHexPreview(content) +
                 '}';
     }
 }

@@ -459,9 +459,9 @@ Stores audit payloads attached to audit events.
 | Media type of the payload content.
 
 | `content`
-| `JSONB`
+| `BYTEA`
 | 
-| Payload content stored as JSON.
+| Payload content stored as UTF-8 bytes.
 
 | `searchableText`
 | `TEXT`

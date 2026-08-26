@@ -321,7 +321,7 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             row.ordinal = i;
             row.name = payload.getName();
             row.contentType = payload.getContentType();
-            row.content = payloadMapping.contentToJsonb(payload.getContent(), payload.getContentType());
+            row.content = payloadMapping.contentToBytes(payload.getContent());
             row.searchableText = FullTextSearchUtil.createSearchableText(payload.getContent());
             rows.add(row);
         }

@@ -7,11 +7,10 @@
 package com.evolveum.midpoint.repo.sqale.func;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
@@ -23,8 +22,6 @@ import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayload;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayloadMapping;
-import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
-import com.evolveum.midpoint.repo.sqale.jsonb.JsonbException;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 /**
  * Tests persistence and lifecycle behavior of audit event payloads in the Sqale audit repository.
  *
- * Verifies payload storage and loading, JSONB representation, ordering, generic non-JSON content,
+ * Verifies payload storage and loading, byte representation, ordering, generic non-JSON content,
  * cleanup behavior, and both {@link AuditEventRecord} and {@link AuditEventRecordType} insertion paths.
  */
 public class AuditPayloadTest extends SqaleRepoBaseTest {
@@ -62,7 +59,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test110JsonObjectPayloadIsStoredStructurally() throws Exception {
+    public void test110JsonObjectPayloadRoundTripsExactly() throws Exception {
         given("audit is empty");
         clearAudit();
 
@@ -82,17 +79,16 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         assertThat(payloadRows.get(0).name).isEqualTo("input");
         assertThat(payloadRows.get(0).contentType).isEqualTo("application/json");
         assertThat(payloadRows.get(0).searchableText).isEqualTo(" id1 ");
-        assertThat(storedJson(payloadRows.get(0)).isObject()).isTrue();
-        assertThat(storedJson(payloadRows.get(0)).get("id").asInt()).isEqualTo(1);
+        assertStoredContent(payloadRows.get(0), "{\"id\":1}");
 
         and("payload is loaded back with the audit record");
         AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
         assertThat(loaded.getPayload()).hasSize(1);
-        assertPayloadJson(loaded.getPayload().get(0), "input", "application/json", "{\"id\":1}");
+        assertPayload(loaded.getPayload().get(0), "input", "application/json", "{\"id\":1}");
     }
 
     @Test
-    public void test115JsonArrayPayloadIsStoredStructurally() throws Exception {
+    public void test115JsonArrayPayloadRoundTripsExactly() throws Exception {
         given("audit is empty");
         clearAudit();
 
@@ -104,18 +100,15 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         when("saving the event record");
         auditService.audit(record, NullTaskImpl.INSTANCE, result);
 
-        then("payload row stores JSON array, not string scalar");
+        then("payload row stores the original JSON text");
         QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
         MAuditPayload payloadRow = selectPayloads(payload).get(0);
         assertThat(payloadRow.searchableText).isEqualTo(" id1id2 ");
-        JsonNode storedJson = storedJson(payloadRow);
-        assertThat(storedJson.isArray()).isTrue();
-        assertThat(storedJson.size()).isEqualTo(2);
-        assertThat(storedJson.get(1).get("id").asInt()).isEqualTo(2);
+        assertStoredContent(payloadRow, "[{\"id\":1},{\"id\":2}]");
 
         and("payload is loaded back as JSON content");
         AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
-        assertPayloadJson(loaded.getPayload().get(0), "array", "application/json", "[{\"id\":1},{\"id\":2}]");
+        assertPayload(loaded.getPayload().get(0), "array", "application/json", "[{\"id\":1},{\"id\":2}]");
     }
 
     @Test
@@ -131,14 +124,11 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         when("saving the event record");
         auditService.audit(record, NullTaskImpl.INSTANCE, result);
 
-        then("payload row stores JSON string scalar");
+        then("payload row stores the original JSON string syntax");
         QAuditPayload payload = QAuditPayloadMapping.get().defaultAlias();
         MAuditPayload payloadRow = selectPayloads(payload).get(0);
-        assertThat(payloadRow.content.value).isEqualTo("\"hello\"");
+        assertStoredContent(payloadRow, "\"hello\"");
         assertThat(payloadRow.searchableText).isEqualTo(" hello ");
-        JsonNode storedJson = storedJson(payloadRow);
-        assertThat(storedJson.isTextual()).isTrue();
-        assertThat(storedJson.asText()).isEqualTo("hello");
 
         and("payload is loaded back with JSON quotes");
         AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
@@ -146,7 +136,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test118JsonSubtypePayloadIsStoredStructurally() throws Exception {
+    public void test118JsonSubtypePayloadRoundTripsExactly() throws Exception {
         given("audit is empty");
         clearAudit();
 
@@ -158,14 +148,13 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         when("saving the event record");
         auditService.audit(record, NullTaskImpl.INSTANCE, result);
 
-        then("payload row stores JSON structurally");
+        then("payload row stores the original JSON text");
         MAuditPayload payloadRow = selectPayloads(QAuditPayloadMapping.get().defaultAlias()).get(0);
-        assertThat(storedJson(payloadRow).isObject()).isTrue();
-        assertThat(storedJson(payloadRow).get("status").asInt()).isEqualTo(400);
+        assertStoredContent(payloadRow, "{\"status\":400}");
 
         and("payload is loaded back as JSON content");
         AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
-        assertPayloadJson(loaded.getPayload().get(0), "problem", "application/problem+json", "{\"status\":400}");
+        assertPayload(loaded.getPayload().get(0), "problem", "application/problem+json", "{\"status\":400}");
     }
 
     @Test
@@ -181,14 +170,13 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         when("saving the event record");
         auditService.audit(record, NullTaskImpl.INSTANCE, result);
 
-        then("payload row stores JSON structurally");
+        then("payload row stores the original JSON text");
         MAuditPayload payloadRow = selectPayloads(QAuditPayloadMapping.get().defaultAlias()).get(0);
-        assertThat(storedJson(payloadRow).isObject()).isTrue();
-        assertThat(storedJson(payloadRow).get("ok").asBoolean()).isTrue();
+        assertStoredContent(payloadRow, "{\"ok\":true}");
 
         and("payload is loaded back as JSON content");
         AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
-        assertPayloadJson(loaded.getPayload().get(0), "json", "application/json; charset=UTF-8", "{\"ok\":true}");
+        assertPayload(loaded.getPayload().get(0), "json", "application/json; charset=UTF-8", "{\"ok\":true}");
     }
 
     @Test
@@ -223,11 +211,24 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test125MalformedJsonPayloadFails() {
-        assertThatThrownBy(() ->
-                QAuditPayloadMapping.get().contentToJsonb("{", "application/json"))
-                .isInstanceOf(JsonbException.class)
-                .hasMessage("Audit payload content is not valid JSON");
+    public void test125MalformedJsonPayloadRoundTripsAsText() throws Exception {
+        given("audit is empty");
+        clearAudit();
+
+        and("audit event record with malformed JSON payload text");
+        AuditEventRecord record = new AuditEventRecord();
+        record.addPayload(new AuditEventRecordPayload("malformed", "application/json", "{"));
+        OperationResult result = createOperationResult();
+
+        when("saving the event record");
+        auditService.audit(record, NullTaskImpl.INSTANCE, result);
+
+        then("payload text is stored and loaded unchanged");
+        MAuditPayload payloadRow = selectPayloads(QAuditPayloadMapping.get().defaultAlias()).get(0);
+        assertStoredContent(payloadRow, "{");
+
+        AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
+        assertPayload(loaded.getPayload().get(0), "malformed", "application/json", "{");
     }
 
     @Test
@@ -248,9 +249,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         MAuditPayload payloadRow = selectPayloads(payload).get(0);
         assertPayload(payloadRow, 0, "plain", "text/plain", "not JSON: {");
         assertThat(payloadRow.searchableText).isEqualTo(" not json ");
-        JsonNode storedJson = storedJson(payloadRow);
-        assertThat(storedJson.isTextual()).isTrue();
-        assertThat(storedJson.asText()).isEqualTo("not JSON: {");
+        assertStoredContent(payloadRow, "not JSON: {");
 
         and("payload is loaded back unchanged");
         AuditEventRecordType loaded = searchByRepoId(record.getRepoId());
@@ -339,15 +338,7 @@ public class AuditPayloadTest extends SqaleRepoBaseTest {
         assertThat(payload.getContent()).isEqualTo(content);
     }
 
-    private void assertPayloadJson(
-            AuditEventRecordPayloadType payload, String name, String contentType, String content) throws Exception {
-        assertThat(payload.getName()).isEqualTo(name);
-        assertThat(payload.getContentType()).isEqualTo(contentType);
-        assertThat(Jsonb.MAPPER.readTree(payload.getContent()))
-                .isEqualTo(Jsonb.MAPPER.readTree(content));
-    }
-
-    private JsonNode storedJson(MAuditPayload payload) throws Exception {
-        return Jsonb.MAPPER.readTree(payload.content.value);
+    private void assertStoredContent(MAuditPayload payload, String content) {
+        assertThat(new String(payload.content, StandardCharsets.UTF_8)).isEqualTo(content);
     }
 }

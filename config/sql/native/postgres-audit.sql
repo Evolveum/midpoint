@@ -266,8 +266,8 @@ CREATE TABLE ma_audit_payload (
     name TEXT NOT NULL,
     -- @description: Media type of the payload content.
     contentType TEXT,
-    -- @description: Payload content stored as JSON.
-    content JSONB,
+    -- @description: Payload content stored as UTF-8 bytes.
+    content BYTEA,
     -- @description: Text representation used for full-text search.
     searchableText TEXT,
 

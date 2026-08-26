@@ -34,6 +34,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiResponseMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestFocusTypeResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestMappingResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditEventRecordingPropertyType;
 
 /**
@@ -51,6 +56,8 @@ class AuditingServiceClient implements ServiceClient {
 
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final String AUDIT_DURATION_MILLIS = "externalService.durationMillis";
+    private static final String AUDIT_PROVIDER = "externalService.provider";
+    private static final String AUDIT_MODEL = "externalService.model";
 
     private final ServiceClient delegate;
     private final AuditHelper auditHelper;
@@ -83,35 +90,17 @@ class AuditingServiceClient implements ServiceClient {
             return delegate.invoke(method, request, responseClass, callContext);
         }
 
-        String requestText = recordData ? SmartServiceSerialization.serializeRequest(request) : null;
-        String requestIdentifier = generateRequestIdentifier();
-
-        // This must succeed before potentially sensitive data is sent to the Smart service.
-        auditRequest(method, callContext, requestIdentifier, requestText);
-
-        long startNanos = System.nanoTime();
+        AuditedRequest auditedRequest = prepareAuditedRequest(method, request, callContext);
 
         try {
             RESP response = delegate.invoke(method, request, responseClass, callContext);
 
-            auditExecutionSuppressingFailures(
-                    method,
-                    callContext,
-                    requestIdentifier,
-                    OperationResultStatus.SUCCESS,
-                    "Smart service call %s succeeded".formatted(method),
-                    startNanos);
+            auditExecutionSuccess(method, callContext, auditedRequest, response);
 
             return response;
 
         } catch (SchemaException | RuntimeException e) {
-            auditExecutionSuppressingFailures(
-                    method,
-                    callContext,
-                    requestIdentifier,
-                    OperationResultStatus.FATAL_ERROR,
-                    "Smart service call %s failed: %s".formatted(method, e.getMessage()),
-                    startNanos);
+            auditExecutionFailure(method, callContext, auditedRequest, e.getMessage());
 
             throw e;
         }
@@ -125,34 +114,22 @@ class AuditingServiceClient implements ServiceClient {
             return delegate.invokeAsync(method, request, responseClass, callContext);
         }
 
-        String requestText;
-        String requestIdentifier;
+        AuditedRequest auditedRequest;
 
         try {
-            requestText = recordData ? SmartServiceSerialization.serializeRequest(request) : null;
-            requestIdentifier = generateRequestIdentifier();
-
-            // This must succeed before potentially sensitive data is sent to the Smart service.
-            auditRequest(method, callContext, requestIdentifier, requestText);
+            auditedRequest = prepareAuditedRequest(method, request, callContext);
 
         } catch (SchemaException | RuntimeException e) {
             return CompletableFuture.failedFuture(e);
         }
 
-        long startNanos = System.nanoTime();
         Authentication authentication = SecurityUtil.getAuthentication();
 
         CompletableFuture<RESP> delegateFuture;
         try {
             delegateFuture = delegate.invokeAsync(method, request, responseClass, callContext);
         } catch (RuntimeException e) {
-            auditExecutionSuppressingFailures(
-                    method,
-                    callContext,
-                    requestIdentifier,
-                    OperationResultStatus.FATAL_ERROR,
-                    "Smart service call %s failed: %s".formatted(method, e.getMessage()),
-                    startNanos);
+            auditExecutionFailure(method, callContext, auditedRequest, e.getMessage());
 
             throw e;
         }
@@ -166,25 +143,12 @@ class AuditingServiceClient implements ServiceClient {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 if (throwable != null) {
-                    auditExecutionSuppressingFailures(
-                            method,
-                            callContext,
-                            requestIdentifier,
-                            OperationResultStatus.FATAL_ERROR,
-                            "Smart service call %s failed: %s".formatted(
-                                    method, rootCauseMessage(throwable)),
-                            startNanos);
+                    auditExecutionFailure(method, callContext, auditedRequest, rootCauseMessage(throwable));
 
                     auditedFuture.completeExceptionally(throwable);
 
                 } else {
-                    auditExecutionSuppressingFailures(
-                            method,
-                            callContext,
-                            requestIdentifier,
-                            OperationResultStatus.SUCCESS,
-                            "Smart service call %s succeeded".formatted(method),
-                            startNanos);
+                    auditExecutionSuccess(method, callContext, auditedRequest, response);
 
                     auditedFuture.complete(response);
                 }
@@ -206,6 +170,18 @@ class AuditingServiceClient implements ServiceClient {
         delegate.close();
     }
 
+    private <REQ> AuditedRequest prepareAuditedRequest(
+            Method method, REQ request, ClientCallContext callContext) throws SchemaException {
+
+        String requestText = recordData ? SmartServiceSerialization.serializeRequest(request) : null;
+        String requestIdentifier = generateRequestIdentifier();
+
+        // This must succeed before potentially sensitive data is sent to the Smart service.
+        auditRequest(method, callContext, requestIdentifier, requestText);
+
+        return new AuditedRequest(requestIdentifier, System.nanoTime());
+    }
+
     private void auditRequest(Method method, ClientCallContext callContext,
             String requestIdentifier, @Nullable String requestText) {
 
@@ -222,8 +198,34 @@ class AuditingServiceClient implements ServiceClient {
         audit(record, callContext);
     }
 
+    private void auditExecutionSuccess(Method method, ClientCallContext callContext,
+            AuditedRequest auditedRequest, @Nullable Object response) {
+
+        auditExecutionSuppressingFailures(
+                method,
+                callContext,
+                auditedRequest.requestIdentifier(),
+                OperationResultStatus.SUCCESS,
+                "Smart service call %s succeeded".formatted(method),
+                auditedRequest.startNanos(),
+                response);
+    }
+
+    private void auditExecutionFailure(Method method, ClientCallContext callContext,
+            AuditedRequest auditedRequest, @Nullable String message) {
+
+        auditExecutionSuppressingFailures(
+                method,
+                callContext,
+                auditedRequest.requestIdentifier(),
+                OperationResultStatus.FATAL_ERROR,
+                "Smart service call %s failed: %s".formatted(method, message),
+                auditedRequest.startNanos(),
+                null);
+    }
+
     private void auditExecutionSuppressingFailures(Method method, ClientCallContext callContext, String requestIdentifier,
-            OperationResultStatus outcome, String message, long startNanos) {
+            OperationResultStatus outcome, String message, long startNanos, @Nullable Object response) {
 
         try {
             var record = createRecord(method, callContext, requestIdentifier, AuditEventStage.EXECUTION);
@@ -233,11 +235,36 @@ class AuditingServiceClient implements ServiceClient {
             record.addPropertyValue(
                     AUDIT_DURATION_MILLIS,
                     String.valueOf(elapsedMillis(startNanos)));
+            addResponseMetadata(record, response);
 
             audit(record, callContext);
 
         } catch (Throwable t) {
             LOGGER.warn("Couldn't audit Smart service call execution {}", method, t);
+        }
+    }
+
+    private void addResponseMetadata(AuditEventRecord record, @Nullable Object response) {
+        SiResponseMetadataType metadata = getResponseMetadata(response);
+        if (metadata == null) {
+            return;
+        }
+
+        record.addPropertyValueIgnoreNull(AUDIT_PROVIDER, metadata.getProvider());
+        record.addPropertyValueIgnoreNull(AUDIT_MODEL, metadata.getModel());
+    }
+
+    private @Nullable SiResponseMetadataType getResponseMetadata(@Nullable Object response) {
+        if (response instanceof SiMatchSchemaResponseType r) {
+            return r.getMetadata();
+        } else if (response instanceof SiSuggestFocusTypeResponseType r) {
+            return r.getMetadata();
+        } else if (response instanceof SiSuggestMappingResponseType r) {
+            return r.getMetadata();
+        } else if (response instanceof SiSuggestObjectTypesResponseType r) {
+            return r.getMetadata();
+        } else {
+            return null;
         }
     }
 
@@ -344,5 +371,8 @@ class AuditingServiceClient implements ServiceClient {
                         : throwable;
 
         return unwrapped.getMessage();
+    }
+
+    private record AuditedRequest(String requestIdentifier, long startNanos) {
     }
 }

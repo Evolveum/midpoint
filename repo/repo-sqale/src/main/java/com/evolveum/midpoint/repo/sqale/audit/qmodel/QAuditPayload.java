@@ -6,18 +6,16 @@
 
 package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 
-import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
-
 import java.io.Serial;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 
 /**
@@ -41,7 +39,7 @@ public class QAuditPayload extends FlexibleRelationalPathBase<MAuditPayload> {
     public static final ColumnMetadata CONTENT_TYPE =
             ColumnMetadata.named("contentType").ofType(Types.VARCHAR);
     public static final ColumnMetadata CONTENT =
-            ColumnMetadata.named("content").ofType(JSONB_TYPE);
+            ColumnMetadata.named("content").ofType(Types.BINARY);
     public static final ColumnMetadata SEARCHABLE_TEXT =
             ColumnMetadata.named("searchableText").ofType(Types.VARCHAR);
 
@@ -50,8 +48,7 @@ public class QAuditPayload extends FlexibleRelationalPathBase<MAuditPayload> {
     public final NumberPath<Integer> ordinal = createInteger("ordinal", ORDINAL);
     public final StringPath name = createString("name", NAME);
     public final StringPath contentType = createString("contentType", CONTENT_TYPE);
-    public final JsonbPath content =
-            addMetadata(add(new JsonbPath(forProperty("content"))), CONTENT);
+    public final ArrayPath<byte[], Byte> content = createByteArray("content", CONTENT);
     public final StringPath searchableText = createString("searchableText", SEARCHABLE_TEXT);
 
     public QAuditPayload(String variable) {
