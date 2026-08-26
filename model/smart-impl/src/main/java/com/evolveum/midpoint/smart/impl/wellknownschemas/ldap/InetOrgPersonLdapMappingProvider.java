@@ -45,6 +45,7 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
         Map<ItemPath, ItemPath> matches = new HashMap<>();
         matches.put(SystemMappingSuggestion.riAttr("uid"), UserType.F_NAME);
         matches.put(SystemMappingSuggestion.riAttr("cn"), UserType.F_FULL_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("displayName"), UserType.F_DISPLAY_NAME);
         matches.put(SystemMappingSuggestion.riAttr("givenName"), UserType.F_GIVEN_NAME);
         matches.put(SystemMappingSuggestion.riAttr("sn"), UserType.F_FAMILY_NAME);
         matches.put(SystemMappingSuggestion.riAttr("description"), UserType.F_DESCRIPTION);
