@@ -147,7 +147,10 @@ The rules are taken from the referenced object's _inducements_ (`inducement/poli
 ====
 Inducements that carry policy rules used via `policyRef` must not define `order` or `condition`.
 If they do, a configuration exception is thrown during activity initialization.
-If the referenced object does not exist or is not an abstract role, the reference is skipped and a warning is logged.
+
+A `policyRef` that cannot be resolved - the referenced object does not exist, or is not an abstract role - is treated as an error as well.
+The activity fails at its start, before any object is processed, and the task is suspended.
+The rationale is that the referenced rules may be important, e.g. a threshold guarding the number of modified objects; running the activity without them may be worse than not running it at all.
 ====
 
 === Virtual assignments
@@ -183,6 +186,11 @@ By virtually assigning a role or policy that contains policy rules, those focus 
 ====
 Targets of virtual assignments should contain only policies.
 Otherwise, phantom `roleMembershipRef` values may be added to the processed objects, because the assignment is evaluated as a regular assignment during processing.
+
+Unlike `policyRef`, a virtual assignment whose target cannot be resolved does _not_ stop the activity.
+Because midPoint has no referential integrity for assignments, a missing target is tolerated the same way as for a regular assignment: an error is written to the log and the object is processed as if the assignment carried no rules at all.
+The activity therefore finishes successfully, silently without the policies in question.
+If a virtual assignment policy seems to have no effect, check the log for such errors.
 ====
 
 == When to use which form

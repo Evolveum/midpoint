@@ -14,13 +14,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
     private static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR,
@@ -105,7 +106,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      */
     @Test(dataProvider = "defaultEvalPhases")
     void defaultMappingsPhaseIsSpecified_correlateShadowUsingCorrelationMapping_focusShouldBeInCandidateOwners(
-            ResourceMappingsEvaluationConfigurationType defaultEvalPhaseConfig) throws IOException, CommonException {
+            ResourceMappingsEvaluationConfigurationType defaultEvalPhaseConfig) throws CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
@@ -140,7 +141,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      */
     @Test(dataProvider = "mappingPhases")
     void explicitMappingPhaseInCorrelationMapping_correlateShadowUsingCorrelationMapping_candidateOwnerShouldBeFound(
-            InboundMappingEvaluationPhaseType mappingPhase) throws IOException, CommonException {
+            InboundMappingEvaluationPhaseType mappingPhase) throws CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
@@ -173,7 +174,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
     @Test
     void shadowIsNotCorrelatedButOwnerExist_findLinkedOrCorrelatedFocus_ownerShouldBeFoundAndCorrelationStateStored()
-            throws IOException, CommonException {
+            throws CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
@@ -187,13 +188,8 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
         when("findLinkedOrCorrelatedFocus is called on the account's shadow.");
         final ShadowType shadow = allAccounts.iterator().next();
         final ResourceType resourceType = this.resource.get().asObjectable();
-        final CorrelationDefinitionType correlationDefinition = resourceType.getSchemaHandling().getObjectType().get(0)
-                .getCorrelation();
-        final ResourceObjectTypeDefinition objectTypeDef = Objects.requireNonNull(Resource.of(resourceType)
-                .getCompleteSchemaRequired().getObjectTypeDefinition(shadow.getKind(), shadow.getIntent()));
-
         final Optional<FocusType> foundFocus = this.correlationService.findLinkedOrCorrelatedFocus(
-                shadow, resourceType, objectTypeDef, correlationDefinition, task, result);
+                shadow, resourceType, task, result);
 
         then("User should be found.");
         assertTrue(foundFocus.isPresent());
@@ -216,7 +212,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      */
     @Test
     void shadowIsLinkedToUser_findLinkedOrCorrelatedFocus_ownerShouldBeFoundAndNoCorrelationStateWritten()
-            throws IOException, CommonException {
+            throws CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
@@ -236,13 +232,8 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
         when("findLinkedOrCorrelatedFocus is called on the account's shadow.");
         final ResourceType resourceType = this.resource.get().asObjectable();
-        final CorrelationDefinitionType correlationDefinition = resourceType.getSchemaHandling().getObjectType().get(0)
-                .getCorrelation();
-        final ResourceObjectTypeDefinition objectTypeDef = Objects.requireNonNull(Resource.of(resourceType)
-                .getCompleteSchemaRequired().getObjectTypeDefinition(shadow.getKind(), shadow.getIntent()));
-
         final Optional<FocusType> foundFocus = this.correlationService.findLinkedOrCorrelatedFocus(
-                shadow, resourceType, objectTypeDef, correlationDefinition, task, result);
+                shadow, resourceType, task, result);
 
         then("Owner should be found.");
         assertTrue(foundFocus.isPresent());
@@ -262,7 +253,7 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
      */
     @Test
     void shadowHasCorrelationResultWithUser_findLinkedOrCorrelatedFocus_ownerShouldBeFoundAndNoNewCorrelationStateWritten()
-            throws IOException, CommonException {
+            throws CommonException {
         final Task task = getTestTask();
         final OperationResult result = getTestOperationResult();
 
@@ -281,13 +272,8 @@ public class CorrelationServiceTest extends AbstractEmptyInternalModelTest {
 
         when("findLinkedOrCorrelatedFocus is called on the account's shadow.");
         final ResourceType resourceType = this.resource.get().asObjectable();
-        final CorrelationDefinitionType correlationDefinition = resourceType.getSchemaHandling().getObjectType().get(0)
-                .getCorrelation();
-        final ResourceObjectTypeDefinition objectTypeDef = Objects.requireNonNull(Resource.of(resourceType)
-                .getCompleteSchemaRequired().getObjectTypeDefinition(shadow.getKind(), shadow.getIntent()));
-
         final Optional<FocusType> foundFocus = this.correlationService.findLinkedOrCorrelatedFocus(
-                shadow, resourceType, objectTypeDef, correlationDefinition, task, result);
+                shadow, resourceType, task, result);
 
         then("Owner should be read from existing correlation state.");
         assertTrue(foundFocus.isPresent());

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher;
 import com.evolveum.midpoint.task.api.Task;
@@ -85,6 +86,7 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
     @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
     @Autowired private CorrelationService correlationService;
+    @Autowired private ObjectsSamplerProvider samplerProvider;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -203,7 +205,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -263,7 +266,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -314,7 +318,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -368,7 +373,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -408,7 +414,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -503,7 +510,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -551,7 +559,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -627,7 +636,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -675,7 +685,8 @@ public class TestSystemMappingsSuggestion extends AbstractSmartIntegrationTest {
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),

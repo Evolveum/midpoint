@@ -31,7 +31,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -99,7 +98,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.QueryConverter;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -277,7 +276,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private LocalizationService localizationService;
 
     @SpringBean
-    private CacheDispatcher cacheDispatcher;
+    private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
 
     @SpringBean
     private GuiComponentRegistry registry;
@@ -710,7 +709,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
         return dataProviderRegistry;
     }
 
-    public CacheDispatcher getCacheDispatcher() {
+    public ClusterwideCacheInvalidationDispatcher getCacheDispatcher() {
         return cacheDispatcher;
     }
 

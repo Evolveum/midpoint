@@ -194,6 +194,13 @@ call apply_audit_change(9, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
 $aa$);
 
+-- Compatibility fix for standalone audit databases upgraded through older scripts.
+-- `ROLE_ANALYSIS_OUTLIER` was present in postgres-audit.sql since 4.9,
+-- but was missing from postgres-audit-upgrade.sql.
+DO $$ BEGIN
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'ROLE_ANALYSIS_OUTLIER' AFTER 'ROLE_ANALYSIS_SESSION';
+END $$;
+
 -- Schema Type
 -- @change: Adds schema object type value.
 -- @since: 4.10
@@ -216,6 +223,21 @@ $aa$);
 -- @affects: enum ObjectType | Modified enum type | Adds `CONNECTOR_DEVELOPMENT`.
 call apply_audit_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
+$aa$);
+
+-- Projection Holder Type
+-- @change: Adds `PROJECTION_HOLDER` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `PROJECTION_HOLDER`.
+call apply_audit_change(13, $aa$
+    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'PROJECTION_HOLDER' AFTER 'POLICY';
+$aa$);
+
+-- @change: Adds `WORK` shadow kind value.
+-- @since: 4.11
+-- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
+call apply_audit_change(14, $aa$
+    ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'GENERIC';
 $aa$);
 
 

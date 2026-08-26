@@ -90,6 +90,9 @@ public enum ObjectTypeGuiDescriptor {
 
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""), //TODO icons
 
+    PROJECTION_HOLDER_TYPE(ObjectTypes.PROJECTION_HOLDER, "ObjectTypeGuiDescriptor.projectionHolderType", "", ""), //TODO icons
+
+
     SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", ""),
 
     POLICY(ObjectTypes.POLICY, "ObjectType.PolicyType", "", ""),

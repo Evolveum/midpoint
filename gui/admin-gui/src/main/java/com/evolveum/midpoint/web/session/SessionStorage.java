@@ -39,6 +39,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
+    public static final String KEY_RESOURCE_WORK_CONTENT = "resourceWorkContent";
     public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
     public static final String KEY_RESOURCE_PAGE_RESOURCE_CONTENT = "Resource";
     public static final String KEY_RESOURCE_PAGE_REPOSITORY_CONTENT = "Repository";

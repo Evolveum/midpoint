@@ -7,8 +7,7 @@
 import Sparkline from "sparklines";
 import {TempusDominus} from '@eonasdan/tempus-dominus';
 import {DateTime} from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
-import {Modal} from 'bootstrap';
-import {Toast} from 'bootstrap';
+import {Modal, Toast, Offcanvas} from 'bootstrap';
 import {createPopper} from '@popperjs/core';
 
 export default class MidPointTheme {
@@ -327,6 +326,7 @@ export default class MidPointTheme {
 
                 $(document).on("blur", "[data-bs-toggle='tooltip']", function () {
                     isHovered = false;
+                    isEnterPressedOnTooltipIcon = false;
                     checkHide($(this));
                 });
 
@@ -389,6 +389,14 @@ export default class MidPointTheme {
                     const delay = setFocus ? 0 : 1000;
                     clearTimeout($el.data("tooltipShowDelayTimer"));
                     $el.data("tooltipShowDelayTimer", setTimeout(() => {
+
+                        if (setFocus) {
+                            $el.one('shown.bs.tooltip', function () {
+                                $tooltipInner.get(0).focus({ preventScroll: true });
+                                lastTooltipTrigger = $el;
+                            });
+                        }
+
                         $el.tooltip("show");
                         $el.removeAttr("aria-describedby");
                         const $tooltip = $('.tooltip:visible').last()
@@ -436,10 +444,6 @@ export default class MidPointTheme {
                                 checkHide($el);
                             });
 
-                        if (setFocus) {
-                            $tooltipInner.focus();
-                            lastTooltipTrigger = $el;
-                        }
                     }, delay));
                 }
             };
@@ -2119,5 +2123,26 @@ export default class MidPointTheme {
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
 
         instance.show();
+    }
+
+    showOffcanvas(offcanvasId) {
+        const element = document.getElementById(offcanvasId);
+        if (!element) {
+            return;
+        }
+
+        Offcanvas.getOrCreateInstance(element).show();
+    }
+
+    hideOffcanvas(offcanvasId) {
+        const element = document.getElementById(offcanvasId);
+        if (!element) {
+            return;
+        }
+
+        const offcanvas = Offcanvas.getInstance(element);
+        if (offcanvas) {
+            offcanvas.hide();
+        }
     }
 }

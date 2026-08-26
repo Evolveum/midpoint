@@ -1698,39 +1698,22 @@
     <!-- [med] but we need this to find PCD for AssignmentHolderType see MID-5010 -->
     <xsd:element name="assignmentHolder" type="tns:AssignmentHolderType"/>
 
-    <xsd:complexType name="FocusType" abstract="true">
+    <xsd:complexType name="ProjectionHolderType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    Abstract supertype for all object types that can be focus of full midPoint computation.
-                    This basically means objects that have projections. But focal objects also have
-                    activation, they may have personas, etc.
+                    Abstract supertype for all object types that can have projections on resources.
+
+                    Use subtype FocusType for  focal objects that also have activation, t
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
-                <a:object/>
-                <a:schemaMigration>
-                    <a:element>tns:objectType</a:element>
-                    <a:version>4.4</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
+                <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                (Alternative?) identities of this focus object.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.6</a:since>
-                                <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1767,6 +1750,44 @@
                             <xsd:appinfo>
                                 <a:displayName>FocusType.linkRef</a:displayName>
                                 <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="projectionHolder" type="tns:ProjectionHolderType"/>
+
+    <xsd:complexType name="FocusType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Abstract supertype for all object types that can be focus of full midPoint computation.
+                    This basically means objects that have projections. But focal objects also have
+                    activation, they may have personas, etc.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+                <a:schemaMigration>
+                    <a:element>tns:objectType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ProjectionHolderType">
+                <xsd:sequence>
+                    <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                (Alternative?) identities of this focus object.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3725,6 +3746,25 @@
                             was disabled explicitly, that the disable status was computed or other source of the
                             disabled event.
                         </p>
+                        <p>
+                            Currently used only for projections (shadows), not for focus objects.
+                        </p>
+                        <p>
+                            Known values:
+                            <ul>
+                                <li><pre>http://midpoint.evolveum.com/xml/ns/public/model/disableReason#explicit</pre>: The
+                                    projection was disabled explicitly by providing a user-specified (primary) delta.</li>
+                                <li><pre>http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision</pre>: The
+                                    projection was disabled because the _deprovisioning_ (i.e., deletion) was requested, but
+                                    disable-instead-of-delete behavior was in place. So instead of deleting, the account is
+                                    disabled. The common use is to delete the account later (see "delayed delete" feature).</li>
+                                <li><pre>http://midpoint.evolveum.com/xml/ns/public/model/disableReason#mapped</pre>: The
+                                    projection was disabled because some mapping determined the value of "administratorStatus"
+                                    to be "DISABLED". A typical case of such mapping is "asIs" outbound mapping from the focus
+                                    effective status to account (projection) administrative status. Hence, if the owning user is
+                                    disabled, their accounts get automatically disabled too.</li>
+                            </ul>
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:operational>true</a:operational>
@@ -5212,9 +5252,14 @@
             <xsd:element name="start" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The number at which the iteration will start. This is inclusive, i.e. if set to 1,
-                        then the lowest number in the iteration variable will be 1.
-                        If not specified, the default value is 0.
+                            The number at which the iteration will start. This is inclusive, i.e., if set to 1,
+                            then the lowest number in the iteration variable will be 1.
+                            If not specified, the default value is 0 when maxIterations is defined and 1 otherwise.
+                            The default of 0 when maxIterations is present preserves backward compatibility for existing
+                            deployments, ensuring that new records continue to be iterated starting from 0.
+                            <p/>
+                            The first non-conflicting attempt is also considered an iteration and uses the
+                            value of the start property.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.start</a:displayName>
@@ -5225,7 +5270,7 @@
             <xsd:element name="end" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The number at which the iteration will stop. This is inclusive, i.e. if set to 10,
+                        The number at which the iteration will stop. This is inclusive, i.e., if set to 10,
                         then the largest number in the iteration variable will be 10.
                         If not specified, the maxIterations property must be defined.
                         If both maxIterations and end are defined, then end takes precedence.
@@ -5239,8 +5284,7 @@
             <xsd:element name="maxIterations" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Maximum number of iteration attempts. The number specifies attempts
-                        beyond the first one, which is not considered to be an iteration.
+                        Maximum number of iteration attempts.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.maxIterations</a:displayName>
@@ -5278,6 +5322,22 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>IterationSpecificationType.postIterationCondition</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, the token expression will not be evaluated on the first attempt
+                        (when there is no conflict yet). The token will only be generated starting from
+                        the second attempt when a conflict is detected.
+                        If set to false, the token expression will be evaluated on every attempt including
+                        the first one.
+                        Default value is true.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>IterationSpecificationType.useTokenOnlyOnConflict</a:displayName>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6801,10 +6861,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TransformExpressionEvaluatorType">
                 <xsd:sequence>
-                    <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                    <xsd:element name="language" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Language of the expression. Groovy is the default language if other language is not specified.
+                                Language of the expression.
+                                If not specified, default scripting language is used
+                                (specified in defaultScriptLanguage in system configuration).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12585,6 +12647,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="defaultScriptLanguage" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default language for script expressions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16717,8 +16786,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether the policy rule will be evaluated.
+
+                        DEPRECATED:
+                        This swich was moved here from ActivityPolicyType for backward compatibility.
+                        Different approach was taken in 4.11 when switching policies on/off for specfic task,
+                        see ActivityPoliciesProcessingType for more info.
                     </xsd:documentation>
                     <xsd:appinfo>
+                        <a:deprecatedSince>4.11</a:deprecatedSince>
+                        <a:deprecated/>
                         <a:since>4.11</a:since>
                         <a:displayName>PolicyRuleType.enabled</a:displayName>
                         <a:help>PolicyRuleType.enabled.help</a:help>

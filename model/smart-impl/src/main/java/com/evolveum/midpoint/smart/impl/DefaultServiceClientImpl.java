@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -56,8 +57,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
     private final ExecutorService executorService;
 
     /** Timeout for receiving answer from the Python service. Later it will be configurable. */
-    private static final long RECEIVE_TIMEOUT = 120_000;
-
+    private static final long DEFAULT_RECEIVE_TIMEOUT = 120_000;
     /** Default thread pool size for parallel AI service calls. */
     private static final int DEFAULT_THREAD_POOL_SIZE = 20;
 
@@ -66,7 +66,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
         var policy = new HTTPClientPolicy();
-        policy.setReceiveTimeout(RECEIVE_TIMEOUT);
+        policy.setReceiveTimeout(getReceiveTimeout(configurationBean));
         conduit.setClient(policy);
 
         this.executorService = Executors.newFixedThreadPool(
@@ -77,6 +77,14 @@ public class DefaultServiceClientImpl implements ServiceClient {
                     t.setDaemon(true);
                     return t;
                 });
+    }
+
+    private static long getReceiveTimeout(@Nullable SmartIntegrationConfigurationType configurationBean) {
+        if (configurationBean == null || configurationBean.getServiceResponseTimeout() == null) {
+            return DEFAULT_RECEIVE_TIMEOUT;
+        }
+
+        return configurationBean.getServiceResponseTimeout().getTimeInMillis(new Date());
     }
 
     private static String getServiceUrl(@Nullable SmartIntegrationConfigurationType configurationBean)
@@ -106,21 +114,25 @@ public class DefaultServiceClientImpl implements ServiceClient {
         webClient.reset();
         webClient.accept(MediaType.APPLICATION_JSON);
         webClient.path("/health");
+        LOGGER.trace("Calling health endpoint: /health");
         try (var response = webClient.get()) {
-            if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+            var statusType = response.getStatusInfo();
+            if (statusType.getFamily() != Response.Status.Family.SUCCESSFUL) {
                 throw new SystemException("Health endpoint returned non-success status: %s".formatted(
                         response.getStatus()));
             }
             var responseText = response.readEntity(String.class);
+            LOGGER.trace("Response from health endpoint (status: {}):\n{}",
+                    statusType.getStatusCode(), responseText);
             try {
                 var root = new ObjectMapper().readTree(responseText);
                 var statusString = root.path("status").asText(null);
                 var status = HealthStatus.fromString(statusString);
-                var ai = root.path("ai");
-                if (ai.isMissingNode()) {
+                var metadata = root.path("metadata");
+                if (metadata.isMissingNode()) {
                     return Optional.empty();
                 }
-                return Optional.of(new AiInfo(ai.path("provider").asText(null), ai.path("model").asText(null), status));
+                return Optional.of(new AiInfo(metadata.path("provider").asText(null), metadata.path("model").asText(null), status));
             } catch (Exception e) {
                 throw new SystemException("Failed to parse AI info from health endpoint: " + e.getMessage(), e);
             }

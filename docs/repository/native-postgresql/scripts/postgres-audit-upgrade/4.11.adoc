@@ -8,11 +8,55 @@
 | Change
 | Description
 
+| <<change-14,Change 14>>
+| Adds `WORK` shadow kind value.
+
+| <<change-13,Change 13>>
+| Adds `PROJECTION_HOLDER` object type value.
+
 | <<change-12,Change 12>>
 | Adds `CONNECTOR_DEVELOPMENT` object type value.
 
 | <<change-11,Change 11>>
 | Adds application object type value.
+
+|===
+
+[[change-14]]
+== Change 14
+
+Since version: 4.11
+
+Adds `WORK` shadow kind value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ShadowKindType`
+| Modified enum type
+| Adds `WORK` shadow kind value.
+
+|===
+
+[[change-13]]
+== Change 13
+
+Since version: 4.11
+
+Adds `PROJECTION_HOLDER` object type value.
+
+[cols="1,1,3", options="header"]
+|===
+| Object
+| Change type
+| Description
+
+| `ObjectType`
+| Modified enum type
+| Adds `PROJECTION_HOLDER`.
 
 |===
 

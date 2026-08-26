@@ -13,9 +13,14 @@ import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGu
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.web.session.UserProfileStorage.TableId.TABLE_SMART_CORRELATION;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
+
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,10 +48,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingAlertDto;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -631,4 +632,131 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceW
     protected IModel<Boolean> getSwitchToggleModel() {
         return switchToggleModel;
     }
+
+    @Override
+    protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+        try {
+            removeUnusedCorrelationMappings();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
+        super.onSaveResourcePerformed(target);
+    }
+
+    /**
+     * Removes correlation mappings that were created in the object type but are no longer
+     * referenced by any correlation item. (ADDED mappings only)
+     *
+     * <p>New correlation mappings are stored as inbound mappings outside the correlation
+     * definition, so they have to be cleaned up explicitly when the related correlation
+     * item is removed before saving the resource.</p>
+     */
+    private void removeUnusedCorrelationMappings() throws SchemaException {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectTypeWrapper = getResourceObjectTypeDefinitionWrapper();
+
+        if (objectTypeWrapper == null) {
+            return;
+        }
+
+        PrismContainerWrapper<ResourceAttributeDefinitionType> attributesWrapper = objectTypeWrapper
+                .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+
+        if (attributesWrapper == null) {
+            return;
+        }
+
+        PrismContainerWrapper<ItemsSubCorrelatorType> correlatorsWrapper = getItemsCorrelatorsWrapper();
+        List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> attributesToRemove = new ArrayList<>();
+
+        for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> attributeWrapper : attributesWrapper.getValues()) {
+            PrismContainerWrapper<InboundMappingType> inboundWrapper =
+                    attributeWrapper.findContainer(ResourceAttributeDefinitionType.F_INBOUND);
+
+            if (inboundWrapper == null) {
+                continue;
+            }
+
+            List<PrismContainerValueWrapper<InboundMappingType>> mappingsToRemove = inboundWrapper.getValues().stream()
+                    .filter(mapping -> mapping.getStatus() == ValueStatus.ADDED)
+                    .filter(mapping -> {
+                        try {
+                            return !isMappingUsed(getMappingName(mapping), correlatorsWrapper);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Error checking if mapping is used: {}", e.getMessage(), e);
+                            return false;
+                        }
+                    })
+                    .toList();
+
+            inboundWrapper.getValues().removeAll(mappingsToRemove);
+
+            if (attributeWrapper.getStatus() == ValueStatus.ADDED && inboundWrapper.getValues().isEmpty()) {
+                attributesToRemove.add(attributeWrapper);
+            }
+        }
+
+        attributesWrapper.getValues().removeAll(attributesToRemove);
+    }
+
+    /**
+     * Returns the name used to associate an inbound mapping with a correlation item.
+     */
+    private String getMappingName(PrismContainerValueWrapper<InboundMappingType> mappingWrapper) throws SchemaException {
+        PrismPropertyWrapper<Object> nameProperty = mappingWrapper.findProperty(InboundMappingType.F_NAME);
+        return nameProperty != null && nameProperty.getValue() != null
+                ? (String) nameProperty.getValue().getRealValue()
+                : null;
+    }
+
+    /**
+     * Returns the items correlator container from the current correlation definition.
+     */
+    private PrismContainerWrapper<ItemsSubCorrelatorType> getItemsCorrelatorsWrapper() {
+        PrismContainerValueWrapper<CorrelationDefinitionType> correlationWrapper = getValueModel().getObject();
+
+        if (correlationWrapper == null) {
+            return null;
+        }
+
+        try {
+            return correlationWrapper.findContainer(
+                    ItemPath.create(CorrelationDefinitionType.F_CORRELATORS, CompositeCorrelatorType.F_ITEMS));
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find items correlators", e);
+            return null;
+        }
+    }
+
+    /**
+     * Checks whether the mapping is still referenced by an active correlation item.
+     */
+    private boolean isMappingUsed(
+            String mappingName,
+            @Nullable PrismContainerWrapper<ItemsSubCorrelatorType> correlatorsWrapper)
+            throws SchemaException {
+
+        if (mappingName == null || correlatorsWrapper == null) {
+            return false;
+        }
+
+        for (PrismContainerValueWrapper<ItemsSubCorrelatorType> correlatorWrapper : correlatorsWrapper.getValues()) {
+            if (correlatorWrapper.getStatus() == ValueStatus.DELETED) {
+                continue;
+            }
+
+            PrismContainerWrapper<CorrelationItemType> itemsWrapper =
+                    correlatorWrapper.findContainer(ItemsSubCorrelatorType.F_ITEM);
+
+            for (PrismContainerValueWrapper<CorrelationItemType> itemWrapper : itemsWrapper.getValues()) {
+                CorrelationItemType item = itemWrapper.getRealValue();
+                if (item != null && item.getName() != null && mappingName.equals(item.getName())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 }

@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+package com.evolveum.midpoint.repo.api;
+
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+/**
+ * Dispatches "object modified" (invalidation) events to cache listeners: both local and clusterwide.
+ *
+ * @see ClusterwideCacheInvalidationListener
+ * @see CacheInvalidationDispatcher
+ */
+public interface ClusterwideCacheInvalidationDispatcher {
+
+    void registerListener(ClusterwideCacheInvalidationListener listener);
+
+    void unregisterListener(ClusterwideCacheInvalidationListener listener);
+
+    /**
+     * Dispatches "cache entry/entries invalidation" event to all relevant caches, even clusterwide if requested so.
+     *
+     * @param type Type of object(s) to be invalidated. Null means 'all types' (implies oid is null as well).
+     * @param oid Object(s) to be invalidated. Null means 'all objects of given type(s)'.
+     * @param clusterwide True if the event has to be distributed clusterwide.
+     * @param context Context of the invalidation request (optional).
+     */
+    <O extends ObjectType> void dispatchInvalidation(
+            @Nullable Class<O> type,
+            @Nullable String oid,
+            boolean clusterwide,
+            @Nullable CacheInvalidationContext context);
+}

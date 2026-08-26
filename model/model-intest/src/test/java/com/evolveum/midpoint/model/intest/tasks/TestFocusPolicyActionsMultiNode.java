@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -19,7 +20,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -132,7 +132,7 @@ public class TestFocusPolicyActionsMultiNode extends AbstractEmptyModelIntegrati
     }
 
     private String inlineIdentifier(TestObject<TaskType> task, ActivityPath path) throws CommonException {
-        return ActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), path, RULE_ADD, true);
+        return TestActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), path, RULE_ADD, true);
     }
 
     private int countImportedUsers() throws Exception {

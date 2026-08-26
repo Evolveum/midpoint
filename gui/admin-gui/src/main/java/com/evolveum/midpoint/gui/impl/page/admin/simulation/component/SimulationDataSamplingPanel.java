@@ -6,41 +6,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectsPanel.createReloadButton;
 
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -64,11 +36,40 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectsPanel.createReloadButton;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.RepositoryShadowBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDetailsModel> implements Popupable {
 
@@ -100,6 +101,8 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
     List<Integer> presets;
     ObjectQuery appliedQuery = null;
 
+    private final boolean outboundMapping;
+
     {
         presets = new ArrayList<>();
         presets.add(50);
@@ -110,8 +113,9 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
         presets.add(null);
     }
 
-    public SimulationDataSamplingPanel(String id, IModel<ResourceDetailsModel> model) {
+    public SimulationDataSamplingPanel(String id, IModel<ResourceDetailsModel> model, boolean outboundMapping) {
         super(id, model);
+        this.outboundMapping = outboundMapping;
     }
 
     @Override
@@ -257,7 +261,9 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
     }
 
     protected StringResourceModel getSubtitleModel() {
-        return createStringResource("SimulationDataSamplingPanel.subtitle");
+        return this.outboundMapping
+                ? createStringResource("SimulationDataSamplingPanel.subtitle.outbound")
+                : createStringResource("SimulationDataSamplingPanel.subtitle");
     }
 
     /**
@@ -313,7 +319,14 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
         footer.add(runButton);
     }
 
-    private @Nullable ObjectQuery getResourceContentQuery() {
+    private @Nullable ObjectQuery getContentQuery() {
+        if (this.outboundMapping) {
+            return getFocusContentQuery();
+        }
+        return getShadowContentQuery();
+    }
+
+    private @Nullable ObjectQuery getShadowContentQuery() {
         ResourceObjectTypeDefinition objectType = getObjectTypeDefinition();
 
         try {
@@ -322,7 +335,19 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
                     objectType.getKind(),
                     objectType.getIntent());
         } catch (Exception e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot create query for resource content", e);
+            LoggingUtils.logUnexpectedException(LOGGER, e);
+        }
+        return null;
+    }
+
+    private @Nullable ObjectQuery getFocusContentQuery() {
+        try {
+            return this.getPrismContext().queryFor(FocusType.class)
+                    .type(FocusType.class)
+                    .and().not().id(SystemObjectsType.USER_ADMINISTRATOR.value())
+                    .build();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, e);
         }
         return null;
     }
@@ -332,6 +357,14 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
         form.setOutputMarkupId(true);
         add(form);
 
+        if (this.outboundMapping) {
+            initFocusTable(form);
+        } else {
+            initShadowTable(form);
+        }
+    }
+
+    private void initShadowTable(Form<?> form) {
         ShadowTablePanel shadowTablePanel = new ShadowTablePanel(ID_TABLE, null) {
 
             @Override
@@ -368,14 +401,6 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
             protected @NotNull ISelectableDataProvider<SelectableBean<ShadowType>> createProvider() {
                 return SimulationDataSamplingPanel.this.createProvider(
                         getSearchModel(), (CompiledShadowCollectionView) getObjectCollectionView());
-
-//                Load right from resource
-//                var provider = createSelectableBeanObjectDataProvider(() -> getResourceContentQuery(), null,
-//                        createSearchOptions());
-//                provider.setEmptyListOnNullQuery(true);
-//                provider.setSort(null);
-//                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
-//                return provider;
             }
 
             @Override
@@ -482,12 +507,126 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
         form.add(shadowTablePanel);
     }
 
+    private void initFocusTable(Form<?> form) {
+        ObjectListPanel<FocusType> focusTablePanel = new ObjectListPanel<>(ID_TABLE, FocusType.class, null) {
+
+            @Override
+            protected UserProfileStorage.@Nullable TableId getTableId() {
+                return null;
+            }
+
+            @Override
+            public @Nullable PageStorage getPageStorage() {
+                return null;
+            }
+
+            @Override
+            public boolean displayIsolatedNoValuePanel() {
+                return getDataProvider().size() == 0;
+            }
+
+            @Override
+            protected StringResourceModel getNoValuePanelCustomSubTitleModel() {
+                return createStringResource("SimulationDataSamplingPanel.noFocusesFound.reloadHint");
+            }
+
+            @Override
+            protected boolean isFooterVisible(boolean defaultCondition) {
+                return super.isFooterVisible(defaultCondition) && !displayIsolatedNoValuePanel();
+            }
+
+            @Override
+            protected IColumn<SelectableBean<FocusType>, String> createCheckboxColumn() {
+                return null;
+            }
+
+            @Override
+            protected IColumn<SelectableBean<FocusType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+                return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
+                        getSortProperty(customColumn, expression), customColumn, expression, getPageBase());
+            }
+
+            @Override
+            protected @NotNull ISelectableDataProvider<SelectableBean<FocusType>> createProvider() {
+                return SimulationDataSamplingPanel.this.createFocusProvider(
+                        getSearchModel(), getObjectCollectionView());
+            }
+
+            @Override
+            protected boolean isSearchResultInfoVisible() {
+                return !displayIsolatedNoValuePanel();
+            }
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            protected @NotNull Search createSearch() {
+                Search search = super.createSearch();
+                search.setSearchMode(SearchBoxModeType.AXIOM_QUERY);
+                search.setDslQuery(". type UserType");
+                return search;
+            }
+
+            @Override
+            public @NotNull String getTableContainerAdditionalCssClasses() {
+                return "shadow-sample-table-overflow";
+            }
+
+            @Override
+            protected @NotNull Component createHeader(String headerId) {
+                Component header = super.createHeader(headerId);
+                header.add(AttributeModifier.replace("class", ""));
+                return header;
+            }
+
+            @Override
+            protected boolean showTableAsCard() {
+                return false;
+            }
+
+            @Override
+            protected @NotNull @Unmodifiable List<InlineMenuItem> createInlineMenu() {
+                return List.of();
+            }
+
+            @Override
+            protected boolean isFulltextEnabled() {
+                return false;
+            }
+
+        };
+        focusTablePanel.setOutputMarkupId(true);
+        focusTablePanel.setOutputMarkupPlaceholderTag(true);
+        form.add(focusTablePanel);
+    }
+
     public Integer getSampleSize() {
         return sampleSizeModel.getObject();
     }
 
     private ShadowTablePanel getShadowTable() {
         return (ShadowTablePanel) get(createComponentPath(ID_FORM, ID_TABLE));
+    }
+
+    protected final @NotNull SelectableBeanObjectDataProvider<FocusType> createFocusProvider(
+            IModel<Search<FocusType>> searchModel, CompiledObjectCollectionView collection) {
+        SelectableBeanObjectDataProvider<FocusType> provider = new SelectableBeanObjectDataProvider<>(getPageBase(),
+                searchModel, new HashSet<>()) {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return getFocusContentQuery();
+            }
+
+            @Override
+            public ObjectQuery getQuery() {
+                appliedQuery = super.getQuery();
+                return appliedQuery;
+            }
+        };
+        provider.setCompiledObjectCollectionView(collection);
+        return provider;
     }
 
     protected final @NotNull RepositoryShadowBeanObjectDataProvider createProvider(
@@ -497,7 +636,7 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                return getResourceContentQuery();
+                return getContentQuery();
             }
 
             @Override
@@ -511,7 +650,7 @@ public abstract class SimulationDataSamplingPanel extends BasePanel<ResourceDeta
     }
 
     private @Nullable ObjectQuery getUsedQueryIfChangesApplied() {
-        boolean isAdditionalQuerySpecified = !appliedQuery.equivalent(getResourceContentQuery());
+        boolean isAdditionalQuerySpecified = !appliedQuery.equivalent(getContentQuery());
         return isAdditionalQuerySpecified ? appliedQuery : null;
     }
 

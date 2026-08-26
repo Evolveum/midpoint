@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
@@ -32,6 +33,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
@@ -132,6 +135,21 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
                     @Override
                     protected boolean isShowEmptyButtonVisible() {
                         return isShowEmptyField();
+                    }
+
+                    @Override
+                    protected boolean isShowEmptyButtonContainerVisible() {
+                        return super.isShowEmptyButtonContainerVisible();
+                    }
+
+                    @Override
+                    protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+                        return true;
+                    }
+
+                    @Override
+                    protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+                        return false;
                     }
                 };
         panel.setOutputMarkupId(true);

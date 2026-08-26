@@ -46,6 +46,10 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
         return scriptCache;
     }
 
+    protected void clearScriptCache() {
+        getScriptCache().clear();
+    }
+
     @Override
     public @Nullable Object evaluateInternal(
             @NotNull String codeString, @NotNull ScriptExpressionEvaluationContext context)

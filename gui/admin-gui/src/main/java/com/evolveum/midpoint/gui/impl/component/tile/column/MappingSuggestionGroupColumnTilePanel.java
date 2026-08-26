@@ -104,9 +104,9 @@ public class MappingSuggestionGroupColumnTilePanel<
         fragment.add(createHeaderContainer());
         fragment.add(createRowsContainer(columnValues));
 
-        initSeparator(fragment, "separator");
+        initSeparator(fragment, "separator", true);
         initHeaderTitle(fragment);
-        initSeparator(fragment, "separatorSecond");
+        initSeparator(fragment, "separatorSecond", isInbound());
         initTargetRef(fragment);
         initShowSuggestionLink(fragment);
         initAcceptSelectedButton(fragment);
@@ -115,10 +115,10 @@ public class MappingSuggestionGroupColumnTilePanel<
         return fragment;
     }
 
-    private void initSeparator(@NotNull Fragment fragment, String id) {
+    private void initSeparator(@NotNull Fragment fragment, String id, boolean visible) {
         WebMarkupContainer separator = new WebMarkupContainer(id);
-        separator.add(new VisibleBehaviour(this::isInbound));
         fragment.add(separator);
+        separator.add(new VisibleBehaviour(() -> visible));
     }
 
     private @NotNull List<PV> getColumnValues() {

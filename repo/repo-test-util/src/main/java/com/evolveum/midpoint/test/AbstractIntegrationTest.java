@@ -155,6 +155,12 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
         implements InfraTestMixin, DummyTestResourceInitializer {
 
+    static {
+        // Tests must be locale independent; don't rely on the host's system locale.
+        // (Maven test forks pin the JVM default locale via user.language/user.country args as well.)
+        Locale.setDefault(Locale.US);
+    }
+
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
     public static final String COMMON_DIR_NAME = "common";
@@ -838,6 +844,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .item(ConnectorType.F_CONNECTOR_TYPE).eq(connectorType)
                 .build();
         List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
+        if (connectors.isEmpty()) {
+            throw new IllegalStateException("No connectoer of type %s was found".formatted(connectorType));
+        }
         if (connectors.size() != 1) {
             throw new IllegalStateException("More than one connector of type %s was found: %s"
                     .formatted(connectorType, connectors));

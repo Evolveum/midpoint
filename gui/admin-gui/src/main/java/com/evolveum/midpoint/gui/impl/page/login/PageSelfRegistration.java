@@ -299,7 +299,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
         PasswordPanel password = new PasswordPropertyPanel(ID_PASSWORD,
-                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null, true);
+                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null, true) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean arePasswordInputFieldsAssociatedWithLabels() {
+                return true;
+            }
+        };
         password.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("CredentialsType.password")));
         password.getBaseFormComponent().setLabel(createStringResource("CredentialsType.password"));

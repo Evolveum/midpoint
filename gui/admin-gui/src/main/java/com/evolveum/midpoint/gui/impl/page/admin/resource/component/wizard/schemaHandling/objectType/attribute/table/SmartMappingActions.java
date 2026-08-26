@@ -8,8 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable.createChangeNameColumnAction;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeMappingTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.SuggestionUiStyle;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeMappingTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.bySuggestion;
@@ -22,27 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.ContainerDrawerPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerFooterPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.ChangeLifecycleSelectedMappingsPopup;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.MappingDataDto;
-
-import com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -58,23 +37,40 @@ import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.GroupedMappingDataProvider;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.ContainerDrawerPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerFooterPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerModel;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.ChangeLifecycleSelectedMappingsPopup;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.MappingDataDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.preview.PreviewMappingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.FocusStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectTypeStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionFlow;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationParams;
+import com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -82,17 +78,19 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.Describable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.gui.api.util.MappingDirection;
 
 /**
  * Encapsulates user actions for {@link SmartMappingTable}.
@@ -762,7 +760,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 .label(table.createStringResource("SmartMappingPanel.simulate"))
                 .icon("fa fa-flask")
                 .headerMenuItem(false)
-                .visibilityChecker((rowModel, isHeader) -> !isHeader && table.isInbound())
+                .visibilityChecker((rowModel, isHeader) -> !isHeader)
                 .action(new ColumnMenuAction<PrismContainerValueWrapper<MappingType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -770,32 +768,41 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                             return;
                         }
 
-                        InlineMappingDefinitionType mappingToSimulate = new InlineMappingDefinitionType();
-                        ItemPathType refPath = getRefPath(getRowModel().getObject());
+                        MappingDirection direction = table.getMappingDirectionType();
+                        PrismContainerValueWrapper<MappingType> mappingWrapper = getRowModel().getObject();
+                        ItemPathType refPath = getRefPath(mappingWrapper);
                         if (refPath == null) {
                             return;
                         }
-                        mappingToSimulate.setRef(refPath);
 
-                        MappingType mappingRealValue = getRowModel().getObject().getRealValue();
+                        MappingType mappingRealValue = mappingWrapper.getRealValue();
                         //noinspection unchecked
                         WebPrismUtil.cleanupEmptyContainerValue(
                                 mappingRealValue.asPrismContainerValue());
 
-                        if (mappingRealValue instanceof InboundMappingType inbound) {
-                            mappingToSimulate.getInbound().add(inbound.clone());
-                        } else if (mappingRealValue instanceof OutboundMappingType outbound) {
-                            mappingToSimulate.getOutbound().add(outbound.clone());
-                        }
+                        SimulationParams<?> params;
 
-                        SimulationParams<?> params = new SimulationParams<>(
-                                table.getPageBase(),
-                                table.getResourceType(),
-                                table.findResourceObjectTypeDefinition().getRealValue(),
-                                ResourceTaskFlavors.MAPPING_PREVIEW_ACTIVITY,
-                                mappingToSimulate.clone(),
-                                ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
-                        );
+                        if (direction == MappingDirection.INBOUND) {
+                            params = new SimulationParams<>(
+                                    table.getPageBase(),
+                                    table.getResourceType(),
+                                    table.findResourceObjectTypeDefinition().getRealValue(),
+                                    ResourceTaskFlavors.INBOUND_MAPPING_PREVIEW_ACTIVITY,
+                                    (InlineInboundMappingsDefinitionType) createInlineMappingDefinition(direction,
+                                            mappingRealValue, refPath),
+                                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
+                            );
+                        } else {
+                            params = new SimulationParams<>(
+                                    table.getPageBase(),
+                                    table.getResourceType(),
+                                    table.findResourceObjectTypeDefinition().getRealValue(),
+                                    ResourceTaskFlavors.OUTBOUND_MAPPING_PREVIEW_ACTIVITY,
+                                    (InlineOutboundMappingsDefinitionType) createInlineMappingDefinition(direction,
+                                            mappingRealValue, refPath),
+                                    ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW
+                            );
+                        }
 
                         SimulationActionFlow<?> flow = getSimulationActionFlow(params);
                         flow.start(target);
@@ -842,7 +849,7 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                         }
 
                         @NotNull DrawerModel popup = buildPreviewMappingPanelPopup(getRowModel());
-                        table.getPageBase().showRightSidebar(popup, target);
+                        table.getPageBase().showDrawer(popup, target);
                     }
                 })
                 .visibilityChecker(bySuggestion(true, table::getStatusInfo))
@@ -892,6 +899,31 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
         };
 
+    }
+
+    private static @NotNull Containerable createInlineMappingDefinition(MappingDirection direction,
+            MappingType mappingRealValue, ItemPathType refPath) {
+        switch (direction) {
+            case INBOUND -> {
+                InlineInboundMappingsDefinitionType mappingToSimulate = new InlineInboundMappingsDefinitionType();
+                mappingToSimulate.setRef(refPath);
+
+                if (mappingRealValue instanceof InboundMappingType inbound) {
+                    mappingToSimulate.getInbound().add(inbound.clone());
+                }
+                return mappingToSimulate;
+            }
+            case OUTBOUND -> {
+                InlineOutboundMappingsDefinitionType mappingToSimulate = new InlineOutboundMappingsDefinitionType();
+                mappingToSimulate.setRef(refPath);
+                if (mappingRealValue instanceof OutboundMappingType outbound) {
+                    mappingToSimulate.getOutbound().add(outbound.clone());
+                }
+                return mappingToSimulate;
+            }
+            default -> throw SystemException.unexpected(
+                    new UnsupportedOperationException("Illegal value of the mapping direction"));
+        }
     }
 
     private @NotNull CollapsedItem<DrawerModel> getMappingPreviewBasicDrawerItem(
@@ -972,6 +1004,8 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("SmartMappingTable.apply.suggestion")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                table.getPageBase().hideDrawer(target);
+
                 GroupedMappingDataProvider provider = table.getProvider();
                 MappingDataDto groupedDto =
                         provider != null ? provider.findGroupedDto(rowModel.getObject()) : null;
@@ -990,7 +1024,6 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
 
                 table.acceptSuggestionItemPerformed(rowModel, target);
                 table.refreshAndDetach(target);
-                table.getPageBase().hideDrawer(target);
             }
         };
 
@@ -1009,9 +1042,9 @@ record SmartMappingActions<P extends Containerable>(SmartMappingTable<P> table) 
                 table.createStringResource("SmartMappingTable.dismiss")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                table.getPageBase().hideDrawer(target);
                 deleteItemPerform(rowModel.getObject());
                 table.refreshAndDetach(target);
-                table.getPageBase().hideDrawer(target);
             }
         };
 

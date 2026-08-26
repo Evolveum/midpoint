@@ -116,8 +116,12 @@ public class ConfirmationWithOptionsDto<T extends Describable> implements Serial
     }
 
     protected boolean isAiAvailable() {
+        if(getAiInfo() == null || getAiInfo().getObject() == null) {
+            return false;
+        }
+
         AiInfo aiInfo = getAiInfo().getObject();
-        return aiInfo != null && HealthStatus.OK.equals(aiInfo.status());
+        return HealthStatus.OK.equals(aiInfo.status());
     }
 
     protected String getAiStatusText() {

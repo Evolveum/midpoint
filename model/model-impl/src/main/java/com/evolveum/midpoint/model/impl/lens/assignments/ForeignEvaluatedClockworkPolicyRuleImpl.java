@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 
-import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 
 import com.evolveum.midpoint.repo.common.policy.TriggerFilter;
 import com.evolveum.midpoint.schema.config.AbstractPolicyRuleConfigItem;

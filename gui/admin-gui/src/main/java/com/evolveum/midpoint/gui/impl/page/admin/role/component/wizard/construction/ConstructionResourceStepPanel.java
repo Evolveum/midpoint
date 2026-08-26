@@ -8,7 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construc
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.SingleTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
@@ -28,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
@@ -40,7 +43,10 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.LoadableDetachableModel;
+
 import javax.xml.namespace.QName;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,13 +59,56 @@ import java.util.List;
 public class ConstructionResourceStepPanel<AR extends AbstractRoleType>
         extends SingleTileWizardStepPanel<ResourceType, FocusDetailsModels<AR>, AssignmentType> {
 
+    @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionResourceStepPanel.class);
 
     public static final String PANEL_TYPE = "arw-construction-resource";
+    private static final String ID_LIFECYCLE_STATE = "lifecycleState";
+
+    private LoadableDetachableModel<PrismPropertyWrapper<String>> lifecycleStateModel;
 
     public ConstructionResourceStepPanel(
             FocusDetailsModels<AR> model, IModel<PrismContainerValueWrapper<AssignmentType>> valueModel) {
         super(model, valueModel);
+    }
+
+    @Override
+    protected Fragment createFragment(String id) {
+        Fragment fragment = super.createFragment(id);
+        addLifeCycleStatePanel(fragment);
+        return fragment;
+    }
+
+    private void addLifeCycleStatePanel(Fragment fragment) {
+        initLifeCycleStatePanel();
+
+        LifecycleStatePanel panel = new LifecycleStatePanel(ID_LIFECYCLE_STATE, lifecycleStateModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getLifecyclePanelStyle() {
+                return "form-item-parent construction-lifecycle-state";
+            }
+        };
+        panel.setOutputMarkupId(true);
+        fragment.add(panel);
+    }
+
+    private void initLifeCycleStatePanel() {
+        lifecycleStateModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected PrismPropertyWrapper<String> load() {
+                try {
+                    PrismContainerValueWrapper<AssignmentType> constructionWrapper = getValueModel().getObject();
+                    return constructionWrapper.findProperty(AssignmentType.F_LIFECYCLE_STATE);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find lifecycle state value.");
+                }
+                return null;
+            }
+        };
     }
 
     @Override
@@ -156,6 +205,8 @@ public class ConstructionResourceStepPanel<AR extends AbstractRoleType>
         columns.add(ColumnUtils.createIconColumn(getPageBase()));
 
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ResourceType>>> item, String id, IModel<SelectableBean<ResourceType>> row) {
                 item.add(AttributeAppender.append("class", "align-middle"));

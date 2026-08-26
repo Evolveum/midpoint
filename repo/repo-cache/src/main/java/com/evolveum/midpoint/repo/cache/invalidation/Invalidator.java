@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.repo.cache.global.GlobalCacheQueryValue;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
@@ -56,7 +56,7 @@ public class Invalidator {
     @Autowired private GlobalQueryCache globalQueryCache;
     @Autowired private GlobalObjectCache globalObjectCache;
     @Autowired private GlobalVersionCache globalVersionCache;
-    @Autowired CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
     @Autowired MatchingRuleRegistry matchingRuleRegistry;
 
     private static final int MAX_LISTENERS = 1000;

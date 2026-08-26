@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -157,7 +157,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
 
     private String createRuleIdentifier(TestObject<TaskType> object, String policyName) throws CommonException {
         PrismObject<TaskType> task = getTask(object.oid);
-        return ActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), policyName, true);
+        return TestActivityPolicyUtils.buildPolicyIdentifier(task, ActivityPath.empty(), policyName, true);
     }
 
     @Override

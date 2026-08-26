@@ -1507,6 +1507,47 @@ CREATE TRIGGER m_allowed_connectors_list_oid_delete_tr AFTER DELETE ON m_allowed
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 $aa$);
 
+-- @change: Adds `PROJECTION_HOLDER` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `PROJECTION_HOLDER`.
+call apply_change(61, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'PROJECTION_HOLDER' AFTER 'POLICY';
+$aa$);
+
+-- @change: Adds abstract projection holder table, the base of foci and cases.
+-- @since: 4.11
+-- @affects: table m_projection_holder | New table | Abstract base table for projection holders, all objects that can hold projections (foci and cases).
+call apply_change(62, $aa$
+CREATE TABLE m_projection_holder (
+    objectType ObjectType NOT NULL CHECK (objectType = 'PROJECTION_HOLDER') NO INHERIT,
+    CHECK (FALSE) NO INHERIT
+)
+    INHERITS (m_assignment_holder);
+$aa$);
+
+-- @change: Moves focus table under the projection holder table.
+-- @since: 4.11
+-- @affects: table m_focus | Modified table | Changes parent table from `m_assignment_holder` to `m_projection_holder`.
+call apply_change(63, $aa$
+ALTER TABLE m_focus NO INHERIT m_assignment_holder;
+ALTER TABLE m_focus INHERIT m_projection_holder;
+$aa$);
+
+-- @change: Moves case table under the projection holder table.
+-- @since: 4.11
+-- @affects: table m_case | Modified table | Changes parent table from `m_assignment_holder` to `m_projection_holder`.
+call apply_change(64, $aa$
+ALTER TABLE m_case NO INHERIT m_assignment_holder;
+ALTER TABLE m_case INHERIT m_projection_holder;
+$aa$);
+
+-- @change: Adds `WORK` shadow kind value.
+-- @since: 4.11
+-- @affects: enum ShadowKindType | Modified enum type | Adds `WORK` shadow kind value.
+call apply_change(65, $aa$
+    ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'ASSOCIATION';
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

@@ -22,8 +22,6 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 
 /**
  * Work definition that can provide object set specification.
- *
- * It has to be aware of an activity type name because of the default implementation of {@link AffectedObjectSetProvider#getAffectedObjectSetInformation(AbstractActivityWorkStateType)}.
  */
 public interface ObjectSetSpecificationProvider
         extends AffectedObjectSetProvider, FailedObjectsSelectorProvider {

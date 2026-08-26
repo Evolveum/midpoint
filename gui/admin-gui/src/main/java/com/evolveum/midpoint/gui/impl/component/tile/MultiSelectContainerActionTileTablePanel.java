@@ -270,7 +270,7 @@ public abstract class MultiSelectContainerActionTileTablePanel<E extends Seriali
 
         newObjectButton.showTitleAsLabel(true);
         newObjectButton.add(AttributeAppender.replace("class",
-                "text-nowrap btn btn-outline-primary text-nowrap me-2"));
+                "text-nowrap btn btn-outline-primary text-nowrap ms-2"));
         return newObjectButton;
     }
 

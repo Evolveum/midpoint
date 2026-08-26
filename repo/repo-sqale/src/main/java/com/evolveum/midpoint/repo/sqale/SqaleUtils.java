@@ -31,10 +31,10 @@ public class SqaleUtils {
     public enum VersionedComponent {
 
         /** This is the main repository database, containing `m_xxx` tables, defined in `postgres.sql`. */
-        REPOSITORY("schemaChangeNumber", "repository data", 60),
+        REPOSITORY("schemaChangeNumber", "repository data", 65),
 
         /** This is the main repository database, containing `ma_xxx` tables, defined in `postgres-audit.sql`. */
-        AUDIT("schemaAuditChangeNumber", "audit data", 12);
+        AUDIT("schemaAuditChangeNumber", "audit data", 14);
 
         /** Value of `name` column in `m_global_metadata` table that indicates the current version. */
         public final String label;

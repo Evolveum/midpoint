@@ -229,6 +229,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                     return UserProfileStorage.TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
                 case ENTITLEMENT:
                     return UserProfileStorage.TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
+                case WORK:
+                    return UserProfileStorage.TableId.PAGE_RESOURCE_WORKS_PANEL_RESOURCE_MODE;
 
                 default:
                     return UserProfileStorage.TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;

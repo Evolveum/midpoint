@@ -83,7 +83,7 @@ public class CorrelationCaseManager {
     public void createOrUpdateCase(
             @NotNull ShadowType resourceObject,
             @NotNull ResourceType resource,
-            @NotNull FocusType preFocus,
+            @NotNull ProjectionHolderType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
@@ -105,7 +105,7 @@ public class CorrelationCaseManager {
     private void createCase(
             ShadowType resourceObject,
             ResourceType resource,
-            FocusType preFocus,
+            ProjectionHolderType preFocus,
             XMLGregorianCalendar now,
             Task task,
             OperationResult result)
@@ -161,6 +161,8 @@ public class CorrelationCaseManager {
                 return "account";
             case ENTITLEMENT:
                 return "entitlement";
+            case WORK:
+                return "work";
             case GENERIC:
             default:
                 return "object";
@@ -186,7 +188,7 @@ public class CorrelationCaseManager {
     }
 
     private void updateCase(
-            CaseType aCase, @NotNull ShadowType resourceObject, FocusType preFocus, OperationResult result)
+            CaseType aCase, @NotNull ShadowType resourceObject, ProjectionHolderType preFocus, OperationResult result)
             throws SchemaException {
         ObjectReferenceType preFocusRef = createObjectRefWithFullObject(preFocus);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)

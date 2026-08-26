@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
@@ -58,7 +58,7 @@ public class UpAndDown implements BeanFactoryAware {
     @Autowired private LocalExecutionManager localExecutionManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private MidpointConfiguration midpointConfiguration;
-    @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
     private BeanFactory beanFactory;
 
     /**

@@ -14,6 +14,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.path.InfraItemName;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QProjectionHolderMapping;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @param <R> row type related to the {@link Q}
  */
 public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends MFocus>
-        extends QAssignmentHolderMapping<S, Q, R> {
+        extends QProjectionHolderMapping<S, Q, R> {
 
     public static final String DEFAULT_ALIAS_NAME = "f";
 
@@ -127,7 +129,6 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
                         enumMapper(q -> q.lockoutStatus));
 
         addRefMapping(F_PERSONA_REF, QObjectReferenceMapping.initForPersona(repositoryContext));
-        addRefMapping(F_LINK_REF, QObjectReferenceMapping.initForProjection(repositoryContext));
 
         addNestedMapping(F_IDENTITIES, FocusIdentitiesType.class)
                 .addContainerTableMapping(FocusIdentitiesType.F_IDENTITY,
@@ -309,9 +310,6 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     public void storeRelatedEntities(
             @NotNull R row, @NotNull S schemaObject, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, schemaObject, jdbcSession);
-
-        storeRefs(row, schemaObject.getLinkRef(),
-                QObjectReferenceMapping.getForProjection(), jdbcSession);
         storeRefs(row, schemaObject.getPersonaRef(),
                 QObjectReferenceMapping.getForPersona(), jdbcSession);
 

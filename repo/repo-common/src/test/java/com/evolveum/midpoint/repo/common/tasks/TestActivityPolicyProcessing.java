@@ -12,6 +12,10 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -27,7 +31,6 @@ import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesProcessingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyProcessingModeType;
@@ -174,19 +177,21 @@ public class TestActivityPolicyProcessing extends AbstractRepoCommonTest {
 
         when("virtual assignments are collected for the child activities");
         then("the control's child sees the root's virtual assignment (proving the XML shape works)");
-        var controlAssignments = ActivityUtil.getAllVirtualAssignments(getChildren(control).get(0));
+        TaskType controlTask = control.getRawTaskObjectClonedIfNecessary().asObjectable();
+        var controlAssignments = ActivityUtil.getAllVirtualAssignments(getChildren(control).get(0), controlTask);
         assertThat(controlAssignments)
                 .as("virtual assignments collected without the flag")
                 .hasSize(1);
-        assertThat(controlAssignments.iterator().next().getLeft().getTargetRef().getOid())
+        assertThat(controlAssignments.iterator().next().assignmentConfigItem().value().getTargetRef().getOid())
                 .as("target of the collected virtual assignment")
                 .isEqualTo(ROLE_130_OID);
 
         then("the flagged task's activities see no virtual assignments");
-        assertThat(ActivityUtil.getAllVirtualAssignments(getRootActivity(flagged)))
+        TaskType flaggedTask = flagged.getRawTaskObjectClonedIfNecessary().asObjectable();
+        assertThat(ActivityUtil.getAllVirtualAssignments(getRootActivity(flagged), flaggedTask))
                 .as("virtual assignments collected for the flagged root")
                 .isEmpty();
-        assertThat(ActivityUtil.getAllVirtualAssignments(getChildren(flagged).get(0)))
+        assertThat(ActivityUtil.getAllVirtualAssignments(getChildren(flagged).get(0), flaggedTask))
                 .as("virtual assignments collected for the flagged child")
                 .isEmpty();
     }
@@ -242,8 +247,9 @@ public class TestActivityPolicyProcessing extends AbstractRepoCommonTest {
     }
 
     private static List<ActivityPolicyRule> collectRules(Activity<?, ?> activity, Task task, OperationResult result)
-            throws ConfigurationException {
+            throws ConfigurationException, SchemaException, ObjectNotFoundException {
+        var originForEmbeddedRules = ConfigurationItemOrigin.undeterminedSafe(); // not important for these tests
         return ActivityPolicyRulesCollector.collectRules(
-                activity, task, CommonTaskBeans.get().objectResolver, result);
+                activity, originForEmbeddedRules, CommonTaskBeans.get().objectResolver, task, result);
     }
 }
