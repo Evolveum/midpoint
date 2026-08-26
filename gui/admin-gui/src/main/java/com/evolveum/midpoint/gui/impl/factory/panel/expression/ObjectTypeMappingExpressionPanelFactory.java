@@ -66,8 +66,17 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
             }
 
             @Override
+            protected List<ExpressionPanel.RecognizedEvaluator> getChoices() {
+                return ObjectTypeMappingExpressionPanelFactory.this.getChoices(super.getChoices());
+            }
+
+            @Override
             public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
                 List<CollapsedItem<DrawerModel>> drawerCollapsedItems = super.getDrawerCollapsedItems();
+
+                if (getSelectedEvaluatorType() != RecognizedEvaluator.SCRIPT) {
+                    return drawerCollapsedItems;
+                }
 
                 PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper = findIterationValueWrapper(panelCtx);
 
@@ -144,6 +153,13 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
     @Override
     public Integer getOrder() {
         return 90;
+    }
+
+    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
+        parentChoices.removeIf(choice ->
+                ExpressionPanel.RecognizedEvaluator.ASSOCIATION_FROM_LINK == choice
+                        || ExpressionPanel.RecognizedEvaluator.SHADOW_OWNER_REFERENCE_SEARCH == choice);
+        return parentChoices;
     }
 
 }

@@ -138,7 +138,9 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         OperationResult result = context.getResult();
 
         try {
-            PrismObjectDefinition<O> objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
+            PrismObjectDefinition<O> objectDef = context.isSuppliedObjectFromAuthorizedCase()
+                    ? getModelInteractionService().getEditObjectDefinitionForPreauthorizedObject(object, phase, task, result)
+                    : getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
             object.applyDefinition(objectDef);
         } catch (CommonException e) {
             LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);
