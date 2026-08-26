@@ -91,6 +91,9 @@ public final class DetailsPageUtil {
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
     public static final Map<Class<?>, Class<? extends PageBase>> OBJECT_LIST_PAGE_MAP;
     public static final Map<Class<?>, Class<? extends PageBase>> OBJECT_HISTORY_PAGE_MAP;
+    public static final String PARAM_PENDING_OBJECT_PREVIEW = "pendingObjectPreview";
+    public static final String PARAM_PENDING_OBJECT_CASE_OID = "pendingObjectCaseOid";
+    public static final String PARAM_PENDING_OBJECT_TYPE = "pendingObjectType";
 
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
@@ -230,6 +233,47 @@ public final class DetailsPageUtil {
         return url != null ? url.toString() : null;
     }
 
+    public static String getPendingObjectPreviewLinkNavigationUrl(Referencable objectRef, String caseOid) {
+        if (objectRef == null || objectRef.getType() == null || StringUtils.isBlank(caseOid)) {
+            return null;
+        }
+
+        Class<? extends ObjectType> objectClass = (Class<? extends ObjectType>) WebComponentUtil.qnameToClass(objectRef.getType());
+        Class<? extends PageBase> objectPageClass = getObjectDetailsPage(objectClass);
+        if (objectPageClass == null) {
+            return null;
+        }
+
+        PageParameters parameters = createPendingObjectPreviewParameters(objectRef, caseOid);
+        var url = RequestCycle.get().urlFor(objectPageClass, parameters);
+        return url != null ? url.toString() : null;
+    }
+
+    public static PageParameters createPendingObjectPreviewParameters(Referencable objectRef, String caseOid) {
+        PageParameters parameters = new PageParameters();
+        if (objectRef != null && StringUtils.isNotBlank(objectRef.getOid())) {
+            parameters.add(OnePageParameterEncoder.PARAMETER, objectRef.getOid());
+        }
+        parameters.add(PARAM_PENDING_OBJECT_PREVIEW, true);
+        parameters.add(PARAM_PENDING_OBJECT_CASE_OID, caseOid);
+        if (objectRef != null && objectRef.getType() != null) {
+            parameters.add(PARAM_PENDING_OBJECT_TYPE, objectRef.getType().getLocalPart());
+        }
+        return parameters;
+    }
+
+    public static boolean isPendingObjectPreview(PageParameters parameters) {
+        return parameters != null && parameters.get(PARAM_PENDING_OBJECT_PREVIEW).toBoolean(false);
+    }
+
+    public static String getPendingObjectPreviewCaseOid(PageParameters parameters) {
+        return parameters != null ? parameters.get(PARAM_PENDING_OBJECT_CASE_OID).toString() : null;
+    }
+
+    public static String getPendingObjectPreviewType(PageParameters parameters) {
+        return parameters != null ? parameters.get(PARAM_PENDING_OBJECT_TYPE).toString() : null;
+    }
+
     /**
      * Navigation url is to be added to "href" attribute of the link component so that
      * the browser can navigate to a new tab using this url.
@@ -316,6 +360,21 @@ public final class DetailsPageUtil {
         } else if (failIfUnsupported) {
             throw new SystemException("Cannot determine details page for " + objectClass);
         }
+    }
+
+    public static void dispatchToPendingObjectPreview(Referencable objectRef, String caseOid, Component component) {
+        if (objectRef == null || objectRef.getType() == null || StringUtils.isBlank(caseOid)) {
+            return;
+        }
+
+        Class<? extends ObjectType> objectClass =
+                (Class<? extends ObjectType>) WebComponentUtil.qnameToClass(objectRef.getType());
+        Class<? extends PageBase> page = getObjectDetailsPage(objectClass);
+        if (page == null) {
+            return;
+        }
+
+        ((PageBase) component.getPage()).navigateToNext(page, createPendingObjectPreviewParameters(objectRef, caseOid));
     }
 
     public static void dispatchToListPage(Class<? extends Containerable> objectClass, String collectionViewId, Component component, boolean failIfUnsupported) {

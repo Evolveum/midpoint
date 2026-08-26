@@ -3365,6 +3365,52 @@ public final class WebComponentUtil {
         return null;
     }
 
+    /**
+     * Resolves and validates a pending object from an ADD-related case.
+     *
+     * @return the matching object, or {@code null} if it cannot be resolved
+     */
+    public static <O extends ObjectType> PrismObject<O> getPendingObjectFromAddCase(
+            CaseType aCase, Class<O> expectedType, String expectedOid) {
+        AssignmentHolderType objectFromDelta = getObjectFromAddDeltaForCase(aCase);
+        if (objectFromDelta != null) {
+            return validatePendingObjectFromCase(objectFromDelta.asPrismObject(), expectedType, expectedOid);
+        }
+
+        if (aCase == null || aCase.getObjectRef() == null
+                || !ObjectTypeUtil.hasArchetypeRef(aCase, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
+            return null;
+        }
+
+        PrismObject<?> embeddedObject = aCase.getObjectRef().asReferenceValue().getObject();
+        if (embeddedObject == null) {
+            return null;
+        }
+
+        return validatePendingObjectFromCase(embeddedObject, expectedType, expectedOid);
+    }
+
+    /**
+     * Validates the expected object type and OID.
+     *
+     * @return the validated object, or {@code null} on mismatch
+     */
+    private static <O extends ObjectType> PrismObject<O> validatePendingObjectFromCase(
+            PrismObject<?> object, Class<O> expectedType, String expectedOid) {
+        if (object == null || expectedType == null || !expectedType.equals(object.getCompileTimeClass())) {
+            return null;
+        }
+
+        if (StringUtils.isNotBlank(expectedOid)
+                && StringUtils.isNotBlank(object.getOid())
+                && !expectedOid.equals(object.getOid())) {
+            return null;
+        }
+
+        //noinspection unchecked
+        return (PrismObject<O>) object;
+    }
+
     public static boolean isResourceRelatedTask(TaskType task) {
         return WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value())
                 || WebComponentUtil.hasArchetypeAssignment(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())
@@ -4057,6 +4103,24 @@ public final class WebComponentUtil {
 
     public static void createToastForCreateObject(AjaxRequestTarget target, Class<? extends ObjectType> type) {
         createToastForObject("AbstractWizardPanel.createObject", classToQName(type), target);
+    }
+
+    public static void createToastForCreateObjectSubmittedForApproval(
+            AjaxRequestTarget target, Class<? extends ObjectType> type) {
+        createToastForObject("AbstractWizardPanel.createObject.submittedForApproval", classToQName(type), target);
+    }
+
+    /**
+     * Checks whether the operation was submitted for workflow approval.
+     *
+     * An in-progress status alone is not approval-specific. The workflow approval
+     * path additionally stores the root approval case OID in the operation result,
+     * which distinguishes it from other currently supported asynchronous operations.
+     */
+    public static boolean isOperationSubmittedForApproval(OperationResult result) {
+        return result != null
+                && result.isInProgress()
+                && StringUtils.isNotBlank(result.findCaseOid());
     }
 
     public static void createToastForUpdateObject(AjaxRequestTarget target, QName type) {
