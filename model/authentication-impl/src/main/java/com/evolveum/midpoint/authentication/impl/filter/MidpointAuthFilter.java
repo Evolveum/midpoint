@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -24,7 +26,9 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.config.ArchetypeSelectionModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.FocusIdentificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
@@ -59,7 +63,6 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
@@ -224,8 +227,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
             mpAuthentication.setAuthModules(authWrapper.getAuthModules());
         }
 
-        // Re-enter focus identification when its form is submitted for an existing authentication flow.
-        int indexOfProcessingModule = resetToFocusIdentificationModuleIfRequested(mpAuthentication, authWrapper, httpRequest);
+        // Re-enter identification when its form is submitted for an existing authentication flow.
+        int indexOfProcessingModule = resetToIdentificationModuleIfRequested(
+                mpAuthentication, authWrapper.getAuthModules(), authWrapper.getSequence(), httpRequest);
         if (indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
             indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
         }
@@ -516,38 +520,100 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     /**
-     * Resets authentication to the initial focus-identification module when a
-     * focus-identification POST is submitted for an existing authentication flow.
+     * Resets the authentication flow when a focus-identification or archetype-selection form is submitted
+     * for an existing authentication flow. The flow is restarted from the submitted module; the state of the
+     * modules executed before it (e.g. an already selected archetype) is kept.
      *
-     * This prevents state from another authentication attempt in the same
-     * HTTP session from being reused for the current identification request.
+     * This prevents state from another authentication attempt in the same HTTP session from being reused
+     * for the current identification request.
      *
-     * @return {@code 0} if the flow was reset to focus identification,
-     *         {@link MidpointAuthentication#NO_MODULE_FOUND_INDEX} otherwise
+     * @return index of the module that has to process the request after the reset,
+     *         {@link MidpointAuthentication#NO_MODULE_FOUND_INDEX} when the request is no such submit
      */
-    private int resetToFocusIdentificationModuleIfRequested(
-            MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest request) {
-        if (mpAuthentication == null || !"POST".equals(request.getMethod()) || authWrapper.getAuthModules().isEmpty()
-                || authWrapper.getSequence().getModule().isEmpty()) {
+    @VisibleForTesting
+    int resetToIdentificationModuleIfRequested(
+            MidpointAuthentication mpAuthentication,
+            List<AuthModule<?>> authModules,
+            AuthenticationSequenceType sequence,
+            HttpServletRequest request) {
+        if (mpAuthentication == null || !"POST".equals(request.getMethod())
+                || authModules.isEmpty() || sequence.getModule().isEmpty()) {
             return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
         }
 
-        ModuleAuthentication firstModuleAuthentication = authWrapper.getAuthModules().get(0).getBaseModuleAuthentication();
-        if (!(firstModuleAuthentication instanceof FocusIdentificationModuleAuthentication)
-                || !isRequestForAuthenticationModuleLoginPage(request, firstModuleAuthentication)) {
+        int submittedModuleIndex = indexOfSubmittedIdentificationModule(authModules, request);
+        if (submittedModuleIndex == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
             return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
         }
 
-        AuthenticationSequenceType sequence = authWrapper.getSequence().clone();
-        AuthenticationSequenceModuleType firstModule = sequence.getModule().get(0);
-        sequence.getModule().clear();
-        sequence.getModule().add(firstModule);
+        restartFlowFromModule(mpAuthentication, authModules, sequence, submittedModuleIndex);
+        return submittedModuleIndex;
+    }
+
+    /**
+     * Returns the index of the identification module (focus identification or archetype selection)
+     * whose login page is the target of the request.
+     */
+    private int indexOfSubmittedIdentificationModule(List<AuthModule<?>> authModules, HttpServletRequest request) {
+        for (int i = 0; i < authModules.size(); i++) {
+            ModuleAuthentication moduleAuthentication = authModules.get(i).getBaseModuleAuthentication();
+            if (isIdentificationModule(moduleAuthentication)
+                    && isRequestForAuthenticationModuleLoginPage(request, moduleAuthentication)) {
+                return i;
+            }
+        }
+        return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+    }
+
+    /** Modules that establish the identity used for resolving the security policy of the flow. */
+    private boolean isIdentificationModule(ModuleAuthentication moduleAuthentication) {
+        return moduleAuthentication instanceof FocusIdentificationModuleAuthentication
+                || moduleAuthentication instanceof ArchetypeSelectionModuleAuthentication;
+    }
+
+    /**
+     * Restarts the flow from the module at the given index. The flow keeps the given module and the ones
+     * executed before it, together with their processed state and the archetype selected by them.
+     */
+    private void restartFlowFromModule(
+            MidpointAuthentication mpAuthentication,
+            List<AuthModule<?>> authModules,
+            AuthenticationSequenceType sequence,
+            int moduleIndex) {
+        List<AuthModule<?>> keptModules = List.copyOf(authModules.subList(0, moduleIndex + 1));
+        List<ModuleAuthentication> keptProcessedModules =
+                processedStateOfModules(mpAuthentication, keptModules.subList(0, moduleIndex));
+        String archetypeOid = mpAuthentication.getArchetypeOid();
 
         mpAuthentication.restart();
-        mpAuthentication.setSequence(sequence);
-        mpAuthentication.setAuthModules(List.of(authWrapper.getAuthModules().get(0)));
-        mpAuthentication.addAuthentication(mpAuthentication.getAuthModules().get(0).getBaseModuleAuthentication());
-        return 0;
+        mpAuthentication.setSequence(AuthSequenceUtil.sequenceWithFirstExecutedModulesOnly(sequence, moduleIndex + 1));
+        mpAuthentication.setAuthModules(keptModules);
+        keptProcessedModules.forEach(mpAuthentication::addAuthentication);
+        mpAuthentication.addAuthentication(keptModules.get(moduleIndex).getBaseModuleAuthentication());
+
+        if (containsSuccessfulArchetypeSelection(keptProcessedModules)) {
+            mpAuthentication.setArchetypeOid(archetypeOid);
+            mpAuthentication.setArchetypeSelected(true);
+        }
+    }
+
+    /** Returns the processed state of the given modules, i.e. of the ones executed before the reset point. */
+    private List<ModuleAuthentication> processedStateOfModules(
+            MidpointAuthentication mpAuthentication, List<AuthModule<?>> modules) {
+        List<ModuleAuthentication> processedState = new ArrayList<>();
+        for (AuthModule<?> module : modules) {
+            mpAuthentication.getAuthentications().stream()
+                    .filter(processed -> Objects.equals(processed.getModuleIdentifier(), module.getModuleIdentifier()))
+                    .findFirst()
+                    .ifPresent(processedState::add);
+        }
+        return processedState;
+    }
+
+    private boolean containsSuccessfulArchetypeSelection(List<ModuleAuthentication> processedModules) {
+        return processedModules.stream()
+                .anyMatch(module -> module instanceof ArchetypeSelectionModuleAuthentication
+                        && AuthenticationModuleState.SUCCESSFULLY == module.getState());
     }
 
     /**
