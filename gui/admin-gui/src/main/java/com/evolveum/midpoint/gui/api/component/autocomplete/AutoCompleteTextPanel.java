@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import java.io.Serial;
 import java.time.Duration;
 import java.util.Iterator;
 
@@ -18,10 +19,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.*;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
@@ -60,6 +58,13 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
     }
 
     public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type,
+            boolean strict, String lookupTableOid, AbstractAutoCompleteTextRenderer<T> renderer) {
+        this(id, model, type, renderer);
+        this.lookupTableOid = lookupTableOid;
+        this.strict = strict;
+    }
+
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type,
             boolean strict) {
         this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
         this.strict = strict;
@@ -72,7 +77,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
         // this has to be copied because the  AutoCompleteTextField dies if renderer=null
         final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, type, renderer, autoCompleteSettings) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Iterator<T> getChoices(String input) {
@@ -89,7 +94,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
         input.setType(type);
         if (model instanceof LookupPropertyModel) {
             input.add(new OnChangeAjaxBehavior() {
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
