@@ -10,7 +10,7 @@ doc-type: intro
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-06-18T07:37:54.090+02:00
 :page-upkeep-status: orange
-:page-moved-from: /midpoint/reference/roles-policies/certification/
+:page-moved-from: [ /midpoint/reference/roles-policies/certification/, /midpoint/reference/roles-policies/policies/certification/* ]
 :experimental:
 :page-toc: top
 :toclevels: 1
