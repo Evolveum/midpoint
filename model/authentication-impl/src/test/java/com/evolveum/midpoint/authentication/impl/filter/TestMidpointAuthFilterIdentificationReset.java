@@ -40,9 +40,6 @@ import com.evolveum.midpoint.test.AbstractHigherUnitTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * PROOF OF CONCEPT - redesigned replacement of {@link TestMidpointAuthFilterFocusIdentification}
- * together with the generalized reset in {@link MidpointAuthFilter}. Not registered in
- * testng-unit.xml; run with -Dtest=TestMidpointAuthFilterIdentificationReset.
  *
  * Tests the re-entry into identification (focus identification, archetype selection) when its form
  * is submitted while the HTTP session still holds a partially advanced authentication.
@@ -109,7 +106,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - the new submit has to be identified again, it must not continue with the step chosen for the previous user
      */
     @Test
-    public void testStaleIdentificationSubmitRestartsIdentification() throws Exception {
+    public void testStaleIdentificationSubmitRestartsIdentification() {
         given("session holding an authentication already advanced to the continuation module");
         AuthenticationSequenceType sequence = sequence(MODULE_USER_NAME, MODULE_LDAP);
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -137,7 +134,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - a stale identification submit must keep this executed module, not the one listed first
      */
     @Test
-    public void testStaleIdentificationSubmitKeepsExecutedModuleOfMergedSequence() throws Exception {
+    public void testStaleIdentificationSubmitKeepsExecutedModuleOfMergedSequence() {
         given("merged sequence that lists the continuation module before the identification module");
         AuthenticationSequenceType sequence = mergedSequence(MODULE_OIDC);
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -164,7 +161,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - the whole flow has to start over, including the state of the previously selected archetype
      */
     @Test
-    public void testStaleArchetypeSelectionSubmitRestartsFlow() throws Exception {
+    public void testStaleArchetypeSelectionSubmitRestartsFlow() {
         given("session holding an authentication with a selected archetype and an identified user");
         AuthenticationSequenceType sequence = archetypeSequence();
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -193,7 +190,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - the user is identified again within the already selected archetype, the selection is kept
      */
     @Test
-    public void testStaleIdentificationSubmitAfterArchetypeSelectionKeepsArchetype() throws Exception {
+    public void testStaleIdentificationSubmitAfterArchetypeSelectionKeepsArchetype() {
         given("session holding an authentication with a selected archetype and an identified user");
         AuthenticationSequenceType sequence = archetypeSequence();
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -226,7 +223,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * applicability is evaluated again for user B
      */
     @Test
-    public void testStaleIdentificationSubmitDropsOtpDecisionOfPreviousUser() throws Exception {
+    public void testStaleIdentificationSubmitDropsOtpDecisionOfPreviousUser() {
         given("session where the OTP module was called off for the identified user");
         AuthenticationSequenceType sequence = sequence(MODULE_USER_NAME, MODULE_OTP);
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -252,7 +249,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - this submit belongs to the OTP module, a credential module never resets the flow
      */
     @Test
-    public void testOtpSubmitIsNotReset() throws Exception {
+    public void testOtpSubmitIsNotReset() {
         given("session holding an authentication advanced to the OTP module");
         AuthenticationSequenceType sequence = sequence(MODULE_USER_NAME, MODULE_OTP);
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -275,7 +272,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - this submit belongs to the LDAP module, identification must not be started again
      */
     @Test
-    public void testContinuationModuleSubmitIsNotReset() throws Exception {
+    public void testContinuationModuleSubmitIsNotReset() {
         given("sequence whose first executed module is not the identification one");
         AuthenticationSequenceType sequence = sequence(MODULE_LDAP, MODULE_OIDC);
         List<AuthModule<?>> authModules = authModules(sequence);
@@ -296,7 +293,7 @@ public class TestMidpointAuthFilterIdentificationReset extends AbstractHigherUni
      * - rendering the page must not restart the flow stored in the session
      */
     @Test
-    public void testIdentificationPageRenderingIsNotReset() throws Exception {
+    public void testIdentificationPageRenderingIsNotReset() {
         given("authentication advanced to the continuation module");
         AuthenticationSequenceType sequence = sequence(MODULE_USER_NAME, MODULE_LDAP);
         List<AuthModule<?>> authModules = authModules(sequence);
