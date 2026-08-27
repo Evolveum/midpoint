@@ -16,7 +16,6 @@ This prevents users from uploading files with incorrect or misleading file exten
 == What is validated
 
 MidPoint validates a number of standard file types, including images and documents.
-You can find the complete list of supported file types at the link:https://tika.apache.org/3.3.2/formats.html#Full_list_of_Supported_Formats_in_standard_artifacts[Apache Tika formats page].
 
 There are the following pre-configured validation areas for file uploads, represented by specific properties:
 
@@ -54,15 +53,53 @@ The following parameters are accepted:
 * `checkContentType` - If set to `true`, the system checks the content type of the uploaded file against the content types defined by `allowedContentType`.
 If set to `false`, the system does not perform this check.
 * `allowedContentType` - Specifies the allowed content types for the uploaded file.
-You can specify multiple allowed content types by adding multiple `allowedContentType` elements.
-Here are some examples of allowed content types:
-** `image/jpeg` - Allows JPEG files to be uploaded.
-** `image/png` - Allows PNG files to be uploaded.
-** `application/pdf` - Allows PDF files to be uploaded.
-** `image/*` - Allows any image file type to be uploaded.
+You can specify multiple allowed content types by adding a separate `allowedContentType` element for each content type. +
+See the complete list of supported content types with their `allowedContentType` values:
 
 +
-See the complete list of supported content types at the link:https://tika.apache.org/3.3.2/formats.html#Full_list_of_Supported_Formats_in_standard_artifacts[Apache Tika formats page].
+.Supported file types
+[%autowidth]
+|===
+| File type | `allowedContentType` value
+
+| JPEG
+| `image/jpeg`
+
+| PNG
+| `image/png`
+
+| PDF
+| `application/pdf`
+
+| DOC
+| `application/msword`
+
+| XLS
+| `application/vnd.ms-excel`
+
+| PPT
+| `application/vnd.ms-powerpoint`
+
+| DOCX
+| `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+
+| XLSX
+| `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+
+| PPTX
+| `application/vnd.openxmlformats-officedocument.presentationml.presentation`
+
+| ODT
+| `application/vnd.oasis.opendocument.text`
+
+| ODS
+| `application/vnd.oasis.opendocument.spreadsheet`
+
+| ODP
+| `application/vnd.oasis.opendocument.presentation`
+
+|===
+
 * `convertImageTo` - Specifies the image format to which the uploaded image should be converted.
 The valid values for this parameter are `jpeg` and `png`.
 * `stripMetadata` - If set to `true`, the system removes metadata from the uploaded image file.
