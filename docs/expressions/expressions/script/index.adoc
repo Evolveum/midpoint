@@ -32,7 +32,7 @@ While you can use any of the languages above, MEL and Groovy are the best choice
 xref:mel[MEL] should be a default choice for simple expressions and light customization.
 It is simple and safe.
 
-xref:groovy[Groovy] is good choice for scripts that need to do powerful computation or heavy customization.
+xref:groovy.adoc[Groovy] is good choice for scripts that need to do powerful computation or heavy customization.
 Groovy is the also the "traditional" choice.
 Virtually all examples in our documentation use Groovy, most of the community is used to it,
 and it is used by virtually all the deployments.
@@ -218,7 +218,7 @@ MEL scripts are limited to safe operations only, they cannot directly compromise
 MEL expressions are safe even for delegated administration.
 However, they still can do indirect harm.
 
-xref:groovy[Groovy] and the other general-purpose scripting languages (JavaScript/ECMAscript, Python, etc.) are way too powerful.
+xref:groovy.adoc[Groovy] and the other general-purpose scripting languages (JavaScript/ECMAscript, Python, etc.) are way too powerful.
 They bring inherent security risks.
 There are just a few simple internal safeguards when it comes to evaluation of expressions in these general-purpose languages.
 E.g. midPoint script libraries will properly enforce authorization when executing the functions.

@@ -1,0 +1,137 @@
+= File upload configuration
+
+:page-toc: top
+:page-description: This page describes how to configure file upload validation in midPoint.
+:page-keywords: file upload, validation, file upload validation, upload, jpeg, png
+:experimental:
+
+This page describes how to configure file upload validation in midPoint.
+
+== Introduction
+
+When you upload files to midPoint, the system validates that the file type matches the declared type.
+This means that if you upload a file with the .PNG extension, for example, the system will check if the uploaded file is indeed a PNG.
+
+This prevents users from uploading files with incorrect or misleading file extensions, which could lead to security vulnerabilities or data integrity issues.
+
+== What is validated
+
+MidPoint validates a number of standard file types, including images and documents.
+
+There are the following pre-configured validation areas for file uploads, represented by specific properties:
+
+* For users, roles, services and orgs, i.e., subtypes of xref:/midpoint/reference/schema/focus-and-projections/#focal-objects[`FocusType`] - The system allows uploading JPEG and PNG image files. +
+For example, this means that you can only upload JPEG and PNG files as user profile pictures by default. +
+This configuration is represented by the `jpegPhoto` property in the schema.
+
++
+.Default validation configuration for `jpegPhoto`:
+[source,xml]
+----
+<fileUploadConfiguration>
+    <item>
+        <path>jpegPhoto</path>
+        <checkContentType>true</checkContentType>
+        <allowedContentType>image/jpeg</allowedContentType>
+        <allowedContentType>image/png</allowedContentType>
+    </item>
+</fileUploadConfiguration>
+----
+
+* For xref:/midpoint/reference/cases/[cases] - By default, the system does not restrict file uploads.
+This configuration is represented by the `output/evidence` property in the schema.
+
+These predefined validation areas can be customized as described below.
+
+== Configuration options
+
+You can customize the configuration of the pre-defined `jpegPhoto` and `output/evidence` properties, as well as add new validation for your custom fields using xref:/midpoint/reference/schema/custom-schema-extension/changing-schema-extension-via-GUI/[extensions] represented by the `extension/<custom_property>` properties in the configuration `<path>` element. +
+For example, you can broaden or restrict upload to other formats, or convert the uploaded image to a different format.
+
+File upload configuration is controlled by `fileUploadConfiguration` in the xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI configuration].
+The following parameters are accepted:
+
+* `checkContentType` - If set to `true`, the system checks the content type of the uploaded file against the content types defined by `allowedContentType`.
+If set to `false`, the system does not perform this check.
+* `allowedContentType` - Specifies the allowed content types for the uploaded file.
+You can specify multiple allowed content types by adding a separate `allowedContentType` element for each content type. +
+See the complete list of supported content types with their `allowedContentType` values:
+
++
+.Supported file types
+[%autowidth]
+|===
+| File type | `allowedContentType` value
+
+| JPEG
+| `image/jpeg`
+
+| PNG
+| `image/png`
+
+| PDF
+| `application/pdf`
+
+| DOC
+| `application/msword`
+
+| XLS
+| `application/vnd.ms-excel`
+
+| PPT
+| `application/vnd.ms-powerpoint`
+
+| DOCX
+| `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+
+| XLSX
+| `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+
+| PPTX
+| `application/vnd.openxmlformats-officedocument.presentationml.presentation`
+
+| ODT
+| `application/vnd.oasis.opendocument.text`
+
+| ODS
+| `application/vnd.oasis.opendocument.spreadsheet`
+
+| ODP
+| `application/vnd.oasis.opendocument.presentation`
+
+|===
+
+* `convertImageTo` - Specifies the image format to which the uploaded image should be converted.
+The valid values for this parameter are `jpeg` and `png`.
+* `stripMetadata` - If set to `true`, the system removes metadata from the uploaded image file.
+If set to `false`, the system retains the metadata in the uploaded image file.
+
+
+== Configure file upload validation
+
+. Go to [.nowrap]#icon:cog[] btn:[System]# > [.nowrap]#icon:desktop[] btn:[Admin GUI Configuration]#.
+. Click [.nowrap]#icon:edit[] btn:[Edit raw]#.
+. In the `adminGUIConfiguration` section, add your configuration.
+For example, the following enables uploading JPEG and PNG files and strips metadata from the uploaded images for the `jpegPhoto` property, and allows uploading PDF files for the `output/evidence` property: 
+
++
+.Example file upload configuration
+[source,xml]
+----
+<fileUploadConfiguration>
+    <item id="352">
+        <path>jpegPhoto</path>
+        <checkContentType>true</checkContentType>
+        <allowedContentType>image/jpeg</allowedContentType>
+        <allowedContentType>image/png</allowedContentType>
+        <stripMetadata>true</stripMetadata>
+    </item>
+    <item id="353">
+        <path>output/evidence</path>
+        <checkContentType>true</checkContentType>
+        <allowedContentType>application/pdf</allowedContentType>
+    </item>
+</fileUploadConfiguration>
+----
+
+. Click [.nowrap]#icon:save[] btn:[Save]#.
