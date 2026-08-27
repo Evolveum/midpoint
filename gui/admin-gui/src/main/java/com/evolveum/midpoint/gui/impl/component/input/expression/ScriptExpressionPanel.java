@@ -121,13 +121,15 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
         documentationField.setOutputMarkupId(true);
         documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
-        documentationField.add(new CaretPreservingOnChangeBehavior() {
+
+        documentationField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                 // The model is updated before this callback. Avoid rerendering the
                 // unchanged field, as replacing it causes visible flickering.
             }
         });
+
         return documentationField;
     }
 
