@@ -44,7 +44,7 @@ public class RequesterClause extends SelectorClause {
     @Override
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var object = asObjectTypeIfPossible(value);
         if (object == null) {
             traceNotApplicable(ctx, "not an object");

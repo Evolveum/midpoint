@@ -58,7 +58,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @param <F> Type of the matching focus object
  */
-public abstract class SynchronizationContext<F extends FocusType>
+public abstract class SynchronizationContext<F extends ProjectionHolderType>
         implements SingleShadowInboundsProcessingContext<F>, ResourceObjectProcessingContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
@@ -538,7 +538,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     /**
      * Synchronization context ready for the synchronization, i.e. it has type identification and synchronization policy present.
      */
-    public static class Complete<F extends FocusType> extends SynchronizationContext<F> {
+    public static class Complete<F extends ProjectionHolderType> extends SynchronizationContext<F> {
 
         Complete(
                 @NotNull ResourceObjectShadowChangeDescription change,
@@ -576,7 +576,7 @@ public abstract class SynchronizationContext<F extends FocusType>
      * Synchronization context not ready for the synchronization; policy is not present.
      * Such context cannot be used for synchronization - the sync will be skipped in this case.
      */
-    static class Incomplete<F extends FocusType> extends SynchronizationContext<F> {
+    static class Incomplete<F extends ProjectionHolderType> extends SynchronizationContext<F> {
 
         Incomplete(
                 @NotNull ResourceObjectShadowChangeDescription change,

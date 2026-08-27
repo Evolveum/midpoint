@@ -94,7 +94,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<RoleAnalysisAttributes
     }
 
     protected String getCssClassForCardContainer() {
-        return "card m-0";
+        return "card shadow-sm m-0";
     }
 
     private @NotNull RoleAnalysisAttributeResultChartPanel initCardBodyComponentChart() {

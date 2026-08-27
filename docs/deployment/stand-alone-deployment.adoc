@@ -25,8 +25,8 @@ This directory is referred to as *midPoint installation directory* or simply *in
 This is distinct from xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory],
 or `midpoint.home`, which contains runtime configuration, logs, etc.
 
-Please have a look at the xref:/midpoint/quickstart/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
-See xref:/midpoint/install/bare-installation/distribution/[Installing MidPoint Server] page for full installation instructions.
+Please have a look at the xref:/midpoint/get-started/quick-start/[] page for basic installation instruction for the purposes of midPoint evaluation or demo.
+See xref:/midpoint/get-started/install/bare-installation/distribution/[Installing MidPoint Server] page for full installation instructions.
 
 == Run Control
 
@@ -59,7 +59,7 @@ bin/midpoint.sh stop
 ----
 
 The `midpoint.sh` script may provide more run control and diagnostics capabilities in the future.
-See also xref:/midpoint/install/bare-installation/midpoint-sh/[midpoint.sh page].
+See also xref:/midpoint/get-started/install/bare-installation/midpoint-sh/[midpoint.sh page].
 
 === Windows
 
@@ -175,6 +175,6 @@ However, it is deprecated, and it may be removed soon.
 
 == See Also
 
-* xref:/midpoint/quickstart/[]
-* xref:/midpoint/install/[]
+* xref:/midpoint/get-started/quick-start/[]
+* xref:/midpoint/get-started/install/[]
 * xref:/midpoint/reference/deployment/midpoint-home-directory/[MidPoint Home Directory]

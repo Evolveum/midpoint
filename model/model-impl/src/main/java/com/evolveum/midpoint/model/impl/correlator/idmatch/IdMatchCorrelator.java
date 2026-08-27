@@ -309,7 +309,7 @@ public class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, ConfigurationException {
+            ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         ShadowType shadow = CorrelatorUtil.getShadowFromCorrelationCase(aCase);
         beans.provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
         FocusType preFocus = CorrelatorUtil.getPreFocusFromCorrelationCase(aCase);

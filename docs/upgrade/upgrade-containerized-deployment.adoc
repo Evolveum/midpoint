@@ -1,0 +1,50 @@
+= Container Environment Upgrade
+:page-keywords: upgrade, container, docker, kubernetes, ninja
+:page-description: This document describes how to upgrade midPoint containerized deployment using a tool called Ninja.
+
+This guide provides a high-level overview of the upgrade process for containerized deployments.
+The exact procedure depends on the container platform and deployment configuration used.
+This guide assumes that you are familiar with the general upgrade procedure described in xref:/midpoint/reference/upgrade/[Upgrade guide]
+and xref:/midpoint/reference/upgrade/upgrade-with-ninja/[Upgrade with ninja].
+
+It focuses only on the container-specific aspects of the upgrade.
+
+Unlike standalone deployments, containerized deployments replace the midPoint image instead of updating the installation directory.
+Because the `ninja` tool is distributed as part of the midPoint image, create a temporary execution environment based on the appropriate midPoint image to run `ninja` commands:
+
+* *Docker:* Use a container.
+* *Kubernetes:* Use a pod or Job.
+
+Run the required `ninja` commands inside the execution environment.
+
+The execution environment must use the same configuration as the running midPoint deployment.
+In particular, ensure it has access to the same:
+
+* Environment variables
+* Mounted volumes (for example, `midpoint.home`, connectors, or keystores)
+* Configuration files (for example, `config.xml`)
+* ConfigMaps and Secrets (in Kubernetes)
+
+== Upgrade procedure
+
+The preparation phase is almost identical to a standard upgrade and can be executed with a midPoint instance running:
+
+* xref:/midpoint/reference/upgrade/upgrade-with-ninja/#_run_pre_upgrade_check[Run pre-upgrade check]
+* xref:/midpoint/reference/upgrade/upgrade-with-ninja/#_run_verify[Run verify]
+
+The `upgrade-distribution` command cannot be used in container environments because there is no installation directory to update.
+Instead, perform the following steps:
+
+. Stop all running midPoint instances.
++
+Running nodes with different midPoint versions is not supported.
+It is strongly recommended to create a backup of the repository and audit databases after shutting down midPoint and before continuing with the upgrade.
++
+. Using the execution environment, follow these steps:
+.. xref:/midpoint/reference/upgrade/upgrade-with-ninja/#_upgrade_db_schema_for_repository_and_audit[Upgrade the repository and audit database schema].
+.. xref:/midpoint/reference/upgrade/upgrade-with-ninja/#_initial_objects_update[Update initial objects].
+
+. Update the deployment configuration to use the target midPoint image. +
+For example, update the image version in your Docker Compose file or the corresponding Kubernetes deployment configuration.
+. Start the upgraded deployment.
+. Verify that the upgraded deployment starts successfully and check the logs for any errors or warnings.

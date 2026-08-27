@@ -22,7 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusS
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import javax.xml.namespace.QName;

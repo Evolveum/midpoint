@@ -26,7 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter.OPERATION_MODIFY_ENTITLEMENT;
 
@@ -57,7 +59,7 @@ abstract class ResourceObjectProvisioningOperation {
             BeforeAfterType beforeAfter,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, GenericConnectorException {
+            ExpressionEvaluationException, GenericConnectorException, SubscriptionComplianceException {
         var operations = determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource());
         if (operations.isEmpty()) {
             return;
@@ -144,7 +146,7 @@ abstract class ResourceObjectProvisioningOperation {
             EntitlementConverter.EntitlementObjectsOperations objectsOperations,
             OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         getLogger().trace("Executing entitlement changes, roMap:\n{}", objectsOperations.debugDumpLazily(1));
 
@@ -203,7 +205,7 @@ abstract class ResourceObjectProvisioningOperation {
             RepoShadow repoShadow,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         List<ShadowSimpleAttributeDefinition<?>> neededExtraAttributes = new ArrayList<>();
         for (Operation operation : operations) {
             ShadowSimpleAttributeDefinition<?> rad = operation.getAttributeDefinitionIfApplicable(ctx.getObjectDefinitionRequired());

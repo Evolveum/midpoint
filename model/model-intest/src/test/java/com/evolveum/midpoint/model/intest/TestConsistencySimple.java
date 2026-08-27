@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;

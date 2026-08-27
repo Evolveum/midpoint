@@ -22,7 +22,7 @@ public interface ResourceTester {
 
     OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException;
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     /** Used for reloading the object. Different for provisioning- and model-level tests. */
     SimpleObjectResolver getResourceReloader();

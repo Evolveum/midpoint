@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.component.dialog.*;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;

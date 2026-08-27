@@ -60,7 +60,7 @@ public abstract class Action {
      */
     public @Nullable Action execute(OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(getClass().getName() + ".execute")
                 .setMinor()
                 .build();
@@ -84,7 +84,7 @@ public abstract class Action {
      */
     abstract @Nullable Action executeInternal(OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     private void traceEnter() {
         logger.trace("+++ ENTER: ctx={}", operation);

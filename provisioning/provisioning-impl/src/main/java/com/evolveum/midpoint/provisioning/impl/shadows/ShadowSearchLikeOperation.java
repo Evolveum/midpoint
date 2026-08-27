@@ -85,7 +85,8 @@ class ShadowSearchLikeOperation {
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
+            SubscriptionComplianceException {
         return new ShadowSearchLikeOperation(
                 createContext(query, options, context, task, result),
                 query,
@@ -98,7 +99,8 @@ class ShadowSearchLikeOperation {
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         ResourceOperationCoordinates operationCoordinates = ObjectQueryUtil.getOperationCoordinates(query);
         operationCoordinates.checkNotUnknown();
         operationCoordinates.checkNotResourceScoped();
@@ -111,7 +113,7 @@ class ShadowSearchLikeOperation {
 
     SearchResultMetadata executeIterativeSearch(@NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (shouldDoRepoSearch()) {
             return executeIterativeSearchInRepository(handler, result);
         } else {
@@ -121,7 +123,7 @@ class ShadowSearchLikeOperation {
 
     SearchResultList<PrismObject<ShadowType>> executeNonIterativeSearch(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (shouldDoRepoSearch()) {
             return executeNonIterativeSearchInRepository(result);
         } else {
@@ -135,7 +137,7 @@ class ShadowSearchLikeOperation {
 
     Integer executeCount(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (shouldDoRepoSearch()) {
             return b.shadowFinder.countShadows(ctx, query, options, result);
         } else {
@@ -148,7 +150,7 @@ class ShadowSearchLikeOperation {
     private SearchResultMetadata executeIterativeSearchOnResource(
             @NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
 
         FetchErrorReportingMethodType ucfErrorReportingMethod = getErrorReportingMethod(rootOptions);
 
@@ -306,7 +308,7 @@ class ShadowSearchLikeOperation {
 
     private @NotNull SearchResultList<PrismObject<ShadowType>> executeNonIterativeSearchInRepository(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var shadows = b.shadowFinder.searchShadows(ctx, query, options, result);
         for (PrismObject<ShadowType> shadow : shadows) {
             processRepoShadow(shadow, result);
@@ -320,7 +322,7 @@ class ShadowSearchLikeOperation {
      */
     private PrismObject<ShadowType> processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
 
         PrismObject<ShadowType> resultingShadow;
         var result = parentResult.createMinorSubresult(OP_PROCESS_REPO_SHADOW);

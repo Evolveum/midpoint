@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyViolationException;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.repo.common.activity.run.*;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -168,13 +170,25 @@ class ItemProcessingGatekeeper<I> {
             itemProcessingMonitor.stopProfilingAndTracing();
             writeOperationExecutionRecord(result);
 
-            try {
-                new ActivityPolicyRulesProcessor(activityRun)
-                        .evaluateAndExecuteRules(processingResult, result);
-            } catch (ActivityRunPolicyException e) {
-                processingResult = ItemProcessingResult.fromException(result, e);
-                var activityRunResult = ActivityRunResult.handleException(e, result, activityRun);
+            boolean skipPolicyEvaluation = false;
+            ThresholdPolicyViolationException thresholdEx = findThresholdPolicyViolation();
+            if (thresholdEx != null && thresholdEx.getCause() instanceof ActivityPolicyViolationException violationEx) {
+                processingResult = ItemProcessingResult.fromException(result, violationEx);
+                var activityRunResult = ActivityRunResult.handleException(violationEx, result, activityRun);
                 activityRun.getErrorState().requestImmediateStop(activityRunResult);
+
+                skipPolicyEvaluation = true;
+            }
+
+            if (!skipPolicyEvaluation) {
+                try {
+                    new ActivityPolicyRulesProcessor(activityRun)
+                            .evaluateAndExecuteRules(processingResult, result);
+                } catch (ActivityRunPolicyException e) {
+                    processingResult = ItemProcessingResult.fromException(result, e);
+                    var activityRunResult = ActivityRunResult.handleException(e, result, activityRun);
+                    activityRun.getErrorState().requestImmediateStop(activityRunResult);
+                }
             }
 
             if (isError()) {
@@ -373,6 +387,40 @@ class ItemProcessingGatekeeper<I> {
             LOGGER.error("{} of object {}{} failed: {}", activityRun.getShortName(), iterationItemInformation,
                     activityRun.getContextDescriptionSpaced(), processingResult.getMessage(), processingResult.exception());
         }
+    }
+
+    /**
+     * Finds a threshold policy violation connected to the just finished item processing, even if it is not the
+     * "primary" exception of the processing result. The violation thrown in the clockwork may be swallowed on the way
+     * here (e.g. by {@code SynchronizationActionExecutor}, which only records it into the operation result), and the
+     * exception that {@link ItemProcessingResult#fromOperationResult(OperationResult)} then scavenges from the result
+     * tree is simply the last cause recorded anywhere in it - so any unrelated (even handled) exception recorded later
+     * would hide the violation, and the activity would continue past its threshold.
+     */
+    private ThresholdPolicyViolationException findThresholdPolicyViolation() {
+        if (processingResult == null) {
+            return null;
+        }
+        if (processingResult.exception() instanceof ThresholdPolicyViolationException thresholdEx) {
+            return thresholdEx;
+        }
+        if (!processingResult.isError()) {
+            return null;
+        }
+        return findThresholdViolationCause(processingResult.operationResult());
+    }
+
+    private static ThresholdPolicyViolationException findThresholdViolationCause(OperationResult result) {
+        if (result.getCause() instanceof ThresholdPolicyViolationException thresholdEx) {
+            return thresholdEx;
+        }
+        for (OperationResult subresult : result.getSubresults()) {
+            ThresholdPolicyViolationException found = findThresholdViolationCause(subresult);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     /**

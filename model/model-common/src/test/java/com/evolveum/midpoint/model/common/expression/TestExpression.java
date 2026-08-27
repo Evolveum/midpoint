@@ -67,6 +67,9 @@ public class TestExpression extends AbstractModelCommonTest {
     protected static final File EXPRESSION_VALUE_FILE = new File(TEST_DIR, "expression-value.xml");
     protected static final String EXPRESSION_VALUE_OUTPUT = "GARBAGE OUT";
 
+    protected static final File EXPRESSION_NULL_FILE = new File(TEST_DIR, "expression-null.xml");
+    protected static final File EXPRESSION_NULL_ALLOW_EMPTY_FILE = new File(TEST_DIR, "expression-null-allow-empty.xml");
+
     protected static final File EXPRESSION_CONST_FILE = new File(TEST_DIR, "expression-const.xml");
 
     protected static final File EXPRESSION_SCRIPT_GROOVY_SIMPLE_FILE = new File(TEST_DIR, "expression-script-groovy-simple.xml");
@@ -182,6 +185,62 @@ public class TestExpression extends AbstractModelCommonTest {
                 .assertEmptyPlus()
                 .zeroSet()
                 .assertSinglePropertyValue(EXPRESSION_VALUE_OUTPUT);
+
+        assertScriptExecutionIncrement(0);
+    }
+
+    @Test
+    public void test125Null() throws Exception {
+        // GIVEN
+        OperationResult result = createOperationResult();
+
+        rememberScriptExecutionCount();
+
+        ExpressionType expressionType = parseExpression(EXPRESSION_NULL_FILE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
+        VariablesMap variables = prepareBasicVariables();
+        ExpressionEvaluationContext expressionContext =
+                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        // THEN
+        assertOutputTriple(outputTriple)
+                .assertEmptyZero()
+                .assertEmptyPlus()
+                .assertEmptyMinus();
+
+        assertScriptExecutionIncrement(0);
+    }
+
+    /**
+     * Unlike nil/empty static value (which is an empty string removed by the empty value stripping),
+     * the "null" evaluator must return no values even when empty values are explicitly allowed.
+     */
+    @Test
+    public void test126NullAllowEmptyValues() throws Exception {
+        // GIVEN
+        OperationResult result = createOperationResult();
+
+        rememberScriptExecutionCount();
+
+        ExpressionType expressionType = parseExpression(EXPRESSION_NULL_ALLOW_EMPTY_FILE);
+        Collection<Source<?, ?>> sources = prepareStringSources();
+        VariablesMap variables = prepareBasicVariables();
+        ExpressionEvaluationContext expressionContext =
+                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), createTask());
+
+        // WHEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+                evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
+
+        // THEN
+        assertOutputTriple(outputTriple)
+                .assertEmptyZero()
+                .assertEmptyPlus()
+                .assertEmptyMinus();
 
         assertScriptExecutionIncrement(0);
     }
@@ -340,6 +399,9 @@ public class TestExpression extends AbstractModelCommonTest {
         variables.put(ExpressionConstants.VAR_PROJECTION, account, shadowDef);
         variables.put(ExpressionConstants.VAR_ITERATION, 1,
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION, PrimitiveType.INT));
+        variables.put(ExpressionConstants.VAR_ATTEMPT, 1,
+                TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ATTEMPT, PrimitiveType.INT));
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
                 TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION_TOKEN, PrimitiveType.STRING));
 
@@ -392,7 +454,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
         logger.debug("Starting evaluation of expression: {}", expression);
@@ -403,7 +465,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, QName outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
@@ -413,14 +475,14 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, PrimitiveType outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
     }
 
     protected <V extends PrismValue, D extends ItemDefinition<?>> void evaluateExpressionRestricted(
             ExpressionType expressionType, D outputDefinition,
             ExpressionEvaluationContext expressionContext, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         Expression<V, D> expression;
         try {
 
@@ -449,7 +511,7 @@ public class TestExpression extends AbstractModelCommonTest {
     protected <T> void evaluatePropertyExpressionRestricted(ExpressionType expressionType,
             QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext, result);
@@ -459,7 +521,7 @@ public class TestExpression extends AbstractModelCommonTest {
             ExpressionType expressionType, PrimitiveType outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         evaluatePropertyExpressionRestricted(expressionType, outputType.getQname(), expressionContext, result);
     }
 

@@ -166,6 +166,11 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
                     public String getDataPlacement() {
                         return "left";
                     }
+
+                    @Override
+                    public String getDataBoundary() {
+                        return "window";
+                    }
                 });
                 help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpText)));
                 help.add(AttributeAppender.append(

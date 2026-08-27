@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWi
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWizardPartItem;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.MultiWaitingConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.BasicInformationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.DocumentationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.ConnectionConnectorStepPanel;
@@ -56,11 +57,21 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         RELATIONSHIPS,
         INIT_RELATIONSHIP,
         RELATIONSHIP,
+        EXPORT_CONNECTOR,
         NEXT
     }
 
     public ConnectorDevelopmentController(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
+    }
+
+    @Override
+    public boolean isCollapsedItemsVisible() {
+        // on multi-waiting steps the problems panel is shown from the beginning, even when there are no problems yet
+        if (getActiveStep() instanceof MultiWaitingConnectorStepPanel) {
+            return true;
+        }
+        return super.isCollapsedItemsVisible();
     }
 
     public void initNewObjectClass(AjaxRequestTarget target) {
@@ -69,6 +80,10 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
     public void initNewRelationship(AjaxRequestTarget target) {
         setPartItem(new InitRelationshipConnectorDevPartItem(getHelper()), target);
+    }
+
+    public void exportConnector(AjaxRequestTarget target) {
+        setPartItem(new ExportConnectorDevPartItem(getHelper()), target);
     }
 
     public void editBasicInformation(AjaxRequestTarget target) {

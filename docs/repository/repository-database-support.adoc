@@ -65,7 +65,7 @@ These database engines will not be supported any longer.
 
 * H2 support was dropped in midPoint 4.9.
 Demo, proof of concept or evaluation deployments should use docker compose with native PostgreSQL repository.
-For more information see xref:/midpoint/install/containers/docker/[Docker Compose].
+For more information see xref:/midpoint/get-started/install/containers/docker/[Docker Compose].
 
 * Support for other commercial database engines (Oracle, Microsoft SQL) using generic repository implementation was dropped in midPoint 4.10.
 

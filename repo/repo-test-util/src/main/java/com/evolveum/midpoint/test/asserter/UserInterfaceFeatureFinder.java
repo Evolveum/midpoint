@@ -10,14 +10,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.assertj.core.api.Assertions;
-
-import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public abstract class UserInterfaceFeatureFinder<RA, F extends UserInterfaceFeatureType> {
 

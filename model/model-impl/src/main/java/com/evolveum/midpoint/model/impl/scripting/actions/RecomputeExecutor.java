@@ -44,7 +44,8 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
@@ -66,7 +67,8 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
             PrismObject<? extends AssignmentHolderType> object, boolean dryRun, ModelExecuteOptions options,
             TriggerCreationType triggerCreation, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         AssignmentHolderType objectable = object.asObjectable();
         if (triggerCreation == null) {

@@ -5,7 +5,3 @@
  */
 
 package com.evolveum.midpoint.schema.selector.spec;
-
-import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
-import com.evolveum.midpoint.schema.selector.eval.FilteringContext;
-import com.evolveum.midpoint.prism.PrismValue;

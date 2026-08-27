@@ -10,19 +10,19 @@ package com.evolveum.midpoint.smart.impl.mappings.heuristics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
- * Factory for creating mapping expressions from Groovy code.
+ * Factory for creating mapping expressions from MEL code.
  * This functional interface allows heuristic rules to remain independent
  * of the specific expression creation mechanism.
  */
 @FunctionalInterface
-interface MappingExpressionFactory {
+public interface MappingExpressionFactory {
 
     /**
-     * Creates a script expression from the given Groovy code and description.
+     * Creates a MEL expression from the given MEL code and description.
      *
-     * @param groovyCode the Groovy script code
+     * @param code the expression code
      * @param description human-readable description of what the expression does
      * @return the expression type containing the script
      */
-    ExpressionType createScriptExpression(String groovyCode, String description);
+    ExpressionType createScriptExpression(String code, String description);
 }

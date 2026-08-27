@@ -27,7 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * Processor that takes changes from accounts and synchronization deltas and updates user attributes if necessary
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author Radovan Semancik
  */
 @Component
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = true)
+@ProcessorExecution(focusRequired = true, focusType = ProjectionHolderType.class, skipWhenFocusDeleted = true)
 public class InboundProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
@@ -46,10 +46,10 @@ public class InboundProcessor implements ProjectorProcessor {
     @Autowired private ClockworkMedic medic;
 
     @ProcessorMethod
-    <F extends FocusType> void processInbounds(
+    <F extends ProjectionHolderType> void processInbounds(
             LensContext<F> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException, PolicyViolationException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
 
         var env = new MappingEvaluationEnvironment(activityDescription, now, task);
 

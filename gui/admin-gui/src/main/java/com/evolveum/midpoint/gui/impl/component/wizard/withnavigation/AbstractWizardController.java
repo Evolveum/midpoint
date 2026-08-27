@@ -67,6 +67,11 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         this.partItems = partItems;
     }
 
+    @Override
+    public void invalidateChildrenSteps(String parentStepId) {
+        partItems.forEach(partItem -> partItem.invalidateChildrenSteps(parentStepId));
+    }
+
     protected final ADM getObjectDetailsModel() {
         return helper.getDetailsModel();
     }

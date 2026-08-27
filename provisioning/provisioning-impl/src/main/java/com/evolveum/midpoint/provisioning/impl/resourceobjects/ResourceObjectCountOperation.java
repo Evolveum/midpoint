@@ -50,7 +50,7 @@ class ResourceObjectCountOperation {
 
     public Integer execute(OperationResult parentResult)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(ResourceObjectConverter.OP_COUNT_RESOURCE_OBJECTS);
         try {
@@ -82,7 +82,7 @@ class ResourceObjectCountOperation {
 
     private int executeNative(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("countObjects: counting with native count capability");
         ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 
@@ -101,7 +101,7 @@ class ResourceObjectCountOperation {
 
     private Integer executeUsingPagedSearchEstimate(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("countObjects: simulating counting with paged search estimate");
         if (!ctx.hasCapability(PagedSearchCapabilityType.class)) {
             throw new ConfigurationException(
@@ -122,14 +122,14 @@ class ResourceObjectCountOperation {
 
     private Integer executeUsingSequentialSearch(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
         return executeCountingSearch(CountMethod.COUNTING, null, result);
     }
 
     private Integer executeCountingSearch(CountMethod countMethod, ObjectPaging paging, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         AtomicInteger counter = new AtomicInteger(0);
         ResourceObjectHandler countingHandler = (ResourceObjectFound object, OperationResult lResult) -> {

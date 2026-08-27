@@ -51,6 +51,11 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
     }
 
     @Override
+    protected String getBadPasswordKey() {
+        return OtpAuthenticationEvaluator.INVALID_CREDENTIALS_KEY;
+    }
+
+    @Override
     public OtpAuthenticationEvaluator getAuthenticationEvaluator() {
         return authenticationEvaluator;
     }
@@ -133,8 +138,7 @@ public class TestOtpAuthenticationEvaluator extends TestAbstractAuthenticationEv
 
     @Override
     public void modifyUserCredential(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+            throws CommonException {
 
         OtpCredentialType credential = new OtpCredentialType()
                 .secret(new ProtectedStringType()

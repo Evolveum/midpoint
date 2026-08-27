@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -70,7 +71,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
 
     public void refresh(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (deadProjectionContext.isDelete()) {
             // This is OK: shadow was deleted, but we will continue in processing with the old shadow.
@@ -111,7 +112,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
 
     private boolean reloadFocusAndFindMatchingLink(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         PrismObject<F> reloadedFocusObject = reloadFocus(result);
         if (reloadedFocusObject == null) {
             return false; // reason already logged
@@ -172,7 +173,8 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
                     e, linkRef.getOid(), reloadedFocus);
             swallowUnlinkDelta(linkRef);
             return null;
-        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException e) {
+        } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException |
+                 SubscriptionComplianceException e) {
             throw SystemException.unexpected(e, "while getting shadow with OID " + linkRef.getOid() + " (no fetch mode)");
         }
 
@@ -228,8 +230,8 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
             return null;
         }
         Class<F> focusClass = focusContext.getObjectTypeClass();
-        if (!FocusType.class.isAssignableFrom(focusClass)) {
-            LOGGER.trace(" -> no focus context of FocusType");
+        if (!ProjectionHolderType.class.isAssignableFrom(focusClass)) {
+            LOGGER.trace(" -> no focus context of ProjectionHolderType");
             return null;
         }
         try {

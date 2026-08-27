@@ -12,6 +12,7 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.repo.common.activity.policy.DataNeed;
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -57,5 +58,10 @@ public class ExecutionTimeConstraintEvaluator
     @Override
     public Set<DataNeed> getDataNeeds(JAXBElement<DurationThresholdPolicyConstraintType> constraint) {
         return Set.of(DataNeed.EXECUTION_TIME);
+    }
+
+    @Override
+    protected PolicyConstraintKind getPolicyConstraintKind() {
+        return PolicyConstraintKind.EXECUTION_TIME;
     }
 }

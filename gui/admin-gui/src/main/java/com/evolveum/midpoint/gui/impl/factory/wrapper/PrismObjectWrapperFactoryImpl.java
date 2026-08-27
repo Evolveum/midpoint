@@ -15,7 +15,9 @@ import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import jakarta.annotation.PostConstruct;
 
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
@@ -50,8 +52,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         try {
             applySecurityConstraints(object, context);
-        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An error occurred: " + e.getMessage(), e);
             throw new SchemaException(e.getMessage(), e);
         }
@@ -80,8 +81,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     public void updateWrapper(PrismObjectWrapper<O> wrapper, WrapperContext context) throws SchemaException {
         try {
             applySecurityConstraints(wrapper.getObject(), context);
-        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-                ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             context.getResult().recordFatalError("Cannot create object wrapper for " + wrapper.getObject() + ". An error occurred: " + e.getMessage(), e);
             throw new SchemaException(e.getMessage(), e);
         }
@@ -132,16 +132,17 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     /**
      * @param object apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
      */
-    protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) throws CommonException {
         AuthorizationPhaseType phase = context.getAuthzPhase();
         Task task = context.getTask();
         OperationResult result = context.getResult();
 
         try {
-            PrismObjectDefinition<O> objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
+            PrismObjectDefinition<O> objectDef = context.isSuppliedObjectFromAuthorizedCase()
+                    ? getModelInteractionService().getEditObjectDefinitionForPreauthorizedObject(object, phase, task, result)
+                    : getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
             object.applyDefinition(objectDef);
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-                | CommunicationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);
             throw e;
         }
@@ -152,10 +153,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         try {
             MetadataItemProcessingSpec metadataItemProcessingSpec = getModelInteractionService().getMetadataItemProcessingSpec(ValueMetadataType.F_PROVENANCE, object, context.getTask(), context.getResult());
             context.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
-        } catch (SchemaException | SecurityViolationException | CommunicationException | ExpressionEvaluationException |
-                ObjectNotFoundException | ConfigurationException e) {
+        } catch (CommonException e) {
             LOGGER.error("Cannot get metadata processing items, reason: " + e.getMessage(), e);
-            return;
         }
 
     }

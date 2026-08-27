@@ -112,10 +112,9 @@ public class RoleAnalysisServiceUtils {
 
             modelService.executeChanges(deltas, null, task, result);
 
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
-                ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException |
-                SecurityViolationException e) {
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
+                 SubscriptionComplianceException e) {
             logger.error("Couldn't update lifecycle state of object RoleType {}", roleObject, e);
         }
     }

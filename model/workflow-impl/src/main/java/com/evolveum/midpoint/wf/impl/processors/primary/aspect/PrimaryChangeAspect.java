@@ -10,6 +10,7 @@ import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
@@ -55,7 +56,7 @@ public interface PrimaryChangeAspect {
             @NotNull ObjectTreeDeltas<T> objectTreeDeltas,
             @NotNull ModelInvocationContext<T> ctx,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Returns true if this aspect is enabled by default, i.e. even if not listed in primary change processor configuration.

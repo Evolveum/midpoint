@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -33,9 +34,11 @@ import java.util.List;
 class CorrelationSuggestionOperation {
 
     private final TypeOperationContext ctx;
+    private final ObjectsSamplerProvider samplerProvider;
 
-    CorrelationSuggestionOperation(TypeOperationContext ctx) {
+    CorrelationSuggestionOperation(TypeOperationContext ctx, ObjectsSamplerProvider samplerProvider) {
         this.ctx = ctx;
+        this.samplerProvider = samplerProvider;
     }
 
     /**
@@ -54,13 +57,13 @@ class CorrelationSuggestionOperation {
             SchemaMatchResultType schemaMatch,
             @Nullable List<ItemPath> targetPathsToIgnore)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var correlators = KnownCorrelator.getAllFor(ctx.getFocusTypeDefinition().getCompileTimeClass());
         var existingCorrelationPaths = collectExistingCorrelationPaths();
         var excludedPaths = mergeExcludedPaths(existingCorrelationPaths, targetPathsToIgnore);
         var suggestions = suggestCorrelationMappings(schemaMatch, correlators, excludedPaths);
 
-        var allScores = new CorrelatorEvaluator(ctx, suggestions)
+        var allScores = new CorrelatorEvaluator(ctx, suggestions, samplerProvider)
                 .evaluateSuggestions(result);
 
         // For each correlator, select the attribute with highest score
@@ -104,9 +107,20 @@ class CorrelationSuggestionOperation {
                                     )
                                     .item(new CorrelationItemType()
                                             .ref(suggestion.focusItemPath().toBean()))));
-            SmartMetadataUtil.markAsAiProvided(correlationDefinition);
+            if (!suggestion.isAIProvided()) {
+                SmartMetadataUtil.markAsSystemProvided(correlationDefinition);
+            } else {
+                SmartMetadataUtil.markAsAiProvided(correlationDefinition);
+            }
             suggestionBean.setCorrelation(correlationDefinition);
             suggestionBean.setQuality(score);
+
+            SmartMetadataUtil.markContainerProvenance(
+                    suggestionBean.asPrismContainerValue(),
+                    suggestion.isAIProvided()
+                            ? SmartMetadataUtil.ProvenanceKind.AI
+                            : SmartMetadataUtil.ProvenanceKind.SYSTEM);
+
             suggestionsBean.getSuggestion().add(suggestionBean);
         }
         return suggestionsBean;
@@ -130,7 +144,8 @@ class CorrelationSuggestionOperation {
                         new CorrelatorSuggestion(
                                 correlator,
                                 existingInboundMapping.scoredAttributePath(),
-                                null));
+                                null,
+                                existingInboundMapping.isAIProvided()));
             } else {
                 for (var oneSchemaMatch : schemaMatch.getSchemaMatchResult()) {
                     var shadowItemPath = PrismContext.get().itemPathParser().asItemPath(oneSchemaMatch.getShadowAttributePath());
@@ -139,7 +154,7 @@ class CorrelationSuggestionOperation {
                         var resourceAttrName = shadowItemPath.rest(); // skipping "c:attributes"; TODO handle or skip other cases
                         var inbound = new InboundMappingType()
                                 .name(shadowItemPath.lastName().getLocalPart()
-                                        + "-to-" + focusItemPath) //TODO TBD
+                                        + "-into-" + focusItemPath) //TODO TBD
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusItemPath.toBean()))
                                 .use(InboundMappingUseType.CORRELATION)
@@ -147,11 +162,15 @@ class CorrelationSuggestionOperation {
                         var attrDefBean = new ResourceAttributeDefinitionType()
                                 .ref(resourceAttrName.toBean())
                                 .inbound(inbound);
-                        SmartMetadataUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
-                        SmartMetadataUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
-                        // Use is not provided by AI, it is set to CORRELATION by default.
-                        response.add(
-                                new CorrelatorSuggestion(focusItemPath, shadowItemPath, attrDefBean));
+                        boolean isAIProvided = Boolean.FALSE.equals(oneSchemaMatch.isIsSystemProvided());
+                        if (!isAIProvided) {
+                            SmartMetadataUtil.markAsSystemProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                            SmartMetadataUtil.markAsSystemProvided(inbound, InboundMappingType.F_TARGET);
+                        } else {
+                            SmartMetadataUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                            SmartMetadataUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
+                        }
+                        response.add(new CorrelatorSuggestion(focusItemPath, shadowItemPath, attrDefBean, isAIProvided));
                     }
                 }
             }
@@ -176,7 +195,8 @@ class CorrelationSuggestionOperation {
                     ItemPath targetPath = mappingCI.getTargetPath();
                     if (targetPath != null && correlator.equivalent(targetPath)) {
                         // applicable mapping for this correlator found - return resourceAttrPath
-                        return new ExistingMapping(resourceAttrPath);
+                        boolean isAIProvided = SmartMetadataUtil.isMarkedAsAiProvided(inboundMappingBean.asPrismContainerValue());
+                        return new ExistingMapping(resourceAttrPath, isAIProvided);
                     }
                 }
             }

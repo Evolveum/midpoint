@@ -40,8 +40,12 @@ public class ExtensionProcessor {
 
     public Jsonb processExtensions(
             @NotNull Containerable extContainer, MExtItemHolderType holderType) {
+        return processExtensions(extContainer.asPrismContainerValue(), holderType);
+    }
+
+    public Jsonb processExtensions(
+            @NotNull PrismContainerValue<?> prismContainerValue, MExtItemHolderType holderType) {
         Map<String, Object> extMap = new LinkedHashMap<>();
-        PrismContainerValue<?> prismContainerValue = extContainer.asPrismContainerValue();
         for (Item<?, ?> item : prismContainerValue.getItems()) {
             try {
                 Objects.requireNonNull(item, "Object for converting must not be null.");

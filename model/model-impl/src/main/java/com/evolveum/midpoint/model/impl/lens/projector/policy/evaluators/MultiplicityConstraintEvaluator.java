@@ -7,14 +7,16 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.MAX_ASSIGNEES;
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.MIN_ASSIGNEES;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -64,9 +66,9 @@ public class MultiplicityConstraintEvaluator
     public @NotNull <O extends ObjectType> Collection<EvaluatedMultiplicityTrigger> evaluate(
             @NotNull JAXBElement<MultiplicityPolicyConstraintType> constraint,
             @NotNull PolicyRuleEvaluationContext<O> rctx,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
                 .build();
@@ -90,7 +92,7 @@ public class MultiplicityConstraintEvaluator
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             ObjectPolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismObject<? extends ObjectType> target = ctx.elementContext.getObjectAny();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
             return List.of();
@@ -120,7 +122,7 @@ public class MultiplicityConstraintEvaluator
                 int currentAssignees = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssignees < requiredMultiplicity) {
                     triggers.add(new EvaluatedMultiplicityTrigger(
-                            PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+                            MIN_ASSIGNEES,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MIN, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
@@ -138,7 +140,7 @@ public class MultiplicityConstraintEvaluator
                 int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, null, relationToCheck, result);
                 if (currentAssigneesExceptMyself > requiredMultiplicity) {
                     triggers.add(new EvaluatedMultiplicityTrigger(
-                            PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+                            MAX_ASSIGNEES,
                             constraint.getValue(),
                             getMessage(constraint, ctx, result, KEY_MAX, KEY_OBJECT, target,
                                     requiredMultiplicity, relationToCheck.getLocalPart()),
@@ -154,7 +156,7 @@ public class MultiplicityConstraintEvaluator
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (!ctx.isDirect()) {
             return List.of();
         }
@@ -178,7 +180,7 @@ public class MultiplicityConstraintEvaluator
             PlusMinusZero plusMinus,
             AssignmentPolicyRuleEvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismObject<?> target = assignment.getTarget();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {
             return List.of();
@@ -204,7 +206,7 @@ public class MultiplicityConstraintEvaluator
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself < requiredMultiplicity && plusMinus == PlusMinusZero.MINUS) {
                 return List.of(new EvaluatedMultiplicityTrigger(
-                        PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION,
+                        MIN_ASSIGNEES,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MIN, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself),
@@ -221,7 +223,7 @@ public class MultiplicityConstraintEvaluator
             int currentAssigneesExceptMyself = getNumberOfAssigneesExceptMyself(targetRole, focusOid, relation, result);
             if (currentAssigneesExceptMyself >= requiredMultiplicity && plusMinus == PLUS) {
                 return List.of(new EvaluatedMultiplicityTrigger(
-                        PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION,
+                        MAX_ASSIGNEES,
                         constraint.getValue(),
                         getMessage(constraint, ctx, result, KEY_MAX, KEY_TARGET, targetRole.asPrismObject(),
                                 requiredMultiplicity, relation.getLocalPart(), currentAssigneesExceptMyself + 1),
@@ -270,7 +272,7 @@ public class MultiplicityConstraintEvaluator
             PrismObject<?> target,
             Object... args)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
                 .arg(ObjectTypeUtil.createDisplayInformation(target, true))
@@ -287,7 +289,7 @@ public class MultiplicityConstraintEvaluator
             String key2,
             PrismObject<?> target,
             Object... args)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
                 .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + key1 + key2)
                 .arg(ObjectTypeUtil.createDisplayInformation(target, false))

@@ -29,7 +29,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -162,7 +161,8 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
                 users = model.searchObjects(
                         UserType.class, ObjectQueryUtil.createNameQuery(userName), null, task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                     | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                     SubscriptionComplianceException e) {
                 return null;
             }
             return users;

@@ -249,9 +249,9 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         var overview =
                 Objects.requireNonNull(
                         Objects.requireNonNull(
-                                Objects.requireNonNull(
-                                                getTaskBean().getActivityState(), "no activities state")
-                                        .getTree(), "no tree")
+                                        Objects.requireNonNull(
+                                                        getTaskBean().getActivityState(), "no activities state")
+                                                .getTree(), "no tree")
                                 .getActivity(), "no root activity overview");
 
         ActivityStateOverviewAsserter<TaskAsserter<RA>> asserter =
@@ -486,6 +486,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     public TaskAsserter<RA> assertCachingProfiles(String... expected) {
         assertThat(getCachingProfiles()).as("caching profiles").containsExactlyInAnyOrder(expected);
         return this;
+    }
+
+    public TaskAsserter<RA> assertConflictResolution(ConflictResolutionType resolution) {
+        assertThat(getConflictResolution()).as("conflict resolution").isEqualTo(resolution);
+        return this;
+    }
+
+    private ConflictResolutionType getConflictResolution() {
+        TaskExecutionEnvironmentType env = getObjectable().getExecutionEnvironment();
+        return env != null ? env.getConflictResolution() : null;
     }
 
     private Collection<String> getCachingProfiles() {

@@ -53,14 +53,14 @@ public class TrimLowerCaseAndStripDiacriticsHeuristic implements HeuristicRule {
     @Override
     public ExpressionType inboundExpression(MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.lc(basic.toAscii(basic.trim(input)))",
+                "ascii(input.trim()).lc()",
                 "Trim, convert to lowercase, and strip diacritical marks");
     }
 
     @Override
     public ExpressionType outboundExpression(String focusPropertyName, MappingExpressionFactory factory) {
         return factory.createScriptExpression(
-                "basic.lc(basic.toAscii(basic.trim(" + focusPropertyName + ")))",
+                "ascii(" + focusPropertyName + ".trim()).lc()",
                 "Trim, convert to lowercase, and strip diacritical marks");
     }
 }

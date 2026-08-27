@@ -69,7 +69,8 @@ public class ExpressionHelper {
             String contextName,
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         ActionParameterValueType parameterValue =
                 getArgument(arguments, argumentName, false, false, contextName);
         if (parameterValue != null) {
@@ -105,7 +106,8 @@ public class ExpressionHelper {
             String contextName,
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         List<ActionParameterValueType> arguments = action.getParameter();
         ActionParameterValueType dynamicValue =
                 getArgument(arguments, dynamicName, false, false, contextName);
@@ -138,7 +140,8 @@ public class ExpressionHelper {
             String contextName,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         String stringValue = getArgumentAsString(arguments, argumentName, input, context, null, contextName, result);
         if (stringValue == null) {
             return defaultValue;
@@ -158,7 +161,8 @@ public class ExpressionHelper {
             ExecutionContext context,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         Validate.notNull(parameter, "parameter");
         if (parameter.getScriptingExpression() != null) {
             return bulkActionsExecutor.execute(
@@ -182,7 +186,8 @@ public class ExpressionHelper {
             Class<T> clazz,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         ActionParameterValueType paramValue = getArgument(arguments, parameterName, required, requiredNonNull, context);
         if (paramValue == null) {
             return null;
@@ -220,7 +225,8 @@ public class ExpressionHelper {
             Class<T> clazz,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
         List<T> rv = new ArrayList<>();
         for (ActionParameterValueType paramValue : arguments) {
             if (parameterName.equals(paramValue.getName())) {

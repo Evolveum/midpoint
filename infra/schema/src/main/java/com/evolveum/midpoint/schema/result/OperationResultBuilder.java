@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;

@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
@@ -64,7 +64,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         Validate.notNull(rawRepoShadow, "Object to delete must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -112,7 +113,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
             @Nullable ProvisioningOperationOptions options,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         var opState = ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (repoShadow.doesExist()) {
@@ -130,7 +132,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
             @NotNull PendingOperations sortedOperations,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         var opState = ProvisioningOperationState.fromPropagatedPendingOperations(repoShadow, sortedOperations);
         new ShadowDeleteOperation(ctx, opState, null, null, true)
                 .execute(result);
@@ -138,7 +141,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation {
 
     private RepoShadow execute(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         if (!inRefreshOrPropagation && checkAndRecordPendingOperationBeforeExecution(result)) {
             return opState.getRepoShadow();

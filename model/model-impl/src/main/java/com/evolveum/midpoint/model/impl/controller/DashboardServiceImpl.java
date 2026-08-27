@@ -23,7 +23,7 @@ import com.evolveum.midpoint.model.api.CollectionStats;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
@@ -221,7 +221,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private String generateNumberMessageForObject(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectType object = getObjectFromObjectRef(widget, task, result);
         if (object == null) {
             return null;
@@ -291,7 +292,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> combineAuditOption(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         List<SelectorOptions<GetOperationOptions>> collectionOptions = null;
         if (collection != null) {
@@ -312,7 +314,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private ObjectFilter combineAuditFilter(CollectionRefSpecificationType collectionRef, SearchFilterType baseFilter, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         SearchFilterType filter = baseFilter;
         if (filter == null) {
             if (collectionRef.getCollectionRef() != null) {
@@ -345,7 +348,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private String generateNumberMessageForCollection(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
         CollectionRefSpecificationType collectionSpec = getCollectionRefSpecificationType(widget, task, result);
         if (collectionSpec != null) {
 
@@ -359,7 +363,7 @@ public class DashboardServiceImpl implements DashboardService {
             Integer domainValue = collStats.getDomainCount();
             IntegerStatType statType = generateIntegerStat(value, domainValue);
 
-            Collection<EvaluatedPolicyRule> evalPolicyRules = new ArrayList<>();
+            Collection<DirectlyEvaluatedClockworkPolicyRule> evalPolicyRules = new ArrayList<>();
             if (collectionSpec.getCollectionRef() != null
                     && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionSpec.getCollectionRef().getType())) {
                 // [EP:APSO] DONE, collection is fetched from the repository
@@ -368,7 +372,7 @@ public class DashboardServiceImpl implements DashboardService {
                         valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
             }
             Collection<String> policySituations = new ArrayList<>();
-            for (EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
+            for (DirectlyEvaluatedClockworkPolicyRule evalPolicyRule : evalPolicyRules) {
                 if (!evalPolicyRule.getAllTriggers().isEmpty()) {
                     policySituations.add(evalPolicyRule.getPolicySituation());
                 }
@@ -411,7 +415,7 @@ public class DashboardServiceImpl implements DashboardService {
                 variablesMap.registerAlias(VAR_PROPORTIONAL, ExpressionConstants.VAR_INPUT);
             }
             if (policySituations != null) {
-                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, EvaluatedPolicyRule.class);
+                variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, String.class);
             }
             variables.addVariableDefinitions(variablesMap);
         }
@@ -507,7 +511,8 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (isCollectionRefOfCollectionNull(widget)) {
             return null;
         }
@@ -527,7 +532,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private ObjectType getObjectFromObjectRef(DashboardWidgetType widget, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (isDataNull(widget)) {
             return null;
         }
@@ -547,7 +553,7 @@ public class DashboardServiceImpl implements DashboardService {
                 contentTypeList = ExpressionUtil.evaluateStringExpression(
                         variables, expression, null, expressionFactory, shortDes, task, result);
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                    | ConfigurationException | SecurityViolationException e) {
+                     | ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                 LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);
             }
             if (contentTypeList == null || contentTypeList.isEmpty()) {

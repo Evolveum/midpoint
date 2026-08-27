@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition.ComplexTypeDefinitionMutator;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 
 interface PartiallyMutableComplexTypeDefinition extends ComplexTypeDefinitionMutator {
 

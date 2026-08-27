@@ -10,7 +10,11 @@ import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingU
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.wicket.AttributeModifier;
@@ -41,9 +45,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.change
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
@@ -63,12 +70,17 @@ public abstract class MappingProcessedObjectPanel
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(MappingProcessedObjectPanel.class);
+
     private final IModel<List<MarkType>> availableMarksModel;
+    private final IModel<ItemName> targetItem;
     String defaultMarkOidForSearch = null;
 
-    public MappingProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel) {
+    public MappingProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel,
+            IModel<ItemName> targetItem) {
         super(id, SimulationResultProcessedObjectType.class);
         this.availableMarksModel = availableMarksModel;
+        this.targetItem = targetItem;
     }
 
     @Override
@@ -210,12 +222,9 @@ public abstract class MappingProcessedObjectPanel
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 String resultOid = getSimulationResultOid();
-                //TODO  Inbound mapping simulation has no focus record id, in case of outbound mapping simulation it is always set.
                 return getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
                         .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
                         .id(resultOid)
-                        .and()
-                        .item(SimulationResultProcessedObjectType.F_FOCUS_RECORD_ID).isNull()
                         .build();
             }
 
@@ -285,7 +294,7 @@ public abstract class MappingProcessedObjectPanel
                         }
 
                         for (VisualizationDto visualization : visualizations) {
-                            rv.add(new SimulationChangeSummaryDto(visualization));
+                            rv.add(new SimulationChangeSummaryDto(visualization, targetItem.getObject()));
                         }
 
                         return rv;

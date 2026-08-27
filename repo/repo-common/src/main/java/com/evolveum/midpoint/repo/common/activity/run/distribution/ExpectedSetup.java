@@ -16,7 +16,10 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.template.StringSubstitutorUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusterStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkersDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkersPerNodeDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
 

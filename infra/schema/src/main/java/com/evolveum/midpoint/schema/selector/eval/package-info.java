@@ -5,5 +5,3 @@
  */
 
 package com.evolveum.midpoint.schema.selector.eval;
-
-import com.evolveum.midpoint.prism.PrismValue;

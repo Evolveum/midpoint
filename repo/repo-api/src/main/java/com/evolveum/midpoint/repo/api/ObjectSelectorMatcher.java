@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.selector.eval.*;
+import com.evolveum.midpoint.schema.selector.eval.ClauseProcessingContextDescription;
+import com.evolveum.midpoint.schema.selector.eval.MatchingContext;
+import com.evolveum.midpoint.schema.selector.eval.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.schema.traces.details.ProcessingTracer;
 import com.evolveum.midpoint.util.exception.*;
@@ -35,7 +37,7 @@ class ObjectSelectorMatcher {
             @NotNull String logMessagePrefix,
             @NotNull RepositoryService repositoryService)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (selectorBean == null) {
             logger.trace("{} null object specification", logMessagePrefix);

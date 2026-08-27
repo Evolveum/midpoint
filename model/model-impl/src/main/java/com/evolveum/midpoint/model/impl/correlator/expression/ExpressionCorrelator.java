@@ -65,7 +65,7 @@ public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorTyp
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         return new Correlation<>(correlationContext.asShadowCtx())
                 .execute(result);
@@ -106,14 +106,14 @@ public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorTyp
 
         CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             ObjectSet<F> candidateOwners = findCandidatesUsingExpressions(result);
             return createResult(candidateOwners, null, task, result);
         }
 
         private @NotNull ObjectSet<F> findCandidatesUsingExpressions(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, SecurityViolationException {
+                ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
             ExpressionType expressionBean;
             ItemDefinition<?> outputDefinition;

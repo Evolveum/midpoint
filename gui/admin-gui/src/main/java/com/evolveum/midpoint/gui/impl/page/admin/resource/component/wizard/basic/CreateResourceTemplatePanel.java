@@ -23,11 +23,13 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -127,7 +129,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
             @Override
             protected String getTileCssClasses() {
-                return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-xxl-2 p-2";
+                return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-3xl-2 p-2";
             }
         };
         tileTable.setOutputMarkupId(true);
@@ -189,7 +191,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 }
             }
             onTemplateSelectionPerformed(obj, target);
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
+        } catch (CommonException ex) {
             getPageBase().getFeedbackMessages().error(getPageBase(), ex.getUserFriendlyMessage());
             target.add(getPageBase().getFeedbackPanel());
         }

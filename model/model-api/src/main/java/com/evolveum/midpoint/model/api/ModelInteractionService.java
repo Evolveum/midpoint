@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager.SimulatedFunctionCall;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
@@ -122,7 +121,8 @@ public interface ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            SubscriptionComplianceException {
         return previewChanges(deltas, options, task, Collections.emptyList(), result);
     }
 
@@ -134,11 +134,11 @@ public interface ModelInteractionService {
             Collection<ProgressListener> listeners,
             OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException;
+            CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -167,14 +167,28 @@ public interface ModelInteractionService {
     <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException;
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException;
+
+    /**
+     * Variant of {@link #getEditObjectDefinition(PrismObject, AuthorizationPhaseType, Task, OperationResult)}
+     * for an object that has already passed through authorization/security processing.
+     *
+     * The supplied object is used directly and is not reloaded from the repository solely because it has an OID.
+     * The caller must ensure that the object was obtained through an authorized path and does not contain data
+     * the current user is not allowed to access. An arbitrary or unfiltered object must not be passed here, as
+     * incorrect use could expose security-sensitive definitions/items to GUI/wrapper processing.
+     */
+    <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForPreauthorizedObject(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(
             ResourceShadowCoordinates coordinates,
             AuthorizationPhaseType phase,
             Task task,
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns an object definition that reflects edit-ability of the resource object in terms of midPoint schema limitations
@@ -188,7 +202,7 @@ public interface ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns specification of processing of given metadata item (e.g. provenance).
@@ -198,7 +212,7 @@ public interface ModelInteractionService {
     @Experimental
     <O extends ObjectType> MetadataItemProcessingSpec getMetadataItemProcessingSpec(ItemPath metadataItemPath, PrismObject<O> object,
             Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -225,7 +239,7 @@ public interface ModelInteractionService {
             Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns filter for lookup of donors of power of attorney. The donors are the users that have granted
@@ -248,7 +262,7 @@ public interface ModelInteractionService {
             Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction,
             Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns a filter for lookup of users which are allowed to be objects during assign operation.
@@ -264,7 +278,7 @@ public interface ModelInteractionService {
     <T extends ObjectType> ObjectFilter getAccessibleForAssignmentObjectsFilter(    // TODO better name? getAssignOperationObjectsFilter?
             Class<T> searchResultType, ObjectFilter origFilter, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
@@ -276,7 +290,7 @@ public interface ModelInteractionService {
     <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(
             PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     <F extends FocusType> NonceCredentialsPolicyType determineNonceCredentialsPolicy(
             PrismObject<F> user,
@@ -361,7 +375,7 @@ public interface ModelInteractionService {
      * values applicable for current user, therefore the authorization might be considered to be implicit in this case.
      */
     @NotNull
-    CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    CompiledGuiProfile getCompiledGuiProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * @return list of logged in users with at least 1 active session (clusterwide)
@@ -418,19 +432,19 @@ public interface ModelInteractionService {
     Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
     List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
     <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, SubscriptionComplianceException;
 
     <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * TEMPORARY. Need to find out better way how to deal with generated values
@@ -444,15 +458,15 @@ public interface ModelInteractionService {
      * @throws ExpressionEvaluationException
      */
     <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
-            PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+            PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     <O extends ObjectType> void generateValue(
             PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     <O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task,
             OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
@@ -475,13 +489,13 @@ public interface ModelInteractionService {
     ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 
     MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     <T> T runUnderPowerOfAttorney(Producer<T> producer, PrismObject<? extends FocusType> donor, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     default <T> T runUnderPowerOfAttorneyChecked(CheckedProducer<T> producer, PrismObject<? extends FocusType> donor, Task task, OperationResult result)
             throws CommonException {
@@ -493,12 +507,12 @@ public interface ModelInteractionService {
     LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
             VariablesMap variables, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user,
             ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     void refreshPrincipal(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -509,14 +523,14 @@ public interface ModelInteractionService {
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /** Use {@link #submitTaskFromTemplate(String, ActivityCustomization, Task, OperationResult)} instead. */
     @Deprecated
     @NotNull
     TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException;
 
     /**
      * Submits a task from template (pointed to by `templateOid`).
@@ -589,24 +603,24 @@ public interface ModelInteractionService {
      */
     @Experimental
     @NotNull
-    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(
+    Collection<DirectlyEvaluatedClockworkPolicyRule> evaluateCollectionPolicyRules(
             @NotNull PrismObject<ObjectCollectionType> collection,
             @Nullable CompiledObjectCollectionView preCompiledView,
             @Nullable Class<? extends ObjectType> targetTypeClass,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     @Experimental
     @NotNull
     CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collection, @Nullable Class<? extends Containerable> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException, ObjectNotFoundException;
+            ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     @Experimental
     @NotNull CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Applying all GuiObjectListViewsType to CompiledObjectCollectionView
@@ -621,11 +635,11 @@ public interface ModelInteractionService {
             CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     @Experimental
     <O extends ObjectType> List<StringLimitationResult> validateValue(ProtectedStringType protectedStringValue, ValuePolicyType pp, PrismObject<O> object, Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * TODO document and clean up the interface
@@ -633,7 +647,7 @@ public interface ModelInteractionService {
     @Experimental
     <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView collection, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result)
-            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException;
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 
 
     class SearchSpec<T> {
@@ -646,13 +660,13 @@ public interface ModelInteractionService {
     List<? extends Serializable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
             CompiledObjectCollectionView compiledView, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     @Experimental
     Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
             CompiledObjectCollectionView compiledView, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * See {@link ProvisioningService#expandConfigurationObject(PrismObject, Task, OperationResult)} for the description.
@@ -663,7 +677,7 @@ public interface ModelInteractionService {
     void expandConfigurationObject(
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Executes specified activity.
@@ -728,7 +742,7 @@ public interface ModelInteractionService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Returns Container Definition of Assignment Type with target type of assignment replaced by more concrete situation
@@ -775,7 +789,7 @@ public interface ModelInteractionService {
      * Not sure about correctness of the method place and if even should be needed.
      */
     void applyDefinitions(ShadowType shadow, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Determines if the object is of the specified archetype considering also archetypes hierarchy.
@@ -790,20 +804,48 @@ public interface ModelInteractionService {
      * Updates enabled status of all activity policies recursively inside {@link ActivityDefinitionType} in the specified task.
      *
      * Returns true if any change was made.
+     *
+     * @deprecated This operation rewrites the {@code enabled} flag of individual inline rules, so it cannot affect
+     * rules coming from {@code policyRef} or {@code virtualAssignments}, and on enable it also removes {@code enabled}
+     * values written by hand. Use {@link #updateActivityPoliciesProcessing(PrismObject, ActivityPoliciesProcessingType,
+     * Task, OperationResult)} instead.
      */
+    @Deprecated
     boolean updateAllActivityPoliciesEnabledStatus(
             @NotNull PrismObject<TaskType> object, boolean enabled, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException;
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     /**
-     * Clears all activity policy states and related counters recursively inside
-     * {@link ActivityDefinitionType} in the specified task.
+     * Sets or clears the policy processing switch ({@code activity/policies/processing}) on the root activity
+     * definition of the given task. Passing null removes the switch (restoring full processing). This is the
+     * preferred way to operationally disable policies of a task (e.g. to resume it after a threshold was met):
+     * unlike per-rule {@code enabled} rewriting, it also covers {@code policyRef} and {@code virtualAssignments}
+     * sources and does not touch the rule definitions.
+     *
+     * Takes effect on the next activity run (rules are collected at run start).
+     *
+     * @return true if the task was changed, false if there was nothing to do (no activity, or same value already set)
+     */
+    boolean updateActivityPoliciesProcessing(
+            @NotNull PrismObject<TaskType> object, @Nullable ActivityPoliciesProcessingType processing,
+            @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
+
+    /**
+     * Clears the recorded state of policy rules in the activity state tree of the given task and its subtasks:
+     * the policy states (triggers) and all policy rule counters, both full execution and preview mode ones.
+     *
+     * The counters are cleared regardless of where the rule came from. Besides activity policies (inline,
+     * {@code policyRef}, {@code virtualAssignments}), this covers also clockwork-evaluated rules with thresholds,
+     * e.g. those coming from assigned roles, task assignments, or global policy rules. It is intentional: any of
+     * them may be the one keeping the task suspended, and most of them cannot be determined from the task itself.
      *
      * Returns true if any change was made.
      */
     boolean clearAllActivityPolicyStates(
             @NotNull PrismObject<TaskType> object, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException;
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 }

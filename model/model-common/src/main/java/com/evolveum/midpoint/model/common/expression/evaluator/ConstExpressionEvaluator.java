@@ -45,7 +45,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         checkEvaluatorProfile(context);
 
         String constName = expressionEvaluatorBean.getValue();

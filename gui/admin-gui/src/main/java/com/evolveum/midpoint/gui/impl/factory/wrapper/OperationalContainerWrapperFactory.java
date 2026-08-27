@@ -8,8 +8,6 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.prism.Containerable;
 
-import jakarta.annotation.PostConstruct;
-
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -17,7 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**

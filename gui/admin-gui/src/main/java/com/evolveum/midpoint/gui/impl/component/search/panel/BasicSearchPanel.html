@@ -12,12 +12,12 @@
         <wicket:container wicket:id="items">
             <span wicket:id="item"/>
         </wicket:container>
-        <button wicket:id="more" class="btn btn-sm btn-default" wicket:message="title:SearchPanel.moreTitle">
+        <button wicket:id="more" class="btn btn-sm btn-light border" wicket:message="title:SearchPanel.moreTitle">
             <wicket:message key="SearchPanel.more"/>
             &nbsp;
             <span class="fa fa-caret-down"></span>
         </button>
-        <div wicket:id="popoverStatus" class="sr-only" aria-live="polite"/>
+        <div wicket:id="popoverStatus" class="visually-hidden" aria-live="polite"/>
         <div wicket:id="morePropertiesPopover"/>
     </div>
 </wicket:panel>

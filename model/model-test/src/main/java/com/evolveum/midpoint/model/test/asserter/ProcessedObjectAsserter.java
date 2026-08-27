@@ -34,6 +34,8 @@ import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -83,6 +85,11 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventMarks(TestObject<MarkType>... expected) {
         assertEventMarks(expected, processedObject.getMatchingEventMarksOids());
+        return this;
+    }
+
+    public final ProcessedObjectAsserter<O, RA> assertEventMarksOids(String... expected) {
+        assertEventMarks(List.of(expected), processedObject.getMatchingEventMarksOids());
         return this;
     }
 

@@ -38,7 +38,7 @@ public class NumericWidgetDetailsPanel extends BasePanel<NumericWidgetDetailsDto
             @Override
             protected void populateItem(ListItem<Map.Entry<IModel<String>, IModel<Integer>>> item) {
                 if (item.getIndex() != getModelObject().size() - 1) {
-                    item.add(AttributeAppender.append("class", "border-right"));
+                    item.add(AttributeAppender.append("class", "border-end"));
                 }
                 Label label = new Label(ID_LABEL, item.getModelObject().getKey());
                 label.setOutputMarkupId(true);

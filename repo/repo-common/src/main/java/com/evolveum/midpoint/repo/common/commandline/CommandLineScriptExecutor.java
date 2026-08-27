@@ -13,6 +13,8 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CommandLineScriptType;
@@ -56,7 +52,9 @@ public class CommandLineScriptExecutor {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
 
-    public void executeScript(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult parentResult) throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public void executeScript(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult parentResult)
+            throws IOException, InterruptedException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
 
@@ -80,7 +78,9 @@ public class CommandLineScriptExecutor {
     }
 
 
-    private String expandMacros(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private String expandMacros(CommandLineScriptType scriptType, VariablesMap variables, String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, SubscriptionComplianceException {
         String code = scriptType.getCode();
         for (ProvisioningScriptArgumentType macroDef: scriptType.getMacro()) {
 

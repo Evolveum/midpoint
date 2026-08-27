@@ -1009,6 +1009,9 @@
                     <xsd:documentation>
                         Default operation policy for those operations that do not have their behavior specified explicitly
                         via object marks.
+
+                        Note: It is multivalued only because of the need to support various lifecycle states:
+                        like one policy in `proposed` state with a different one in `active` state.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
@@ -1175,6 +1178,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>tns:lifecycleState</a:naturalKey> <!-- see the comment in the owning item -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4728,8 +4732,19 @@
                     <xsd:documentation>
                         Identifier of the old shadow. According to this identifier, the shadow will be
                         fetched from the repo (resource). It may be null in the case when the notification
-                        describes the ADD object situation.
+                        describes the ADD object situation or when the shadow is specified by attributes
+                        using "oldShadow".
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="oldShadow" type="tns:ShadowType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An alternative to "oldShadowOid" when the shadow is specified by its attributes, not by its OID.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="currentShadow" type="tns:ShadowType" minOccurs="0">
@@ -4929,6 +4944,16 @@
                                 True if local connector is active and loaded in MidPoint. False if connector
                                 is not present.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="discoveryTimestamp" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the (protected) timestamp when the connector was first discovered.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -5538,6 +5563,16 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ASSOCIATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="work">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work items: issues, tickets, cases, work-packages.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -7682,4 +7717,118 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:complexType name="AllowedConnectorsListType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents a public list of open source connectors issued by Evolveum.
+                The list contains connector identifiers. Each entry in the list is digitally signed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="signedConnector" type="tns:SignedConnectorType" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connector definition together with its digital signature imported from the
+                                Integration Catalog.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="allowedConnectorsList" type="tns:AllowedConnectorsListType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="SignedConnectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents an entry in a public list of open source connectors (AllowedConnectorsListType).
+
+                Contains connector identifier together with the information required
+                to verify authenticity of the entry using a trusted public key.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connector" type="tns:ConnectorIdentifierType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the connector whose authenticity is protected by the digital signature.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="signature" type="tns:ConnectorSignatureType" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Digital signature(s) associated with this connector. During verification,
+                        midPoint selects the appropriate signature matching known trusted key identifier.
+
+                        Multiple signatures may be present to support key rotation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnectorSignatureType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Digital signature of the connector identifier created using a trusted signing key.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="keyId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the public key used to verify this signature.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:base64Binary">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Ed25519 digital signature of the connector identifier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnectorIdentifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Uniquely identifies a connector by its implementation class and bundle name.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="className" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Fully qualified implementation class name of the connector.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bundle" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the connector bundle containing the connector implementation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

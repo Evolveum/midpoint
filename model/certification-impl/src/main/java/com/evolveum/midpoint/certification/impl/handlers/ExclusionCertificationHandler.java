@@ -69,7 +69,9 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
 
 
     @Override
-    public void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult caseResult) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    public void doRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult caseResult)
+            throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
+            SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!(aCase instanceof AccessCertificationAssignmentCaseType)) {
             throw new IllegalStateException("Expected " + AccessCertificationAssignmentCaseType.class + ", got " + aCase.getClass() + " instead");
         }

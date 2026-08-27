@@ -14,14 +14,11 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 
 import com.evolveum.midpoint.authentication.impl.util.ModuleType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 
 import java.io.Serializable;
 

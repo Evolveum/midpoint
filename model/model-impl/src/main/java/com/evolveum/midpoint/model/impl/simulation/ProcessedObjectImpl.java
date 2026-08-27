@@ -81,7 +81,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private final String oid;
 
     /** See {@link ProcessedObject#getType()}. */
-    @NotNull private final Class<O> type;
+    @NotNull private final Class<? extends O> type;
 
     /** {@link QName} variant of {@link #type}. */
     @NotNull private final QName typeName;
@@ -144,7 +144,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     private ProcessedObjectImpl(
             @NotNull String transactionId,
             String oid,
-            @NotNull Class<O> type,
+            @NotNull Class<? extends O> type,
             @Nullable ObjectReferenceType structuralArchetypeRef,
             ShadowDiscriminatorType shadowDiscriminator,
             PolyStringType name,
@@ -396,12 +396,14 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return processedObject;
     }
 
-    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull Class<T> objectClass,
-            @NotNull T objectBefore, ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction)
+    static <T extends ObjectType> @NotNull ProcessedObjectImpl<T> createForMapping(@NotNull T objectBefore,
+            @Nullable ObjectDelta<T> delta, @NotNull SimulationTransactionImpl simulationTransaction, boolean failed)
             throws SchemaException {
+        @SuppressWarnings("unchecked") // This should be safe.
         final T objectAfter = (T) objectBefore.clone();
 
         final ObjectProcessingStateType processingState;
+        @SuppressWarnings("unchecked") // Should be safe.
         final PrismObject<T> prismObjectAfter = (PrismObject<T>) objectAfter.asPrismObject();
         if (delta != null && !delta.isEmpty()) {
             delta.applyTo(prismObjectAfter);
@@ -410,6 +412,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             processingState = ObjectProcessingStateType.UNMODIFIED;
         }
 
+        @SuppressWarnings("unchecked") // In this case it should be safe.
+        Class<T> objectClass = (Class<T>) objectBefore.getClass();
+        @SuppressWarnings("unchecked") // Should be safe as well.
+        final PrismObject<T> prismObject = (PrismObject<T>) objectBefore.asPrismObject();
         var processedObject = new ProcessedObjectImpl<>(
                 simulationTransaction.getTransactionId(),
                 objectBefore.getOid(),
@@ -420,13 +426,15 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 processingState,
                 ParsedMetricValues.fromEventMarks(
                         List.of(determineItemValueChangesEventMarks(
-                                (PrismObject<T>) objectBefore.asPrismObject(),
-                                prismObjectAfter)),
+                                prismObject,
+                                prismObjectAfter,
+                                failed)),
                         List.of(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value(),
                                 SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value(),
-                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())),
-                objectClass.isAssignableFrom(FocusType.class),
+                                SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value(),
+                                SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())),
+                FocusType.class.isAssignableFrom(objectClass),
                 null,
                 objectBefore,
                 objectAfter,
@@ -450,10 +458,15 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
      *
      * @param before object state before the change
      * @param after object state after the change
-     * @return OID of the corresponding system event mark
+     * @param failed whether the mapping evaluation failed
+     * @return OID of the corresponding system event mark (including FAILED if {@code failed} is true)
      */
     private static <T extends ObjectType> String determineItemValueChangesEventMarks(@NotNull PrismObject<T> before,
-            PrismObject<T> after) {
+            PrismObject<T> after, boolean failed) {
+        if (failed) {
+            return SystemObjectsType.MARK_ITEM_VALUE_FAILED.value();
+        }
+
         final List<? extends ItemDelta> modifications = before.diffModifications(after,
                 EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
 
@@ -477,11 +490,17 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     /**
-     * Returns {@code true} if the change modifies a multi-value item while preserving
-     * at least one existing value.
+     * Returns {@code true} if the change modifies a multi-value item.
      *
-     * <p>This means the item is neither a pure add nor a pure delete operation,
-     * because some values remain unchanged between {@code before} and {@code after}.</p>
+     * This means the item is neither a pure add nor a pure delete operation (in the context of whole item),
+     * because some values remain unchanged between {@code before} and {@code after}.
+     *
+     * Examples (old -> new):
+     * (A, B, C) -> (A, B, C ,D) = true
+     * (A, B, C) -> (B, C) = true
+     * (A, B, C) -> (E, F, G) = true
+     * (A, B, C) -> () = false
+     * () -> (A, B, C) = false
      *
      * @param before object state before the change
      * @param after object state after the change
@@ -494,6 +513,10 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
             @NotNull List<? extends ItemDelta> modifications) {
 
         for (ItemDelta<?, ?> modification : modifications) {
+            if (modification.isAdd() && modification.isDelete()) {
+                return true;
+            }
+
             Item<?, ?> beforeItem = before.findItem(modification.getPath());
             Item<?, ?> afterItem = after.findItem(modification.getPath());
 
@@ -600,7 +623,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     }
 
     @Override
-    public @NotNull Class<O> getType() {
+    public @NotNull Class<? extends O> getType() {
         return type;
     }
 
@@ -675,6 +698,13 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         this.result = result;
         this.resultStatus = result != null ? result.getStatus() : null;
         invalidateCachedBean();
+    }
+
+    void addFailedEventMarkIfNeeded() {
+        if (resultStatus != null && resultStatus.isError()) {
+            parsedMetricValues.addMatchingEventMark(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
+            invalidateCachedBean();
+        }
     }
 
     private void setResultAndStatus(@Nullable OperationResultType resultBean, @Nullable OperationResultStatusType statusBean) {
@@ -1068,7 +1098,7 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
     @Override
     public void applyDefinitions(@NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
+            ObjectNotFoundException, SubscriptionComplianceException {
         if (!ShadowType.class.equals(type)) {
             return;
         }
@@ -1295,6 +1325,12 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                         SimulationMetricReference.forExplicit(valueBean.getIdentifier()),
                         new MetricValue(valueBean.getValue(), BooleanUtils.toBooleanDefaultIfNull(valueBean.isSelected(), false)));
             }
+        }
+
+        void addMatchingEventMark(String oid) {
+            valueMap.put(
+                    SimulationMetricReference.forMark(oid),
+                    new MetricValue(BigDecimal.ONE, true));
         }
 
         @NotNull Collection<String> getMatchingEventMarks() {

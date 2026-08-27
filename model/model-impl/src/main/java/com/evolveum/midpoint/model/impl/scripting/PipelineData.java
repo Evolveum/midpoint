@@ -29,7 +29,9 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
@@ -113,7 +115,7 @@ public class PipelineData implements DebugDumpable {
     public List<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
             ExecutionContext context, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         List<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (PipelineItem item : data) {
             PrismValue value = item.getValue();
@@ -153,7 +155,7 @@ public class PipelineData implements DebugDumpable {
     private Collection<ObjectReferenceType> resolveQuery(Class<? extends ObjectType> type, QueryType queryBean,
             ExecutionContext context, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectQuery query = context.getQueryConverter().createObjectQuery(type, queryBean);
         SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
                 .searchObjects(type, query, readOnly(), context.getTask(), result);

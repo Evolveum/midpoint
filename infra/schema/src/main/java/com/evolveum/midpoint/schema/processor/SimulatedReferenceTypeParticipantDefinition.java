@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.path.NameSet;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;

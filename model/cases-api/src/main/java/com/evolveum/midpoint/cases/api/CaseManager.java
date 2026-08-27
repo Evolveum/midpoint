@@ -34,7 +34,7 @@ public interface CaseManager {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Claims an unassigned work item.
@@ -44,7 +44,7 @@ public interface CaseManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Releases claimed work item.
@@ -54,7 +54,7 @@ public interface CaseManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Delegates a work item.
@@ -64,7 +64,7 @@ public interface CaseManager {
             @NotNull WorkItemDelegationRequestType delegationRequest,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
     //endregion
 
     //region Cases (~ process instances)
@@ -73,7 +73,7 @@ public interface CaseManager {
      */
     void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Cancels and deletes a case and its subcases. Carries out authorization but only for
@@ -81,7 +81,7 @@ public interface CaseManager {
      */
     void deleteCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Deletes obsolete cases, as specified in the policy.

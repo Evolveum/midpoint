@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.provisioning.api.*;
+import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.impl.dummy.AbstractBasicDummyTest;
 
 import static org.testng.Assert.assertEquals;

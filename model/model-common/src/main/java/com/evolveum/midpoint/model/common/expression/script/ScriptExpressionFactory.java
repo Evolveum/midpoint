@@ -10,13 +10,19 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorsProfile;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationExpressionsType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -33,6 +39,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
+import static com.evolveum.midpoint.model.api.BulkAction.LOG;
+
 /**
  * Creates {@link ScriptExpression} instances. They evaluate Groovy/JS/Python/Velocity/... scripts.
  *
@@ -47,6 +55,8 @@ public class ScriptExpressionFactory {
 
     private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
+    private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
+
     /** Indexed by full language URL, always non-null. Values are non-null as well. Concurrency is just for sure. */
     @NotNull private final Map<String, ScriptEvaluator> evaluatorMap = new ConcurrentHashMap<>();
 
@@ -57,8 +67,12 @@ public class ScriptExpressionFactory {
     /** Null only in low-level tests. */
     @Nullable private final FunctionLibraryManager functionLibraryManager;
 
+    @Nullable private final SystemObjectCache systemObjectCache;
+
     /** Initialized at startup. The collection is immutable. */
     @NotNull private final Collection<FunctionLibraryBinding> builtInLibraryBindings;
+
+    private String systemDefaultLanguage = null;
 
     // Invoked by Spring
     public ScriptExpressionFactory(
@@ -66,12 +80,14 @@ public class ScriptExpressionFactory {
             @NotNull Collection<FunctionLibraryBinding> builtInLibraryBindings,
             @NotNull Collection<ScriptEvaluator> evaluators,
             @NotNull ObjectResolver objectResolver,
-            @NotNull FunctionLibraryManager functionLibraryManager) {
+            @NotNull FunctionLibraryManager functionLibraryManager,
+            @NotNull SystemObjectCache systemObjectCache) {
         this.prismContext = prismContext;
         this.builtInLibraryBindings = Collections.unmodifiableCollection(builtInLibraryBindings);
         registerEvaluators(evaluators);
         this.objectResolver = objectResolver;
         this.functionLibraryManager = functionLibraryManager;
+        this.systemObjectCache = systemObjectCache;
     }
 
     @VisibleForTesting
@@ -82,6 +98,7 @@ public class ScriptExpressionFactory {
         this.builtInLibraryBindings = Collections.unmodifiableCollection(builtInLibraryBindings);
         this.objectResolver = objectResolver;
         this.functionLibraryManager = null;
+        this.systemObjectCache = null;
     }
 
     private void registerEvaluators(@NotNull Collection<ScriptEvaluator> evaluators) {
@@ -125,7 +142,7 @@ public class ScriptExpressionFactory {
             OperationResult result)
             throws ExpressionSyntaxException, SecurityViolationException {
 
-        String language = getLanguage(scriptExpressionBean);
+        String language = determineLanguage(scriptExpressionBean, result);
         ScriptEvaluator evaluator = getEvaluator(language, shortDesc);
         ScriptExpression expression = new ScriptExpression(evaluator, scriptExpressionBean);
         expression.setPrismContext(prismContext);
@@ -218,7 +235,29 @@ public class ScriptExpressionFactory {
         return evaluatorMap.get(languageUri);
     }
 
-    private String getLanguage(ScriptExpressionEvaluatorType expressionBean) {
-        return Objects.requireNonNullElse(expressionBean.getLanguage(), DEFAULT_LANGUAGE);
+    private String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {
+        if (systemDefaultLanguage == null) {
+            initDefaultLanguage(result);
+        }
+        return Objects.requireNonNullElse(expressionBean.getLanguage(), systemDefaultLanguage);
     }
+
+    private void initDefaultLanguage(OperationResult result) {
+        if (systemObjectCache != null) {
+            SystemConfigurationExpressionsType expressionsConfig = null;
+            try {
+                var systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+                expressionsConfig = systemConfiguration != null ? systemConfiguration.asObjectable().getExpressions() : null;
+            } catch (SchemaException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Schema error when determining default scripting language", e);
+            }
+            if (expressionsConfig != null) {
+                systemDefaultLanguage = expressionsConfig.getDefaultScriptLanguage();
+            }
+        }
+        if (systemDefaultLanguage == null) {
+            systemDefaultLanguage = DEFAULT_LANGUAGE;
+        }
+    }
+
 }

@@ -104,7 +104,8 @@ class RawChangesExecutor {
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> execute(OperationResult parentResult)
             throws ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+            ObjectNotFoundException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         task.assertPersistentExecution("Raw operation execution is not supported in non-persistent execution mode");
 
@@ -235,7 +236,8 @@ class RawChangesExecutor {
 
     private void executeChangeRaw(ObjectDelta<? extends ObjectType> delta, OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(EXECUTE_CHANGE);
         ObjectType objectToDetermineDetailsForAudit = null;
         PrismObject<? extends ObjectType> oldObject = getOldObjectForAudit(delta, result);
@@ -304,7 +306,8 @@ class RawChangesExecutor {
     private ObjectType executeChangeRawInternal(
             ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException,
+            SubscriptionComplianceException {
         final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
         if (delta.isAdd()) {
             return executeAddDeltaRaw(delta, preAuthorized, options, task, result);
@@ -320,7 +323,7 @@ class RawChangesExecutor {
     private ObjectType executeAddDeltaRaw(ObjectDelta<? extends ObjectType> delta,
             boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         RepoAddOptions repoOptions = new RepoAddOptions();
         if (ModelExecuteOptions.isNoCrypt(options)) {
             repoOptions.setAllowUnencryptedValues(true);
@@ -357,7 +360,7 @@ class RawChangesExecutor {
     private <T extends ObjectType> T executeDeleteDeltaRaw(
             ObjectDelta<T> delta, boolean preAuthorized, Task task, OperationResult result)
             throws PolicyViolationException, CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
         Class<T> clazz = delta.getObjectTypeClass();
         String oid = delta.getOid();
@@ -423,7 +426,7 @@ class RawChangesExecutor {
     private <T extends ObjectType> T executeModifyDeltaRaw(ObjectDelta<T> delta,
             boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true); // MID-2218
         Class<T> clazz = delta.getObjectTypeClass();
         String oid = delta.getOid();

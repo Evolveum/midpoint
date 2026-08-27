@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -53,7 +52,7 @@ class ShadowOperationPropagationHelper {
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
-            SecurityViolationException, PolicyViolationException, EncryptionException {
+            SecurityViolationException, PolicyViolationException, EncryptionException, SubscriptionComplianceException {
 
         Duration operationGroupingInterval = getGroupingInterval(resource);
         if (operationGroupingInterval == null) {

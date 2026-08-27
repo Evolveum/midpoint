@@ -7,35 +7,33 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.Arrays;
+import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
-import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
-import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationModelOptionsType;
 
 /**
  * A client for the remote Smart integration service (the real one, accessible via HTTP).
@@ -55,28 +53,20 @@ public class DefaultServiceClientImpl implements ServiceClient {
     /** The client used to access the remote service. */
     private final WebClient webClient;
 
-    /** Optional LLM model options injected into every request. */
-    @Nullable
-    private final SmartIntegrationModelOptionsType modelOptions;
-
     /** Thread pool for async invocations. */
     private final ExecutorService executorService;
 
     /** Timeout for receiving answer from the Python service. Later it will be configurable. */
-    private static final long RECEIVE_TIMEOUT = 120_000;
-
+    private static final long DEFAULT_RECEIVE_TIMEOUT = 120_000;
     /** Default thread pool size for parallel AI service calls. */
     private static final int DEFAULT_THREAD_POOL_SIZE = 20;
 
     DefaultServiceClientImpl(@Nullable SmartIntegrationConfigurationType configurationBean) throws ConfigurationException {
-        // FIXME temporary hack to force CXF to use HTTP/1.1 (remove it eventually, because it influences all HTTP communication).
-        System.setProperty("org.apache.cxf.transport.http.forceVersion", "1.1");
         webClient = WebClient.create(getServiceUrl(configurationBean), true);
-        modelOptions = configurationBean != null ? configurationBean.getModelOptions() : null;
 
         var conduit = WebClient.getConfig(webClient).getHttpConduit();
         var policy = new HTTPClientPolicy();
-        policy.setReceiveTimeout(RECEIVE_TIMEOUT);
+        policy.setReceiveTimeout(getReceiveTimeout(configurationBean));
         conduit.setClient(policy);
 
         this.executorService = Executors.newFixedThreadPool(
@@ -87,6 +77,14 @@ public class DefaultServiceClientImpl implements ServiceClient {
                     t.setDaemon(true);
                     return t;
                 });
+    }
+
+    private static long getReceiveTimeout(@Nullable SmartIntegrationConfigurationType configurationBean) {
+        if (configurationBean == null || configurationBean.getServiceResponseTimeout() == null) {
+            return DEFAULT_RECEIVE_TIMEOUT;
+        }
+
+        return configurationBean.getServiceResponseTimeout().getTimeInMillis(new Date());
     }
 
     private static String getServiceUrl(@Nullable SmartIntegrationConfigurationType configurationBean)
@@ -111,14 +109,41 @@ public class DefaultServiceClientImpl implements ServiceClient {
         return getServiceUrlOverride() != null;
     }
 
+    @Override
+    public Optional<AiInfo> getAiInfo() {
+        webClient.reset();
+        webClient.accept(MediaType.APPLICATION_JSON);
+        webClient.path("/health");
+        LOGGER.trace("Calling health endpoint: /health");
+        try (var response = webClient.get()) {
+            var statusType = response.getStatusInfo();
+            if (statusType.getFamily() != Response.Status.Family.SUCCESSFUL) {
+                throw new SystemException("Health endpoint returned non-success status: %s".formatted(
+                        response.getStatus()));
+            }
+            var responseText = response.readEntity(String.class);
+            LOGGER.trace("Response from health endpoint (status: {}):\n{}",
+                    statusType.getStatusCode(), responseText);
+            try {
+                var root = new ObjectMapper().readTree(responseText);
+                var statusString = root.path("status").asText(null);
+                var status = HealthStatus.fromString(statusString);
+                var metadata = root.path("metadata");
+                if (metadata.isMissingNode()) {
+                    return Optional.empty();
+                }
+                return Optional.of(new AiInfo(metadata.path("provider").asText(null), metadata.path("model").asText(null), status));
+            } catch (Exception e) {
+                throw new SystemException("Failed to parse AI info from health endpoint: " + e.getMessage(), e);
+            }
+        }
+    }
+
     /** A generic method that calls a remote service synchronously. Treats serialization/parsing of the exchanged data. */
     public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass)
             throws SchemaException {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
-        if (modelOptions != null && request instanceof SiRequestType siRequest) {
-            siRequest.setModelOptions(modelOptions);
-        }
         var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.reset();

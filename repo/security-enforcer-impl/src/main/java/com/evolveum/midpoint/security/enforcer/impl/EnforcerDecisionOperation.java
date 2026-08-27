@@ -50,7 +50,7 @@ class EnforcerDecisionOperation extends EnforcerOperation {
 
     @NotNull AccessDecision decideAccess(@Nullable AuthorizationPhaseType phase, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (phase == null) {
             var decision = decideAccessForPhase(REQUEST, result);
             if (decision != AccessDecision.ALLOW) {
@@ -66,7 +66,7 @@ class EnforcerDecisionOperation extends EnforcerOperation {
             @NotNull AuthorizationPhaseType phase,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (AuthorizationConstants.AUTZ_NO_ACCESS_URL.equals(operationUrl)) {
             return AccessDecision.DENY;

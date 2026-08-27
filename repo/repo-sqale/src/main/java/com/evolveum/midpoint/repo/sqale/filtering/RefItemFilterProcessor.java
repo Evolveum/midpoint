@@ -16,9 +16,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.TypeFilter;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.QAssignment;
-import com.evolveum.midpoint.repo.sqlbase.mapping.ItemRelationResolver;
-
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;

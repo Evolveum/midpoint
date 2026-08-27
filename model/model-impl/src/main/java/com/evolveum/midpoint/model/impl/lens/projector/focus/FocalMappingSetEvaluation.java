@@ -144,7 +144,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     void evaluateMappingsToTriples()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         for (FocalMappingEvaluationRequest<?, ?> request : requests) {
             evaluateMappingRequest(request);
@@ -153,7 +153,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     private void evaluateMappingRequest(FocalMappingEvaluationRequest<?, ?> request)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException {
+            SecurityViolationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
         MappingImpl<?, ?> mapping = createMapping(request);
         if (mapping == null) {
@@ -180,7 +180,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
 
     private MappingImpl<PrismValue, ItemDefinition<?>> createMapping(FocalMappingEvaluationRequest<?, ?> request)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException {
+            SecurityViolationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         String description = request.shortDump();
         LOGGER.trace("Starting evaluation of {}", description);
 
@@ -213,7 +213,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         MappingType mappingBean = request.getMapping();
         MappingKindType mappingKind = request.getMappingKind();
@@ -280,6 +280,8 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         variables.put(ExpressionConstants.VAR_USER, focusOdo, focusOdo.getDefinition());
         variables.registerAlias(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
         variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, SystemConfigurationType.class);
         variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
@@ -385,7 +387,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             String contextDesc,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         Holder<ObjectDeltaObject<F>> focusOdoClonedHolder = new Holder<>();
         for (VariableBindingDefinitionType source : evaluationRequest.getSources()) {
             updateSource(context, focusOdo, focusOdoClonedHolder, outputTripleMap, contextDesc, source, result);
@@ -399,7 +401,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
             DeltaSetTripleIvwoMap outputTripleMap, String contextDesc,
             VariableBindingDefinitionType source, OperationResult result) throws ExpressionEvaluationException,
             SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         if (source.getPath() == null) {
             return;
         }

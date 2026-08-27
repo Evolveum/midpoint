@@ -163,6 +163,7 @@ public class ConnDevJsonMapper {
         for (var relationInfo : relations) {
             var object = JSON.objectNode();
             object.set("name", JSON.textNode(relationInfo.getName()));
+            object.set("displayName", JSON.textNode(relationInfo.getDisplayName()));
             object.set("shortDescription", JSON.textNode(relationInfo.getShortDescription()));
             object.set("subject", JSON.textNode(relationInfo.getSubject()));
             object.set("subjectAttribute", JSON.textNode(relationInfo.getSubjectAttribute()));
@@ -178,6 +179,7 @@ public class ConnDevJsonMapper {
     public static ConnDevRelationInfoType mapRelationFromJson(JsonNode object, List<ConnDevBasicObjectClassInfoType> discovered) {
         var ret = new ConnDevRelationInfoType();
         ret.setName(toText(object.get("name")));
+        ret.setDisplayName(toText(object.get("displayName")));
         ret.setObject(toText(object.get("object")));
         ret.setObjectAttribute(toText(object.get("objectAttribute")));
         ret.setSubject(toText(object.get("subject")));
@@ -187,7 +189,7 @@ public class ConnDevJsonMapper {
         ret.setObject(normalize(ret.getObject(), discovered));
         ret.setSubject(normalize(ret.getSubject(), discovered));
 
-        if (ret.getSubject() == null) {
+        if (ret.getSubject() == null || ret.getObject() == null) {
             return null;
         }
         if (ret.getName() == null) {

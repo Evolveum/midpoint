@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<functionLibrary oid="20afa268-5377-11f1-9f90-9c6b00360713"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>util</name>
+
+    <function>
+        <name>echo</name>
+        <parameter>
+            <name>input</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+            <code>
+                input
+            </code>
+        </script>
+    </function>
+
+    <function>
+        <name>isAppropriate</name>
+        <parameter>
+            <name>text</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:boolean</returnType>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+            <code>
+                isPresent(text)
+                &amp;&amp; !isBlank(text)
+                &amp;&amp; size(text.trim()) &gt; 3
+                &amp;&amp; !text.matches('\\b(?i:TODO)\\b')
+            </code>
+        </script>
+    </function>
+
+</functionLibrary>

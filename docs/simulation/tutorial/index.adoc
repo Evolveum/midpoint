@@ -372,7 +372,7 @@ Please import link:https://github.com/Evolveum/midpoint-samples/tree/master/samp
                 <reaction>
                     <situation>deleted</situation>
                     <actions>
-                        <unlink/>
+                        <synchronize/>
                     </actions>
                 </reaction>
                 <reaction>
@@ -896,7 +896,7 @@ So, please import the link:https://github.com/Evolveum/midpoint-samples/tree/mas
             <reaction>
                 <situation>deleted</situation>
                 <actions>
-                    <unlink/>
+                    <synchronize/>
                 </actions>
             </reaction>
             <!-- intentionally no reaction for unmatched -->

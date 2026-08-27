@@ -533,6 +533,19 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_DELEGATE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "delegate");
     public static final String AUTZ_UI_DELEGATE_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_DELEGATE_ACTION_QNAME);
 
+    public static final QName AUTZ_UI_CREDENTIALS_ALL = new QName(NS_AUTHORIZATION_UI, "credentials");
+    public static final String AUTZ_UI_CREDENTIALS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_ALL);
+
+    public static final QName AUTZ_UI_CREDENTIALS_PASSWORD = new QName(NS_AUTHORIZATION_UI, "credentialsPassword");
+    public static final String AUTZ_UI_CREDENTIALS_PASSWORD_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_PASSWORD);
+
+    public static final QName AUTZ_UI_CREDENTIALS_TOTP = new QName(NS_AUTHORIZATION_UI, "credentialsTotp");
+    public static final String AUTZ_UI_CREDENTIALS_TOTP_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_TOTP);
+
+    public static final QName AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS = new QName(NS_AUTHORIZATION_UI, "credentialsSecurityQuestions");
+    public static final String AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS);
+
+
     // UI administrator authorizations
     //
     // Those authorizations enable advanced functionality that is supposed to be available to administrators only.

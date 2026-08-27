@@ -20,7 +20,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 

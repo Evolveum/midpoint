@@ -16,7 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.google.common.base.Preconditions;
@@ -305,7 +308,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
     /** Returns `true` if the `value` matches this selector. */
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ctx.traceMatchingStart(this, value);
         for (SelectorClause clause : clauses) {
             if (!ctx.isFullInformationAvailable() && clause.requiresFullInformation()) {
@@ -326,7 +329,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
      */
     public ObjectFilter computeFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (toFilter(ctx)) {
             return ctx.getFilterCollector().getFilter();
         } else {
@@ -340,7 +343,7 @@ public class ValueSelector implements DebugDumpable, Serializable {
      */
     public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
             if (!clause.toFilter(ctx)) {

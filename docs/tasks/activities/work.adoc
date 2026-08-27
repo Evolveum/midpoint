@@ -337,3 +337,5 @@ Finally, `full` means that the activity can be interrupted any time.
 
 Customer-provided activities can have any configuration items and distribution (multi-threading,
 clustering) properties.
+
+Simulations are tested and work in a multi node environment.

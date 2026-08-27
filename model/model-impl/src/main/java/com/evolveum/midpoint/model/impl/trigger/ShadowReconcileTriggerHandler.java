@@ -130,7 +130,7 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
 
     private PrismObject<ResourceType> getResource(PrismObject<ShadowType> fullShadow, RunningTask task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String resourceOid = ShadowUtil.getResourceOid(fullShadow);
         if (resourceOid == null) {
             throw new IllegalStateException("No resource OID in " + fullShadow);

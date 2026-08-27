@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -123,7 +122,7 @@ public class DataModelUtil {
                 if (def != null) {
                     QName focusType = def.getFocusType() != null ? def.getFocusType() : UserType.COMPLEX_TYPE;
                     PrismObjectDefinition<Objectable> objdef = rctx.prismContext.getSchemaRegistry().findObjectDefinitionByType(focusType);
-                    if (objdef != null && objdef.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(objdef.getCompileTimeClass())) {
+                    if (objdef != null && objdef.getCompileTimeClass() != null && ProjectionHolderType.class.isAssignableFrom(objdef.getCompileTimeClass())) {
                         clazz = (Class) objdef.getCompileTimeClass();
                     }
                 } else {

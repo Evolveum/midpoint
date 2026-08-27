@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
@@ -299,6 +298,9 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
                 } else {
                     sb.append("no identifiers");
                 }
+                sb.append("; ");
+                sb.append(shadow.getAttributes().size());
+                sb.append(" attributes");
             } else {
                 sb.append("no shadow");
             }

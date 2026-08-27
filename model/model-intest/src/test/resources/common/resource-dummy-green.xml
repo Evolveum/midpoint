@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -54,6 +54,7 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 name + iterationToken
                             </code>
@@ -103,6 +104,7 @@
                     <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'Came from ' + input</code>
                         </script>
                     </expression>
@@ -219,12 +221,10 @@
                         <q:path>attributes/icfs:name</q:path>
                         <expression>
                             <c:script>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                                 <code>
-                                    //just to test if system config variable was set
-                                    if (configuration) {
-                                        return "system"
-                                    }
-                                    return "error"
+                                    // just to test if system config variable was set
+                                    isPresent(configuration) ? 'system' : 'error'
                                 </code>
                             </c:script>
                         </expression>
@@ -296,6 +296,7 @@
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 'X' + name
                             </code>
@@ -307,8 +308,9 @@
                     <strength>weak</strength>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
-                                input?.substring(1)
+                                input.substring(1)
                             </code>
                         </script>
                     </expression>

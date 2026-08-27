@@ -110,11 +110,25 @@ public class ExpressionConstants {
     public static final String VAR_ITERATION_TOKEN = "iterationToken";
     public static final ItemName VAR_ITERATION_TOKEN_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
 
+    /**
+     * Alias for VAR_ITERATION. Represents the current attempt number in iteration process.
+     * This name may be more intuitive for users as it emphasizes that the first attempt
+     * (before any conflict) is also counted.
+     */
+    public static final String VAR_ATTEMPT = "attempt";
+    public static final ItemName VAR_ATTEMPT_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ATTEMPT);
+
     public static final String VAR_REFERENCE_TIME = "referenceTime";
+
     /**
      * Used to represent current time in expression environments that do not have native method to get current time (e.g. CEL).
      */
     public static final String VAR_NOW = "now";
+
+    /**
+     * variable used to mimic nil/null literal in MEL.
+     */
+    public static final String VAR_NIL = "nil";
 
     // Variables used in object merging expressions
     public static final String VAR_SIDE = "side";

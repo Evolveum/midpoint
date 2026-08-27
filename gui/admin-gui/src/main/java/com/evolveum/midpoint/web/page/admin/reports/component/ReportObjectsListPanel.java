@@ -163,7 +163,7 @@ public class ReportObjectsListPanel<C extends Serializable> extends Containerabl
 
             @Override
             protected Integer countObjects(Class<C> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result)
-                    throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                    throws CommonException {
                 QName qNameType = WebComponentUtil.anyClassToQName(getPrismContext(), type);
                 VariablesMap variables = new VariablesMap();
                 if (getSearchModel().getObject() != null) {

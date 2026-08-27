@@ -79,7 +79,7 @@ public class ShadowsFacade {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         assert !GetOperationOptions.isRaw(options);
         var shadow = ShadowGetOperation.execute(oid, repositoryShadow, identifiersOverride, options, context, task, result);
         ReturnedShadowValidityChecker.check(shadow, options);
@@ -95,7 +95,7 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         return ShadowAddOperation.executeDirectly(resourceObjectToAdd, scripts, options, context, task, result);
     }
 
@@ -108,7 +108,7 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         return ShadowDeleteOperation.executeDirectly(rawRepoShadow, options, scripts, context, task, result);
     }
 
@@ -119,7 +119,7 @@ public class ShadowsFacade {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         // Re-reading the shadow in order to get the really "raw" version.
         var rawRepoShadow = shadowFinder.getRepoShadow(shadowOid, null, result);
         ShadowRefreshOperation.executeFull(rawRepoShadow, options, context, task, result);
@@ -131,18 +131,19 @@ public class ShadowsFacade {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         definitionsHelper.applyDefinition(delta, repoShadow, task, result);
     }
 
     public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         definitionsHelper.applyDefinition(shadow.asObjectable(), task, result);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         definitionsHelper.applyDefinition(query, task, result);
     }
 
@@ -154,7 +155,7 @@ public class ShadowsFacade {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
                 .executeIterativeSearch(
@@ -169,7 +170,7 @@ public class ShadowsFacade {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         var shadows = ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
                 .executeNonIterativeSearch(result);
@@ -184,7 +185,7 @@ public class ShadowsFacade {
             @NotNull ResultHandler<ShadowType> handler,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ShadowSearchLikeOperation
                 .create(ctx, query, options)
                 .executeIterativeSearch(handler, result);
@@ -197,7 +198,7 @@ public class ShadowsFacade {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
                 .executeCount(result);
@@ -210,7 +211,7 @@ public class ShadowsFacade {
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
-            SecurityViolationException, PolicyViolationException, EncryptionException {
+            SecurityViolationException, PolicyViolationException, EncryptionException, SubscriptionComplianceException {
         propagationHelper.propagateOperations(resource, RawRepoShadow.of(repoShadow), task, result);
     }
 
@@ -220,8 +221,8 @@ public class ShadowsFacade {
             T expectedValue,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
         return compareHelper.compare(repositoryShadow, path, expectedValue, task, result);
     }
 }

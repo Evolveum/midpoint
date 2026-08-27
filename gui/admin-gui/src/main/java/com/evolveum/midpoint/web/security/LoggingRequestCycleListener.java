@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.security;
 import org.apache.wicket.Application;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler.RedirectPolicy;
+import org.apache.wicket.core.request.mapper.StalePageException;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -48,6 +50,14 @@ public class LoggingRequestCycleListener implements IRequestCycleListener {
         if (REQUEST_LOGGER.isTraceEnabled()) {
             REQUEST_LOGGER.trace("REQUEST CYCLE: Exception: {}, handler {}", ex,
                     WebComponentUtil.debugHandler(cycle.getActiveRequestHandler()), ex);
+        }
+        if (ex instanceof StalePageException stalePageException) {
+            // Wicket uses this exception for stale render-count recovery, e.g. after browser view-source.
+            // Do not convert it to PageError/500, recover by re-rendering the stale page.
+            LOGGER.debug("Recovering stale Wicket page request by re-rendering page {}", stalePageException.getPage());
+            return new RenderPageRequestHandler(
+                    new PageProvider(stalePageException.getPage()),
+                    RedirectPolicy.ALWAYS_REDIRECT);
         }
         LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during page rendering", ex);
         return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
@@ -136,4 +146,3 @@ public class LoggingRequestCycleListener implements IRequestCycleListener {
         }
     }
 }
-

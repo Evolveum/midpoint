@@ -40,7 +40,26 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * xrefv:/midpoint/reference/master/expressions/expressions/script/mel/[MidPoint expression language]: secure expression language for use in mappings and customization.
 
-* bug:MID-10965[] Fast correlators simulation.
+* New Smart Integration features:
+** Suggestions of object types (delineation).
+** Suggestions of focus type.
+** Suggestions of correlators.
+** Suggestions of mappings.
+** Suggestions of simple associations.
+** Object Type / Object Class statistics.
+** Correlators simulation.
+** Inbound mappings simulation.
+* UI/UX improvements:
+** Improved Object Type wizard.
+** Improved Mappings page.
+** Improved Correlation page.
+
+* Multi-tab Browser Support. See bug:MID-11050[].
+
+* xref:/midpoint/guides/updating-native-db/updating-to-pg18.adoc[Support for PostgreSQL 18]
+
+* bug:MID-11358[] Added connector signature verification for production environments without an active subscription,
+including import of signed allowed-connectors list and subscription compliance enforcement. See #TODO link to docs#
 
 #TODO#
 
@@ -51,11 +70,25 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Many improvements in accessibility of the self-service, approval process and identity recovery user interface (WCAG 2.2 compliance).
 * bug:MID-10997[] Added support for additional footer.
 * bug:MID-11036[] Implemented export to XLSX.
+* bug:MID-11229[] Implemented streaming export for XLSX format.
 * bug:MID-10918[] Improved audit record for skipped approval stage.
 * bug:MID-9476[] Improved Search Box in Object Collection View.
 * bug:MID-10867[] Added support for java 25.
+* bug:MID-10875[] Added Order constraints tab for Assignments panel.
+* Improved handling of clockwork collisions in multi-thread setup, problem was reflected in duplication of assignments. See bug:MID-10714[].
+* Improved patch management of docker images, updated tagging of docker images.
+    See xref:/midpoint/get-started/install/containers/container-image-naming/[].
+* Implemented new configuration options for processing uploaded images.
+* bug:MID-8802[] Added displayName and preferredName to UserType.
+* Upgraded AdminLTE to 4.1. See bug:MID-11538[].
+* Added support for "null" expression. See bug:MID-11867[].
+* Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
+* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
+* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
+* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
+* Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
+* Added English (Europe) locale. See bug:MID-10286[].
 
-=== Major Bugfixes
 
 #TODO#
 
@@ -88,7 +121,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed certification case stage outcome information. See bug:MID-11026[]
 * Fixed admin gui configuration merging. See bug:MID-11045[]
 * Fixed correlation work item panel. See bug:MID-10993[]
-* Fixed NPE in general notifier. See bug:MID-11038[]
+* Fixed recipient converter while sending notification. See bug:MID-11038[]
 * Fixed page storage for dashboard widget collection. See bug:MID-11055[]
 * Fixed oversized IN queries in fetchChildren causing PostgreSQL parameter limit errors. See bug:MID-11089[]
 
@@ -102,6 +135,66 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Delineation suggestions: filter parsing broken after recent GUI change. See bug:MID-11175[]
 * Fixed work item search by name causing repository mapping error. See bug:MID-8834[]
 * Fixed translation of archetype display labels in assignment picker and summary panel. See bug:MID-11177[]
+* Fix 10k limit in certification queries using iterative search. See bug:MID-11043[]
+* Fixed generic "Fatal error" message in object tables to show available list/search error details. See bug:MID-10911[]
+* Improved user list performance with orgRelation authorization for users managing many organizations. See bug:MID-11179[]
+* Fixed extension schema containers displaying. See bug:MID-10954[]
+* Fixed duplicated "No response" option for campaign. See bug:MID-11166[]
+* Fixed Campaigns scheduling menu item visibility. See bug:MID-11176[]
+* Fixed axiom query parsing for saved filters. See bug:MID-11183[]
+* Updated saved filters merging strategy. See bug:MID-11181[]
+* Improved CSV export to use streaming data loading and export. See bug:MID-10990[]
+* Fixed text formatting in disabled text area. See bug:MID-11216[]
+* Fixed Privileged access initial object. See bug:MID-11004[]
+* Fixed assignment name for policy rule. See bug:MID-11005[]
+* Fixed object list view columns while report creation. See bug:MID-10967[]
+* Fixed role analysis attribute queries for enum-based attributes such as effective status. See bug:MID-10504[]
+* Fixed skipped approval processing for role ADD operations that could leave empty ADD deltas. See bug:MID-11101[]
+* Fixed loss of unsaved resource detail changes after running Test connection. See bug:MID-10966[]
+* Fixed dashboard widget collections with inline filters by allowing explicit object type specification. See bug:MID-9879[]
+* Fixed missing .zip extension when downloading tracing report files. See bug:MID-11096[]
+* Fixed resource wizard mapping property autocomplete to find partial matches regardless of letter case. See bug:MID-10415[]
+* Fixed missing input variable in resource activation existence mappings. See bug:MID-10905[]
+* Fixed stale page recovery after viewing page source causing internal server error. See bug:MID-9998[]
+* Hided conflict warning on Shopping cart panel of the Request Access wizard in case of prune action. See bug:MID-11250[] and xref:#_behavior_changes_since_4_10[behavior changes since 4.10].
+* Fixed NPE when selecting deprecated action in resource object type editor. See bug:MID-10957[]
+* Fixed tooltip lifecycle in search popovers to prevent blinking, stuck, and duplicate tooltips. See bug:MID-10908[]
+* Fixed detailed resource lifecycle changes to use the proper confirmation and save flow. See bug:MID-10700[]
+* Fixed multithreaded Ninja export race causing rare ArrayIndexOutOfBoundsException. See bug:MID-10910[]
+* Fixed reference matches queries failing when the target filter is wrapped in parentheses. See bug:MID-10903[]
+* Updated spring boot to 4.0. See bug:MID-11002[]
+* Fixed serialization of focus preview changes page by avoiding retained live model context. See bug:MID-11082[]
+* Fixed bucketed task workers continuing after root task suspension. See bug:MID-11217[].
+* Improved debug logging for OIDC opaque-token issuer discovery failures. See bug:MID-11292[].
+* Fixed structured-copy handling of reference values in asynchronous script execution. See bug:MID-10587[].
+* Fixed default login redirect to home page. See bug:MID-10269[]
+* Updated spring boot to 4.1. See bug:MID-11547[]
+* Fixed Wicket Ajax login redirects to preserve the servlet context path. See bug:MID-11687[]
+* Fixed merging of the resource capabilities without id. See bug:MID-11218[]
+* Fixed download report file extension. See bug:MID-11312[]
+* Fixed reference value update in search panel. See bug:MID-11400[]
+* Fixed Role catalog query for Roles of teammates. See bug:MID-11221[]
+* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11412[]
+* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11413[]
+* Fixed custom relation translation. See bug:MID-11523[]
+* Fixed CSV export for Tasks table. See bug:MID-11652[]
+* Fixed breaking too long labels into lines. See bug:MID-11711[]
+* Fixed breaking too long labels into lines. See bug:MID-11714[]
+* Fixed empty recipient filter expressions bypassing notification redirection to file. See bug:MID-11828[]
+* Fixed saving dynamic extension attributes. See bug:MID-11716[]
+* Fixed recursive processing of post-initial objects in midpoint.sh and ninja.sh scripts. See bug:MID-11201[]
+* Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
+* Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
+* Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
+* Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
+* Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
+* Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
+* Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
+* Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
+* Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11914[]
+* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
+* Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Fixed leaking role membership references in the All accesses panel. See bug:MID-9639[]
 
 === Releases Of Other Components
@@ -167,6 +260,9 @@ This part of midPoint user interface is not finished.
 The only supported parts of this user interface are those that are used to process requests, approvals, and manual correlation.
 Other parts of case management user interface are considered to be experimental, especially the parts dealing with manual provisioning cases.
 
+* Smart Integration features which leverages LLMs, requires an external "Smart Integration" microservice to work properly (publicly available at our https://github.com/Evolveum/midpilot-smart-integration/tree/main[GitHub]).
+For all such features there is also the requirement of either hosting your own LLM inference service, or use some third party LLM inference provider.
+
 This list is just an overview, it may not be complete.
 Please see the documentation regarding detailed limitations of individual features.
 
@@ -191,7 +287,7 @@ We are positive that midPoint can be successfully installed on other operating s
 Such installations can be used to for evaluation, demonstration or development purposes.
 However, we do not support these operating systems for production environments.
 The tooling for production use is not maintained, such as various run control (start/stop) scripts, low-level administration and migration tools, backup and recovery support and so on.
-Please see xref:/midpoint/install/bare-installation/platform-support/[] for details.
+Please see xref:/midpoint/get-started/install/bare-installation/platform-support/[] for details.
 
 Note that production deployments in Windows environments are supported only for LTS releases.
 
@@ -231,7 +327,7 @@ Database and/or SQL proxies, database load balancers or any other devices (e.g. 
 
 Following database engines are supported:
 
-* PostgreSQL 17, 16, 15, 14
+* PostgreSQL 18, 17, 16, 15, 14
 
 PostgreSQL 17 is recommended.
 
@@ -259,19 +355,19 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.48
+| 10.1.55
 | Web container
 
 | ConnId
-| 1.6.0.0
+| 1.7.0.0-SNAPSHOT #TODO#
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.9.2
+| 3.10-SNAPSHOT  #TODO#
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
-| 2.9
+| 2.10-SNAPSHOT #TODO#
 | Connector for CSV files
 
 | xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]
@@ -303,17 +399,19 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
-=== Upgrade From MidPoint 4.9
+=== Upgrade From MidPoint 4.10
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
-Please follow our xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/[Upgrade guide] carefully.
+Please follow our xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-guide/[Upgrade guide] carefully.
 
 [IMPORTANT]
-Be sure to be on the latest maintenance version for 4.9, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
+Be sure to be on the latest maintenance version for 4.10, otherwise you will not be warned about all the necessary schema changes and other possible incompatibilities.
 
 Note that:
 
- * There are database schema changes (see xrefv:/midpoint/reference/support-4.9/upgrade/database-schema-upgrade/[Database schema upgrade]).
+* There are database schema changes (see xrefv:/midpoint/reference/support-4.10/upgrade/database-schema-upgrade/[Database schema upgrade]).
+** New tables for `ApplicationType`, `ConnectorDevelopmentType` were added.
+** Few other smaller changes.
 
  * Version numbers of some bundled connectors have changed.
  Connector references from the resource definitions that are using the bundled connectors need to be updated.
@@ -322,8 +420,8 @@ Note that:
 
 === Upgrade From Other MidPoint Versions
 
-Upgrade from midPoint versions other than 4.9.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.9.5 first.
+Upgrade from midPoint versions other than 4.10.x to midPoint {release-version} is not supported directly.
+Please upgrade to 4.10.3 first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.10
 
@@ -338,6 +436,13 @@ Starting from 4.11 version, the orig value will never be translated.
 Please ensure that all PolyStringType values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
 
+* Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
+By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
+The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments (even when adding `end`), ensuring that new records continue to be iterated starting from 0 consistently with existing records.
+This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
+In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
+
 === Changes In Initial Objects Since 4.10
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -350,17 +455,59 @@ Therefore, midPoint does not overwrite existing objects when they are already in
 This may result in upgrade problems if the existing object contains configuration that is no longer supported in a new version.
 
 The following list contains a description of changes to the initial objects in this midPoint release.
-The complete new set of initial objects is in the `config/initial-objects` directory in both the source and binary distributions.
+The complete new set of initial objects is in the `repo/system-init/src/main/resources/initial-objects` directory in the source distribution and in the `doc/config/initial-objects` directory in the binary distribution.
 
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
-For more information see xrefv:/midpoint/reference/support-4.10/deployment/ninja/use-case/upgrade-with-ninja/#_initial_objects[here].
+For more information see xrefv:/midpoint/reference/support-4.10/upgrade/upgrade-with-ninja/#initial-objects-update[here].
 
 //TODO
+New initial objects:
 
-Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
+* 064-archetype-governance-policy.xml
+* 739-mark-shadow-correlation-owner-found.xml
+* 740-mark-shadow-correlation-owner-not-found.xml
+* 741-mark-shadow-correlation-owner-not-certain.xml
+* 742-mark-item-value-added.xml
+* 743-mark-item-value-removed.xml
+* 744-mark-item-value-modified.xml
+* 745-mark-item-value-not-changed.xml
+* 746-mark-item-value-change-not-applied.xml
+* 602-origin-artificial-intelligence.xml
+* 603-origin-system-intelligence.xml
 
-TIP: Copies of initial object files are located in `config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
-On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
+Modified:
+
+* 029-archetype-application.xml - Poly-string translation keys added.
+* 501-archetype-task-reconciliation.xml - Poly-string translation keys added.
+* 502-archetype-task-recomputation.xml - Poly-string translation keys added.
+* 503-archetype-task-import.xml - Poly-string translation keys added.
+* 504-archetype-task-live-sync.xml - Poly-string translation keys added.
+* 505-archetype-task-async-update.xml - Poly-string translation keys added.
+* 506-archetype-task-cleanup.xml - Poly-string translation keys added.
+* 507-archetype-task-report.xml - Poly-string translation keys added.
+* 508-archetype-task-single-bulk-action.xml - Poly-string translation keys added.
+* 509-archetype-task-iterative-bulk-action.xml - Poly-string translation keys added.
+* 536-archetype-task-certification-start-campaign.xml - Poly-string translation keys added.
+* 537-archetype-task-certification-close-current-stage.xml - Poly-string translation keys added.
+* 538-archetype-task-certification-reiterate-campaign.xml - Poly-string translation keys added.
+* 702-archetype-person.xml - Poly-string translation keys added.
+* 705-archetype-shadow-policy-mark.xml - Poly-string translation keys added.
+* 200-lookup-languages.xml - Added Slovenian (sl) and Latvian (lv) languages.
+* 210-lookup-locales.xml - Added Slovenian (sl) and Latvian (lv) locales.
+* 250-mark-privileged-access.xml - Added archetype.
+* 380-object-template-person.xml - Fixed max. iterations for the "Full name" construction. Added displayName mapping from preferredName, falling back to fullName.
+* 110-report-user-list.xml - Added displayName column.
+* 050-user-administrator.xml - Added displayName.
+* 300-policy-require-classification.xml - Added archetype.
+* 300-policy-require-owner.xml - Added archetype.
+* 000-system-configuration.xml -  Poly-string translation keys added.
+* 041-role-approver.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
+* 042-role-reviewer.xml - Removed obsolete authorization item references and added `personalNumber` alongside deprecated `employeeNumber`.
+
+Please review link:https://github.com/Evolveum/midpoint/commits/master/repo/system-init/src/main/resources/initial-objects[source code history] for detailed list of changes.
+
+TIP: Copies of initial object files are located in `doc/config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
+On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/repo/system-init/src/main/resources/initial-objects[midPoint source code].
 
 === Schema Changes Since 4.10
 
@@ -368,72 +515,21 @@ NOTE: This section is relevant to the majority of midPoint deployments.
 It describes what data items were marked as deprecated, or removed altogether from the schema.
 You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
 
-.Items being deprecated
-[%autowidth]
-|===
-| Type | Item or value | Note
-| `AccessCertificationConfigurationType`
-| `availableResponse`
-| Configure actions in the cert. items collection view instead.
-
-| `ItemRefinedDefinitionType`
-| `emphasized`
-| Use `displayHint` instead.
-
-| `ResourceObjectTypeDefinitionType`
-| `association`
-| Use association types (in schemaHandling) instead.
-
-| `ResourceObjectTypeDefinitionType`
-| `protected`
-| Use "marking" instead.
-
-| `ShadowType`
-| `association`
-| Legacy associations of this shadow. Not used anymore.
-
-| `SynchronizationActionsType`
-| `unlink`
-| Use `<synchronize/>` action instead.
-|===
-
-The `synchronize/membership` container was added to the object operation policy object, present in xrefv:/midpoint/reference/support-4.9/concepts/mark/[object marks] (like the `Protected` one).
-It controls the handling of the membership of entitlements possessing given object mark.
-
-_Actions required:_
-
-* Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
-Make sure you don't use any removed items.
-You can use `ninja` tool for this.
-
-* Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
+// TODO
 
 [#_behavior_changes_since_4_10]
 === Behavior Changes Since 4.10
 
-* The contract for `ModificationsSupplier` in dynamic object modifications (repo API) was changed.
+* Request access wizard behaves differently in case when conflicting situation occurs and prune action will be used for resolving the conflict.
 +
-The original approach was that the caller, i.e., repository, cloned the existing object before handling it to the callback (modifications supplier).
-Now, the implementor of the callback is responsible for not modifying the provided object in any way.
+Previously, the wizard showed warning on the Shopping cart panel about conflicting roles or other shopping cart items even in case when prune action resolves the situation automatically.
+In order to correspond to the definition of the prune action, which says that "The removal of the conflicting assignments is automatic and silent", it was decided to hide the warning from Shopping cart panel.
+See also bug:MID-11250[].
 
-* Projections with denied access no longer cause "preview changes" operation to fail.
+* `displayName` was added to `UserType` and is populated by the default person object template from `preferredName`, falling back to `fullName`.
 +
-If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
-This is now changed (fixed): only the relevant projections are hidden now.
-All the remaining data are displayed to the user.
-See also bug:MID-10397[].
-
-* Expression profile changes:
-
-** Script expression evaluator was removed from `safe` expression profile, as it is not considered to be safe.
-
-** Two new expression profiles were added: `permissive` (allowing all expressions) and `prohibitive` (allowing no expressions).
-
-** Permission profile `script-safe` was renamed to `script-limited`, as the existing mechanism for script permission checks is not considered to provide complete safety and security.
-This profile is not considered to provide strict security, therefore the name was changed to avoid mis-interpretation.
-Corresponding description was added to the profile.
-
-** See xref:/midpoint/reference/expressions/expressions/security/[Expression Security] page for a description of recommended use of expression profiles.
+Existing users may not have `displayName` populated immediately after upgrade. Most user-facing places use fallback display logic, but places that display the raw `displayName` value may remain empty until the value is materialized.
+To populate `displayName` for existing person users, set `preferredName` where needed and recompute the users so the person object-template mapping is applied. See also bug:MID-8802[].
 
 ++++
 {% include release-issues.html %}

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.common;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.Collator;
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -74,8 +75,8 @@ public class AvailableLocale {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load localization", ex);
             }
         }
-
-        Collections.sort(locales);
+        locales.sort(Comparator.comparing(AvailableLocale.LocaleDescriptor::getName,
+                Collator.getInstance(Locale.ROOT)));
 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }

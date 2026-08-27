@@ -41,7 +41,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     <AH extends AssignmentHolderType> void processTemplateBeforeAssignments(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, BEFORE_ASSIGNMENTS, now, task, result);
         evaluation.computeItemDeltas();
@@ -52,7 +52,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     <AH extends AssignmentHolderType> void processTemplateAfterAssignments(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, AFTER_ASSIGNMENTS, now, task, result);
         evaluation.computeItemDeltas();
@@ -63,7 +63,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     public <AH extends AssignmentHolderType> void processTemplateAfterProjections(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         TemplateMappingsEvaluation<AH, AH> evaluation = TemplateMappingsEvaluation.createForStandardTemplate(
                 beans, context, AFTER_PROJECTIONS, now, task, result);
         evaluation.computeItemDeltas();

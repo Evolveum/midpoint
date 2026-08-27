@@ -16,7 +16,10 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -100,7 +103,7 @@ public class MembersWizardPanel extends AbstractWizardBasicPanel<FocusDetailsMod
             @Override
             protected AjaxIconButton createUnassignButton(String buttonId) {
                 AjaxIconButton button = super.createUnassignButton(buttonId);
-                button.add(AttributeAppender.replace("class", "btn btn-outline-primary ml-2"));
+                button.add(AttributeAppender.replace("class", "btn btn-outline-primary ms-2"));
                 button.showTitleAsLabel(true);
                 return button;
             }

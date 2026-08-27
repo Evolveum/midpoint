@@ -113,11 +113,6 @@
                     </dependency>
                     <!--
                     <dependency>
-                        <groupId>xerces</groupId>
-                        <artifactId>xercesImpl</artifactId>
-                        <version>${xerces.version}</version>
-                    </dependency>
-                    <dependency>
                         <groupId>xalan</groupId>
                         <artifactId>xalan</artifactId>
                         -->

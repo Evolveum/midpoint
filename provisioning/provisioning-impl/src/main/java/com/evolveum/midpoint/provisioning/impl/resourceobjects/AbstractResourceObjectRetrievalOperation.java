@@ -61,7 +61,7 @@ abstract class AbstractResourceObjectRetrievalOperation {
      */
     @NotNull CompleteResourceObject complete(@NotNull ExistingResourceObjectShadow object, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         assert errorReportingMethod == null;
         return ResourceObjectCompleter.completeResourceObject(ctx, object, fetchAssociations, result);
     }

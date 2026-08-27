@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.expression;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;

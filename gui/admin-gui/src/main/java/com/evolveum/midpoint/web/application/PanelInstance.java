@@ -9,19 +9,11 @@ package com.evolveum.midpoint.web.application;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Collections;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.prism.path.ItemPathImpl;
 
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-
-import javax.xml.namespace.QName;
 
 @Repeatable(PanelInstances.class)
 @Retention(RetentionPolicy.RUNTIME)

@@ -13,7 +13,8 @@ import com.evolveum.midpoint.prism.*;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
 
 import java.util.List;
 

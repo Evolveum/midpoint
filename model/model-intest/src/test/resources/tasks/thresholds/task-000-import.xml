@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="385b2498-bf8b-4e31-a807-71c312cc2e29">
+    <name>task-000-import</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <order>20</order>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="40f8fb21-a473-4da7-bbd0-7019d3d450a5"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </resourceObjects>
+            </import>
+        </work>
+        <policies>
+            <policy>
+                <name>Execution time 0s</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT0S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyActions>
+                    <notification/>
+                </policyActions>
+            </policy>
+        </policies>
+    </activity>
+</task>

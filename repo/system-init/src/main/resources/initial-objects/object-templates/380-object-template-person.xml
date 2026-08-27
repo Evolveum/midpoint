@@ -101,4 +101,29 @@ oid="00000000-0000-0000-0000-000000000380">
             <path>fullName</path>
         </target>
     </mapping>
+    <mapping id="3">
+        <name>generate-display-name</name>
+        <description>Generate displayName from preferredName, falling back to fullName.</description>
+        <strength>strong</strength>
+        <source>
+            <path>preferredName</path>
+        </source>
+        <source>
+            <path>fullName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    preferredNameString = basic.trim(basic.stringify(preferredName))
+                    if (preferredNameString) {
+                        return preferredName
+                    }
+                    return fullName
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>displayName</path>
+        </target>
+    </mapping>
 </objectTemplate>

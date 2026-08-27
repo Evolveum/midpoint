@@ -16,7 +16,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * @author Radovan Semancik

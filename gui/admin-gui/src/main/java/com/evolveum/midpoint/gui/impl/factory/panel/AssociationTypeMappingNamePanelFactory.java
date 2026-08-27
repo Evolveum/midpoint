@@ -15,8 +15,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.validator.MappingNameValidator;
-import com.evolveum.midpoint.gui.impl.validator.ObjectTypeMappingNameValidator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 @Component
 public class AssociationTypeMappingNamePanelFactory extends MappingNamePanelFactory {

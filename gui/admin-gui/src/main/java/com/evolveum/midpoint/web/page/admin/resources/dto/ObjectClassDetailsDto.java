@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import java.io.Serializable;

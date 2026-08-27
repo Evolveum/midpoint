@@ -102,7 +102,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /** "Pure" definition of the mapping. Just for convenience. Derived from {@link #mappingConfigItem}. */
     @NotNull final MBT mappingBean;
 
-    /** Supplies the expression if none is defined in the mapping bean. */
+    /**
+     * Supplies the expression if none is defined in the mapping bean. Used e.g. to provide `complexAttributeSynchronization`
+     * even if there is no expression in the mapping bean.
+     */
     @NotNull final ExpressionSupplier defaultExpressionSupplier;
 
     /** Classification of the mapping (for reporting and diagnostic purposes). */
@@ -683,7 +686,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     public void evaluate(Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         this.task = task;
         OperationResult result = createOpResultAndRecordStart(OP_EVALUATE, task, parentResult);
         try {
@@ -705,7 +708,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     public void evaluateTimeValidity(Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+            SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         this.task = task;
         OperationResult result = createOpResultAndRecordStart(OP_EVALUATE_TIME_VALIDITY, task, parentResult);
         try {
@@ -773,7 +776,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     public void prepare(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         if (state == MappingEvaluationState.PREPARED) {
             return;
@@ -803,7 +806,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /** Determines and sets the expression profile in {@link #expressionProfileReference}. Callable only once. */
     private void determineExpressionProfile(OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         @NotNull ExpressionProfile profile;
         if (explicitExpressionProfile != null) {
             profile = explicitExpressionProfile;
@@ -821,7 +824,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     private void evaluatePrepared(OperationResult parentResult) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            CommunicationException {
+            CommunicationException, SubscriptionComplianceException {
 
         assertState(MappingEvaluationState.PREPARED);
 
@@ -954,7 +957,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     private void checkExistingTargetValues(OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
             LOGGER.trace("Treating own yield in negative values, because we support provenance here.");
             restrictNegativeValuesToOwnYield();
@@ -1341,7 +1344,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void evaluateTimeConstraint(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         if (timeConstraintsEvaluation == null) {
             timeConstraintsEvaluation = new MappingTimeConstraintsEvaluation(this);
             timeConstraintsEvaluation.evaluate(result);
@@ -1406,7 +1410,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     private void evaluateCondition(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         computeConditionTriple(result);
 
@@ -1423,7 +1427,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException,
             CommunicationException,
-            ConfigurationException {
+            ConfigurationException, SubscriptionComplianceException {
         ExpressionType conditionExpressionBean = mappingBean.getCondition();
         if (conditionExpressionBean == null) {
             // True -> True
@@ -1451,7 +1455,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     private void evaluateExpression(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         var expressionBean = mappingBean.getExpression();
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
                 expressionBean != null ? expressionBean : defaultExpressionSupplier.get(),
@@ -1521,13 +1525,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void setupValueMetadataComputer(OperationResult result) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         valueMetadataComputer = createValueMetadataComputer(result);
     }
 
     protected abstract TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     protected abstract boolean determinePushChangesRequested();
 

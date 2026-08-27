@@ -32,7 +32,7 @@ public class ThreeStateBooleanPanel extends BasePanel<Boolean>{
     private static final String ID_BUTTON_TWO = "optionTwo";
     private static final String ID_BUTTON_THREE = "optionThree";
 
-    private static final String DEFAULT_BUTTON_CLASS = "btn-default";
+    private static final String DEFAULT_BUTTON_CLASS = "btn-light border";
 
     public ThreeStateBooleanPanel(String id, IModel<Boolean> model){
         this(id, model, null, null, null, null);

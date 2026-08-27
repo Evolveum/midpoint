@@ -37,7 +37,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Date;

@@ -26,7 +26,7 @@ abstract class AbstractSingleRunTaskCreator extends ScriptingTaskCreator {
     @NotNull
     TaskType createTaskForSingleRunScript(ExecuteScriptType executeScript, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // @formatter:off
         TaskType newTask = super.createEmptyTask(result)

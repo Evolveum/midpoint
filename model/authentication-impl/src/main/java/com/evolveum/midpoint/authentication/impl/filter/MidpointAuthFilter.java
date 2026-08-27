@@ -7,14 +7,17 @@
 package com.evolveum.midpoint.authentication.impl.filter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
 import com.evolveum.midpoint.authentication.impl.channel.IdentityRecoveryAuthenticationChannel;
+import com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 
 import com.evolveum.midpoint.security.api.Authorization;
@@ -23,9 +26,13 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+import com.evolveum.midpoint.authentication.api.config.ArchetypeSelectionModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.config.FocusIdentificationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
@@ -38,10 +45,11 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -55,6 +63,7 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
  * @author skublik
@@ -99,34 +108,55 @@ public class MidpointAuthFilter extends GenericFilterBean {
         doFilterInternal(request, response, chain);
     }
 
+    private MidpointAuthentication getMidpointAuthentication() {
+        return (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+    }
+
     private void doFilterInternal(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        MidpointAuthentication mpAuthentication = getMidpointAuthentication();
 
-        validateAuthenticationCanContinue(mpAuthentication, httpRequest);
+        resetRetryableModuleIfNeeded(mpAuthentication);
+
+        if (shouldAbortAuthentication(mpAuthentication)) {
+            clearAuthentication(httpRequest);
+            mpAuthentication = getMidpointAuthentication();
+        }
+
+        // Use the default GUI entry point for unauthenticated root requests,
+        // it resolves the actual home page after successful authentication.
+        if (isRootPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
+            new DefaultRedirectStrategy().sendRedirect(
+                    httpRequest, (HttpServletResponse) response, AuthConstants.DEFAULT_PATH_AFTER_LOGIN);
+            return;
+        }
 
         if (isPermitAllPage(httpRequest) && (mpAuthentication == null || !mpAuthentication.isAuthenticated())) {
             chain.doFilter(request, response);
             return;
         }
 
+        // Once the wrapper is created the auth modules (and their filters) have been built and registered
+        // in the ObjectPostProcessor's disposableBeans list. From here on every exit path must run through
+        // removingFiltersAfterProcessing in the finally block, otherwise the filters built for this request
+        // leak (e.g. for ignored local paths such as /actuator/health on the sessionless actuator channel).
         AuthenticationWrapper authWrapper = initAuthenticationWrapper(mpAuthentication, httpRequest);
-        initPrincipalService(mpAuthentication, authWrapper);
-        if (authWrapper.isIgnoredLocalPath(httpRequest)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        if (authWrapper.getSequence() == null) {
-            IllegalArgumentException ex = new IllegalArgumentException(getMessageSequenceIsNull(httpRequest, authWrapper));
-            LOGGER.error(ex.getMessage(), ex);
-            ((HttpServletResponse) response).sendError(401, "web.security.provider.invalid");
-            return;
-        }
-        setLogoutPath(request, response);
-
         try {
+            initPrincipalService(mpAuthentication, authWrapper);
+            if (authWrapper.isIgnoredLocalPath(httpRequest)) {
+                chain.doFilter(request, response);
+                return;
+            }
+
+            if (authWrapper.getSequence() == null) {
+                IllegalArgumentException ex = new IllegalArgumentException(getMessageSequenceIsNull(httpRequest, authWrapper));
+                LOGGER.error(ex.getMessage(), ex);
+                ((HttpServletResponse) response).sendError(401, "web.security.provider.invalid");
+                return;
+            }
+            setLogoutPath(request, response);
+
             if (isRequestAuthenticated(mpAuthentication, authWrapper)) {
                 processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
                 return;
@@ -149,23 +179,24 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private void resolveErrorWithWrongConfigurationOfModules(
+    @VisibleForTesting
+    boolean resolveErrorWithWrongConfigurationOfModules(
             MidpointAuthentication mpAuthentication,
             int indexOfProcessingModule,
             HttpServletRequest httpRequest,
-            ServletResponse response) {
+            ServletResponse response) throws IOException {
         if (mpAuthentication == null) {
-            return;
+            return false;
         }
 
-        if (!mpAuthentication.getAuthModules().stream()
-                .anyMatch(module ->
+        if (mpAuthentication.getAuthModules().stream()
+                .noneMatch(module ->
                         AuthenticationModuleState.FAILURE_CONFIGURATION == module.getBaseModuleAuthentication().getState())) {
-            return;
+            return false;
         }
 
         if (indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
-            return;
+            return false;
         }
 
         if (AuthenticationModuleState.FAILURE_CONFIGURATION ==
@@ -178,15 +209,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
             }
 
             if (indexOfProcessingModule == 0) {
-                try {
-                    ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                } catch (IOException e) {
-                    //ignore it end throw authentication exception
-                }
-                throw ex;
-
+                // Stop the broken authentication flow after returning the 401 response.
+                ((HttpServletResponse) response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return true;
             }
         }
+        return false;
     }
 
     private void executeAuthenticationFilter(
@@ -199,7 +227,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
             mpAuthentication.setAuthModules(authWrapper.getAuthModules());
         }
 
-        int indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
+        // Re-enter identification when its form is submitted for an existing authentication flow.
+        int indexOfProcessingModule = resetToIdentificationModuleIfRequested(
+                mpAuthentication, authWrapper.getAuthModules(), authWrapper.getSequence(), httpRequest);
+        if (indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
+            indexOfProcessingModule = getIndexOfCurrentProcessingModule(mpAuthentication, httpRequest);
+        }
 
         int originalIndexOfProcessingModule = indexOfProcessingModule;
 
@@ -213,19 +246,81 @@ public class MidpointAuthFilter extends GenericFilterBean {
             originalIndexOfProcessingModule = indexOfProcessingModule;
         }
 
-        resolveErrorWithWrongConfigurationOfModules(mpAuthentication, originalIndexOfProcessingModule, httpRequest, response);
+        // Do not continue with the authentication filter after the configuration error was handled.
+        if (resolveErrorWithWrongConfigurationOfModules(
+                mpAuthentication, originalIndexOfProcessingModule, httpRequest, response)) {
+            return;
+        }
 
         setAuthenticationChanel(mpAuthentication, authWrapper);
+
+        if (skipNonApplicableModule(mpAuthentication, indexOfProcessingModule, httpRequest, (HttpServletResponse) response)) {
+            return;
+        }
+
         runFilters(authWrapper, indexOfProcessingModule, chain, httpRequest, response);
     }
 
-    private void validateAuthenticationCanContinue(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
-        if (mpAuthentication == null) {
-            return;
+    /**
+     * Pre-flight applicability check.
+     *
+     * When a module reports that it is not applicable for the current user
+     * (e.g. a TOTP module with {@code acceptEmpty=true} when the user has no
+     * TOTP credentials registered), we skip the module's filter chain entirely:
+     * the module is marked as {@link AuthenticationModuleState#CALLED_OFF}, the
+     * security context is persisted and, if the overall authentication sequence
+     * is now complete, the user is redirected straight to the success URL.
+     *
+     * Without this check the request would fall through the module's filter chain
+     * without any authentication happening and without any redirect, causing the
+     * browser to land on the raw sequence URL which has no Wicket page mapped to
+     * it (resulting in a 404).
+     *
+     * @return {@code true} when the module was called off and a redirect was
+     *         issued (caller must not call {@link #runFilters} afterwards),
+     *         {@code false} otherwise.
+     */
+    private boolean skipNonApplicableModule(
+            MidpointAuthentication mpAuthentication,
+            int moduleIndex,
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+
+        if (mpAuthentication == null || moduleIndex < 0) {
+            return false;
         }
-        if (mpAuthentication.authenticationShouldBeAborted()) {
-            clearAuthentication(httpRequest);
+        List<ModuleAuthentication> authentications = mpAuthentication.getAuthentications();
+        if (moduleIndex >= authentications.size()) {
+            return false;
         }
+        ModuleAuthentication module = authentications.get(moduleIndex);
+        if (module.applicable()) {
+            return false;
+        }
+
+        LOGGER.debug("Module '{}' is not applicable for the current user – marking as CALLED_OFF.",
+                module.getModuleIdentifier());
+
+        module.setState(AuthenticationModuleState.CALLED_OFF);
+
+        if (!AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
+            saveAuthenticationContext(request, response);
+        }
+
+        if (mpAuthentication.isAuthenticated()) {
+            String redirectUrl = mpAuthentication.getAuthenticationChannel()
+                    .getPathAfterSuccessfulAuthentication();
+            LOGGER.debug("Authentication sequence complete after calling off module '{}' – redirecting to '{}'.",
+                    module.getModuleIdentifier(), redirectUrl);
+            new DefaultRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean shouldAbortAuthentication(MidpointAuthentication mpAuthentication) {
+        return mpAuthentication == null || mpAuthentication.authenticationShouldBeAborted();
     }
 
     private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
@@ -291,7 +386,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private boolean wasNotFoundAuthModule(AuthenticationWrapper authWrapper) {
-        return authWrapper.getAuthModules() == null || authWrapper.getAuthModules().size() == 0;
+        return authWrapper.getAuthModules() == null || authWrapper.getAuthModules().isEmpty();
     }
 
     private boolean isRequestAuthenticated(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper) {
@@ -336,6 +431,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean isPermitAllPage(HttpServletRequest request) {
         return AuthSequenceUtil.isPermitAll(request) && !AuthSequenceUtil.isLoginPage(request);
+    }
+
+    private boolean isRootPage(HttpServletRequest request) {
+        String servletPath = request.getServletPath();
+        return "".equals(servletPath) || "/".equals(servletPath);
     }
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {
@@ -383,6 +483,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
         authWrapper.buildMidPointAuthentication(httpRequest);
     }
 
+    private void resetRetryableModuleIfNeeded(MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication != null) {
+            mpAuthentication.resetLastFailedModuleForRetry();
+        }
+    }
+
     //todo decide if we still need it
     private void resolveErrorWithMoreModules(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
         if (existMoreAsOneAuthModule(mpAuthentication)) {
@@ -411,6 +517,113 @@ public class MidpointAuthFilter extends GenericFilterBean {
             indexOfProcessingModule = mpAuthentication.resolveParallelModules(request, indexOfProcessingModule);
         }
         return indexOfProcessingModule;
+    }
+
+    /**
+     * Resets the authentication flow when a focus-identification or archetype-selection form is submitted
+     * for an existing authentication flow. The flow is restarted from the submitted module; the state of the
+     * modules executed before it (e.g. an already selected archetype) is kept.
+     *
+     * This prevents state from another authentication attempt in the same HTTP session from being reused
+     * for the current identification request.
+     *
+     * @return index of the module that has to process the request after the reset,
+     *         {@link MidpointAuthentication#NO_MODULE_FOUND_INDEX} when the request is no such submit
+     */
+    @VisibleForTesting
+    int resetToIdentificationModuleIfRequested(
+            MidpointAuthentication mpAuthentication,
+            List<AuthModule<?>> authModules,
+            AuthenticationSequenceType sequence,
+            HttpServletRequest request) {
+        if (mpAuthentication == null || !"POST".equals(request.getMethod())
+                || authModules.isEmpty() || sequence.getModule().isEmpty()) {
+            return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        }
+
+        int submittedModuleIndex = indexOfSubmittedIdentificationModule(authModules, request);
+        if (submittedModuleIndex == MidpointAuthentication.NO_MODULE_FOUND_INDEX) {
+            return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        }
+
+        restartFlowFromModule(mpAuthentication, authModules, sequence, submittedModuleIndex);
+        return submittedModuleIndex;
+    }
+
+    /**
+     * Returns the index of the identification module (focus identification or archetype selection)
+     * whose login page is the target of the request.
+     */
+    private int indexOfSubmittedIdentificationModule(List<AuthModule<?>> authModules, HttpServletRequest request) {
+        for (int i = 0; i < authModules.size(); i++) {
+            ModuleAuthentication moduleAuthentication = authModules.get(i).getBaseModuleAuthentication();
+            if (isIdentificationModule(moduleAuthentication)
+                    && isRequestForAuthenticationModuleLoginPage(request, moduleAuthentication)) {
+                return i;
+            }
+        }
+        return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+    }
+
+    /** Modules that establish the identity used for resolving the security policy of the flow. */
+    private boolean isIdentificationModule(ModuleAuthentication moduleAuthentication) {
+        return moduleAuthentication instanceof FocusIdentificationModuleAuthentication
+                || moduleAuthentication instanceof ArchetypeSelectionModuleAuthentication;
+    }
+
+    /**
+     * Restarts the flow from the module at the given index. The flow keeps the given module and the ones
+     * executed before it, together with their processed state and the archetype selected by them.
+     */
+    private void restartFlowFromModule(
+            MidpointAuthentication mpAuthentication,
+            List<AuthModule<?>> authModules,
+            AuthenticationSequenceType sequence,
+            int moduleIndex) {
+        List<AuthModule<?>> keptModules = List.copyOf(authModules.subList(0, moduleIndex + 1));
+        List<ModuleAuthentication> keptProcessedModules =
+                processedStateOfModules(mpAuthentication, keptModules.subList(0, moduleIndex));
+        String archetypeOid = mpAuthentication.getArchetypeOid();
+
+        mpAuthentication.restart();
+        mpAuthentication.setSequence(AuthSequenceUtil.sequenceWithFirstExecutedModulesOnly(sequence, moduleIndex + 1));
+        mpAuthentication.setAuthModules(keptModules);
+        keptProcessedModules.forEach(mpAuthentication::addAuthentication);
+        mpAuthentication.addAuthentication(keptModules.get(moduleIndex).getBaseModuleAuthentication());
+
+        if (containsSuccessfulArchetypeSelection(keptProcessedModules)) {
+            mpAuthentication.setArchetypeOid(archetypeOid);
+            mpAuthentication.setArchetypeSelected(true);
+        }
+    }
+
+    /** Returns the processed state of the given modules, i.e. of the ones executed before the reset point. */
+    private List<ModuleAuthentication> processedStateOfModules(
+            MidpointAuthentication mpAuthentication, List<AuthModule<?>> modules) {
+        List<ModuleAuthentication> processedState = new ArrayList<>();
+        for (AuthModule<?> module : modules) {
+            mpAuthentication.getAuthentications().stream()
+                    .filter(processed -> Objects.equals(processed.getModuleIdentifier(), module.getModuleIdentifier()))
+                    .findFirst()
+                    .ifPresent(processedState::add);
+        }
+        return processedState;
+    }
+
+    private boolean containsSuccessfulArchetypeSelection(List<ModuleAuthentication> processedModules) {
+        return processedModules.stream()
+                .anyMatch(module -> module instanceof ArchetypeSelectionModuleAuthentication
+                        && AuthenticationModuleState.SUCCESSFULLY == module.getState());
+    }
+
+    /**
+     * Checks whether the request targets a login page configured for the given authentication module.
+     */
+    private boolean isRequestForAuthenticationModuleLoginPage(HttpServletRequest request, ModuleAuthentication moduleAuthentication) {
+        List<String> pageUrls = DescriptorLoaderImpl.getPageUrlsByAuthName(moduleAuthentication.getModuleTypeName());
+        return pageUrls != null && pageUrls.stream()
+                .map(MidpointRequestMatchers::pathMatcher)
+                .anyMatch(matcher -> matcher.matches(request));
     }
 
     private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {

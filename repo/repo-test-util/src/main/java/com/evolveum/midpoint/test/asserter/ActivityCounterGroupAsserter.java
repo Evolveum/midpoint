@@ -31,13 +31,18 @@ public class ActivityCounterGroupAsserter<RA> extends AbstractAsserter<RA> {
         this.information = information;
     }
 
+    public ActivityCounterGroupAsserter<RA> assertCounterCount(int expected) {
+        assertThat(information.getCounter()).as("number of counters doesn't match").hasSize(expected);
+        return this;
+    }
+
     public ActivityCounterGroupAsserter<RA> assertCounter(String identifier, int value) {
-        assertThat(getValue(identifier)).as("value of " + identifier).isEqualTo(value);
+        assertThat(getCounterValue(identifier)).as("value of " + identifier).isEqualTo(value);
         return this;
     }
 
     public ActivityCounterGroupAsserter<RA> assertCounterMinMax(String identifier, int min, int max) {
-        assertMinMax("counter " + identifier, min, max, getValue(identifier));
+        assertMinMax("counter " + identifier, min, max, getCounterValue(identifier));
         return this;
     }
 
@@ -56,7 +61,7 @@ public class ActivityCounterGroupAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
-    private int getValue(String identifier) {
+    public int getCounterValue(String identifier) {
         List<Integer> values = information.getCounter().stream()
                 .filter(c -> Objects.equals(c.getIdentifier(), identifier))
                 .map(ActivityCounterType::getValue)

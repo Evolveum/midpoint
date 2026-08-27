@@ -54,13 +54,14 @@ public class ApprovalSchemaExecutionInformationHelper {
     ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask,
             OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         CaseType aCase = modelService.getObject(CaseType.class, caseOid, null, opTask, result).asObjectable();
         return getApprovalSchemaExecutionInformation(aCase, false, opTask, result);
     }
 
     List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
-            OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         WfConfigurationType wfConfiguration = configurationHelper.getWorkflowConfiguration(modelContext, result);
         ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, repositoryService, opTask);
         List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(ctx, result);

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -38,14 +39,20 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
         extends WizardChoicePanel<T, AHD> {
 
     private final Class<T> tileTypeClass;
+    private final OperationResult lastSaveResult;
 
     /**
     * @param tileTypeClass have to be Enum class
     **/
     public EnumWizardChoicePanel(String id, AHD resourceModel, Class<T> tileTypeClass) {
+        this(id, resourceModel, tileTypeClass, null);
+    }
+
+    public EnumWizardChoicePanel(String id, AHD resourceModel, Class<T> tileTypeClass, OperationResult lastSaveResult) {
         super(id, resourceModel);
         Validate.isAssignableFrom(Enum.class, tileTypeClass);
         this.tileTypeClass = tileTypeClass;
+        this.lastSaveResult = lastSaveResult;
     }
 
     protected LoadableModel<List<Tile<T>>> loadTilesModel() {
@@ -82,6 +89,10 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
         return true;
     }
 
+    protected OperationResult getLastSaveResult() {
+        return lastSaveResult;
+    }
+
     @Override
     protected Component createTilePanel(String id, IModel<Tile<T>> tileModel) {
         return new TilePanel(id, tileModel) {
@@ -104,10 +115,10 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
     }
 
     protected void onTileClick(T value, AjaxRequestTarget target) {
-        WebComponentUtil.getPageBase(this).closeRightSidebar(target);
+        WebComponentUtil.getPageBase(this).hideDrawer(target);
 
         if (value == null) {
-            goToObjectPerformed(getObjectType());
+            goToObjectPerformed();
             return;
         }
         this.onTileClickPerformed(value, target);
@@ -131,20 +142,25 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 ).getString());
     }
 
-    protected void goToObjectPerformed(QName type) {
-        Class<? extends ObjectType> typeClass = WebComponentUtil.qnameToClass(type, ObjectType.class);
-        if (typeClass == null) {
-            return;
-        }
+    protected void goToObjectPerformed() {
+        ObjectType object = getAssignmentHolderDetailsModel().getObjectType();
 
-        Class<? extends PageBase> detailPage = DetailsPageUtil.getObjectDetailsPage(typeClass);
-        if (detailPage == null) {
+        if (WebComponentUtil.isOperationSubmittedForApproval(lastSaveResult)) {
+            if (object == null) {
+                getPageBase().warn(
+                        getPageBase().createStringResource("WizardChoicePanel.objectNotAvailable")
+                                .getString());
+                return;
+            }
+            getPageBase().removeLastBreadcrumb();
+            DetailsPageUtil.dispatchToPendingObjectPreview(
+                    ObjectTypeUtil.createObjectRef(object),
+                    lastSaveResult.findCaseOid(),
+                    this);
             return;
         }
 
         getPageBase().removeLastBreadcrumb();
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, getAssignmentHolderDetailsModel().getObjectType().getOid());
-        getPageBase().navigateToNext(detailPage, parameters);
+        DetailsPageUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object), this, false);
     }
 }

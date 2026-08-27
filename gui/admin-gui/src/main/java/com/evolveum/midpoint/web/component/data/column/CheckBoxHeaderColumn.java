@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
@@ -22,6 +23,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
@@ -42,7 +45,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author lazyman
  */
 public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn<T> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
 
@@ -56,6 +59,13 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     public Component getHeader(final String componentId) {
         final IModel<Boolean> model = getHeaderDisplayModel();
         IsolatedCheckBoxPanel panel = new IsolatedCheckBoxPanel(componentId, model, getEnabled(null)) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void renderHead(IHeaderResponse response) {
+                super.renderHead(response);
+                response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.fixEmptyTableHeaders();"));
+            }
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {

@@ -6,16 +6,24 @@
 
 package com.evolveum.midpoint.gui.api.page;
 
-import java.io.Serial;
+import java.io.*;
+import java.nio.file.Files;
+import java.time.Duration;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AsyncWebProcess;
+import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.security.BrowserWindowIdentifierFilter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.*;
+import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -27,13 +35,14 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.resource.FileResourceStream;
+import org.apache.wicket.util.resource.IResourceStream;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -53,8 +62,6 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
-import com.evolveum.midpoint.gui.impl.component.menu.RightSidebarHelpPanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ShoppingCartPanel;
@@ -84,7 +91,6 @@ import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -102,6 +108,7 @@ public abstract class PageBase extends PageAdminLTE {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 
@@ -128,7 +135,7 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_CART_LINK = "cartLink";
     private static final String ID_CART_COUNT = "cartCount";
     private static final String ID_ADDITIONAL_FOOTER = "additionalFooter";
-    private static final String ID_RIGHT_SIDEBAR = "rightSidebar";
+    private static final String ID_DRAWER = "drawer";
 
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
 
@@ -138,6 +145,11 @@ public abstract class PageBase extends PageAdminLTE {
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private List<Breadcrumb> breadcrumbs;
+
+    // introduced in order to fire download behavior in case the file for downloading
+    // is too big and requires more time for creation. Timer behavior will let the user
+    // work with the system further in the meanwhile the file for downloading is being prepared
+    private AbstractAjaxTimerBehavior timerBehavior;
 
     private boolean initialized = false;
 
@@ -231,8 +243,7 @@ public abstract class PageBase extends PageAdminLTE {
             String operationUrl, AuthorizationPhaseType phase,
             PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target,
             OperationResult result)
-            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            throws CommonException {
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)
                 .delta(delta)
@@ -422,10 +433,10 @@ public abstract class PageBase extends PageAdminLTE {
     private void initLayout() {
         WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
         mainHeader.add(AttributeAppender.append("class", () -> {
-            String skin = WebComponentUtil.getMidPointSkin().getNavbarCss();
+            String skin = WebComponentUtil.getMidPointSkin().getBackgroundCss();
 
             if (skin != null && Arrays.stream(skin.split(" ")).noneMatch("navbar-light"::equals)) {
-                return "navbar-dark " + skin;
+                return "navbar-dark text-white " + skin;
             }
 
             return skin;
@@ -494,41 +505,84 @@ public abstract class PageBase extends PageAdminLTE {
 
         addAdditionalFooter((MarkupContainer) get(ID_FOOTER_CONTAINER), ID_ADDITIONAL_FOOTER);
 
-        add(new RightSidebarHelpPanel(ID_RIGHT_SIDEBAR));
+
+        DrawerInfoPanel<HelpDrawerInfoModel> rightSidebar =
+                new DrawerInfoPanel<>(
+                        ID_DRAWER,
+                        new HelpDrawerInfoModel()) {
+                    @Override
+                    protected String getMinWidth() {
+                        return "30vw";
+                    }
+
+                    @Override
+                    protected void onClose(AjaxRequestTarget target) {
+                        hideDrawer(target);
+                    }
+                };
+
+        rightSidebar.setOutputMarkupId(true);
+        rightSidebar.setOutputMarkupPlaceholderTag(true);
+
+        add(rightSidebar);
+
+        initTimerBehavior();
     }
 
-    private RightSidebarHelpPanel getRightSidebarPanel() {
-        return (RightSidebarHelpPanel) get(ID_RIGHT_SIDEBAR);
+    private DrawerInfoPanel<?> getDrawerPanel() {
+        return (DrawerInfoPanel<?>) get(ID_DRAWER);
     }
 
-    public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> helpContent) {
-        showRightSidebarHelp(target, createStringResource("PageBase.rightSidebarDefaultHelpTitle"), helpContent);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public <M extends DrawerDescriptor<M>> void replaceDrawerModel(
+            @NotNull M drawerModel,
+            @NotNull AjaxRequestTarget target) {
+
+        DrawerInfoPanel panel = getDrawerPanel();
+        panel.replaceModel(drawerModel, target);
     }
 
-    public void showRightSidebarHelp(AjaxRequestTarget target, IModel<String> titleModel, IModel<String> helpContent) {
-        replaceRightSidebarContent(titleModel, id -> {
-            MultiLineLabel label = new MultiLineLabel(id, helpContent);
-            // todo make sure this is ok
-            label.setEscapeModelStrings(false);
+    public <M extends DrawerDescriptor<M>> void showDrawer(
+            @NotNull M drawerModel,
+            @NotNull AjaxRequestTarget target) {
 
-            return label;
-        });
-        openRightSidebar(target);
+        DrawerInfoPanel<?> panel = getDrawerPanel();
+        replaceDrawerModel(drawerModel, target);
+
+        target.appendJavaScript("""
+            MidPointTheme.showOffcanvas('%s');
+            """.formatted(panel.getMarkupId()));
     }
 
-    public void replaceRightSidebarContent(IModel<String> titleModel, SerializableFunction<String, Component> componentProvider) {
-        RightSidebarHelpPanel panel = getRightSidebarPanel();
-        panel.replaceContent(titleModel, componentProvider);
+    public void hideDrawer(@NotNull AjaxRequestTarget target) {
+
+        DrawerInfoPanel<?> panel = getDrawerPanel();
+        panel.getDrawerModel().clearSelection();
+
+        target.appendJavaScript("""
+            MidPointTheme.hideOffcanvas('%s');
+            """.formatted(panel.getMarkupId()));
     }
 
-    public void openRightSidebar(AjaxRequestTarget target) {
-        RightSidebarHelpPanel panel = getRightSidebarPanel();
-        panel.open(target);
+    public void showRightSidebarHelp(
+            AjaxRequestTarget target,
+            IModel<String> helpContent) {
+
+        showRightSidebarHelp(
+                target,
+                createStringResource("PageBase.rightSidebarDefaultHelpTitle"),
+                helpContent);
     }
 
-    public void closeRightSidebar(AjaxRequestTarget target) {
-        RightSidebarHelpPanel panel = getRightSidebarPanel();
-        panel.close(target);
+    public void showRightSidebarHelp(
+            AjaxRequestTarget target,
+            IModel<String> titleModel,
+            IModel<String> helpContent) {
+
+        HelpDrawerInfoModel drawerModel =
+                new HelpDrawerInfoModel(titleModel, helpContent);
+
+        showDrawer(drawerModel, target);
     }
 
     private void updateAccessibilityLogo(String logoId) {
@@ -1161,5 +1215,130 @@ public abstract class PageBase extends PageAdminLTE {
 
     public TaskAwareExecutor taskAwareExecutor(@NotNull AjaxRequestTarget target, @NotNull String operationName) {
         return new TaskAwareExecutor(this, target, operationName);
+    }
+
+    private void initTimerBehavior() {
+        timerBehavior = new AbstractAjaxTimerBehavior(Duration.ofMillis(1000)) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onTimer(AjaxRequestTarget target) {
+                stopTimerBehaviorIfNeeded();
+                if (readyForDownloadExist()) {
+                    initiateExportFileDownload(target);
+                }
+            }
+        };
+        stopTimerBehaviorIfNeeded();
+        add(timerBehavior);
+    }
+
+    private void stopTimerBehaviorIfNeeded() {
+        if (noActiveExportProcessExists()) {
+            timerBehavior.stop(null);
+        }
+    }
+
+    private boolean readyForDownloadExist() {
+        var exportProcessList = getExportProcessList();
+        return CollectionUtils.isNotEmpty(exportProcessList) &&
+                exportProcessList
+                        .stream()
+                        .anyMatch(AsyncWebProcess::isDone);
+    }
+
+    private boolean noActiveExportProcessExists() {
+        return CollectionUtils.isEmpty(getExportProcessList());
+    }
+
+    private List<AsyncWebProcess<?>> getExportProcessList() {
+        Set<String> processIdSet = getSessionStorage().getExportProcessIdSet();
+        List<AsyncWebProcess<?>> exportProcessList = new ArrayList<>();
+        processIdSet
+                .forEach(id -> {
+                    if (getAsyncWebProcessManager().getProcess(id) != null) {
+                        exportProcessList.add(getAsyncWebProcessManager().getProcess(id));
+                    }
+                });
+        return exportProcessList;
+    }
+
+    private AsyncWebProcess<?> getFinishedExportProcess() {
+        var exportProcessList = getExportProcessList();
+        return exportProcessList
+                .stream()
+                .filter(AsyncWebProcess::isDone)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void initiateExportFileDownload(AjaxRequestTarget target) {
+        var finishedProcess = getFinishedExportProcess();
+        if (finishedProcess == null) {
+            getSession().warn("No export process is found.");
+            LOGGER.trace("No export process is found.");
+            target.add(getFeedbackPanel());
+            return;
+        }
+        var downloadBehavior = createDownloadBehavior(finishedProcess.getId(), target);
+        PageBase.this.add(downloadBehavior);
+        downloadBehavior.initiate(target);
+    }
+
+    private AbstractAjaxDownloadBehavior createDownloadBehavior(String processId, AjaxRequestTarget target) {
+        return new AbstractAjaxDownloadBehavior() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public IResourceStream getResourceStream() {
+                try {
+                    var exportProcess = getAsyncWebProcessManager().getProcess(processId);
+                    if (exportProcess == null || exportProcess.getFuture() == null) {
+                        getSession().error("Unable to find export process or its results, process id: {}");
+                        LOGGER.warn("Unable to find export process or its results, process id: {}", processId);
+                        target.add(getFeedbackPanel());
+                        return null;
+                    }
+                    final File exportFile = (File) exportProcess.getFuture().get();
+                    return new FileResourceStream(exportFile) {
+                        @Serial private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void close() throws IOException {
+                            super.close();
+
+                            getAsyncWebProcessManager().removeProcess(processId);
+                            cleanProcessIdFromSessionStorage(processId);
+                            try {
+                                Files.deleteIfExists(exportFile.toPath());
+                            } catch (Exception ex) {
+                                //nothing to do here
+                            }
+                        }
+                    };
+                } catch (Exception e) {
+                    LOGGER.error("Failed to load the file, {}", e.getLocalizedMessage(), e);
+                }
+                return null;
+            }
+
+            public String getFileName() {
+                var exportProcess = getAsyncWebProcessManager().getProcess(processId);
+                if (exportProcess != null && exportProcess.getData() != null) {
+                    return exportProcess.getData().toString();
+                }
+                return super.getFileName();
+            }
+        };
+    }
+
+    private void cleanProcessIdFromSessionStorage(String processId) {
+        getSessionStorage().removeExportProcessId(processId);
+    }
+
+    public void startDownloadTimerBehavior(AjaxRequestTarget target) {
+        if (timerBehavior.isStopped()) {
+            timerBehavior.restart(target);
+        }
     }
 }

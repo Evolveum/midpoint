@@ -10,7 +10,10 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -43,16 +46,6 @@ public class AssociationProvisioningRuleMappingWrapperFactory<C extends Containe
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION).equivalent(parent.getPath().namedSegmentsOnly());
-    }
-
-    @Override
-    public PrismContainerValueWrapper<C> createValueWrapper(
-            PrismContainerWrapper<C> parent,
-            PrismContainerValue<C> value,
-            ValueStatus status,
-            WrapperContext context) throws SchemaException {
-
-        return super.createValueWrapper(parent, value, status, context);
     }
 
     @Override

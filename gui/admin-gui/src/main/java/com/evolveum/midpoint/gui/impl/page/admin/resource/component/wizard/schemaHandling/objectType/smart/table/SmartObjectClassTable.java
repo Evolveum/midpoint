@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.computeObjectClassSizeEstimationType;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.createLinkStyleActionsColumn;
 
@@ -16,8 +17,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.panel.SimpleCustomSearchPanel;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,10 +60,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -94,6 +95,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
     String resourceOid;
     Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache;
+    Map<QName, String> objectClassDescriptionCache;
 
     private final IModel<String> searchTextModel = Model.of("");
 
@@ -102,11 +104,13 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
             UserProfileStorage.@NotNull TableId tableId,
             @NotNull IModel<List<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> model,
             @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedModel,
-            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache) {
+            @NotNull String resourceOid, Map<QName, ObjectClassSizeEstimationType> objectClassSizeEstimationCache,
+            @NotNull Map<QName, String> objectClassDescriptionCache) {
         super(id, tableId, model);
         this.selectedTileModel = selectedModel;
         this.resourceOid = resourceOid;
         this.objectClassSizeEstimationCache = objectClassSizeEstimationCache;
+        this.objectClassDescriptionCache = objectClassDescriptionCache;
         setDefaultPagingSize(tableId);
     }
 
@@ -124,12 +128,42 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     protected @NotNull String getSearchText() {
-        return searchTextModel.getObject() != null ? searchTextModel.getObject() : "";
+        return searchTextModel.getObject() != null ? searchTextModel.getObject().toLowerCase() : "";
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected MultivalueContainerListDataProvider<ComplexTypeDefinitionType> createProvider() {
-        return super.createProvider();
+        return new MultivalueContainerListDataProvider<ComplexTypeDefinitionType>(
+                getPageBase(),
+                () -> getSearchModel().getObject(), getDetailsModel()) {
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return getCustomQuery();
+            }
+
+            @Override
+            protected boolean matchItems(
+                    @NotNull PrismContainerValueWrapper<ComplexTypeDefinitionType> valueWrapper,
+                    @NotNull ObjectQuery query) throws SchemaException {
+                return super.matchItems(valueWrapper, query) || additionalMatchItems(valueWrapper);
+            }
+
+            private boolean additionalMatchItems(@NotNull PrismContainerValueWrapper<ComplexTypeDefinitionType> valueWrapper) {
+                ComplexTypeDefinitionType value = valueWrapper.getRealValue();
+                QName name = value != null ? value.getName() : null;
+                String searchText = getSearchText();
+
+                if (name != null && name.getLocalPart().toLowerCase().contains(searchText)) {
+                    return true;
+                }
+
+                String description = name != null ? objectClassDescriptionCache.get(name) : null;
+                return StringUtils.isNotEmpty(description)
+                        && description.toLowerCase().contains(searchText);
+            }
+        };
     }
 
     @Override
@@ -146,7 +180,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         }
         ViewToggle value = item.getObject().getValue();
         if (value.equals(ViewToggle.TABLE)) {
-            add(AttributeModifier.replace("class", "card"));
+            add(AttributeModifier.replace("class", "card shadow-sm mb-3"));
         } else {
             add(AttributeModifier.replace("class", ""));
         }
@@ -255,7 +289,13 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
         ComplexTypeDefinitionType realValue = object.getRealValue();
 
         ObjectClassSizeEstimationType sizeEstimation = objectClassSizeEstimationCache.get(realValue.getName());
-        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation);
+        String description = getObjectClassDescription(realValue.getName());
+        return new SmartObjectClassTileModel<>(object, resourceOid, sizeEstimation, description);
+    }
+
+    private @NotNull String getObjectClassDescription(@NotNull QName objectClassName) {
+        return objectClassDescriptionCache.getOrDefault(objectClassName,
+                translate("SmartObjectClassTable.objectClass.description.not.defined"));
     }
 
     private @Nullable ObjectClassSizeEstimationType getObjectClassSizeEstimationType(
@@ -439,7 +479,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
                     Item<ICellPopulator<PrismContainerValueWrapper<ComplexTypeDefinitionType>>> item,
                     String componentId,
                     IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> rowModel) {
-                String description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
+                String description = getObjectClassDescription(rowModel.getObject().getRealValue().getName());
                 item.add(new Label(componentId, description));
             }
 
@@ -557,7 +597,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     protected String getTileContainerCssClass() {
-        return "h-100 justify-content-left pt-2 ";
+        return "h-100 justify-content-start pt-2 ";
     }
 
     @Override
@@ -599,7 +639,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     public boolean displayNoValuePanel() {
-        return getProvider().size() == 0;
+        return getProvider().size() == 0 && getSearchText().isEmpty();
     }
 
     @Override

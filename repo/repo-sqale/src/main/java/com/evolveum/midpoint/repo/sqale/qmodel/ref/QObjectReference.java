@@ -6,14 +6,9 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.ref;
 
-import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.BooleanExpression;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-
-import com.querydsl.sql.ColumnMetadata;
-
-import java.sql.Types;
 
 /**
  * Querydsl query type for object owned references.

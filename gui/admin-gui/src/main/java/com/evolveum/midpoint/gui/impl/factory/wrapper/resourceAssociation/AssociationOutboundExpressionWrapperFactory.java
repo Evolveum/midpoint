@@ -9,15 +9,12 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper.resourceAssociation;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.AssociationInboundExpressionWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AssociationOutboundExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationConstructionExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchronizationExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 
@@ -29,6 +26,15 @@ public class AssociationOutboundExpressionWrapperFactory extends AssociationMapp
     @Override
     protected ItemName getItemNameForContainer() {
         return ShadowAssociationDefinitionType.F_OUTBOUND;
+    }
+
+    @Override
+    protected void updateAssociationExpressionValue(ExpressionType expression, AssociationConstructionExpressionEvaluatorType evaluator) {
+        try {
+            ExpressionUtil.updateAssociationConstructionExpressionValue(expression, evaluator);
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't update expression value: " + e.getMessage(), e);
+        }
     }
 
     @Override

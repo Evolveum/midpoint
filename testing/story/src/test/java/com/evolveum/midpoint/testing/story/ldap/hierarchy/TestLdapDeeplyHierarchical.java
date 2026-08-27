@@ -69,7 +69,7 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
     }
 
     @Override
-    protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws CommonException, DirectoryException {
         PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
         if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
             Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
@@ -95,7 +95,7 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
         return org;
     }
 
-    private String getOuDn(PrismObject<OrgType> org) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private String getOuDn(PrismObject<OrgType> org) throws CommonException {
         StringBuilder sb = new StringBuilder();
         while (true) {
             sb.append("ou=");
@@ -117,8 +117,7 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private String getAccountDn(PrismObject<UserType> user)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         StringBuilder sb = new StringBuilder();
         sb.append("uid=").append(user.getName().getOrig()).append(",");
         PrismObject<FocusType> org = (PrismObject) user;
@@ -142,7 +141,8 @@ public class TestLdapDeeplyHierarchical extends AbstractLdapHierarchyTest {
 
     @Override
     protected void recomputeIfNeeded(String changedOrgOid)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         reconcileAllOrgs();
         reconcileAllUsers();
     }

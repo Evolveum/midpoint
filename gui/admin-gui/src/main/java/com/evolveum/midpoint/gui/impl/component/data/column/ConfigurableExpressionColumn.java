@@ -272,7 +272,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
     }
 
-    protected <V> Collection<V> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    protected <V> Collection<V> evaluate(VariablesMap variablesMap, ExpressionType expression, Task task, OperationResult result) throws CommonException {
         //noinspection unchecked
         return (Collection<V>) ExpressionUtil.evaluateStringExpression(
                 variablesMap, expression,

@@ -7,9 +7,6 @@
 package com.evolveum.midpoint.web.component.menu.cog;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.io.Serializable;
 
 public class CheckboxMenuItem extends InlineMenuItem {
 

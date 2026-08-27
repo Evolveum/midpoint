@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
-import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.util.exception.SchemaException;

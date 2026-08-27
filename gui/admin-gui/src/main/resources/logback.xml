@@ -7,7 +7,11 @@
 
 <configuration>
 
-    <if condition='"true".equals(property("midpoint.logging.alt.enabled"))'>
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>midpoint.logging.alt.enabled</key>
+        <value>true</value>
+    </condition>
+    <if>
         <then>
             <include resource="logback-alt.xml"/>
         </then>
@@ -66,7 +70,11 @@
         <appender-ref ref="MIDPOINT_PROFILE_LOG"/>
     </logger>
 
-    <if condition='"true".equals(property("midpoint.logging.alt.enabled"))'>
+    <condition class="ch.qos.logback.core.boolex.PropertyEqualityCondition">
+        <key>midpoint.logging.alt.enabled</key>
+        <value>true</value>
+    </condition>
+    <if>
         <then>
             <root level="WARN">
                 <appender-ref ref="MIDPOINT_LOG"/>

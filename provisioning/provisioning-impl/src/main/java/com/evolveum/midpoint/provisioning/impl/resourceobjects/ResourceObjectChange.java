@@ -8,10 +8,14 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.ucf.api.UcfResourceObject;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,7 +166,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
      */
     private @Nullable CompleteResourceObject processObjectAndDelta(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, NotApplicableException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
 //        if (ucfResourceObject != null) {
 //            effectiveCtx = effectiveCtx.applyDefinitionInNewCtx(ucfResourceObject.getPrismObject());
@@ -223,7 +227,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
 
     private @Nullable CompleteResourceObject fetchResourceObject(ShadowItemsToReturn shadowItemsToReturn, OperationResult result)
             throws CommunicationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, NotApplicableException {
+            ConfigurationException, ExpressionEvaluationException, NotApplicableException, SubscriptionComplianceException {
         if (!effectiveCtx.hasRealReadCapability()) {
             getLogger().trace("NOT fetching object {} because the resource does not support it", identifiers);
             return null;

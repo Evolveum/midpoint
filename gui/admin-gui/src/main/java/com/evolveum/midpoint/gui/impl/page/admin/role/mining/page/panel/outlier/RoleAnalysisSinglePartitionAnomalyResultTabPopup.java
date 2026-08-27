@@ -295,7 +295,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                             };
                             statisticsPanel.setOutputMarkupId(true);
                             statisticsPanel.add(
-                                    AttributeAppender.append("class", "bg-white rounded elevation-1"));
+                                    AttributeAppender.append("class", "bg-white rounded shadow-sm"));
 
                             return statisticsPanel;
                         }

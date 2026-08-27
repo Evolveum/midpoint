@@ -246,11 +246,21 @@ public class MimeTypeUtil {
         );
     }
 
-    public static String getExtension(String mimeType) {
-        String ext = MIMETYPE_EXTENSIONS.get(mimeType.toLowerCase());
-        if (ext == null) {
-            return "";
+    public static String getDotExtension(String mimeType) {
+        if (mimeType == null) {
+            return null;
         }
-        return "." + ext;
+
+        String ext = getExtension(mimeType);
+
+        return ext != null ? "." + ext : null;
+    }
+
+    public static String getExtension(String mimeType) {
+        if (mimeType == null) {
+            return null;
+        }
+
+        return MIMETYPE_EXTENSIONS.get(mimeType.toLowerCase());
     }
 }

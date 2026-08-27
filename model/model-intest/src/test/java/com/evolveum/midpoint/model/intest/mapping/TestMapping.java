@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants.ModelDisableReason;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -2040,27 +2041,31 @@ public class TestMapping extends AbstractMappingTest {
     }
 
     private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
-            String dummyResourceName, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+            String dummyResourceName, Task task) throws CommonException, SchemaViolationException, ConflictException, InterruptedException {
         assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, true, getDummyResourceController(dummyResourceName), task);
     }
 
     private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
-            boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+            boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task)
+            throws CommonException, SchemaViolationException, ConflictException, InterruptedException {
         assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, expectedEnabled, resourceCtl, task);
     }
 
     private void assertAccountLocation(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
-            DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+            DummyResourceContoller resourceCtl, Task task)
+            throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
         assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, true, resourceCtl, task);
     }
 
     private void assertAccountRename(PrismObject<UserType> userJack, String name, String expectedFullName,
-            DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+            DummyResourceContoller resourceCtl, Task task)
+            throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
         assertAccount(userJack, name, expectedFullName, null, null, true, resourceCtl, task);
     }
 
     private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String shipAttributeName, String expectedShip,
-            boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+            boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task)
+            throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
         // ship inbound mapping is used, it is strong
         String accountOid = getSingleLinkOid(userJack);
 
@@ -2091,7 +2096,8 @@ public class TestMapping extends AbstractMappingTest {
     }
 
     private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String attributeName, String expectedShip,
-            boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException, InterruptedException {
+            boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task)
+            throws CommonException, ConflictException, SchemaViolationException, InterruptedException {
         assertAccount(userJack, "jack", expectedFullName, attributeName, expectedShip, expectedEnabled, resourceCtl, task);
     }
 
@@ -3799,7 +3805,7 @@ public class TestMapping extends AbstractMappingTest {
         var shadow = assertShadow(findShadow(resource, userName), "shadow after")
                 .display()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
+                .assertDisableReason(ModelDisableReason.DEPROVISION.uri)
                 .triggers()
                 .assertTriggers(1)
                 .end()
@@ -3820,7 +3826,7 @@ public class TestMapping extends AbstractMappingTest {
         var shadowAfterRecomputation = assertShadow(findShadow(resource, userName), "shadow after recomputation")
                 .display()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
+                .assertDisableReason(ModelDisableReason.DEPROVISION.uri)
                 .assertDisableTimestamp(0, recomputationTimestamp) // the timestamp should not be moved by the recomputation
                 .triggers()
                 .assertTriggers(1)
@@ -3989,7 +3995,7 @@ public class TestMapping extends AbstractMappingTest {
                 .resolveTarget()
                 .display()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_MAPPED)
+                .assertDisableReason(ModelDisableReason.MAPPED.uri)
                 .assertDisableTimestamp(suspensionStart, suspensionEnd);
 
         when("he is archived");
@@ -4008,7 +4014,7 @@ public class TestMapping extends AbstractMappingTest {
                 .resolveTarget()
                 .display()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
-                .assertDisableReason(SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION)
+                .assertDisableReason(ModelDisableReason.DEPROVISION.uri)
                 .assertDisableTimestamp(archivalStart, archivalEnd) // maybe questionable
                 .triggers()
                 .assertTriggers(1);

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainerWithFullObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;

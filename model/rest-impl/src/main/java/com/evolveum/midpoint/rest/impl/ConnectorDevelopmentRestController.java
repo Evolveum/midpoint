@@ -1,28 +1,40 @@
+/*
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.rest.impl;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ConnectorGeneratorConstants;
+import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.function.TriFunction;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.Optional;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 @RestController
 @RequestMapping({ "/ws/connector-generator", "/rest/connector-generator", "/api/connector-generator" })
@@ -30,196 +42,469 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
 
     private static final String CLASS_DOT = ConnectorDevelopmentRestController.class.getName() + ".";
 
+    public static final String START_FROM_NEW = CLASS_DOT + "startFromNew";
+    public static final String CONTINUE_FROM = CLASS_DOT + "continueFrom";
+    public static final String OPERATION_CREATE_CONNECTOR = CLASS_DOT + "CreateConnector";
+    public static final String OPERATION_DISCOVER_BASIC_INFORMATION = CLASS_DOT + "DiscoverBasicInformation";
+    public static final String OPERATION_DISCOVER_DOCUMENTATION = CLASS_DOT + "DiscoverDocumentation";
+    public static final String OPERATION_PROCESS_DOCUMENTATION = CLASS_DOT + "ProcessDocumentation";
+    public static final String OPERATION_GENERATE_ARTIFACT = CLASS_DOT + "GenerateArtifact";
+    public static final String OPERATION_GENERATE_NATIVE_SCHEMA = CLASS_DOT + "GenerateNativeSchema";
+    public static final String OPERATION_GENERATE_CONN_ID_SCHEMA = CLASS_DOT + "GenerateConnIdSchema";
+    public static final String OPERATION_GENERATE_AUTHENTICATION_SCRIPT = CLASS_DOT + "GenerateAuthenticationScript";
+    public static final String OPERATION_DISCOVER_OBJECT_CLASSES = CLASS_DOT + "DiscoverObjectClasses";
+    public static final String OPERATION_DISCOVER_OBJECT_CLASS_INFORMATION = CLASS_DOT + "DiscoverObjectClassInformation";
+    public static final String OPERATION_DISCOVER_OBJECT_CLASS_ATTRIBUTES = CLASS_DOT + "DiscoverObjectClassAttribute";
+    public static final String OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS = CLASS_DOT + "DiscoverObjectClassEndpoints";
+    public static final String OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS = CLASS_DOT + "DiscoverConnectivityEndpoints";
+
     @Autowired private ConnectorDevelopmentService connectorDevelopmentService;
+    @Autowired private MidpointConfiguration configuration;
     @Autowired private ModelService modelService;
 
-    @PostMapping(ConnectorGeneratorConstants.RPC_UPSERT_CONNECTOR_DEVELOPMENT_TYPE)
-    public ResponseEntity<?> upsertConnectorDevelopmentType(
-            @RequestBody @NotNull ConnectorDevelopmentType connectorDevelopmentType
+    @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_NEW)
+    public ResponseEntity<?> startFromNew(
+            @RequestBody @NotNull ConnDevApplicationInfoType applicationInfoType
     ) {
+
         var task = initRequest();
-        var result = createSubresult(task, CLASS_DOT + ConnectorGeneratorConstants.OPERATION_UPSERT_CONNECTOR_DEVELOPMENT_TYPE);
+        var result = createSubresult(task, START_FROM_NEW);
 
         try {
-            var prismObject = connectorDevelopmentType.asPrismObject();
-            ObjectDelta<? extends ObjectType> delta;
-
-            try {
-                var foundObject = modelService.getObject(
-                        ConnectorDevelopmentType.class,
-                        Optional.ofNullable(connectorDevelopmentType.getOid())
-                                .filter(o -> !o.isEmpty())
-                                .orElseThrow(() -> new ObjectNotFoundException("OID is missing")),
-                        null,
-                        task,
-                        result
-                );
-                delta = foundObject.diff(prismObject);
-            } catch (ObjectNotFoundException e) {
-                delta = DeltaFactory.Object.createAddDelta(prismObject);
-            }
-
-            var deltaOperations = modelService.executeChanges(
-                    Collections.singletonList(delta),
-                    null,
-                    task,
-                    result
-            );
 
             return createResponse(
-                    delta.getChangeType().equals(ChangeType.ADD)
-                            ? HttpStatus.CREATED
-                            : HttpStatus.OK,
-                    modelService.getObject(
-                            ConnectorDevelopmentType.class,
-                            delta.getChangeType().equals(ChangeType.ADD)
-                                    ? deltaOperations.iterator().next().getOid()
-                                    : delta.getOid(),
-                            null,
-                            task,
-                            result
-                    ).asObjectable(),
+                    HttpStatus.OK,
+                    connectorDevelopmentService.startFromNew(
+                            applicationInfoType,
+                            new OperationResult("load_ConnectorDevelopmentOperation")
+                    ),
                     result
             );
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+        } catch (Exception e) {
             return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
         }
     }
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_SUBMIT_OPERATION)
-    public ResponseEntity<?> submitOperation(
-            @RequestParam("operationName") @NotNull String operationName,
-            @RequestParam("connectorDevelopmentOid") String connectorDevelopmentOid
+    @GetMapping(ConnectorGeneratorConstants.RPC_CONTINUE_FROM)
+    public ResponseEntity<?> continueFrom(
+            @RequestParam("oid") @NotNull String oid
     ) {
+        var task = initRequest();
+        var result = createSubresult(task, CONTINUE_FROM);
+
         try {
-            switch (operationName) {
-                case ConnectorGeneratorConstants.OPERATION_CREATE_CONNECTOR -> submitOperation(
-                        connectorDevelopmentOid,
-                        ConnectorGeneratorConstants.OPERATION_CREATE_CONNECTOR,
-                        ConnectorDevelopmentOperation::submitDiscoverBasicInformation
-                );
-                case ConnectorGeneratorConstants.OPERATION_DISCOVER_DOCUMENTATION -> submitOperation(
-                        connectorDevelopmentOid,
-                        ConnectorGeneratorConstants.OPERATION_DISCOVER_DOCUMENTATION,
-                        ConnectorDevelopmentOperation::submitDiscoverDocumentation
-                );
-                case ConnectorGeneratorConstants.OPERATION_PROCESS_DOCUMENTATION -> submitOperation(
-                        connectorDevelopmentOid,
-                        ConnectorGeneratorConstants.OPERATION_PROCESS_DOCUMENTATION,
-                        ConnectorDevelopmentOperation::submitProcessDocumentation
-                );
-                default -> ResponseEntity.badRequest().body("Unsupported operation: " + operationName);
+            return createResponse(
+                    HttpStatus.OK,
+                    getConnectorDevelopmentOperation(oid, task, result).getObject(),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationCreateConnector(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_CREATE_CONNECTOR);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitCreateConnector(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_CREATE_CONNECTOR_STATUS_INFO)
+    public ResponseEntity<?> getCreateConnectorStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_CREATE_CONNECTOR);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getCreateConnectorStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationDiscoverBasicInformation(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_BASIC_INFORMATION);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitDiscoverBasicInformation(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverBasicInformationStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_BASIC_INFORMATION);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverBasicInformationStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationDiscoverDocumentation(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_DOCUMENTATION);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitDiscoverDocumentation(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverDocumentationStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_DOCUMENTATION);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverDocumentationStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationProcessDocumentation(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_PROCESS_DOCUMENTATION);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitProcessDocumentation(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_STATUS_INFO)
+    public ResponseEntity<?> getProcessDocumentationStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_PROCESS_DOCUMENTATION);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getProcessDocumentationStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_NATIVE_SCHEMA_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateArtifact(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") @NotNull String objectClass,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_NATIVE_SCHEMA);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateNativeSchema(objectClass, retry, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateConnIdSchema(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") @NotNull String objectClass,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_CONN_ID_SCHEMA);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateConnIdSchema(objectClass, retry, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_AUTHENTICATION_SCRIPT_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateAuthenticationScript(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_AUTHENTICATION_SCRIPT);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateAuthenticationScript(retry, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_CONNECTIVITY_ENDPOINT_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitDiscoverConnectivityEndpoint(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitDiscoverConnectivityEndpoint(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_CONNECTIVITY_ENDPOINT_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverConnectivityEndpointStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverConnectivityEndpointStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationGenerateArtifact(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("artifactType") @NotNull ConnDevArtifactType artifactType,
+            @RequestParam("retry") boolean retry
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_ARTIFACT);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitGenerateArtifact(artifactType, retry, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_STATUS_INFO)
+    public ResponseEntity<?> getGenerateArtifactStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GENERATE_ARTIFACT);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getGenerateArtifactStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASSES_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitOperationDiscoverObjectClasses(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASSES);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitDiscoverObjectClasses(task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASSES_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverObjectClassInformationStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASSES);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverObjectClassInformationStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ATTRIBUTES_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitDiscoverObjectClassAttributes(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") String objectClass
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASSES);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitDiscoverObjectClassAttributes(objectClass, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ATTRIBUTES_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverObjectClassAttributesStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASS_ATTRIBUTES);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverObjectClassAttributesStatus(token, task, result)
+        );
+    }
+
+    @PostMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitDiscoverObjectClassEndpoints(
+            @RequestParam("oid") @NotNull String oid,
+            @RequestParam("objectClass") String objectClass
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) ->
+                        operation.submitDiscoverObjectClassEndpoints(objectClass, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_STATUS_INFO)
+    public ResponseEntity<?> getDiscoverObjectClassEndpointsStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getDiscoverObjectClassEndpointsStatus(token, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_DOWNLOAD_CONNECTOR)
+    public ResponseEntity<?> downloadConnector(
+            @RequestParam("name") @NotNull String name,
+            HttpServletResponse response
+    ) throws IOException {
+        Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
+        List<Object> dirs = config.getList("scanDirectory");
+
+        File downloadDirectory = dirs.stream()
+                .filter(d -> d != null && d.toString().contains("connid-connectors"))
+                .findFirst()
+                .map(Object::toString)
+                .map(File::new)
+                .orElse(null);
+
+        if (downloadDirectory == null || !downloadDirectory.exists()) {
+            return ResponseEntity.internalServerError().body("Base connector directory configuration not found.");
+        }
+
+        File connectorDir = new File(downloadDirectory, name);
+
+        String canonicalBase = downloadDirectory.getCanonicalPath();
+        String canonicalTarget = connectorDir.getCanonicalPath();
+
+        if (!canonicalTarget.equals(canonicalBase + "/" + name)) {
+            return ResponseEntity.internalServerError().body("Invalid name or version format.");
+        }
+
+        if (!connectorDir.exists() || !connectorDir.isDirectory()) {
+            return ResponseEntity.internalServerError().body("Connector directory not found.");
+        }
+
+        response.setContentType("application/jar");
+        String cleanFileName = name.replaceAll("[^a-zA-Z0-9.-]", "_") + ".jar";
+
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + cleanFileName + "\"");
+
+        try (JarOutputStream jarOutputStream = new JarOutputStream(response.getOutputStream())) {
+            jarDirectory(connectorDir, connectorDir, jarOutputStream);
+            jarOutputStream.flush();
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    private void jarDirectory(File rootDir, File currentFile, JarOutputStream jarOutputStream) throws IOException {
+        if (currentFile == null || !currentFile.exists()) {
+            return;
+        }
+
+        if (currentFile.isDirectory()) {
+            File[] files = currentFile.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    jarDirectory(rootDir, file, jarOutputStream);
+                }
             }
-        } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Error: " + e.getMessage());
-        }
+        } else if (currentFile.isFile()) {
+            String relativePath = rootDir.toURI().relativize(currentFile.toURI()).getPath();
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-    }
+            JarEntry entry = new JarEntry(relativePath);
+            jarOutputStream.putNextEntry(entry);
 
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_BASIC_INFORMATION_STATUS)
-    public ResponseEntity<?> getDiscoverBasicInformationStatus(@RequestParam("statusOid") @NotNull String statusOid) {
-        return handleStatus(
-                statusOid,
-                ConnectorGeneratorConstants.OPERATION_DISCOVER_BASIC_INFORMATION,
-                (token, task, result) -> {
-                    try {
-                        return connectorDevelopmentService.getDiscoverBasicInformationStatus(token, task, result);
-                    } catch (SchemaException | ObjectNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
+            byte[] buffer = new byte[4096];
+            try (FileInputStream fis = new FileInputStream(currentFile)) {
+                int length;
+                while ((length = fis.read(buffer)) >= 0) {
+                    jarOutputStream.write(buffer, 0, length);
                 }
-        );
-    }
-
-    @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_STATUS)
-    public ResponseEntity<?> getDiscoverDocumentationStatus(@RequestParam("statusOid") @NotNull String statusOid) {
-        return handleStatus(
-                statusOid,
-                ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_STATUS,
-                (token, task, result) -> {
-                    try {
-                        return connectorDevelopmentService.getDiscoverBasicInformationStatus(token, task, result);
-                    } catch (SchemaException | ObjectNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-        );
-    }
-
-    @GetMapping(ConnectorGeneratorConstants.RPC_PROCESS_DOCUMENTATION_STATUS)
-    public ResponseEntity<?> getProcessDocumentationStatus(@RequestParam("statusOid") @NotNull String statusOid) {
-        return handleStatus(
-                statusOid,
-                ConnectorGeneratorConstants.RPC_DISCOVER_DOCUMENTATION_STATUS,
-                (token, task, result) -> {
-                    try {
-                        return connectorDevelopmentService.getDiscoverBasicInformationStatus(token, task, result);
-                    } catch (SchemaException | ObjectNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-        );
-    }
-
-    @GetMapping(ConnectorGeneratorConstants.RPC_GENERATE_ARTIFACT_STATUS)
-    public ResponseEntity<?> getGenerateArtifactStatus(@RequestParam("statusOid") @NotNull String statusOid) {
-        return handleStatus(
-                statusOid,
-                ConnectorGeneratorConstants.OPERATION_GENERATE_ARTIFACT,
-                (token, task, result) -> {
-                    try {
-                        return connectorDevelopmentService.getDiscoverBasicInformationStatus(token, task, result);
-                    } catch (SchemaException | ObjectNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-        );
-    }
-
-    private ResponseEntity<?> submitOperation(
-            String connectorDevelopmentOid,
-            String operationName,
-            TriFunction<ConnectorDevelopmentOperation, Task, OperationResult, String> submitter
-    ) {
-        var task = initRequest();
-        var result = createSubresult(task, CLASS_DOT + operationName);
-
-        try {
-            var operation = getConnectorDevelopmentOperation(connectorDevelopmentOid, task, result);
-            var token = submitter.apply(operation, task, result);
-            return createResponse(HttpStatus.OK, token, result);
-        } catch (SchemaException |
-                ObjectNotFoundException |
-                ExpressionEvaluationException |
-                SecurityViolationException |
-                CommunicationException |
-                ConfigurationException e) {
-            return handleException(result, e);
-        }
-    }
-
-    private ResponseEntity<?> handleStatus(
-            String token,
-            String operationName,
-            TriFunction<String, Task, OperationResult, StatusInfo<?>> statusFetcher
-    ) {
-        var task = initRequest();
-        var result = createSubresult(task, CLASS_DOT + operationName);
-
-        try {
-            var status = statusFetcher.apply(token, task, result);
-            return createResponse(HttpStatus.OK, status, result);
-        } catch (Exception e) {
-            return handleException(result, e);
+            }
+            jarOutputStream.closeEntry();
         }
     }
 
     private ConnectorDevelopmentOperation getConnectorDevelopmentOperation(
-            String connectorDevelopmentOid,
+            String oid,
             Task task,
             OperationResult result
     ) throws SchemaException,
@@ -227,16 +512,84 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             SecurityViolationException,
             CommunicationException,
             ConfigurationException,
-            ObjectNotFoundException
-    {
+            ObjectNotFoundException, SubscriptionComplianceException {
         PrismObject<ConnectorDevelopmentType> connectorDevelopmentType = modelService.getObject(
                 ConnectorDevelopmentType.class,
-                connectorDevelopmentOid,
+                oid,
                 null,
                 task,
                 result
         );
 
         return connectorDevelopmentService.continueFrom(connectorDevelopmentType.asObjectable());
+    }
+
+    private ResponseEntity<?> submitOperation(
+            String oid,
+            Task task,
+            OperationResult result,
+            SmartIntegrationOperationExecutor<ConnectorDevelopmentOperation, String> operationExecutor
+    ) {
+        try {
+            return createResponse(
+                    HttpStatus.OK,
+                    operationExecutor.execute(
+                            getConnectorDevelopmentOperation(oid, task, result)
+                    ),
+                    result
+            );
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    private ResponseEntity<?> handleStatusInfo(
+            Task task,
+            OperationResult result,
+            SmartIntegrationOperationExecutor<ConnectorDevelopmentService, StatusInfo<?>> serviceExecutor
+    ) {
+        try {
+            var statusInfo = serviceExecutor.execute(connectorDevelopmentService);
+            var smartIntegrationOperationStatusInfoType = new SmartIntegrationOperationStatusInfoType();
+            smartIntegrationOperationStatusInfoType.setStatus(statusInfo.getStatus());
+            smartIntegrationOperationStatusInfoType.setMessage(statusInfo.getLocalizedMessage());
+            smartIntegrationOperationStatusInfoType.setResult(getOperationResult(statusInfo));
+
+            return createResponse(HttpStatus.OK, smartIntegrationOperationStatusInfoType, result);
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    private @NotNull AbstractSmartIntegrationOperationResultType getOperationResult(StatusInfo<?> statusInfo) {
+        var abstractSmartIntegrationOperationResultType = new AbstractSmartIntegrationOperationResultType();
+
+        if (statusInfo.getResult() instanceof ConnDevCreateConnectorResultType connDevCreateConnectorResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevCreateConnectorResult(connDevCreateConnectorResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverGlobalInformationResultType connDevDiscoverGlobalInformationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverGlobalInformationResult(connDevDiscoverGlobalInformationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverDocumentationResultType connDevDiscoverDocumentationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverDocumentationResult(connDevDiscoverDocumentationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevProcessDocumentationResultType connDevProcessDocumentationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevProcessDocumentationResult(connDevProcessDocumentationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevGenerateArtifactResultType connDevGenerateArtifactResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevGenerateArtifactResult(connDevGenerateArtifactResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassInformationResultType connDevDiscoverObjectClassInformationResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassInformationResult(connDevDiscoverObjectClassInformationResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassAttributesResultType connDevDiscoverObjectClassAttributesResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassAttributesResult(connDevDiscoverObjectClassAttributesResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverObjectClassEndpointsResultType connDevDiscoverObjectClassEndpointsResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverObjectClassEndpointsResult(connDevDiscoverObjectClassEndpointsResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevRefreshSchemaResultType connDevRefreshSchemaResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevRefreshSchemaResult(connDevRefreshSchemaResultType);
+        } else if (statusInfo.getResult() instanceof ConnDevDiscoverConnectivityEndpointResultType connDevDiscoverConnectivityEndpointResultType) {
+            abstractSmartIntegrationOperationResultType.setConnDevDiscoverConnectivityEndpointResult(connDevDiscoverConnectivityEndpointResultType);
+        }
+
+        return abstractSmartIntegrationOperationResultType;
     }
 }

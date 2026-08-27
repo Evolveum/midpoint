@@ -72,12 +72,12 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
 
     abstract public @NotNull AuthorizationEvaluationResponseType evaluate(@NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Creates a principal for the request: either deriving from the currently logged user, or creating from provided ref. */
     @NotNull MidPointPrincipal createPrincipal(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         MidPointPrincipal newPrincipal = createPrincipalRaw(result);
         List<Authorization> additionalAuthorizations = request.getAdditionalAuthorization().stream()
                 .map(bean -> Authorization.create(bean, "additional authorization"))
@@ -93,7 +93,7 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
     /** Principal without any additional authorizations. */
     private MidPointPrincipal createPrincipalRaw(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectReferenceType subjectRef = request.getSubjectRef();
         if (subjectRef == null) {
             var currentPrincipal = b.securityEnforcer.getMidPointPrincipal();
@@ -178,7 +178,7 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
         @Override
         public @NotNull AuthorizationEvaluationResponseType evaluate(@NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             ObjectReferenceType objectRef = MiscUtil.argNonNull(request.getObjectRef(), "objectRef is missing");
 
@@ -268,7 +268,7 @@ abstract class AuthorizationDiagEvaluation<REQ extends AuthorizationEvaluationRe
         @Override
         public @NotNull AuthorizationEvaluationResponseType evaluate(@NotNull OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             MidPointPrincipal principal = createPrincipal(result);
 

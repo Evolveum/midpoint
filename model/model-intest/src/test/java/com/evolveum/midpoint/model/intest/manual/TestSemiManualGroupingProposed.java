@@ -14,7 +14,6 @@ import java.io.File;
 
 import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -77,7 +76,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 
         SearchResultList<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, null, null, result);
         displayValue("Resources", resources.size() + ": " + resources);
-        assertEquals("Unexpected number of resources", 3, resources.size());
+        assertEquals("Unexpected number of resources", modernItsm ? 4 : 3, resources.size());
 
         ObjectQuery query = prismContext.queryFor(ResourceType.class)
             .item("extension","provisioning").eq("propagated")

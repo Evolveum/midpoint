@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.common.expression.script.mel;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -17,9 +20,9 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.prism.xml.ns._public.types_3.*;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -45,6 +48,7 @@ import java.util.*;
 public class CelTypeMapper implements CelTypeProvider  {
 
     public static final CelType PROTECTED_STRING_CEL_TYPE = OpaqueType.create(ProtectedStringType.class.getName());
+    public static final CelType NIL_TYPE = NullableType.create(SimpleType.DYN);
 
     private static final Map<CelType, QName> CEL_TO_XSD_TYPE_MAP = new HashMap<>();
     private static final Map<QName, CelType> XSD_TO_CEL_TYPE_MAP = new HashMap<>();
@@ -64,7 +68,10 @@ public class CelTypeMapper implements CelTypeProvider  {
                 ObjectCelValue.CEL_TYPE,
                 ContainerValueCelValue.CEL_TYPE,
                 QNameCelValue.CEL_TYPE,
-                PROTECTED_STRING_CEL_TYPE
+                ItemPathCelValue.CEL_TYPE,
+                PROTECTED_STRING_CEL_TYPE,
+                ObjectDeltaOperationCelValue.CEL_TYPE,
+                OperationResultCelValue.CEL_TYPE
         );
     }
 
@@ -95,13 +102,14 @@ public class CelTypeMapper implements CelTypeProvider  {
         addXsdMapping(SimpleType.DURATION, DOMUtil.XSD_DURATION, true);
         addXsdMapping(SimpleType.DYN, DOMUtil.XSD_ANYTYPE, true);
 
-//        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
-//        addMapping(UniformItemPath.class, ItemPathType.COMPLEX_TYPE, false);
-//        addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
-
         addXsdMapping(QNameCelValue.CEL_TYPE, DOMUtil.XSD_QNAME, true);
+        addXsdMapping(ItemPathCelValue.CEL_TYPE, ItemPathType.COMPLEX_TYPE, true);
         addXsdMapping(PolyStringCelValue.CEL_TYPE, PrismConstants.POLYSTRING_TYPE_QNAME, true);
         addXsdMapping(PROTECTED_STRING_CEL_TYPE, ProtectedStringType.COMPLEX_TYPE, true);
+        addXsdMapping(ObjectDeltaCelValue.CEL_TYPE, ObjectDeltaType.COMPLEX_TYPE, true);
+        addXsdMapping(ItemDeltaCelValue.CEL_TYPE, ItemDeltaType.COMPLEX_TYPE, true);
+        addXsdMapping(ObjectDeltaOperationCelValue.CEL_TYPE, ObjectDeltaOperationType.COMPLEX_TYPE, true);
+        addXsdMapping(OperationResultCelValue.CEL_TYPE, OperationResultType.COMPLEX_TYPE, true);
 
 //        addXsdToCelMapping(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -132,8 +140,14 @@ public class CelTypeMapper implements CelTypeProvider  {
         addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyString.class, true);
         addJavaMapping(PolyStringCelValue.CEL_TYPE, PolyStringType.class, false);
         addJavaMapping(QNameCelValue.CEL_TYPE, QName.class, true);
+        addJavaMapping(ItemPathCelValue.CEL_TYPE, ItemPath.class, true);
+        addJavaMapping(ItemPathCelValue.CEL_TYPE, ItemPathType.class, false);
         addJavaMapping(PROTECTED_STRING_CEL_TYPE, ProtectedStringType.class, false);
-
+        addJavaMapping(ObjectDeltaCelValue.CEL_TYPE, ObjectDelta.class, true);
+        addJavaMapping(ObjectDeltaCelValue.CEL_TYPE, ObjectDeltaType.class, false);
+        addJavaMapping(ItemDeltaCelValue.CEL_TYPE, ItemDelta.class, true);
+        addJavaMapping(ObjectDeltaOperationCelValue.CEL_TYPE, ObjectDeltaOperationType.class, true);
+        addJavaMapping(OperationResultCelValue.CEL_TYPE, OperationResultType.class, true);
     }
 
 
@@ -184,6 +198,11 @@ public class CelTypeMapper implements CelTypeProvider  {
         } else {
             return celType;
         }
+    }
+
+    @NotNull
+    public static CelType toCelNullableType(@NotNull QName xsdType) {
+        return NullableType.create(toCelType(xsdType));
     }
 
     public static CelType toCelType(@NotNull Class<?> javaType) {
@@ -320,7 +339,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable Object celValue) {
-        if (isCellNull(celValue)) {
+        if (isCelNull(celValue)) {
             return null;
         }
         while (celValue instanceof Optional<?> optional) {
@@ -346,7 +365,7 @@ public class CelTypeMapper implements CelTypeProvider  {
 
     @Nullable
     public static Object toJavaValue(@Nullable CelValue celValue) {
-        if (isCellNull(celValue)) {
+        if (isCelNull(celValue)) {
             return null;
         }
         if (celValue instanceof MidPointValueProducer<?> mpCelValue) {
@@ -354,7 +373,7 @@ public class CelTypeMapper implements CelTypeProvider  {
         } else if (celValue instanceof OpaqueValue) {
             return celValue.value();
         } else if (celValue instanceof List) {
-            return toJavaValueList((List)celValue);
+            return toJavaValueList((List<?>)celValue);
         } else {
             throw new IllegalArgumentException("Unknown CEL value "+celValue+" ("+celValue.getClass().getName()+")");
         }
@@ -369,6 +388,9 @@ public class CelTypeMapper implements CelTypeProvider  {
         }
         if (javaValue instanceof PolyString polyString) {
             return PolyStringCelValue.create(polyString);
+        }
+        if (javaValue instanceof PolyStringType polyString) {
+            return PolyStringCelValue.create(polyString.toPolyString());
         }
         if (javaValue instanceof QName qname) {
             return QNameCelValue.create(qname);
@@ -388,13 +410,37 @@ public class CelTypeMapper implements CelTypeProvider  {
         if (javaValue instanceof PrismReferenceValue rval) {
             return ReferenceCelValue.create(rval);
         }
+        if (javaValue instanceof ObjectDeltaType od) {
+            return ObjectDeltaCelValue.create(od);
+        }
+        if (javaValue instanceof ObjectDelta<?> od) {
+            //noinspection unchecked
+            return ObjectDeltaCelValue.create((ObjectDelta<? extends ObjectType>) od);
+        }
+        if (javaValue instanceof ObjectDeltaOperationType odo) {
+            return ObjectDeltaOperationCelValue.create(odo);
+        }
+        if (javaValue instanceof OperationResultType op) {
+            return OperationResultCelValue.create(op);
+        }
+        if (javaValue instanceof List<?> l) {
+            return l.stream().map(CelTypeMapper::toCelValue).toList();
+        }
         return javaValue;
     }
 
-    public static boolean isCellNull(@Nullable Object object) {
+    public static List<Object> toCelValues(List<?> celValues) {
+        return celValues.stream().map(CelTypeMapper::toCelValue).toList();
+    }
+
+    public static boolean isCelNull(@Nullable Object object) {
         return object == null || object instanceof NullValue
                 || object instanceof com.google.protobuf.NullValue
-                || (object instanceof Optional<?> opt && opt.isEmpty());
+                || (object instanceof Optional<?> opt && (opt.isEmpty() || isCelNull(opt.get())));
+    }
+
+    public static boolean isNotCelNull(@Nullable Object object) {
+        return !isCelNull(object);
     }
 
     public static <IV extends PrismValue, ID extends ItemDefinition<?>> Object toListMapValue(Item<IV, ID> item) {
@@ -425,18 +471,18 @@ public class CelTypeMapper implements CelTypeProvider  {
             return NullValue.NULL_VALUE;
         }
         Object value = typedValue.getValue();
-//        if (value == null) {
-//            // CEL has special type and value for null
-//            return NullValue.NULL_VALUE;
-//        }
-        ItemDefinition def = typedValue.getDefinition();
+        if (value == null) {
+            // CEL has special type and value for null
+            return NullValue.NULL_VALUE;
+        }
+        ItemDefinition<?> def = typedValue.getDefinition();
         if (def == null) {
             if (typedValue.getTypeClass() != null && Objectable.class.isAssignableFrom(typedValue.getTypeClass())) {
                 // Some (legacy) code is using typeClass instead of definition.
                 // E.g. this happens when resolving references (see TestMelExpressions.testExpressionObjectRefVariablesNonExistingObject()
-                if (value == null) {
-                    return Optional.empty();
-                }
+//                if (value == null) {
+//                    return Optional.empty();
+//                }
                 if (value instanceof PrismObject<?> o) {
                     return ObjectCelValue.create(o);
                 } else if (value instanceof Objectable o) {
@@ -446,9 +492,16 @@ public class CelTypeMapper implements CelTypeProvider  {
             return CelTypeMapper.toCelValue(value);
         }
         if (def instanceof PrismPropertyDefinition<?> propDef) {
-            if (value == null) {
-                return NullValue.NULL_VALUE;
-            }
+//            if (value == null) {
+//                if (isRepresentedAsStructured(propDef)) {
+//                    // This applies to property types that are presented as structures in CEL (polystring, qname, etc.)
+//                    // For these types we need to return optional instead of plain null, otherwise field resolution will fail.
+//                    // E.g. givenName.?norm won't work for NullValue.NULL_VALUE, but it will work for Optional.empty()
+//                    return Optional.empty();
+//                } else {
+//                    return NullValue.NULL_VALUE;
+//                }
+//            }
             if (propDef.isEnum()) {
                 if (value instanceof TypeSafeEnum tse) {
                     return tse.value();
@@ -456,7 +509,7 @@ public class CelTypeMapper implements CelTypeProvider  {
                     return value.toString();
                 }
             }
-            if (QNameUtil.match(((PrismPropertyDefinition<?>)def).getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME)) {
+            if (QNameUtil.match(def.getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME)) {
                 if (value instanceof PolyString pval) {
                     return PolyStringCelValue.create(pval);
                 }
@@ -465,11 +518,17 @@ public class CelTypeMapper implements CelTypeProvider  {
                     return PolyStringCelValue.create(polystringtype.toPolyString());
                 }
             }
+            if (QNameUtil.match(def.getTypeName(), ItemPathType.COMPLEX_TYPE)) {
+                if (value instanceof ItemPath path) {
+                    return ItemPathCelValue.create(path);
+                }
+            }
+
         }
         if (def instanceof PrismObjectDefinition<?>) {
-            if (value == null) {
-                return Optional.empty();
-            }
+//            if (value == null) {
+//                return Optional.empty();
+//            }
             if (value instanceof PrismObject<?> o) {
                 return ObjectCelValue.create(o);
             } else if (value instanceof Objectable o) {
@@ -477,9 +536,9 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         if (def instanceof PrismContainerDefinition<?>) {
-            if (value == null) {
-                return Optional.empty();
-            }
+//            if (value == null) {
+//                return Optional.empty();
+//            }
             if (value instanceof PrismContainerValue<?> cval) {
                 return ContainerValueCelValue.create(cval);
             } else if (value instanceof Containerable c) {
@@ -487,9 +546,9 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         if (def instanceof PrismReferenceDefinition) {
-            if (value == null) {
-                return Optional.empty();
-            }
+//            if (value == null) {
+//                return Optional.empty();
+//            }
             if (value instanceof PrismReferenceValue rval) {
                 return ReferenceCelValue.create(rval);
             } else if (value instanceof Referencable r) {
@@ -497,6 +556,11 @@ public class CelTypeMapper implements CelTypeProvider  {
             }
         }
         return CelTypeMapper.toCelValue(value);
+    }
+
+    private static boolean isRepresentedAsStructured(PrismPropertyDefinition<?> def) {
+        return QNameUtil.match(def.getTypeName(), PrismConstants.POLYSTRING_TYPE_QNAME) ||
+                QNameUtil.match(def.getTypeName(), DOMUtil.XSD_QNAME);
     }
 
     public static long toMillis(@NotNull Instant instant) {

@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /** Unfortunately, this cannot extend MappingConfigItem because of the conflict in generic type parameters. */
 public class AutoAssignMappingConfigItem

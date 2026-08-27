@@ -4619,7 +4619,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareNotifications();
     }
 
-    PrismObject<ShadowType> getBlueShadow(PrismObject<UserType> userAfter) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    PrismObject<ShadowType> getBlueShadow(PrismObject<UserType> userAfter) throws CommonException {
         String accountBlueOid = getLiveLinkRefOid(userAfter, RESOURCE_DUMMY_BLUE_OID);
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + ".getBlueShadow");
         OperationResult result = task.getResult();

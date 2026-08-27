@@ -6,12 +6,14 @@
 
 package com.evolveum.midpoint.task.quartzimpl.statistics;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
-import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
+import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -24,7 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;

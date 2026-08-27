@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -97,6 +98,9 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
     private static final TestObject<TaskType> TASK_210_WORKER_3 = TestObject.file(TEST_DIR, "task-210-3.xml", "f9298cc6-174f-4a20-8703-bacc500fc53e");
     private static final TestObject<TaskType> TASK_210_WORKER_4 = TestObject.file(TEST_DIR, "task-210-4.xml", "f1bb0e85-abac-4e61-8a3a-f72d40f3e8d6");
     private static final TestObject<TaskType> TASK_210_WORKER_5 = TestObject.file(TEST_DIR, "task-210-5.xml", "81e31c90-6546-4055-8371-a34ef79f5117");
+
+    private static final TestObject<TaskType> TASK_220_COORDINATOR = TestObject.file(TEST_DIR, "task-220-c.xml", "22000000-0000-0000-0000-0000000000c0");
+    private static final TestObject<TaskType> TASK_220_WORKER = TestObject.file(TEST_DIR, "task-220-w.xml", "22000000-0000-0000-0000-0000000000f0");
 
     @PostConstruct
     public void initialize() throws Exception {
@@ -655,6 +659,48 @@ public class TestBucketingStatic extends AbstractRepoCommonTest {
         assertNumberOfBuckets(coordinatorAfter, 100, ActivityPath.empty());
 
         assertOptimizedCompletedBuckets(coordinatorAfter, ActivityPath.empty());
+    }
+
+    /**
+     * MID-10496 / MID-10687: a bucket delegated to one worker must not be completable by a *different*
+     * (e.g. orphaned) worker. This reproduces the "worker task running in multiple instances" situation
+     * deterministically: the guard in BucketOperation.checkWorkerRefOnDelegatedBuckets must reject the
+     * foreign completion, leaving the bucket for its rightful owner.
+     */
+    @Test
+    public void test220CompleteBucketByForeignWorkerIsRejected() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+        taskAdd(TASK_220_COORDINATOR, result); // suspended
+        taskAdd(TASK_220_WORKER, result); // suspended
+
+        Task coordinator = taskManager.getTaskPlain(TASK_220_COORDINATOR.oid, result);
+
+        // the real worker acquires bucket #1 -> it becomes DELEGATED to that worker
+        WorkBucketType bucket = getWorkBucket(coordinator, TASK_220_WORKER.oid, result);
+        assertThat(bucket).isNotNull();
+
+        // a different worker OID, standing in for a stale/orphaned worker instance
+        String foreignWorkerOid = "22000000-0000-0000-0000-0000000000e0";
+
+        when("a foreign worker tries to complete a bucket delegated to another worker");
+
+        assertThatThrownBy(() ->
+                bucketingManager.completeWorkBucket(
+                        TASK_220_COORDINATOR.oid, foreignWorkerOid, ActivityPath.empty(), 1, null, null, result))
+                .hasStackTraceContaining("running in multiple instances");
+
+        then("the bucket is still delegated to the original worker; the rightful owner can complete it");
+
+        Task coordinatorAfter = taskManager.getTaskPlain(TASK_220_COORDINATOR.oid, result);
+        List<WorkBucketType> cBuckets = getBuckets(coordinatorAfter);
+        assertThat(cBuckets.get(0).getState()).isEqualTo(WorkBucketStateType.DELEGATED);
+        assertThat(cBuckets.get(0).getWorkerRef()).isNotNull();
+        assertThat(cBuckets.get(0).getWorkerRef().getOid()).isEqualTo(TASK_220_WORKER.oid);
+
+        // the rightful owner is still able to complete the bucket
+        bucketingManager.completeWorkBucket(
+                TASK_220_COORDINATOR.oid, TASK_220_WORKER.oid, ActivityPath.empty(), 1, null, null, result);
     }
 
     /**

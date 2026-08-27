@@ -31,12 +31,7 @@ import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.caching.CacheUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstraintsCheckingStrategyType;
@@ -98,7 +93,7 @@ public class ConstraintsChecker {
 
     public ConstraintsCheckingResult check(OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(ConstraintsChecker.class.getName() + ".check")
                 .setMinor()
                 .build();
@@ -146,7 +141,7 @@ public class ConstraintsChecker {
 
     private boolean checkAttributeUniqueness(PrismProperty<?> identifier, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         ResourceType resource = provisioningContext.getResource();
         ResourceObjectDefinition definition = provisioningContext.getObjectDefinitionRequired();
@@ -182,7 +177,7 @@ public class ConstraintsChecker {
             ObjectQuery query,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ResourceObjectDefinition resourceObjectDefinition = provisioningContext.getObjectDefinitionRequired();
 

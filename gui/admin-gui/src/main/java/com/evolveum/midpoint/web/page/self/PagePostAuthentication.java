@@ -14,7 +14,8 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
-import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -100,8 +101,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
                 try {
                     PrismObjectDefinition<UserType> userDef = getModelInteractionService().getEditObjectDefinition(user, null, task, task.getResult());
                     user.applyDefinition(userDef, true);
-                } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-                        | CommunicationException | SecurityViolationException e) {
+                } catch (CommonException e) {
                     //TODO: nothing critical even by the error. for now just log it
                     LoggingUtils.logException(LOGGER, "Cannot apply edited object definition", e);
                 }

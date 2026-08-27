@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.authentication.impl.channel;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;

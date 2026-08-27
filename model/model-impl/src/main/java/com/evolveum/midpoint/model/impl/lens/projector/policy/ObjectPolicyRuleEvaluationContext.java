@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
+import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -22,14 +22,14 @@ public class ObjectPolicyRuleEvaluationContext<O extends ObjectType>
         implements Cloneable {
 
     ObjectPolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRuleImpl policyRule,
+            @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl policyRule,
             LensElementContext<O> elementContext,
             Task task) {
         this(policyRule, elementContext, task, ObjectState.AFTER);
     }
 
     private ObjectPolicyRuleEvaluationContext(
-            @NotNull EvaluatedPolicyRuleImpl policyRule,
+            @NotNull DirectlyEvaluatedClockworkPolicyRuleImpl policyRule,
             LensElementContext<O> elementContext,
             Task task,
             ObjectState state) {

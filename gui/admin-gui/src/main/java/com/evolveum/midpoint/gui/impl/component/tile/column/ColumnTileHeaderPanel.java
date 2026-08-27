@@ -151,7 +151,7 @@ public class ColumnTileHeaderPanel<O extends ColumnValueProvider<PV>, PV extends
      * Returns the icon class based on sort state.
      */
     private @NotNull String getSortIconCss(@NotNull IColumn<PV, String> column, ISortStateLocator<String> locator) {
-        String base = "icon fas fa-fw mr-1";
+        String base = "icon fas fa-fw me-1";
         if (column.isSortable() && locator != null) {
             ISortState<String> sortState = locator.getSortState();
             SortOrder dir = sortState.getPropertySortOrder(column.getSortProperty());

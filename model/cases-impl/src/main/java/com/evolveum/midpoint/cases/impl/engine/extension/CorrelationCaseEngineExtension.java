@@ -9,6 +9,7 @@ package com.evolveum.midpoint.cases.impl.engine.extension;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseCorrelationContextType;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +33,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 @Component
 public class CorrelationCaseEngineExtension extends DefaultEngineExtension {
 
-    @Autowired private CorrelationService correlationService;
+    private final CorrelationCaseManager correlationCaseManager;
 
     @Autowired
-    public CorrelationCaseEngineExtension(CaseBeans beans) {
+    public CorrelationCaseEngineExtension(CaseBeans beans, CorrelationCaseManager correlationCaseManager) {
         super(beans);
+        this.correlationCaseManager = correlationCaseManager;
     }
 
     @Override
@@ -55,8 +57,8 @@ public class CorrelationCaseEngineExtension extends DefaultEngineExtension {
             @NotNull CaseEngineOperation operation,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, SecurityViolationException, ConfigurationException {
-        correlationService.prepareCorrelationCaseClosing(
+            CommunicationException, SecurityViolationException, ConfigurationException, SubscriptionComplianceException {
+        this.correlationCaseManager.prepareCorrelationCaseClosing(
                 operation.getCurrentCase(),
                 operation.getTask(),
                 result);
@@ -69,7 +71,7 @@ public class CorrelationCaseEngineExtension extends DefaultEngineExtension {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ConfigurationException {
 
-        correlationService.completeCorrelationCase(
+        this.correlationCaseManager.completeCorrelationCase(
                 operation.getCurrentCase(),
                 operation::closeCaseInRepository,
                 operation.getTask(),

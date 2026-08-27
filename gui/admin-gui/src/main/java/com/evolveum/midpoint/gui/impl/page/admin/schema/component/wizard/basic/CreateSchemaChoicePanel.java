@@ -14,14 +14,11 @@ import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 public abstract class CreateSchemaChoicePanel extends EnumWizardChoicePanel<CreateSchemaChoicePanel.SchemaEnumType, AssignmentHolderDetailsModel<SchemaType>> {
 

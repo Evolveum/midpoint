@@ -1,0 +1,82 @@
+= Milestone to Milestone upgrade instructions and notes
+:toc:
+:page-nav-title: Milestone upgrade instructions
+
+WARNING: This page is written for internal purposes, and we don't give any guarantee that these instructions and notes are complete, nor that it will work at all... but we do our best.
+
+This page contains the upgrade instructions and incompatibility changes that could cause problems during upgrades from a milestone to a milestone, before the "in development" version is released. Useful for continuous testing of the developed features etc.
+
+The upgrade instructions between releases are in the https://docs.evolveum.com/midpoint/release/[release notes].
+
+== 4.11-RC2
+== 4.11-RC1
+== 4.11-M6
+
+=== 2026-08-21 Removed obsolete xercesImpl dependency
+
+Task: https://support.evolveum.com/wp/12034[12034]
+Description: Obsolete xercesImpl dependency was removed.
+
+Required Upgrade Steps:
+
+- Only if you used this dependency in custom Groovy code or overlay code: please find a replacement.
+
+Notes & References:
+
+* Related commits:
+** https://github.com/Evolveum/prism/commit/67c1c669ed7bce7037e8ed762007eda9d266e270[67c1c669 in prism]
+** https://github.com/Evolveum/midpoint/commit/a88393b3a457fd4162f3c50ad81295a9abb12e06[a88393b3 in midPoint]
+
+=== 2026-08-17 Cleaned-up internal APIs related to caching
+
+Task: https://support.evolveum.com/wp/11992[11992]
+Description:
+
+Internal APIs for caching were cleaned-up.
+
+- Legacy `com.evolveum.midpoint.repo.api.Cache` and `com.evolveum.midpoint.repo.api.CacheListener` are gone.
+- They are replaced by `com.evolveum.midpoint.repo.api.CacheInvalidationDispatcher` and `com.evolveum.midpoint.repo.api.CacheDiagnostics` (usually you need both).
+- `repo.api.CacheDispatcher` was renamed to `repo.api.ClusterwideCacheInvalidationDispatcher`.
+- Cache diagnostics were changed as well, see `repo.api.CacheDiagnosticsService`.
+
+Required Upgrade Steps:
+- If you implemented custom caching code (class that extends `Cache` or `CacheListener` interfaces): please update your code according to changes in this commit.
+- If you called `CacheDispatcher#dispatchInvalidation` method: please call it on `ClusterwideCacheInvalidationDispatcher`.
+- If you need cache diagnostics, check the `repo.api.CacheDiagnosticsService`.
+
+Notes & References:
+
+* Related commits: <this one>
+* Docs: See `CacheInvalidationListener`, `ClusterwideCacheInvalidationDispatcher`, `CacheDiagnostics`, and `CacheDiagnosticsService` interfaces.
+
+
+=== 2026-08-18 Added useTokenOnlyOnConflict flag to iteration specification
+
+Task ID: #11952
+
+Description:
+
+Iteration specification (`IterationType`) has a new boolean property `useTokenOnlyOnConflict` and a changed default value for `start`.
+By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
+The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments (even when adding `end`), so that new records continue to be iterated starting from 0 consistently with existing records.
+This can break existing custom token expressions that expect to be evaluated on the first (non conflicting) attempt.
+In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
+
+Required Upgrade Steps:
+
+- If you use a custom token expression that must be evaluated on the first (non conflicting) attempt, explicitly set `useTokenOnlyOnConflict` to `false` in the iteration specification.
+- Review existing iteration configurations to ensure the new default `start` values (`0` when `maxIterations` is defined, `1` otherwise) still produce the expected token sequence.
+- If necessary, explicitly set `start` and `end` to the desired values.
+
+Rollback Procedure (If Upgrade Fails):
+
+- If unexpected token values appear, explicitly set `useTokenOnlyOnConflict` to `false` and review iteration specification according to this description.
+
+Notes & References:
+
+* Related commits: f9685dbabce0320e622b0deea147eff6ff4a3d82
+* Docs: See `unique-account-username.adoc` and `unique-midpoint-user-name.adoc`
+* Affected configs: Object template / Iteration specification
+
+== 4.11-M5

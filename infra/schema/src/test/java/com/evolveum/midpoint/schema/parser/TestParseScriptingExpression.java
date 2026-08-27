@@ -14,7 +14,10 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 
 import org.testng.annotations.Test;
 

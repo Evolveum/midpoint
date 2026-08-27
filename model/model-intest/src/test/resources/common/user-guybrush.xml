@@ -17,6 +17,7 @@
     <linkRef oid="22226666-2200-6666-6666-444400004444" type="c:ShadowType"/>
 
     <fullName>Guybrush Threepwood</fullName>
+    <displayName>Guybrush Threepwood</displayName>
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>

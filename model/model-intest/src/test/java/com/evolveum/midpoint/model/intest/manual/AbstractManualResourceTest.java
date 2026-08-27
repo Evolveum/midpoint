@@ -17,29 +17,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -72,6 +62,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+
 
 /**
  * @author Radovan Semancik
@@ -82,6 +84,12 @@ import com.evolveum.prism.xml.ns._public.types_3.*;
 public abstract class AbstractManualResourceTest extends AbstractConfiguredModelIntegrationTest {
 
     protected static final File TEST_DIR = new File("src/test/resources/manual/");
+
+    private static DummyItsmScenario itsmScenario;
+
+    private static final DummyTestResource RESOURCE_DUMMY_ITSM_NEW = new DummyTestResource(
+            TEST_DIR, "resource-dummy-itsm-new.xml", "c3d122b6-afe3-4a34-bee4-6033b388a3e6", "itsm-new",
+            c -> itsmScenario = DummyItsmScenario.on(c).initialize());
 
     public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = RI_ACCOUNT_OBJECT_CLASS;
 
@@ -202,6 +210,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         setConflictResolutionAction(UserType.COMPLEX_TYPE, null, ConflictResolutionActionType.RECOMPUTE, initResult);
 
+        initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_MANUAL_CASE);
+
         // Turns on checks for connection in manual connector
         InternalsConfig.setSanityChecks(true);
 
@@ -209,6 +220,42 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     protected BackingStore createBackingStore() {
         return null;
+    }
+
+    /**
+     * If true, we use "modern ITSM integration" via special dummy resource simulating access to real remote ITSM solution.
+     * If false, we use default built-in midPoint case management approach.
+     */
+    protected boolean modernItsm;
+
+    @BeforeClass
+    @Parameters({ "modernItsm" })
+    public void parseParameters(@Optional String modernItsm) {
+        this.modernItsm = "true".equals(modernItsm);
+        System.out.println("Testing with modernItsm = " + this.modernItsm);
+    }
+
+    /** Updates the resource configuration to turn on "modern ITSM" (in repo) */
+    private void configureModernItsmIfNeeded(Task task, OperationResult result) throws Exception {
+        if (!modernItsm) {
+            return;
+        }
+
+        // Set the manual connector to use "ITSM New" resource
+        var configPropName = ItemName.from(
+                "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector",
+                "ticketingResourceOid");
+        var configPropPath = ItemPath.create(
+                ResourceType.F_CONNECTOR_CONFIGURATION,
+                configPropName);
+        var configPropDef = prismContext.definitionFactory().newPropertyDefinition(configPropName, DOMUtil.XSD_STRING);
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(configPropPath, configPropDef)
+                        .add(RESOURCE_DUMMY_ITSM_NEW.oid)
+                        .asObjectDelta(getResourceOid()),
+                ModelExecuteOptions.create().raw(),
+                task, result);
     }
 
     private PrismObject<UserType> createUserWill() throws SchemaException {
@@ -246,6 +293,17 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected boolean isDisablingInsteadOfDeletion() {
         return false;
+    }
+
+    @Test
+    public void test000Initialization() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        configureModernItsmIfNeeded(task, result);
+        if (modernItsm) {
+            RESOURCE_DUMMY_ITSM_NEW.initAndTest(this, task, result);
+        }
     }
 
     @Test
@@ -513,6 +571,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // WHEN
         when();
         modelService.importObjectsFromFile(getResourceFile(), options, task, result);
+        configureModernItsmIfNeeded(task, result);
 
         // THEN
         then();
@@ -549,6 +608,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // WHEN
         when();
         modelService.importObjectsFromFile(getResourceFile(), options, task, result);
+        configureModernItsmIfNeeded(task, result);
 
         // THEN
         then();
@@ -715,7 +775,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         then();
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, modernItsm ? 2 : 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0, 1);
 
@@ -2515,5 +2575,36 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     protected boolean isCaching() {
         return InternalsConfig.isShadowCachingOnByDefault();
+    }
+
+    @Override
+    protected void closeCase(String caseOid, OperationResultStatusType outcome)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        if (modernItsm) {
+            // Here we simulate the action in remote ITSM system
+            try {
+                itsmScenario.ticket.getByNameRequired(caseOid)
+                        .replaceAttributeValues(DummyItsmScenario.Ticket.AttributeNames.STATE.local(), SchemaConstants.CASE_STATE_CLOSED)
+                        .replaceAttributeValues(DummyItsmScenario.Ticket.AttributeNames.OUTCOME.local(), outcome.value());
+            } catch (Exception e) {
+                throw SystemException.unexpected(e, "while closing case " + caseOid);
+            }
+        } else {
+            // The original behavior is to close the case right in midPoint (as the local case management module would do).
+            super.closeCase(caseOid, outcome);
+        }
+    }
+
+    @Override
+    protected CaseType assertCaseState(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
+        var aCase = super.assertCaseState(oid, expectedState);
+        if (modernItsm) {
+            try {
+                displayDumpable("Ticket", itsmScenario.ticket.getByNameRequired(oid));
+            } catch (Exception e) {
+                throw SystemException.unexpected(e, "while retrieving case " + oid);
+            }
+        }
+        return aCase;
     }
 }

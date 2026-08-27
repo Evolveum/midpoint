@@ -8,7 +8,7 @@
 
 //table context menu border fix
 th.cog, td.cog {
-  & ul.dropdown-menu.pull-right {
+  & ul.dropdown-menu.pull-end {
     border-color: #337ab7;
   }
 }
@@ -61,7 +61,7 @@ th.countLabel{
   width: 70px;
 }
 
-td.rounded-icon-column div.img-circle {
+td.rounded-icon-column div.rounded-circle {
   background-color: #f5f5f5;
 }
 
@@ -72,6 +72,17 @@ td.rounded-icon-column div.img-circle {
 
 .table-td-middle td {
   vertical-align: middle;
+}
+
+.boxed-table-footer {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+}
+
+// Use the regular body text color instead of Bootstrap's emphasized table text.
+.table-body-color {
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-striped-color: var(--bs-body-color);
 }
 
 /*
@@ -103,4 +114,14 @@ td.rounded-icon-column div.img-circle {
   max-height: 500px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.table-word-break {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table-word-break td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

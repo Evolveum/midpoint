@@ -150,7 +150,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
     }
 
     public void computeItemDeltas() throws ExpressionEvaluationException, SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (outputTripleMap == null || outputTripleMap.isEmpty()) {
             // Besides other reasons, this is to avoid creating empty operation results, cluttering the tracing output.
@@ -175,7 +175,7 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
 
     private void consolidateItem(ItemPath itemPath, ItemDefinition<?> itemDefinition, DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTriple)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ConsolidationValueMetadataComputer valueMetadataComputer;
         if (lensContext != null) {
             valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
@@ -243,7 +243,8 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
         }
 
         private ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, SchemaException,
-                ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+                ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+                SubscriptionComplianceException {
             LOGGER.trace("Computing delta for {} with the delta set triple:\n{}", itemPath, deltaSetTriple.debugDumpLazily());
 
             computeItemDelta();
@@ -254,7 +255,8 @@ public class DeltaSetTripleMapConsolidation<T extends Containerable> {
 
         @SuppressWarnings("unchecked")
         private void computeItemDelta() throws ExpressionEvaluationException, SchemaException,
-                ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+                ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
+                SubscriptionComplianceException {
             try (IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
                     .itemPath(itemPath)
                     .ivwoTriple((DeltaSetTriple<I>) deltaSetTriple)

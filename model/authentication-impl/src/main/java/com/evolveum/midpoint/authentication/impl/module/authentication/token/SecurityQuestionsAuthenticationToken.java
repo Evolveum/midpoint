@@ -6,11 +6,9 @@
 
 package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
-import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * @author skublik

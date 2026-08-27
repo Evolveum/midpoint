@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
@@ -407,15 +406,12 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     }
 
     protected void assertSanityAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         assertSanityAfterCampaignStart(campaign, definition, cases, 1, 1, new Date());
     }
 
     protected void assertSanityAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition,
-            int cases, int iteration, int expectedStages, Date expectedStartTime)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            int cases, int iteration, int expectedStages, Date expectedStartTime) throws CommonException {
         assertStateStageIteration(campaign, IN_REVIEW_STAGE, 1, iteration);
         assertDefinitionAndOwner(campaign, definition);
         assertApproximateTime("start time", expectedStartTime, campaign.getStartTimestamp());
@@ -495,8 +491,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     }
 
     protected void recordDecision(String campaignOid, AccessCertificationCaseType aCase, AccessCertificationResponseType response,
-            String comment, String reviewerOid, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            String comment, String reviewerOid, Task task, OperationResult result) throws CommonException {
         Authentication originalAuthentication = null;
         String realReviewerOid;
         if (reviewerOid != null) {
@@ -642,8 +637,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
     }
 
-    protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException,
-            ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws CommonException {
         Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".getObject");
         OperationResult result = task.getResult();
         Collection<SelectorOptions<GetOperationOptions>> options =
@@ -654,8 +648,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         return campaign;
     }
 
-    private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    private int countCampaignCases(String campaignOid) throws CommonException {
         Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
@@ -711,25 +704,25 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     }
 
     protected void assertPercentCompleteAll(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteAll(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
     }
 
     protected void assertPercentCompleteCurrent(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteCurrent(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
     }
 
     protected void assertPercentCompleteCurrentIteration(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteCurrentIteration(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
     }
 
     protected void assertCasesCount(String campaignOid, int expectedCases)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         int cases = countCampaignCases(campaignOid);
         assertEquals("Wrong # of cases for campaign " + campaignOid, expectedCases, cases);
     }

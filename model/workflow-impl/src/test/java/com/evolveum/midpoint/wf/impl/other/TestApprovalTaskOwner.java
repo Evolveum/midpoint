@@ -183,7 +183,7 @@ public class TestApprovalTaskOwner extends AbstractWfTestPolicy {
         caseManager.completeWorkItem(WorkItemId.of(caseWorkItemType), workItemOutputType, null, task, result);
     }
 
-    private PrismObject<TaskType> resolveExecutionTask(String caseOid, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private PrismObject<TaskType> resolveExecutionTask(String caseOid, Task task, OperationResult result) throws CommonException {
         ObjectQuery taskQuery = queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(caseOid)
                 .build();

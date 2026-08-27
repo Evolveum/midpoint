@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.api;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 public class ProvisioningOperationOptions implements Serializable, ShortDumpable {

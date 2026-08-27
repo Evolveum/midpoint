@@ -66,19 +66,19 @@ public class VisualizationUtil {
 
     public static String createChangeTypeCssClassForOutlineCard(ChangeType change) {
         if (change == null) {
-            return "card-outline-left-secondary";
+            return "card-outline-start-secondary";
         }
 
         switch (change) {
             case ADD:
-                return "card-outline-left-success";
+                return "card-outline-start-success";
             case MODIFY:
-                return "card-outline-left-info";
+                return "card-outline-start-info";
             case DELETE:
-                return "card-outline-left-danger";
+                return "card-outline-start-danger";
         }
 
-        return "card-outline-left-secondary";
+        return "card-outline-start-secondary";
     }
 
     public static ValueMetadataWrapperImpl createValueMetadataWrapper(PrismValue value, PageBase page) {

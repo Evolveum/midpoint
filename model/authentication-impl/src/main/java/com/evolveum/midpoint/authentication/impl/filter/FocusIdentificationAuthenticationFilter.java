@@ -18,27 +18,24 @@ import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class FocusIdentificationAuthenticationFilter extends MidpointFocusVerificationFilter {
 
-    private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/focusIdentification", "POST");
+    private static final RequestMatcher DEFAULT_REQUEST_MATCHER = pathMatcher("/focusIdentification", "POST");
 
     public FocusIdentificationAuthenticationFilter() {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER);
+        super(DEFAULT_REQUEST_MATCHER);
     }
 
     public FocusIdentificationAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        super(DEFAULT_REQUEST_MATCHER, authenticationManager);
     }
 
     protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {

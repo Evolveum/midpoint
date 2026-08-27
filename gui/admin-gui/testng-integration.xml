@@ -20,6 +20,9 @@
             <class name="com.evolveum.midpoint.gui.TestPageSystemConfiguration"/>
             <class name="com.evolveum.midpoint.gui.TestPageRole"/>
             <class name="com.evolveum.midpoint.gui.TestPageService"/>
+            <class name="com.evolveum.midpoint.gui.TestPageResource"/>
+            <class name="com.evolveum.midpoint.gui.TestPageFocusPreviewChanges"/>
+            <class name="com.evolveum.midpoint.gui.TestPageApplication"/>
         </classes>
     </test>
     <test name="Wrapper Integration" preserve-order="true" parallel="none" verbose="10">
@@ -33,6 +36,10 @@
             <class name="com.evolveum.midpoint.web.RequestAccessTest"/>
             <class name="com.evolveum.midpoint.web.TestDisplayLabelLocalization"/>
             <class name="com.evolveum.midpoint.web.component.FileValidatorTest"/>
+            <class name="com.evolveum.midpoint.web.component.ImageSanitizationTest"/>
+            <class name="com.evolveum.midpoint.web.component.FileUploadConfigurationResolverTest"/>
+            <class name="com.evolveum.midpoint.gui.UploadDownloadPanelFactoryTest"/>
+            <class name="com.evolveum.midpoint.web.ReportDownloadHelperTest"/>
         </classes>
     </test>
 </suite>

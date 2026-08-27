@@ -8,41 +8,46 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
-
-import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
-import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
-import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
+import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
+import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -50,8 +55,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Lens context for a computation element - a focus or a projection.
@@ -221,7 +224,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getNewObject();
     }
 
-    @NotNull public PrismObject<O> getObjectNewRequired() {
+    public @NotNull PrismObject<O> getObjectNewRequired() {
         return Objects.requireNonNull(
                 getObjectNew(),
                 () -> String.format("Expected 'new' object is null: %s", this));
@@ -285,18 +288,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return delta != null && delta.hasRelatedDelta(path);
     }
 
+    /** Expected version of the object. Used for conflict detection. */
     public String getObjectReadVersion() {
-        // Do NOT use version from object current.
-        // Current object may be re-read, but the computation
-        // might be based on older data (objectOld).
-        if (getObjectOld() != null) {
-            return getObjectOld().getVersion();
-        }
         return null;
     }
     //endregion
 
     //region Object state (old, current) changing methods
+
     /**
      * Sets OID of the new object but also to the deltas (if applicable).
      */
@@ -364,6 +363,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Primary delta changing methods
+
     /**
      * Assumes clockwork was not started.
      */
@@ -414,7 +414,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      */
     @SuppressWarnings("unused") // called from scripts
     @VisibleForTesting
-    public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+    public void swallowToPrimaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
         if (!ItemDelta.isEmpty(itemDelta)) {
             state.modifyPrimaryDelta(
                     primaryDelta -> primaryDelta.swallow(itemDelta));
@@ -438,7 +438,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     public void setEstimatedOldValuesInPrimaryDelta() throws SchemaException {
         if (getPrimaryDelta() != null && getObjectOld() != null && isModify()) {
             state.modifyPrimaryDelta(delta -> {
-                for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
+                for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
                     LensUtil.setDeltaOldValue(this, itemDelta);
                 }
             });
@@ -467,6 +467,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Complex state-setting methods
+
     /**
      * Initializes the state of the element: sets old/current state and primary delta, clears the secondary delta.
      *
@@ -533,11 +534,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         policyRulesContext.setCounter(policyRuleIdentifier, value);
     }
 
-    public @NotNull Collection<EvaluatedPolicyRuleImpl> getObjectPolicyRules() {
+    public @NotNull Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> getObjectPolicyRules() {
         return policyRulesContext.getObjectPolicyRules();
     }
 
-    public void setObjectPolicyRules(Collection<EvaluatedPolicyRuleImpl> policyRules) {
+    public void setObjectPolicyRules(Collection<DirectlyEvaluatedClockworkPolicyRuleImpl> policyRules) {
         policyRulesContext.clearObjectPolicyRules();
         policyRulesContext.addObjectPolicyRules(policyRules);
     }
@@ -693,6 +694,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Security policy
+
     /**
      * Returns security policy applicable to the object. This means security policy
      * applicable directory to focus or projection. It will NOT return global
@@ -712,6 +714,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Maintenance and auxiliary methods
+
     public void normalize() {
         state.normalize();
     }
@@ -720,12 +723,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         state.adopt(prismContext);
     }
 
-    void copyValues(LensElementContext<O> clone) {
-        clone.executedDeltas.fillClonedFrom(executedDeltas);
-        clone.iteration = this.iteration;
-        clone.iterationToken = this.iterationToken;
-        clone.securityPolicy = this.securityPolicy;
-        clone.policyRulesContext.copyFrom(this.policyRulesContext);
+    void copyValues(LensElementContext<O> clone, boolean detailed) {
+        if (detailed) {
+            clone.executedDeltas.fillClonedFrom(executedDeltas);
+            clone.iteration = this.iteration;
+            clone.iterationToken = this.iterationToken;
+            clone.securityPolicy = this.securityPolicy;
+            clone.policyRulesContext.copyFrom(this.policyRulesContext);
+        }
     }
 
     public void checkEncrypted() {
@@ -763,7 +768,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     String getDebugDumpTitle(String suffix) {
-        return getDebugDumpTitle()+" "+suffix;
+        return getDebugDumpTitle() + " " + suffix;
     }
 
     public abstract @NotNull String getHumanReadableName();
@@ -860,7 +865,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return (PrismObject<O>) asPrismObject(bean);
     }
 
-    void applyProvisioningDefinition(ObjectDelta<O> delta, Objectable object, Task task, OperationResult result)  {
+    void applyProvisioningDefinition(ObjectDelta<O> delta, Objectable object, Task task, OperationResult result) {
         if (delta != null && isShadowOrResource(delta.getObjectTypeClass())) {
             try {
                 lensContext.getProvisioningService().applyDefinition(delta, object, task, result);
@@ -878,7 +883,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
                 (ShadowType.class.isAssignableFrom(clazz) || ResourceType.class.isAssignableFrom(clazz));
     }
 
-    private void applyProvisioningDefinition(PrismObject<O> object, Task task, OperationResult result)  {
+    private void applyProvisioningDefinition(PrismObject<O> object, Task task, OperationResult result) {
         Objectable objectable = asObjectable(object);
         if (objectable instanceof ShadowType || objectable instanceof ResourceType) {
             try {

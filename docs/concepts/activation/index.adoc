@@ -250,4 +250,6 @@ Use validity dates for that purpose.
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 
+* xref:/midpoint/reference/concepts/activation/delayed-delete/[Delayed Delete]
+
 * xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

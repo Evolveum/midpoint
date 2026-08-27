@@ -6,10 +6,8 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +41,7 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
         addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
         addObject(ROLE_REST_LIMITED_FILE, initTask, result);
+        addObject(ROLE_REST_LOG_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
         PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
         addObject(adminUser, executeOptions().overwrite(), initTask, result);
@@ -51,6 +50,7 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
         addObject(USER_SOMEBODY_FILE, initTask, result);
         addObject(USER_JACK_FILE, initTask, result);
         addObject(USER_REST_LIMITED_FILE, initTask, result);
+        addObject(USER_REST_LOG_FILE, initTask, result);
         addObject(parseObject(VALUE_POLICY_GENERAL), executeOptions().overwrite(), initTask, result);
         addObject(VALUE_POLICY_NUMERIC, initTask, result);
         addObject(VALUE_POLICY_SIMPLE, initTask, result);

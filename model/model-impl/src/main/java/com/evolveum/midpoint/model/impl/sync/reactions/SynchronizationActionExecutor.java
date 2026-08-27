@@ -40,7 +40,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 /**
  * Selects and executes a synchronization reaction.
  */
-public class SynchronizationActionExecutor<F extends FocusType> {
+public class SynchronizationActionExecutor<F extends ProjectionHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationActionExecutor.class);
 
@@ -61,7 +61,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
     /** Returns true in case of synchronization failure. */
     public boolean react(OperationResult parentResult)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OP_REACT);
         try {
@@ -92,7 +92,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
     private ObjectSynchronizationReactionDefinition getReaction(OperationResult result)
             throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         SynchronizationSituationType currentSituation = syncCtx.getSituation();
         if (currentSituation == null) {
@@ -133,7 +133,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
     private boolean conditionMatches(@NotNull ObjectSynchronizationReactionDefinition reaction, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionType condition = reaction.getCondition();
         if (condition == null) {
             return true;
@@ -207,7 +207,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
      */
     private boolean isDeleteReactionApplicable(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException {
+            ConfigurationException, SubscriptionComplianceException {
         F owner = syncCtx.getLinkedOwner();
         if (owner == null) {
             LOGGER.trace("Cannot consider the 'realness' of the DELETE situation because there's no linked owner");

@@ -15,6 +15,12 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
         super(beans, connDev, task, result);
     }
 
+    @Override
+    protected List<ProcessedDocumentation> synchronizeDocumentation(List<DevShadowDocument> documentation) {
+        // The offline backend has no generation service to process documentation, so there is nothing to sync.
+        return List.of();
+    }
+
 
     @Override
     public ConnDevApplicationInfoType discoverBasicInformation(boolean skipCache) {
@@ -40,7 +46,7 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                         .quirks("Username is `apiKey` and password is API Token."),
                 new ConnDevAuthInfoType()
                         .name("OAuth2 Client Credentials")
-                        .type(ConnDevHttpAuthTypeType.OAUTH2)
+                        .type(ConnDevHttpAuthTypeType.OAUTH2_CLIENT_CREDENTIALS)
                         .quirks("")
                 );
     }
@@ -197,6 +203,20 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                         .name("Group")
                         .description("Group represents group on the system")
                         ._abstract(false).embedded(false).relevant(true)
+        );
+    }
+
+    @Override
+    public List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache) {
+        return List.of(
+                new ConnDevHttpEndpointType()
+                        .name("Health check")
+                        .operation(ConnDevHttpOperationType.GET)
+                        .uri("/health"),
+                new ConnDevHttpEndpointType()
+                        .name("List users")
+                        .operation(ConnDevHttpOperationType.GET)
+                        .uri("/api/v1/users")
         );
     }
 

@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.model.impl.schema.transform;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;

@@ -15,7 +15,7 @@
             <div class="d-flex">
                 <div wicket:id="buttonToolbar"/>
             </div>
-            <div class="ml-auto align-self-end" wicket:id="tilesPaging"/>
+            <div class="ms-auto align-self-end" wicket:id="tilesPaging"/>
         </div>
     </div>
 
@@ -27,12 +27,12 @@
     <div class="d-flex flex-column">
         <div class="d-flex" wicket:id="headerContainer">
             <wicket:enclosure child="viewToggle">
-                <div class="mr-auto pr-4">
+                <div class="me-auto pe-4">
                     <div wicket:id="viewToggle"/>
                 </div>
             </wicket:enclosure>
-            <div class="mr-2 gap-2" wicket:id="toolbarButtons"></div>
-            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
+            <div class="me-2 gap-2" wicket:id="toolbarButtons"></div>
+            <div class="ms-auto flex-grow-1" wicket:id="panelHeader"></div>
         </div>
         <div class="card-header d-flex flex-column" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
                 <span>
@@ -40,10 +40,10 @@
                 </span>
             <div class="d-flex flex-wrap gap-2">
                 <wicket:container wicket:id="selectedItemContainer">
-                    <div class="btn-sm btn-primary d-flex mr-2" style="cursor: auto;">
+                    <div class="btn-sm btn-primary d-flex me-2" style="cursor: auto;">
                         <div class="text-break" wicket:id="selectedItem"/>
                         <a wicket:id="deselectButton">
-                            <i class="fa fa-xmark ml-2 text-white"></i>
+                            <i class="fa fa-xmark ms-2 text-white"></i>
                         </a>
                     </div>
                 </wicket:container>

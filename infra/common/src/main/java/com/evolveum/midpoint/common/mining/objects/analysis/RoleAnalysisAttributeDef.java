@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -102,6 +103,8 @@ public class RoleAnalysisAttributeDef implements Serializable {
                 return ((PolyString) object).getOrig();
             } else if (object instanceof ObjectReferenceType) {
                 return ((ObjectReferenceType) object).getOid();
+            } else if (object instanceof TypeSafeEnum) {
+                return ((TypeSafeEnum) object).value();
             } else if (object instanceof PrismPropertyValueImpl) {
                 Object realValue = ((PrismPropertyValueImpl<?>) object).getRealValue();
                 if (realValue != null) {

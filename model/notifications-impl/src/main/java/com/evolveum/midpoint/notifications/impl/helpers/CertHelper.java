@@ -11,13 +11,7 @@ import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -59,9 +53,9 @@ public class CertHelper {
             case IN_REMEDIATION:
                 return "Remediation in progress" + i;
             case CLOSED:
-                return "Closed + i";
+                return "Closed" + i;
             default:
-                return "" + i;      // should not occur
+                return i; // should not occur
         }
     }
 
@@ -92,7 +86,9 @@ public class CertHelper {
         AccessCertificationCasesStatisticsType stat;
         try {
             stat = certificationManager.getCampaignStatistics(campaign.getOid(), false, task, result);
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ObjectAlreadyExistsException |
+                ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException |
+                 SubscriptionComplianceException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get campaign statistics", e);
             sb.append("Couldn't get campaign statistics because of ").append(e);
             return;

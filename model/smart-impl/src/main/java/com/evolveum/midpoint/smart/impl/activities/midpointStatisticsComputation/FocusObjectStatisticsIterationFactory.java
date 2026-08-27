@@ -9,7 +9,6 @@ package com.evolveum.midpoint.smart.impl.activities.midpointStatisticsComputatio
 
 import javax.xml.namespace.QName;
 
-import org.checkerframework.framework.qual.QualifierArgument;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 

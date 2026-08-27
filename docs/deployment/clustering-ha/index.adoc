@@ -321,4 +321,4 @@ The following aspects must be the same on all cluster nodes:
 
 * xref:/midpoint/reference/tasks/activities/distribution/[]
 
-* xref:/midpoint/install/system-requirements/[]
+* xref:/midpoint/get-started/install/system-requirements/[]

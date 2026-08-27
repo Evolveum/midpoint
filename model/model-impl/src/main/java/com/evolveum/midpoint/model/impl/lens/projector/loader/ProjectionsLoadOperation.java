@@ -25,7 +25,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +68,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * TODO better name for the class?
  */
-public class ProjectionsLoadOperation<F extends FocusType> {
+public class ProjectionsLoadOperation<F extends ProjectionHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionsLoadOperation.class);
 
@@ -87,7 +90,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
     public void load(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         OperationResult result = parentResult.subresult(OP_LOAD)
                 .setMinor()
@@ -118,7 +122,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
      */
     private void getOrCreateProjectionContextsFromFocusLinkRefs(OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         LOGGER.trace("Loading projection contexts from focus linkRefs starting");
 
@@ -137,7 +141,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
     private void getOrCreateProjectionContextsFromFocusPrimaryDelta(OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
 
         LOGGER.trace("Loading projection contexts from focus primary delta starting");
 
@@ -163,18 +168,18 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     }
 
     private @Nullable ReferenceDelta getLinkRefDelta(ObjectDelta<F> focusPrimaryDelta) {
-        if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
-            PrismReference linkRef = focusPrimaryDelta.getObjectToAdd().findReference(FocusType.F_LINK_REF);
-            if (linkRef == null) {
-                // Adding new focus with no linkRef -> nothing to do
-                return null;
-            } else {
-                ReferenceDelta linkRefDelta = linkRef.createDelta(FocusType.F_LINK_REF);
+            if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
+                PrismReference linkRef = focusPrimaryDelta.getObjectToAdd().findReference(ProjectionHolderType.F_LINK_REF);
+                if (linkRef == null) {
+                    // Adding new focus with no linkRef -> nothing to do
+                    return null;
+                } else {
+                    ReferenceDelta linkRefDelta = linkRef.createDelta(ProjectionHolderType.F_LINK_REF);
                 linkRefDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneValues(linkRef.getValues()));
                 return linkRefDelta;
             }
         } else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-            return focusPrimaryDelta.findReferenceModification(FocusType.F_LINK_REF);
+            return focusPrimaryDelta.findReferenceModification(ProjectionHolderType.F_LINK_REF);
         } else {
             // delete, all existing account are already marked for delete
             return null;
@@ -185,7 +190,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         PrismObject<F> focus = focusContext.getObjectCurrent();
         // process "replace" by distributing values to delete and add
         ReferenceDelta linkRefDeltaClone = linkRefDelta.clone();
-        PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
+            PrismReference linkRef = focus.findReference(ProjectionHolderType.F_LINK_REF);
         linkRefDeltaClone.distributeReplace(linkRef != null ? linkRef.getValues() : null);
         return linkRefDeltaClone;
     }
@@ -199,9 +204,9 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     private void removeLinkRefModifications() throws SchemaException {
         focusContext.modifyPrimaryDelta(delta -> {
             if (delta.getChangeType() == ChangeType.ADD) {
-                delta.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
-            } else if (delta.getChangeType() == ChangeType.MODIFY) {
-                delta.removeReferenceModification(FocusType.F_LINK_REF);
+            delta.getObjectToAdd().removeReference(ProjectionHolderType.F_LINK_REF);
+        } else if (delta.getChangeType() == ChangeType.MODIFY) {
+            delta.removeReferenceModification(ProjectionHolderType.F_LINK_REF);
             }
         });
     }
@@ -209,7 +214,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     private void getOrCreateContextsForValuesToAdd(
             @Nullable Collection<PrismReferenceValue> valuesToAdd, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException, PolicyViolationException {
+            ExpressionEvaluationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
         for (PrismReferenceValue refVal : emptyIfNull(valuesToAdd)) {
             if (isInactive(refVal.asReferencable())) {
                 LOGGER.trace("getOrCreateContextsForValuesToAdd: Skipping inactive linkRef to add (relation={}): {}",
@@ -230,7 +235,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             @Nullable Collection<PrismReferenceValue> valuesToDelete, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException {
+            ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         var inactiveLinksToDelete = new ArrayList<PrismReferenceValue>();
         for (var refVal : emptyIfNull(valuesToDelete)) {
             if (isInactive(refVal.asReferencable())) {
@@ -254,7 +259,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     private void processInactiveLinkRefDeletion(
             @NotNull Collection<PrismReferenceValue> linksToDelete, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, PolicyViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            ConfigurationException, PolicyViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         if (linksToDelete.isEmpty()) {
             return;
         } else if (!task.isExecutionFullyPersistent()) {
@@ -262,8 +267,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             return;
         }
 
-        var itemDeltas = PrismContext.get().deltaFor(FocusType.class)
-                .item(FocusType.F_LINK_REF)
+        var itemDeltas = PrismContext.get().deltaFor(ProjectionHolderType.class)
+                .item(ProjectionHolderType.F_LINK_REF)
                 .delete(CloneUtil.cloneCollectionMembers(linksToDelete))
                 .asItemDeltas();
         LOGGER.debug("Removing inactive linkRef values from focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));
@@ -292,7 +297,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
      */
     private void updateContextsFromSyncDeltas(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.trace("Initialization of projection contexts from sync delta(s) starting - if there are any");
         for (LensProjectionContext projCtx : context.getProjectionContexts()) {
             if (projCtx.isFresh() && projCtx.getObjectCurrent() != null) {
@@ -411,7 +416,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
         private void getOrCreateFromExistingValue(OperationResult result)
                 throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+                ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SubscriptionComplianceException {
 
             LOGGER.trace("Loading projection from linkRef {}", linkRef);
             String oid = linkRef.getOid();
@@ -480,7 +485,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
         private void getOrCreateFromActiveLinkRef(OperationResult result)
                 throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+                ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SubscriptionComplianceException {
 
             PrismObject<ShadowType> shadow = getShadow(result);
             if (shadow == null) {
@@ -517,7 +522,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
          */
         private @Nullable PrismObject<ShadowType> getShadow(OperationResult result)
                 throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException, ObjectNotFoundException {
+                ExpressionEvaluationException, ObjectNotFoundException, SubscriptionComplianceException {
             PrismObject<ShadowType> embeddedShadow = getEmbeddedShadow();
             if (embeddedShadow != null) {
                 // Make sure it has a proper definition. This may come from outside of the model.
@@ -554,7 +559,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
         private void getOrCreateForValueToAdd(OperationResult result)
                 throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-                ExpressionEvaluationException, SecurityViolationException, PolicyViolationException {
+                ExpressionEvaluationException, SecurityViolationException, PolicyViolationException, SubscriptionComplianceException {
             String oid = linkRef.getOid();
             LensProjectionContext projectionContext;
             Holder<Boolean> objectDoesExistInRepoHolder = new Holder<>(false);
@@ -576,7 +581,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         private @NotNull LensProjectionContext getOrCreateForValueToAddWithOid(
                 @NotNull Holder<Boolean> objectDoesExistInRepoHolder, @NotNull OperationResult result)
                 throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
+                ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             String oid = linkRef.getOid();
             try {
@@ -627,7 +632,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
         private void getOrCreateForValueToDelete(@NotNull OperationResult result)
                 throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException, PolicyViolationException {
+                ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException {
             String oid = linkRef.getOid();
             schemaCheck(oid != null,
                     "Cannot delete account ref without an oid in %s", focusContext.getObjectCurrent());
@@ -688,7 +693,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         @NotNull
         private LensProjectionContext getOrCreateForEmbeddedShadow(@NotNull OperationResult result)
                 throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-                ExpressionEvaluationException {
+                ExpressionEvaluationException, SubscriptionComplianceException {
             PrismObject<ShadowType> embeddedShadowObject =
                     MiscUtil.requireNonNull(getEmbeddedShadow(),
                             () -> "No OID nor object in account reference " + linkRef + " in " + focusContext.getObjectCurrent());
@@ -804,7 +809,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
          */
         private ContextAcquisitionResult getOrCreate(@NotNull OperationResult result)
                 throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-                SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+                SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
             LensProjectionContext contextByShadowOid = context.findProjectionContextByOid(shadow.getOid());
             // TODO what if there are more contexts for given shadow OID?
             LOGGER.trace("Projection context by shadow OID: {} yielded: {}", shadow.getOid(), contextByShadowOid);
@@ -846,7 +851,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 @NotNull LensProjectionContext existingCtx,
                 @NotNull OperationResult result)
                 throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException, PolicyViolationException {
+                ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException {
 
             LOGGER.trace("Projection conflict detected on key: {}. Existing context: {}, new shadow {}",
                     conflictingKey, existingCtx.getOid(), newShadow.getOid());

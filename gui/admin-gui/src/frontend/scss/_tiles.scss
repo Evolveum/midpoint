@@ -60,9 +60,10 @@
   }
 }
 
+
 @mixin tile-dark-mode {
-  border-color: $secondary-alt;
-  background-color: lighten($dark, 7.5%) !important;
+  border-color: var(--bs-secondary-bg-subtle);
+  background-color: tint-color($dark, 7.5%) !important;
   color: $white !important;
   @include smooth-transition(0.1s);
 
@@ -78,8 +79,8 @@
   }
 
   &.active {
-    border-color: $primary-alt;
-    background-color: rgba($primary-alt, 15%);
+    border-color: var(--bs-primary-bg-subtle);
+    background-color: rgba(var(--bs-primary-rgb), .15);
     @include smooth-transition(0.1s);
   }
 }
@@ -91,12 +92,6 @@
     box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.15), 0px 0px 1px 0px rgba(0, 0, 0, 0.12);
   }
 
-}
-
-@include dark-mode() {
-  .tile-panel {
-    @include tile-dark-mode();
-  }
 }
 
 .catalog-tile-panel {
@@ -150,12 +145,6 @@
   word-break: break-word;
 }
 
-@include dark-mode() {
-  .catalog-tile-panel.selectable {
-    @include tile-dark-mode();
-  }
-}
-
 .clamp-lines {
   -webkit-box-orient: vertical;
   display: -webkit-box;
@@ -192,7 +181,7 @@
   padding: 0.5rem;
 }
 
-.tile-column-header.header-border-right::after {
+.tile-column-header.header-border-end::after {
   content: "";
   position: absolute;
   right: 0;
@@ -206,16 +195,16 @@
   min-width:24px;
 }
 
-.border-large-left2 {
+.border-large-start2 {
   border-left-width: 10px !important; /* make left border thicker */
 }
 
-.border-large-left {
+.border-large-start {
   position: relative;
   background-color: inherit; /* inherits the border-color if it's applied inline */
 }
 
-.border-large-left::before {
+.border-large-start::before {
   content: "";
   position: absolute;
   top: 0;
@@ -232,47 +221,43 @@
   border-color: #6610f2 !important;
 }
 
-.left-border-2px {
-  border-left-width: 2px !important;
-}
-
 .border-system {
   border-color: #0d6efd !important;
 }
 
-.border-danger.border-large-left::before {
+.border-danger.border-large-start::before {
   background-color: $danger;
 }
 
-.border-success.border-large-left::before {
+.border-success.border-large-start::before {
   background-color: $success;
 }
 
-.border-warning.border-large-left::before {
+.border-warning.border-large-start::before {
   background-color: $warning;
 }
 
-.border-info.border-large-left::before {
+.border-info.border-large-start::before {
   background-color: $info;
 }
 
-.border-primary.border-large-left::before {
+.border-primary.border-large-start::before {
   background-color: $primary;
 }
 
-.border-secondary.border-large-left::before {
+.border-secondary.border-large-start::before {
   background-color: $secondary;
 }
 
-.border-purple.border-large-left::before {
+.border-purple.border-large-start::before {
   background-color: $purple;
 }
 
-.border-system.border-large-left::before {
+.border-system.border-large-start::before {
   background-color: #0d6efd;
 }
 
-.border-ai.border-large-left::before {
+.border-ai.border-large-start::before {
   background-color: #570ece;
 }
 
@@ -318,5 +303,19 @@
 .guide-panel.tile-panel.disabled .tile-title,
 .guide-panel.tile-panel.disabled h5 {
   color: var(--bs-secondary-color, #adb5bd) !important;
+}
+
+.border-start-2 {
+  border-left-width: 2px !important;
+}
+
+[data-bs-theme="dark"] {
+  .tile-panel {
+    @include tile-dark-mode();
+  }
+
+  .catalog-tile-panel.selectable {
+    @include tile-dark-mode();
+  }
 }
 

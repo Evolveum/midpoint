@@ -737,6 +737,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="conflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Conflict resolution strategy for objects processed by this task.
+                        Overrides the global setting from system configuration.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:container>true</a:container>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -1979,6 +1991,26 @@
                     <xsd:documentation>
                         Policies for the activity.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Virtual assignments for the activity. These assignments are not persisted in
+                        the processed object; they exist only while the current activity is being processed.
+
+                        Virtual assignments are collected from the current activity and all of its parent
+                        activities, and are applied on top of the regular assignments.
+
+                        It is recommended that roles contain only policies; otherwise phantom
+                        roleMembershipRefs may be added to the processed object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
@@ -1992,6 +2024,35 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="VirtualAssignmentsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Virtual assignments of an activity. These assignments are applied on top of every focal
+                object while it is being processed by the activity; they are not persisted in the object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An assignment that is virtually applied to every object processed by the activity.
+                        The target should preferably be a policy (or a role containing only policies).
+
+                        As for regular assignments, a target that cannot be resolved is tolerated: an error is
+                        logged and the object is processed as if this assignment carried no rules. The activity
+                        is not stopped. (This is unlike the "policyRef" element, where unresolvable reference
+                        means a failure of the activity.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="virtualAssignments" type="tns:VirtualAssignmentsType"/>
+
     <xsd:complexType name="ActivityPoliciesType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2003,354 +2064,125 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="policy" type="tns:ActivityPolicyType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="policy" type="tns:PolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inline policy rule for the activity. Activity-based constraints (executionTime,
+                        executionAttempts, itemProcessingResult) are evaluated by the activity itself;
+                        focus-based constraints are evaluated for each object processed by the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="policyRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to AbstractRoleType (or its subtypes) object, preferably PolicyType.
+                        The policy rules are taken from the inducements of the referenced object.
+
+                        Inducements with policies located in referenced object must not contain order, condition.
+                        Otherwise, configuration exception will be thrown.
+
+                        If the reference cannot be resolved, the activity fails at its start and the task is
+                        suspended. (Since 4.11; before that, such reference was skipped with a warning. Note that
+                        unresolvable targets of virtual assignments are tolerated - they do not stop the activity.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processing" type="tns:ActivityPoliciesProcessingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operational switch that controls whether policies related to this activity are processed
+                        at all. Unlike the "enabled" flag on individual rules, this is meant to be flipped
+                        operationally (e.g. to resume a task after a threshold was met) without touching
+                        the rule definitions. It applies to rules declared at this activity and at all
+                        of its child activities, regardless of where they are evaluated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityPolicies" type="tns:ActivityPoliciesType"/>
 
-    <xsd:complexType name="ActivityPolicyType">
+    <xsd:complexType name="ActivityPoliciesProcessingType">
         <xsd:annotation>
             <xsd:documentation>
-                Policy for the activity execution.
+                Controls processing of policies related to an activity. Each scope covers a different
+                source of policy rules. Suppression declared on an activity applies also to all of its
+                child activities. Rules declared on ancestor activities are NOT affected.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-                <a:naturalKey>tns:name</a:naturalKey>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Unique identifier of the policy rule. It's used for diagnostic purposes
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="description" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Free-form description of the rule (comment).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="enabled" type="xsd:boolean" default="true" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether the policy rule is enabled.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="policyConstraints" type="tns:ActivityPolicyConstraintsType" minOccurs="0"/>
-            <xsd:element name="policyThreshold" type="tns:PolicyThresholdType" minOccurs="0"/>
-            <xsd:element name="policyActions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
-            <xsd:element name="order" type="xsd:int" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="activityPolicy" type="tns:ActivityPolicyType"/>
-
-    <xsd:complexType name="ActivityPolicyConstraintsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Set of governance, risk management, compliance (GRC) and similar policy constraints
-                related to tasks. These constraints act as triggers for the rules.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractPolicyConstraintType">
-                <xsd:sequence>
-                    <xsd:element name="executionTime" type="tns:DurationThresholdPolicyConstraintType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The execution time constrain evaluates activity execution time.
-
-                                When the exceeds element is specified, constraint will trigger if the task execution
-                                time exceeds the specified value. When the below element is specified, constraint will
-                                trigger if the task execution time is below the specified value.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="executionAttempts" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                This constraint evaluates how many times the activity realization was attempted.
-
-                                When the "exceeds" element is specified, constraint will trigger if the number of attempts
-                                exceeds the specified value. When the "below" element is specified, constraint will trigger
-                                if the number of attempts is below the specified value.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="itemProcessingResult" type="tns:ItemProcessingResultPolicyConstraintType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Constraint that evaluates result of one item (object) that was processed by activity.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="and" type="tns:ActivityPolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Constraints that must all apply. (But note that if there are more values of this item,
-                                they are interpreted according to the enclosing operator.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.10</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="or" type="tns:ActivityPolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Constraints from which at least one must apply. (But note that if there are more values of this item,
-                                they are interpreted according to the enclosing operator.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.10</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="not" type="tns:ActivityPolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The inner constraint must not apply.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.10</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="activityPolicyConstraints" type="tns:ActivityPolicyConstraintsType"/>
-
-    <xsd:complexType name="ItemProcessingResultPolicyConstraintType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Constraint based on the result of the processing for one object that is processed by the activity.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractPolicyConstraintType">
-                <xsd:sequence>
-                    <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Operation result status to match. It can be either PARTIAL_ERROR or FATAL_ERROR.
-                                If not present, we decide solely on error category. If error categories are not specified,
-                                any error matches.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Error category (network, security, policy, ...) to match.
-
-                                NOTE: that some errors are not propagated to the level where they can be recognized
-                                by this selector.
-
-                                If not present, we decide solely on the status.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="itemProcessingResultPolicyConstraint" type="tns:ItemProcessingResultPolicyConstraintType"/>
-
-    <xsd:complexType name="NumericThresholdPolicyConstraintType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Constraints based on numeric value (integer).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractPolicyConstraintType">
-                <xsd:sequence>
-                    <xsd:sequence>
-                        <xsd:element name="below" type="xsd:int" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    If constraint metric value is smaller than "below" value for activity, the constraint is triggered.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="exceeds" type="xsd:int" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    If constraint metric value is greater than "exceeds" value for activity, the constraint is triggered.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="numericThresholdPolicyConstraint" type="tns:NumericThresholdPolicyConstraintType"/>
-
-    <xsd:complexType name="DurationThresholdPolicyConstraintType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Constraint based on duration and its threshold.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractPolicyConstraintType">
-                <xsd:sequence>
-                    <xsd:element name="below" type="xsd:duration" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                If constraint metric value is smaller than "below" duration for activity, the policy action is triggered.
-                                E.g. If the activity execution time is below this duration, the policy action is triggered.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="exceeds" type="xsd:duration" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                If constraint metric value is greater than "exceeds" duration for activity, the policy action is triggered.
-                                E.g. If the activity execution time exceeds this duration, the policy action is triggered.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="durationThresholdPolicyConstraint" type="tns:DurationThresholdPolicyConstraintType"/>
-
-    <xsd:complexType name="ActivityPolicyActionsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Actions to be taken when the activity is executed.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
+                <a:since>4.11</a:since>
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!-- Currently only suspendTask/notify are supported -->
-            <!-- markRef will be a part of the record action later on -->
-            <xsd:element name="notification" type="tns:NotificationActivityPolicyActionType" minOccurs="0"/>
-            <xsd:element name="suspendTask" type="tns:SuspendTaskActivityPolicyActionType" minOccurs="0"/>
-            <xsd:element name="restartActivity" type="tns:RestartActivityPolicyActionType" minOccurs="0"/>
-            <xsd:element name="skipActivity" type="tns:SkipActivityPolicyActionType" minOccurs="0"/>
+            <xsd:element name="activityPolicies" type="tns:PolicyProcessingModeType" default="full" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of activity policies declared in the "policy" and "policyRef" elements
+                        of this activity (and its children). When set to "none", these rules are not collected,
+                        evaluated, nor counted.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="virtualAssignmentPolicies" type="tns:PolicyProcessingModeType" default="full" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of policies brought in by virtual assignments of this activity (and its
+                        children). When set to "none", the virtual assignments are not applied at all, so the
+                        policy rules they carry are not evaluated. Note that virtual assignments should contain
+                        only policies (as recommended); any other content they carry is suppressed as well.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="activityPolicyActions" type="tns:ActivityPolicyActionsType"/>
+    <xsd:element name="activityPoliciesProcessing" type="tns:ActivityPoliciesProcessingType"/>
 
-    <xsd:complexType name="SkipActivityPolicyActionType">
+    <xsd:simpleType name="PolicyProcessingModeType">
         <xsd:annotation>
             <xsd:documentation>
-                Skip activity that triggered policy constraint, continue with next activity.
+                Mode of policy processing.
+
+                Deliberately an enumeration, not a boolean: further modes may be added later,
+                e.g. evaluating and counting the rules without enforcing their actions
+                (thresholds observed but not acted upon).
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+                <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="skipActivityPolicyAction" type="tns:SkipActivityPolicyActionType"/>
-
-    <xsd:complexType name="RestartActivityPolicyActionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Restart the run and realization of the activity that triggered policy constraint.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType">
-                <xsd:sequence>
-                    <xsd:element name="delay" type="xsd:duration" minOccurs="0" default="PT5S">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                What delay to introduce between attempts. Actual delay is taken as a random
-                                number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="restartActivityPolicyAction" type="tns:RestartActivityPolicyActionType"/>
-
-    <xsd:complexType name="ActivityPolicyActionType" abstract="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                Action to be taken when the activity policy is triggered.
-
-                Similar to PolicyActionType, however no condition for now.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-    </xsd:complexType>
-    <xsd:element name="activityPolicyAction" type="tns:ActivityPolicyActionType"/>
-
-    <xsd:complexType name="NotificationActivityPolicyActionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Notification action.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="notificationActivityPolicyAction" type="tns:NotificationActivityPolicyActionType"/>
-
-    <xsd:complexType name="SuspendTaskActivityPolicyActionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Suspend task action.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType"/>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="suspendTaskActivityPolicyAction" type="tns:SuspendTaskActivityPolicyActionType"/>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies are processed normally. The default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies are not processed at all: not collected, not evaluated, not counted.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="WorkDefinitionsType">
         <xsd:annotation>
@@ -2732,7 +2564,19 @@
                     </xsd:annotation>
                 </xsd:element>
 
-                <xsd:element name="mappings" type="tns:MappingWorkDefinitionType" minOccurs="0">
+                <xsd:element name="inboundMappingsSimulation" type="tns:InboundMappingsSimulationWorkDefType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Simulates a mapping on a selected sample of shadows.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.mapping</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="outboundMappingsSimulation" type="tns:OutboundMappingsSimulationWorkDefType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Simulates a mapping on a selected sample of shadows.
@@ -2817,6 +2661,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="exportConnector" type="tns:ConnDevExportConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -2865,7 +2717,23 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="discoverConnectivityEndpoint" type="tns:ConnDevDiscoverConnectivityEndpointWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="generateConnectorArtifact" type="tns:ConnDevGenerateArtifactDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
+                <xsd:element name="refreshSchema" type="tns:ConnDevRefreshSchemaWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
                             <a:since>4.11</a:since>
@@ -3061,7 +2929,9 @@
     <xsd:complexType name="ActivityPoliciesDefinitionTailoringType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Tailoring of the activity policies definition for predefined child activities.
+                Extends the policies definition with a tailoring mode that controls how the values
+                are combined with the original definition.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.10</a:since>
@@ -3892,7 +3762,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="policyAction" type="tns:ActivityPolicyActionType" minOccurs="0">
+            <xsd:element name="policyAction" type="tns:PolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Policy action that caused the activity to be aborted.
@@ -9302,7 +9172,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="trigger" type="tns:EvaluatedActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Triggers associated with the policy.
@@ -9312,23 +9182,6 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="activityPolicyState" type="tns:ActivityPolicyStateType"/>
-
-    <xsd:complexType name="EvaluatedActivityPolicyTriggerType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A single policy trigger.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-                <a:since>4.10</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="constraintName" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="evaluatedActivityPolicyTrigger" type="tns:EvaluatedActivityPolicyTriggerType"/>
 
     <xsd:complexType name="ActivityCounterGroupsType">
         <xsd:annotation>
@@ -10848,14 +10701,14 @@
     </xsd:complexType>
     <xsd:element name="correlationWorkDefinition" type="tns:CorrelationWorkDefinitionType"/>
 
-    <xsd:complexType name="MappingWorkDefinitionType">
+    <xsd:complexType name="InboundMappingsSimulationWorkDefType">
         <xsd:annotation>
             <xsd:documentation>
-                Work definition for mapping simulation activity. Selects shadows to be processed and
+                Work definition for inbound mappings simulation activity. Selects shadows to be processed and
                 specifies the mappings to be simulated on them. Please note, that activity
                 implementing this work definition only supports PREVIEW execution mode.
 
-                Also note that if the `includeExistingCorrelators` is set to false (default), then at least one
+                Also note that if the `includeExistingMappings` is set to false (default), then at least one
                 mapping has to be specified in the `inlineMappings`.
             </xsd:documentation>
             <xsd:appinfo>
@@ -10873,15 +10726,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-
                     <!-- If the value of `includeExistingMappings` is "false" then bellow element has to be present. -->
-
-                    <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType" minOccurs="0"
+                    <xsd:element name="inlineMappings" type="tns:InlineInboundMappingsDefinitionType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Inline definition of correlators. It can be used to explicitly define the correlator, for
-                                example in case when we want to simulate suggested correlation (which is not stored yet).
+                                Inline definition of mappings. It can be used to explicitly define the mappings, for
+                                example in case when we want to simulate suggested mappings (which is not stored yet).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -10889,12 +10740,12 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="mappingWorkDefinition" type="tns:MappingWorkDefinitionType"/>
+    <xsd:element name="inboundMappingsSimulationWorkDef" type="tns:InboundMappingsSimulationWorkDefType"/>
 
-    <xsd:complexType name="InlineMappingDefinitionType">
+    <xsd:complexType name="InlineInboundMappingsDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines the mapping (either inbound or outbound) of particular item.
+                Defines the inbound mapping(s) particular item.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -10921,7 +10772,78 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outbound" type="tns:OutboundMappingType" minOccurs="0" maxOccurs="unbounded">
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="inlineMappings" type="tns:InlineInboundMappingsDefinitionType"/>
+
+    <xsd:complexType name="OutboundMappingsSimulationWorkDefType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for outbound mappings simulation activity. Selects focuses and object type to be
+                processed and specifies the mappings to be simulated on them.
+
+                Please note, that activity implementing this work definition only supports PREVIEW execution mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceObjects" type="tns:BasicResourceObjectSetType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of the resource objects which should be used for the simulation of outbound
+                                mappings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="focusObjects" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of the focus objects which should be used for the simulation of outbound
+                                mappings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="inlineMappings" type="tns:InlineOutboundMappingsDefinitionType"
+                                 maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Inline definition of mappings. It can be used to explicitly define the mappings, for
+                                example in case when we want to simulate suggested mappings (which is not stored yet).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="outboundMappingsSimulationWorkDef" type="tns:OutboundMappingsSimulationWorkDefType"/>
+
+    <xsd:complexType name="InlineOutboundMappingsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the outbound mapping(s) particular item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item that this additional mapping uses. It must point to an attribute in the
+                        resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outbound" type="tns:OutboundMappingType" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines how the attribute values are used (assigned) in case of information flow from IDM to
@@ -10934,7 +10856,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="inlineMappings" type="tns:InlineMappingDefinitionType"/>
+    <xsd:element name="outboundMappings" type="tns:InlineOutboundMappingsDefinitionType"/>
 
     <xsd:complexType name="SimulatedCorrelatorsType">
         <xsd:annotation>
@@ -11477,6 +11399,66 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- Export connector -->
+
+    <xsd:complexType name="ConnDevExportConnectorWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="version" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Explicit version for the exported connector bundle. If not specified,
+                                the current connector version is used as-is.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevExportConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevExportConnectorResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevExportConnectorResultType">
+        <xsd:sequence>
+            <xsd:element name="fileName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the exported connector bundle jar file, relative to the midPoint home
+                        "export" directory on the node identified by nodeRef.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nodeRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Node where the exported connector bundle jar file is stored.
+                    </xsd:documentation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>NodeType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="version" type="xsd:string"/>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- Discover documentation -->
 
     <xsd:complexType name="ConnDevDiscoverDocumentationWorkDefinitionType">
@@ -11683,6 +11665,30 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- Discover Connectivity Endpoint -->
+
+    <xsd:complexType name="ConnDevDiscoverConnectivityEndpointWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverConnectivityEndpointWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevDiscoverConnectivityEndpointResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevDiscoverConnectivityEndpointResultType">
+        <xsd:sequence/>
+    </xsd:complexType>
+
     <!-- Generate Global Artifact -->
 
     <xsd:complexType name="ConnDevGenerateArtifactDefinitionType">
@@ -11692,6 +11698,7 @@
                     <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="endpoint" type="tns:ConnDevHttpEndpointType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="relation" type="tns:ConnDevRelationInfoType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="midpointError" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11723,6 +11730,28 @@
             </xsd:element>
             <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Refresh Schema -->
+
+    <xsd:complexType name="ConnDevRefreshSchemaWorkDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevRefreshSchemaWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevRefreshSchemaResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevRefreshSchemaResultType">
+        <xsd:sequence/>
     </xsd:complexType>
 
 </xsd:schema>

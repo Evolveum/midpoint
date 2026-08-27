@@ -10,7 +10,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 
@@ -20,14 +20,14 @@ import com.evolveum.midpoint.test.asserter.AbstractAsserter;
  */
 public class EvaluatedPolicyRulesAsserter<RA> extends AbstractAsserter<RA> {
 
-    private final Collection<EvaluatedPolicyRule> evaluatedPolicyRules;
+    private final Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules;
 
-    public EvaluatedPolicyRulesAsserter(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, RA returnAsserter, String details) {
+    public EvaluatedPolicyRulesAsserter(Collection<DirectlyEvaluatedClockworkPolicyRule> evaluatedPolicyRules, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.evaluatedPolicyRules = evaluatedPolicyRules;
     }
 
-    EvaluatedPolicyRuleAsserter<EvaluatedPolicyRulesAsserter<RA>> forEvaluatedPolicyRule(EvaluatedPolicyRule rule) {
+    EvaluatedPolicyRuleAsserter<EvaluatedPolicyRulesAsserter<RA>> forEvaluatedPolicyRule(DirectlyEvaluatedClockworkPolicyRule rule) {
         EvaluatedPolicyRuleAsserter<EvaluatedPolicyRulesAsserter<RA>> asserter = new EvaluatedPolicyRuleAsserter<>(rule, this, "evaluated policy rule in "+desc());
         copySetupTo(asserter);
         return asserter;
@@ -37,7 +37,7 @@ public class EvaluatedPolicyRulesAsserter<RA> extends AbstractAsserter<RA> {
 //        return new  EvaluatedPolicyRuleFinder<>(this);
 //    }
 
-    public Collection<EvaluatedPolicyRule> getEvaluatedPolicyRules() {
+    public Collection<DirectlyEvaluatedClockworkPolicyRule> getEvaluatedPolicyRules() {
         return evaluatedPolicyRules;
     }
 

@@ -17,21 +17,22 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.CorrelationVerificationToken;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class CorrelationAuthenticationFilter extends MidpointFocusVerificationFilter {
 
-    private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/correlation", "POST");
+    private static final RequestMatcher DEFAULT_REQUEST_MATCHER = pathMatcher("/correlation", "POST");
 
     public CorrelationAuthenticationFilter() {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER);
+        super(DEFAULT_REQUEST_MATCHER);
     }
 
     public CorrelationAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        super(DEFAULT_REQUEST_MATCHER, authenticationManager);
     }
 
     protected AbstractAuthenticationToken createAuthenticationToken(Map<ItemPath, String> attributeValues) {

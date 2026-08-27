@@ -549,16 +549,13 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected SearchResultList<PrismObject<ShadowType>> doSearch(
-            ObjectQuery query, int expectedSize, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ObjectQuery query, int expectedSize, Task task, OperationResult result) throws CommonException {
         return doSearch(query, null, expectedSize, task, result);
     }
 
     protected SearchResultList<PrismObject<ShadowType>> doSearch(ObjectQuery query,
             GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommonException {
         final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>(expectedSize);
         ResultHandler<ShadowType> handler = (object, parentResult) -> {
             String name = object.asObjectable().getName().getOrig();
@@ -1085,7 +1082,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-    protected void assertLdapConnectorReasonableInstances() throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorReasonableInstances() throws CommonException, IOException, InterruptedException {
         if (isUsingGroupShortcutAttribute()) {
             assertLdapConnectorInstancesRange(1, 2);
         } else {
@@ -1094,7 +1091,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-    protected void assertLdapConnectorInstancesRange(int expectedConnectorInstancesLow, int expectedConnectorInstancesHigh) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorInstancesRange(int expectedConnectorInstancesLow, int expectedConnectorInstancesHigh)
+            throws CommonException, IOException, InterruptedException {
         if (runsInIdea()) {
             // IntelliJ IDEA affects management of connector instances in some way.
             // This makes the number of connector instances different when compared to a test executed from command-line.

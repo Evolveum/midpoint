@@ -49,7 +49,7 @@ public class WaitingCreateConnectorStepPanel extends WaitingObjectClassScriptCon
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateCreateScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

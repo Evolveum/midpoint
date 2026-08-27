@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.ref.MReference;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
-
 /**
  * Querydsl "row bean" type related to {@link QAffectedObjectReference}.
  */

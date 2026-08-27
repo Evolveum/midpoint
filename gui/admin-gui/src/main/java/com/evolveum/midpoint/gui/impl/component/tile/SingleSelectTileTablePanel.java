@@ -71,7 +71,7 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
 
     @Override
     protected String getTileCssClasses() {
-        return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-xxl-5i p-2";
+        return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-3xl-5i p-2";
     }
 
     @SuppressWarnings("rawtypes")

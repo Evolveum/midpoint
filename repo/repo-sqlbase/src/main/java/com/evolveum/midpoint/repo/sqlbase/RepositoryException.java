@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.repo.sqlbase;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 /**

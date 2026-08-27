@@ -31,6 +31,6 @@ public interface ProcessorMethodRef<X extends ObjectType> {
     void run(@NotNull LensContext<X> lensContext, @NotNull String activityDescription,
             @NotNull XMLGregorianCalendar now, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException;
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, ConflictDetectedException, SubscriptionComplianceException;
 
 }

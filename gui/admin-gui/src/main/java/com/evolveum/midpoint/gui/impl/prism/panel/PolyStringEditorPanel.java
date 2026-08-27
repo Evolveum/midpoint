@@ -52,6 +52,7 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_ORIGIN_VALUE_CONTAINER = "originValueContainer";
     private static final String ID_ORIG_VALUE_LABEL = "originValueLabel";
     private static final String ID_ORIG_VALUE = "origValue";
+    private static final String ID_ORIG_VALUE_WITH_BUTTON_CONTAINER = "origValueWithButtonContainer";
     private static final String ID_ORIG_VALUE_WITH_BUTTON = "origValueWithButton";
     private static final String ID_KEY_VALUE_LABEL = "keyValueLabel";
     private static final String ID_KEY_VALUE = "keyValue";
@@ -60,6 +61,7 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_TRANSLATION = "translation";
     private static final String ID_SHOW_HIDE_LANGUAGES_ORIG = "showHideLanguagesOrig";
     private static final String ID_SHOW_HIDE_LANGUAGES_LOCALIZED = "showHideLanguagesLocalized";
+    private static final String ID_LOCALIZED_VALUE_WITH_BUTTON_CONTAINER = "localizedValueWithButtonContainer";
     private static final String ID_LOCALIZED_VALUE_WITH_BUTTON = "localizedValueWithButton";
     private static final String ID_LANGUAGE_EDITOR = "languageEditor";
     private static final String ID_LANGUAGES_LIST = "languagesList";
@@ -96,11 +98,11 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private void addLabelledBy() {
-        get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_WITH_BUTTON, ID_LOCALIZED_VALUE_PANEL, ID_INPUT)).add(AttributeAppender.append(
+        get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_WITH_BUTTON_CONTAINER, ID_LOCALIZED_VALUE_WITH_BUTTON, ID_LOCALIZED_VALUE_PANEL, ID_INPUT)).add(AttributeAppender.append(
                 "aria-labelledby",
                 () -> showFullData ? get(createComponentPath(ID_LOCALIZED_VALUE_CONTAINER, ID_LOCALIZED_VALUE_LABEL)).getMarkupId() : null));
 
-        get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE, ID_INPUT)).add(AttributeAppender.append(
+        get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE, ID_INPUT)).add(AttributeAppender.append(
                 "aria-labelledby",
                 () -> showFullData ? get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_LABEL)).getMarkupId() : null));
 
@@ -129,16 +131,21 @@ public class PolyStringEditorPanel extends InputPanel {
         localizedValueLabel.add(new VisibleBehaviour(() -> showFullData));
         localizedValueContainer.add(localizedValueLabel);
 
+        WebMarkupContainer localizedValueWithButtonContainer = new WebMarkupContainer(ID_LOCALIZED_VALUE_WITH_BUTTON_CONTAINER);
+        localizedValueWithButtonContainer.add(getInputFieldClassAppender());
+        localizedValueWithButtonContainer.setOutputMarkupId(true);
+        localizedValueContainer.add(localizedValueWithButtonContainer);
+
         WebMarkupContainer localizedValueWithButton = new WebMarkupContainer(ID_LOCALIZED_VALUE_WITH_BUTTON);
         localizedValueWithButton.setOutputMarkupId(true);
-        localizedValueWithButton.add(getInputFieldClassAppender());
-        localizedValueContainer.add(localizedValueWithButton);
+        localizedValueWithButtonContainer.add(localizedValueWithButton);
 
         TextPanel<String> localizedValuePanel = new TextPanel<>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
         localizedValuePanel.setOutputMarkupId(true);
         localizedValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 //        localizedValuePanel.add(new EnableBehaviour(() -> false));
-        localizedValuePanel.getBaseFormComponent().add(AttributeAppender.append("readonly", "readonly"));
+        localizedValuePanel.getBaseFormComponent().add(AttributeAppender.append("readonly", ""));
+        localizedValuePanel.getBaseFormComponent().add(AttributeAppender.append("disabled", ""));
         localizedValueWithButton.add(localizedValuePanel);
 
         AjaxButton showHideLanguagesLocalizedButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES_LOCALIZED) {
@@ -167,10 +174,14 @@ public class PolyStringEditorPanel extends InputPanel {
         origValueLabel.add(new VisibleBehaviour(() -> showFullData));
         originValueContainer.add(origValueLabel);
 
+        WebMarkupContainer origValueWithButtonContainer = new WebMarkupContainer(ID_ORIG_VALUE_WITH_BUTTON_CONTAINER);
+        origValueWithButtonContainer.add(getInputFieldClassAppender());
+        origValueWithButtonContainer.setOutputMarkupId(true);
+        originValueContainer.add(origValueWithButtonContainer);
+
         WebMarkupContainer origValueWithButton = new WebMarkupContainer(ID_ORIG_VALUE_WITH_BUTTON);
-        origValueWithButton.add(getInputFieldClassAppender());
         origValueWithButton.setOutputMarkupId(true);
-        originValueContainer.add(origValueWithButton);
+        origValueWithButtonContainer.add(origValueWithButton);
 
         InputPanel origValuePanel;
         IModel<String> origValueModel = new IModel<>() {
@@ -443,15 +454,15 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private AttributeAppender getInputFieldClassAppenderForContainer() {
-        return AttributeModifier.append("class", () -> showFullData ? "prism-property row no-gutters" : "");
+        return AttributeModifier.append("class", () -> showFullData ? "prism-property row g-0" : "");
     }
 
     private AttributeAppender getInputFieldClassAppender() {
-        return AttributeModifier.append("class", () -> showFullData ? "col-9" : "");
+        return AttributeModifier.append("class", () -> showFullData ? "col-9" : "col-12");
     }
 
     private InputPanel getOrigValuePanel() {
-        return (InputPanel) get(ID_ORIGIN_VALUE_CONTAINER).get(ID_ORIG_VALUE_WITH_BUTTON).get(ID_ORIG_VALUE);
+        return (InputPanel) get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE));
     }
 
     //todo refactor with PolyStringWrapper

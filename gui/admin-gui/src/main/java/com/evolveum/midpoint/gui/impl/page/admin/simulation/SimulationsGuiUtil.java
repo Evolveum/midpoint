@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -73,6 +74,8 @@ import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -99,6 +102,41 @@ public class SimulationsGuiUtil {
         }));
 
         return label;
+    }
+    /**
+     * Note: only simulation event marks (eventMarkRef) are handled here.
+     * Policy statement marks (e.g. Protected) are stored on the live object via policyStatement/markRef
+     * and are not part of the simulation result snapshot.
+     */
+    public static List<Badge> createEventMarkBadges(
+            @NotNull List<ObjectReferenceType> eventMarkRefs, @NotNull PageBase page) {
+        return eventMarkRefs.stream()
+                .map(ref -> createEventMarkBadge(ref, page))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static @Nullable Badge createEventMarkBadge(
+            @NotNull ObjectReferenceType ref, @NotNull PageBase page) {
+        String oid = ref.getOid();
+        if (oid == null) {
+            return null;
+        }
+        if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())) {
+            return new Badge(MappingUtil.MappingStatus.FAILED.cssClass(), page.getString(MappingUtil.MappingStatus.FAILED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value())) {
+            return new Badge(MappingUtil.MappingStatus.ADDED.cssClass(), page.getString(MappingUtil.MappingStatus.ADDED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value())) {
+            return new Badge(MappingUtil.MappingStatus.REMOVED.cssClass(), page.getString(MappingUtil.MappingStatus.REMOVED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value())) {
+            return new Badge(MappingUtil.MappingStatus.MODIFIED.cssClass(), page.getString(MappingUtil.MappingStatus.MODIFIED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())) {
+            return new Badge(MappingUtil.MappingStatus.NOT_CHANGED.cssClass(), page.getString(MappingUtil.MappingStatus.NOT_CHANGED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value())) {
+            return new Badge(MappingUtil.MappingStatus.CHANGE_NOT_APPLIED.cssClass(), page.getString(MappingUtil.MappingStatus.CHANGE_NOT_APPLIED.translationKey()));
+        }
+        String name = WebModelServiceUtils.resolveReferenceName(ref, page);
+        return new Badge(Badge.State.SECONDARY.getCss(), name);
     }
 
     public static String getObjectProcessingStateBadgeCss(ObjectProcessingStateType state) {
@@ -129,7 +167,7 @@ public class SimulationsGuiUtil {
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
         String key = LocalizationUtil.createKeyForEnum(ot);
 
-        return LocalizationUtil.translate(key);
+        return translate(key);
     }
 
     public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn(
@@ -210,10 +248,13 @@ public class SimulationsGuiUtil {
         if (obj instanceof ShadowType) {
             try {
                 displayName = getProcessedShadowName((ShadowType) obj, page);
+            } catch (IllegalStateException ex) {
+                displayName = translate("ProcessedObjectsPanel.unknown.or.unavailable");
+                LOGGER.warn("Couldn't create processed shadow displayName; shadow data is probably incomplete or unavailable", ex);
             } catch (SystemException ex) {
-                LOGGER.debug("Couldn't create processed shadow name", ex);
+                LOGGER.debug("Couldn't create processed shadow displayName", ex);
             }
-        } else {
+        }  else {
             displayName = WebComponentUtil.getDisplayName(obj.asPrismObject());
         }
 

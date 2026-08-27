@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
-import java.util.*;
+import java.util.Collection;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
@@ -100,7 +100,7 @@ abstract public class ValueMetadataComputation {
 
     public @NotNull ValueMetadataType execute(OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         result = parentResult.createMinorSubresult(OP_EXECUTE);
         try {
             logStart();
@@ -142,7 +142,7 @@ abstract public class ValueMetadataComputation {
 
     private void processCustomMappings()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         for (MetadataMappingConfigItem mappingCI : processingSpec.getMappings()) {
             if (!env.task.canSee(mappingCI.value())) {
                 LOGGER.trace("Mapping {} is not visible for the current task, ignoring", mappingCI);

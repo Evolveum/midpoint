@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale;
 
 import javax.sql.DataSource;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.allowedconnectorslist.QAllowedConnectorsListMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.connector.QConnectorDevelopmentMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.cluster.QClusterDetectedPatternMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlierMapping;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.node.QNodeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.notification.QMessageTemplateMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.object.QProjectionHolderMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecutionMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QTriggerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
@@ -121,7 +123,7 @@ public class SqaleRepositoryBeanConfig {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext = new SqaleRepoContext(
                 repositoryConfiguration, dataSource, schemaService, mappingRegistry,
-                SqaleUtils.SCHEMA_CHANGE_NUMBER, SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER);
+                SqaleUtils.VersionedComponent.REPOSITORY);
 
         // logger on com.evolveum.midpoint.repo.sqlbase.querydsl.SqlLogger
         // DEBUG = show query, TRACE = add parameter values too (bindings)
@@ -178,6 +180,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(OperationExecutionType.COMPLEX_TYPE,
                         QOperationExecutionMapping.init(repositoryContext))
                 .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
+                .register(ProjectionHolderType.COMPLEX_TYPE,
+                        QProjectionHolderMapping.initProjectionHolderMapping(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))
@@ -209,6 +213,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
                 .register(ApplicationType.COMPLEX_TYPE, QApplicationMapping.init(repositoryContext))
                 .register(ConnectorDevelopmentType.COMPLEX_TYPE, QConnectorDevelopmentMapping.init(repositoryContext))
+                .register(AllowedConnectorsListType.COMPLEX_TYPE, QAllowedConnectorsListMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;

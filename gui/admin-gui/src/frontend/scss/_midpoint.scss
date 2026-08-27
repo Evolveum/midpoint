@@ -1,0 +1,2712 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+@import "midpoint-variables";
+@import "admin-lte-overrides";
+@import "icon-style";
+@import "prism-forms";
+@import "midpoint-utils";
+@import "menu";
+@import "list-group-menu";
+@import "wicket";
+@import "bs-stepper-custom";
+
+@import "rounded-icon";
+@import "tiles";
+@import "tables";
+@import "grid";
+@import "color";
+
+@import "role-mining";
+
+@import "autocomplete";
+
+@import "form-validation";
+@import "smart-int";
+@import "con-gen";
+@import "buttons";
+
+body.custom-hold-transition {
+  .app-main,
+  .right-side,
+  .app-footer,
+  .app-sidebar,
+  .left-side,
+  .app-header .navbar,
+  .app-header .logo {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+  }
+}
+
+
+
+.user-thumbnail-helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.user-thumbnail {
+  background-color: #FFFFFF;
+  border-radius: 4px;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+.userpanel-icon-helper {
+  //display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.userpanel-icon {
+  background-color: #FFFFFF;
+  border-radius: 35%;
+  //height: 25px;
+  //width: 25px;
+  max-width: 25px;
+  max-height: 25px;
+  vertical-align: middle;
+}
+
+.userpanel-photo {
+  background-color: #FFFFFF;
+  border-radius: 35%;
+  max-height: 115px;
+  max-width: 115px;
+  vertical-align: middle;
+}
+
+.table-header-chart {
+  max-height: 115px !important;
+  max-width: 115px !important;
+}
+
+// Classes that can be used to change icon styles (enabled, disabled, privileged, etc.)
+
+.icon-style-normal {
+
+}
+
+.icon-style-disabled {
+  color: #909090;
+}
+
+.icon-style-archived {
+  color: #c0c0c0;
+}
+
+.icon-style-privileged {
+  color: #da0000;
+}
+
+.icon-style-end-user {
+  color: #357ca5;
+}
+
+.icon-style-manager {
+  color: $object-org-color;
+}
+
+.icon-style-warning {
+  color: #8a6d3b;
+}
+
+.icon-style-up {
+  color: #00a65a;
+}
+
+.icon-style-down {
+  color: #a94442;
+}
+
+.icon-style-broken {
+  color: #f39c12;
+}
+
+.icon-style-maintenance {
+  color: #828282;
+}
+
+// Classes that can be added to color icons, info boxes and other widgets for particular object types
+
+.object-user-color {
+  color: $object-user-color;
+}
+
+.object-application-color {
+  color: $object-application-color;
+}
+
+.object-role-color {
+  color: $object-role-color;
+}
+
+.object-org-color {
+  color: $object-org-color;
+}
+
+.object-service-color {
+  color: $object-service-color;
+}
+
+.object-policy-color {
+  color: $object-policy-color;
+}
+
+.object-resource-color {
+  color: $object-resource-color;
+}
+
+.object-task-color {
+  color: $object-task-color;
+}
+
+.object-shadow-color {
+  color: $object-shadow-color;
+}
+
+.object-mining-color {
+  color: $object-mining-color;
+}
+
+.object-outlier-color {
+  color: $object-outlier-color;
+}
+
+.object-cluster-color {
+  color: $object-cluster-color;
+}
+
+.object-user-bg {
+  background-color: $object-user-color !important;
+  color: #fff !important;
+}
+
+.object-role-bg {
+  background-color: $object-role-color !important;
+  color: #fff !important;
+}
+
+.object-org-bg {
+  background-color: $object-org-color !important;
+  color: #fff !important;
+}
+
+.object-service-bg {
+  background-color: $object-service-color !important;
+  color: #fff !important;
+}
+
+.object-policy-bg {
+  background-color: $object-policy-color !important;
+  color: #fff !important;
+}
+
+.object-resource-bg {
+  background-color: $object-resource-color !important;
+  color: #fff !important;
+}
+
+.object-task-bg {
+  background-color: $object-task-color !important;
+  color: #fff !important;
+}
+
+.object-task-bg-gray {
+  background-color: #646464 !important;
+  color: #fff !important;
+}
+
+.object-shadow-bg {
+  background-color: $object-shadow-color !important;
+  color: #fff !important;
+}
+
+.object-disabled-bg {
+  background-color: $object-disabled-color !important;
+  color: #fff !important;
+}
+
+.object-access-bg {
+  background-color: $object-access-color !important;
+  color: #fff !important;
+}
+
+.object-failed-bg {
+  background-color: $object-failed-color !important;
+  color: #fff !important;
+}
+
+.object-access-only-bg {
+  background-color: $object-access-color !important;
+}
+
+.object-failed-only-bg {
+  background-color: $object-failed-color !important;
+}
+
+// Colored boxes for each object type
+
+@mixin card-object($color) {
+  &.card.card-outline {
+    border-top: 3px solid $color !important;
+  }
+
+  &.card:not(.card-outline) {
+    border: 1px solid $color;
+    border-top: 0px;
+  }
+
+  &.card:not(.card-outline) > .card-header {
+    color: #fff;
+    background: $color;
+    background-color: $color;
+  }
+}
+
+.card-user {
+  @include card-object($object-user-color);
+}
+
+.card-role {
+  @include card-object($object-role-color);
+}
+
+.card-org {
+  @include card-object($object-org-color);
+}
+
+.card-service {
+  @include card-object($object-service-color);
+}
+
+.card-policy {
+  @include card-object($object-policy-color);
+}
+
+.card-task {
+  @include card-object($object-task-color);
+}
+
+.card-resource {
+  @include card-object($object-resource-color);
+}
+
+.card-object-shadow {
+  @include card-object($object-shadow-color);
+}
+
+@mixin card-thin-object($color) {
+  border: 1px solid $color;
+
+  .card-header {
+    border-bottom: 1px solid $color;
+  }
+}
+
+.card-user-thin {
+  @include card-thin-object($object-user-color);
+}
+
+.card-role-thin {
+  @include card-thin-object($object-role-color);
+}
+
+.card-org-thin {
+  @include card-thin-object($object-org-color);
+}
+
+.card-service-thin {
+  @include card-thin-object($object-service-color);
+}
+
+.card-policy-thin {
+  @include card-thin-object($object-policy-color);
+}
+
+.card-resource-thin {
+  @include card-thin-object($object-resource-color);
+}
+
+.card-object-shadow-thin {
+  @include card-thin-object($object-shadow-color);
+}
+
+.card-task-thin {
+  @include card-thin-object($object-task-color);
+}
+
+// Summary panel (panel above the edit user/role/org forms)
+@mixin info-box-icon-summary-panel($color) {
+  color: #FFF !important;
+  background-color: $color;
+}
+
+.info-box-icon.summary-panel-user {
+  @include info-box-icon-summary-panel($object-user-color);
+}
+
+.info-box-icon.summary-panel-role {
+  @include info-box-icon-summary-panel($object-role-color);
+}
+
+.info-box-icon.summary-panel-org {
+  @include info-box-icon-summary-panel($object-org-color);
+}
+
+.info-box-icon.summary-panel-service {
+  @include info-box-icon-summary-panel($object-service-color);
+}
+
+.info-box-icon.summary-panel-policy {
+  @include info-box-icon-summary-panel($object-policy-color);
+}
+
+.info-box-icon.summary-panel-resource {
+  @include info-box-icon-summary-panel($object-resource-color);
+}
+
+.info-box-icon.summary-panel-shadow {
+  @include info-box-icon-summary-panel($object-shadow-color);
+}
+
+.info-box-icon.summary-panel-task {
+  @include info-box-icon-summary-panel($object-task-color);
+}
+
+.info-box-icon.summary-panel-mining {
+  @include info-box-icon-summary-panel($object-mining-color);
+}
+
+.info-box-icon.summary-panel-outlier {
+  @include info-box-icon-summary-panel($object-outlier-color);
+}
+
+.info-box-icon.summary-panel-cluster {
+  @include info-box-icon-summary-panel($object-cluster-color);
+}
+
+// other info box enhancements (e.g. role assignment)
+
+.info-box-ethereal {
+  // "lighter" info box, without the border or any heavy decorations
+  box-shadow: none;
+  border: none;
+  margin-bottom: 0;
+}
+
+.info-box-icon-ethereal {
+  background-color: transparent;
+}
+
+.info-box-icon-ethereal-image {
+  font-size: 56px;
+}
+
+.info-box-description {
+  display: block;
+  font-weight: normal;
+  font-size: 14px;
+}
+
+.relation-label {
+
+}
+
+//Self -> Home page, the same width for link panels.
+.dashboard-link-component {
+  flex: 1 1 0 !important;
+}
+
+// assignments dashboard panel
+.dash-assignment-header {
+
+  .target-name {
+    font-weight: bold;
+    margin-right: 5px;
+  }
+
+  .target-display-name {
+
+  }
+
+  .target-relation {
+    margin-left: 10px;
+  }
+}
+
+.info-box {
+  & .info-box-icon {
+    color: $white;
+  }
+
+  &.info-box-link {
+    cursor: pointer;
+
+    &.active {
+      background-color: #dee9f0;
+    }
+  }
+}
+
+// Capability resource view grid
+.evo-grid.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+// Capability buttons in resource details page
+.btn-resource-capability {
+  //min-width: 150px !important;
+  aspect-ratio: 4/3 !important;
+  height: auto;
+  max-height: 120px;
+  font-size: 14px;
+
+  .icon-background {
+    color: rgba(60, 141, 188, 0.1);
+  }
+
+  & i.fa-stack-2x {
+    font-size: 3.5rem;
+  }
+
+  & i.fa-stack-1x {
+    font-size: 1.35rem;
+  }
+}
+
+.btn-resource-capability:hover {
+  background: $light;
+  border-color: shade-color($light, 3%);
+}
+
+.feedback-message {
+
+  &.alert {
+    box-shadow: 0 0px 0px rgba(0, 0, 0, 0.1);
+
+    & > .card-header {
+      border-bottom-right-radius: valid-radius($border-radius);
+      border-bottom-left-radius: valid-radius($border-radius);
+    }
+
+    &:not(:has(> .card-body)) > .card-header {
+      border-bottom: 0;
+    }
+  }
+
+  &.card-body {
+    border: 0px;
+    border-left: 3px solid;
+    padding: 0.5rem 0 0 0.5rem;
+  }
+}
+
+.summary-panel-display-name {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline;
+  max-width: 800px;
+}
+
+.summary-panel-navigation-button {
+  display: inline;
+  margin-left: 10px;
+  color: $text-dimmed-color;
+}
+
+.summary-panel-navigation-button:hover {
+  display: inline;
+  margin-left: 10px;
+  color: $text-dark-dimmed-color;
+}
+
+.summary-panel-identifier {
+  color: $text-dimmed-color;
+  font-weight: normal;
+}
+
+.summary-panel-title {
+  white-space: pre-wrap;
+}
+
+.summary-panel-organization {
+  font-size: 16px;
+  display: block;
+  white-space: pre-wrap;
+}
+
+.summary-tag-box {
+  max-width: 250px;
+}
+
+.summary-tag-box-wide {
+  float: right;
+  width: 200px;
+}
+
+.summary-tag {
+
+}
+
+.summary-tag-icon {
+  width: 20px;
+}
+
+.summary-tag.icon-style-disabled {
+  color: $text-toned-color;
+
+  .summary-tag-label,
+  .summary-tag-icon {
+    color: $text-toned-color;
+  }
+}
+
+// form input for binary data upload (used e.g. for photo)
+
+.form-object-value-binary-box {
+  width: 100%;
+  padding: 0px;
+}
+
+.form-object-value-binary-file-input {
+  width: 65%;
+  vertical-align: middle;
+  display: inline !important;
+}
+
+
+// top navigation bar: page title
+
+.navbar-title {
+  float: left;
+  background-color: transparent;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  max-width: fit-content;
+}
+
+.navbar-end {
+  margin-left: auto !important;
+  display: flex !important;
+
+  width: auto;
+  max-width: 100%;
+  min-width: fit-content;
+}
+
+@media (min-width: 1200px) {
+  .navbar-end {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+.page-title {
+  background-color: transparent;
+  font-size: 22px;
+}
+
+.nav-item > .breadcrumb {
+  float: left;
+  background: transparent;
+  margin-top: 5px;
+  margin-bottom: 0;
+  margin-right: 20px;
+  font-size: 12px;
+  padding: 7px 5px;
+  color: inherit;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+
+  > div.breadcrumb-item {
+
+    overflow: hidden;
+    max-width: fit-content;
+
+    > a {
+      color: inherit;
+      text-decoration: none;
+      display: inline-block;
+
+      > .fa, > .fas, > .far, > .glyphicon, > .fe {
+        margin-right: 3px;
+      }
+    }
+  }
+
+  > div + div:before {
+    color: inherit;
+    content: '>\00a0';
+    padding: 0 0 0 5px;
+    margin-right: 3px;
+  }
+}
+
+// Prism containers and attributes
+
+.prism-object {
+  & > div.prism-header {
+    padding-left: 15px; // to match container header padding
+  }
+}
+
+.prism-multivalue-container {
+  margin-left: 15px; // aligning multivalue container with superior container
+}
+
+.check-table-header {
+  padding-left: 20px;
+
+  & > input[type="checkbox"] {
+    position: absolute;
+    margin-left: -20px;
+    margin-top: 6px;
+    width: auto;
+    max-width: none;
+  }
+
+  .check-table-label {
+
+    .check-table-header-icon {
+      margin-left: 4px;
+      position: relative;
+      bottom: 1px;
+    }
+
+    .check-table-header-name {
+      margin-left: 5px;
+      font-size: 18px;
+      color: $text-label-color !important;
+    }
+
+    .check-table-header-description {
+      margin-left: 10px;
+    }
+
+    .check-table-header-status {
+      margin-left: 10px;
+      position: relative;
+      bottom: 2px;
+    }
+
+    .check-table-header-show-more {
+      color: $text-dimmed-color !important;
+    }
+
+    .delegation-arrow-icon {
+      font-size: 24px;
+      margin-left: 5px;
+      margin-right: 5px;
+      position: relative;
+      top: 3px;
+    }
+  }
+}
+
+.tab-label {
+  & > small {
+    margin-left: 6px;
+    position: relative;
+    top: -1px;
+  }
+}
+
+.card-header.add {
+  background-color: #caffca;
+}
+
+.card-header.delete {
+  background-color: #ffcaca;
+}
+
+.main-form-panel { // Used on pages where there is just one main panel and it does not
+  // provide formatting by itself. E.g. pages that are both object lists
+  // and forms (such as workitems, requests).
+  margin-bottom: 20px;
+}
+
+.options-container {
+
+}
+
+.option-checkbox {
+  float: left;
+  border: 1px solid $table-divider-color;
+  margin-right: 10px;
+  padding-bottom: 5px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+// todo remove + remove all occurrences [lazyman]
+.main-button-bar {
+  display: flex;
+}
+
+// Badge colors used in object details tabs (and maybe elsewhere)
+
+.badge-active {
+  background-color: #3c8dbc !important;
+}
+
+.badge-passive {
+  color: #fff;
+  background-color: #d2d6de !important;
+}
+
+// Projections tab (focus pages)
+
+.projections {
+
+}
+
+.projections-header {
+
+}
+
+.projection {
+  margin-bottom: 10px;
+  @include card-thin-object($object-shadow-color);
+
+  .card-header {
+
+    .card-tools {
+      margin-top: 5px;
+    }
+  }
+}
+
+.check-table-header-pending-operation {
+  margin-left: 10px;
+}
+
+// Assignments tab (focus pages)
+
+.assignments {
+
+}
+
+.assignment {
+  margin-bottom: 10px;
+
+  .card-header {
+
+    .card-tools {
+      margin-top: 5px;
+    }
+  }
+}
+
+// Orgtree (OrgMemberPanel)
+
+span.tree-content > table {
+  width: 100%;
+  max-width: 100%;
+}
+
+span.tree-content > table tr td:last-child {
+  width: 1%;
+  vertical-align: top;
+}
+
+span.tree-content > table tr td:first-child {
+  width: 1%;
+  vertical-align: top;
+}
+
+.tree-theme-windows > div > .tree-branch > .tree-node.success, .tree-subtree > .tree-branch > .tree-node.success {
+  background-color: #dff0d8;
+}
+
+.tree-subtree > .tree-branch:nth-of-type(odd) {
+  background-color: #f9f9f9;
+}
+
+.tree-subtree > .tree-branch > .tree-node:hover, .tree-theme-windows > div > .tree-branch > .tree-node:hover {
+  background-color: #eee;
+}
+
+.org-tree-container {
+  overflow-y: auto;
+}
+
+.org-members-additional-search {
+  text-align: right;
+  margin-right: 20px !important;
+}
+
+.modal-dialog-content {
+  margin: 15px;
+  min-height: 15vh !important;
+  max-width: none !important;
+}
+
+.modal-dialog-title {
+  text-align: center;
+  border-bottom: inset;
+  border-bottom-width: thin;
+  padding-bottom: 5px;
+  margin-top: 5px;
+  font-size: 18px;
+}
+
+.manager-tools { // org tree manager buttons: HACK, need to figure out something better
+  float: right;
+  width: 42px;
+  padding-left: 10px;
+  padding-top: 7px;
+}
+
+.manager-btn { // org tree manager buttons: HACK, need to figure out something better
+  margin: 3px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 3px;
+  padding: 3px;
+  width: 23px;
+  text-align: center;
+}
+
+// Request role page
+.request-role-col-available {
+  padding-right: 0px;
+}
+
+.request-role-col-control {
+
+}
+
+.request-role-col-current {
+  padding-left: 0px;
+}
+
+.request-role-box {
+  .card-body {
+    padding-bottom: 0px;
+  }
+}
+
+.multiple-assignment-selector {
+
+  .multiple-assignment-selector-section:first-child {
+    border-top-width: 0px;
+    padding-top: 0px;
+    min-height: 36px;
+  }
+
+  .multiple-assignment-selector-section:last-child {
+    padding-bottom: 0px;
+  }
+}
+
+.multiple-assignment-selector-section {
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 2px solid $table-divider-color;
+}
+
+.multiple-assignment-selector-section-table {
+  .card {
+    border-width: 0px;
+  }
+}
+
+.multiple-assignment-selector-table-container {
+  min-height: 415px;
+}
+
+.multiple-assignment-selector-table {
+  width: 100%;
+}
+
+.multiple-assignment-selector-table-footer {
+  float: left;
+}
+
+.request-role-control-button {
+  &.btn-primary > i {
+    font-size: 32px;
+  }
+}
+
+// Password change dialog (ChangePasswordPanel, PasswordPanel)
+
+.password-panel {
+}
+
+.password-panel-divider {
+  margin-bottom: 10px;
+}
+
+.password-propagation {
+  margin-top: 5px;
+}
+
+.password-propagation-legend {
+  padding-bottom: 10px;
+  border-bottom: 1px solid $table-divider-color;
+  margin-bottom: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+// operation result
+
+.paramtable {
+  border: 0px;
+
+  .paramtable-row {
+
+    .paramtable-name {
+      vertical-align: top;
+    }
+
+    .paramtable-name::after {
+      content: ':';
+    }
+
+    .paramtable-value {
+      padding-left: 5px;
+      padding-right: 20px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  }
+}
+
+.stacktrace {
+  font-family: $font-family-monospace !important;
+  font-size: $font-size-sm !important;
+  white-space: pre-wrap;
+}
+
+// Shopping cart
+
+.shopping-cart-item-table {
+  margin-top: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
+  min-height: 460px;
+}
+
+.shopping-cart-icon {
+  color: #f4f4f4;
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+.shopping-cart-item-box {
+
+  .inner {
+    height: 120px;
+    cursor: pointer;
+  }
+
+  .inner-label {
+    font-size: 18px;
+    padding-top: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 10px;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
+
+  .inner-description {
+    font-size: 11px;
+    padding-left: 12px;
+    padding-right: 12px;
+    max-width: 70%;
+    max-height: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
+}
+
+.shopping-cart-item-box-footer {
+  padding: 3px;
+  padding-left: 8px;
+  padding-right: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+  z-index: 10;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.1);
+
+  .shopping-cart-item-button-details {
+    cursor: pointer;
+  }
+
+  .shopping-cart-item-button-details-disabled {
+    cursor: default;
+    color: darkgrey;
+  }
+
+  .shopping-cart-item-button-add {
+    cursor: pointer;
+    float: right;
+  }
+
+  .shopping-cart-item-button-add-disabled {
+    cursor: default;
+    float: right;
+    color: darkgrey;
+  }
+}
+
+// Object merge dialog
+
+.object-merge-panel {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.object-merge-equation-panel {
+  padding-top: 10px;
+}
+
+.object-merge-sign {
+  font-size: 80px;
+  padding-top: 15px;
+}
+
+.object-merge-switch-direction-col {
+  padding-left: 0px;
+}
+
+// Consent, mostly self-service pages
+
+.consent-info-box-icon {
+  background: none;
+}
+
+.consent-buttons { // maybe figure out something better, something really reusable
+  float: right;
+  width: 200px;
+  padding-left: 10px;
+  padding-top: 7px;
+}
+
+// Process (workflow) diagrams
+
+.process-box {
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 0px;
+  margin: 10px;
+
+  .box-label {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    padding: .5rem;
+
+    border-bottom: 1px solid;
+    font-weight: bold;
+
+    .process-label {
+      flex-grow: 1;
+    }
+
+    .process-outcome {
+
+    }
+  }
+
+  .box-content {
+    padding: 1.25rem;
+  }
+}
+
+.expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
+  color: $text-label-color;
+}
+
+.show-empty-button, .show-empty-button:hover .show-empty-button:focus { //class for show-empty fields button under properties
+  color: $text-label-color;
+  font-size: 14px;
+  padding-bottom: 5px;
+}
+
+/*.show-empty-button {
+  text-align:center;
+  background-color:none;
+  border: none;
+  border-radius:0.25rem;
+
+  &:hover {
+    background-color:inherit;
+    color: $primary;
+    background-color: mix(#ffffff, $primary, 90%);
+    border-color: mix(#ffffff, $primary, 20%);
+  }
+}*/
+
+
+// This will make the tooltip respect new lines.
+// Lines will still wrap if they are longer than the default max-width of the container.
+.tooltip-inner {
+  white-space: pre-wrap;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 250px;
+}
+
+.table-striped {
+  table-layout: fixed; // fix for text in cells
+}
+
+.shopping-cart-icon > .badge {
+  margin-left: -10px !important;
+}
+
+.role-catalog > .card-org > .org-tree-container {
+  max-height: 50vh;
+}
+
+.skin-red > .app-wrapper > .app-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
+.skin-red-light > .app-wrapper > .app-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge {
+  border-style: solid;
+  padding: 2px 5px;
+  border-color: #f4f4f4;
+}
+
+.small-box-footer > div {
+  display: inline-block;
+}
+
+.small-box-default-icon {
+  font-size: 50px !important;
+}
+
+.small-box {
+  cursor: default;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.small-box h3 {
+  white-space: normal;
+  font-size: 28px;
+}
+
+.tbody-nth-of-type-even > tr:nth-of-type(even) {
+  background-color: #f9f9f9 !important;
+}
+
+.tbody-nth-of-type-even > tr:nth-of-type(odd) {
+  background-color: inherit !important;
+}
+
+@media (min-width: 1550px) {
+  .small-box h3 {
+    font-size: 35px;
+  }
+}
+
+.dashboard-info-box > .small-box {
+  height: 100%;
+}
+
+.dashboard-info-box > .small-box > .small-box-footer {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+}
+
+.dashboard-info-box {
+  height: 100%;
+}
+
+.padding-bottom-20 {
+  padding-bottom: 20px;
+}
+
+.checkbox-without-margin-bottom .checkbox {
+  margin-bottom: 0px !important;
+  margin-top: 5px !important;
+}
+
+// todo probably delete? why is this here?
+th > div > .sortableLabel .row {
+  margin: 0px;
+}
+
+td .prism-property-value {
+  width: 100% !important;
+}
+
+.small-box > .small-box-footer {
+  color: inherit !important;
+}
+
+.pagination-xs > li > a {
+  padding: 0px 5px !important;
+}
+
+.cog-xs {
+  width: 38px;
+}
+
+.card.card-outline,
+.card.card-outline-start,
+.card.card-outline-tabs {
+  & > .card-header > .card-tools > a.btn.btn-tool {
+    border-top: 0 !important;
+  }
+}
+
+.btn.btn-tool {
+  color: #8e95a0;
+
+  &:hover {
+    color: inherit;
+  }
+}
+
+// handling dark mode, would be automatically fixed when we get rid of .search-item and .search-item-label and
+// replace them with vendor css utility classes
+[data-bs-theme=dark] .search-item {
+  background-color: $gray-800 !important;
+  color: $white !important;
+}
+
+// deprecated, uses should be replaced by "d-flex gap-1 px-2 bg-light rounded-1 align-items-center"
+.search-item {
+  background-color: $gray-300;
+  display: flex;
+  gap: 0.25em;
+  border-radius: $border-radius-sm;
+  padding-left: 0.5rem;
+  align-items: center;
+
+  // deprecated, uses should be replaced by "col-form-label-sm fw-normal mb-0"
+  .search-item-label {
+    padding-top: add($input-padding-y-sm, $input-border-width);
+    padding-bottom: add($input-padding-y-sm, $input-border-width);
+    @include font-size($input-font-size-sm);
+    line-height: $line-height-base;
+  }
+}
+
+.search-item-field {
+  .search-item-controls a > i {
+    font-size: 0.8rem;
+  }
+}
+
+.metadata div.prism-container {
+  // Removing the "top horizontal line" above metadata label and icon.
+  // HACK We should rather re-structure the code and provide custom css class.
+  // But there is not enough time for that now
+  border-top: 0px !important;
+}
+
+.metadata-properties {
+
+  .metadata-property {
+    padding-left: 0px;
+    padding-bottom: 5px;
+
+    &.stripe {
+      background-color: $table-stripe-bg-color;
+    }
+  }
+
+  .label {
+    display: block;
+    color: #000;
+    font-size: 100%;
+    background-color: transparent;
+    margin-top: 12px;
+    margin-top: 8px;
+    padding-left: 0em;
+    text-align: left;
+  }
+
+}
+
+.metadata {
+
+  & .card .nav-item > a.nav-link::before,
+  & .tags > a.btn::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    padding-right: 0.5em;
+    content: "\f02b";
+  }
+}
+
+.acquisition {
+  list-style: none;
+  margin-top: 5px;
+  margin-bottom: 5px;
+
+  & > li {
+    float: left;
+    margin-left: -30px;
+
+    & + li {
+      margin-left: 10px;
+
+      &::before {
+        color: $text-muted;
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f067";
+        float: left;
+        margin-right: 10px;
+      }
+    }
+  }
+}
+
+.yield {
+  margin-top: 2px;
+}
+
+.yield-heading {
+  display: flex;
+  flex-wrap: wrap;
+  flex-flow: row;
+  align-items: center;
+
+  padding: 5px 5px;
+  border-top: 1px solid #dddddd;
+}
+
+.popover {
+  .form-control {
+    width: 100% !important;
+  }
+
+  .form-control-sized {
+    width: auto !important;
+  }
+}
+
+.password-progress-bar {
+  .progress {
+    height: 15px;
+    margin-bottom: 10px;
+
+    .progress-bar {
+      line-height: 15px;
+    }
+  }
+}
+
+.password-validator-popover {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 300px;
+
+  .arrow-up {
+    left: 19px;
+    position: absolute;
+    top: 0px;
+    background-color: white;
+    border-left: 1px solid rgb(210, 214, 222);
+    border-top: 1px solid rgb(210, 214, 222);
+    //transform: translate(50%, -50%) rotate(45deg);
+    height: 15px;
+    width: 15px;
+  }
+
+  .popover-inner {
+    -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    background-color: white;
+    border: 1px solid #d2d6de;
+    white-space: nowrap;
+  }
+
+  .list-group {
+    margin-bottom: 0px;
+  }
+
+  .list-group-item {
+    border: none;
+    padding: 5px 5px;
+  }
+}
+
+.task-info-box {
+
+  .info-box {
+
+    .info-box-icon {
+      height: 110px;
+      line-height: 110px;
+    }
+  }
+}
+
+.btn-archetyped-new-object {
+  width: 160px;
+  height: 120px;
+  padding-top: 30px;
+  white-space: normal;
+  font-size: 14px;
+}
+
+.btn-archetyped-new-object > div > .fa,
+.btn-archetyped-new-object > div > .glyphicon,
+.btn-archetyped-new-object > div > .fe {
+  font-size: 30px;
+  display: block;
+}
+
+.btn-arch:hover {
+  background: #f4f4f4;
+  color: #444;
+  border-color: #aaa;
+}
+
+.btn-arch:active,
+.btn-arch:focus {
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  -moz-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.additionalButton {
+  width: 200px;
+  margin-bottom: 20px;
+}
+
+.additionalButton .row {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
+.row > div:has(> .additionalButton) {
+  width: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.compositedButton {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  width: 150px;
+  height: 180px;
+  border: 1px #f5f5f5 solid;
+  cursor: pointer;
+  border-radius: 2px;
+  box-shadow: $btn-box-shadow;
+  margin-top: 10px;
+}
+
+.compositedButton:active,
+.compositedButton:focus {
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  -moz-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+
+.compositedButton:hover {
+  background: #f4f4f4;
+  color: #444;
+  border-color: #aaa;
+}
+
+.compositedButton > .compositedButtonLabel {
+  //background-color: #ffffff;
+  margin: 10px;
+  text-align: center;
+  line-height: 20px;
+  font-size: 16px;
+  width: 115px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compositedButton > .compositedButtonIcon {
+  //background-color: #f1f1f1;
+  text-align: center;
+  font-size: 50px;
+  width: 115px;
+}
+
+.compositedButton > .compositedButtonDescription {
+  //background-color: #f1f1f1;
+  text-align: center;
+  font-size: 10px;
+}
+
+.navigation-details {
+
+  .navigation-details {
+    display: none;
+  }
+}
+
+.navigation-details .active {
+  background-color: #eeeeee;
+
+  .navigation-details {
+    display: block;
+  }
+}
+
+.navigation-details .active-second-level {
+  background-color: $lightblue;
+  color: $white;
+}
+
+fieldset.objectButtons {
+  border-top: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-right: 1px solid $legend-border-color;
+  padding: 0;
+  padding-right: 2rem;
+  width: max-content;
+  min-width: revert;
+  margin-right: 1rem;
+  margit-bottom: 0;
+
+  > legend {
+    font-size: 13px;
+    border-bottom: none;
+    margin-bottom: 0.25rem;
+    width: auto;
+    padding: 0;
+    //color: $legend-color;
+  }
+
+  &:last-of-type {
+    border-right: 0;
+    padding-right: 0;
+    margin-right: 0;
+  }
+}
+
+.details-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background-color: $white;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 1px rgba(0, 0, 0, .125), 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.details-panel-navigation {
+  order: 1;
+  flex-basis: 17%;
+  background-color: $gray-100;
+}
+
+.details-panel-details-form {
+  order: 2;
+  flex-basis: 83%;
+  max-width: 83%;
+  padding: 20px; //5px 20px 5px 20px;
+}
+
+.messagePanel ::-moz-selection { /* Code for Firefox */
+  color: white;
+  background: #338fff;
+}
+
+.messagePanel ::selection {
+  color: white;
+  background: #338fff;
+}
+
+.mapping-disabled {
+  color: #999;
+  text-decoration: line-through;
+}
+
+
+.card-body.p-0 .table {
+  & > thead > tr > th,
+  & > thead > tr > td,
+  & > tfoot > tr > th,
+  & > tfoot > tr > td,
+  & > tbody > tr > th,
+  & > tbody > tr > td {
+    &.icon:first-of-type,
+    &.composited-icon:first-of-type,
+    &.icon:last-of-type,
+    &.composited-icon:last-of-type, {
+      width: 52px !important;
+    }
+  }
+}
+
+// todo cleanup
+th, td {
+  &.check {
+    // The content of this column is just a single checkbox.
+    // WARNING: this means both the header and the table data
+    //          have just a single checkbox. Nothing else.
+    // See com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn
+    width: 50px;
+  }
+
+  &.composited-icon, &.icon {
+    width: 40px;
+  }
+
+  &.inline-menu-column {
+    width: 120px;
+  }
+}
+
+.sidebar-menu .nav-header span {
+  text-transform: uppercase;
+}
+
+div.search-popover legend {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+div.search-popover > fieldset {
+  height: 150px;
+  max-height: 150px;
+  overflow: auto;
+  white-space: nowrap;
+  padding-right: 18px;
+
+    & > div > label > a {
+      text-decoration: underline;
+    }
+}
+
+div.search-popover > dl {
+  height: 150px;
+  max-height: 150px;
+  overflow: auto;
+
+  & > dd > label {
+    margin-bottom: 0;
+
+    & > a {
+      font-weight: normal;
+    }
+  }
+}
+
+/* table panel sorting */
+th.sortable {
+
+  &:not(.asc):not(.desc) > a > .icon {
+    display: none;
+  }
+
+  &.asc > a > .icon:before {
+    content: "\f077";
+    color: $dark;
+  }
+
+  &.desc > a > .icon:before {
+    content: "\f078";
+    color: $dark;
+  }
+}
+
+th:not(.sortable) > .icon {
+  display: none;
+}
+
+// negative margin for column gutters (this can be much more nicely done in newer boostrap 5.*, not very nice in 4.6)
+.gx-0 {
+  margin-right: $grid-gutter-width * -0.5;
+  margin-left: $grid-gutter-width * -0.5;
+}
+
+/*
+ * fix for yui calendar
+ */
+span.yui-skin-sam {
+  position: relative;
+  right: 35px;
+  top: 2px;
+}
+
+.form-control-sized {
+  display: inline-block;
+  width: auto;
+}
+
+.popover {
+  max-width: unset;
+}
+
+.info-box.info-box-resource {
+
+  height: 100%;
+  margin-bottom: 0;
+
+  & > .info-box-content {
+    justify-content: start !important;
+  }
+}
+
+.main-button-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem;
+}
+
+.login-footer {
+  font-size: 13px;
+
+  a {
+    text-decoration: underline;
+  }
+}
+
+.login-panel-control {
+  width: 100% !important;
+}
+
+.login-panel-description {
+  color: var(--bs-body-color);
+  font-size: 14px;
+}
+
+.login-panel-title {
+  font-weight: bold;
+}
+
+@media (min-width: 577px) {
+  .register-box {
+    max-width: calc(480px + 1rem) !important;
+    width: 100%;
+  }
+  .login-box {
+    max-width: calc(360px + 1rem) !important;
+    width: 100%;
+  }
+}
+
+.login-box {
+
+  & .login-card-body .spacer hr {
+    border-color: #cbcbcb;
+  }
+
+  & .login-card-body .spacer span {
+    color: #757575;
+  }
+
+  & .login-card-body .user-panel.info-box .image img {
+    width: 2.4rem;
+  }
+}
+
+.info-box.activity-item-processing > .info-box-content > .progress-description {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 50vw;
+}
+
+th.debug-list-buttons {
+  width: 160px;
+}
+
+button.tooltip-button {
+  position: relative;
+}
+
+button.tooltip-button[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  background-color: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 14px;
+  top: 50%;
+  left: 100%;
+  transform: translateX(-5px) translateY(-50%);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+// used in navbar items for notification badges, replaced by standard admin-lte class .navbar-badge
+//.notification {
+//  &.nav-item > .nav-link > .badge {
+//    position: absolute;
+//    top: 5px;
+//    right: 10px;
+//    font-size: 0.5em;
+//  }
+//}
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  %grid-column {
+    position: relative;
+    width: 100%;
+    padding-right: $grid-gutter-width;
+    padding-left: $grid-gutter-width;
+  }
+
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+  .col#{$infix}-5i {
+    @extend %grid-column;
+  }
+
+  @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+    .col#{$infix}-5i {
+      flex: 0 0 20%;
+      max-width: 20%;
+    }
+  }
+}
+
+.card-outline-start {
+  &.card:not(.card-outline) > .card-header {
+    color: var(--bs-body-color);
+    background-color: transparent;
+  }
+
+  @each $name, $color in $theme-colors {
+    &.card-outline-start-#{$name} {
+      border-left: 5px solid $color;
+    }
+  }
+}
+
+.tiles-wizard {
+  & .simple-tile {
+    width: 220px;
+    height: 220px;
+  }
+
+  & .simple-tile.vertical {
+    width: 100%;
+    height: auto;
+    padding: 0.65rem 1rem;
+  }
+
+  & .role-catalog-tiles-table .catalog-tile-panel {
+    height: 376px;
+    margin-bottom: $grid-gutter-width;
+  }
+}
+
+.flex-basis-0 {
+  flex-basis: 0px !important;
+}
+
+.paging-size {
+  & > input {
+    max-width: 50px;
+  }
+
+  & .btn-increment {
+    line-height: 1;
+    color: #444;
+
+    display: flex;
+    border: 1px solid #ced4da;
+    flex: 1 1 auto !important;
+    padding: 0 0.25rem !important;
+    align-items: center !important;
+    cursor: pointer;
+
+    &.disabled {
+      pointer-events: none;
+      cursor: not-allowed;
+      opacity: 0.65;
+      background-color: #f8f9fa;
+    }
+  }
+}
+
+.assignment-path > ul {
+  list-style: none;
+  margin-bottom: 0;
+  padding-left: 0.5rem;
+
+  & > li {
+
+    &::before {
+      color: $secondary;
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      content: "\f061";
+      margin-right: .25rem;
+    }
+  }
+}
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+  @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+
+    .col#{$infix}-2\.4 {
+      @include make-col(2.4, $grid-columns);
+    }
+  }
+}
+
+.simple-container {
+
+  & .simple-container-header {
+
+    padding: 0.75rem 0;
+
+    & .simple-container-title {
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-bottom: 0.25rem;
+    }
+  }
+}
+
+.metric-widget {
+  background-color: $white;
+}
+
+[data-bs-theme="dark"] {
+  .metric-widget {
+    background-color: $dark;
+  }
+}
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-contrast($value);
+
+  .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
+    color: mix($black, $value, 5%);
+    background-color: mix($white, $value, 94%);
+    border-color: $value;
+    border: 1px solid;
+
+    option {
+      background: $white;
+      color: $dark;
+    }
+  }
+  .form-item-parent .colored-form-#{$color} ~ i.form-item-dropdown {
+    color: mix($black, $value, 6%);
+  }
+}
+
+#toastsContainerTopEnd.toasts-top-end {
+  top: 3.5rem;
+}
+
+#toastsContainerTopEnd .toast {
+  min-width: 400px;
+}
+
+.lh-1 {
+  line-height: 1;
+}
+
+.lh-2 {
+  line-height: 1.5;
+}
+
+//When sidebar link is active make icon white to match contrast
+.sidebar-dark-lightblue .sidebar-menu > .nav-item > .nav-link.active .nav-icon,
+.sidebar-light-lightblue .sidebar-menu > .nav-item > .nav-link.active .nav-icon {
+  color: white;
+}
+
+
+//Grouped classes with smooth-transition function
+.details-menu a,
+.details-menu a:hover,
+.sidebar-menu .nav-item > .nav-link,
+.sidebar-menu .nav-item > .nav-link:hover,
+div > a > div > i.fas {
+  @include smooth-transition(0.08s);
+}
+
+//Accessibility classes and overrides
+*:focus-visible,
+a:focus-visible,
+.btn:focus-visible,
+a.nav-link:focus-visible,
+button:focus-visible,
+div[role="button"]:focus-visible,
+.nav-header[role="separator"]:focus-visible,
+div[role="option"].simple-tile:focus-visible,
+div[role="region"]:focus-visible,
+div[role="heading"]:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px #ffa836;
+  outline-style: auto;
+  outline-offset: 3px;
+  z-index: 1001;
+  @include smooth-transition(0.03s);
+}
+
+#skip-link {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  margin-left: 0;
+  text-align: center;
+  z-index: 1040;
+}
+
+#skip-link a {
+  position: absolute;
+  left: -99999px;
+  top: -35px;
+  -webkit-transition: top .2s ease-out;
+  transition: top .2s ease-out;
+}
+
+#skip-link a:focus, #skip-link a:active {
+  position: relative;
+  top: 0;
+  left: 0;
+  padding: 6px 10px;
+  border-radius: 0 0 .2rem .2rem;
+  color: $primary;
+  background: #fff;
+  -webkit-transition: top .2s ease-in;
+  transition: top .2s ease-in;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: hsla(0, 0%, 100%, .85);
+}
+
+.navbar-dark .navbar-nav .nav-item.dropdown .nav-link {
+  opacity: 0.75;
+  transition: all ease 0.08s !important;
+  -webkit-transition: all ease 0.08s !important;
+}
+
+.navbar-dark .navbar-nav .nav-item.dropdown .nav-link {
+
+  &:hover, &:focus, &:active {
+    opacity: 1;
+    transition: all ease 0.08s !important;
+    -webkit-transition: all ease 0.08s !important;
+  }
+}
+//End of accessibility classes and overrides
+
+div.show > a > div > i.fas {
+  rotate: -90deg;
+  @include smooth-transition(0.08s);
+}
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-contrast($value);
+
+  .btn-#{$color}-hover:hover {
+    color: $value;
+    background-color: mix(#ffffff, $value, 85%);
+    border-color: $value;
+    border: 1px solid;
+
+    option {
+      background: $white;
+      color: $dark;
+    }
+  }
+}
+
+.navidation-panel {
+  height: 35px !important;
+}
+
+.vertical-navigation-panel {
+  /* width: 20%; */
+  width: 100%;
+  max-width: 340px;
+  @media (min-width: 769px) and (max-width: 991px) {
+    & {
+      max-width: 300px;
+    }
+  }
+  @media (max-width: 768px) {
+    &.col-md-12 {
+      max-width: none;
+    }
+  }
+}
+
+.summary-panel {
+  & > .logo {
+    min-width: 84px;
+    width: 84px;
+    height: 84px;
+    min-height: 84px;
+    border-radius: 108px;
+    background-color: rgba(60, 141, 188, 0.1);
+  }
+
+  & > .description, & > .title {
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  & > .description {
+    -webkit-line-clamp: 2;
+  }
+
+  & > .title {
+    -webkit-line-clamp: 1;
+  }
+
+  & > .details-item {
+    height: 35px;
+  }
+}
+
+.search-panel-form {
+  .saved-filter-item {
+    a.delete-filter {
+      display: none;
+    }
+
+    &:hover a.delete-filter {
+      display: inline;
+      color: $danger;
+    }
+  }
+}
+
+.midpoint-input-suffix {
+  visibility: hidden !important;
+  position: fixed !important;
+  z-index: -1 !important;
+  bottom: 0px !important;
+  left: 0px !important;
+  width: 0px !important;
+  margin: 0px 0px 0px -10em !important;
+}
+
+.choice-tiles-container-8, .choice-tiles-container-11 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 1650px) {
+  .choice-tiles-container-8 {
+    flex: 0 0 83.33333333%;
+    max-width: 83.33333333%;
+  }
+  .choice-tiles-container-11 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1947px) {
+  .choice-tiles-container-11 {
+    flex: 0 0 91.66666667%;
+    max-width: 91.66666667%;
+  }
+  .choice-tiles-container-8 {
+    flex: 0 0 75%;
+    max-width: 75%;
+  }
+}
+
+@media (min-width: 2097px) {
+  .choice-tiles-container-8 {
+    flex: 0 0 66.66666667%;
+    max-width: 66.66666667%;
+  }
+  .choice-tiles-container-11 {
+    flex: 0 0 83.33333333%;
+    max-width: 83.33333333%;
+  }
+}
+
+@media (min-width: 2270px) {
+  .choice-tiles-container-8 {
+    flex: 0 0 58.33333333%;
+    max-width: 58.33333333%;
+  }
+  .choice-tiles-container-11 {
+    flex: 0 0 75%;
+    max-width: 75%;
+  }
+}
+
+@media (min-width: 2721px) {
+  .choice-tiles-container-8 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  .choice-tiles-container-11 {
+    flex: 0 0 66.66666667%;
+    max-width: 66.66666667%;
+  }
+}
+
+@media (min-width: 3126px) {
+  .choice-tiles-container-8 {
+    flex: 0 0 41.66666667%;
+    max-width: 41.66666667%;
+  }
+  .choice-tiles-container-11 {
+    flex: 0 0 58.33333333%;
+    max-width: 58.33333333%;
+  }
+}
+
+@media (min-width: 3692px) {
+  .choice-tiles-container-8 {
+    flex: 0 0 33.33333333%;
+    max-width: 33.33333333%;
+  }
+  .choice-tiles-container-11 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+.mt-popup-under-header {
+  margin-top: 56px;
+}
+
+footer.app-footer a {
+  text-decoration: underline;
+}
+
+// based on current navigation bar 56px
+.navbar-nav .dropdown-menu {
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+   padding-left: 5px;
+    padding-right: 5px;
+}
+
+// MID-10513 fix for issue with backdrop and modal in safari, where modal is displayed behind the backdrop.
+// z-index for modal and backdrop is the same, however !important is used to ensure that it is applied.
+.modal {
+  z-index: 1050 !important;
+}
+
+.modal-backdrop {
+  z-index: 1040 !important;
+}
+
+// End of MID-10513 fix
+
+.changed-item-panel-value > p {
+  margin: 0;
+}
+
+// MID-10315 add minimum width for object name
+.name-min-width {
+  min-width: 300px;
+}
+
+//start .select2 overrides
+.select2-prepend .select2-selection {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  min-height: 38px;
+}
+
+.select2-selection__choice:focus {
+  outline: 2px solid #2684FF;
+  outline-offset: 2px;
+}
+
+.select2-selection__clear {
+  max-height: 20px;
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.select2-selection__clear:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffa836;
+}
+
+.select2-container--bootstrap-5 {
+  .select2-selection--multiple {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    .select2-search--inline {
+      width: auto !important;
+      flex: 1 1 auto;
+      min-width: 60px;
+      margin-bottom: 0.375rem;
+    }
+
+.select2-selection__rendered {
+  min-width: 0;
+
+  .select2-selection__choice {
+    min-width: 0;
+    max-width: 100%;
+
+    padding: 0 0.5rem 0 0.65rem;
+    margin: 2px 4px 2px 0;
+
+    color: var(--bs-white);
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+
+    .select2-selection__choice__display {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--bs-white);
+    }
+  }
+}
+
+    .select2-selection__rendered
+    .select2-selection__choice
+    .select2-selection__choice__remove {
+      order: 2;
+      flex: 0 0 auto;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: auto;
+      height: auto;
+      padding: 0;
+      margin-left: 0.25rem;
+      margin-right: 0;
+      line-height: 1;
+      overflow: visible;
+      text-indent: 0;
+
+      color: var(--bs-white);
+      background-color: transparent;
+      background-image: none !important;
+      opacity: 0.6;
+
+      span {
+        display: block;
+        line-height: 1;
+        color: var(--bs-white);
+      }
+
+      &:hover,
+      &:focus {
+        color: var(--bs-white);
+        background-color: transparent !important;
+        background-image: none !important;
+        opacity: 1;
+
+        span {
+          color: var(--bs-white);
+        }
+      }
+    }
+  }
+}
+
+.input-group > .select2-container {
+  flex: 1 1 auto;
+  width: 1% !important;
+  min-width: 0;
+}
+
+.input-group > .select2-container--default {
+  .select2-selection--single {
+    height: 2.375rem;
+    display: flex;
+    align-items: center;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-top-left-radius: var(--bs-border-radius);
+    border-bottom-left-radius: var(--bs-border-radius);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    position: relative;
+
+    .select2-selection__arrow {
+      position: absolute;
+      top: 50%;
+      right: 0.5rem;
+      transform: translateY(-50%);
+      height: auto;
+    }
+  }
+}
+
+.input-group.select2-prepend {
+  flex-wrap: nowrap;
+
+  .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+.input-group.select2-prepend {
+  .flex-grow-1 > .w-100 > .select2-container {
+    width: 100% !important;
+  }
+}
+//end .select2 overrides
+
+//.bootstrap-multiselect overrides
+.multiselect-native-select .dropdown .dropdown-menu {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+.dropdown-menu .dropdown-item:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
+}
+
+.help-icon-after-label {
+  float: left;
+  margin-left: 5px;
+}
+
+.bs-stepper-header .step {
+  margin: 5px;
+}
+
+.bg-light-purple {
+  background-color: #f9f2ff;
+}
+
+.bg-light-danger {
+  background-color: #fff7f7;
+}
+
+.bg-light-info {
+  background-color: #f4f8fa;
+}
+
+.bg-light-secondary {
+  background-color: #f4f4f4;
+}
+
+.collapsed-wizard-panel {
+  height: 100%;
+
+  .fake-panel {
+    width: 50px;
+  }
+
+  .collapsed-wizard-container {
+    @extend .bg-white;
+    height: 100%;
+
+    &:has(.selected) {
+      position: absolute;
+      right: 0px;
+    }
+
+    .collapsed-menu {
+      @extend .border-start;
+      width: 50px;
+
+      .collapsed-menu-icon {
+        @extend .rounded;
+        height: 42px;
+        width: 42px;
+
+        &:hover {
+          @extend .bg-primary-200;
+        }
+      }
+
+      .selected, .selected:hover {
+        @extend .text-primary;
+        @extend .bg-primary-100;
+      }
+
+      .badge-parent {
+        position: relative;
+      }
+
+      .badge {
+        @extend .px-1;
+        padding-bottom: 2px !important;
+        padding-top: 2px !important;
+        right: 3px;
+        top: -39px;
+        position: absolute;
+        pointer-events: none;
+      }
+
+    }
+
+    .collapsed-details-panel {
+      @extend .border-start;
+      @extend .p-2;
+      width: 350px;
+      height: 100%;
+    }
+  }
+}
+
+.mx-n2 {
+  margin-left: -0.5rem !important;
+  margin-right: -0.5rem !important;
+}
+
+.fw-semibold {
+  font-weight: 600 !important;
+}
+
+.text-help > p {
+  margin-bottom: .25rem;
+}
+
+.right-sidebar-layout {
+  margin-bottom: -$lte-app-main-padding-bottom;
+}
+
+.right-sidebar-help {
+  @extend .bg-white;
+  @extend .border-start;
+  width: 350px;
+
+  > .header {
+    @extend .border-bottom;
+    @extend .p-3;
+  }
+
+  > .body {
+    @extend .p-3;
+  }
+}
+
+//Wizard stepper button navigation scaling
+.popup-stepper-close {
+  font-size: .75rem;
+}
+
+.wizard-actions-strip {
+  .wizard-actions-container {
+    flex-shrink: 1;
+    flex-grow: 0;
+
+    &:first-child {
+      flex-grow: 1;
+    }
+
+    &:only-child {
+      flex-grow: 1;
+    }
+    &:last-child, &:only-child {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+  &.only-child-centered .wizard-actions-container {
+    &:only-child {
+      display: flex;
+      justify-content: center;
+    }
+  }
+  &.only-child-start .wizard-actions-container {
+      &:only-child {
+        display: flex;
+        justify-content: left;
+      }
+    }
+}
+
+.prism-value-label-readonly {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  display: block;
+  min-height: 31px;
+  padding: 4px 8px;
+  background-color: var(--bs-gray-200);
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-gray-700);
+  border-radius: 4px;
+  line-height: 1.5;
+  font-family: var(--bs-body-font-family);
+  font-size: 14px;
+}
+
+.info-box-progress-bar {
+    background-color: #fff;
+}
+
+// Keep dropdown menus visible in responsive tables, but preserve explicit overflow behavior
+// for tables that provide their own scrolling or clipping.
+@media (min-width: 992px) {
+    .table-responsive:not([class*="overflow"]) {
+        overflow: visible !important;
+    }
+}
+
+.min-width-0 {
+  min-width: 0 !important;
+}
+
+.row > .composited-button-item {
+  width: auto;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.midpoint-drawer {
+  z-index: 1060;
+  min-width: 30vw;
+}
+
+.construction-lifecycle-state {
+  display: inline-block;
+  width: fit-content;
+}
+
+.showPasswordButton {
+  height: 24px;
+  width: 24px;
+}
+
+.menu-toggle {
+  display: block;
+  padding: 0.5rem 1rem;
+}

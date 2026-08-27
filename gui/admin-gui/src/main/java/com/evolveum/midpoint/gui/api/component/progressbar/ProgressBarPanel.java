@@ -27,7 +27,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 /**
  * @author semancik
@@ -188,7 +187,7 @@ public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
                     return "";
                 }
                 String bgCssClass = progressBar.getState().getCssClass();
-                return "text" + bgCssClass.substring(2);
+                return "text-" + bgCssClass.substring(2);
             }
         };
         legendItems.setOutputMarkupId(true);

@@ -160,4 +160,10 @@ public class SystemConfigurationTypeUtil {
             @Nullable SystemConfigurationType systemConfiguration) {
         return systemConfiguration != null ? systemConfiguration.getSmartIntegration() : null;
     }
+
+    public static @Nullable SmartIntegrationShadowSamplingConfigurationType getSmartIntegrationShadowSamplingConfiguration(
+            @Nullable SystemConfigurationType systemConfiguration) {
+        var smartIntegration = getSmartIntegrationConfiguration(systemConfiguration);
+        return smartIntegration != null ? smartIntegration.getShadowSampling() : null;
+    }
 }

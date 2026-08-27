@@ -900,7 +900,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         assertThatOperationResult(testResult)
                 .isFatalError()
                 .hasMessageContaining("Missing 'ref' element in attribute definition in object type ACCOUNT/default definition in schema handling in resource:04e54cf7-87df-4b19-9548-fc256b7d585a(resource-dummy-broken-attribute-def)")
-                .hasMessageContaining("schemaHandling/objectType/123/attribute/456");
+                .hasMessageContaining("schemaHandling/objectType[123]/attribute[456]");
     }
 
     private boolean isSqaleRepository() {

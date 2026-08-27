@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil.extractMappingInfo;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil.extractMappingSimulationInfo;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.SimulationWebUtil.loadAvailableMarksModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.SimulationWebUtil.processedObjectsCountWidget;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.*;
@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -67,7 +69,8 @@ public class SimulationMappingPanel extends BasePanel<SimulationResultType> {
             MARK_ITEM_VALUE_REMOVED.value(),
             MARK_ITEM_VALUE_MODIFIED.value(),
             MARK_ITEM_VALUE_NOT_CHANGED.value(),
-            MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value());
+            MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value(),
+            MARK_ITEM_VALUE_FAILED.value());
 
     public SimulationMappingPanel(String id, IModel<SimulationResultType> model) {
         super(id, model);
@@ -83,18 +86,19 @@ public class SimulationMappingPanel extends BasePanel<SimulationResultType> {
         form.setOutputMarkupId(true);
         add(form);
 
-        initHeader(form);
+        MappingUtil.MappingInfo mappingInfo = extractMappingSimulationInfo(getPageBase(), getModelObject())
+                .orElseThrow(() -> new SystemException("Unable to read mapping information."));
+        initHeader(form, mappingInfo);
         initDashboard(form);
-        initTable(form);
+        initTable(form, mappingInfo.target());
     }
 
-    private void initHeader(@NotNull MidpointForm<?> form) {
-        MappingUtil.MappingInfo mappingInfo = extractMappingInfo(getPageBase(), getModelObject());
-
+    private void initHeader(@NotNull MidpointForm<?> form, MappingUtil.MappingInfo mappingInfo) {
         SimulationMappingHeaderPanel header = new SimulationMappingHeaderPanel(ID_HEADER, () -> mappingInfo);
         header.setOutputMarkupId(true);
         form.add(header);
     }
+
     private void loadMetricModel() {
         metricsModel = new LoadableDetachableModel<>() {
             @Override
@@ -211,20 +215,22 @@ public class SimulationMappingPanel extends BasePanel<SimulationResultType> {
         form.add(components);
     }
 
-    private void initTable(@NotNull MidpointForm<?> form) {
-        MappingProcessedObjectPanel table = buildTableComponent();
+    private void initTable(@NotNull MidpointForm<?> form, String targetItem) {
+        MappingProcessedObjectPanel table = buildTableComponent(targetItem);
         form.add(table);
     }
 
-    private @NotNull MappingProcessedObjectPanel buildTableComponent() {
+    private @NotNull MappingProcessedObjectPanel buildTableComponent(String targetItem) {
         IModel<List<MarkType>> availableMarksModel = loadAvailableMarksModel(getPageBase(), getModelObject());
         availableMarksModel.getObject().removeIf(mark ->
                 !mappingMarksOids.contains(mark.getOid())
         );
 
+        ItemName targetItemName = new ItemName(targetItem);
         MappingProcessedObjectPanel table = new MappingProcessedObjectPanel(
                 ID_TABLE,
-                availableMarksModel) {
+                availableMarksModel,
+                () -> targetItemName) {
             @Override
             protected String getDefaultMarkOidForSearch() {
                 return selectedMarkOidModel.getObject();

@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 
 import com.evolveum.midpoint.prism.*;
@@ -37,7 +36,7 @@ class FilterExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<
     }
 
     List<V> evaluate(OperationResult result) throws ExpressionEvaluationException, SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         var eeCtx = vtCtx.getExpressionEvaluationContext();
         PrismObject<?> object = determineObject();
         boolean match = false;

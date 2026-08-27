@@ -10,6 +10,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,7 +18,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
@@ -80,6 +84,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
     @Autowired private Tracer tracer;
+    @Autowired private Optional<TicketingService> ticketingService;
 
     private final Object connectorDiscovery = new Object();
 
@@ -294,6 +299,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         }
         if (connectorInstance instanceof TracerAware) {
             ((TracerAware) connectorInstance).setTracer(tracer);
+        }
+        if (connectorInstance instanceof TicketingServiceAware) {
+            ((TicketingServiceAware) connectorInstance).setTicketingService(ticketingService.orElse(null));
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware) connectorInstance).setRepositoryService(repositoryService);

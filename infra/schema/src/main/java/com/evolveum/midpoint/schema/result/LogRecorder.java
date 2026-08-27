@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.schema.result;
 
-import com.evolveum.midpoint.util.logging.*;
+import com.evolveum.midpoint.util.logging.LoggingEventSink;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.TracingAppender;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
 

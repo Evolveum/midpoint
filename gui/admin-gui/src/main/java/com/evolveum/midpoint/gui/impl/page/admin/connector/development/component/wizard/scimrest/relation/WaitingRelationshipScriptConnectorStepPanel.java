@@ -13,7 +13,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.model.IModel;
@@ -66,7 +69,7 @@ public class WaitingRelationshipScriptConnectorStepPanel extends WaitingScriptCo
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateRelationScript(
-                valueModel.getObject().getRealValue(), regenerate, task, result);
+                valueModel.getObject().getRealValue(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

@@ -13,12 +13,14 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.AsyncUpdateMessageListen
 import com.evolveum.midpoint.provisioning.ucf.api.ListeningActivity;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.async.update.AsyncUpdateConnectorInstance;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091MessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.Amqp091SourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateErrorHandlingActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
 import com.rabbitmq.client.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;

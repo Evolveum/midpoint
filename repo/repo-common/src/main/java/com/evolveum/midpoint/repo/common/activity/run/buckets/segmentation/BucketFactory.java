@@ -11,7 +11,10 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDistributio
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkBucketContentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BucketsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkAllocationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -6,9 +6,10 @@
 
 package com.evolveum.midpoint.schema.config;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 public class AssignmentConfigItem extends AbstractAssignmentConfigItem {
 
@@ -25,6 +26,10 @@ public class AssignmentConfigItem extends AbstractAssignmentConfigItem {
             @NotNull AssignmentType bean,
             @NotNull OriginProvider<? super AssignmentType> originProvider) {
         return new AssignmentConfigItem(bean, originProvider.origin(bean));
+    }
+
+    public static AssignmentConfigItem of(@NotNull AssignmentType bean, @NotNull ConfigurationItemOrigin origin) {
+        return new AssignmentConfigItem(bean, origin);
     }
 
     @Override

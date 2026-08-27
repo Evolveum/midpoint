@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.schema.TaskExecutionMode;

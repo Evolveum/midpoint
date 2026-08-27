@@ -10,12 +10,17 @@ package com.evolveum.midpoint.gui.impl.component.wizard.withnavigation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerInfoPanel;
+
+import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
+
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -24,6 +29,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -31,7 +37,6 @@ import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardListener;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedInfoPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -43,6 +48,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_HEADER = "header";
     private static final String ID_SAVE_FRAGMENT = "saveFragment";
+    private static final String ID_PROGRESS_CONTAINER = "progressContainer";
+    private static final String ID_PROGRESS_ICON = "progressIcon";
+    private static final String ID_PROGRESS_MESSAGE = "progressMessage";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_SUMMARY = "summary";
     private static final String ID_CARD = "card";
@@ -51,7 +59,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     private static final String ID_STEP_IN_PROGRESS = "stepInProgress";
     private static final String ID_PARENT_STEP_LABEL = "parentStepLabel";
     private static final String ID_CONTENT_BODY = "contentBody";
-    private static final String ID_COLLAPSED_INFO_PANEL = "collapsedInfoPanel";
+    private static final String ID_DRAWER_INFO_PANEL = "drawerInfoPanel";
 
     private final AbstractWizardController<AH, ADM> controller;
 
@@ -106,9 +114,61 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
             @Override
             protected Component createNextButton(String id, IModel<String> nextTitle) {
-                Fragment next = new Fragment(id, ID_SAVE_FRAGMENT, WizardWithNavigationPanel.this);
-                next.setRenderBodyOnly(true);
-                return next;
+                Fragment saveMessageFragment = new Fragment(id, ID_SAVE_FRAGMENT, WizardWithNavigationPanel.this) {
+                    @Override
+                    public void onEvent(IEvent<?> event) {
+                        super.onEvent(event);
+
+                        if (event.getPayload() instanceof FormComponentUpdatingEvent formComponentUpdatingEvent) {
+                            AjaxRequestTarget target = formComponentUpdatingEvent.AjaxRequestTarget();
+                            target.add(get(ID_PROGRESS_CONTAINER));
+                        }
+                    }
+                };
+                saveMessageFragment.add(new VisibleBehaviour(() -> getController().getHelper().getDetailsModel().isEditObject()));
+                saveMessageFragment.setOutputMarkupId(true);
+
+                WebMarkupContainer progressContainer = new WebMarkupContainer(ID_PROGRESS_CONTAINER);
+                progressContainer.setOutputMarkupId(true);
+                LoadableDetachableModel<String> progressMessageTitleModel = new LoadableDetachableModel<>() {
+                    @Override
+                    protected String load() {
+                        if (getController().getHelper().getDetailsModel().hasDelta()) {
+                            return getString("PageConnectorDevelopment.header.recognizedChanges.title");
+                        }
+                        return getString("PageConnectorDevelopment.header.save.title");
+                    }
+                };
+                progressContainer.add(AttributeAppender.replace("title", progressMessageTitleModel));
+                saveMessageFragment.add(progressContainer);
+
+                WebMarkupContainer progressIcon = new WebMarkupContainer(ID_PROGRESS_ICON);
+                progressIcon.setOutputMarkupId(true);
+                progressIcon.add(
+                        AttributeAppender.replace(
+                                "class",
+                                () -> getController().getHelper().getDetailsModel().hasDelta() ?
+                                        "fa fa-info-circle text-info" : "fa fa-check-circle text-success"));
+                progressContainer.add(progressIcon);
+
+                LoadableDetachableModel<String> progressMessageModel = new LoadableDetachableModel<>() {
+                    @Override
+                    protected String load() {
+                        if (getController().getHelper().getDetailsModel().hasDelta()) {
+                            return getString("PageConnectorDevelopment.header.recognizedChanges");
+                        }
+                        return getString("PageConnectorDevelopment.header.save");
+                    }
+                };
+                Label progressMessage = new Label(ID_PROGRESS_MESSAGE, progressMessageModel);
+                progressMessage.setOutputMarkupId(true);
+                progressMessage.add(
+                        AttributeAppender.replace(
+                                "class",
+                                () -> getController().getHelper().getDetailsModel().hasDelta() ? "text-info" : "text-success"));
+                progressContainer.add(progressMessage);
+
+                return saveMessageFragment;
             }
         };
         form.add(header);
@@ -126,7 +186,7 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
             }
         };
         summaryButton.setOutputMarkupId(true);
-        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-default"));
+        summaryButton.add(AttributeAppender.append("class", () -> getController().isShowedSummary() ? "btn-primary" : "btn-light border"));
         navigation.add(summaryButton);
 
         IModel<List<WizardParentStep>> modelParentsView = () -> {
@@ -174,9 +234,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         form.add(new WebMarkupContainer(ID_CONTENT_BODY));
 
-        CollapsedInfoPanel collapsedInfoPanel = new CollapsedInfoPanel(ID_COLLAPSED_INFO_PANEL, getController());
-        collapsedInfoPanel.setOutputMarkupId(true);
-        form.add(collapsedInfoPanel);
+        DrawerInfoPanel drawerInfoPanel = new DrawerInfoPanel(ID_DRAWER_INFO_PANEL, getController());
+        drawerInfoPanel.setOutputMarkupId(true);
+        form.add(drawerInfoPanel);
     }
 
     protected IModel<String> getTitleModel() {
@@ -215,17 +275,17 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         listItem.add(new Label(ID_STEP_LABEL, listItem.getModelObject().getTitle()));
 
         String keySuffix = "complete";
-        String badgeClass = "badge-success";
+        String badgeClass = "bg-success";
         if (listItem.getIndex() == lastShowedIndex) {
             keySuffix = "inProgress";
-            badgeClass = "badge-info";
+            badgeClass = "bg-info";
         } else if (setSelectedItem && listItem.getIndex() == activeIndex) {
             if (getController().isStepWithError(listItem.getModelObject().getStepId())) {
                 keySuffix = "fixing";
-                badgeClass = "badge-danger";
+                badgeClass = "bg-danger";
             } else {
                 keySuffix = "edited";
-                badgeClass = "badge-primary";
+                badgeClass = "bg-primary";
             }
         }
 
@@ -235,19 +295,19 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         Label badge = new Label(ID_STEP_BADGE, createStringResource("WizardWithNavigationPanel.navigation.step.status." + keySuffix));
         badge.setOutputMarkupId(true);
-        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " badge-opaque"));
+        badge.add(AttributeAppender.append("class", "badge " + badgeClass + " opaque"));
         listItem.add(badge);
     }
 
-    private WizardModelWithParentSteps getController() {
+    private AbstractWizardController<AH, ADM> getController() {
         return controller;
     }
 
     @Override
     public void onStepChanged(WizardStep newStep) {
         WizardStep step = getController().getActiveStep();
-        ((Component)step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
+        ((Component) step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
 
-        ((MidpointForm)get(ID_MAIN_FORM)).addOrReplace((Component) step);
+        ((MidpointForm) get(ID_MAIN_FORM)).addOrReplace((Component) step);
     }
 }

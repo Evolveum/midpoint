@@ -26,7 +26,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.*;
+import static com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.getAllLocalStates;
+import static com.evolveum.midpoint.schema.util.task.ActivityTreeUtil.ActivityStateInContext;
 
 public class ActivityStatisticsUtil {
 

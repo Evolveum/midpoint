@@ -231,7 +231,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-default"));
+        button.add(AttributeModifier.append("class", "btn btn-light border"));
         button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(runningTaskOid)));
         rightButtonsView.add(button);
     }
@@ -248,7 +248,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         };
         button.showTitleAsLabel(true);
         button.add(new VisibleBehaviour(this::isAuthorizedForReportCreation));
-        button.add(AttributeModifier.append("class", "btn btn-default"));
+        button.add(AttributeModifier.append("class", "btn btn-light border"));
         rightButtonsView.add(button);
     }
 
@@ -267,7 +267,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-default"));
+        button.add(AttributeModifier.append("class", "btn btn-light border"));
         rightButtonsView.add(button);
     }
 

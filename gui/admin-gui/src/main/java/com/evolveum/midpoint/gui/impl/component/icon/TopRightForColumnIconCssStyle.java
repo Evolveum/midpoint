@@ -23,7 +23,7 @@ public class TopRightForColumnIconCssStyle implements LayeredIconCssStyle {
 
     @Override
     public String getLayerCssClass() {
-        return "top-right-layer-for-column";
+        return "top-end-layer-for-column";
     }
 
     @Override

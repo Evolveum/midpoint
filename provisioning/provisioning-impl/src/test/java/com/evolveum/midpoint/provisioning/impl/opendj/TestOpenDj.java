@@ -3982,7 +3982,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
     @SuppressWarnings("SameParameterValue")
     private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         var object = AbstractShadow.of(
                 provisioningService.getObject(
                         ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));

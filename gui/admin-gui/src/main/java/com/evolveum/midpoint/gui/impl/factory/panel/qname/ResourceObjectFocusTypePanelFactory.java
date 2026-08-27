@@ -152,8 +152,7 @@ public class ResourceObjectFocusTypePanelFactory extends AbstractInputGuiCompone
             } else {
                 result.recordWarning("No suitable type suggestion was found.");
             }
-        } catch (SchemaException | ExpressionEvaluationException | SecurityViolationException | CommunicationException |
-                 ConfigurationException | ObjectNotFoundException | InsufficientPermissionsException e) {
+        } catch (CommonException e) {
             result.recordFatalError("Couldn't suggest focus type: " + e.getMessage(), e);
         }
 

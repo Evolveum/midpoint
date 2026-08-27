@@ -142,7 +142,7 @@ public interface ModelService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -222,7 +222,8 @@ public interface ModelService {
     default Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException,
+            SubscriptionComplianceException {
         return executeChanges(deltas, options, task, null, result);
     }
 
@@ -233,7 +234,7 @@ public interface ModelService {
             Collection<ProgressListener> listeners,
             OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
@@ -249,8 +250,8 @@ public interface ModelService {
      */
     <F extends ObjectType> void recompute(
             Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
-             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -281,7 +282,7 @@ public interface ModelService {
      *             state
      */
     PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
+            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Search for objects.
@@ -331,7 +332,7 @@ public interface ModelService {
      */
     <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Search for "sub-object" structures, i.e. containers.
@@ -351,11 +352,11 @@ public interface ModelService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException;
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Reference search - currently supporting roleMembershipRef and linkRef search.
@@ -372,7 +373,7 @@ public interface ModelService {
     SearchResultList<ObjectReferenceType> searchReferences(
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Reference count - currently supporting roleMembershipRef and linkRef search.
@@ -383,7 +384,7 @@ public interface ModelService {
     Integer countReferences(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Iterative version of {@link #searchReferences}.
@@ -392,7 +393,7 @@ public interface ModelService {
             @NotNull ObjectQuery query, @NotNull ObjectHandler<ObjectReferenceType> handler,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
+            ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Search for objects in iterative fashion (using callback).
@@ -436,13 +437,13 @@ public interface ModelService {
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     <T extends Containerable> SearchResultMetadata searchContainersIterative(Class<T> type, ObjectQuery query,
             ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Count objects.
@@ -483,31 +484,35 @@ public interface ModelService {
      */
     <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
 
 
     default <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(TypedQuery<T> query,
             Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return searchObjects(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
     }
 
     default <T extends Containerable> SearchResultList<T> searchContainers(TypedQuery<T> query,
             Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return searchContainers(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
     }
 
     default <T extends ObjectType> Integer countObjects(TypedQuery<T> query,
             Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return countObjects(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
     }
 
     default <T extends Containerable> Integer countContainers(TypedQuery<T> query,
             Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return countContainers(query.getType(), query.toObjectQuery(), query.getOptions(), task, parentResult);
     }
 
@@ -524,7 +529,7 @@ public interface ModelService {
      * @throws IllegalArgumentException wrong OID format
      */
     OperationResult testResource(String resourceOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     /**
      * Test the resource connection and basic resource connector functionality.
@@ -538,7 +543,7 @@ public interface ModelService {
      * @throws ObjectNotFoundException specified object does not exist
      */
     OperationResult testResource(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * Test partial resource connector configuration. Testing only basic connection.
@@ -553,7 +558,7 @@ public interface ModelService {
      * @throws ObjectNotFoundException specified object does not exist
      */
     OperationResult testResourcePartialConfiguration(PrismObject<ResourceType> resource, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -587,7 +592,7 @@ public interface ModelService {
      */
     @Experimental
     @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+            throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
 
     /**
@@ -600,7 +605,7 @@ public interface ModelService {
      * TODO: Better description
      */
     void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * <p>
@@ -609,7 +614,7 @@ public interface ModelService {
      * TODO: Better description
      */
     void importFromResource(String shadowOid, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Import objects from file.
@@ -678,7 +683,7 @@ public interface ModelService {
             Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
             @NotNull List<? extends ItemPath> ignoreItemPaths, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Merge two objects into one.
@@ -692,7 +697,7 @@ public interface ModelService {
      */
     <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid,
             String mergeConfigurationName, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException;
 
     void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, Task task, OperationResult parentResult)
             throws CommonException;

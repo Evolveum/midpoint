@@ -69,7 +69,7 @@ public class MappingEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         if (!mapping.isEnabled()) {
             LOGGER.debug("Skipping mapping evaluation, because mapping is disabled: {}", mapping);

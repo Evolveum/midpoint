@@ -20,7 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.merger.securitypolicy.SecurityPolicyCustomMerger;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -262,7 +264,7 @@ public class AuthSequenceUtil {
 
     public static boolean isPermitAll(HttpServletRequest request) {
         for (String url : DescriptorLoaderImpl.getPermitAllUrls()) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+            RequestMatcher matcher = pathMatcher(url);
             if (matcher.matches(request)) {
                 return true;
             }
@@ -274,7 +276,7 @@ public class AuthSequenceUtil {
 
     public static boolean isLoginPage(HttpServletRequest request) {
         for (String url : DescriptorLoaderImpl.getLoginPages()) {
-            AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
+            RequestMatcher matcher = pathMatcher(url);
             if (matcher.matches(request)) {
                 return true;
             }
@@ -358,7 +360,8 @@ public class AuthSequenceUtil {
 
                 users = modelService.searchObjects(UserType.class, query, null, task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                    | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                     | CommunicationException | ConfigurationException | ExpressionEvaluationException
+                     | SubscriptionComplianceException e) {
                 LoggingUtils.logException(LOGGER, "failed to search user", e);
                 return null;
             }
@@ -478,5 +481,23 @@ public class AuthSequenceUtil {
     public static boolean isUrlForAuthProcessing(HttpServletRequest httpRequest) {
         String localPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         return localPath.startsWith(SchemaConstants.AUTH_MODULE_PREFIX);
+    }
+
+    /**
+     * Returns a copy of the sequence that contains only the given number of modules executed first,
+     * listed in the execution order.
+     *
+     * Modules are executed in the order given by their `order` property, which does not have to match the
+     * order in which they are listed in the sequence: {@link SecurityPolicyCustomMerger} appends the modules
+     * inherited from the generic policy after the ones defined by the specific policy. Therefore the first
+     * listed module is not necessarily the first executed one.
+     */
+    public static AuthenticationSequenceType sequenceWithFirstExecutedModulesOnly(AuthenticationSequenceType sequence, int count) {
+        AuthenticationSequenceType trimmed = sequence.clone();
+        List<AuthenticationSequenceModuleType> keptModules =
+                new ArrayList<>(SecurityPolicyUtil.getSortedModules(trimmed).subList(0, count));
+        trimmed.getModule().clear();
+        trimmed.getModule().addAll(keptModules);
+        return trimmed;
     }
 }

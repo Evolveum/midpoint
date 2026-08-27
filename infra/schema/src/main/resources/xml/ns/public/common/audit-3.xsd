@@ -419,7 +419,7 @@
             <xsd:element name="customColumnProperty" type="tns:AuditEventRecordCustomColumnPropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Field of custom column for audit resord table.
+                        Field of custom column for audit record table.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>

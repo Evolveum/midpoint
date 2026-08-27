@@ -17,7 +17,6 @@ import java.util.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.impl.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.impl.lens.ConflictDetectedException;
@@ -27,7 +26,10 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -74,7 +76,7 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
 
     public void execute(OperationResult parentResult) throws SchemaException,
             ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ConflictDetectedException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ConflictDetectedException, SubscriptionComplianceException {
 
         focusDelta = applyPendingPolicyStateModifications();
 
@@ -244,14 +246,13 @@ public class FocusChangeExecution<O extends ObjectType> extends ElementChangeExe
     private void executeDeltaWithConflictResolution(OperationResult result) throws SchemaException,
             CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            ConflictDetectedException {
-        ConflictResolutionType conflictResolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
+            ConflictDetectedException, SubscriptionComplianceException {
         DeltaExecution<O, O> deltaExecution =
-                new DeltaExecution<>(focusContext, focusDelta, conflictResolution, task, changeExecutionResult);
+                new DeltaExecution<>(focusContext, focusDelta, task, changeExecutionResult);
         deltaExecution.execute(result);
         if (focusDelta.isAdd() && focusDelta.getOid() != null) {
-            b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(context, focusDelta.getOid(),
-                    focusDelta.getObjectToAdd().getVersion());
+            b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(
+                    context, focusDelta.getOid(), focusDelta.getObjectToAdd().getVersion());
         }
         if (deltaExecution.isDeleted()) {
             focusContext.setDeleted();

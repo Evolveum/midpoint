@@ -14,7 +14,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -22,8 +24,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import com.evolveum.midpoint.gui.api.component.form.TextArea;
@@ -33,7 +33,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -935,8 +934,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 //    }
 
     private <O extends ObjectType> PrismObject<O> getTargetObject(AssignmentEditorDto dto)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         PrismContainerValue<AssignmentType> assignment = dto.getOldValue();
 
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
@@ -1028,8 +1026,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         try {
             return pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(
                     operationObject, targetRefObject, task, result);
-        } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException ex) {
+        } catch (CommonException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
             return null;
         }

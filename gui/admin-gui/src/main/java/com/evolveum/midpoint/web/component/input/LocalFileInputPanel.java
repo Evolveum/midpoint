@@ -208,7 +208,7 @@ public class LocalFileInputPanel extends InputPanel {
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-default btn-sm";
+                return "btn-light border btn-sm";
             }
         };
         dropdown.setRenderBodyOnly(true);

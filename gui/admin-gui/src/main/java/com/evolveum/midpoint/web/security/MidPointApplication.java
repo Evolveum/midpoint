@@ -15,12 +15,9 @@ import java.util.*;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.authentication.api.OtpManager;
-import com.evolveum.midpoint.gui.impl.converter.*;
+import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
 
-import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-
+import de.agilecoders.wicket.webjars.WicketWebjars;
 import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -32,6 +29,8 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.request.handler.ListenerRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
 import org.apache.wicket.core.util.objects.checker.IObjectChecker;
@@ -42,6 +41,7 @@ import org.apache.wicket.csp.CSPDirective;
 import org.apache.wicket.devutils.inspector.InspectorPage;
 import org.apache.wicket.devutils.inspector.LiveSessionsPage;
 import org.apache.wicket.devutils.pagestore.PageStorePage;
+import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.markup.MarkupFactory;
 import org.apache.wicket.markup.MarkupParser;
 import org.apache.wicket.markup.MarkupResourceStream;
@@ -52,8 +52,10 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.pageStore.IPageStore;
 import org.apache.wicket.pageStore.disk.NestedFolders;
 import org.apache.wicket.protocol.http.WebApplication;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.IRequestCycleListener;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.serialize.java.JavaSerializer;
@@ -75,6 +77,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
+import com.evolveum.midpoint.authentication.api.OtpManager;
 import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.CaseManager;
@@ -86,10 +89,13 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.MidPointApplicationConfiguration;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.converter.*;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
+import com.evolveum.midpoint.gui.impl.validation.ValidatorFactoryRegistry;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -153,7 +159,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     @Autowired private SqlPerformanceMonitorsCollection performanceMonitorsCollection; // temporary
     @Autowired private RepositoryService repositoryService; // temporary
     @Autowired private RoleAnalysisService roleAnalysisService;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
     @Autowired private CaseService caseService;
     @Autowired private CaseManager caseManager;
     @Autowired private MidpointConfiguration configuration;
@@ -218,11 +224,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 .unsafeInline()
                 .add(CSPDirective.IMG_SRC, "*", "data:")
                 .add(CSPDirective.FONT_SRC, "data:");
-
-        // This is needed for wicket to work correctly. Also jQuery version in webjars should match AdminLTE jQuery version.
-        // We'll try to use npm/webpack to create this jquery resource directly, without webjars [todo lazyman]
-        getJavaScriptLibrarySettings().setJQueryReference(
-                new PackageResourceReference(MidPointApplication.class, "../../../../../META-INF/resources/webjars/jquery/3.6.0/jquery.min.js"));
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 
@@ -331,10 +332,56 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         wicketConfigurators.forEach(c -> c.configure(this));
 
         // default select2 css/js should not be attached via wicket resources. It's already embedded in vendors js/css
+        WicketWebjars.install(this);
+
         org.wicketstuff.select2.ApplicationSettings settings = org.wicketstuff.select2.ApplicationSettings.get();
         settings.setIncludeJavascriptFull(false);
         settings.setIncludeJavascript(false);
         settings.setIncludeCss(false);
+
+        // Intercept AJAX "change" events from form components and broadcast them
+        // as FormComponentUpdatingEvent so UI listeners (e.g., wizard save indicators)
+        // can react without being tightly coupled to the triggering component.
+        getRequestCycleListeners().add(new IRequestCycleListener() {
+            @Override
+            public void onRequestHandlerScheduled(RequestCycle cycle, IRequestHandler handler) {
+                try {
+                    if (handler instanceof AjaxRequestTarget target) {
+
+                        IRequestHandler requestHandler = cycle.getActiveRequestHandler();
+                        if ((!(requestHandler instanceof ListenerRequestHandler listenerRequestHandler))) {
+                            return;
+                        }
+
+                        if (!(listenerRequestHandler.getComponent() instanceof Component component)) {
+                            return;
+                        }
+
+                        Integer behaviourInd = listenerRequestHandler.getBehaviorIndex();
+                        if (behaviourInd == null) {
+                            return;
+                        }
+
+                        Page page = component.getPage();
+                        if (page == null) {
+                            return;
+                        }
+
+                        Behavior behavior = component.getBehaviorById(behaviourInd);
+                        if (behavior instanceof AjaxFormComponentUpdatingBehavior formComponentUpdatingBehavior) {
+
+                            if ("change".equalsIgnoreCase(formComponentUpdatingBehavior.getEvent())) {
+                                page.send(page, Broadcast.DEPTH, new FormComponentUpdatingEvent(target, component));
+                            }
+                        }
+
+                    }
+
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't find AjaxFormComponentUpdatingBehavior", e);
+                }
+            }
+        });
 
         cleanupWicketFileStore();
     }
@@ -500,8 +547,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return repositoryService;
     }
 
-    public CacheRegistry getCacheRegistry() {
-        return cacheRegistry;
+    public CacheDiagnosticsService getCacheDiagnosticsService() {
+        return cacheDiagnosticsService;
     }
 
     public TaskService getTaskService() {

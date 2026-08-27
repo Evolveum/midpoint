@@ -2981,7 +2981,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     @SuppressWarnings("SameParameterValue")
     private void assertGetUncreatedShadow(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createSubresult("assertGetUncreatedShadow");
         try {
             PrismObject<ShadowType> shadow = provisioningService.getObject(
@@ -2994,7 +2994,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     private PrismObject<ShadowType> getShadowNoFetch(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createSubresult("getShadowNoFetch");
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -3006,7 +3006,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     private PrismObject<ShadowType> getShadowFuture(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createSubresult("getShadowFuture");
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
@@ -3017,7 +3017,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
     private PrismObject<ShadowType> getShadowFuturePartialError(String oid)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createSubresult("getShadowFuturePartialError");
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));

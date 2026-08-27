@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -92,13 +90,18 @@ public enum ObjectTypeGuiDescriptor {
 
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""), //TODO icons
 
+    PROJECTION_HOLDER_TYPE(ObjectTypes.PROJECTION_HOLDER, "ObjectTypeGuiDescriptor.projectionHolderType", "", ""), //TODO icons
+
+
     SIMULATION_RESULT(ObjectTypes.SIMULATION_RESULT, "ObjectType.SimulationResultType", "", ""),
 
     POLICY(ObjectTypes.POLICY, "ObjectType.PolicyType", "", ""),
 
     APPLICATION(ObjectTypes.APPLICATION, "ObjectType.ApplicationType", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON),
 
-    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", "");
+    SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", ""),
+
+    ALLOWED_CONNECTORS_LIST(ObjectTypes.ALLOWED_CONNECTORS_LIST, "ObjectType.AllowedConnectorsListType", "", "");
 
     public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 

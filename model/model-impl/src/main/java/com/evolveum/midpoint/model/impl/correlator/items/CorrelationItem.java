@@ -190,7 +190,7 @@ public class CorrelationItem implements DebugDumpable {
     public S_FilterExit addClauseToQueryBuilder(
             S_FilterEntry builder, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         SearchSpec searchSpec = createSearchSpec(task, result);
         LOGGER.trace("Will look for {}", searchSpec);
@@ -214,7 +214,7 @@ public class CorrelationItem implements DebugDumpable {
 
     private SearchSpec createSearchSpec(Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (indexingItemConfiguration != null) {
             assert valueNormalizer != null;
             return new SearchSpec(
@@ -286,7 +286,7 @@ public class CorrelationItem implements DebugDumpable {
 
     double computeConfidence(Containerable candidate, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         ExpressionType expression = getConfidenceExpression();
         if (expression == null) {
             return 1;
@@ -335,7 +335,7 @@ public class CorrelationItem implements DebugDumpable {
     /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. No nulls on return. */
     private @NotNull List<Double> computeMatchMetricValues(Containerable candidate, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SearchSpec searchSpec = createSearchSpec(task, result);
         String sourceValue = convertToString(searchSpec.value);
         Collection<PrismValue> allValues = candidate.asPrismContainerValue().getAllValues(searchSpec.itemPath);
@@ -373,7 +373,7 @@ public class CorrelationItem implements DebugDumpable {
     private @NotNull List<Double> convertMetricToConfidence(
             List<Double> matchMetricValues, ExpressionType expression, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         QName inputTypeName = DOMUtil.XSD_DOUBLE;
         PrismPropertyDefinition<Double> inputPropertyDef =
                 PrismContext.get().definitionFactory().newPropertyDefinition(

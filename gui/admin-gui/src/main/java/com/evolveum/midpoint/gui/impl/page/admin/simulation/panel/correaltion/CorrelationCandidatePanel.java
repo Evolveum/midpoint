@@ -165,7 +165,7 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         CorrelationRuleDetails details = item.getModelObject();
 
                         if (details.isHeader()) {
-                            item.add(createLabel(ID_RULE_NAME, details.title(), "font-weight-semibold"));
+                            item.add(createLabel(ID_RULE_NAME, details.title(), "fw-semibold"));
                             item.add(createViewRuleButton(details));
                         } else {
                             item.add(createLabel(ID_RULE_NAME, details.title(), "text-muted"));

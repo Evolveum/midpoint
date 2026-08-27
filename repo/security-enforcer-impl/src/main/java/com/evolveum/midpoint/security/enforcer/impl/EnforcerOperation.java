@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.security.enforcer.impl;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import com.evolveum.midpoint.schema.traces.details.AbstractTraceEvent;
 

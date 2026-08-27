@@ -100,9 +100,7 @@ public class TestManyThreads extends AbstractStoryTest {
         }
     }
 
-    private void assertResourceSanity(String oid, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+    private void assertResourceSanity(String oid, Task task, OperationResult result) throws CommonException {
         ResourceType resource = provisioningService.getObject(ResourceType.class, oid, null, task, result).asObjectable();
         assertNotNull("No schemaHandling", resource.getSchemaHandling());
         assertEquals("Wrong # of object type defs", 1, resource.getSchemaHandling().getObjectType().size());

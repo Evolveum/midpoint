@@ -50,7 +50,7 @@ public class LensExpressionUtil {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return evaluateExpressionSingle(
                 expressionBean, variablesMap, elementContext, contextDesc, task, result,
                 DOMUtil.XSD_BOOLEAN, false, null);
@@ -64,7 +64,7 @@ public class LensExpressionUtil {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return evaluateExpressionSingle(
                 expressionBean, variablesMap, elementContext, contextDesc, task, result,
                 DOMUtil.XSD_STRING, null, null);
@@ -78,7 +78,7 @@ public class LensExpressionUtil {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Function<Object, Object> additionalConvertor = (o) -> {
             if (o == null || o instanceof LocalizableMessageType) {
                 return o;
@@ -104,7 +104,7 @@ public class LensExpressionUtil {
             T defaultValue,
             Function<Object, Object> additionalConvertor)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismPropertyDefinition<T> resultDef =
                 PrismContext.get().definitionFactory().newPropertyDefinition(
                         new QName(SchemaConstants.NS_C, "result"), typeName);
@@ -134,7 +134,7 @@ public class LensExpressionUtil {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
         if (template.getKey() != null) {
             rv.setKey(template.getKey());

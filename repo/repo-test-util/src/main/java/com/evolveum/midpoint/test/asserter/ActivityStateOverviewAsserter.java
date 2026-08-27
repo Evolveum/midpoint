@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
+import com.evolveum.midpoint.schema.util.task.BucketsProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ItemsProgressInformation;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;

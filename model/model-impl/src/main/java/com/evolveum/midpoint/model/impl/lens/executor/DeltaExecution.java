@@ -6,6 +6,20 @@
 
 package com.evolveum.midpoint.model.impl.lens.executor;
 
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_DELTA;
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.prism.PrismObject.cast;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
@@ -16,7 +30,10 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionMappingSetEvaluator;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -27,7 +44,9 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -49,22 +68,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_DELTA;
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-import static com.evolveum.midpoint.prism.PrismObject.cast;
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * Executes specified delta. Chooses appropriate component (repo, provisioning, task manager, and so on).
@@ -100,9 +104,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
      */
     private ObjectDelta<E> deltaForExecution;
 
-    /** How should we resolve conflicts? */
-    private final ConflictResolutionType conflictResolution;
-
     /** Resource related to element context, if any. */
     private final ResourceType resource;
 
@@ -136,7 +137,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     DeltaExecution(
             @NotNull LensElementContext<E> elementContext,
             ObjectDelta<E> delta,
-            ConflictResolutionType conflictResolution,
             @NotNull Task task,
             @NotNull ChangeExecutionResult<E> changeExecutionResult) {
 
@@ -144,7 +144,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         this.context = (LensContext<O>) elementContext.getLensContext();
         this.elementContext = elementContext;
         this.delta = java.util.Objects.requireNonNull(delta, "null delta");
-        this.conflictResolution = conflictResolution;
         this.resource = elementContext instanceof LensProjectionContext ?
                 ((LensProjectionContext) elementContext).getResource() : null;
         this.task = task;
@@ -154,7 +153,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Main
     public void execute(OperationResult parentResult) throws SchemaException, CommunicationException,
             ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, ConflictDetectedException,
+            SubscriptionComplianceException {
 
         elementContext.resolveTemporaryContainerIds(delta);
 
@@ -219,7 +219,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
         // Other types than focus types may not be definition-complete (e.g.
         // accounts and resources are completed in provisioning)
-        if (FocusType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+        if (ProjectionHolderType.class.isAssignableFrom(delta.getObjectTypeClass())) {
             delta.assertDefinitions();
         }
     }
@@ -349,7 +349,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             if (objectAddedClass == null || !objectAddedClass.equals(objectToAddClass)) {
                 continue;
             }
-            if (FocusType.class.isAssignableFrom(objectAddedClass)) {
+            if (ProjectionHolderType.class.isAssignableFrom(objectAddedClass)) {
                 return currentOdo; // we suppose there is only one delta of Focus class (shouldn't this be AssignmentHolderType?)
             }
         }
@@ -455,7 +455,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Addition
     private void executeAddition(OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         stateCheck(!delta.isImmutable(), "Immutable delta? In %s", elementContext);
 
@@ -521,7 +522,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private String executeRealAddition(PrismObject<E> objectToAdd, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            SubscriptionComplianceException {
         E objectBeanToAdd = objectToAdd.asObjectable();
         String oid;
         if (objectBeanToAdd instanceof TaskType) {
@@ -543,6 +545,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         } else {
             FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
             oid = b.cacheRepositoryService.addObject(objectToAdd, createRepoAddOptions(), result);
+            if (objectBeanToAdd instanceof CaseType aCase && b.caseEventDispatcher != null) {
+                b.caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
+            }
         }
         return oid;
     }
@@ -558,7 +563,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private String addProvisioningObject(PrismObject<E> object, OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            SubscriptionComplianceException {
 
         OperationProvisioningScriptsType scripts;
         if (object.canRepresent(ShadowType.class)) {
@@ -598,7 +604,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void executeModification(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
-            ConflictDetectedException {
+            ConflictDetectedException, SubscriptionComplianceException {
 
         Class<E> objectClass = delta.getObjectTypeClass();
 
@@ -689,7 +695,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void executeRealModification(Class<E> objectClass, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
-            ConflictDetectedException {
+            ConflictDetectedException, SubscriptionComplianceException {
         if (TaskType.class.isAssignableFrom(objectClass)) {
             b.taskManager.modifyTask(
                     deltaForExecution.getOid(), deltaForExecution.getModifications(), result);
@@ -711,6 +717,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                         objectClass, deltaForExecution.getOid(), deltaForExecution.getModifications(),
                         precondition, null, result);
             } catch (PreconditionViolationException e) {
+                result.muteErrorsRecursively();
                 throw new ConflictDetectedException(e);
             }
         }
@@ -718,7 +725,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private String modifyProvisioningObject(OperationResult result) throws ObjectNotFoundException, CommunicationException,
             SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException, PolicyViolationException {
+            ObjectAlreadyExistsException, PolicyViolationException, SubscriptionComplianceException {
 
         Class<E> objectClass = deltaForExecution.getObjectTypeClass();
         String oid = deltaForExecution.getOid();
@@ -784,7 +791,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     @Nullable
     private ModificationPrecondition<E> createRepoModificationPrecondition() {
-        if (!b.clockworkConflictResolver.shouldCreatePrecondition(context, conflictResolution)) {
+        if (!isFocus() || !b.clockworkConflictResolver.shouldCreatePrecondition(context)) {
             return null;
         }
         String readVersion = elementContext.getObjectReadVersion();
@@ -808,7 +815,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //region Deletion
     private void executeDeletion(OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         String oid = delta.getOid();
         Class<E> objectTypeClass = delta.getObjectTypeClass();
@@ -845,7 +852,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private void executeRealDeletion(Class<E> objectTypeClass, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException,
+            SubscriptionComplianceException {
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             b.taskManager.deleteTask(oid, result);
         } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
@@ -889,7 +897,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     private PrismObject<E> deleteProvisioningObject(Class<E> type, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException {
 
         ProvisioningOperationOptions options = getProvisioningOptions();
         ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
@@ -1016,13 +1024,14 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     //endregion
 
     //region Provisioning scripts
+
     /**
      * TODO clarify the role of `object` parameter and why it is used only as a second choice (after ctx.objectAny).
      */
     private OperationProvisioningScriptsType prepareScripts(
             PrismObject<E> object, ProvisioningOperationTypeType operation, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (resource == null) {
             LOGGER.warn("Resource does not exist. Skipping processing scripts.");
@@ -1104,6 +1113,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    private boolean isFocus() {
+        return elementContext instanceof LensFocusContext;
     }
     //endregion
 }

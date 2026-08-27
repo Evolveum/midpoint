@@ -19,6 +19,6 @@ public interface ValueNormalizer {
 
     @NotNull String normalize(@NotNull Object input, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
 }

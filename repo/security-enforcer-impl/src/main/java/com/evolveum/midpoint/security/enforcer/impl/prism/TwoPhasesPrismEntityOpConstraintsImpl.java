@@ -122,7 +122,7 @@ public abstract class TwoPhasesPrismEntityOpConstraintsImpl<OC extends SinglePha
         public void applyAuthorization(
                 @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
             request.applyAuthorization(value, evaluation);
             execution.applyAuthorization(value, evaluation);
         }

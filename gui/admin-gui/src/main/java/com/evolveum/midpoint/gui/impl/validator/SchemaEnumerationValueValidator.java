@@ -16,7 +16,6 @@ import org.apache.wicket.validation.ValidationError;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import java.io.ByteArrayInputStream;

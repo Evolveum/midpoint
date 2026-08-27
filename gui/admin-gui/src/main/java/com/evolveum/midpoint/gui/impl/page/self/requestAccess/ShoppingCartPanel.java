@@ -89,13 +89,13 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
             long warnings = data.getWarningCount();
             if (warnings > 0 && data.areShoppingCartItemsRelatedToConflicts()) {
                 String key = warnings == 1 ? "ShoppingCartPanel.badge.oneWarning" : "ShoppingCartPanel.badge.multipleWarnings";
-                badges.add(new Badge("badge badge-warning", getString(key, warnings)));
+                badges.add(new Badge("badge text-bg-warning", getString(key, warnings)));
             }
 
             long errors = data.getErrorCount();
             if (errors > 0) {
                 String key = errors == 1 ? "ShoppingCartPanel.badge.oneConflict" : "ShoppingCartPanel.badge.multipleConflicts";
-                badges.add(new Badge("badge badge-danger", "fa fa-exclamation-triangle", getString(key, errors)));
+                badges.add(new Badge("badge text-bg-danger", "fa fa-exclamation-triangle", getString(key, errors)));
             }
 
             return badges;

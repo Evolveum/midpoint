@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.org;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;

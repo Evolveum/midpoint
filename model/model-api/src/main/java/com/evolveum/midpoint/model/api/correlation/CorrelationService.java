@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
+import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -40,7 +41,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     @NotNull CompleteCorrelationResult correlate(
             @NotNull ShadowType shadowedResourceObject,
@@ -50,7 +51,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Describes the provided correlation case by providing {@link CorrelationCaseDescription} object.
@@ -71,37 +72,7 @@ public interface CorrelationService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
-
-    /**
-     * Completes given correlation case.
-     *
-     * Preconditions:
-     *
-     * - case is freshly fetched,
-     * - case is a correlation one
-     *
-     * @param caseCloser Makes the case definitely closed. (This functionality must be provided by the caller.)
-     */
-    void completeCorrelationCase(
-            @NotNull CaseType currentCase,
-            @NotNull CaseCloser caseCloser,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
-
-    /**
-     * Executes retry-safe business logic required before a correlation case may be
-     * persisted as closing. If this method fails, the case remains open.
-     */
-    default void prepareCorrelationCaseClosing(
-            @NotNull CaseType currentCase,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-    }
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /**
      * Instantiates a correlator
@@ -120,16 +91,28 @@ public interface CorrelationService {
      *
      * @param shadow The shadow, whose linked or correlated focus you want to find.
      * @param resource The resource, which will be used for correlation if there is no linked or correlated focus yet.
-     * @param typeDef The object type definition for the purposes of correlation.
-     * @param correlationDef The definition of correlation for the purposes of correlation.
      *
      * @return The found focus or empty Optional if no linked/correlated focus was found.
      */
-    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, @NotNull ResourceType resource,
-            @NotNull ResourceObjectTypeDefinition typeDef, @NotNull CorrelationDefinitionType correlationDef,
-            @NotNull Task task, OperationResult result)
+    Optional<FocusType> findLinkedOrCorrelatedFocus(ShadowType shadow, ResourceType resource, @NotNull Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException;
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, SubscriptionComplianceException;
+
+    /**
+     * Resolves the given correlation case - in the correlator.
+     *
+     * For the majority of correlators this is no-op. See
+     * {@link Correlator#resolve(CaseType, String, Task, OperationResult)}.
+     *
+     * Note that {@link CaseType#getOutcome()} must not be null.
+     */
+    void resolveCorrelationCase(
+            @NotNull CaseType aCase,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     @FunctionalInterface
     interface CaseCloser {

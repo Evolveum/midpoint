@@ -74,8 +74,7 @@ public class ResourceConnectorPanel extends AbstractObjectMainPanel<ResourceType
                 List<ConnectorOperationalStatus> status = null;
                 try {
                     status = getPageBase().getModelInteractionService().getConnectorOperationalStatus(getObjectWrapper().getOid(), task, result);
-                } catch (SchemaException | ObjectNotFoundException | CommunicationException
-                        | ConfigurationException | ExpressionEvaluationException e) {
+                } catch (CommonException e) {
                     LOGGER.error("Error getting connector status for {}: {}", getObjectWrapper(), e.getMessage(), e);
                     getPageBase().showResult(result);
                 }

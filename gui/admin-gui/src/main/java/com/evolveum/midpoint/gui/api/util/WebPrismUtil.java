@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -302,13 +303,82 @@ public class WebPrismUtil {
         }
     }
 
+    /**
+     * Resets the values of the given container value wrapper and its child item wrappers to their old values.
+     *
+     * @param valueWrapper the container value wrapper to reset
+     */
+    public static <C extends Containerable> void resetContainerValueWrapper(PrismContainerValueWrapper<C> valueWrapper) {
+        if (valueWrapper == null) {
+            return;
+        }
+
+        for (ItemWrapper<?, ?> itemWrapper : new ArrayList<>(valueWrapper.getItems())) {
+            resetItemWrapper(itemWrapper);
+        }
+    }
+
+    private static void resetItemWrapper(@NotNull ItemWrapper<?, ?> itemWrapper) {
+
+        for (Object valueObject : new ArrayList<>(itemWrapper.getValues())) {
+            PrismValueWrapper<?> valueWrapper = (PrismValueWrapper<?>) valueObject;
+
+            if (valueWrapper instanceof PrismContainerValueWrapper<?> containerValueWrapper) {
+                resetContainerValueWrapper(containerValueWrapper);
+                valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
+            } else {
+                PrismValue oldValue = valueWrapper.getOldValue();
+                valueWrapper.setRealValue(oldValue != null ? oldValue.getRealValue() : null);
+                valueWrapper.setStatus(ValueStatus.NOT_CHANGED);
+            }
+        }
+    }
+
+    /**
+     * Removes the wrapper from its parent if it was newly added and contains no meaningful values.
+     *
+     * @param valueWrapper wrapper to check and remove
+     */
+    public static void removeEmptyAddedValue(@NotNull PrismContainerValueWrapper<?> valueWrapper) {
+
+        if (valueWrapper.getStatus() != ValueStatus.ADDED || !isEmptyWrapper(valueWrapper)) {
+            return;
+        }
+
+        WebPrismUtil.cleanupEmptyContainerValue(valueWrapper.getNewValue());
+
+        if (valueWrapper.getParent() instanceof PrismContainerWrapper<?> parent) {
+            parent.getValues().remove(valueWrapper);
+
+            if (valueWrapper.getNewValue() != null) {
+                parent.getItem().getValues().remove(valueWrapper.getNewValue());
+            }
+        }
+    }
+
+    /**
+     * Checks whether the wrapper contains no meaningful values after empty values are cleaned up.
+     */
+    protected static boolean isEmptyWrapper(
+            @NotNull PrismContainerValueWrapper<?> valueWrapper) {
+
+        PrismContainerValue<?> newValue = valueWrapper.getNewValue();
+        if (newValue == null) {
+            return true;
+        }
+
+        PrismContainerValue<?> clone = newValue.clone();
+        WebPrismUtil.cleanupEmptyContainerValue(clone);
+        return clone.isEmpty();
+    }
+
     public static void cleanupValueMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             cleanupEmptyValues(value.getValueMetadata());
         }
     }
 
-    private static <T> void cleanupEmptyValues(Item item) {
+    public static <T> void cleanupEmptyValues(Item item) {
         if (item instanceof PrismContainer) {
             cleanupEmptyContainers((PrismContainer) item);
         }
@@ -323,14 +393,23 @@ public class WebPrismUtil {
             Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
             while (iterator.hasNext()) {
                 PrismPropertyValue<T> pVal = iterator.next();
+
                 if (pVal == null) {
                     iterator.remove();
                     continue;
                 }
-                if (pVal.getRealValue() instanceof ExpressionType && ExpressionUtil.isEmpty((ExpressionType) pVal.getRealValue())) {
-                    iterator.remove();
-                    continue;
+
+                if (pVal.getRealValue() instanceof ExpressionType expression) {
+                    if (!ExpressionUtil.isEmpty(expression)) {
+                        cleanupEmptyExpressionEvaluatorContainers(expression);
+                    }
+
+                    if (ExpressionUtil.isEmpty(expression)) {
+                        iterator.remove();
+                        continue;
+                    }
                 }
+
                 if (pVal.isEmpty() || pVal.getRealValue() == null) {
                     iterator.remove();
                     continue;
@@ -357,6 +436,31 @@ public class WebPrismUtil {
 
                 cleanupValueMetadata(rVal);
             }
+        }
+    }
+
+    /**
+     * Cleans up empty expression evaluator containers in the given expression.
+     */
+    private static void cleanupEmptyExpressionEvaluatorContainers(@NotNull ExpressionType expression) {
+        List<JAXBElement<?>> expressionEvaluator = expression.getExpressionEvaluator();
+        if (expressionEvaluator == null || expressionEvaluator.isEmpty()) {
+            return;
+        }
+
+        Iterator<JAXBElement<?>> iterator = expressionEvaluator.iterator();
+        while (iterator.hasNext()) {
+            JAXBElement<?> evaluatorElement = iterator.next();
+            Object value = evaluatorElement.getValue();
+            if (value instanceof Containerable container) {
+                PrismContainerValue<?> prismContainerValue = container.asPrismContainerValue();
+                cleanupEmptyContainerValue(prismContainerValue);
+
+                if (prismContainerValue.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+
         }
     }
 
@@ -616,9 +720,7 @@ public class WebPrismUtil {
         if (showExpression) {
             ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
             if (expressionBean != null) {
-                String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
-                evaluatorType = ExpressionUtil.getExpressionType(expression);
-
+                evaluatorType = ExpressionUtil.getExpressionType(expressionBean);
             }
 
             if (evaluatorType == null) {

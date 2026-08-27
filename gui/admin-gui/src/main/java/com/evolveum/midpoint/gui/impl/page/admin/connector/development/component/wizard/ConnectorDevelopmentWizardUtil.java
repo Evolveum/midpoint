@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
+import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -86,15 +87,7 @@ public class ConnectorDevelopmentWizardUtil {
                 .searchObjects(TaskType.class, query, null, operationTask, operationTask.getResult());
 
         if (objectClassName != null) {
-            tasks.removeIf(task ->
-                    task.asObjectable().getActivity() == null
-                            || task.asObjectable().getActivity().getWork() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact() == null
-                            || task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact() == null
-                            || !Strings.CS.equals(
-                            task.asObjectable().getActivity().getWork().getGenerateConnectorArtifact().getArtifact().getObjectClass(),
-                            objectClassName)
-            );
+            tasks.removeIf(task -> !Strings.CS.equals(getTaskObjectClass(task.asObjectable()), objectClassName));
         }
 
         if (scriptType != null) {
@@ -113,6 +106,24 @@ public class ConnectorDevelopmentWizardUtil {
         }
 
         return tasks.get(0);
+    }
+
+    /** Resolves the object class the task works on, for the work definition types that are object class specific. */
+    private static String getTaskObjectClass(TaskType task) {
+        if (task.getActivity() == null || task.getActivity().getWork() == null) {
+            return null;
+        }
+        var work = task.getActivity().getWork();
+        if (work.getGenerateConnectorArtifact() != null && work.getGenerateConnectorArtifact().getArtifact() != null) {
+            return work.getGenerateConnectorArtifact().getArtifact().getObjectClass();
+        }
+        if (work.getDiscoverObjectClassAttributes() != null) {
+            return work.getDiscoverObjectClassAttributes().getObjectClass();
+        }
+        if (work.getDiscoverObjectClassEndpoints() != null) {
+            return work.getDiscoverObjectClassEndpoints().getObjectClass();
+        }
+        return null;
     }
 
     public static String getTaskToken(
@@ -208,13 +219,13 @@ public class ConnectorDevelopmentWizardUtil {
 
     private static <C extends PrismContainerWrapper<?>> Object getPropertyValue(C container, ItemPath path) {
         if (container == null) {
-            return false;
+            return null;
         }
 
         try {
             PrismPropertyWrapper<?> propertyWrapper = container.findProperty(path);
             if (propertyWrapper == null || propertyWrapper.getValues().isEmpty()) {
-                return false;
+                return null;
             }
             if (propertyWrapper.getValues().get(0).getNewValue() != null) {
                 return propertyWrapper.getValues().get(0).getNewValue().getRealValue();
@@ -564,6 +575,24 @@ public class ConnectorDevelopmentWizardUtil {
         }
     }
 
+    public static List<String> collectErrorMessages(Collection<OperationResult> results) {
+        List<String> messages = new ArrayList<>();
+        results.forEach(result -> collectErrorMessages(result, messages));
+        return messages;
+    }
+
+    private static void collectErrorMessages(OperationResult result, List<String> messages) {
+        if (result == null) {
+            return;
+        }
+        if (result.isError() && StringUtils.isNotEmpty(result.getMessage()) && !messages.contains(result.getMessage())) {
+            messages.add(result.getMessage());
+        }
+        for (OperationResult subresult : result.getSubresults()) {
+            collectErrorMessages(subresult, messages);
+        }
+    }
+
     public static void enableConnectorLogCapture(Task task) {
         task.setExecutionMode(TaskExecutionMode.SIMULATED_SHADOWS_DEVELOPMENT);
         task.addTracingRequest(TracingRootType.CONNECTOR_OPERATION);
@@ -587,5 +616,62 @@ public class ConnectorDevelopmentWizardUtil {
             }
         }
         result.addContext("logs", logs.toString());
+    }
+
+    public static boolean isScim(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return ConnDevIntegrationType.SCIM.equals(integrationType.getValue().getRealValue());
+        } catch (SchemaException e) {
+            return false;
+        }
+    }
+
+    public static boolean isSql(ConnectorDevelopmentDetailsModel detailsModel) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return ConnDevIntegrationType.SQL.equals(integrationType.getValue().getRealValue());
+        } catch (SchemaException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Resolves the {@link ConnectorWizardStrategy} for this connector's integration type, so wizard
+     * step panels can delegate connector-type-specific decisions instead of branching themselves.
+     * Mirrors {@code ConnectorDevelopmentBackend.backendFor(...)} on the model layer.
+     */
+    public static ConnectorWizardStrategy wizardStrategyFor(ConnectorDevelopmentDetailsModel detailsModel) {
+        if (isSql(detailsModel)) {
+            return new SqlConnectorWizardStrategy();
+        }
+        if (isScim(detailsModel)) {
+            return new ScimConnectorWizardStrategy();
+        }
+        return new RestConnectorWizardStrategy();
+    }
+
+    public static List<ItemName> getVisibleAuthorizationAttributes(
+            ConnectorDevelopmentDetailsModel detailsModel, ConnDevAuthInfoType authType) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integration = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            return new ArrayList<>(SupportedAuthorization.attributesFor(integration.getValue().getRealValue(), authType.getType()));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <T> void setTestingResourcePropertyValue(
+            ConnectorDevelopmentDetailsModel detailsModel, String panelType, ItemName propertyName, T value)
+            throws SchemaException {
+        ObjectDetailsModels<ResourceType> resourceModel = getTestingResourceModel(detailsModel, panelType);
+        ItemPath path = ItemPath.create("connectorConfiguration", SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME, propertyName);
+        PrismPropertyWrapper<T> prop = resourceModel.getObjectWrapper().findProperty(path);
+        if (prop != null && !prop.getValues().isEmpty()) {
+            prop.getValue().setRealValue(value);
+        }
     }
 }

@@ -12,9 +12,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  * @author skublik
  */

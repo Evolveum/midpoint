@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.web.component.dialog.ConfirmationOption.correlationPermissionsOptions;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDivider;
 
 import java.io.Serial;
 import java.time.Duration;
@@ -71,7 +71,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -138,6 +137,11 @@ public abstract class SmartCorrelationTable
     }
 
     @Override
+    protected String getTileCssStyle() {
+        return "";
+    }
+
+    @Override
     protected void customizeNewRowItem(PrismContainerValueWrapper<ItemsSubCorrelatorType> value, Item<PrismContainerValueWrapper<ItemsSubCorrelatorType>> item) {
         super.customizeNewRowItem(value, item);
         applySuggestionAutoRefresh(value, item, Duration.ofSeconds(3), this::getStatusInfo, this::refreshAndDetach);
@@ -187,7 +191,7 @@ public abstract class SmartCorrelationTable
                 if (getProvider() instanceof MultivalueContainerListDataProvider provider) {
                     provider.getModel().detach();
                 }
-                refreshAndDetach(target);
+                SmartCorrelationTable.this.refreshAndDetach(target);
             }
         };
     }
@@ -238,8 +242,7 @@ public abstract class SmartCorrelationTable
                 StatusInfo<CorrelationSuggestionsType> suggestionTypeStatusInfo = getStatusInfo(wrapper);
 
                 if (suggestionTypeStatusInfo != null) {
-                    ItemsSubCorrelatorType realValue = wrapper.getRealValue();
-                    buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, realValue);
+                    buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, wrapper);
                     return;
                 }
 
@@ -325,9 +328,10 @@ public abstract class SmartCorrelationTable
             @NotNull Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem,
             String componentId,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo,
-            ItemsSubCorrelatorType realValue) {
+            PrismContainerValueWrapper<ItemsSubCorrelatorType> wrapper) {
 
         OperationResultStatusType status = statusInfo.getStatus();
+        ItemsSubCorrelatorType realValue = wrapper.getRealValue();
         LoadableModel<String> displayNameModel = new LoadableModel<>() {
             @Override
             protected String load() {
@@ -335,18 +339,20 @@ public abstract class SmartCorrelationTable
                     return realValue != null ? realValue.getName() : " - ";
                 }
 
-                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).textKey;
+                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper).textKey;
                 return createStringResource(textKey).getString();
             }
         };
 
-        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+        String badgeTooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
+        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
+                createStringResource("SmartIntegration.suggestion.text"), badgeTooltip, status);
         cellItem.add(labelWithBadgePanel);
     }
 
     @Override
     protected String getDiscardButtonCssClass() {
-        return "col p-2 btn btn-default rounded";
+        return "col p-2 btn btn-light border rounded";
     }
 
     @Override
@@ -378,20 +384,23 @@ public abstract class SmartCorrelationTable
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
         inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
-        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
+        inlineMenuItems.add(createSuggestionStopGeneratingInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         return inlineMenuItems;
     }
 
     @Override
     public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<ItemsSubCorrelatorType> model) {
-        List<InlineMenuItem> defaultMenuActions = super.getDefaultMenuActions(model);
-        Containerable realValue = findAssociatedParentContainerWrapper().getRealValue();
 
+        List<InlineMenuItem> defaultMenuActions = new ArrayList<>();
+
+        Containerable realValue = findAssociatedParentContainerWrapper().getRealValue();
         if (realValue instanceof ResourceObjectTypeDefinitionType resourceObjectTypeDef) {
             defaultMenuActions.add(createSimulationInlineMenu(model, resourceObjectTypeDef));
+            defaultMenuActions.add(createSectionDivider());
         }
 
+        defaultMenuActions.addAll(super.getDefaultMenuActions(model));
         return defaultMenuActions;
     }
 
@@ -401,6 +410,11 @@ public abstract class SmartCorrelationTable
         return new InlineMenuItem(
                 createStringResource("SmartCorrelationTilePanel.simulate")) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-solid fa-flask");
+            }
 
             @Override
             public @NotNull InlineMenuItemAction initAction() {
@@ -599,7 +613,7 @@ public abstract class SmartCorrelationTable
             }
         });
         if (refresh) {
-            refreshAndDetach(target);
+            SmartCorrelationTable.this.refreshAndDetach(target);
         }
     }
 
@@ -696,7 +710,7 @@ public abstract class SmartCorrelationTable
 
     @Override
     protected String getTileCssClasses() {
-        return "col-12 col-sm-12 col-md-6 col-lg-6 col-xl-4 col-xxl-3 p-2";
+        return "col-12 py-1";
     }
 }
 

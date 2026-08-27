@@ -14,7 +14,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteMod
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DuoAuthenticationModuleType;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
