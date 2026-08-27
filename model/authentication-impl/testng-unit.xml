@@ -18,6 +18,7 @@
             <class name="com.evolveum.midpoint.authentication.TestOtpAcceptEmptyAuthentication"/>
             <class name="com.evolveum.midpoint.authentication.TestOidcClientModuleWebSecurityConfiguration"/>
             <class name="com.evolveum.midpoint.authentication.impl.filter.TestMidpointAuthFilterFailureConfiguration"/>
+            <class name="com.evolveum.midpoint.authentication.impl.filter.TestMidpointAuthFilterIdentificationReset"/>
             <class name="com.evolveum.midpoint.authentication.TestRequisiteModuleAbort"/>
             <class name="com.evolveum.midpoint.authentication.TestWicketLoginUrlAuthenticationEntryPoint"/>
         </classes>
