@@ -1,10 +1,11 @@
 = File upload configuration
 
 :page-toc: top
-:page-description:
-:page-keywords: 
+:page-description: This page describes how to configure file upload validation in midPoint.
+:page-keywords: file upload, validation, file upload validation, upload, jpeg, png
 :experimental:
 
+This page describes how to configure file upload validation in midPoint.
 
 == Introduction
 
