@@ -265,8 +265,8 @@ public class AuditHelper {
         }
 
         return new AuditConfiguration(recordResourceOids, propertiesToRecord, eventRecordingExpression,
-                SystemConfigurationAuditUtil.isRecordingSmartServiceEvents(audit),
-                SystemConfigurationAuditUtil.isRecordingSmartServiceData(audit));
+                SystemConfigurationAuditUtil.isRecordingExternalServiceEvents(audit),
+                SystemConfigurationAuditUtil.isRecordingExternalServiceData(audit));
     }
 
     public OperationResult cloneResultForAuditEventRecord(OperationResult result) {

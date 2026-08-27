@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
@@ -181,6 +183,7 @@ class MappingsSuggestionOperation {
 
             var mappingFutures = new ArrayList<CompletableFuture<Void>>();
             Authentication authentication = SecurityUtil.getAuthentication();
+            HttpConnectionInformation connectionInformation = getEffectiveConnectionInformation(ctx.b.securityContextManager);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
@@ -190,8 +193,10 @@ class MappingsSuggestionOperation {
                 AtomicReference<OperationResult> mappingResultReference = new AtomicReference<>();
                 var future = CompletableFuture.supplyAsync(() -> {
                     Authentication oldAuthentication = SecurityUtil.getAuthentication();
+                    HttpConnectionInformation oldConnectionInformation = ctx.b.securityContextManager.getStoredConnectionInformation();
                     try {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+                        ctx.b.securityContextManager.storeConnectionInformation(connectionInformation);
 
                         String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
                         var op = mappingsSuggestionState.recordProcessingStart(matchPairDescription);
@@ -217,6 +222,7 @@ class MappingsSuggestionOperation {
                         throw new RuntimeException(e);
                     } finally {
                         SecurityContextHolder.getContext().setAuthentication(oldAuthentication);
+                        ctx.b.securityContextManager.storeConnectionInformation(oldConnectionInformation);
                     }
                 }).thenAccept(aiMapping -> {
                     Operation op = operationReference.get();
@@ -780,6 +786,14 @@ class MappingsSuggestionOperation {
                 return;
             }
         }
+    }
+
+    private static @Nullable HttpConnectionInformation getEffectiveConnectionInformation(
+            SecurityContextManager securityContextManager) {
+        HttpConnectionInformation currentConnectionInformation = SecurityUtil.getCurrentConnectionInformation();
+        return currentConnectionInformation != null
+                ? currentConnectionInformation
+                : securityContextManager.getStoredConnectionInformation();
     }
 
     private boolean mappingUsesIterationToken(AttributeMappingsSuggestionType mapping) {

@@ -26,6 +26,8 @@ import com.evolveum.midpoint.repo.common.AuditConfiguration;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
@@ -61,6 +63,7 @@ class AuditingServiceClient implements ServiceClient {
 
     private final ServiceClient delegate;
     private final AuditHelper auditHelper;
+    @Nullable private final SecurityContextManager securityContextManager;
     private final AuditConfiguration auditConfiguration;
     private final boolean recordEvents;
     private final boolean recordData;
@@ -70,16 +73,18 @@ class AuditingServiceClient implements ServiceClient {
     }
 
     AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper, boolean recordEvents, boolean recordData) {
-        this(delegate, auditHelper, new AuditConfiguration(false, List.of(), null, recordEvents, recordData));
+        this(delegate, auditHelper, null, new AuditConfiguration(false, List.of(), null, recordEvents, recordData));
     }
 
-    AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper, AuditConfiguration auditConfiguration) {
+    AuditingServiceClient(ServiceClient delegate, AuditHelper auditHelper, @Nullable SecurityContextManager securityContextManager,
+            AuditConfiguration auditConfiguration) {
         this.delegate = delegate;
         this.auditHelper = auditHelper;
+        this.securityContextManager = securityContextManager;
         this.auditConfiguration = auditConfiguration;
-        this.recordEvents = auditConfiguration.isRecordSmartServiceEvents()
-                || auditConfiguration.isRecordSmartServiceData();
-        this.recordData = auditConfiguration.isRecordSmartServiceData();
+        this.recordEvents = auditConfiguration.isRecordExternalServiceEvents()
+                || auditConfiguration.isRecordExternalServiceData();
+        this.recordData = auditConfiguration.isRecordExternalServiceData();
     }
 
     @Override
@@ -124,6 +129,7 @@ class AuditingServiceClient implements ServiceClient {
         }
 
         Authentication authentication = SecurityUtil.getAuthentication();
+        HttpConnectionInformation connectionInformation = getEffectiveConnectionInformation();
 
         CompletableFuture<RESP> delegateFuture;
         try {
@@ -139,8 +145,10 @@ class AuditingServiceClient implements ServiceClient {
         // Completion may run on a different thread, so restore the caller's security context for auditing.
         delegateFuture.whenComplete((response, throwable) -> {
             Authentication oldAuthentication = SecurityUtil.getAuthentication();
+            HttpConnectionInformation oldConnectionInformation = getStoredConnectionInformation();
             try {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                storeConnectionInformation(connectionInformation);
 
                 if (throwable != null) {
                     auditExecutionFailure(method, callContext, auditedRequest, rootCauseMessage(throwable));
@@ -154,6 +162,7 @@ class AuditingServiceClient implements ServiceClient {
                 }
             } finally {
                 SecurityContextHolder.getContext().setAuthentication(oldAuthentication);
+                storeConnectionInformation(oldConnectionInformation);
             }
         });
 
@@ -354,6 +363,25 @@ class AuditingServiceClient implements ServiceClient {
         return callContext.result() != null
                 ? callContext.result()
                 : new OperationResult(OP_AUDIT_EXTERNAL_SERVICE_CALL);
+    }
+
+    private @Nullable HttpConnectionInformation getEffectiveConnectionInformation() {
+        HttpConnectionInformation currentConnectionInformation = SecurityUtil.getCurrentConnectionInformation();
+        return currentConnectionInformation != null
+                ? currentConnectionInformation
+                : getStoredConnectionInformation();
+    }
+
+    private @Nullable HttpConnectionInformation getStoredConnectionInformation() {
+        return securityContextManager != null
+                ? securityContextManager.getStoredConnectionInformation()
+                : null;
+    }
+
+    private void storeConnectionInformation(@Nullable HttpConnectionInformation connectionInformation) {
+        if (securityContextManager != null) {
+            securityContextManager.storeConnectionInformation(connectionInformation);
+        }
     }
 
     private static String generateRequestIdentifier() {

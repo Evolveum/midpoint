@@ -279,11 +279,11 @@ DO $$
 DECLARE
     eventPartitionName TEXT;
     tableSuffix TEXT;
-    dateFrom TIMESTAMPTZ;
-    dateTo TIMESTAMPTZ;
+    partitionBound TEXT;
 BEGIN
-    FOR eventPartitionName IN
-        SELECT c.relname
+    FOR eventPartitionName, partitionBound IN
+        SELECT c.relname,
+            pg_get_expr(c.relpartbound, c.oid)
         FROM pg_inherits i
                  JOIN pg_class c ON c.oid = i.inhrelid
         WHERE i.inhparent = 'ma_audit_event'::regclass
@@ -295,12 +295,9 @@ BEGIN
             PERFORM ('ma_audit_payload_' || tableSuffix)::regclass;
             RAISE NOTICE 'Audit payload partition % already exists, OK...', tableSuffix;
         EXCEPTION WHEN OTHERS THEN
-            dateFrom := to_timestamp(tableSuffix, 'YYYYMM');
-            dateTo := dateFrom + interval '1 month';
-
             EXECUTE format(
-                'CREATE TABLE %I PARTITION OF ma_audit_payload FOR VALUES FROM (%L) TO (%L);',
-                'ma_audit_payload_' || tableSuffix, dateFrom, dateTo);
+                'CREATE TABLE %I PARTITION OF ma_audit_payload %s;',
+                'ma_audit_payload_' || tableSuffix, partitionBound);
 
             EXECUTE format(
                 'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||

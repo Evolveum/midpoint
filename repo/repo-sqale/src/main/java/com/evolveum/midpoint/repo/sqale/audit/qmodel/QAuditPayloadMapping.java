@@ -9,7 +9,9 @@ package com.evolveum.midpoint.repo.sqale.audit.qmodel;
 import static com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayload.TABLE_NAME;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import com.querydsl.core.Tuple;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.repo.sqale.mapping.SqaleTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPayloadType;
@@ -59,6 +62,25 @@ public class QAuditPayloadMapping
                 .name(row.name)
                 .contentType(row.contentType)
                 .content(contentToString(row.content));
+    }
+
+    public List<MAuditPayload> toRowObjects(List<AuditEventRecordPayloadType> payloads) {
+        if (payloads.isEmpty()) {
+            return List.of();
+        }
+
+        List<MAuditPayload> rows = new ArrayList<>(payloads.size());
+        for (int i = 0; i < payloads.size(); i++) {
+            AuditEventRecordPayloadType payload = payloads.get(i);
+            MAuditPayload row = new MAuditPayload();
+            row.ordinal = i;
+            row.name = payload.getName();
+            row.contentType = payload.getContentType();
+            row.content = contentToBytes(payload.getContent());
+            row.searchableText = FullTextSearchUtil.createSearchableText(payload.getContent());
+            rows.add(row);
+        }
+        return rows;
     }
 
     public byte[] contentToBytes(String content) {

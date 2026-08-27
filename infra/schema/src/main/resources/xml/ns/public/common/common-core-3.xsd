@@ -12355,13 +12355,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="smartIntegration" type="tns:SystemConfigurationAuditSmartIntegrationType" minOccurs="0">
+            <xsd:element name="externalService" type="tns:SystemConfigurationAuditExternalServiceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Details about recording audit events and data for Smart Integration service calls.
+                        Details about recording audit events and data for external service calls.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationAuditType.smartIntegration</a:displayName>
+                        <a:displayName>SystemConfigurationAuditType.externalService</a:displayName>
                         <a:since>4.11</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
@@ -12373,10 +12373,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="SystemConfigurationAuditSmartIntegrationType">
+    <xsd:complexType name="SystemConfigurationAuditExternalServiceType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies details regarding creation and recording of audit events for Smart Integration service calls.
+                Specifies details regarding creation and recording of audit events for external service calls.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12388,21 +12388,21 @@
             <xsd:element name="recordEvents" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true, midPoint will record audit events for Smart Integration service calls.
+                        If set to true, midPoint will record audit events for external service calls.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationAuditSmartIntegrationType.recordEvents</a:displayName>
+                        <a:displayName>SystemConfigurationAuditExternalServiceType.recordEvents</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="recordData" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true, midPoint will record request payloads for Smart Integration service calls.
+                        If set to true, midPoint will record request payloads for external service calls.
                         Recording data also forces recording of the owning audit events.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationAuditSmartIntegrationType.recordData</a:displayName>
+                        <a:displayName>SystemConfigurationAuditExternalServiceType.recordData</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

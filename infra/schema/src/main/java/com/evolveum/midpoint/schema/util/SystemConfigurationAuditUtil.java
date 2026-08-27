@@ -22,8 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationA
  */
 public class SystemConfigurationAuditUtil {
 
-    private static final boolean DEFAULT_RECORD_SMART_SERVICE_EVENTS = true;
-    private static final boolean DEFAULT_RECORD_SMART_SERVICE_DATA = true;
+    private static final boolean DEFAULT_RECORD_EXTERNAL_SERVICE_EVENTS = true;
+    private static final boolean DEFAULT_RECORD_EXTERNAL_SERVICE_DATA = true;
 
     public static boolean isEscapingInvalidCharacters(SystemConfigurationAuditType configuration) {
         final boolean defaultValue = false;
@@ -44,24 +44,24 @@ public class SystemConfigurationAuditUtil {
         }
     }
 
-    public static boolean isRecordingSmartServiceEvents(SystemConfigurationAuditType configuration) {
-        if (configuration == null || configuration.getSmartIntegration() == null) {
-            return DEFAULT_RECORD_SMART_SERVICE_EVENTS;
+    public static boolean isRecordingExternalServiceEvents(SystemConfigurationAuditType configuration) {
+        if (configuration == null || configuration.getExternalService() == null) {
+            return DEFAULT_RECORD_EXTERNAL_SERVICE_EVENTS;
         }
 
         return ObjectUtils.defaultIfNull(
-                configuration.getSmartIntegration().isRecordEvents(),
-                DEFAULT_RECORD_SMART_SERVICE_EVENTS);
+                configuration.getExternalService().isRecordEvents(),
+                DEFAULT_RECORD_EXTERNAL_SERVICE_EVENTS);
     }
 
-    public static boolean isRecordingSmartServiceData(SystemConfigurationAuditType configuration) {
-        if (configuration == null || configuration.getSmartIntegration() == null) {
-            return DEFAULT_RECORD_SMART_SERVICE_DATA;
+    public static boolean isRecordingExternalServiceData(SystemConfigurationAuditType configuration) {
+        if (configuration == null || configuration.getExternalService() == null) {
+            return DEFAULT_RECORD_EXTERNAL_SERVICE_DATA;
         }
 
         return ObjectUtils.defaultIfNull(
-                configuration.getSmartIntegration().isRecordData(),
-                DEFAULT_RECORD_SMART_SERVICE_DATA);
+                configuration.getExternalService().isRecordData(),
+                DEFAULT_RECORD_EXTERNAL_SERVICE_DATA);
     }
 
     public static boolean isIndexingAddDeltaOperation(SystemConfigurationAuditType configuration) {

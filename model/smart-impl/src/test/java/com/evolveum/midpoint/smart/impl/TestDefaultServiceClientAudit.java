@@ -83,7 +83,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
     }
 
     @DataProvider
-    public Object[][] smartServiceAuditConfiguration() {
+    public Object[][] externalServiceAuditConfiguration() {
         return new Object[][] {
                 { true, true, true, true },
                 { true, false, true, false },
@@ -92,8 +92,8 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         };
     }
 
-    @Test(dataProvider = "smartServiceAuditConfiguration")
-    public void test110SmartServiceAuditConfiguration(boolean recordEvents, boolean recordData,
+    @Test(dataProvider = "externalServiceAuditConfiguration")
+    public void test110ExternalServiceAuditConfiguration(boolean recordEvents, boolean recordData,
             boolean expectedRecords, boolean expectedRequestPayload) throws Exception {
 
         var delegate = new RecordingServiceClient();
@@ -146,14 +146,14 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
     }
 
     @Test
-    public void test115MissingSmartServiceAuditConfigurationDefaultsToRecordingEventsAndData() {
+    public void test115MissingExternalServiceAuditConfigurationDefaultsToRecordingEventsAndData() {
         var missingSystemConfiguration = auditHelper.getAuditConfiguration(null);
-        assertThat(missingSystemConfiguration.isRecordSmartServiceEvents()).isTrue();
-        assertThat(missingSystemConfiguration.isRecordSmartServiceData()).isTrue();
+        assertThat(missingSystemConfiguration.isRecordExternalServiceEvents()).isTrue();
+        assertThat(missingSystemConfiguration.isRecordExternalServiceData()).isTrue();
 
         var missingAuditConfiguration = auditHelper.getAuditConfiguration(new SystemConfigurationType());
-        assertThat(missingAuditConfiguration.isRecordSmartServiceEvents()).isTrue();
-        assertThat(missingAuditConfiguration.isRecordSmartServiceData()).isTrue();
+        assertThat(missingAuditConfiguration.isRecordExternalServiceEvents()).isTrue();
+        assertThat(missingAuditConfiguration.isRecordExternalServiceData()).isTrue();
     }
 
     @Test

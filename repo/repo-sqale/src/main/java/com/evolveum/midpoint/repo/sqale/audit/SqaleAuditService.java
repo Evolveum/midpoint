@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventRecordPayload;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryExecutor;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -110,7 +108,10 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             record.setRepoId(auditRow.id);
 
             insertAuditDeltas(jdbcSession, auditRow);
-            insertAuditPayloads(jdbcSession, auditRow, preparePayloads(record.getPayloads()));
+            insertAuditPayloads(jdbcSession, auditRow, QAuditPayloadMapping.get().toRowObjects(
+                    record.getPayloads().stream()
+                            .map(payload -> payload.toXml())
+                            .toList()));
             insertReferences(jdbcSession, auditRow, record.getReferences());
 
             jdbcSession.commit();
@@ -306,26 +307,6 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             insertBatch.setBatchToBulk(true);
             insertBatch.execute();
         }
-    }
-
-    private List<MAuditPayload> preparePayloads(List<AuditEventRecordPayload> payloads) {
-        if (payloads.isEmpty()) {
-            return List.of();
-        }
-
-        QAuditPayloadMapping payloadMapping = QAuditPayloadMapping.get();
-        List<MAuditPayload> rows = new ArrayList<>(payloads.size());
-        for (int i = 0; i < payloads.size(); i++) {
-            AuditEventRecordPayload payload = payloads.get(i);
-            MAuditPayload row = new MAuditPayload();
-            row.ordinal = i;
-            row.name = payload.getName();
-            row.contentType = payload.getContentType();
-            row.content = payloadMapping.contentToBytes(payload.getContent());
-            row.searchableText = FullTextSearchUtil.createSearchableText(payload.getContent());
-            rows.add(row);
-        }
-        return rows;
     }
 
     private void insertAuditPayloads(
