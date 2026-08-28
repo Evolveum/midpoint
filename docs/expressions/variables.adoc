@@ -89,46 +89,27 @@ $focus/activation/administrativeStatus
 ----
 
 [[null-focus]]
-== Situations When Focus Is Null
+== Resolving Focus Is Null Situation
 
-In some execution contexts, the focus variable is undefined (`null`).
+In some execution contexts, the focus variable is undefined (null).
 This is expected.
 In this section, we explain when and why this happens and how you may work around it.
 
-MidPoint distinguishes the states _before_ and _after_ operations:
+The usual cause for this error is because you evaluate a variable (e.g., focus) when it does not exist _yet_ or it does not exist _anymore_ in the particular context.
 
-* Mappings generally consider both states.
-* Policy rules consider the _after_ state.
-    ** With the exception of explicitly defined policy transition (`TransitionPolicyConstraintType`, see below).
-
-For example, if your operation (e.g., a policy rule) deletes an object:
-
-* The focus is defined _before_ the operation (the object still exists).
-* The focus is `null` _after_ the operation (there is no object to refer to).
-
-This works for create operations as well, only inversely.
-
-=== Circumventing Null Focus OID
-
-When focus is `null` (such as in policy rules during delete operations) and you need to access the focus OID in a script used in the policy rule triggering the delete operation, you can access it via the focus context:
+When focus is null, e.g., in policy rules during delete operations, and you need to access the focus OID in a script used in the policy rule triggering the delete operation, you can access it via the focus context:
 
 [source,groovy]
 ----
 def deletedObjectOid = midpoint.getFocusContext()?.oid
 ----
 
-For policy rules that must evaluate the object before it is deleted, you can configure a transition policy rule with `stateBefore` set to `true`:
+Another option to avoid the "focus is null" situation is to leverage the fact that midPoint distinguishes the states _before_ and _after_ operations.
+In policy rules, if focus is undefined _after_ an operation (e.g., delete object), it may help to evaluate it _before_ the operation when it still exists.
+It works both ways (i.e., evaluate it _after_ a create operation).
 
-[source,xml]
-----
-<transition>
-    <stateBefore>true</stateBefore>
-    <stateAfter>false</stateAfter>
-    <constraints>
-        <!-- constraints evaluated before the operation -->
-    </constraints>
-</transition>
-----
+Setting the phase in which variables are evaluated is done using *policy transitions*.
+Refer to xref:/midpoint/reference/roles-policies/policies/policy-rules/#policy-transitions[] for details.
 
 == Mapping Variables vs Sources
 
