@@ -12,6 +12,7 @@
             <class name="com.evolveum.midpoint.web.TestUnitObjectWrapperFactory"/>
             <class name="com.evolveum.midpoint.web.TestPageMounter"/>
             <class name="com.evolveum.midpoint.gui.WebComponentUtilTest"/>
+            <class name="com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModelTest"/>
             <class name="com.evolveum.midpoint.web.component.data.column.ColumnUtilsCaseObjectColumnTest"/>
         </classes>
     </test>
