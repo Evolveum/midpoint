@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
@@ -244,15 +244,6 @@
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.1</log4j2.version>
-        <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
-        <!-- remove whole dependency tools.jackson.core:jackson-databind dependency
-            definition when its above 3.1.4 (around L296) -->
-        <jackson-databind.version>3.1.5</jackson-databind.version>
-        <logback.version>1.5.38</logback.version>
-        <postgresql.version>42.7.12</postgresql.version>
-        <netty.version>4.2.17.Final</netty.version>
-        <httpclient5.version>5.6.4</httpclient5.version>
-        <httpcore5.version>5.4.3</httpcore5.version>
         <rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
         <!-- END of Spring Boot dependencies overrides -->
 
@@ -284,7 +275,8 @@
         <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.12.0</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
-        <bouncycastle.version>1.84</bouncycastle.version>
+        <bouncycastle.version>1.85.2</bouncycastle.version>
+        <bouncycastle.bcpkix.version>1.85</bouncycastle.bcpkix.version>
         <javax.persistence.version>2.2</javax.persistence.version>
         <keycloak.version>22.0.3</keycloak.version>
 
@@ -301,13 +293,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>tools.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson-databind.version}</version>
-                <scope>compile</scope>
-            </dependency>
-
             <!-- Prism libraries with versions pre-declared (no need to use versions in other POMs) -->
             <dependency>
                 <groupId>com.evolveum.commons</groupId>
@@ -1520,7 +1505,7 @@
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk18on</artifactId>
-                <version>${bouncycastle.version}</version>
+                <version>${bouncycastle.bcpkix.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
