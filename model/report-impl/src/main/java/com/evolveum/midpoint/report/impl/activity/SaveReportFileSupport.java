@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -16,6 +17,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -216,9 +218,19 @@ class SaveReportFileSupport {
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
         try {
+            byte[] content = contextOfFile.getBytes(encoding);
+            byte[] bytesToWrite = content;
+
+            if (encoding.equals(StandardCharsets.UTF_8)) {
+                byte[] bom = ByteOrderMark.UTF_8.getBytes();
+                bytesToWrite = new byte[bom.length + content.length];
+                System.arraycopy(bom, 0, bytesToWrite, 0, bom.length);
+                System.arraycopy(content, 0, bytesToWrite, bom.length, content.length);
+            }
+
             FileUtils.writeByteArrayToFile(
                     new File(aggregatedFilePath),
-                    contextOfFile.getBytes(encoding));
+                    bytesToWrite);
         } catch (IOException e) {
             throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
         }
