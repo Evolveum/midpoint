@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -3533,6 +3534,104 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         when("searching for roles of teammate alex (forbidden)");
         var alexRolesQuery = createRolesOfTeammateQuery(USER_ALEX.oid);
         assertSearch(RoleType.class, alexRolesQuery, 0);
+    }
+
+    /** Reference search must respect denied access to `roleMembershipRef`. */
+    @Test
+    public void test321AutzDenyReadRoleMembershipRefReferenceSearch() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+        login(USER_JACK_USERNAME);
+
+        and("roleMembershipRef references are visible before the deny role is assigned");
+        assertThat(searchJackRoleMembershipRefs()).isNotEmpty();
+
+        loginAdministrator();
+        assignRole(USER_JACK_OID, ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching roleMembershipRef references owned by jack");
+        var refs = searchJackRoleMembershipRefs();
+
+        then("no references are returned");
+        assertThat(refs).isEmpty();
+    }
+
+    /** Reference count must respect denied access to `roleMembershipRef`. */
+    @Test
+    public void test322AutzDenyReadRoleMembershipRefReferenceCount() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+        login(USER_JACK_USERNAME);
+
+        and("roleMembershipRef references are counted before the deny role is assigned");
+        assertThat(countJackRoleMembershipRefs()).isPositive();
+
+        loginAdministrator();
+        assignRole(USER_JACK_OID, ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF.oid);
+        login(USER_JACK_USERNAME);
+
+        when("counting roleMembershipRef references owned by jack");
+        Integer count = countJackRoleMembershipRefs();
+
+        then("zero references are counted");
+        assertThat(count).isZero();
+    }
+
+    /** Iterative reference search must respect denied access to `roleMembershipRef`. */
+    @Test
+    public void test323AutzDenyReadRoleMembershipRefReferenceIterative() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+        login(USER_JACK_USERNAME);
+
+        and("roleMembershipRef references are iterated before the deny role is assigned");
+        assertThat(iterateJackRoleMembershipRefs()).isPositive();
+
+        loginAdministrator();
+        assignRole(USER_JACK_OID, ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF.oid);
+        login(USER_JACK_USERNAME);
+
+        when("iteratively searching roleMembershipRef references owned by jack");
+        int handled = iterateJackRoleMembershipRefs();
+
+        then("the handler is not invoked");
+        assertThat(handled).isZero();
+    }
+
+    private ObjectQuery createJackRoleMembershipRefQuery() {
+        return prismContext.queryForReferenceOwnedBy(UserType.class, UserType.F_ROLE_MEMBERSHIP_REF)
+                .id(USER_JACK_OID)
+                .build();
+    }
+
+    private SearchResultList<ObjectReferenceType> searchJackRoleMembershipRefs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        return modelService.searchReferences(createJackRoleMembershipRefQuery(), null, task, result);
+    }
+
+    private Integer countJackRoleMembershipRefs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        return modelService.countReferences(createJackRoleMembershipRefQuery(), null, task, result);
+    }
+
+    private int iterateJackRoleMembershipRefs() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        AtomicInteger handled = new AtomicInteger();
+        modelService.searchReferencesIterative(
+                createJackRoleMembershipRefQuery(),
+                (ref, lResult) -> {
+                    handled.incrementAndGet();
+                    return true;
+                },
+                null, task, result);
+        return handled.get();
     }
 
     private ObjectQuery createRolesOfTeammateQuery(String userOid) {

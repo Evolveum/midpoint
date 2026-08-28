@@ -1555,7 +1555,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     @NotNull
     private QReferenceMapping<?, ?, ?, ?> determineMapping(ObjectFilter filter) throws QueryException {
-        OwnedByFilter ownedByFilter = extractOwnedByFilterForReferenceSearch(filter);
+        OwnedByFilter ownedByFilter = ObjectQueryUtil.extractOwnedByFilterForReferenceSearch(filter, QueryException::new);
 
         ComplexTypeDefinition type = ownedByFilter.getType();
         ItemPath path = ownedByFilter.getPath();
@@ -1567,32 +1567,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     "Reference search is not supported for " + type + " and item path " + path);
         }
         return refMapping;
-    }
-
-    private OwnedByFilter extractOwnedByFilterForReferenceSearch(ObjectFilter filter)
-            throws QueryException {
-        if (filter instanceof OwnedByFilter) {
-            return (OwnedByFilter) filter;
-        } else if (filter instanceof AndFilter) {
-            OwnedByFilter ownedByFilter = null;
-            for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
-                if (condition instanceof OwnedByFilter) {
-                    if (ownedByFilter != null) {
-                        throw new QueryException("Exactly one main OWNED-BY filter must be used"
-                                + " for reference search, but multiple found. Filter: " + filter);
-                    }
-                    ownedByFilter = (OwnedByFilter) condition;
-                }
-            }
-            if (ownedByFilter == null) {
-                throw new QueryException("Exactly one main OWNED-BY filter must be used"
-                        + " for reference search, but none found. Filter: " + filter);
-            }
-            return ownedByFilter;
-        } else {
-            throw new QueryException("Invalid filter for reference search: " + filter
-                    + "\nReference search filter should be OWNED-BY filter or an AND filter containing it.");
-        }
     }
 
     @Override
