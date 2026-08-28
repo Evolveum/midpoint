@@ -5,7 +5,7 @@
  *
  */
 
-package com.evolveum.midpoint.cases.impl;
+package com.evolveum.midpoint.model.impl.correlation;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_CASE_CLOSE_TIMESTAMP_PATH;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_PERFORMER_COMMENT_PATH;

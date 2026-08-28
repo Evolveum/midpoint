@@ -18,11 +18,4 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.model.test"/>
     <context:spring-configured/>
-
-    <!--
-        CorrelationCaseManagerImpl is not picked up by the component scan (the cases-impl package is scanned
-        only by the full cases context, which is not used here). It is needed by MidpointFunctionsImpl. We don't want
-        to import whole cases context here to not slow down the initialization process unnecessarily.
-    -->
-    <bean id="correlationCaseManager" class="com.evolveum.midpoint.cases.impl.CorrelationCaseManagerImpl"/>
 </beans>
