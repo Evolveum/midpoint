@@ -195,6 +195,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
 * Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
+* Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
 
 === Releases Of Other Components
 
