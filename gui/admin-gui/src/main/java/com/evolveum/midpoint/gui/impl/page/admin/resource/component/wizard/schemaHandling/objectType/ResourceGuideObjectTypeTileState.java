@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Represents UI state of tiles in the Resource Object Type wizard.
  * Determines badge, recommendation, and lock status based on
@@ -155,6 +157,7 @@ public enum ResourceGuideObjectTypeTileState {
         }
 
         ResourceObjectFocusSpecificationType focus = real.getFocus();
+        QName focusType = focus.getType();
         ObjectReferenceType archetypeRef = focus.getArchetypeRef();
 
         Task task = pageBase.createSimpleTask("Count focus");
@@ -162,11 +165,11 @@ public enum ResourceGuideObjectTypeTileState {
         ObjectQuery query;
 
         if (archetypeRef != null) {
-            query = PrismContext.get().queryFor(FocusType.class)
+            query = PrismContext.get().queryFor(FocusType.class).type(focusType)
                     .item(FocusType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
                     .build();
         } else {
-            query = PrismContext.get().queryFor(FocusType.class)
+            query = PrismContext.get().queryFor(FocusType.class).type(focusType)
                     .build();
         }
 
@@ -178,7 +181,7 @@ public enum ResourceGuideObjectTypeTileState {
             }
 
             // TODO this is temporary solution. We will design better one when we decide how to handle initial focus object.
-            if (archetypeRef == null && focus.getType() != null && focus.getType() == UserType.COMPLEX_TYPE) {
+            if (archetypeRef == null && focusType != null && focusType.getLocalPart().equals(UserType.COMPLEX_TYPE.getLocalPart())) {
                 return counted <= 1;
             }
 

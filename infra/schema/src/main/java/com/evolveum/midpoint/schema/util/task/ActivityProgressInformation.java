@@ -105,7 +105,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
     /** Identifier is estimated from the path. Use only if it needs not be precise. */
     static @NotNull ActivityProgressInformation unknown(ActivityPath activityPath) {
         return unknown(
-                activityPath.isEmpty() ? activityPath.last() : null,
+                activityPath.isEmpty() ? null : activityPath.last(),
                 activityPath);
     }
 

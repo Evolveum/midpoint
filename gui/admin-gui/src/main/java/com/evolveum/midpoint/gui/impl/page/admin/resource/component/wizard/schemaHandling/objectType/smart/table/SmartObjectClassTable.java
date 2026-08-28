@@ -17,8 +17,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.panel.SimpleCustomSearchPanel;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,10 +60,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.action.ObjectClassStatisticsActions;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -128,12 +128,42 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
     }
 
     protected @NotNull String getSearchText() {
-        return searchTextModel.getObject() != null ? searchTextModel.getObject() : "";
+        return searchTextModel.getObject() != null ? searchTextModel.getObject().toLowerCase() : "";
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected MultivalueContainerListDataProvider<ComplexTypeDefinitionType> createProvider() {
-        return super.createProvider();
+        return new MultivalueContainerListDataProvider<ComplexTypeDefinitionType>(
+                getPageBase(),
+                () -> getSearchModel().getObject(), getDetailsModel()) {
+
+            @Override
+            protected ObjectQuery getCustomizeContentQuery() {
+                return getCustomQuery();
+            }
+
+            @Override
+            protected boolean matchItems(
+                    @NotNull PrismContainerValueWrapper<ComplexTypeDefinitionType> valueWrapper,
+                    @NotNull ObjectQuery query) throws SchemaException {
+                return super.matchItems(valueWrapper, query) || additionalMatchItems(valueWrapper);
+            }
+
+            private boolean additionalMatchItems(@NotNull PrismContainerValueWrapper<ComplexTypeDefinitionType> valueWrapper) {
+                ComplexTypeDefinitionType value = valueWrapper.getRealValue();
+                QName name = value != null ? value.getName() : null;
+                String searchText = getSearchText();
+
+                if (name != null && name.getLocalPart().toLowerCase().contains(searchText)) {
+                    return true;
+                }
+
+                String description = name != null ? objectClassDescriptionCache.get(name) : null;
+                return StringUtils.isNotEmpty(description)
+                        && description.toLowerCase().contains(searchText);
+            }
+        };
     }
 
     @Override
@@ -609,7 +639,7 @@ public class SmartObjectClassTable<O extends PrismContainerValueWrapper<ComplexT
 
     @Override
     public boolean displayNoValuePanel() {
-        return getProvider().size() == 0;
+        return getProvider().size() == 0 && getSearchText().isEmpty();
     }
 
     @Override

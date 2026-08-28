@@ -192,6 +192,9 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
 * Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
 * Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11914[]
+* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
+* Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 
 === Releases Of Other Components
 
