@@ -108,6 +108,10 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             record.setRepoId(auditRow.id);
 
             insertAuditDeltas(jdbcSession, auditRow);
+            insertAuditPayloads(jdbcSession, auditRow, QAuditPayloadMapping.get().toRowObjects(
+                    record.getPayloads().stream()
+                            .map(payload -> payload.toXml())
+                            .toList()));
             insertReferences(jdbcSession, auditRow, record.getReferences());
 
             jdbcSession.commit();
@@ -303,6 +307,24 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
             insertBatch.setBatchToBulk(true);
             insertBatch.execute();
         }
+    }
+
+    private void insertAuditPayloads(
+            JdbcSession jdbcSession, MAuditEventRecord auditRow, List<MAuditPayload> payloadRows) {
+        if (payloadRows.isEmpty()) {
+            return;
+        }
+
+        SQLInsertClause insertBatch = jdbcSession.newInsert(QAuditPayloadMapping.get().defaultAlias());
+        for (MAuditPayload payloadRow : payloadRows) {
+            payloadRow.recordId = auditRow.id;
+            payloadRow.timestamp = auditRow.timestamp;
+
+            // NULLs are important to keep the value count consistent during the batch.
+            insertBatch.populate(payloadRow, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
+        }
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
     }
 
     private void insertReferences(JdbcSession jdbcSession,

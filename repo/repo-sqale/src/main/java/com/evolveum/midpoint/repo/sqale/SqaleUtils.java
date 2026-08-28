@@ -34,7 +34,7 @@ public class SqaleUtils {
         REPOSITORY("schemaChangeNumber", "repository data", 65),
 
         /** This is the main repository database, containing `ma_xxx` tables, defined in `postgres-audit.sql`. */
-        AUDIT("schemaAuditChangeNumber", "audit data", 14);
+        AUDIT("schemaAuditChangeNumber", "audit data", 15);
 
         /** Value of `name` column in `m_global_metadata` table that indicates the current version. */
         public final String label;

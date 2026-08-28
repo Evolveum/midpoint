@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -87,6 +88,10 @@ class OperationContext {
 
     boolean canRun() {
         return !(task instanceof RunningTask runningTask) || runningTask.canRun();
+    }
+
+    ClientCallContext callContext(OperationResult result) {
+        return ClientCallContext.of(task, result, resource);
     }
 
     /** Creates new {@link StateHolder} for the virtual child activity that is an externally-visible part of this operation. */

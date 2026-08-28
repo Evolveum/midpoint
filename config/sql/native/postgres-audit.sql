@@ -44,7 +44,7 @@ drop schema current_user cascade;
 -- @description: Creates the current user's schema used by the native audit repository.
 CREATE SCHEMA IF NOT EXISTS AUTHORIZATION CURRENT_USER;
 
--- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
+CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
 -- region custom enum types
 -- @description: Creates shared audit enum types when they are not already present.
@@ -103,7 +103,8 @@ EXCEPTION WHEN duplicate_object THEN raise notice 'Main repo custom types alread
 CREATE TYPE AuditEventTypeType AS ENUM ('GET_OBJECT', 'ADD_OBJECT', 'MODIFY_OBJECT',
     'DELETE_OBJECT', 'EXECUTE_CHANGES_RAW', 'SYNCHRONIZATION', 'CREATE_SESSION',
     'TERMINATE_SESSION', 'WORK_ITEM', 'WORKFLOW_PROCESS_INSTANCE', 'RECONCILIATION',
-    'SUSPEND_TASK', 'RESUME_TASK', 'RUN_TASK_IMMEDIATELY', 'DISCOVER_OBJECT', 'INFORMATION_DISCLOSURE');
+    'SUSPEND_TASK', 'RESUME_TASK', 'RUN_TASK_IMMEDIATELY', 'DISCOVER_OBJECT', 'INFORMATION_DISCLOSURE',
+    'EXTERNAL_SERVICE_CALL');
 
 -- @description: Describes whether an audit event records the request, execution, or resource stage.
 CREATE TYPE AuditEventStageType AS ENUM ('REQUEST', 'EXECUTION', 'RESOURCE');
@@ -253,6 +254,34 @@ CREATE INDEX ma_audit_event_resourceOids_idx ON ma_audit_event USING gin(resourc
 CREATE INDEX ma_audit_event_properties_idx ON ma_audit_event USING gin(properties);
 -- TODO trigram indexes for LIKE support? What columns? message, ...
 
+-- @description: Stores audit payloads attached to audit events.
+CREATE TABLE ma_audit_payload (
+    -- @description: Identifier of the audit event this payload belongs to.
+    recordId BIGINT NOT NULL, -- references ma_audit_event.id
+    -- @description: Timestamp of the audit event this payload belongs to. Also used as partitioning key.
+    timestamp TIMESTAMPTZ NOT NULL, -- references ma_audit_event.timestamp
+    -- @description: Order of this payload within the owning audit event.
+    ordinal INTEGER NOT NULL,
+    -- @description: Payload name.
+    name TEXT NOT NULL,
+    -- @description: Media type of the payload content.
+    contentType TEXT,
+    -- @description: Payload content stored as UTF-8 bytes.
+    content BYTEA,
+    -- @description: Text representation used for full-text search.
+    searchableText TEXT,
+
+    PRIMARY KEY (recordId, timestamp, ordinal)
+) PARTITION BY RANGE (timestamp);
+
+/* FK is created per partition only, see audit_create_monthly_partitions
+   and the *_default tables below. */
+
+-- @description: Speeds up full-text-like audit payload searches.
+-- @usedFor: full-text-like audit payload searches
+CREATE INDEX ma_audit_payload_searchableText_idx
+    ON ma_audit_payload USING gin(searchableText gin_trgm_ops);
+
 -- @description: Stores serialized object deltas and related object information for audit events.
 CREATE TABLE ma_audit_delta (
     -- @description: Identifier of the audit event this delta belongs to.
@@ -336,6 +365,9 @@ CREATE INDEX ma_audit_ref_recordId_timestamp_idx ON ma_audit_ref (recordId, time
 -- @description: Default partition for audit events that do not match a monthly audit event partition.
 CREATE TABLE ma_audit_event_default PARTITION OF ma_audit_event DEFAULT;
 
+-- @description: Default partition for audit payloads that do not match a monthly audit payload partition.
+CREATE TABLE ma_audit_payload_default PARTITION OF ma_audit_payload DEFAULT;
+
 -- @description: Default partition for audit deltas that do not match a monthly audit delta partition.
 CREATE TABLE ma_audit_delta_default PARTITION OF ma_audit_delta DEFAULT;
 
@@ -348,6 +380,9 @@ https://www.postgresql.org/docs/13/sql-createtable.html (search for "PARTITION O
 In short, for our case PK and constraints are created automatically, but FK are not.
 */
 ALTER TABLE ma_audit_delta_default ADD CONSTRAINT ma_audit_delta_default_fk
+    FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event_default (id, timestamp)
+        ON DELETE CASCADE;
+ALTER TABLE ma_audit_payload_default ADD CONSTRAINT ma_audit_payload_default_fk
     FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event_default (id, timestamp)
         ON DELETE CASCADE;
 ALTER TABLE ma_audit_ref_default ADD CONSTRAINT ma_audit_ref_default_fk
@@ -406,7 +441,7 @@ END; $$;
 
 -- region partition creation procedures
 /*
-@description: Creates monthly audit table partitions for audit events, deltas, and references.
+@description: Creates monthly audit table partitions for audit events, payloads, deltas, and references.
 
 IMPORTANT: Only default partitions are created in this script!
 Consider, whether you need partitioning before doing anything, for more read the docs:
@@ -472,12 +507,16 @@ BEGIN
             EXECUTE format(
                 'CREATE TABLE %I PARTITION OF ma_audit_ref FOR VALUES FROM (%L) TO (%L);',
                     'ma_audit_ref_' || tableSuffix, dateFrom, dateTo);
+            EXECUTE format(
+                'CREATE TABLE %I PARTITION OF ma_audit_payload FOR VALUES FROM (%L) TO (%L);',
+                    'ma_audit_payload_' || tableSuffix, dateFrom, dateTo);
 
 /*
 For info about what is and is not automatically created on the partition, see:
 https://www.postgresql.org/docs/13/sql-createtable.html (search for "PARTITION OF parent_table")
 In short, for our case PK and constraints are created automatically, but FK are not.
 */
+
             EXECUTE format(
                 'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
                     ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
@@ -489,6 +528,12 @@ In short, for our case PK and constraints are created automatically, but FK are 
                     ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
                     'ma_audit_ref_' || tableSuffix,
                     'ma_audit_ref_' || tableSuffix || '_fk',
+                    'ma_audit_event_' || tableSuffix);
+            EXECUTE format(
+                'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
+                    ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
+                    'ma_audit_payload_' || tableSuffix,
+                    'ma_audit_payload_' || tableSuffix || '_fk',
                     'ma_audit_event_' || tableSuffix);
         END;
 
@@ -507,4 +552,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(14, $$ SELECT 1 $$, true);
+call apply_audit_change(15, $$ SELECT 1 $$, true);

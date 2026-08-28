@@ -24,6 +24,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.info.AiInfo;
 import com.evolveum.midpoint.smart.api.info.HealthStatus;
@@ -140,11 +141,11 @@ public class DefaultServiceClientImpl implements ServiceClient {
     }
 
     /** A generic method that calls a remote service synchronously. Treats serialization/parsing of the exchanged data. */
-    public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass)
+    public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass, ClientCallContext callContext)
             throws SchemaException {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
-        var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
+        var requestText = SmartServiceSerialization.serializeRequest(request);
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.reset();
         webClient.type(MediaType.APPLICATION_JSON);
@@ -179,10 +180,10 @@ public class DefaultServiceClientImpl implements ServiceClient {
 
     /** A generic method that calls a remote service asynchronously. Returns a CompletableFuture. */
     @Override
-    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass) {
+    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass, ClientCallContext callContext) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return invoke(method, request, responseClass);
+                return invoke(method, request, responseClass, callContext);
             } catch (SchemaException e) {
                 throw new RuntimeException(e);
             }

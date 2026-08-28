@@ -61,6 +61,7 @@ public class MAuditEventRecord {
 
     // "transient" fields not used by Querydsl
     public Collection<MAuditDelta> deltas;
+    public Collection<MAuditPayload> payloads;
     public Map<String, List<MAuditRefValue>> refValues;
 
     public void addDelta(MAuditDelta mAuditDelta) {
@@ -68,6 +69,13 @@ public class MAuditEventRecord {
             deltas = new ArrayList<>();
         }
         deltas.add(mAuditDelta);
+    }
+
+    public void addPayload(MAuditPayload payload) {
+        if (payloads == null) {
+            payloads = new ArrayList<>();
+        }
+        payloads.add(payload);
     }
 
     public void addRefValue(MAuditRefValue refValue) {

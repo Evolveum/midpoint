@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditDeltaMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayloadMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditRefValueMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -124,6 +125,7 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
         mappingRegistry
                 .register(AuditEventRecordType.COMPLEX_TYPE,
                         QAuditEventRecordMapping.init(repositoryContext))
+                .register(QAuditPayloadMapping.init(repositoryContext))
                 .register(QAuditRefValueMapping.init(repositoryContext))
                 .register(QAuditDeltaMapping.init(repositoryContext))
                 .seal();

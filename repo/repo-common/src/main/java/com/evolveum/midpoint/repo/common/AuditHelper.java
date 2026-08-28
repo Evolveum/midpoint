@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 import com.evolveum.midpoint.task.api.ExpressionEnvironmentSupplier;
@@ -255,14 +256,17 @@ public class AuditHelper {
         List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord = emptyList();
         ExpressionType eventRecordingExpression = null;
 
-        if (config != null && config.getAudit() != null && config.getAudit().getEventRecording() != null) {
-            SystemConfigurationAuditEventRecordingType eventRecording = config.getAudit().getEventRecording();
+        var audit = config != null ? config.getAudit() : null;
+        var eventRecording = audit != null ? audit.getEventRecording() : null;
+        if (eventRecording != null) {
             recordResourceOids = Boolean.TRUE.equals(eventRecording.isRecordResourceOids());
             propertiesToRecord = eventRecording.getProperty();
             eventRecordingExpression = eventRecording.getExpression();
         }
 
-        return new AuditConfiguration(recordResourceOids, propertiesToRecord, eventRecordingExpression);
+        return new AuditConfiguration(recordResourceOids, propertiesToRecord, eventRecordingExpression,
+                SystemConfigurationAuditUtil.isRecordingExternalServiceEvents(audit),
+                SystemConfigurationAuditUtil.isRecordingExternalServiceData(audit));
     }
 
     public OperationResult cloneResultForAuditEventRecord(OperationResult result) {

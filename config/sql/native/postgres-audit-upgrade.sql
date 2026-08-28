@@ -240,6 +240,138 @@ call apply_audit_change(14, $aa$
     ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'GENERIC';
 $aa$);
 
+-- Audit payloads
+-- @change: Adds generic audit payload persistence.
+-- @since: 4.11
+-- @affects: enum AuditEventTypeType | Modified enum type | Adds `EXTERNAL_SERVICE_CALL`.
+-- @affects: table ma_audit_payload | New table | Stores payloads attached to audit events.
+-- @affects: table ma_audit_payload_default | New default partition | Stores payloads outside monthly partitions.
+-- @affects: table ma_audit_payload_<month> | New generated partition | Creates monthly audit payload partitions.
+-- @affects: constraint ma_audit_payload_<month>_fk | New generated foreign key | Links monthly audit payload partitions to matching audit event partitions.
+-- @affects: index ma_audit_payload_searchableText_idx | New index | Supports full-text-like payload searches.
+-- @affects: routine audit_create_monthly_partitions | Modified procedure | Creates payload partitions and FKs.
+call apply_audit_change(15, $aa$
+CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
+
+ALTER TYPE AuditEventTypeType ADD VALUE IF NOT EXISTS 'EXTERNAL_SERVICE_CALL' AFTER 'INFORMATION_DISCLOSURE';
+
+CREATE TABLE ma_audit_payload (
+    recordId BIGINT NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL,
+    ordinal INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    contentType TEXT,
+    content BYTEA,
+    searchableText TEXT,
+
+    PRIMARY KEY (recordId, timestamp, ordinal)
+) PARTITION BY RANGE (timestamp);
+
+CREATE INDEX ma_audit_payload_searchableText_idx ON ma_audit_payload USING gin(searchableText gin_trgm_ops);
+
+CREATE TABLE ma_audit_payload_default PARTITION OF ma_audit_payload DEFAULT;
+
+ALTER TABLE ma_audit_payload_default ADD CONSTRAINT ma_audit_payload_default_fk
+    FOREIGN KEY (recordId, timestamp) REFERENCES ma_audit_event_default (id, timestamp)
+    ON DELETE CASCADE;
+
+DO $$
+DECLARE
+    eventPartitionName TEXT;
+    tableSuffix TEXT;
+    partitionBound TEXT;
+BEGIN
+    FOR eventPartitionName, partitionBound IN
+        SELECT c.relname,
+            pg_get_expr(c.relpartbound, c.oid)
+        FROM pg_inherits i
+                 JOIN pg_class c ON c.oid = i.inhrelid
+        WHERE i.inhparent = 'ma_audit_event'::regclass
+          AND c.relname ~ '^ma_audit_event_[0-9]{6}$'
+    LOOP
+        tableSuffix := substring(eventPartitionName from '([0-9]{6})$');
+
+        BEGIN
+            PERFORM ('ma_audit_payload_' || tableSuffix)::regclass;
+            RAISE NOTICE 'Audit payload partition % already exists, OK...', tableSuffix;
+        EXCEPTION WHEN OTHERS THEN
+            EXECUTE format(
+                'CREATE TABLE %I PARTITION OF ma_audit_payload %s;',
+                'ma_audit_payload_' || tableSuffix, partitionBound);
+
+            EXECUTE format(
+                'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
+                ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
+                'ma_audit_payload_' || tableSuffix,
+                'ma_audit_payload_' || tableSuffix || '_fk',
+                'ma_audit_event_' || tableSuffix);
+        END;
+    END LOOP;
+END $$;
+
+CREATE OR REPLACE PROCEDURE audit_create_monthly_partitions(futureCount int)
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    dateFrom TIMESTAMPTZ = date_trunc('month', current_timestamp);
+    dateTo TIMESTAMPTZ;
+    tableSuffix TEXT;
+BEGIN
+    -- noinspection SqlUnused
+    FOR i IN 1..abs(futureCount) loop
+        dateTo := dateFrom + interval '1 month';
+        tableSuffix := to_char(dateFrom, 'YYYYMM');
+
+        BEGIN
+            -- PERFORM = select without using the result
+            PERFORM ('ma_audit_event_' || tableSuffix)::regclass;
+            RAISE NOTICE 'Tables for partition % already exist, OK...', tableSuffix;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Creating partitions for range: % - %', dateFrom, dateTo;
+
+            -- values FROM are inclusive (>=), TO are exclusive (<)
+            EXECUTE format(
+                'CREATE TABLE %I PARTITION OF ma_audit_event FOR VALUES FROM (%L) TO (%L);',
+                'ma_audit_event_' || tableSuffix, dateFrom, dateTo);
+            EXECUTE format(
+                'CREATE TABLE %I PARTITION OF ma_audit_delta FOR VALUES FROM (%L) TO (%L);',
+                'ma_audit_delta_' || tableSuffix, dateFrom, dateTo);
+            EXECUTE format(
+                'CREATE TABLE %I PARTITION OF ma_audit_ref FOR VALUES FROM (%L) TO (%L);',
+                'ma_audit_ref_' || tableSuffix, dateFrom, dateTo);
+            EXECUTE format(
+                'CREATE TABLE %I PARTITION OF ma_audit_payload FOR VALUES FROM (%L) TO (%L);',
+                'ma_audit_payload_' || tableSuffix, dateFrom, dateTo);
+
+            EXECUTE format(
+                'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
+                ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
+                'ma_audit_delta_' || tableSuffix,
+                'ma_audit_delta_' || tableSuffix || '_fk',
+                'ma_audit_event_' || tableSuffix);
+            EXECUTE format(
+                'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
+                ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
+                'ma_audit_ref_' || tableSuffix,
+                'ma_audit_ref_' || tableSuffix || '_fk',
+                'ma_audit_event_' || tableSuffix);
+            EXECUTE format(
+                'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (recordId, timestamp)' ||
+                ' REFERENCES %I (id, timestamp) ON DELETE CASCADE',
+                'ma_audit_payload_' || tableSuffix,
+                'ma_audit_payload_' || tableSuffix || '_fk',
+                'ma_audit_event_' || tableSuffix);
+        END;
+
+        IF futureCount < 0 THEN
+            -- going to the past
+            dateFrom := dateFrom - interval '1 month';
+        ELSE
+            dateFrom := dateTo;
+        END IF;
+    END loop;
+END $$;
+$aa$);
 
 
 -- WRITE CHANGES ABOVE ^^

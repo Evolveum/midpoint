@@ -292,6 +292,13 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should contain a script expression returned by the service")
                 .isNotNull();
+
+        var callContext = ((MockServiceClientImpl) mockClient).getLastCallContext();
+
+        assertThat(((MockServiceClientImpl) mockClient).getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_MAPPING);
+        assertThat(callContext.task()).isSameAs(task);
+        assertThat(callContext.result()).isSameAs(result);
+        assertThat(callContext.resource()).isSameAs(ctx.resource);
     }
 
     @Test

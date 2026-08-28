@@ -88,6 +88,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
 * Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
 * Added English (Europe) locale. See bug:MID-10286[].
+* Added auditing of Smart Integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
 
 
 #TODO#
