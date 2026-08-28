@@ -8,9 +8,14 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+
 import jakarta.annotation.PostConstruct;
 
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,8 +67,37 @@ public class LinkedReferencePanelFactory
 
     @Override
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
-        LinkedReferencePanel<?> panel = new LinkedReferencePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-        panel.setOutputMarkupId(true);
-        return panel;
+        if (showOnlyLabel(panelCtx.unwrapWrapperModel())) {
+            Label labelPanel = new Label(panelCtx.getComponentId(), getReferenceNameModel(panelCtx));
+            labelPanel.add(AttributeModifier.append("class", "prism-value-label-readonly"));
+            labelPanel.setOutputMarkupId(true);
+            return labelPanel;
+        } else {
+            LinkedReferencePanel<?> panel = new LinkedReferencePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+            panel.setOutputMarkupId(true);
+            return panel;
+        }
+    }
+
+    private boolean showOnlyLabel(PrismReferenceWrapper<ObjectReferenceType> wrapper) {
+        return wrapper.isReadOnly() && !wrapper.isMetadata();
+    }
+
+    private IModel<String> getReferenceNameModel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
+        return () -> {
+            ObjectReferenceType refObj = panelCtx.getRealValueModel().getObject();
+            if (refObj == null) {
+                return "";
+            }
+            PrismReferenceValue ref = refObj.asReferenceValue();
+            if (ref == null) {
+                return "";
+            }
+            if (ref.getTargetName() == null && ref.getObject() == null) {
+                return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(ref.asReferencable(), true, true);
+            }
+            return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), false,
+                    panelCtx.getPageBase());
+        };
     }
 }

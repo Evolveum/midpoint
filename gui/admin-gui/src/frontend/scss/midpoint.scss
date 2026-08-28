@@ -1994,7 +1994,17 @@ th.debug-list-buttons {
   min-width: 300px;
 }
 
-.prism-property-value-label {
-  white-space: pre-wrap;
+.prism-value-label-readonly {
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  display: block;
+  min-height: 31px;
+  padding: 4px 8px;
+  background-color: $input-disabled-bg;
+  border: 1px solid $border-color;
+  color: $body-color;
+  border-radius: 4px;
+  line-height: 1.5;
+  font-family: $font-family-base;
+  font-size: 14px;
 }

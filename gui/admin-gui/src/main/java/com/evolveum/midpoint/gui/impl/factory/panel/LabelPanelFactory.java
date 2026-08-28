@@ -54,8 +54,12 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
             labelPanel = new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
         }
 
-        labelPanel.add(AttributeModifier.append("class", "prism-property-value-label"));
+        labelPanel.add(AttributeModifier.append("class", getAdditionalLabelClass(panelCtx.unwrapWrapperModel())));
         return labelPanel;
+    }
+
+    private String getAdditionalLabelClass(PrismPropertyWrapper<T> wrapper) {
+        return !wrapper.isMetadata() ? "prism-value-label-readonly" : null;
     }
 
     @Override
