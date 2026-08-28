@@ -15,6 +15,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IndexAdditionalItemPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultDetailLevel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditChangedItemPathsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditExternalServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
 /**
@@ -45,23 +46,34 @@ public class SystemConfigurationAuditUtil {
     }
 
     public static boolean isRecordingExternalServiceEvents(SystemConfigurationAuditType configuration) {
-        if (configuration == null || configuration.getExternalService() == null) {
+        var smartIntegration = getSmartIntegrationAuditConfiguration(configuration);
+        if (smartIntegration == null) {
             return DEFAULT_RECORD_EXTERNAL_SERVICE_EVENTS;
         }
 
         return ObjectUtils.defaultIfNull(
-                configuration.getExternalService().isRecordEvents(),
+                smartIntegration.isRecordEvents(),
                 DEFAULT_RECORD_EXTERNAL_SERVICE_EVENTS);
     }
 
     public static boolean isRecordingExternalServiceData(SystemConfigurationAuditType configuration) {
-        if (configuration == null || configuration.getExternalService() == null) {
+        var smartIntegration = getSmartIntegrationAuditConfiguration(configuration);
+        if (smartIntegration == null) {
             return DEFAULT_RECORD_EXTERNAL_SERVICE_DATA;
         }
 
         return ObjectUtils.defaultIfNull(
-                configuration.getExternalService().isRecordData(),
+                smartIntegration.isRecordData(),
                 DEFAULT_RECORD_EXTERNAL_SERVICE_DATA);
+    }
+
+    private static SystemConfigurationAuditExternalServiceType getSmartIntegrationAuditConfiguration(
+            SystemConfigurationAuditType configuration) {
+        if (configuration == null || configuration.getExternalServices() == null) {
+            return null;
+        }
+
+        return configuration.getExternalServices().getSmartIntegration();
     }
 
     public static boolean isIndexingAddDeltaOperation(SystemConfigurationAuditType configuration) {

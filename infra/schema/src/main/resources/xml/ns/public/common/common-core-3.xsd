@@ -12355,13 +12355,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="externalService" type="tns:SystemConfigurationAuditExternalServiceType" minOccurs="0">
+            <xsd:element name="externalServices" type="tns:SystemConfigurationAuditExternalServicesType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Details about recording audit events and data for external service calls.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>SystemConfigurationAuditType.externalService</a:displayName>
+                        <a:displayName>SystemConfigurationAuditType.externalServices</a:displayName>
                         <a:since>4.11</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
@@ -12369,6 +12369,32 @@
             </xsd:element>
             <xsd:element name="changedItemPaths" type="tns:SystemConfigurationAuditChangedItemPathsType" minOccurs="0"/>
             <!-- TODO: recordRetentionPolicy -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationAuditExternalServicesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies audit configuration for external services.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="smartIntegration" type="tns:SystemConfigurationAuditExternalServiceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Details about recording audit events and data for Smart Integration service calls.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditExternalServicesType.smartIntegration</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

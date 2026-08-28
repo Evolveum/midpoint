@@ -39,6 +39,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditExternalServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditExternalServicesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -98,7 +101,7 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
 
         var delegate = new RecordingServiceClient();
 
-        var response = audited(delegate, recordEvents, recordData).invoke(
+        var response = audited(delegate, auditConfiguration(recordEvents, recordData)).invoke(
                 ServiceClient.Method.SUGGEST_OBJECT_TYPES,
                 recordData ? request() : unserializableRequest(),
                 SiSuggestObjectTypesResponseType.class,
@@ -355,8 +358,21 @@ public class TestDefaultServiceClientAudit extends AbstractSmartIntegrationTest 
         return new AuditingServiceClient(delegate, auditHelper);
     }
 
+    private AuditingServiceClient audited(ServiceClient delegate, SystemConfigurationType systemConfiguration) {
+        return new AuditingServiceClient(delegate, auditHelper, null, auditHelper.getAuditConfiguration(systemConfiguration));
+    }
+
     private AuditingServiceClient audited(ServiceClient delegate, boolean recordEvents, boolean recordData) {
         return new AuditingServiceClient(delegate, auditHelper, recordEvents, recordData);
+    }
+
+    private SystemConfigurationType auditConfiguration(boolean recordEvents, boolean recordData) {
+        return new SystemConfigurationType()
+                .audit(new SystemConfigurationAuditType()
+                        .externalServices(new SystemConfigurationAuditExternalServicesType()
+                                .smartIntegration(new SystemConfigurationAuditExternalServiceType()
+                                        .recordEvents(recordEvents)
+                                        .recordData(recordData))));
     }
 
     private SiSuggestObjectTypesRequestType request() {
