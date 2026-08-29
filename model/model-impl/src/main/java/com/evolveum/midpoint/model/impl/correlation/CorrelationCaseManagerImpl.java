@@ -376,7 +376,7 @@ public class CorrelationCaseManagerImpl implements CorrelationCaseManager {
     private Collection<ObjectReferenceType> getPerformerRefs(CaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
-            if (isRelevant(workItem, aCase)) {
+            if (hasOutputAndOutcomeAndPerformer(workItem, aCase)) {
                 rv.add(workItem.getPerformerRef().clone());
             }
         }
@@ -398,17 +398,19 @@ public class CorrelationCaseManagerImpl implements CorrelationCaseManager {
 
         List<String> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
-            final String comment = workItem.getOutput().getComment();
-            if (isRelevant(workItem, aCase) && comment != null && !comment.isBlank()) {
-                Optional.ofNullable(formatter.formatComment(workItem, task, result))
-                        .ifPresent(rv::add);
+            if (hasOutputAndOutcomeAndPerformer(workItem, aCase)) {
+                final String comment = workItem.getOutput().getComment();
+                if (comment != null && !comment.isBlank()) {
+                    Optional.ofNullable(formatter.formatComment(workItem, task, result))
+                            .ifPresent(rv::add);
+                }
             }
         }
         LOGGER.trace("Performer comments: {}", rv);
         return rv;
     }
 
-    private boolean isRelevant(CaseWorkItemType workItem, CaseType aCase) {
+    private boolean hasOutputAndOutcomeAndPerformer(CaseWorkItemType workItem, CaseType aCase) {
         return hasOutcomeUri(workItem, aCase.getOutcome()) && workItem.getPerformerRef() != null;
     }
 
