@@ -9,76 +9,66 @@ doc-type: intro
 
 == Introduction
 
-The "simulation" is an umbrella term covering various mechanisms of "what-if" analysis in midPoint.
-It could be characterized as an ability to see the expected effects of some actions without the risk of damaging the system state.
+The simulation feature in midPoint provides a safe environment for conducting a "what-if" analysis before putting changes in the configuration to production.
+Using the simulation feature, administrators and developers can preview the effects of configuration modifications or policy adjustments without risking damage to real data.
+By simulating effects of changes before applying them, midPoint enables thorough testing and validation while maintaining operational continuity.
 
-Let us introduce some basic terms first: execution mode and configuration used.
+Simulations leverage two complementary dimensions: execution mode and configuration to use.
 
-. _Execution mode_ determines whether any actions carried out by an activity will have persistent effects or not.
-. _Configuration used_ specifies whether the activity should use "production" or "development" configuration.
+* *Execution mode* determines whether actions carried out by an activity have persistent effects.
+    Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute in either of the two modes.
+    ** In _preview_ mode, changes are computed but not applied—they are written to the xref:/midpoint/reference/simulation/results/[simulation result] object instead, leaving the system state untouched.
+        Simulation results collects both statistical and detailed information about the changes that would be applied.
+    ** In _full_ execution mode, all computed changes are persistently applied to the xref:/midpoint/reference/repository/[midPoint repository] and external resources, and recorded in the system audit log.
 
-.Execution modes and system configurations
-image::mode-config-matrix.drawio.png[Mode-config matrix]
+* *Configuration to use* specifies whether the activity runs against _production_ or _development_ configuration.
+    ** Production configuration comprises all items engaged in regular operations and can cause persistent effects.
+    ** Development configuration represents configuration that is being worked on—items may be added, adjusted, replaced, or omitted relative to production.
+        The development configuration cannot be used in the full execution mode.
 
-Let us describe these concepts in more detail.
+The production vs. development configuration is expressed using xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle states] in midPoint.
 
-== Persistent-Effects vs Simulation Execution Mode
+* Objects with _active_ and _deprecated_ lifecycle states are used in production configuration.
+* Objects with _proposed_ and _active_ lifecycle states are used in development configuration.
+* Objects with _draft_, _archived_ and any other lifecycle states are effectively disabled.
+    They are not used by any mode and configuration combination.
 
-Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute in two basic modes: _persistent-effects_ or _simulation_.
+.Allowed combinations of modes and configurations, their results, and related lifecycle states
+[cols="1h,1,1,1", options="header"]
+|===
+| |Preview mode results |Full mode results |Works with lifecycle states
+|Development configuration
+|simulate
+|—
+|proposed, active
+|Production configuration
+|simulate
+|write to DB
+|active, deprecated
+|===
 
-[#_persistent_effects_mode]
-=== Persistent-Effects Mode
-
-This is the standard mode of operation, where any actions are really executed, be they in the midPoint repository or on the resources.
-All such changes are also recorded in the system audit log.
+See also the diagram in xref:/midpoint/reference/concepts/object-lifecycle/#relation-of-task-configurations-and-lifecycle-states[].
 
 [NOTE]
 ====
-There are some specialties like postponing resource operations either because of the resource unavailability (planned - see xref:/midpoint/reference/resources/maintenance-state/[maintenance mode] - or unplanned), or because of xref:/midpoint/reference/resources/propagation/[provisioning propagation].
+There are some specialties like postponing resource operations either because of the resource unavailability (see xref:/midpoint/reference/resources/maintenance-state/[]), or because of xref:/midpoint/reference/resources/propagation/[provisioning propagation].
 But none of these contradict the basic idea that all computed operations are going to be (eventually) applied.
 ====
 
-[NOTE]
-====
-This mode can be sometimes (imprecisely) called _production_.
-But this term conflicts with <<Production Configuration>>, so it should not be used.
+=== Usual workflow with simulations and object lifecycle status
 
-Overall, the "persistent-effects mode" term is not ideal either.
-We are looking for a better one.
-====
+Simply put, an object typically goes through its lifecycle like this: _draft_ → _proposed_ → _active_ → _deprecated_ → _archived_. +
 
-=== Simulation Mode
+With objects in the _proposed_ lifecycle state, you can use simulations to test configuration of a new mapping, synchronization reaction, object type definition, or a whole resource, for example.
+By setting an object as _deprecated_, you signify that it is going to be retired soon.
+It is still used in production until the replacing _proposed_ object is not "deployed" (set as _active_).
 
-Here, no actions that could have persistent externally visible effects are executed.
-Accordingly, nothing is written to the system audit log.
+To deploy the new replacing object and retire the old one:
 
-The changes are computed, just like in <<Persistent-Effects Mode>>, but instead of their application, they are written to the so-called xref:/midpoint/reference/simulation/results/[simulation result].
-It is a special kind of object in the midPoint repository that collects both statistical and detailed information about the changes that would be applied.
+. Set the new object from _proposed_ to _active_ effectively enabling it in production
+. Set the old object from _deprecated_ to _archived_ effectively disabling it entirely.
 
-== Production vs Development Configuration
-
-=== Production Configuration
-
-The production configuration comprises all configuration items that are engaged in regular midPoint operations.
-By _configuration item_, we mean, for example, a definition of resource, resource object type, attribute, association, abstract role, assignment, or mapping.
-
-Items in the production configuration are the only ones that can cause persistent effects.
-(See <<Persistent-Effects Mode>>.)
-
-=== Development Configuration
-
-Development configuration represents the part of the system configuration that is currently being developed.
-With regard to the production configuration, some items may be added, some replaced, and finally, some may be missing.
-
-The development configuration cannot be executed in "persistent-effects" mode.
-
-Before 4.7, the development configuration had to reside in a separate midPoint instance, typically called the "development" or "testing" one.
-Although such an approach still has its advantages, it is now possible for both configurations to share a single midPoint instance.
-
-=== Distinguishing Production and Development Configurations
-
-This distinction is currently made using the `lifecycleState` property on configuration items.
-Please see xref:/midpoint/reference/concepts/configuration-item-lifecycle/[].
+This can be done simultaneously to achieve seamless transition.
 
 == Typical Simulation Scenarios
 
