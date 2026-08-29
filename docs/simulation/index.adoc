@@ -104,7 +104,7 @@ Yet other items can be deprecated without replacement, effectively planning for 
 === Switching Between Production and Development Mode
 
 Various configuration items (such as a resource) can be switched between production and proposed configuration by changing their object lifecycle state.
-An example is shown in xref:prod-devel-mode[xrefstyle=full].
+An example is shown in <<prod-devel-mode>>.
 
 .Switching a resource between production and proposed configurations
 [[prod-devel-mode]]
