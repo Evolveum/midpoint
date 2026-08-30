@@ -9,27 +9,27 @@ doc-type: intro
 
 == Introduction
 
-The simulation feature in midPoint provides a safe environment for conducting a "what-if" analysis before putting changes in the configuration to production.
+The simulation feature in midPoint provides a safe environment for conducting a "what-if" analysis before deploying configuration changes to production.
 Using the simulation feature, administrators and developers can preview the effects of configuration modifications or policy adjustments without risking damage to real data.
 By simulating effects of changes before applying them, midPoint enables thorough testing and validation while maintaining operational continuity.
 
 Simulations leverage two complementary dimensions: execution mode and configuration to use.
 
-* *Execution mode* determines whether actions carried out by an activity have persistent effects.
+* *Execution mode* determines whether actions carried out by an activity have persistent effects or not.
     Any xref:/midpoint/reference/tasks/activities/[activity] in midPoint can execute in either of the two modes.
     ** In _preview_ mode, changes are computed but not applied—they are written to the xref:/midpoint/reference/simulation/results/[simulation result] object instead, leaving the system state untouched.
-        Simulation results collects both statistical and detailed information about the changes that would be applied.
+        The simulation results object collects statistical and procedural information about the changes that would be applied.
     ** In _full_ execution mode, all computed changes are persistently applied to the xref:/midpoint/reference/repository/[midPoint repository] and external resources, and recorded in the system audit log.
 
 * *Configuration to use* specifies whether the activity runs against _production_ or _development_ configuration.
-    ** Production configuration comprises all items engaged in regular operations and can cause persistent effects.
-    ** Development configuration represents configuration that is being worked on—items may be added, adjusted, replaced, or omitted relative to production.
+    ** Production configuration comprises all items engaged in regular operations and can be used for persistent effects.
+    ** Development configuration represents configuration that is being tested—e.g., new mapping rules, new object type, adjusted resource configuration, etc.
         The development configuration cannot be used in the full execution mode.
 
 The production vs. development configuration is expressed using xref:/midpoint/reference/concepts/object-lifecycle/[object lifecycle states] in midPoint.
 
-* Objects with _active_ and _deprecated_ lifecycle states are used in production configuration.
-* Objects with _proposed_ and _active_ lifecycle states are used in development configuration.
+* Objects with _active_ and _deprecated_ lifecycle states comprise production configuration.
+* Objects with _proposed_ and _active_ lifecycle states comprise development configuration.
 * Objects with _draft_, _archived_ and any other lifecycle states are effectively disabled.
     They are not used by any mode and configuration combination.
 
@@ -56,18 +56,19 @@ There are some specialties like postponing resource operations either because of
 But none of these contradict the basic idea that all computed operations are going to be (eventually) applied.
 ====
 
-=== Usual workflow with simulations and object lifecycle status
+=== Usual workflow with simulations and object lifecycle states
 
 Simply put, an object typically goes through its lifecycle like this: _draft_ → _proposed_ → _active_ → _deprecated_ → _archived_. +
 
 With objects in the _proposed_ lifecycle state, you can use simulations to test configuration of a new mapping, synchronization reaction, object type definition, or a whole resource, for example.
-By setting an object as _deprecated_, you signify that it is going to be retired soon.
-It is still used in production until the replacing _proposed_ object is not "deployed" (set as _active_).
+The _proposed_ state shows that the configuration is likely to be _activated_ in the future.
+By setting an object as _deprecated_, you signify that it is going to be retired eventually.
+It is still used in production until the replacing _proposed_ object is "deployed" (set as _active_).
 
 To deploy the new replacing object and retire the old one:
 
-. Set the new object from _proposed_ to _active_ effectively enabling it in production
-. Set the old object from _deprecated_ to _archived_ effectively disabling it entirely.
+. Set the new object from _proposed_ to _active_, effectively enabling it in production
+. Set the old object from _deprecated_ to _archived_, effectively disabling it entirely.
 
 This can be done simultaneously to achieve seamless transition.
 
@@ -104,7 +105,7 @@ Yet other items can be deprecated without replacement, effectively planning for 
 === Switching Between Production and Development Mode
 
 Various configuration items (such as a resource) can be switched between production and proposed configuration by changing their object lifecycle state.
-An example is shown in <<prod-devel-mode>>.
+See the figure below.
 
 .Switching a resource between production and proposed configurations
 [[prod-devel-mode]]
