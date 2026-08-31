@@ -103,6 +103,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>ucf-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>cases-api</artifactId>
             <version>${project.version}</version>
@@ -231,6 +236,12 @@
         </dependency>
 
         <!-- Test -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>cases-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint</groupId>
             <artifactId>midpoint-localization</artifactId>

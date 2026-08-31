@@ -120,6 +120,10 @@ public class QAuditEventRecordMapping
                 TableRelationResolver.usingSubquery(
                         QAuditDeltaMapping.init(repositoryContext),
                         (e, d) -> e.id.eq(d.recordId)));
+        addRelationResolver(F_PAYLOAD,
+                TableRelationResolver.usingSubquery(
+                        QAuditPayloadMapping.init(repositoryContext),
+                        (e, p) -> e.id.eq(p.recordId)));
     }
 
     @Override
@@ -155,6 +159,7 @@ public class QAuditEventRecordMapping
                 .message(row.message);
 
         mapDeltas(record, row.deltas);
+        mapPayloads(record, row.payloads);
         // Changed items are only for searching, we don't want to reconstruct them, they are even "canonicalized".
         mapRefValues(record, row.refValues);
         mapProperties(record, row.properties);
@@ -169,6 +174,16 @@ public class QAuditEventRecordMapping
 
         for (MAuditDelta delta : deltas) {
             record.delta(QAuditDeltaMapping.get().toSchemaObject(delta));
+        }
+    }
+
+    private void mapPayloads(AuditEventRecordType record, Collection<MAuditPayload> payloads) {
+        if (payloads == null) {
+            return;
+        }
+
+        for (MAuditPayload payload : payloads) {
+            record.payload(QAuditPayloadMapping.get().toSchemaObject(payload));
         }
     }
 
@@ -419,6 +434,17 @@ public class QAuditEventRecordMapping
                                 .and(qd.timestamp.between(minTimestamp, maxTimestamp)))
                         .fetch()
                         .forEach(d -> rowMap.get(d.recordId).addDelta(d));
+
+                QAuditPayload qp = QAuditPayloadMapping.get().defaultAlias();
+                jdbcSession.newQuery()
+                        .select(qp)
+                        .from(qp)
+                        .where(qp.recordId.in(rowMap.keySet())
+                                // here between is OK, it's inclusive on both sides
+                                .and(qp.timestamp.between(minTimestamp, maxTimestamp)))
+                        .orderBy(qp.recordId.asc(), qp.ordinal.asc())
+                        .fetch()
+                        .forEach(p -> rowMap.get(p.recordId).addPayload(p));
 
                 QAuditRefValue qr = QAuditRefValueMapping.get().defaultAlias();
                 jdbcSession.newQuery()

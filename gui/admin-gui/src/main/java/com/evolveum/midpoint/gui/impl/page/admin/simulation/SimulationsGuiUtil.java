@@ -74,6 +74,8 @@ import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -165,7 +167,7 @@ public class SimulationsGuiUtil {
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
         String key = LocalizationUtil.createKeyForEnum(ot);
 
-        return LocalizationUtil.translate(key);
+        return translate(key);
     }
 
     public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn(
@@ -246,10 +248,13 @@ public class SimulationsGuiUtil {
         if (obj instanceof ShadowType) {
             try {
                 displayName = getProcessedShadowName((ShadowType) obj, page);
+            } catch (IllegalStateException ex) {
+                displayName = translate("ProcessedObjectsPanel.unknown.or.unavailable");
+                LOGGER.warn("Couldn't create processed shadow displayName; shadow data is probably incomplete or unavailable", ex);
             } catch (SystemException ex) {
-                LOGGER.debug("Couldn't create processed shadow name", ex);
+                LOGGER.debug("Couldn't create processed shadow displayName", ex);
             }
-        } else {
+        }  else {
             displayName = WebComponentUtil.getDisplayName(obj.asPrismObject());
         }
 

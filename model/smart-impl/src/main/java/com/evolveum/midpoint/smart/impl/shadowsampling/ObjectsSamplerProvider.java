@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationShad
 public class ObjectsSamplerProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectsSamplerProvider.class);
+
+    private static final String OPERATION_GET_SHADOW_SAMPLING_CONFIGURATION = ".getShadowSamplingConfiguration";
 
     private final ModelService modelService;
     private final SystemObjectCache systemObjectCache;
@@ -132,7 +135,8 @@ public class ObjectsSamplerProvider {
             return null;
         }
         try {
-            var systemConfig = systemObjectCache.getSystemConfigurationBean(null);
+            var result = new OperationResult(OPERATION_GET_SHADOW_SAMPLING_CONFIGURATION);
+            var systemConfig = systemObjectCache.getSystemConfigurationBean(result);
             return SystemConfigurationTypeUtil.getSmartIntegrationShadowSamplingConfiguration(systemConfig);
         } catch (SchemaException e) {
             LOGGER.warn("Failed to get system configuration for shadow sampling: {}", e.getMessage(), e);

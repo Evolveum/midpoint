@@ -86,6 +86,9 @@ including import of signed allowed-connectors list and subscription compliance e
 * Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
 * Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
 * Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
+* Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
+* Added English (Europe) locale. See bug:MID-10286[].
+* Added auditing of Smart Integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
 
 
 #TODO#
@@ -188,6 +191,14 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
 * Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
 * Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
+* Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
+* Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11939[]
+* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
+* Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
+* Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
+* Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
+* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
 
 === Releases Of Other Components
 

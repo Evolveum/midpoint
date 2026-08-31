@@ -800,7 +800,7 @@ Stores case objects used for approvals, manual actions, and other case-managemen
 
 XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#CaseType`
 
-Inherits from: xref:infrastructure.adoc#m_assignment_holder[`m_assignment_holder`]
+Inherits from: xref:infrastructure.adoc#m_projection_holder[`m_projection_holder`]
 
 ==== Columns
 

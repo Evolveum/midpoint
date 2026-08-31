@@ -12,9 +12,12 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.MATCH_SCHEMA;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,14 +47,19 @@ class SchemaMatchingOperation {
     private final ServiceClient serviceClient;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final boolean useAiService;
+    private final Task task;
+    private final OperationResult result;
     private ResourceObjectClassSchemaSerializer resourceSideSerializer;
     private PrismComplexTypeDefinitionSerializer midPointSideSerializer;
     private WellKnownSchemaType detectedSchemaType;
 
-    SchemaMatchingOperation(ServiceClient serviceClient, WellKnownSchemaService wellKnownSchemaService, boolean useAiService) {
+    SchemaMatchingOperation(ServiceClient serviceClient, WellKnownSchemaService wellKnownSchemaService, boolean useAiService,
+            Task task, OperationResult result) {
         this.serviceClient = serviceClient;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.useAiService = useAiService;
+        this.task = task;
+        this.result = result;
     }
 
     SiMatchSchemaResponseType matchSchema(
@@ -83,7 +91,8 @@ class SchemaMatchingOperation {
                 .applicationSchema(resourceSideSerializer.serialize())
                 .midPointSchema(midPointSideSerializer.serialize());
         try {
-            SiMatchSchemaResponseType response = serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+            SiMatchSchemaResponseType response = serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class,
+                    ClientCallContext.of(task, result, resource));
             response.getAttributeMatch().forEach(match -> match.setIsSystemProvided(false));
             return Optional.of(response);
         } catch (SchemaException | ProcessingException e) {

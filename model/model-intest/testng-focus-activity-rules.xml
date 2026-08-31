@@ -37,6 +37,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyTreeCounters"/>
 
             <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyNonIterativeScripting"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyProcessing"/>
         </classes>
     </test>
 </suite>

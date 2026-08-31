@@ -121,13 +121,15 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
         documentationField.setOutputMarkupId(true);
         documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
-        documentationField.add(new CaretPreservingOnChangeBehavior() {
+
+        documentationField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
                 // The model is updated before this callback. Avoid rerendering the
                 // unchanged field, as replacing it causes visible flickering.
             }
         });
+
         return documentationField;
     }
 
@@ -159,32 +161,27 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private SimpleAceEditorPanel createCodeInputPanel(IModel<ExpressionUtil.Language> languageModel) {
 
         IModel<String> model = new IModel<>() {
+
             @Override
             public String getObject() {
-
                 ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
-
-                String ret = evaluatorWrapper.code;
+                String code = evaluatorWrapper.code;
 
                 if (ExpressionUtil.Language.VELOCITY.equals(evaluatorWrapper.language)) {
-                    if (ret.startsWith(C_DATA_PREFIX)) {
-                        ret = ret.substring(C_DATA_PREFIX.length());
+                    if (code.startsWith(C_DATA_PREFIX)) {
+                        code = code.substring(C_DATA_PREFIX.length());
                     }
-
-                    if (ret.endsWith(C_DATA_SUFFIX)) {
-                        ret = ret.substring(0, ret.length() - C_DATA_SUFFIX.length());
+                    if (code.endsWith(C_DATA_SUFFIX)) {
+                        code = code.substring(0, code.length() - C_DATA_SUFFIX.length());
                     }
                 }
-                return ret;
+
+                return code;
             }
 
             @Override
             public void setObject(String value) {
-                updateEvaluatorValue(value);
-            }
-
-            @Override
-            public void detach() {
+                updateEvaluatorValue(value, languageModel.getObject());
             }
         };
 
@@ -219,11 +216,12 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         return editorPanel;
     }
 
+
     private void updateEvaluatorValue(ExpressionUtil.Language language) {
         ScriptExpressionWrapper wrapper = getEvaluatorValue();
         if ((ExpressionUtil.Language.GROOVY.equals(language) && wrapper.language == null)
                 || (language == null && wrapper.language == null)
-                || language.equals(wrapper.language))  {
+                || language.equals(wrapper.language)) {
             return;
         }
         try {
@@ -235,14 +233,16 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
     }
 
-    private void updateEvaluatorValue(String code) {
-        ExpressionType expressionType = getModelObject();
+    private void updateEvaluatorValue(String code, ExpressionUtil.Language language) {
         try {
-            ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+            ScriptExpressionWrapper wrapper = getEvaluatorValue()
+                    .code(code)
+                    .language(language);
 
-            ScriptExpressionEvaluatorType evaluator = evaluatorWrapper.code(code).toEvaluator();
-            expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
-            getModel().setObject(expressionType);
+            ExpressionType expression = ExpressionUtil.updateScriptExpressionValue(
+                    getModelObject(), wrapper.toEvaluator());
+
+            getModel().setObject(expression);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());

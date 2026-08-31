@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="integration" parallel="none">
+    <listeners>
+        <listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
+    </listeners>
+    <test name="Manual" preserve-order="true" parallel="none" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGroupingProposed"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
+        </classes>
+    </test>
+    <test name="Manual (modern ITSM integration)" preserve-order="true" parallel="none" verbose="10">
+        <parameter name="modernItsm" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGroupingProposed"/>
+        </classes>
+    </test>
+</suite>

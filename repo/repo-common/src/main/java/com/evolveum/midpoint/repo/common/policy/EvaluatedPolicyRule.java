@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.LocalizableMessage;

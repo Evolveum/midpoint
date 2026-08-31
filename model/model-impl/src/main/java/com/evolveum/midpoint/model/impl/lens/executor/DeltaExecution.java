@@ -219,7 +219,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
         // Other types than focus types may not be definition-complete (e.g.
         // accounts and resources are completed in provisioning)
-        if (FocusType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+        if (ProjectionHolderType.class.isAssignableFrom(delta.getObjectTypeClass())) {
             delta.assertDefinitions();
         }
     }
@@ -349,7 +349,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             if (objectAddedClass == null || !objectAddedClass.equals(objectToAddClass)) {
                 continue;
             }
-            if (FocusType.class.isAssignableFrom(objectAddedClass)) {
+            if (ProjectionHolderType.class.isAssignableFrom(objectAddedClass)) {
                 return currentOdo; // we suppose there is only one delta of Focus class (shouldn't this be AssignmentHolderType?)
             }
         }
@@ -545,6 +545,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         } else {
             FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
             oid = b.cacheRepositoryService.addObject(objectToAdd, createRepoAddOptions(), result);
+            if (objectBeanToAdd instanceof CaseType aCase && b.caseEventDispatcher != null) {
+                b.caseEventDispatcher.dispatchCaseCreationEvent(aCase, task, result);
+            }
         }
         return oid;
     }

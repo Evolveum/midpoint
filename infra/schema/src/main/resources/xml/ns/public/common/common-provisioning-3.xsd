@@ -5566,6 +5566,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="work">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Work items: issues, tickets, cases, work-packages.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="unknown">
                 <xsd:annotation>
                     <xsd:appinfo>

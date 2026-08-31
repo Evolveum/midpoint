@@ -992,6 +992,34 @@
     <!-- ================================================================================================================== -->
     <!-- TODO shouldn't this be in a separate namespace? Or, should we use "Si" (= Smart integration) prefix? -->
 
+    <xsd:complexType name="SiResponseMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Metadata about configured AI inference provider and model returned by Smart Integration Microservice.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="provider" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configured inference provider.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="model" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configured model identifier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- suggestObjectTypes method -->
 
     <xsd:complexType name="SiSuggestObjectTypesRequestType">
@@ -1095,6 +1123,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Suggested object types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:SiResponseMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata about configured AI inference provider and model.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1355,6 +1390,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="metadata" type="tns:SiResponseMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata about configured AI inference provider and model.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1402,6 +1444,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Suggested pairs of matching attributes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:SiResponseMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata about configured AI inference provider and model.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1722,6 +1771,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Free-form description related to the suggested transformation or mapping.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:SiResponseMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata about configured AI inference provider and model.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

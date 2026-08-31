@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
@@ -37,9 +38,9 @@ import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.correlator.CorrelatorFactoryRegistryImpl;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -126,6 +127,7 @@ public class ModelBeans {
     @Autowired public TaskManager taskManager;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired(required = false) public CaseManager caseManager; // not available e.g. during tests
+    @Autowired(required = false) public CaseEventDispatcher caseEventDispatcher;
     @Autowired public ClockworkConflictResolver clockworkConflictResolver;
     @Autowired public ContextFactory contextFactory;
     @Autowired public Clockwork clockwork;

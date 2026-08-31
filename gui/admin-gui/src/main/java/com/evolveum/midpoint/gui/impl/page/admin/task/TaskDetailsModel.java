@@ -12,7 +12,9 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,6 +87,18 @@ public class TaskDetailsModel extends AssignmentHolderDetailsModel<TaskType> {
 
     public TaskType getRootTaskModelObject() {
         return rootTaskModel.getObject();
+    }
+
+    @Override
+    protected void prepareObjectForAdd(PrismObject<TaskType> objectToAdd) throws CommonException {
+        super.prepareObjectForAdd(objectToAdd);
+
+        TaskType task = objectToAdd.asObjectable();
+        var resourceObjects = ResourceObjectSetUtil.fromTask(task);
+        if (resourceObjects != null) {
+            var resourceRef = resourceObjects.getResourceRef();
+            task.setObjectRef(resourceRef != null ? resourceRef.clone() : null);
+        }
     }
 
     @Override

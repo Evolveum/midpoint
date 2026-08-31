@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ShadowQueryConversionUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.InsufficientPermissionsException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -38,7 +39,7 @@ class FocusTypeSuggestionOperation {
     }
 
     /** Using existing type definition in the context. */
-    FocusTypeSuggestionType suggestFocusType(List<DataAccessPermissionType> permissions)
+    FocusTypeSuggestionType suggestFocusType(List<DataAccessPermissionType> permissions, OperationResult result)
             throws SchemaException, InsufficientPermissionsException {
         checkPermissions(permissions);
         var ctx = (TypeOperationContext) this.ctx;
@@ -46,11 +47,12 @@ class FocusTypeSuggestionOperation {
                 ctx.typeDefinition.getTypeIdentification(),
                 ctx.typeDefinition.getObjectClassDefinition(),
                 ctx.typeDefinition.getDelineation(),
-                ctx.resource);
+                ctx.resource,
+                result);
     }
 
     /** Using a new type definition provided as a parameter. */
-    FocusTypeSuggestionType suggestFocusType(ResourceObjectTypeDefinitionType typeDefBean, List<DataAccessPermissionType> permissions)
+    FocusTypeSuggestionType suggestFocusType(ResourceObjectTypeDefinitionType typeDefBean, List<DataAccessPermissionType> permissions, OperationResult result)
             throws SchemaException, ConfigurationException, InsufficientPermissionsException {
         checkPermissions(permissions);
         var typeIdentification = ResourceObjectTypeIdentification.of(typeDefBean);
@@ -60,7 +62,8 @@ class FocusTypeSuggestionOperation {
                 typeIdentification,
                 ctx.objectClassDefinition,
                 delineation,
-                ctx.resource);
+                ctx.resource,
+                result);
     }
 
     private static void checkPermissions(List<DataAccessPermissionType> permissions) throws
@@ -76,7 +79,8 @@ class FocusTypeSuggestionOperation {
             ResourceObjectTypeIdentification typeIdentification,
             ResourceObjectClassDefinition objectClassDef,
             ResourceObjectTypeDelineation delineation,
-            ResourceType resource)
+            ResourceType resource,
+            OperationResult result)
             throws SchemaException {
         var request = new SiSuggestFocusTypeRequestType()
                 .kind(typeIdentification.getKind().value())
@@ -86,7 +90,8 @@ class FocusTypeSuggestionOperation {
         setBaseContextFilter(request, objectClassDef, delineation);
 
         var focusTypeName = ctx.serviceClient
-                .invoke(SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class)
+                .invoke(SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class,
+                        ctx.callContext(result))
                 .getFocusTypeName();
         var suggestion = new FocusTypeSuggestionType().focusType(focusTypeName);
         return SmartMetadataUtil.markAsAiProvided(suggestion, FocusTypeSuggestionType.F_FOCUS_TYPE);

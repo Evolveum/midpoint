@@ -9,11 +9,13 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -29,9 +31,10 @@ public class SmartAssignmentElement implements DebugDumpable {
     SmartAssignmentElement(
             @NotNull PrismContainerValue<AssignmentType> assignmentCVal,
             boolean virtual,
+            @Nullable ActivityPath activityPath,
             @NotNull ConfigurationItemOrigin origin) { // [EP:APSO] DONE 1/1
         this.assignmentCVal = assignmentCVal;
-        this.origin = new AssignmentOrigin(virtual, origin); // [EP:APSO] DONE
+        this.origin = new AssignmentOrigin(virtual, activityPath, origin); // [EP:APSO] DONE
     }
 
     public @NotNull AssignmentOrigin getOrigin() {

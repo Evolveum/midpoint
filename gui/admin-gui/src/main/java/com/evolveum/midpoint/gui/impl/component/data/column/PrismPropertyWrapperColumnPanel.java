@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -28,12 +30,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import java.io.Serial;
+
 /**
  * @author katka
  */
 public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColumnPanel<PrismPropertyWrapper<T>, PrismPropertyValueWrapper<T>> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperColumnPanel.class);
     private static final CharSequence INVALID_FIELD_CLASS = "is-invalid";
 
@@ -57,41 +61,46 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
                     return "";
                 }));
 
-                String event = "blur";
-                if (formComponent instanceof AutoCompleteTextField) {
-                    event = "change";
-                }
-                formComponent.add(new AjaxFormComponentUpdatingBehavior(event) {
-
-                    private boolean lastValidationWasError = false;
-
-                    @Override
-                    protected void onComponentTag(ComponentTag tag) {
-                        super.onComponentTag(tag);
-                        if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
-                            lastValidationWasError = true;
-                        }
-                    }
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        if (lastValidationWasError) {
-                            lastValidationWasError = false;
-                            target.add(getComponent());
-                            target.focusComponent(null);
-                        }
-                    }
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                        target.add(getComponent());
-                    }
-                });
-
+                AjaxEventBehavior eventBehavior = createEventBehavior(formComponent);
+                formComponent.add(eventBehavior);
             });
         }
+    }
+
+    protected AjaxEventBehavior createEventBehavior(Component formComponent) {
+        String event = "blur";
+        if (formComponent instanceof AutoCompleteTextField) {
+            event = "change";
+        }
+
+        return new AjaxFormComponentUpdatingBehavior(event) {
+
+            private boolean lastValidationWasError = false;
+
+            @Override
+            protected void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+                if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
+                    lastValidationWasError = true;
+                }
+            }
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (lastValidationWasError) {
+                    lastValidationWasError = false;
+                    target.add(getComponent());
+                    target.focusComponent(null);
+                }
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                target.add(getComponent());
+            }
+        };
     }
 
     protected IModel<String> getCustomHeaderModel() {
@@ -121,14 +130,13 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     @Override
     protected Panel createLink(String id, IModel<PrismPropertyValueWrapper<T>> object) {
         String humanReadableLinkName = getHumanReadableLinkName(object);
-        IModel labelModel;
+        IModel<?> labelModel;
         if (StringUtils.isEmpty(humanReadableLinkName)) {
             labelModel = getPageBase().createStringResource("feedbackMessagePanel.message.undefined");
         } else {
-            labelModel = new ReadOnlyModel(() -> humanReadableLinkName);
+            labelModel = new ReadOnlyModel<>(() -> humanReadableLinkName);
         }
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, labelModel) {
-            private static final long serialVersionUID = 1L;
+        return new AjaxLinkPanel(id, labelModel) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -136,7 +144,6 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
             }
 
         };
-        return ajaxLinkPanel;
     }
 
     protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {

@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+    Role applied to processed users via activity virtualAssignments in task-150. No inducement order:
+    the role is "virtually" assigned directly to the processed object.
+-->
+<role oid="b7f1e230-5c3d-4d21-9a4e-0d5c1a2b0006"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>role-150-va</name>
+    <inducement id="1">
+        <policyRule>
+            <name>va-add-3</name>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyThreshold>
+                <lowWaterMark>
+                    <count>3</count>
+                </lowWaterMark>
+            </policyThreshold>
+            <policyActions>
+                <suspendTask/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>

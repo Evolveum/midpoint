@@ -1698,39 +1698,22 @@
     <!-- [med] but we need this to find PCD for AssignmentHolderType see MID-5010 -->
     <xsd:element name="assignmentHolder" type="tns:AssignmentHolderType"/>
 
-    <xsd:complexType name="FocusType" abstract="true">
+    <xsd:complexType name="ProjectionHolderType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    Abstract supertype for all object types that can be focus of full midPoint computation.
-                    This basically means objects that have projections. But focal objects also have
-                    activation, they may have personas, etc.
+                    Abstract supertype for all object types that can have projections on resources.
+
+                    Use subtype FocusType for  focal objects that also have activation, t
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
-                <a:object/>
-                <a:schemaMigration>
-                    <a:element>tns:objectType</a:element>
-                    <a:version>4.4</a:version>
-                    <a:operation>removed</a:operation>
-                </a:schemaMigration>
+                <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                (Alternative?) identities of this focus object.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.6</a:since>
-                                <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1767,6 +1750,44 @@
                             <xsd:appinfo>
                                 <a:displayName>FocusType.linkRef</a:displayName>
                                 <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="projectionHolder" type="tns:ProjectionHolderType"/>
+
+    <xsd:complexType name="FocusType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Abstract supertype for all object types that can be focus of full midPoint computation.
+                    This basically means objects that have projections. But focal objects also have
+                    activation, they may have personas, etc.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+                <a:schemaMigration>
+                    <a:element>tns:objectType</a:element>
+                    <a:version>4.4</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ProjectionHolderType">
+                <xsd:sequence>
+                    <xsd:element name="identities" type="tns:FocusIdentitiesType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                (Alternative?) identities of this focus object.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.6</a:since>
+                                <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5304,7 +5325,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="useTokenOnlyOnConflict" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         If set to true, the token expression will not be evaluated on the first attempt
@@ -12334,8 +12355,83 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="externalServices" type="tns:SystemConfigurationAuditExternalServicesType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Details about recording audit events and data for external service calls.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditType.externalServices</a:displayName>
+                        <a:since>4.11</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="changedItemPaths" type="tns:SystemConfigurationAuditChangedItemPathsType" minOccurs="0"/>
             <!-- TODO: recordRetentionPolicy -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationAuditExternalServicesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies audit configuration for external services.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="smartIntegration" type="tns:SystemConfigurationAuditExternalServiceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Details about recording audit events and data for Smart Integration service calls.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditExternalServicesType.smartIntegration</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationAuditExternalServiceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies details regarding creation and recording of audit events for external service calls.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="recordEvents" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, midPoint will record audit events for external service calls.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditExternalServiceType.recordEvents</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordData" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, midPoint will record request payloads for external service calls.
+                        Recording data also forces recording of the owning audit events.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SystemConfigurationAuditExternalServiceType.recordData</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

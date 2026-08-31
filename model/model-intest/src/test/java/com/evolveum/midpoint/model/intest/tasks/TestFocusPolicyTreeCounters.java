@@ -11,13 +11,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -119,7 +119,7 @@ public class TestFocusPolicyTreeCounters extends AbstractEmptyModelIntegrationTe
     }
 
     private String inlineIdentifier(TestObject<TaskType> task, ActivityPath path) throws CommonException {
-        return ActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), path, RULE_NAME, true);
+        return TestActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), path, RULE_NAME, true);
     }
 
     /**

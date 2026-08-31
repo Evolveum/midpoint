@@ -1,31 +1,26 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2026 Evolveum and contributors
  *
  * Licensed under the EUPL-1.2 or later.
+ *
  */
 
 package com.evolveum.midpoint.model.impl.correlation;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_CASE_CLOSE_TIMESTAMP_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_PERFORMER_COMMENT_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_PERFORMER_REF_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_RESULTING_OWNER_PATH;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CORRELATION_SITUATION_PATH;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.cases.api.CaseEngine;
-import com.evolveum.midpoint.cases.api.CaseManager;
-import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +28,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
+import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
@@ -42,48 +40,51 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SubscriptionComplianceException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * Manages correlation cases.
- *
- * TODO difference to {@link CaseManager} / {@link CaseEngine} ?
- */
 @Component
-public class CorrelationCaseManager {
+public class CorrelationCaseManagerImpl implements CorrelationCaseManager {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelationCaseManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CorrelationCaseManagerImpl.class);
     private static final String OP_APPLY_CORRELATION_OUTCOME =
-            CorrelationCaseManager.class.getName() + ".importSelectedOutcome";
+            CorrelationCaseManagerImpl.class.getName() + ".importSelectedOutcome";
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
-    @Autowired private CorrelationServiceImpl correlationService;
+    @Autowired private CorrelationService correlationService;
     @Autowired private CaseEventDispatcher caseEventDispatcher;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired(required = false) private CaseManager caseManager;
 
-    /**
-     * Creates or updates a correlation case for given correlation operation that finished in "uncertain" state.
-     *
-     * @param resourceObject Shadowed resource object we are correlating. Must have an OID.
-     * @param preFocus The result of pre-inbounds application on the resource object.
-     */
+    @Override
     public void createOrUpdateCase(
             @NotNull ShadowType resourceObject,
             @NotNull ResourceType resource,
-            @NotNull FocusType preFocus,
+            @NotNull ProjectionHolderType preFocus,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
@@ -105,7 +106,7 @@ public class CorrelationCaseManager {
     private void createCase(
             ShadowType resourceObject,
             ResourceType resource,
-            FocusType preFocus,
+            ProjectionHolderType preFocus,
             XMLGregorianCalendar now,
             Task task,
             OperationResult result)
@@ -161,6 +162,8 @@ public class CorrelationCaseManager {
                 return "account";
             case ENTITLEMENT:
                 return "entitlement";
+            case WORK:
+                return "work";
             case GENERIC:
             default:
                 return "object";
@@ -186,7 +189,7 @@ public class CorrelationCaseManager {
     }
 
     private void updateCase(
-            CaseType aCase, @NotNull ShadowType resourceObject, FocusType preFocus, OperationResult result)
+            CaseType aCase, @NotNull ShadowType resourceObject, ProjectionHolderType preFocus, OperationResult result)
             throws SchemaException {
         ObjectReferenceType preFocusRef = createObjectRefWithFullObject(preFocus);
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
@@ -217,6 +220,7 @@ public class CorrelationCaseManager {
     }
 
     // TODO fix this method
+    @Override
     public @Nullable CaseType findCorrelationCase(ShadowType resourceObject, boolean mustBeOpen, OperationResult result)
             throws SchemaException {
         checkOid(resourceObject);
@@ -242,13 +246,7 @@ public class CorrelationCaseManager {
         }
     }
 
-    /**
-     * Closes a correlation case - if there's any - if it's no longer needed (e.g. because the uncertainty is gone).
-     *
-     * @param resourceObject Shadowed resource object we correlate. Must have an OID.
-     *
-     * TODO don't look for cases if not necessary (timestamps?)
-     */
+    @Override
     public void closeCaseIfStillOpen(
             @NotNull ShadowType resourceObject,
             @NotNull OperationResult result) throws SchemaException {
@@ -271,13 +269,8 @@ public class CorrelationCaseManager {
         }
     }
 
-    /**
-     * Preconditions:
-     *
-     * - case is freshly fetched,
-     * - case is a correlation one
-     */
-    void completeCorrelationCase(
+    @Override
+    public void completeCorrelationCase(
             @NotNull CaseType aCase,
             @NotNull CorrelationService.CaseCloser caseCloser,
             @NotNull Task task,
@@ -296,11 +289,8 @@ public class CorrelationCaseManager {
 
     }
 
-    /**
-     * Executes retry-safe correlation completion logic before the case is persisted as closing.
-     * Throws on failure to keep the case open.
-     */
-    void prepareCorrelationCaseClosing(
+    @Override
+    public void prepareCorrelationCaseClosing(
             @NotNull CaseType aCase,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -308,7 +298,7 @@ public class CorrelationCaseManager {
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         recordCorrelationOutcomeInShadow(aCase, result);
 
-        correlationService.resolve(aCase, task, result);
+        correlationService.resolveCorrelationCase(aCase, task, result);
         if (result.isError()) {
             throw new SystemException(result.getMessage());
         }
@@ -386,7 +376,7 @@ public class CorrelationCaseManager {
     private Collection<ObjectReferenceType> getPerformerRefs(CaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
-            if (isRelevant(workItem, aCase)) {
+            if (hasOutputAndOutcomeAndPerformer(workItem, aCase)) {
                 rv.add(workItem.getPerformerRef().clone());
             }
         }
@@ -408,15 +398,19 @@ public class CorrelationCaseManager {
 
         List<String> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
-            if (isRelevant(workItem, aCase) && StringUtils.isNotBlank(workItem.getOutput().getComment())) {
-                CollectionUtils.addIgnoreNull(rv, formatter.formatComment(workItem, task, result));
+            if (hasOutputAndOutcomeAndPerformer(workItem, aCase)) {
+                final String comment = workItem.getOutput().getComment();
+                if (comment != null && !comment.isBlank()) {
+                    Optional.ofNullable(formatter.formatComment(workItem, task, result))
+                            .ifPresent(rv::add);
+                }
             }
         }
         LOGGER.trace("Performer comments: {}", rv);
         return rv;
     }
 
-    private boolean isRelevant(CaseWorkItemType workItem, CaseType aCase) {
+    private boolean hasOutputAndOutcomeAndPerformer(CaseWorkItemType workItem, CaseType aCase) {
         return hasOutcomeUri(workItem, aCase.getOutcome()) && workItem.getPerformerRef() != null;
     }
 

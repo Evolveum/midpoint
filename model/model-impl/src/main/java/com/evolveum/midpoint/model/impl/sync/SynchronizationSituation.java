@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import org.apache.commons.lang3.Validate;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 /**
@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
  * @author lazyman
  *
  */
-public class SynchronizationSituation<F extends FocusType> {
+public class SynchronizationSituation<F extends ProjectionHolderType> {
 
     private final F linkedOwner;
     private final F correlatedOwner;

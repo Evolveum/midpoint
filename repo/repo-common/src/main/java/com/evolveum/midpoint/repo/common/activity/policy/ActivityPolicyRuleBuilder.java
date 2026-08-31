@@ -12,7 +12,7 @@ import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.policy.evaluator.ActivityCompositeConstraintEvaluator;
-import com.evolveum.midpoint.repo.common.policy.PolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
@@ -39,17 +39,17 @@ public class ActivityPolicyRuleBuilder {
 
     private final ConfigurationItemOrigin origin;
 
-    private PolicyRuleIdentifier customPolicyRuleIdentifier;
+    private final PolicyRuleIdentifier policyRuleIdentifier;
 
-    public ActivityPolicyRuleBuilder(@NotNull PolicyRuleType policyRule, ActivityPath activityPath, ConfigurationItemOrigin origin) {
+    public ActivityPolicyRuleBuilder(
+            @NotNull PolicyRuleType policyRule,
+            @NotNull ActivityPath activityPath,
+            @NotNull PolicyRuleIdentifier policyRuleIdentifier,
+            @NotNull ConfigurationItemOrigin origin) {
         this.policyRule = policyRule;
         this.activityPath = activityPath;
+        this.policyRuleIdentifier = policyRuleIdentifier;
         this.origin = origin;
-    }
-
-    public ActivityPolicyRuleBuilder customPolicyRuleIdentifier(PolicyRuleIdentifier customPolicyRuleIdentifier) {
-        this.customPolicyRuleIdentifier = customPolicyRuleIdentifier;
-        return this;
     }
 
     public ActivityPolicyRule build() {
@@ -64,7 +64,7 @@ public class ActivityPolicyRuleBuilder {
 
         var policyCI = ConfigurationItem.configItem(frozenRule, origin, PolicyRuleConfigItem.class);
 
-        var rule = new ActivityPolicyRule(policyCI, activityPath, customPolicyRuleIdentifier, getDataNeeds(frozenRule));
+        var rule = new ActivityPolicyRule(policyCI, activityPath, policyRuleIdentifier, getDataNeeds(frozenRule));
 
         // The "what will this run actually enforce" snapshot: any content lost on the way from the
         // definition (thresholds, actions) is visible right here, at the start of the run.
