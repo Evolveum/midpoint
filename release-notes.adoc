@@ -30,7 +30,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 
 == Changes with Respect To Version 4.8.13
 
-// TODO
+* Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 
 == Changes with Respect To Version 4.8.12
 
