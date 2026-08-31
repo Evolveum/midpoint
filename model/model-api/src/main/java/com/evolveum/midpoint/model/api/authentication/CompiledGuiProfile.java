@@ -16,6 +16,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -61,7 +62,7 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     @Deprecated
     private AdminGuiConfigurationRoleManagementType roleManagement;
     private AccessRequestType accessRequest;
-    private ImageUploadProcessingType imageUploadProcessing;
+    private final List<EffectiveFileUploadPolicy> fileUploadPolicies = new ArrayList<>();
     private AdminGuiApprovalsConfigurationType approvals;
     private final List<UserInterfaceFeatureType> features = new ArrayList<>();
     private AdminGuiConfigurationDisplayFormatsType displayFormats;
@@ -517,12 +518,18 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         this.accessRequest = accessRequest;
     }
 
-    public ImageUploadProcessingType getImageUploadProcessing() {
-        return imageUploadProcessing;
+    public List<EffectiveFileUploadPolicy> getFileUploadPolicies() {
+        return fileUploadPolicies;
     }
 
-    public void setImageUploadProcessing(ImageUploadProcessingType imageUploadProcessing) {
-        this.imageUploadProcessing = imageUploadProcessing;
+    /**
+     * Resolves the effective upload policy for the specified item.
+     *
+     * @param itemPath path of the uploaded item
+     * @return effective validation and processing policy
+     */
+    public EffectiveFileUploadPolicy getFileUploadPolicy(ItemPath itemPath) {
+        return FileUploadConfigurationResolver.resolve(itemPath, fileUploadPolicies);
     }
 
     @Override

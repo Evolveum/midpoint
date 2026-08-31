@@ -76,6 +76,12 @@ public class WrapperContext {
     private boolean isDeprecatedItemAllowed = false;
 
     /**
+     * Indicates that the wrapped object was obtained from an already authorized case
+     * and should be used directly instead of being reloaded from the repository by OID.
+     */
+    private boolean suppliedObjectFromAuthorizedCase;
+
+    /**
      * usually virtual containers are created only whtn the whole object wrapper is created
      * however, there are situations, when we need to create those virtual containers even
      * when a concrete container wrapper is beeing created.
@@ -300,6 +306,14 @@ public class WrapperContext {
         isDeprecatedItemAllowed = deprecatedItemAllowed;
     }
 
+    public boolean isSuppliedObjectFromAuthorizedCase() {
+        return suppliedObjectFromAuthorizedCase;
+    }
+
+    public void setSuppliedObjectFromAuthorizedCase(boolean suppliedObjectFromAuthorizedCase) {
+        this.suppliedObjectFromAuthorizedCase = suppliedObjectFromAuthorizedCase;
+    }
+
     public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
         this.virtualContainers.addAll(virtualContainers);
         this.forceCreateVirtualContainers = true;
@@ -337,6 +351,7 @@ public class WrapperContext {
         ctx.setConfigureMappingType(configureMappingType);
         ctx.setShowedByWizard(isShowedByWizard);
         ctx.setSecurityConstraints(securityConstraints);
+        ctx.setSuppliedObjectFromAuthorizedCase(suppliedObjectFromAuthorizedCase);
         return ctx;
     }
 

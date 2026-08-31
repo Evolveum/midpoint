@@ -518,7 +518,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
     }
 
     private void checkSchemaHandlingDefaults(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
-        int defAccount = 0, defEntitlement = 0, defGeneric = 0;
+        int defAccount = 0, defEntitlement = 0, defGeneric = 0, defWork = 0;
         int totalAccount = 0;
         for (ResourceObjectTypeDefinitionType def : schemaHandling.getObjectType()) {
             if (Boolean.TRUE.equals(def.isDefault())) {
@@ -532,6 +532,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
                     case GENERIC:
                         defGeneric++;
                         break;
+                    case WORK:
+                        defWork++;
+                        break;
                     default:
                         throw new IllegalStateException();
                 }
@@ -543,6 +546,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         checkMultipleDefaultDefinitions(ctx, ShadowKindType.ACCOUNT, defAccount);
         checkMultipleDefaultDefinitions(ctx, ShadowKindType.ENTITLEMENT, defEntitlement);
         checkMultipleDefaultDefinitions(ctx, ShadowKindType.GENERIC, defGeneric);
+        checkMultipleDefaultDefinitions(ctx, ShadowKindType.WORK, defWork);
         if (totalAccount > 0 && defAccount == 0) {
             ctx.validationResult.add(Issue.Severity.INFO,
                     CAT_SCHEMA_HANDLING, C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION,

@@ -192,6 +192,22 @@ There is additional variable available to all MEL expressions:
 It is a fixed timestamp of an approximate moment of the script execution.
 Value of the variable does not change during script execution.
 
+=== Local Variable Binding
+
+The `cel.bind` macro binds result of an expression to a local variable name:
+
+`cel.bind(_variable_, _value expression_, _result expression_)`
+
+This macro can be used to avoid duplicating an expensive computation.
+For example:
+
+[source,mel]
+----
+cel.bind(x, expensiveComputation(), x > 0 ? x * 100 : 0)
+----
+
+In this case the `expensiveComputation()` is evaluated only once, with the result stored in local variable `x`.
+Subsequent expression can use variable `x` in its computation.
 
 == Functions and Macros
 
@@ -1654,119 +1670,17 @@ If the `activation/effectiveStatus` is not present, the return value of the meth
 focus.isEffectivelyEnabled()
 ----
 
-==== hasRelation
+==== type
 
-`assignment.hasRelation(relation)` -> bool
+`object.type()` -> qname
 
-Returns true if `targetRef` of the assignment has specified relation.
-
-Relation can be specified as string or qname.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
+Returns type of the object in QName form.
+The type corresponds to types as specified in midPoint schema, (e.g. `UserType`, `RoleType`).
 
 .Example
 [source,mel]
 ----
-assignment.hasRelation('owner')
-----
-
-==== has*Relation
-
-`assignment.hasDefaultRelation()` -> bool +
-`assignment.hasApproverRelation()` -> bool +
-`assignment.hasConsentRelation()` -> bool +
-`assignment.hasDeputyRelation()` -> bool +
-`assignment.hasMetaRelation()` -> bool +
-`assignment.hasOwnerRelation()` -> bool +
-`assignment.hasRelatedRelation()` -> bool
-
-
-Returns true if `targetRef` of the assignment has specified relation.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.hasOwnerRelation()
-----
-
-==== isTarget
-
-`assignment.isTarget(type)` -> bool
-
-Returns true if `targetRef` of the assignment is of specified type.
-
-Type can be specified as string or qname.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.isTarget('RoleType')
-----
-
-==== isTarget*
-
-`assignment.isTargetRole()` -> bool +
-`assignment.isTargetOrg()` -> bool +
-`assignment.isTargetService()` -> bool +
-`assignment.isTargetPolicy()` -> bool +
-`assignment.isTargetUser()` -> bool
-
-
-Returns true if `targetRef` of the assignment is of specified type.
-
-Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.isTargetRole()
-----
-
-==== targetOid
-
-`assignment.targetOid()` -> oid
-
-Returns OID of targetRef of the assignment.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.targetOid() == '9dbea12d-81dc-11f1-9bfe-9c6b00360713'
-----
-
-==== targetRelation
-
-`assignment.targetRelation()` -> qname
-
-Returns relation of targetRef of the assignment.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.targetRelation() == 'owner'
-----
-
-
-==== targetType
-
-`assignment.targetType()` -> qname
-
-Returns type of targetRef of the assignment.
-
-Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.targetType() == 'RoleType'
+focus.type() == 'UserType'
 ----
 
 
@@ -2766,6 +2680,29 @@ Following table summarizes the most frequently used fields.
 
 ==== Assignment Functions
 
+===== hasDefaultRelation
+
+`assignment.hasDefaultRelation()` -> boolean
+
+Returns true is the assignment has default xref:/midpoint/reference/concepts/relation/[relation].
+
+This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+
+.Example
+[source,mel]
+----
+assignment.hasDefaultRelation()
+----
+
+
+
+
+
+
+
+
+
+
 ===== hasRelation
 
 `assignment.hasRelation(any)` -> boolean
@@ -2779,20 +2716,6 @@ This function is null-safe, it returns `false` in case that assignment has no `t
 [source,mel]
 ----
 assignment.hasRelation('owner')
-----
-
-===== hasDefaultRelation
-
-`assignment.hasDefaultRelation()` -> boolean
-
-Returns true is the assignment has default xref:/midpoint/reference/concepts/relation/[relation].
-
-This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
-
-.Example
-[source,mel]
-----
-assignment.hasDefaultRelation()
 ----
 
 ===== has*Relation
@@ -2814,50 +2737,106 @@ This function is null-safe, it returns `false` in case that assignment has no `t
 assignment.hasOwnerRelation()
 ----
 
+
+
 ===== isTarget
 
-`assignment.isTarget(any)` -> boolean
+`assignment.isTarget(type)` -> bool +
+`assignment.isTarget(type, archetypeOid)` -> bool
 
 Returns true if `targetRef` of the assignment is of specified type.
-String or QName representation of the type can be used.
+When archetype OID is specified, the function also checks for presence of specified archetype in target object.
 
-This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+Type can be specified as string or qname.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
 
 .Example
 [source,mel]
 ----
 assignment.isTarget('RoleType')
+
+// Checks whether the target is business role.
+assignment.isTarget('RoleType', '00000000-0000-0000-0000-000000000321')
 ----
 
 ===== isTarget*
 
-`assignment.isTargetRole()` -> boolean +
-`assignment.isTargetOrg()` -> boolean +
-`assignment.isTargetService()` -> boolean +
-`assignment.isTargetPolicy()` -> boolean +
-`assignment.isTargetUser()` -> boolean
+`assignment.isTargetRole()` -> bool +
+`assignment.isTargetRole(archetypeOid)` -> bool +
+`assignment.isTargetOrg()` -> bool +
+`assignment.isTargetOrg(archetypeOid)` -> bool +
+`assignment.isTargetService()` -> bool +
+`assignment.isTargetService(archetypeOid)` -> bool +
+`assignment.isTargetPolicy()` -> bool +
+`assignment.isTargetPolicy(archetypeOid)` -> bool +
+`assignment.isTargetUser()` -> bool +
+`assignment.isTargetUser(archetypeOid)` -> bool
+
 
 Returns true if `targetRef` of the assignment is of specified type.
+When archetype OID is specified, the function also checks for presence of specified archetype in target object.
 
-This function is null-safe, it returns `false` in case that assignment has no `targetRef`.
+When archetype parameter is specified, invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+Returns `false` in case that the assignment is `null`, or if it does not contain `targetRef`.
 
 .Example
 [source,mel]
 ----
 assignment.isTargetRole()
+
+// Checks whether the target is business role.
+assignment.isTargetRole('00000000-0000-0000-0000-000000000321')
 ----
+
+===== target
+
+`assignment.target()` -> object
+
+Returns object that the targetRef of the assignment refers to.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
+
+Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+.Example
+[source,mel]
+----
+assignment.target().description
+----
+
+===== targetName
+
+`assignment.targetName()` -> polystring
+
+Returns name of the object that the targetRef of the assignment refers to.
+
+Returns `null` in case that the assignment is `null`, or if it does not contain `targetRef`, or if the reference cannot be resolved.
+
+Invocation of this function may include retrieval of the target object from the repository, which may have performance impact if used too often.
+
+.Example
+[source,mel]
+----
+'Target:' + assignment.targetName()
+----
+
 
 ===== targetOid
 
 `assignment.targetOid()` -> string
 
 Returns OID of targetRef of the assignment.
+
 This function is null-safe, it returns `null` in case that assignment has no `targetRef`.
 
 .Example
 [source,mel]
 ----
 assignment.targetOid()   // Returns '847ab384-8a63-11f1-ad15-9c6b00360713'
+
+assignment.targetOid() == '9dbea12d-81dc-11f1-9bfe-9c6b00360713'
 ----
 
 ===== targetRelation
@@ -2931,9 +2910,204 @@ The value is provided only if `changeType` of the delta is `modify`.
 
 |===
 
-// ==== Object Delta Functions
+==== Object Delta Functions
 
-// TODO: later, when implemented
+===== estimateAddedValuesFor
+
+`objectDelta.estimateAddedValuesFor(path)` -> list(any)
+
+Returns estimation of added values for specified item.
+
+This method computes the best estimate of added values of the item.
+Final (new) state of the values is presented, a state as it should look like after the delta is applied.
+Only the values that were added by the delta are returned,
+i.e. the values that were not present before the operation and are present after the operation.
+
+This method has "relativistic" character, as it present relative change of the values.
+It is designed to be used *primarily for multi-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on single-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no added values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+This function is null-safe, it returns `null` in case that the delta or path are `null`.
+
+.Example
+[source,mel]
+----
+delta.estimateAddedValuesFor('assignment')
+----
+
+===== estimateChangedValuesFor
+
+`objectDelta.estimateChangedValuesFor(path)` -> list(any)
+
+Returns estimated changed values for specified item.
+This method computes the best estimate of changed values of the item.
+Final (new) state of the values is presented, a state as it should look like after the delta is applied.
+Only the values that were changed by the delta are returned.
+
+This method has somehow "absolutists" character, as it present the "absolute" state of the changed values.
+It is designed to be used *primarily for single-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on multi-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no changed values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+LIMITATION: This method does not work reliably for object delete deltas.
+In that case the delta does not contain any information regarding the deleted items.
+
+.Example
+[source,mel]
+----
+delta.estimateChangedValuesFor('fullName')
+----
+
+
+===== estimateDeletedValuesFor
+
+`objectDelta.estimateDeletedValuesFor(path)` -> list(any)
+
+Returns estimation of deleted values for specified item.
+
+This method computes the best estimate of deleted values of the item.
+Original (old) state of the values is presented, a state as they looked like before the delta was applied.
+Only the values that were deleted by the delta are returned,
+i.e. the values that were present before the operation and are supposed to be not present after the operation.
+
+This method has "relativistic" character, as it present relative change of the values.
+It is designed to be used *primarily for multi-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on single-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no deleted values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+This function is null-safe, it returns `null` in case that the delta or path are `null`.
+
+.Example
+[source,mel]
+----
+delta.estimateDeletedValuesFor('assignment')
+----
+
+===== estimateModifiedValuesFor
+
+`objectDelta.estimateModifiedValuesFor(path)` -> list(any)
+
+Returns estimation of modified values for specified item.
+
+This method computes the best estimate of modified values of the item.
+Final (new) state of the values is presented, a state as it should look like after the delta is applied.
+Only the values that were modified by the delta are returned,
+i.e. the values that were present before the operation and are present after the operation, however their content is different.
+
+This method has "relativistic" character, as it present relative change of the values.
+It is designed to be used *primarily for multi-valued items*.
+This method may be inefficient and/or provide non-intuitive results when used on single-valued items.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that there are no modified values (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+This function is null-safe, it returns `null` in case that the delta or path are `null`.
+
+.Example
+[source,mel]
+----
+delta.estimateModifiedValuesFor('assignment')
+----
+
+===== estimateNewValuesFor
+
+`objectDelta.estimateNewValuesFor(path)` -> list(any)
+
+Returns estimated new values for specified item.
+
+This method computes the best estimate of the new values the item could have after delta is applied.
+All (known) new values are returned, both those that were changed by the delta and those that were not.
+
+NOTE: This method provides just an estimate, based on estimated old values stored in the delta (if available).
+Even if the estimated old values are present, results of delta application may differ,
+e.g. if more than one delta was applied, or if the object have changed in the meantime.
+
+List of values is returned if the values can be determined.
+Empty list is returned if the function have determined that the item will have no values when the delta is applied (value is known to be empty).
+Null is returned if the estimation method cannot determine the value (value is unknown).
+
+.Example
+[source,mel]
+----
+delta.estimateNewValuesFor('fullName')
+----
+
+===== hasDeltaFor
+
+`objectDelta.hasDeltaFor(path)` -> boolean
+
+Returns true if object delta contains delta for specified item, or any of its subitems.
+This method only checks whether the delta is present,
+it does not check whether real value of the item changed value in any way.
+E.g. in case that there is a REPLACE delta for the same value, it returns true.
+
+Limitation: For OBJECT DELETE deltas, we do not know the values that were deleted.
+In that case the method returns false for any path.
+
+.Example
+[source,mel]
+----
+delta.hasDeltaFor('fullName')
+----
+
+===== findItemDelta
+
+`objectDelta.findItemDelta(path)` -> itemDelta
+
+Returns item delta for specified item.
+
+.Example
+[source,mel]
+----
+delta.findItemDelta('fullName')
+----
+
+===== isItemChanged
+
+`objectDelta.isItemChanged(path)` -> boolean
+
+Returns true if the item identified by path was changed.
+This method checks whether the real value of the item changed value in any way.
+E.g. in case that there is a REPLACE delta for the same value as was the original value, it returns false.
+
+Limitation: This function relies on estimated old values,
+therefore it may not be entirely reliable in some situations.
+For OBJECT DELETE deltas, we do not know the values that were deleted.
+In that case the method returns false for any path.
+
+.Example
+[source,mel]
+----
+delta.isItemChanged('fullName')
+----
+
 
 === Item Delta
 
@@ -3156,7 +3330,7 @@ E.g. username for session start/stop, etc.
 
 |===
 
-// ==== Object Delta Functions
+// ==== Audit Event Record Functions
 
 // TODO: later, when implemented
 
@@ -3212,7 +3386,7 @@ Useful for informational purposes, typically in audit records.
 
 |===
 
-// ==== Object Delta Functions
+// ==== Object Delta Operation Functions
 
 // TODO: later, when implemented
 

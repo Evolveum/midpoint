@@ -102,7 +102,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /** "Pure" definition of the mapping. Just for convenience. Derived from {@link #mappingConfigItem}. */
     @NotNull final MBT mappingBean;
 
-    /** Supplies the expression if none is defined in the mapping bean. */
+    /**
+     * Supplies the expression if none is defined in the mapping bean. Used e.g. to provide `complexAttributeSynchronization`
+     * even if there is no expression in the mapping bean.
+     */
     @NotNull final ExpressionSupplier defaultExpressionSupplier;
 
     /** Classification of the mapping (for reporting and diagnostic purposes). */

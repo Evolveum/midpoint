@@ -78,7 +78,8 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
         getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
         showChoiceFragment(
                 target,
-                new RoleWizardChoicePanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
+                new RoleWizardChoicePanel<>(
+                        getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class, getLastSaveResult()) {
                     @Override
                     protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
                         switch (value) {

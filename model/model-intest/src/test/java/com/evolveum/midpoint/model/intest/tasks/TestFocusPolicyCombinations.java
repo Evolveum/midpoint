@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
@@ -308,7 +308,7 @@ public class TestFocusPolicyCombinations extends AbstractEmptyModelIntegrationTe
     }
 
     private String inlineCounterId(TestObject<TaskType> task, Contribution c) throws CommonException {
-        return ActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), c.placement(), c.rule().getName(), true);
+        return TestActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), c.placement(), c.rule().getName(), true);
     }
 
     private int notificationCount(String transport) {

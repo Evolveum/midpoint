@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 
 import javax.xml.datatype.DatatypeFactory;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -275,8 +275,8 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
      * subtasks.
      */
     protected void assertRunSucceeded(String taskOid) throws Exception {
-        String simulateId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), SIMULATE, "max-deleted", true);
-        String executeId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), EXECUTE, "max-deleted-execute", true);
+        String simulateId = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), SIMULATE, "max-deleted", true);
+        String executeId = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(taskOid), EXECUTE, "max-deleted-execute", true);
         // @formatter:off
         assertTaskTree(taskOid, "after successful run")
                 .display()
@@ -393,7 +393,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
         then("the simulate activity suspends on the delete threshold; nothing is really deleted");
-        String id = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
+        String id = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
         assertSimulateSuspended(TASK_HR.oid, id, DELETE_THRESHOLD);
         assertThat(countUsers()).as("preview did not delete").isEqualTo(ACCOUNTS);
         assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
@@ -450,7 +450,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
         then("the simulate activity suspends on the delete threshold, having processed some objects");
-        String id = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
+        String id = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_HR.oid), SIMULATE, "max-deleted", true);
         int counterAfterFirst = assertSimulateSuspended(TASK_HR.oid, id, DELETE_THRESHOLD);
         assertThat(policyNotifications()).as("notification fired before the suspend").isGreaterThanOrEqualTo(1);
         int processedAtFirstSuspend = simulateItemsProcessed(TASK_HR.oid);

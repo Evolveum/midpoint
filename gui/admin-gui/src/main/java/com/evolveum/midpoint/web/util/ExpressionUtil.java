@@ -56,6 +56,7 @@ public class ExpressionUtil {
         GENERATE,
         ASSOCIATION_FROM_LINK,
         SHADOW_OWNER_REFERENCE_SEARCH,
+        FILTER,
         NULL
     }
 
@@ -84,20 +85,6 @@ public class ExpressionUtil {
 
     public static final QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
     private static final QName SHADOW_OID_KEY = new QName("oid");
-
-    public static final String EXPRESSION_SCRIPT = "<script>\n" +
-            "    <code>\n" +
-            "        Insert your script here\n" +
-            "    </code>\n" +
-            "</script>";
-
-    public static final String EXPRESSION_LITERAL = "<value>Insert value(s) here</value>";
-    public static final String EXPRESSION_AS_IS = "<asIs/>";
-    public static final String EXPRESSION_PATH = "<path>Insert path here</path>";
-    public static final String EXPRESSION_GENERATE = "<generate>\n" +
-            //"    <valuePolicyRef oid=\"Insert value policy oid\"/>\n" +
-            "</generate>";
-
     public static final String ELEMENT_SCRIPT = "</script>";
     public static final String ELEMENT_GENERATE = "</generate>";
     public static final String ELEMENT_GENERATE_WITH_NS = "<generate";
@@ -112,56 +99,60 @@ public class ExpressionUtil {
     public static final String ELEMENT_NULL = "<null/>";
     public static final String ELEMENT_NULL_WITH_NS = "<null";
 
-    public static String getExpressionString(ExpressionEvaluatorType type, ObjectReferenceType policy) {
-        if (ExpressionEvaluatorType.GENERATE.equals(type) && policy != null) {
-            return "<generate>\n" +
-                    "    <valuePolicyRef oid=\""
-                    + policy.getOid() + "\"/>\n" +
-                    "</generate>";
+    /**
+     * Element name of an evaluator paired with  corresponding type the GUI knows it as.
+     * @param name name of the element
+     * @param type type of the evaluator
+     */
+    private record EvaluatorElement(QName name, ExpressionEvaluatorType type) {}
+
+    private static final List<EvaluatorElement> EVALUATOR_ELEMENTS = List.of(
+            new EvaluatorElement(
+                    SchemaConstantsGenerated.C_SHADOW_OWNER_REFERENCE_SEARCH, ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH),
+            new EvaluatorElement(SchemaConstantsGenerated.C_AS_IS, ExpressionEvaluatorType.AS_IS),
+            new EvaluatorElement(SchemaConstantsGenerated.C_GENERATE, ExpressionEvaluatorType.GENERATE),
+            new EvaluatorElement(SchemaConstantsGenerated.C_PATH, ExpressionEvaluatorType.PATH),
+            new EvaluatorElement(SchemaConstantsGenerated.C_SCRIPT, ExpressionEvaluatorType.SCRIPT),
+            new EvaluatorElement(SchemaConstantsGenerated.C_VALUE, ExpressionEvaluatorType.LITERAL),
+            new EvaluatorElement(SchemaConstantsGenerated.C_FILTER, ExpressionEvaluatorType.FILTER),
+            new EvaluatorElement(SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK, ExpressionEvaluatorType.ASSOCIATION_FROM_LINK));
+
+    /**
+     * Recognizes the evaluator from the names of the evaluator elements. Preferred over the text based
+     * variant - it does not serialize the expression, and it only looks at the top level evaluators, so
+     * a nested element of the same name cannot fool it. Search evaluators, for one, contain a nested
+     * {@code filter} element.
+     *
+     * @param expression expression in which we are looking for the evaluator.
+     * @return expression evaluator type, or null when the expression has none we know.
+     */
+    public static ExpressionEvaluatorType getExpressionType(ExpressionType expression) {
+        if (isEmpty(expression)) {
+            return null;
         }
 
-        return EXPRESSION_GENERATE;
+        for (JAXBElement<?> evaluator : expression.getExpressionEvaluator()) {
+            if (evaluator == null || evaluator.getName() == null) {
+                continue;
+            }
+            for (EvaluatorElement element : EVALUATOR_ELEMENTS) {
+                if (QNameUtil.match(evaluator.getName(), element.name())) {
+                    return element.type();
+                }
+            }
+        }
+
+        return null;
     }
 
-    public static String getExpressionString(ExpressionEvaluatorType type, Language lang) {
-        if (ExpressionEvaluatorType.SCRIPT.equals(type) && !Language.GROOVY.equals(lang)) {
-            return "<script>\n"
-                    + "    <language>" + lang.getShortForm() + "</language>\n"
-                    + "    <code>\n"
-                    + "        Insert your script here\n"
-                    + "    </code>\n"
-                    + "<script>";
-        }
-
-        return EXPRESSION_SCRIPT;
-    }
-
-    public static String getExpressionString(ExpressionEvaluatorType type) {
-        if (type == null) {
-            return "";
-        }
-
-        switch (type) {
-            case AS_IS:
-                return EXPRESSION_AS_IS;
-
-            case GENERATE:
-                return EXPRESSION_GENERATE;
-
-            case LITERAL:
-                return EXPRESSION_LITERAL;
-
-            case PATH:
-                return EXPRESSION_PATH;
-
-            case SCRIPT:
-                return EXPRESSION_SCRIPT;
-
-            default:
-                return "";
-        }
-    }
-
+    /**
+     * Recognizes the evaluator by looking for element names in the serialized expression.
+     *
+     * @param expression the serialized expression to analyze; must not be null
+     * @return the corresponding {@link ExpressionEvaluatorType} or null if no match is found
+     * @deprecated use {@link #getExpressionType(ExpressionType)}, which reads the names off the bean
+     */
+    @Deprecated
     public static ExpressionEvaluatorType getExpressionType(String expression) {
         if (expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH) || expression.contains(ELEMENT_SHADOW_OWNER_REFERENCE_SEARCH_WITH_NS)) {
             return ExpressionEvaluatorType.SHADOW_OWNER_REFERENCE_SEARCH;
@@ -182,24 +173,6 @@ public class ExpressionUtil {
         }
 
         return null;
-    }
-
-    public static Language getExpressionLanguage(String expression) {
-        if (expression.contains("<language>")) {
-            if (expression.contains(Language.VELOCITY.getLanguage())) {
-                return Language.VELOCITY;
-            } else if (expression.contains(Language.PYTHON.getLanguage())) {
-                return Language.PYTHON;
-            } else if (expression.contains(Language.JAVASCRIPT.getLanguage())) {
-                return Language.JAVASCRIPT;
-            } else if (expression.contains(Language.MEL.getLanguage())) {
-                return Language.MEL;
-            } else {
-                return Language.GROOVY;
-            }
-        } else {
-            return Language.GROOVY;
-        }
     }
 
     @Nullable
@@ -260,6 +233,55 @@ public class ExpressionUtil {
 
     public static boolean isEmpty(ExpressionType expression) {
         return expression == null || expression.getExpressionEvaluator().isEmpty();
+    }
+
+    /**
+     * Tells whether the expression carries anything worth storing. Unlike {@link #isEmpty}, which only
+     * asks whether an evaluator is there, this also asks the evaluator for its content, so that an
+     * evaluator left blank by the user,  a script without code, does not count.
+
+     *
+     * @param expression expression to look at.
+     * @return true when the expression should be kept.
+     */
+    public static boolean hasEvaluatorContent(ExpressionType expression) {
+        if (isEmpty(expression)) {
+            return false;
+        }
+
+        ExpressionEvaluatorType evaluatorType = getExpressionType(expression);
+        if (evaluatorType == null) {
+            return true;
+        }
+
+        try {
+            return switch (evaluatorType) {
+                case SCRIPT -> hasScriptCode(expression);
+                case FILTER -> hasFilterValue(expression);
+                default -> true;
+            };
+        } catch (SchemaException ex) {
+            LOGGER.debug("Couldn't read the evaluator of the expression: {}", ex.getMessage(), ex);
+            return true;
+        }
+    }
+
+    /**
+     * @return true when the expression holds a script with a code that is not blank.
+     */
+    public static boolean hasScriptCode(ExpressionType expression) throws SchemaException {
+        ScriptExpressionEvaluatorType script = getScriptExpressionValue(expression);
+        return script != null && StringUtils.isNotBlank(script.getCode());
+    }
+
+    /**
+     * @return true when the expression holds a filter with a clause or a query text.
+     */
+    public static boolean hasFilterValue(ExpressionType expression) {
+        FilterExpressionEvaluatorType evaluator = getFilterExpressionValue(expression);
+        SearchFilterType filter = evaluator != null ? evaluator.getFilter() : null;
+        return filter != null
+                && (filter.containsFilterClause() || StringUtils.isNotBlank(filter.getText()));
     }
 
     public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
@@ -586,6 +608,22 @@ public class ExpressionUtil {
         return null;
     }
 
+    /**
+     * Returns the filter evaluator of the expression.
+     *
+     * @param expression in which we are looking for the evaluator.
+     * @return the filter evaluator, or null when the expression has none.
+     */
+    public static FilterExpressionEvaluatorType getFilterExpressionValue(ExpressionType expression) {
+        List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_FILTER);
+        for (JAXBElement<?> element : elements) {
+            if (element.getValue() instanceof FilterExpressionEvaluatorType evaluator) {
+                return evaluator;
+            }
+        }
+        return null;
+    }
+
     public static ItemPathType getPathExpressionValue(ExpressionType expression) throws SchemaException {
         List<JAXBElement<?>> elements = ExpressionUtil.findAllEvaluatorsByName(expression, SchemaConstantsGenerated.C_PATH);
         for (JAXBElement<?> element : elements) {
@@ -663,6 +701,19 @@ public class ExpressionUtil {
             ExpressionType expression, ScriptExpressionEvaluatorType evaluator) throws SchemaException {
         return updateExpressionEvaluator(
                 expression, evaluator, ScriptExpressionEvaluatorType.class, SchemaConstantsGenerated.C_SCRIPT);
+    }
+
+    /**
+     * Makes the filter evaluator the only evaluator of the expression. A null evaluator removes it.
+     *
+     * @param expression to update, created when null.
+     * @param evaluator filter evaluator to store.
+     * @return the updated expression, or null when the evaluator was null.
+     */
+    public static ExpressionType updateFilterExpressionValue(
+            ExpressionType expression, FilterExpressionEvaluatorType evaluator) throws SchemaException {
+        return updateExpressionEvaluator(
+                expression, evaluator, FilterExpressionEvaluatorType.class, SchemaConstantsGenerated.C_FILTER);
     }
 
     public static ExpressionType updatePathEvaluator(ExpressionType expression, ItemPathType path) throws SchemaException {
@@ -819,7 +870,8 @@ public class ExpressionUtil {
             String code = script.getCode();
 
             return code.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
-                    || code.contains(ExpressionConstants.VAR_ITERATION);
+                    || code.contains(ExpressionConstants.VAR_ITERATION)
+                    || code.contains(ExpressionConstants.VAR_ATTEMPT);
 
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't parse script expression.", e);

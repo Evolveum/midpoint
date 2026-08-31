@@ -219,10 +219,25 @@ public class LensUtil {
 
     /**
      * Determines the start value for iteration.
-     * @return the start value (defaults to 0 if not specified)
+     * Default value depends on whether maxIterations is defined:
+     * - If maxIterations is defined: defaults to 0
+     * - If maxIterations is not defined: defaults to 1
+     * @return the start value
      */
     public static int determineIterationStart(IterationSpecificationType iterationSpecType) {
-        return iterationSpecType != null ? or0(iterationSpecType.getStart()) : 0;
+        if (iterationSpecType == null) {
+            return 0;
+        }
+        Integer start = iterationSpecType.getStart();
+        if (start != null) {
+            return start;
+        }
+
+        if (iterationSpecType.getMaxIterations() != null) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 
     /**
@@ -252,13 +267,20 @@ public class LensUtil {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (iterationSpec == null) {
-            return formatIterationTokenDefault(iteration, 0);
+            return formatIterationTokenDefault(iteration, 0, true);
         }
+        boolean useTokenOnlyOnConflict = isUseTokenOnlyOnConflict(iterationSpec);
+        int start = determineIterationStart(iterationSpec);
+        // If useTokenOnlyOnConflict is true and this is the first attempt, don't evaluate token expression
+        if (useTokenOnlyOnConflict && iteration == start) {
+            return "";
+        }
+
         ExpressionType tokenExpressionType = iterationSpec.getTokenExpression();
         if (tokenExpressionType == null) {
-            int start = determineIterationStart(iterationSpec);
-            return formatIterationTokenDefault(iteration, start);
+            return formatIterationTokenDefault(iteration, start, useTokenOnlyOnConflict);
         }
+
         PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
@@ -282,6 +304,13 @@ public class LensUtil {
                 new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
         sources.add(iterationSource);
 
+        if (variables == null) {
+            variables = new VariablesMap();
+        }
+        variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
+
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
                 sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), task);
         eeContext.setExpressionFactory(expressionFactory);
@@ -304,17 +333,34 @@ public class LensUtil {
 
     /**
      * Formats the iteration token with default logic.
-     * If iteration equals start, returns empty string, otherwise returns iteration as string.
+     * If useTokenOnlyOnConflict is true and iteration equals start, returns empty string.
+     * Otherwise returns iteration as string.
      *
      * @param iteration current iteration value
      * @param start the start value for iteration
+     * @param useTokenOnlyOnConflict whether to use token only on conflict (first attempt has no token)
      * @return formatted iteration token
      */
-    public static String formatIterationTokenDefault(int iteration, int start) {
-        if (iteration == start) {
+    public static String formatIterationTokenDefault(int iteration, int start, boolean useTokenOnlyOnConflict) {
+        if (useTokenOnlyOnConflict && iteration == start) {
             return "";
         }
         return Integer.toString(iteration);
+    }
+
+    /**
+     * Determines the value of useTokenOnlyOnConflict flag.
+     * Default value is true.
+     *
+     * @param iterationSpec iteration specification
+     * @return true if token should be used only on conflict, false otherwise
+     */
+    public static boolean isUseTokenOnlyOnConflict(IterationSpecificationType iterationSpec) {
+        if (iterationSpec == null) {
+            return true;
+        }
+        Boolean useTokenOnlyOnConflict = iterationSpec.isUseTokenOnlyOnConflict();
+        return useTokenOnlyOnConflict == null || useTokenOnlyOnConflict;
     }
 
     public static <F extends ObjectType> boolean evaluateIterationCondition(
@@ -351,6 +397,8 @@ public class LensUtil {
 
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null , variables, desc, task);
         eeContext.setExpressionFactory(expressionFactory);

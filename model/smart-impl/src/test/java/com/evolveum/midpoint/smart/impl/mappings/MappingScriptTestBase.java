@@ -88,7 +88,7 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
                         // Instantiating MidPointFunctionsImpl manually in this test would be a nightmare (if even
                         // possible). We don't even need it for our purposes, so just set it to null. We just need to
                         // be careful to not invoke any Midpoint functions library method in tested expressions.
-                        null));
+                        null, null));
 
         return new MappingScriptValidator(expressionFactory);
     }

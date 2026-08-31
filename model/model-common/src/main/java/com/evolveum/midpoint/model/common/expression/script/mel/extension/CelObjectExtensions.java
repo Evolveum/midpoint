@@ -8,9 +8,11 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.*;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -19,9 +21,10 @@ import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -53,7 +56,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelObjectExtensions.class);
 
-    public CelObjectExtensions() {
+    private final MidpointFunctions midpointExpressionFunctions;
+
+    public CelObjectExtensions(MidpointFunctions midpointExpressionFunctions) {
+        this.midpointExpressionFunctions = midpointExpressionFunctions;
         initialize();
     }
 
@@ -72,7 +78,8 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY,
                                     ContainerValueCelValue.CEL_TYPE,
                                     QNameCelValue.CEL_TYPE)),
-                    CelFunctionBinding.from("prism-container-index_map-qname", ContainerValueCelValue.class, QNameCelValue.class,
+                    CelFunctionBinding.from("prism-container-index_map-qname",
+                            ContainerValueCelValue.class, QNameCelValue.class,
                             CelObjectExtensions::prismIndexMap)),
 
                 new Function(
@@ -81,10 +88,12 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                 CelOverloadDecl.newMemberOverload(
                                         "prism-object-isEffectivelyEnabled",
                                         "Returns true if the object is effectively enabled.",
-                                        SimpleType.ANY,
+                                        SimpleType.BOOL,
                                         ObjectCelValue.CEL_TYPE)),
-                        CelFunctionBinding.from("prism-object-isEffectivelyEnabled", ObjectCelValue.class,
-                                CelObjectExtensions::isEffectivelyEnabled)),
+                        CelFunctionBinding.from("prism-object-isEffectivelyEnabled",
+                                ObjectCelValue.class,
+                                CelObjectExtensions::isEffectivelyEnabled,
+                                NullabilityProperties.NULLABLE_FALSE)),
 
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -95,8 +104,24 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     SimpleType.ANY,
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.STRING)),
-                    CelFunctionBinding.from("prism-object-finditem-string", ObjectCelValue.class, String.class,
-                            CelObjectExtensions::prismFind)),
+                    CelFunctionBinding.from("prism-object-finditem-string",
+                            ObjectCelValue.class, String.class,
+                            CelObjectExtensions::prismFind,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // object.type()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "type",
+                            CelOverloadDecl.newMemberOverload(
+                                    "prism-object-type",
+                                    "Returns object type in QName form.",
+                                    QNameCelValue.CEL_TYPE,
+                                    ObjectCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("prism-object-type",
+                            ObjectCelValue.class,
+                            CelObjectExtensions::objectType,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // resource.connectorConfiguration(propertyName)
             new Function(
@@ -108,8 +133,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE,
                                     SimpleType.ANY)),
-                    CelFunctionBinding.from("mp-resource-connectorConfiguration", Object.class, Object.class,
-                            this::connectorConfiguration)),
+                    CelFunctionBinding.from("mp-resource-connectorConfiguration",
+                            Object.class, Object.class,
+                            this::connectorConfiguration,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // shadow.primaryIdentifiers()
             new Function(
@@ -120,8 +147,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     "Returns list of values of shadow primary identifier.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE)),
-                    CelFunctionBinding.from("mp-shadow-primaryIdentifiers", Object.class,
-                            this::primaryIdentifiers)),
+                    CelFunctionBinding.from("mp-shadow-primaryIdentifiers",
+                            Object.class,
+                            this::primaryIdentifiers,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // shadow.secondaryIdentifiers()
             new Function(
@@ -132,8 +161,10 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                                     "Returns list of values of shadow secondary identifier.",
                                     ListType.create(SimpleType.DYN),
                                     ObjectCelValue.CEL_TYPE)),
-                    CelFunctionBinding.from("mp-shadow-secondaryIdentifiers", Object.class,
-                            this::secondaryIdentifiers)),
+                    CelFunctionBinding.from("mp-shadow-secondaryIdentifiers",
+                            Object.class,
+                            this::secondaryIdentifiers,
+                            NullabilityProperties.NULLABLE_EMPTY_LIST)),
 
             // ASSIGNMENT FUNCTIONS
 
@@ -189,16 +220,59 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                             CelObjectExtensions::assignmentIsTarget,
                             NullabilityProperties.NULLABLE_FALSE)),
 
+            // assignment.isTarget(any, archetypeOid)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "isTarget",
+                            CelOverloadDecl.newMemberOverload(
+                                    "assignment-istarget-archetype",
+                                    "Returns true if targetRef of the assignment is of specified type.",
+                                    SimpleType.BOOL,
+                                    AssignmentValueCelValue.CEL_TYPE, SimpleType.ANY, SimpleType.STRING)),
+                    CelFunctionBinding.from("assignment-istarget-archetype",
+                            ImmutableList.of(Object.class, Object.class, String.class),
+                            this::assignmentIsTargetArchetype,
+                            NullabilityProperties.NULLABLE_FALSE)),
+
             // assignment.isTarget*()
             createIsTargetFunction("Role", RoleType.COMPLEX_TYPE),
+            createIsTargetArchetypeFunction("Role", RoleType.COMPLEX_TYPE),
             createIsTargetFunction("Org", OrgType.COMPLEX_TYPE),
+            createIsTargetArchetypeFunction("Org", OrgType.COMPLEX_TYPE),
             createIsTargetFunction("Service", ServiceType.COMPLEX_TYPE),
+            createIsTargetArchetypeFunction("Service", ServiceType.COMPLEX_TYPE),
             createIsTargetFunction("Policy", PolicyType.COMPLEX_TYPE),
+            createIsTargetArchetypeFunction("Policy", PolicyType.COMPLEX_TYPE),
             createIsTargetFunction("User", UserType.COMPLEX_TYPE),
+            createIsTargetArchetypeFunction("User", UserType.COMPLEX_TYPE),
 
-            // TODO: isTargetRole(archetype), etc.
+            // assignment.target()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "target",
+                            CelOverloadDecl.newMemberOverload(
+                                    "assignment-target",
+                                    "Returns object that is the targetRef refers to.",
+                                    NullableType.create(ObjectCelValue.CEL_TYPE),
+                                    AssignmentValueCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("assignment-target",
+                            Object.class,
+                            this::assignmentTarget,
+                            NullabilityProperties.NULLABLE_NULL)),
 
-            // TODO: targetName() ???
+            // assignment.targetName()
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "targetName",
+                            CelOverloadDecl.newMemberOverload(
+                                    "assignment-targetname",
+                                    "Returns name of object that the targetRef refers to.",
+                                    NullableType.create(PolyStringCelValue.CEL_TYPE),
+                                    AssignmentValueCelValue.CEL_TYPE)),
+                    CelFunctionBinding.from("assignment-targetname",
+                            Object.class,
+                            this::assignmentTargetName,
+                            NullabilityProperties.NULLABLE_NULL)),
 
             // assignment.targetOid()
             new Function(
@@ -244,6 +318,90 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
 
             // DELTA FUNCTIONS
 
+            // objectDelta.estimateAddedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateAddedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateAddedValuesFor",
+                                    "Returns estimation of added values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateAddedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateAddedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateDeletedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateDeletedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateDeletedValuesFor",
+                                    "Returns estimation of deleted values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateDeletedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateDeletedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateModifiedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateModifiedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateModifiedValuesFor",
+                                    "Returns estimation of modified values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateModifiedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateModifiedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateChangedValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateChangedValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateChangedValuesFor",
+                                    "Returns estimation of changed values for specified item.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateChangedValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateChangedValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.estimateNewValuesFor(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "estimateNewValuesFor",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-estimateNewValuesFor",
+                                    "Returns estimation of a list of new values that would result in delta application.",
+                                    ListType.create(SimpleType.ANY),
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-estimateNewValuesFor",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::estimateNewValuesFor,
+                            NullabilityProperties.NULLABLE_NULL)),
+
+            // objectDelta.findItemDelta(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "findItemDelta",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-findItemDelta",
+                                    "Returns item delta for specified item.",
+                                    ItemDeltaCelValue.CEL_TYPE,
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-findItemDelta",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::findItemDelta,
+                            NullabilityProperties.NULLABLE_NULL)),
+
             // objectDelta.hasDeltaFor(path)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
@@ -270,34 +428,149 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                     CelFunctionBinding.from("objectdeltaoperation-hasdeltafor",
                             ObjectDeltaOperationCelValue.class, Object.class,
                             CelObjectExtensions::hasDeltaFor,
-                            NullabilityProperties.NULLABLE_FALSE))
+                            NullabilityProperties.NULLABLE_FALSE)),
 
-// TODO: more complex that it seems
-//            // objectDelta.isValueChanged(path)
-//            new Function(
-//                    CelFunctionDecl.newFunctionDeclaration(
-//                            "isValueChanged",
-//                            CelOverloadDecl.newMemberOverload(
-//                                    "objectdelta-isvaluechanged",
-//                                    "Returns true if the delta has delta for specified item.",
-//                                    SimpleType.BOOL,
-//                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
-//                    CelFunctionBinding.from("objectdelta-isvaluechanged",
-//                            ObjectDeltaCelValue.class, Object.class,
-//                            CelObjectExtensions::isValueChanged,
-//                            NullabilityProperties.NULLABLE_FALSE))
+            // objectDelta.isItemChanged(path)
+            new Function(
+                    CelFunctionDecl.newFunctionDeclaration(
+                            "isItemChanged",
+                            CelOverloadDecl.newMemberOverload(
+                                    "objectdelta-isItemChanged",
+                                    "Returns true if the delta is changing specified item.",
+                                    SimpleType.BOOL,
+                                    ObjectDeltaCelValue.CEL_TYPE, SimpleType.ANY)),
+                    CelFunctionBinding.from("objectdelta-isItemChanged",
+                            ObjectDeltaCelValue.class, Object.class,
+                            CelObjectExtensions::isItemChanged,
+                            NullabilityProperties.NULLABLE_FALSE))
         );
 
+    }
+
+    private static Object objectType(ObjectCelValue<?> object) {
+        PrismObjectDefinition<?> definition = object.getObject().getDefinition();
+        if (definition == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return QNameCelValue.create(definition.getTypeName());
+    }
+
+    private static Object estimateAddedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateAddedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateDeletedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateDeletedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateModifiedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateModifiedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateChangedValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateChangedValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object estimateNewValuesFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return postProcessPrismValues(objectDeltaCelValue.getJavaValue().estimateNewValuesFor(toPath(path)));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object postProcessPrismValues(Collection<PrismValue> values) {
+        if (values == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return values.stream().map(v -> CelTypeMapper.toCelValue(v.getRealValue())).toList();
+    }
+
+
+    private static Object findItemDelta(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        ItemDelta<PrismValue, ItemDefinition<?>> itemDelta = objectDeltaCelValue.getJavaValue().findItemDelta(toPath(path));
+        if (itemDelta == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return ItemDeltaCelValue.create(itemDelta);
     }
 
     private static Object hasDeltaFor(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
         if (isCelNull(path)) {
             return NullValue.NULL_VALUE;
         }
-        return objectDeltaCelValue.getJavaValue().hasItemOrSubitemDelta(toPath(path));
+        return hasDeltaFor(objectDeltaCelValue.getJavaValue(), path);
     }
 
     private static Object hasDeltaFor(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        return hasDeltaFor(objectDeltaOperationCelValue.getObjectDelta(), path);
+    }
+
+    private static Object hasDeltaFor(ObjectDelta<?> objectDelta, Object path) {
+        if (objectDelta == null) {
+            return NullValue.NULL_VALUE;
+        }
+        if (objectDelta.isDelete()) {
+            return true;
+        }
+        return objectDelta.hasItemOrSubitemDelta(toPath(path));
+    }
+
+    private static Object isItemChanged(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
+        if (isCelNull(path)) {
+            return NullValue.NULL_VALUE;
+        }
+        try {
+            return objectDeltaCelValue.getJavaValue().isItemChanged(toPath(path));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
+    }
+
+    private static Object isItemChanged(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
         if (isCelNull(path)) {
             return NullValue.NULL_VALUE;
         }
@@ -305,27 +578,13 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         if (objectDelta == null) {
             return NullValue.NULL_VALUE;
         }
-        return objectDelta.hasItemOrSubitemDelta(toPath(path));
+        try {
+            return objectDelta.isItemChanged(toPath(path));
+        } catch (SchemaException e) {
+            // Consider: log the error and return null instead?
+            throw createException(e);
+        }
     }
-
-//    TODO: more complex that it seems
-//    private static Object isValueChanged(ObjectDeltaCelValue<?> objectDeltaCelValue, Object path) {
-//        if (isCelNull(path)) {
-//            return NullValue.NULL_VALUE;
-//        }
-//        return objectDeltaCelValue.getJavaValue().isValueChanged(toPath(path));
-//    }
-//
-//    private static Object isValueChanged(ObjectDeltaOperationCelValue objectDeltaOperationCelValue, Object path) {
-//        if (isCelNull(path)) {
-//            return NullValue.NULL_VALUE;
-//        }
-//        ObjectDelta<?> objectDelta = objectDeltaOperationCelValue.getObjectDelta();
-//        if (objectDelta == null) {
-//            return NullValue.NULL_VALUE;
-//        }
-//        return objectDelta.isValueChanged(toPath(path));
-//    }
 
     @NotNull
     private static ItemPath toPath(@NotNull Object path) {
@@ -368,6 +627,22 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
                 CelFunctionBinding.from("assignment-istarget" + name.toLowerCase(),
                         Object.class,
                         a -> assignmentIsTargetInternal(a, type),
+                        NullabilityProperties.NULLABLE_FALSE));
+    }
+
+    private Function createIsTargetArchetypeFunction(String name, final QName type) {
+        return new Function(
+                CelFunctionDecl.newFunctionDeclaration(
+                        "isTarget" + name,
+                        CelOverloadDecl.newMemberOverload(
+                                "assignment-istarget" + name.toLowerCase() + "-archetype",
+                                "Returns true if the assignment target type is " + name.toLowerCase() + " and it has specified archetype.",
+                                SimpleType.BOOL,
+                                AssignmentValueCelValue.CEL_TYPE,
+                                SimpleType.STRING)),
+                CelFunctionBinding.from("assignment-istarget" + name.toLowerCase() + "-archetype",
+                        Object.class, String.class,
+                        (assignment, archetypeOid) -> assignmentIsTargetArchetypeInternal(assignment, type, archetypeOid),
                         NullabilityProperties.NULLABLE_FALSE));
     }
 
@@ -424,6 +699,34 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         return QNameCelValue.create(targetRef.getType());
     }
 
+    private <O extends ObjectType> Object assignmentTarget(Object assignmentCelValue) {
+        ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
+        if (targetRef == null) {
+            return NullValue.NULL_VALUE;
+        }
+        O target = determineTarget(targetRef);
+        if (target == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return ObjectCelValue.create(target.asPrismObject());
+    }
+
+    private <O extends ObjectType> Object assignmentTargetName(Object assignmentCelValue) {
+        ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
+        if (targetRef == null) {
+            return NullValue.NULL_VALUE;
+        }
+        O target = determineTarget(targetRef);
+        if (target == null) {
+            return NullValue.NULL_VALUE;
+        }
+        PolyStringType name = target.getName();
+        if (name == null) {
+            return NullValue.NULL_VALUE;
+        }
+        return PolyStringCelValue.create(name.toPolyString());
+    }
+
     private static Object assignmentTargetOid(Object assignmentCelValue) {
         ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
         if (targetRef == null) {
@@ -448,25 +751,23 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         return QNameCelValue.create(relation);
     }
 
-    private static Object assignmentIsTarget(Object assignmentCelValue, Object typeSpec) {
-        ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
-        if (targetRef == null) {
-            return false;
-        }
-        QName type = targetRef.getType();
-        if (type == null) {
-            return false;
-        }
-        if (typeSpec instanceof String typeSpecStr) {
-            return type.getLocalPart().equals(typeSpecStr);
-        }
-        if (typeSpec instanceof QNameCelValue typeSpecCelQname) {
-            return QNameUtil.match(typeSpecCelQname.getQName(), type);
-        }
-        return type.getLocalPart().equals(typeSpec.toString());
+    private static boolean assignmentIsTarget(Object assignmentCelValue, Object typeSpec) {
+        return isRefTarget(getTargetRef(assignmentCelValue), typeSpec);
     }
 
-    private static Object assignmentIsTargetInternal(Object assignmentCelValue, QName targetSpec) {
+    private boolean assignmentIsTargetArchetype(Object[] args) {
+        return assignmentIsTargetArchetype(args[0], args[1], (String) args[2]);
+    }
+
+    private boolean assignmentIsTargetArchetype(Object assignmentCelValue, Object typeSpec, String archetypeOid) {
+        ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
+        if (!isRefTarget(targetRef, typeSpec)) {
+            return false;
+        }
+        return isRefArchetype(targetRef, archetypeOid);
+    }
+
+    private static boolean assignmentIsTargetInternal(Object assignmentCelValue, QName targetSpec) {
         ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
         if (targetRef == null) {
             return false;
@@ -483,6 +784,57 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
             return null;
         }
         return ((AssignmentValueCelValue) assignmentCelValue).getContainerValue().asContainerable().getTargetRef();
+    }
+
+    private <O extends ObjectType> boolean assignmentIsTargetArchetypeInternal(Object assignmentCelValue, QName targetSpec, String archetypeOid) {
+        ObjectReferenceType targetRef = getTargetRef(assignmentCelValue);
+        if (targetRef == null) {
+            return false;
+        }
+        QName type = targetRef.getType();
+        if (type == null) {
+            return false;
+        }
+        if (!QNameUtil.match(targetSpec, type)) {
+            return false;
+        }
+        return isRefArchetype(targetRef, archetypeOid);
+    }
+
+    private static boolean isRefTarget(ObjectReferenceType targetRef, Object typeSpec) {
+        if (targetRef == null) {
+            return false;
+        }
+        QName type = targetRef.getType();
+        if (type == null) {
+            return false;
+        }
+        if (typeSpec instanceof String typeSpecStr) {
+            return type.getLocalPart().equals(typeSpecStr);
+        }
+        if (typeSpec instanceof QNameCelValue typeSpecCelQname) {
+            return QNameUtil.match(typeSpecCelQname.getQName(), type);
+        }
+        return type.getLocalPart().equals(typeSpec.toString());
+    }
+
+    private <O extends ObjectType> boolean isRefArchetype(ObjectReferenceType targetRef, String archetypeOid) {
+        O target = determineTarget(targetRef);
+        if (target == null) {
+            return false;
+        }
+        return midpointExpressionFunctions.hasArchetype(target, archetypeOid);
+    }
+
+    @Nullable
+    private <O extends ObjectType> O determineTarget(ObjectReferenceType targetRef) {
+        try {
+            return midpointExpressionFunctions.resolveReferenceIfExists(targetRef);
+        } catch (CommonException e) {
+            LOGGER.warn("Error resolving object reference {}: {} ({})",
+                    targetRef, e.getMessage(), e.getClass().getSimpleName());
+            return null;
+        }
     }
 
     private static boolean isEffectivelyEnabled(ObjectCelValue<?> objectCelValue) {
@@ -594,8 +946,8 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
     private static final class Library implements CelExtensionLibrary<CelObjectExtensions> {
         private final CelObjectExtensions version0;
 
-        private Library() {
-            version0 = new CelObjectExtensions();
+        private Library(MidpointFunctions midpointExpressionFunctions) {
+            version0 = new CelObjectExtensions(midpointExpressionFunctions);
         }
 
         @Override
@@ -609,8 +961,8 @@ public class CelObjectExtensions extends AbstractMidPointCelExtensions {
         }
     }
 
-    public static CelExtensionLibrary<CelObjectExtensions> library() {
-        return new Library();
+    public static CelExtensionLibrary<CelObjectExtensions> library(MidpointFunctions midpointExpressionFunctions) {
+        return new Library(midpointExpressionFunctions);
     }
 
     @Override

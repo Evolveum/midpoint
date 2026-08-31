@@ -23,9 +23,8 @@
                     (WCAG 2.2)
                 </wicket:remove>
                 <div class="visually-hidden" wicket:id="accessibilityLogo"/>
-                <div class="navbar-nav">
-                    <a wicket:id="menuToggle" tabindex="3" class="nav-link" data-lte-toggle="sidebar" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
-                </div>
+                <a wicket:id="menuToggle" tabindex="3" class="nav-link menu-toggle" data-lte-toggle="sidebar" href="#" role="button"
+                        wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
                 <div class="ms-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
                 <span class="page-title" wicket:id="pageTitle">
                     <span wicket:id="deploymentName"/>

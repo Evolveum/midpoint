@@ -14,6 +14,8 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationFromLinkExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -23,7 +25,11 @@ public class AssociationFromLinkPanel extends EvaluatorExpressionPanel {
     private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkPanel.class);
 
     public AssociationFromLinkPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public AssociationFromLinkPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
         updateEvaluatorValue();
     }
 

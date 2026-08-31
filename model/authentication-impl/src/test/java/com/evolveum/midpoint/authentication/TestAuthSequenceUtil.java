@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.test.AbstractHigherUnitTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -88,4 +89,77 @@ public class TestAuthSequenceUtil extends AbstractHigherUnitTest {
         assertEquals("Wrong sequences", 1, sequences.size());
     }
 
+    /**
+     * Sequence of a plain security policy:
+     *
+     * - modules are listed in the order in which they are executed
+     * - the first listed module is kept
+     */
+    @Test
+    public void testFirstExecutedModuleOfSequenceInExecutionOrder() {
+        AuthenticationSequenceType sequence = getSequenceWithModules(
+                getModule("userName", 10),
+                getModule("ldapAuth", 30));
+
+        AuthenticationSequenceType trimmed = AuthSequenceUtil.sequenceWithFirstExecutedModulesOnly(sequence, 1);
+
+        assertEquals("Wrong modules", List.of("userName"), getModuleIdentifiers(trimmed));
+    }
+
+    /**
+     * Sequence of a merged security policy:
+     *
+     * - archetype policy defines the LDAP module, the identification module is inherited and appended
+     * - the appended module has a lower order, so it is executed first
+     * - the executed module is kept, not the one listed first
+     */
+    @Test
+    public void testFirstExecutedModuleOfMergedSequence() {
+        AuthenticationSequenceType sequence = getSequenceWithModules(
+                getModule("ldapAuth", 30),
+                getModule("userName", 10));
+
+        AuthenticationSequenceType trimmed = AuthSequenceUtil.sequenceWithFirstExecutedModulesOnly(sequence, 1);
+
+        assertEquals("Wrong modules", List.of("userName"), getModuleIdentifiers(trimmed));
+    }
+
+    /**
+     * Prefix of a merged security policy sequence:
+     *
+     * - the first two executed modules are kept, e.g. for a reset to the second module
+     * - they are listed in the execution order, not in the document order
+     */
+    @Test
+    public void testFirstTwoExecutedModulesOfMergedSequence() {
+        AuthenticationSequenceType sequence = getSequenceWithModules(
+                getModule("ldapAuth", 30),
+                getModule("userName", 10));
+
+        AuthenticationSequenceType trimmed = AuthSequenceUtil.sequenceWithFirstExecutedModulesOnly(sequence, 2);
+
+        assertEquals("Wrong modules", List.of("userName", "ldapAuth"), getModuleIdentifiers(trimmed));
+    }
+
+    private AuthenticationSequenceType getSequenceWithModules(AuthenticationSequenceModuleType... modules) {
+        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+        sequence.setIdentifier("gui-default");
+        for (AuthenticationSequenceModuleType module : modules) {
+            sequence.getModule().add(module);
+        }
+        return sequence;
+    }
+
+    private AuthenticationSequenceModuleType getModule(String identifier, int order) {
+        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
+        module.setIdentifier(identifier);
+        module.setOrder(order);
+        return module;
+    }
+
+    private List<String> getModuleIdentifiers(AuthenticationSequenceType sequence) {
+        return sequence.getModule().stream()
+                .map(AuthenticationSequenceModuleType::getIdentifier)
+                .toList();
+    }
 }

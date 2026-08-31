@@ -36,6 +36,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.common.AvailableLocale;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -66,7 +67,6 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
@@ -1033,6 +1033,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (reference == null) {
             return null;
         }
+
+        PrismObject<T> objectInReference = reference.getObject();
+        if (objectInReference != null) {
+            // Returning cached object in case that we already have it.
+            return objectInReference.asObjectable();
+        }
+
         QName type = reference.getType(); // TODO what about implicitly specified types, like in resourceRef?
         PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByType(reference.getType());
@@ -1043,9 +1050,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 .executionPhase()
                 .allowNotFound(allowNotFound)
                 .build();
-        return modelService.getObject(objectDefinition.getCompileTimeClass(), reference.getOid(), options,
+        T resolvedObject = modelService.getObject(objectDefinition.getCompileTimeClass(), reference.getOid(), options,
                         getCurrentTask(), getCurrentResult())
                 .asObjectable();
+
+        // Cache the resolved object in the reference.
+        // We do not want to retrieve the object from repository each time is in used in script.
+        reference.asReferenceValue().cacheObject(resolvedObject.asPrismObject());
+
+        return resolvedObject;
     }
 
     @Override

@@ -43,8 +43,8 @@ public class EvaluatedActivityPolicyRuleImpl
         extends BaseEvaluatedPolicyRuleImpl
         implements EvaluatedPolicyRule, DebugDumpable {
 
-    /** TODO document this [pavol] */
-    private final ActivityPolicyRule policyRule;
+    /** Policy rule in the context of the whole activity run. */
+    @NotNull private final ActivityPolicyRule policyRule;
 
     EvaluatedActivityPolicyRuleImpl(@NotNull ActivityPolicyRule policyRule) {
         super(policyRule.getPolicyRuleConfigItem(), policyRule.getRuleIdentifier());

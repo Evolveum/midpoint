@@ -41,7 +41,6 @@ public class QAssignmentHolderMapping<
 
     public static final String DEFAULT_ALIAS_NAME = "ah";
     private static QAssignmentHolderMapping<AssignmentHolderType, QAssignmentHolder<MObject>, MObject> instance;
-
     // Explanation in class Javadoc for SqaleTableMapping
     public static QAssignmentHolderMapping<?, ?, ?> initAssignmentHolderMapping(
             @NotNull SqaleRepoContext repositoryContext) {

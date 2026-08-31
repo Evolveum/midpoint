@@ -291,6 +291,33 @@ Provides generated object identifiers shared by all concrete object tables.
 
 |===
 
+[[m_projection_holder]]
+=== `m_projection_holder`
+
+Abstract base table for projection holders such as foci and cases, all of which can hold projections (linkRef).
+
+XSD type: `\http://midpoint.evolveum.com/xml/ns/public/common/common-3#ProjectionHolderType`
+
+Inherits from: xref:#m_assignment_holder[`m_assignment_holder`]
+
+No primary key is defined directly on this table. The table inherits from xref:#m_assignment_holder[`m_assignment_holder`].
+
+==== Columns
+
+[cols="1,1,2,3", options="header"]
+|===
+| Column
+| Type
+| Required / constraints
+| Description
+
+| `objectType`
+| `ObjectType`
+| required
+| 
+
+|===
+
 [[m_reference]]
 === `m_reference`
 
@@ -451,7 +478,7 @@ Enum types define allowed database values for selected columns.
 [[enum_ObjectType]]
 | `ObjectType`
 | Identifies midPoint object kinds stored in native repository object tables.
-| `ABSTRACT_ROLE`, `ACCESS_CERTIFICATION_CAMPAIGN`, `ACCESS_CERTIFICATION_DEFINITION`, `APPLICATION`, `ARCHETYPE`, `ASSIGNMENT_HOLDER`, `CASE`, `CONNECTOR`, `CONNECTOR_DEVELOPMENT`, `CONNECTOR_HOST`, `DASHBOARD`, `FOCUS`, `FORM`, `FUNCTION_LIBRARY`, `GENERIC_OBJECT`, `LOOKUP_TABLE`, `MARK`, `MESSAGE_TEMPLATE`, `NODE`, `OBJECT`, `OBJECT_COLLECTION`, `OBJECT_TEMPLATE`, `ORG`, `POLICY`, `REPORT`, `REPORT_DATA`, `RESOURCE`, `ROLE`, `ROLE_ANALYSIS_CLUSTER`, `ROLE_ANALYSIS_SESSION`, `ROLE_ANALYSIS_OUTLIER`, `SCHEMA`, `SECURITY_POLICY`, `SEQUENCE`, `SERVICE`, `SHADOW`, `SIMULATION_RESULT`, `SYSTEM_CONFIGURATION`, `TASK`, `USER`, `VALUE_POLICY`
+| `ABSTRACT_ROLE`, `ACCESS_CERTIFICATION_CAMPAIGN`, `ACCESS_CERTIFICATION_DEFINITION`, `ALLOWED_CONNECTORS_LIST`, `APPLICATION`, `ARCHETYPE`, `ASSIGNMENT_HOLDER`, `CASE`, `CONNECTOR`, `CONNECTOR_DEVELOPMENT`, `CONNECTOR_HOST`, `DASHBOARD`, `FOCUS`, `FORM`, `FUNCTION_LIBRARY`, `GENERIC_OBJECT`, `LOOKUP_TABLE`, `MARK`, `MESSAGE_TEMPLATE`, `NODE`, `OBJECT`, `OBJECT_COLLECTION`, `OBJECT_TEMPLATE`, `ORG`, `POLICY`, `PROJECTION_HOLDER`, `REPORT`, `REPORT_DATA`, `RESOURCE`, `ROLE`, `ROLE_ANALYSIS_CLUSTER`, `ROLE_ANALYSIS_SESSION`, `ROLE_ANALYSIS_OUTLIER`, `SCHEMA`, `SECURITY_POLICY`, `SEQUENCE`, `SERVICE`, `SHADOW`, `SIMULATION_RESULT`, `SYSTEM_CONFIGURATION`, `TASK`, `USER`, `VALUE_POLICY`
 
 [[enum_OperationExecutionRecordTypeType]]
 | `OperationExecutionRecordTypeType`
@@ -486,7 +513,7 @@ Enum types define allowed database values for selected columns.
 [[enum_ShadowKindType]]
 | `ShadowKindType`
 | Stores shadow kind values used to classify resource object shadows.
-| `ACCOUNT`, `ENTITLEMENT`, `GENERIC`, `ASSOCIATION`, `UNKNOWN`
+| `ACCOUNT`, `ENTITLEMENT`, `GENERIC`, `ASSOCIATION`, `WORK`, `UNKNOWN`
 
 [[enum_SynchronizationSituationType]]
 | `SynchronizationSituationType`

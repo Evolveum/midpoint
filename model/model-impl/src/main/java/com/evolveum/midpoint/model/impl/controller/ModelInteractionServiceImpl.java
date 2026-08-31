@@ -86,7 +86,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.security.SecurityPolicyFinder;
@@ -247,13 +246,28 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, SubscriptionComplianceException {
+        return getEditObjectDefinition(object, phase, task, parentResult, true);
+    }
+
+    @Override
+    public <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinitionForPreauthorizedObject(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
+        return getEditObjectDefinition(object, phase, task, parentResult, false);
+    }
+
+    private <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult, boolean reloadByOid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
         try {
             // Re-read the object from the repository to make sure we have all the properties.
             // the object from method parameters may be already processed by the security code
             // and properties needed to evaluate authorizations may not be there
             // MID-3126, see also MID-3435
-            PrismObject<O> fullObject = getFullObjectReadWrite(object, result);
+            PrismObject<O> fullObject = reloadByOid ? getFullObjectReadWrite(object, result) : object;
 
             // TODO: maybe we need to expose owner resolver in the interface?
             ObjectSecurityConstraints securityConstraints =
@@ -2562,26 +2576,17 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
             SubscriptionComplianceException {
 
-        TaskType taskObject = object.asObjectable();
-
-        // all policy identifiers needed when searching to counters which should be deleted
-        Collection<String> identifiers =
-                ActivityPolicyUtils.listPolicyRuleIdentifiers(taskObject.getActivity(), ActivityPath.empty())
-                        .stream()
-                        .map(i -> i.toString())
-                        .collect(Collectors.toSet());
-
         Task taskToClean = taskManager.getTaskPlain(object.getOid(), result);
         boolean changed = false;
 
-        if (clearAllActivityPolicyStates(taskToClean, identifiers, task, result)) {
+        if (clearAllActivityPolicyStates(taskToClean, task, result)) {
             changed = true;
         }
 
         List<? extends Task> tasks = taskToClean.listSubtasksDeeply(true, result);
         if (tasks != null) {
             for (Task t : tasks) {
-                if (clearAllActivityPolicyStates(t, identifiers, task, result)) {
+                if (clearAllActivityPolicyStates(t, task, result)) {
                     changed = true;
                 }
             }
@@ -2592,7 +2597,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     private boolean clearAllActivityPolicyStates(
             @NotNull Task taskToClean,
-            @NotNull Collection<String> policyIdentifiers,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -2605,7 +2609,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class).asObjectDelta(taskToClean.getOid());
 
-        clearAllActivityPolicyState(taskActivityState.getActivity(), delta, policyIdentifiers);
+        clearAllActivityPolicyState(taskActivityState.getActivity(), delta);
 
         if (delta.isEmpty()) {
             LOGGER.trace("No activity policy state to clear in task {}", taskToClean.getOid());
@@ -2618,11 +2622,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return true;
     }
 
-    private void clearAllActivityPolicyState(
-            ActivityStateType state,
-            @NotNull ObjectDelta<TaskType> delta,
-            @NotNull Collection<String> policyIdentifiers) {
-
+    private void clearAllActivityPolicyState(ActivityStateType state, @NotNull ObjectDelta<TaskType> delta) {
         if (state == null) {
             return;
         }
@@ -2638,35 +2638,33 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
         }
 
-        // cleanup activity policy counters
+        // Cleanup of policy rule counters. We clear ALL of them, regardless of where the rule came from:
+        // besides activity policies (inline, policyRef, virtual assignments), also clockwork-evaluated rules
+        // with thresholds (from assigned roles, task assignments, global policy rules) store counters here,
+        // and any of them may be the one blocking the task restart. Most of them cannot be enumerated
+        // from the task definition anyway.
         ActivityCounterGroupsType counterGroups = state.getCounters();
         if (counterGroups != null) {
-            clearActivityGroupCounters(counterGroups.getFullExecutionModePolicyRules(), delta, policyIdentifiers);
-            clearActivityGroupCounters(counterGroups.getPreviewModePolicyRules(), delta, policyIdentifiers);
+            clearActivityGroupCounters(counterGroups.getFullExecutionModePolicyRules(), delta);
+            clearActivityGroupCounters(counterGroups.getPreviewModePolicyRules(), delta);
         }
 
         // recursive cleanup of child activity states
         for (ActivityStateType childActivityState : state.getActivity()) {
-            clearAllActivityPolicyState(childActivityState, delta, policyIdentifiers);
+            clearAllActivityPolicyState(childActivityState, delta);
         }
     }
 
-    private void clearActivityGroupCounters(
-            ActivityCounterGroupType counterGroup,
-            @NotNull ObjectDelta<TaskType> delta,
-            @NotNull Collection<String> policyIdentifiers) {
-
+    private void clearActivityGroupCounters(ActivityCounterGroupType counterGroup, @NotNull ObjectDelta<TaskType> delta) {
         if (counterGroup == null) {
             return;
         }
 
         for (ActivityCounterType counter : counterGroup.getCounter()) {
-            if (policyIdentifiers.contains(counter.getIdentifier())) {
-                // noinspection unchecked
-                PrismContainerValue<ActivityCounterType> value = counter.asPrismContainerValue();
-                // noinspection unchecked
-                delta.addModificationDeleteContainer(value.getParent().getPath(), value.clone());
-            }
+            // noinspection unchecked
+            PrismContainerValue<ActivityCounterType> value = counter.asPrismContainerValue();
+            // noinspection unchecked
+            delta.addModificationDeleteContainer(value.getParent().getPath(), value.clone());
         }
     }
 }

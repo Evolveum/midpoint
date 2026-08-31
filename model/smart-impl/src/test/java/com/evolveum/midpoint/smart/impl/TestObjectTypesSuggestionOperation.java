@@ -179,6 +179,13 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
                         com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI,
                         "organizationalUnit"));
         assertThat(delineation.getBaseContext().getFilter()).isNotNull();
+
+        var callContext = ((MockServiceClientImpl) mockClient).getLastCallContext();
+
+        assertThat(((MockServiceClientImpl) mockClient).getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_OBJECT_TYPES);
+        assertThat(callContext.task()).isSameAs(task);
+        assertThat(callContext.result()).isSameAs(result);
+        assertThat(callContext.resource().getOid()).isEqualTo(RESOURCE_DUMMY.oid);
     }
 
     @Test

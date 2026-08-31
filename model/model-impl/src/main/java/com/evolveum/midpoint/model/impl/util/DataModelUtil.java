@@ -122,7 +122,7 @@ public class DataModelUtil {
                 if (def != null) {
                     QName focusType = def.getFocusType() != null ? def.getFocusType() : UserType.COMPLEX_TYPE;
                     PrismObjectDefinition<Objectable> objdef = rctx.prismContext.getSchemaRegistry().findObjectDefinitionByType(focusType);
-                    if (objdef != null && objdef.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(objdef.getCompileTimeClass())) {
+                    if (objdef != null && objdef.getCompileTimeClass() != null && ProjectionHolderType.class.isAssignableFrom(objdef.getCompileTimeClass())) {
                         clazz = (Class) objdef.getCompileTimeClass();
                     }
                 } else {

@@ -31,12 +31,11 @@ import javax.xml.namespace.QName;
 public class ObjectDeltaCelValue<O extends ObjectType> extends AbstractStructuredCelValue<Object> implements MidPointValueProducer<ObjectDelta<O>> {
 
     public static final String OBJECT_DELTA_PACKAGE_NAME = ObjectDeltaType.class.getTypeName();
-    private static final String F_OID = "oid";
-//    private static final String F_OID = ObjectDeltaType.F_OID.getLocalPart();
+    private static final String F_OID = ObjectDeltaType.F_OID.getLocalPart();
     private static final String F_CHANGE_TYPE = ObjectDeltaType.F_CHANGE_TYPE.getLocalPart();
     private static final String F_OBJECT_TYPE = ObjectDeltaType.F_OBJECT_TYPE.getLocalPart();
     private static final String F_OBJECT_TO_ADD = ObjectDeltaType.F_OBJECT_TO_ADD.getLocalPart();
-    private static final String F_ITEM_DELTA = ObjectDeltaType.F_ITEM_DETLA.getLocalPart();
+    private static final String F_ITEM_DELTA = ObjectDeltaType.F_ITEM_DELTA.getLocalPart();
     public static final CelType CEL_TYPE = createCelType();
 
     private final ObjectDelta<O> objectDelta;

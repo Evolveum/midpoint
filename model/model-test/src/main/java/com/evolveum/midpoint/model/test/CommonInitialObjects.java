@@ -85,6 +85,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "029-archetype-application.xml",
             SystemObjectsType.ARCHETYPE_APPLICATION.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_MANUAL_CASE = TestObject.classPath(
+            ARCHETYPES, "023-archetype-manual-provisioning-case.xml",
+            SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
+
     //Certification tasks
     TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(
             ARCHETYPES, "520-archetype-task-certification.xml",

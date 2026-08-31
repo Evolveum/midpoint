@@ -91,7 +91,7 @@ class ObjectTypesSuggestionOperation {
         Collection<ObjectTypeWithFilters> suggestedObjectTypes = null;
         List<SiValidationErrorFeedbackEntryType> validationFeedback = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
-            var siResponse = generateObjectTypeSuggestion(shadowObjectClassStatistics, validationFeedback);
+            var siResponse = generateObjectTypeSuggestion(shadowObjectClassStatistics, validationFeedback, parentResult);
             try {
                 suggestedObjectTypes = parseAndValidateFilters(siResponse.getObjectType(), parentResult);
                 break;
@@ -316,7 +316,7 @@ class ObjectTypesSuggestionOperation {
 
     private @NotNull SiSuggestObjectTypesResponseType generateObjectTypeSuggestion(
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
-            @Nullable List<SiValidationErrorFeedbackEntryType> validationFeedback) throws SchemaException {
+            @Nullable List<SiValidationErrorFeedbackEntryType> validationFeedback, OperationResult parentResult) throws SchemaException {
         var siRequest = new SiSuggestObjectTypesRequestType()
                 .schema(ResourceObjectClassSchemaSerializer.serialize(ctx.objectClassDefinition, ctx.resource))
                 .statistics(shadowObjectClassStatistics);
@@ -331,7 +331,8 @@ class ObjectTypesSuggestionOperation {
                 siRequest.getPreviousDelineation().add(toSiSuggestedObjectType(objectType));
             }
         }
-        var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
+        var siResponse = ctx.serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class,
+                ctx.callContext(parentResult));
         stripBlankStrings(siResponse);
         return siResponse;
     }

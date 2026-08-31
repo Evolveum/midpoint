@@ -234,7 +234,7 @@ public final class ShadowIntegrityCheckActivityRun
             sb.append("   --> deleted redundant shadow").append(skippedForDryRun()).append(" ").append(ObjectTypeUtil.toShortString(shadowToDelete)).append("\n");
             String oid = shadowToDelete.getOid();
 
-            List<PrismObject<FocusType>> owners;
+            List<PrismObject<ProjectionHolderType>> owners;
             if (cfg.checkOwners) {
                 owners = shadowToDelete.getUserData(KEY_OWNERS);
             } else {
@@ -262,13 +262,13 @@ public final class ShadowIntegrityCheckActivityRun
                 continue;
             }
 
-            for (PrismObject<FocusType> owner : owners) {
+            for (PrismObject<ProjectionHolderType> owner : owners) {
                 List<ItemDelta<?, ?>> modifications = new ArrayList<>(2);
-                ReferenceDelta deleteDelta = PrismContext.get().deltaFactory().reference().createModificationDelete(FocusType.F_LINK_REF, owner.getDefinition(),
+                ReferenceDelta deleteDelta = PrismContext.get().deltaFactory().reference().createModificationDelete(ProjectionHolderType.F_LINK_REF, owner.getDefinition(),
                         PrismContext.get().itemFactory().createReferenceValue(oid, ShadowType.COMPLEX_TYPE));
                 modifications.add(deleteDelta);
                 if (shadowOidToReplaceDeleted != null) {
-                    ReferenceDelta addDelta = PrismContext.get().deltaFactory().reference().createModificationAdd(FocusType.F_LINK_REF, owner.getDefinition(),
+                    ReferenceDelta addDelta = PrismContext.get().deltaFactory().reference().createModificationAdd(ProjectionHolderType.F_LINK_REF, owner.getDefinition(),
                             PrismContext.get().itemFactory().createReferenceValue(shadowOidToReplaceDeleted, ShadowType.COMPLEX_TYPE));
                     modifications.add(addDelta);
                 }
@@ -287,12 +287,12 @@ public final class ShadowIntegrityCheckActivityRun
         }
     }
 
-    List<PrismObject<FocusType>> searchOwners(PrismObject<ShadowType> shadow, OperationResult result) {
+    List<PrismObject<ProjectionHolderType>> searchOwners(PrismObject<ShadowType> shadow, OperationResult result) {
         try {
-            ObjectQuery ownerQuery = PrismContext.get().queryFor(FocusType.class)
-                    .item(FocusType.F_LINK_REF).ref(shadow.getOid())
+            ObjectQuery ownerQuery = PrismContext.get().queryFor(ProjectionHolderType.class)
+                    .item(ProjectionHolderType.F_LINK_REF).ref(shadow.getOid())
                     .build();
-            List<PrismObject<FocusType>> owners = getRepositoryService().searchObjects(FocusType.class, ownerQuery, null, result);
+            List<PrismObject<ProjectionHolderType>> owners = getRepositoryService().searchObjects(ProjectionHolderType.class, ownerQuery, null, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Owners for {}: {}", ObjectTypeUtil.toShortString(shadow), owners);
             }

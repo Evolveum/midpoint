@@ -122,15 +122,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
 
-        then("All shadows with their owners should be processed.");
+        then("Owners of all shadows should be processed.");
         and("One object should be modified.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
-                .assertObjectsProcessed(2)
+                .assertObjectsProcessed(1)
                 .assertObjectsModified(1);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1);
-        assertProcessedShadowsCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 0);
         assertModifiedObjectsCount(processedObjects, 1)
                 .assertItemModificationsCount(2);
     }
@@ -159,12 +159,12 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
 
         then("Only delta from explicit mapping should be present. Existing mappings should not evaluate to any delta.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result.")
-                .assertObjectsProcessed(2)
+                .assertObjectsProcessed(1)
                 .assertObjectsModified(1);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1);
-        assertProcessedShadowsCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 0);
         final String userWithExpectedChange = this.users.stream()
                 .filter(user -> user.getName().getOrig().equals("smith1"))
                 .findFirst()
@@ -189,15 +189,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
 
-        then("Shadows should be processed together with one empty focus object.");
+        then("One empty focus object.");
         and("Empty focus should be modified.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
-                .assertObjectsProcessed(2)
+                .assertObjectsProcessed(1)
                 .assertObjectsModified(1);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1);
-        assertProcessedShadowsCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 0);
         assertModifiedObjectsCount(processedObjects, 1)
                 .assertItemModificationsCount(1);
     }
@@ -224,7 +224,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         final Map<String, String> usersNameToOidMap = this.users.stream()
                 .collect(Collectors.toMap(user -> user.getName().getOrig(), PrismObject::getOid));
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result.")
-                .assertObjectsProcessed(8)
+                .assertObjectsProcessed(4)
                 .assertObjectsModified(3);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
@@ -267,12 +267,12 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
 
         then("Only delta from explicit mapping should be present. Existing mappings should not evaluate to any delta.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result.")
-                .assertObjectsProcessed(2)
+                .assertObjectsProcessed(1)
                 .assertObjectsModified(1);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1);
-        assertProcessedShadowsCount(processedObjects, 1);
+        assertProcessedShadowsCount(processedObjects, 0);
         assertModifiedObjectsCount(processedObjects, 1)
                 .assertItemModificationsCount(1);
     }
@@ -297,17 +297,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
 
-        then("All shadows with their owners (linked or correlated) should be processed.");
+        then("All users (linked or correlated) should be processed.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
-                .assertObjectsProcessed(2);
+                .assertObjectsProcessed(1);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1)
                 .assertName("mcclane")
-                // There are two processed objects, each should have one processed shadow.
                 .assertContainsProjectionRecords(1);
-        assertProcessedShadowsCount(processedObjects, 1)
-                .assertContainsLinkedFocus();
+        assertProcessedShadowsCount(processedObjects, 0);
     }
 
     @Test
@@ -325,17 +323,15 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         when("Mapping simulation task is run on the resource.");
         mappingTask.rerun(result);
 
-        then("Shadow correlated during simulation should be processed.");
+        then("Users correlated during simulation should be processed.");
         assertSimulationResult(mappingTask.oid, "Assert mapping simulation result metrics.")
-                .assertObjectsProcessed(2);
+                .assertObjectsProcessed(1);
         final List<? extends ProcessedObject<?>> processedObjects = getTaskSimResult(this.mappingTask.oid,
                 result).getProcessedObjects(result);
         assertProcessedFocusesCount(processedObjects, 1)
                 .assertName("norris")
-                // There are two processed objects, each should have one processed shadow.
                 .assertContainsProjectionRecords(1);
-        assertProcessedShadowsCount(processedObjects, 1)
-                .assertContainsLinkedFocus();
+        assertProcessedShadowsCount(processedObjects, 0);
     }
 
     @DataProvider
@@ -385,7 +381,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         executeChanges(
                 deltaFor(TaskType.class)
                         .item(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK,
-                                WorkDefinitionsType.F_MAPPINGS, MappingWorkDefinitionType.F_INCLUDE_EXISTING_MAPPINGS))
+                                WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION, InboundMappingsSimulationWorkDefType.F_INCLUDE_EXISTING_MAPPINGS))
                         .replace(include)
                         .asObjectDelta(SIMULATION_TASK_OID),
                 null, getTestTask(), getTestOperationResult()
@@ -396,7 +392,7 @@ public class TestMappingSimulationTask extends AbstractEmptyModelIntegrationTest
         executeChanges(
                 deltaFor(TaskType.class)
                         .item(ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK,
-                                WorkDefinitionsType.F_MAPPINGS, MappingWorkDefinitionType.F_RESOURCE_OBJECTS,
+                                WorkDefinitionsType.F_INBOUND_MAPPINGS_SIMULATION, InboundMappingsSimulationWorkDefType.F_RESOURCE_OBJECTS,
                                 ResourceObjectSetType.F_INTENT))
                         .replace(intent)
                         .asObjectDelta(SIMULATION_TASK_OID),

@@ -97,7 +97,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     @Override
     protected void initLayout() {
-        if (isApplicableTemplate()) {
+        if (!isPendingObjectPreview() && isApplicableTemplate()) {
             if (isAdd() && existMoreApplicableTemplate()) {
                 Fragment templateFragment = createTemplateFragment();
                 add(templateFragment);
@@ -118,7 +118,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected DetailsFragment createDetailsFragment() {
-        if (canShowWizard()) {
+        if (!isPendingObjectPreview() && canShowWizard()) {
             setShowedByWizard(true);
             return createWizardFragment();
         }
@@ -207,20 +207,23 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
     private void applyTemplate(CompiledObjectCollectionView collectionViews) {
         PrismObject<AH> assignmentHolder = getObjectDetailsModels().getObjectWrapper().getObjectOld();
+        List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
 
         if (assignmentHolder == null) {
             try {
-                assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
+                var objectType = WebComponentUtil.classToQName(getType());
+                assignmentHolder = DetailsPageUtil.initNewObjectWithReference(PageAssignmentHolderDetails.this,
+                        objectType, archetypeRef);
             } catch (Throwable e) {
                 LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
                 assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
             }
-        }
-        List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
-        if (archetypeRef != null) {
+        } else if (archetypeRef != null) {
             AssignmentHolderType holder = assignmentHolder.asObjectable();
-            archetypeRef.forEach(a -> holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a)));
-
+            archetypeRef.forEach(a -> {
+                holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a));
+                holder.getArchetypeRef().add(a.clone());
+            });
         }
 
         reloadObjectDetailsModel(assignmentHolder);
@@ -530,14 +533,18 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 saveOrPreviewPerformed(target, result, false);
                 if (!result.isError()) {
                     if (!isEditObject()) {
-                        removeLastBreadcrumb();
-                        String oid = getPrismObject().getOid();
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                        Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
-                        navigateToNext(page, parameters);
-                        if (isShowToastForSuccessSave()) {
-                            WebComponentUtil.createToastForCreateObject(target, getType());
+                        if (WebComponentUtil.isOperationSubmittedForApproval(result)) {
+                            WebComponentUtil.createToastForCreateObjectSubmittedForApproval(target, getType());
+                        } else {
+                            removeLastBreadcrumb();
+                            String oid = getPrismObject().getOid();
+                            PageParameters parameters = new PageParameters();
+                            parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+                            Class<? extends PageBase> page = DetailsPageUtil.getObjectDetailsPage(getType());
+                            navigateToNext(page, parameters);
+                            if (isShowToastForSuccessSave()) {
+                                WebComponentUtil.createToastForCreateObject(target, getType());
+                            }
                         }
                     } else if (isShowToastForSuccessSave()) {
                         WebComponentUtil.createToastForUpdateObject(target, getType());
@@ -603,7 +610,11 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 saveOrPreviewPerformed(target, result, false);
                 if (!result.isError() && isShowToastForSuccessSave()) {
                     if (isCreated) {
-                        WebComponentUtil.createToastForCreateObject(target, getType());
+                        if (WebComponentUtil.isOperationSubmittedForApproval(result)) {
+                            WebComponentUtil.createToastForCreateObjectSubmittedForApproval(target, getType());
+                        } else {
+                            WebComponentUtil.createToastForCreateObject(target, getType());
+                        }
                     } else {
                         WebComponentUtil.createToastForUpdateObject(target, getType());
                     }

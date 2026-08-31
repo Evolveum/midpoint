@@ -110,6 +110,14 @@ public class ExpressionConstants {
     public static final String VAR_ITERATION_TOKEN = "iterationToken";
     public static final ItemName VAR_ITERATION_TOKEN_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
 
+    /**
+     * Alias for VAR_ITERATION. Represents the current attempt number in iteration process.
+     * This name may be more intuitive for users as it emphasizes that the first attempt
+     * (before any conflict) is also counted.
+     */
+    public static final String VAR_ATTEMPT = "attempt";
+    public static final ItemName VAR_ATTEMPT_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ATTEMPT);
+
     public static final String VAR_REFERENCE_TIME = "referenceTime";
 
     /**

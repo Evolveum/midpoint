@@ -178,7 +178,7 @@ public class SmartIntegrationWrapperUtils {
      * Finds a mapping related to the provided correlation item.
      *
      * <p>The method searches both newly created and existing mappings and
-     * matches them using the correlation item's target path reference.</p>
+     * matches them using the correlation item's target path reference.</p> //TODO fix me after decision in #12036
      */
     public static @Nullable PrismContainerValueWrapper<MappingType> findRelatedMapping(
             @NotNull PageBase pageBase,
@@ -186,7 +186,6 @@ public class SmartIntegrationWrapperUtils {
             @Nullable PrismContainerWrapper<?> mappings,
             @NotNull ItemPath parentPath,
             @NotNull MappingDirection mappingDirection) {
-
         ItemPathType correlationItemRef = correlationItemWrapper.getRealValue().getRef();
 
         if (correlationItemRef == null) {
