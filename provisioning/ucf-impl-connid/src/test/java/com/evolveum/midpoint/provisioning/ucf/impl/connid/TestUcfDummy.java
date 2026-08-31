@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.*;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyHrScenario.*;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -237,6 +240,56 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.size());
 
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceBean, true);
+    }
+
+    /**
+     * Verifies that simulated reference attributes are excluded from ConnId
+     * {@code attributesToGet} when default attributes are constructed explicitly.
+     *
+     * The simulated group membership is represented by a local item name that is not
+     * present in the connector schema, so it must not be requested from the connector.
+     * See bug MID-11807.
+     */
+    @Test
+    public void test032ConvertDefaultAttributesDoesNotRequestSimulatedReferences() throws Exception {
+        var accountDefinition = completeResourceSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
+
+        var fullnameDefinition = accountDefinition.findSimpleAttributeDefinition(new QName(NS_RI, DummyAccount.ATTR_FULLNAME_NAME));
+        assertThat(fullnameDefinition).as("fullname definition").isNotNull();
+        assertThat(fullnameDefinition.isSimulated()).as("fullname is not simulated").isFalse();
+        assertThat(fullnameDefinition.isReturnedByDefault()).as("fullname is returned by default").isTrue();
+
+        var simulatedGroupMembershipName = new QName(NS_RI, "simulatedGroupMembership");
+        var simulatedGroupMembershipDefinition = accountDefinition.findReferenceAttributeDefinition(simulatedGroupMembershipName);
+        assertThat(simulatedGroupMembershipDefinition).as("simulated group membership reference definition").isNotNull();
+        assertThat(simulatedGroupMembershipDefinition.isSimulated())
+                .as("simulated group membership reference is simulated")
+                .isTrue();
+        assertThat(simulatedGroupMembershipDefinition.isReturnedByDefault())
+                .as("simulated group membership reference is returned by default")
+                .isTrue();
+        assertThat(accountDefinition.getAttributeDefinitions())
+                .as("account attribute definitions")
+                .anySatisfy(def -> assertThat(def).isSameAs(simulatedGroupMembershipDefinition));
+
+        var shadowItemsToReturn = new ShadowItemsToReturn();
+        shadowItemsToReturn.setReturnAdministrativeStatusExplicit(true);
+        assertThat(shadowItemsToReturn.isReturnDefaultAttributes()).as("default attributes are requested").isTrue();
+        assertThat(shadowItemsToReturn.isAllDefault()).as("request is not short-circuited").isFalse();
+
+        var optionsBuilder = new OperationOptionsBuilder();
+
+        ((ConnectorInstanceConnIdImpl) cc).convertToIcfAttrsToGet(
+                accountDefinition, shadowItemsToReturn, optionsBuilder);
+
+        var attributesToGet = Arrays.asList(optionsBuilder.build().getAttributesToGet());
+        displayValue("ConnId attributesToGet", attributesToGet);
+
+        assertThat(attributesToGet)
+                .as("ConnId attributesToGet")
+                .isNotEmpty()
+                .contains(DummyAccount.ATTR_FULLNAME_NAME)
+                .doesNotContain(simulatedGroupMembershipName.getLocalPart());
     }
 
     /**
