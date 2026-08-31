@@ -176,7 +176,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed reference value update in search panel. See bug:MID-11400[]
 * Fixed Role catalog query for Roles of teammates. See bug:MID-11221[]
 * Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11412[]
-* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11413[]
+* Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 * Fixed custom relation translation. See bug:MID-11523[]
 * Fixed CSV export for Tasks table. See bug:MID-11652[]
 * Fixed breaking too long labels into lines. See bug:MID-11711[]
