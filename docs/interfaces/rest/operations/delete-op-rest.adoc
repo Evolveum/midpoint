@@ -2,7 +2,7 @@
 :page-nav-title: Delete
 :page-display-order: 400
 :page-toc: top
-:page-keywords: [ 'rest', 'delete', 'opeation' ]
+:page-keywords: rest, delete, opeation
 :page-upkeep-status: green
 
 == Delete With Rest

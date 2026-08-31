@@ -3,7 +3,7 @@ midpoint-feature: compliance-dashboard
 doc-type: intro
 ---
 = Compliance dashboard
-:page-keywords: [ 'dashboards', 'dashboard', 'compliance', 'regulation', 'cybersecurity' ]
+:page-keywords: dashboards, dashboard, compliance, regulation, cybersecurity
 :page-since: "4.10"
 :page-display-order: 40
 :page-upkeep-status: green

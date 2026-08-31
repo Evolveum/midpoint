@@ -18,6 +18,8 @@ public class OperationResultWrapper implements Serializable {
     private final OperationResult result;
     private final String fixPanelId;
     private final SerializableConsumer<AjaxRequestTarget> fixAction;
+    private final String fixButtonLabelKey;
+    private final String fixButtonIcon;
     private boolean expanded = false;
 
     public OperationResultWrapper(OperationResult result, String fixPanelId) {
@@ -25,9 +27,27 @@ public class OperationResultWrapper implements Serializable {
     }
 
     public OperationResultWrapper(OperationResult result, String fixPanelId, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        this(result, fixPanelId, fixAction, null, null);
+    }
+
+    /**
+     * @param result             the validation/operation failure this drawer entry reports
+     * @param fixPanelId         wizard step to navigate to on fix-button click, used only when
+     *                           {@code fixAction} is null
+     * @param fixAction          runs instead of step navigation on fix-button click, if set
+     * @param fixButtonLabelKey  overrides the button's default "Fix it" localization key - lets a
+     *                           caller repurpose the single fix button for a different action (e.g.
+     *                           "Disable operation") instead of adding a second button next to it
+     * @param fixButtonIcon      overrides the button's default "fa fa-wrench" icon class
+     */
+    public OperationResultWrapper(
+            OperationResult result, String fixPanelId, SerializableConsumer<AjaxRequestTarget> fixAction,
+            String fixButtonLabelKey, String fixButtonIcon) {
         this.result = result;
         this.fixPanelId = fixPanelId;
         this.fixAction = fixAction;
+        this.fixButtonLabelKey = fixButtonLabelKey;
+        this.fixButtonIcon = fixButtonIcon;
     }
 
     public OperationResult getResult() {
@@ -48,5 +68,13 @@ public class OperationResultWrapper implements Serializable {
 
     public SerializableConsumer<AjaxRequestTarget> getFixAction() {
         return fixAction;
+    }
+
+    public String getFixButtonLabelKey() {
+        return fixButtonLabelKey;
+    }
+
+    public String getFixButtonIcon() {
+        return fixButtonIcon;
     }
 }

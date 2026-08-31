@@ -131,8 +131,10 @@ public class OperationResultCollapsedItemPanel extends BasePanel<OperationResult
 
             private @NotNull AjaxIconButton getFixButton(OperationResultWrapper resultWrapper) {
                 AjaxIconButton fixButton = new AjaxIconButton(ID_FIX_BUTTON,
-                        () -> "fa fa-wrench",
-                        createStringResource("OperationResultCollapsedItemPanel.fixButton")) {
+                        () -> resultWrapper.getFixButtonIcon() != null ? resultWrapper.getFixButtonIcon() : "fa fa-wrench",
+                        resultWrapper.getFixButtonLabelKey() != null
+                                ? createStringResource(resultWrapper.getFixButtonLabelKey())
+                                : createStringResource("OperationResultCollapsedItemPanel.fixButton")) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (resultWrapper.getFixAction() != null) {

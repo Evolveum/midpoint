@@ -1,6 +1,6 @@
 = Admin GUI Configuration - Examples
 :page-nav-title: Configuration - Examples
-:page-keywords: [ "adminGuiConfig", "examples" ]
+:page-keywords: adminGuiConfig, examples
 :page-toc: top
 :page-upkeep-status: green
 

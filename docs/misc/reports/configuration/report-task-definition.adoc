@@ -2,7 +2,7 @@
 :page-nav-title: Report Task Definition
 :page-display-order: 300
 :page-toc: top
-:page-keywords: [ 'report', 'task' , 'reports', 'import', 'export', 'bucketing' ]
+:page-keywords: report, task, reports, import, export, bucketing
 :page-upkeep-status: green
 
 == Description
