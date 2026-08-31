@@ -151,15 +151,22 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_HISTORY_PAGE_MAP.put(PageUser.class, PageUserHistory.class);
     }
 
-    public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
+
+    public static <AHT extends AssignmentHolderType> void initNewObjectWithReferenceAndRedirect(PageBase pageBase,
+            QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
+        AHT assignmentHolder = initNewObjectWithReference(pageBase, type, newReferences);
+        dispatchToNewObject(assignmentHolder, pageBase);
+    }
+
+    public static <AHT extends AssignmentHolderType> AHT initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
         PrismContext prismContext = pageBase.getPrismContext();
         PrismObjectDefinition<AHT> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
         PrismObject<AHT> obj = def.instantiate();
         AHT assignmentHolder = obj.asObjectable();
-        initNewObjectWithReference(pageBase, assignmentHolder, newReferences);
+        return initNewObjectWithReference(pageBase, assignmentHolder, newReferences);
     }
 
-    public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(
+    public static <AHT extends AssignmentHolderType> AHT initNewObjectWithReference(
             PageBase pageBase, AHT assignmentHolder, List<ObjectReferenceType> newReferences) {
         if (newReferences != null) {
             newReferences.forEach(ref -> {
@@ -181,15 +188,14 @@ public final class DetailsPageUtil {
                 // Set manually archetypeRef.
                 // This is needed to successfully determine assignment target
                 // specification while adding new assignment
-                // TODO: fix MID-11914
+                // fixes MID-11914
                 if (ref.getType() != null && ArchetypeType.COMPLEX_TYPE.equals(ref.getType())) {
                     assignmentHolder.getArchetypeRef().add(ref.clone());
                 }
 
             });
         }
-
-        dispatchToNewObject(assignmentHolder, pageBase);
+        return assignmentHolder;
     }
 
     public static void dispatchToNewObject(@NotNull AssignmentHolderType newObject, @NotNull PageBase pageBase) {
