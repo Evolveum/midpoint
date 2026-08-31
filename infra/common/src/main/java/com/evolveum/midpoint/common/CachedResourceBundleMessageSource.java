@@ -12,6 +12,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
@@ -38,7 +39,15 @@ public class CachedResourceBundleMessageSource extends ResourceBundleMessageSour
             return null;
         }
 
-        ResourceBundle bundle = super.getResourceBundle(basename, locale);
+        ResourceBundle bundle;
+        try {
+            bundle = super.getResourceBundle(basename, locale);
+        } catch (MissingResourceException ex) {
+            // Since Spring 7.0.9 getResourceBundle() no longer swallows this exception for locales
+            // unknown to the JVM (e.g. user-supplied language "cz"). Missing bundle is a normal
+            // situation here, the next message source in LocalizationServiceImpl is tried.
+            bundle = null;
+        }
         locales.put(locale, bundle != null);
 
         return bundle;
