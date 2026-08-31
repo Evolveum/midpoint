@@ -10,7 +10,7 @@
 :page-upkeep-status: green
 :page-toc: top
 
-This document describes the steps required to upgrade a xref:/midpoint/install/bare-installation/distribution/[midPoint installation].
+This document describes the steps required to upgrade a xref:/midpoint/get-started/install/bare-installation/distribution/[MidPoint installation]..
 It not only lists the usual steps but explains risks and consideration for upgrade, therefore it is quite comprehensive.
 
 The document focuses on upgrades of _production_ environments.
@@ -24,7 +24,7 @@ While the upgrade principles remain the same, deployment-specific aspects such a
 
 Therefore, this guide should not be considered the sole source of upgrade instructions for containerized deployments.
 
-For a more practical, command-oriented approach, see xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/[Upgrade with Ninja].
+For a more practical, command-oriented approach, see xref:/midpoint/reference/upgrade/upgrade-with-ninja/[].
 MidPoint distributions include the ninja tool, which provides commands for verifying upgrade readiness, executing database upgrades, and performing other upgrade-related tasks.
 
 WARNING: Please read the *entire* guide *before* starting the upgrade.
@@ -234,7 +234,7 @@ There are also deployment specific details to consider, e.g. is the audit in the
 [IMPORTANT]
 ====
 If you created the schema objects as non-superuser as described xref:/midpoint/reference/repository/native-postgresql/usage/#installing-as-non-superuser[here],
-be sure to run all the missing `CREATE EXTENSION` commands as a superuser first!
+be sure to run all the missing `CREATE EXTENSION` commands as a superuser first.
 ====
 
 The upgrade script is non-destructive.
