@@ -2,7 +2,7 @@
 :page-nav-title: Report from Dashboard
 :page-display-order: 200
 :page-toc: top
-:page-keywords: [ 'report', 'collection' ,'collections' ]
+:page-keywords: report, collection, collections
 :page-upkeep-status: green
 
 == Dashboard Report
