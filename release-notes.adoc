@@ -198,7 +198,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
 * Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
-* Fixed creating a new object with a referenced archetype. See bug:MID-11914[]
+* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
 
 === Releases Of Other Components
 
