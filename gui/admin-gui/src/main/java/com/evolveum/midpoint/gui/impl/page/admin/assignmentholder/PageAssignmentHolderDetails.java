@@ -163,18 +163,24 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     private void applyTemplate(CompiledObjectCollectionView collectionViews) {
-        PrismObject<AH> assignmentHolder;
-        try {
-            assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
-        } catch (Throwable e) {
-            LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
-            assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
-        }
+        PrismObject<AH> assignmentHolder = getObjectDetailsModels().getObjectWrapper().getObjectOld();
         List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
-        if (archetypeRef != null) {
-            AssignmentHolderType holder = assignmentHolder.asObjectable();
-            archetypeRef.forEach(a -> holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a)));
 
+        if (assignmentHolder == null) {
+            try {
+                var objectType = WebComponentUtil.classToQName(getType());
+                assignmentHolder = DetailsPageUtil.initNewObjectWithReference(PageAssignmentHolderDetails.this,
+                        objectType, archetypeRef);
+            } catch (Throwable e) {
+                LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
+                assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
+            }
+        } else if (archetypeRef != null) {
+            AssignmentHolderType holder = assignmentHolder.asObjectable();
+            archetypeRef.forEach(a -> {
+                holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a));
+                holder.getArchetypeRef().add(a.clone());
+            });
         }
 
         reloadObjectDetailsModel(assignmentHolder);

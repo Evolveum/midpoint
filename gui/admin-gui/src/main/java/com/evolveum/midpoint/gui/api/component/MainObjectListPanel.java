@@ -123,7 +123,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             collectionView = getObjectCollectionView();
         }
         try {
-            DetailsPageUtil.initNewObjectWithReference(getPageBase(),
+            DetailsPageUtil.initNewObjectWithReferenceAndRedirect(getPageBase(),
                     relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
                             relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
                     getNewObjectReferencesList(collectionView, relation));
