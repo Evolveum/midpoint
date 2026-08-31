@@ -2,7 +2,7 @@
 :page-nav-title: Resource Specific
 :page-display-order: 600
 :page-toc: top
-:page-keywords: [ 'rest', 'resource', 'test', 'import', 'operation' ]
+:page-keywords: rest, resource, test, import, operation
 :page-upkeep-status: green
 
 == Description
