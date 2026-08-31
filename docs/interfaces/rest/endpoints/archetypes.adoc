@@ -2,7 +2,7 @@
 :page-nav-title: Archetype
 :page-display-order: 1200
 :page-toc: top
-:page-keywords: [ 'rest', 'archetype' ,'endpoint' ]
+:page-keywords: rest, archetype, endpoint
 :page-upkeep-status: green
 
 == Description

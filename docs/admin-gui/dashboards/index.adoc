@@ -10,7 +10,7 @@ doc-type: intro
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-02-01T13:16:14.087+01:00
 :page-nav-title: Dashboards
-:page-keywords: [ 'dashboards', 'dashboard' ]
+:page-keywords: dashboards, dashboard
 :search-alias: "dashboards"
 :page-upkeep-status: green
 :page-toc: top

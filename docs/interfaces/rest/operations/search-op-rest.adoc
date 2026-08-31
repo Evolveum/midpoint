@@ -2,7 +2,7 @@
 :page-nav-title: Search
 :page-display-order: 800
 :page-toc: top
-:page-keywords: [ 'rest', 'search', 'operation' ]
+:page-keywords: rest, search, operation
 :page-upkeep-status: green
 
 == Description
