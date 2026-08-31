@@ -2,7 +2,7 @@
 :page-nav-title: Organizational Unit
 :page-display-order: 400
 :page-toc: top
-:page-keywords: [ 'rest', 'organizational', 'unit' , 'endpoint' ]
+:page-keywords: rest, organizational, unit, endpoint
 :page-upkeep-status: green
 
 == Description

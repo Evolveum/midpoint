@@ -6,7 +6,7 @@ doc-type: config
 :page-toc: top
 :toclevels: 3
 :page-upkeep-status: green
-:page-keywords: [ 'report', 'reports', 'reporting' ]
+:page-keywords: report, reports, reporting
 :search-alias: "report configuration"
 
 
