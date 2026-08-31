@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -576,7 +577,7 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
     public PrismContainerValueWrapper<MappingType> createNewValue(
             @Nullable PrismContainerValue<MappingType> value,
             @Nullable AjaxRequestTarget target) {
-        return createNewVirtualMappingValue(
+        PrismContainerValueWrapper<MappingType> newValue = createNewVirtualMappingValue(
                 value,
                 getValueModel(),
                 getMappingDirectionType(),
@@ -584,6 +585,11 @@ public abstract class SmartMappingTable<P extends Containerable> extends BasePan
                 AbstractAttributeMappingsDefinitionType.F_REF,
                 getPageBase(),
                 target);
+
+        if (newValue != null) {
+            MappingRangeUtils.initializeRange(newValue);
+        }
+        return newValue;
     }
 
     protected void createDuplicateValuePerform(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {

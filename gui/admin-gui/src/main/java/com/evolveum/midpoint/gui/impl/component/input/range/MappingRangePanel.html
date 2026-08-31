@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2026 Evolveum
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="pb-2">
+        <div class="prism-property-label p-0">
+            <span><wicket:message key="MappingRangePanel.range"/></span>
+        </div>
+        <div class="prism-property-value" wicket:id="rangeChoice"/>
+    </div>
+
+    <wicket:enclosure child="condition">
+        <div class="pb-2">
+            <div class="prism-property-label p-0">
+                <span><wicket:message key="MappingRangePanel.condition"/></span>
+            </div>
+            <div class="prism-property-value" wicket:id="condition"/>
+        </div>
+    </wicket:enclosure>
+</wicket:panel>
+</html>
