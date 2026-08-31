@@ -582,6 +582,12 @@ In the following example, for the policy rule action to trigger, the filter in t
 </policy>
 ----
 
+The second example here shows a policy rule constraint permitting change of the `classification` extension attribute value only from unset to one of the preconfigured valid values.
+
+sampleRef::samples/policy/transitions/policy-transition-only-modification-from-invalid-to-valid.xml[includeOnlyTag="policyConstraints"]
+
+See the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/policy/transitions/policy-transition-only-modification-from-invalid-to-valid.xml[full example on GitHub].
+
 == ref
 .Example - forbidding activation of incomplete roles, and allowing activation (requires approval) of complete roles
 

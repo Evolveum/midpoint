@@ -197,6 +197,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
+* Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
 
 === Releases Of Other Components
 
