@@ -39,6 +39,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
+* Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 
 == Changes With Respect To Version 4.10.3
 
