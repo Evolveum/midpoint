@@ -1,8 +1,7 @@
 = GUI action configuration
-:page-moved-from: /midpoint/reference/roles-policies/policies/certification/actions/
+:page-moved-from: /midpoint/reference/roles-policies/policies/certification/actions/, /midpoint/reference/roles-policies/certification/actions/
 :page-nav-title: GUI Action Configuration
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/certification/actions/
 :page-display-order: 20
 :page-toc: top
 :page-description: This article explains the different certification actions that reviewers can use in the midPoint graphical user interface.
