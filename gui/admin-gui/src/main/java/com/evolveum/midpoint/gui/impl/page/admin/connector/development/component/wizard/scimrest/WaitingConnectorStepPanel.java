@@ -32,8 +32,6 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -200,7 +198,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                             Task task = app.createSimpleTask(OP_DETERMINE_STATUS);
                             OperationResult result = task.getResult();
                             return obtainResult(tokenModel.getObject(), task, result);
-                        } catch (SchemaException|ObjectNotFoundException e) {
+                        } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -233,7 +231,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         return null;
     };
 
-    protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException;
 
     protected abstract String getNewTaskToken(Task task, OperationResult result, boolean regenerate);
 

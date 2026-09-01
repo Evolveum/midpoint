@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -59,7 +59,7 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
     }
 
     @Override
-    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException {
         return getDetailsModel().getServiceLocator().getConnectorService().getCreateConnectorStatus(token, task, result);
     }
 

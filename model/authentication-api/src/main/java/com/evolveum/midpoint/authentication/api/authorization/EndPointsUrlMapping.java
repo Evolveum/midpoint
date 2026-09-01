@@ -203,10 +203,8 @@ public enum EndPointsUrlMapping {
                     "PageSimulationResults.authUri.simulationsAll.label", "PageSimulationResults.authUri.simulationsAll.description")),
 
     CONNECTOR_DEVELOPMENT_DETAILS("/admin/connectorGenerator/**",
-            new AuthorizationActionValue(AUTZ_UI_CONNECTOR_DEVELOPMENT_URL,
+            new AuthorizationActionValue(AUTZ_UI_CONNECTOR_WIZARD_URL,
                     "PageAdminConnectorDevelopments.auth.connectorGenerator.label", "PageAdminConnectorDevelopments.auth.connectorGenerator.description"),
-            new AuthorizationActionValue(AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_URL,
-                    "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.label", "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminConnectorDevelopments.authUri.guiAll.label", "PageAdminConnectorDevelopments.authUri.guiAll.description")),
 
