@@ -9,6 +9,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SqlBackend extends ConnectorDevelopmentBackend {
@@ -18,8 +19,17 @@ public class SqlBackend extends ConnectorDevelopmentBackend {
     private static final String NOT_YET_IMPLEMENTED = "SQL connector generation is not yet implemented.";
     private static final String NOT_APPLICABLE_TO_SQL = "This operation is HTTP-specific and does not apply to SQL connectors.";
 
+    private static final String CONNDEV_SQL_TABLE = "conndev_SqlTable";
+
     public SqlBackend(ConnDevBeans beans, ConnectorDevelopmentType connDev, Task task, OperationResult result) {
         super(beans, connDev, task, result);
+    }
+
+    @Override
+    protected List<String> devDocumentationObjectClasses() {
+        var objectClasses = new ArrayList<>(super.devDocumentationObjectClasses());
+        objectClasses.add(CONNDEV_SQL_TABLE);
+        return objectClasses;
     }
 
     @Override
