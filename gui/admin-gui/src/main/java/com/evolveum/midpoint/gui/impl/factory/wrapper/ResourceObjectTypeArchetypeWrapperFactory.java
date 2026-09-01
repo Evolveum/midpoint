@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -65,7 +65,7 @@ public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> e
             ItemStatus status,
             WrapperContext ctx) {
         PrismReferenceWrapper<R> wrapper = super.createWrapperInternal(parent, item, status, ctx);
-        wrapper.setFilter((BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> & Serializable)
+        wrapper.setFilter((BiFunction<PrismReferenceWrapper, PageAdminLTE, ObjectFilter> & Serializable)
                 (referenceWrapper, pageBase) -> {
                     PrismContainerValueWrapper resourceFocusValue = referenceWrapper.getParent();
                     if (resourceFocusValue != null) {

@@ -2,7 +2,7 @@
 :page-nav-title: Node
 :page-display-order: 2300
 :page-toc: top
-:page-keywords: [ 'rest', 'node', 'endpoint' ]
+:page-keywords: rest, node, endpoint
 :page-upkeep-status: green
 
 == Description

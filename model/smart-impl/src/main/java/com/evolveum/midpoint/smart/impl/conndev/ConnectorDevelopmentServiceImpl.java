@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
@@ -248,6 +249,18 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             if (ConnDevOperationType.SCHEMA.equals(artifact.getOperation())) {
                 resetResourceSchema(task, result);
             }
+        }
+
+        @Override
+        public void disableArtifact(String filename, Task task, OperationResult result) throws IOException, CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .disableArtifact(filename);
+        }
+
+        @Override
+        public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
+            return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .validateArtifact(artifact);
         }
 
         public void comfirmApplicationInformation(Task task, OperationResult result) {

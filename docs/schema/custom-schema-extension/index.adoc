@@ -4,7 +4,7 @@ doc-type: config
 ---
 = Schema Extension
 :page-nav-title: Schema Extension
-:page-keywords: [ "schema extension", "custom schema", "custom attribute" ]
+:page-keywords: schema extension, custom schema, custom attribute
 :page-toc: top
 :page-upkeep-status: green
 

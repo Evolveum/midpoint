@@ -174,14 +174,16 @@ public class WebModelServiceUtils {
             return references;
     }
 
-    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
+    public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType,
+            PageAdminLTE pageBase, Task task, OperationResult result) {
         if (objectRef == null) {
             return null;
         }
 
         if (QNameUtil.match(expectedTargetType, objectRef.getTargetType())) {
             Class<O> type = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(objectRef.getTargetType());
-            PrismObject<O> resourceType = WebModelServiceUtils.loadObject(type, objectRef.getOid(), GetOperationOptions.createNoFetchCollection(), pageBase, task, result);
+            PrismObject<O> resourceType = WebModelServiceUtils.loadObject(type, objectRef.getOid(),
+                    GetOperationOptions.createNoFetchCollection(), pageBase, task, result);
             return resourceType;
         }
 

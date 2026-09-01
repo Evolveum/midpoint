@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -54,7 +54,8 @@ public class SourceOfInboundMappingPanelFactory extends SourceOrTargetOfMappingP
     }
 
     @Override
-    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+    protected List<String> getAvailableVariables(String input,
+            IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageAdminLTE pageBase) {
 
         List<String> toSelect = new ArrayList<>();
         toSelect.addAll(super.getAvailableVariables(input, itemWrapperModel, pageBase));

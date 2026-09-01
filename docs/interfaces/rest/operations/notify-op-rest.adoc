@@ -2,7 +2,7 @@
 :page-nav-title: Notify Change
 :page-display-order: 550
 :page-toc: top
-:page-keywords: [ 'rest', 'notify', 'operation' ]
+:page-keywords: rest, notify, operation
 :page-upkeep-status: green
 
 == Description

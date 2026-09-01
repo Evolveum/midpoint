@@ -2,7 +2,7 @@
 :page-nav-title: Get Operation
 :page-display-order: 100
 :page-toc: top
-:page-keywords: [ 'rest', 'get', 'operation' ]
+:page-keywords: rest, get, operation
 :page-upkeep-status: green
 
 == Description

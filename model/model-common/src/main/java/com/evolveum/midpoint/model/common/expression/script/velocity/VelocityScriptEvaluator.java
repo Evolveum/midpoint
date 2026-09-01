@@ -15,11 +15,14 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.event.EventCartridge;
+import org.apache.velocity.app.event.ReferenceInsertionEventHandler;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.prism.binding.TypeSafeEnum;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -59,6 +62,14 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VelocityContext velocityCtx = new VelocityContext();
+
+        // Render midPoint schema enums using their lexical values
+        EventCartridge eventCartridge = new EventCartridge();
+        eventCartridge.addEventHandler((ReferenceInsertionEventHandler)
+                        (velocityContext, reference, value) ->
+                                value instanceof TypeSafeEnum typeSafeEnum ? typeSafeEnum.value() : value);
+        eventCartridge.attachToContext(velocityCtx);
+
         Map<String, Object> scriptVariables = prepareUnifiedScriptVariablesValueMap(context);
         for (Map.Entry<String, Object> scriptVariable : scriptVariables.entrySet()) {
             velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());

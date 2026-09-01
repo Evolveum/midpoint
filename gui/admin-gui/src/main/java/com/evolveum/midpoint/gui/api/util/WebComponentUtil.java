@@ -329,7 +329,7 @@ public final class WebComponentUtil {
         return s != null ? s : "";
     }
 
-    public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageBase pageBase) {
+    public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageAdminLTE pageBase) {
         if (ref == null || ref.asReferenceValue().isEmpty()) {
             return "";
         }
@@ -4276,7 +4276,7 @@ public final class WebComponentUtil {
     }
 
     public static <O extends AssignmentHolderType> List<String> getArchetypeOidsListByHolderType(
-            Class<O> holderType, PageBase pageBase) {
+            Class<O> holderType, PageAdminLTE pageBase) {
         OperationResult result = new OperationResult("loadArchetypeOidsListByHolderType");
         List<String> oidsList = new ArrayList<>();
         try {

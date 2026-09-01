@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
@@ -148,7 +148,8 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
         return true;
     }
 
-    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+    protected List<String> getAvailableVariables(String input,
+            IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageAdminLTE pageBase) {
         FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel){
             @Override
             protected boolean showContainerChoices() {

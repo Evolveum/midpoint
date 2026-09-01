@@ -1460,7 +1460,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 }
                 QName newMemberType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) :
                         getSupportedObjectTypes().get(0); //getSupportedObjectTypes(false).get(0);
-                DetailsPageUtil.initNewObjectWithReference(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
+                DetailsPageUtil.initNewObjectWithReferenceAndRedirect(AbstractRoleMemberPanel.this.getPageBase(), newMemberType, newReferences);
             } catch (SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }

@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -44,7 +44,8 @@ public class SourceOfInboundForAssociationMappingPanelFactory extends SourceOrTa
     }
 
     @Override
-    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+    protected List<String> getAvailableVariables(String input,
+            IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageAdminLTE pageBase) {
         PrismContainerValueWrapper<MappingType> mapping = itemWrapperModel.getObject().getParentContainerValue(InboundMappingType.class);
         if (mapping == null) {
             return Collections.emptyList();

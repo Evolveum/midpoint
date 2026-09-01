@@ -415,6 +415,7 @@
             <xsd:element name="filename" type="xsd:string"/>
             <xsd:element name="content" type="xsd:string"/>
             <xsd:element name="confirm" type="xsd:boolean"/>
+            <xsd:element name="disabled" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

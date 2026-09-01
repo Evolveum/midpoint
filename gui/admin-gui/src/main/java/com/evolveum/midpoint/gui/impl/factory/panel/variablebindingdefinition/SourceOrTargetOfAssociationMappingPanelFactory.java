@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.prism.Containerable;
@@ -63,7 +63,8 @@ public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTarg
     }
 
     @Override
-    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+    protected List<String> getAvailableVariables(String input,
+            IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageAdminLTE pageBase) {
         FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel) {
             @Override
             protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
