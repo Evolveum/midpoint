@@ -47,13 +47,13 @@ For example, if you define that a user's manager is the reviewer for that user's
 * *Additional reviewer reference* - Defines additional reviewers that are used on top of the other reviewers defined in the preceding configuration.
 For example, you can specify that the company security manager should review each certification case in the given stage.
 * *Decision aggregation strategy in case of more than one reviewer* - If there is more than one reviewer, defines the strategy used to determine the stage-level outcome.
-See xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome.adoc#stage-level[stage level strategies] for details.
+See xref:/midpoint/reference/certification/determining-case-outcome.adoc#stage-level[stage level strategies] for details.
 * *Outcome if there are no reviewers allocated* - Defines the outcome for cases if no reviewers are assigned, for example, if the target role owner is defined as the reviewer but that particular role has no owner.
 Note that this does not apply to cases when the assigned reviewers provide no responses.
 * *Stop review on* - Defines which outcomes prevent cases to be advanced to the next stage.
 Typically, if a case is marked as Revoke or Reduce, it does not proceed to the next stage.
 This is typically not needed, and can only be configured in the XML configuration.
-For more details, see xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[].
+For more details, see xref:/midpoint/reference/certification/determining-case-outcome/[].
 
 == Configuration details
 
@@ -106,7 +106,7 @@ For example, if the `notifyBeforeDeadline` property is set to 48 and 12 hours, a
 
 * The second round of notifications (to campaign owner and individual reviewers) will be sent on Monday, May 2nd, 11:59:59 (12 hours before the stage end).
 
-For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[].
+For more information, see xref:/midpoint/reference/certification/notifications/[].
 
 
 [[notify_only_no_decision]]
@@ -118,7 +118,7 @@ If you set the property to `false`, reviewers always get their notifications - r
 
 NOTE: Regardless of this setting, deadline notifications are always sent to the campaign owner.
 
-For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[].
+For more information, see xref:/midpoint/reference/certification/notifications/[].
 
 
 === Reviewer selection

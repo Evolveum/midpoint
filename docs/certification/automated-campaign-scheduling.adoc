@@ -26,8 +26,8 @@ The goal is to launch the campaign periodically at times defined by a xref:/midp
 == Define certification campaign
 
 Firstly, define an access certification campaign.
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/certification-campaign-configuration/[] regarding the campaign configuration options.
-See xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[] if you need help getting started with campaign definition.
+Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/[] regarding the campaign configuration options.
+See xref:/midpoint/reference/certification/tutorial/[] if you need help getting started with campaign definition.
 
 For testing purposes, we suggest starting with something small affecting low number of people willing to help you debug the setup.
 
