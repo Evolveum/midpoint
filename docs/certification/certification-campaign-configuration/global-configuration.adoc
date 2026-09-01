@@ -30,7 +30,8 @@ availableResponse ::
     Defines which responses are available to reviewers.
     An empty list means all responses. +
     This element is *deprecated*.
-    Use the configuration of actions for link:#config_collection_views[certification items collection view] instead. +
+    Use the configuration of actions for certification items collection view instead.
+    Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/gui-configuration/[]. +
     Available options:
         ** _accept_
         ** _revoke_
