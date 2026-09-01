@@ -90,6 +90,18 @@ public record ValuesPairSample<S, F>(
         return pairs.stream().allMatch(pair -> pair.doesConvertedSourceMatchTarget(direction, targetDef, protector));
     }
 
+    /**
+     * Returns true if any of the sampled pairs contains a multi-valued shadow or focus attribute.
+     */
+    public boolean hasMultivalue() {
+        return pairs.stream()
+                .anyMatch(pair -> isMultivalue(pair.shadowValues()) || isMultivalue(pair.focusValues()));
+    }
+
+    private static boolean isMultivalue(Collection<?> values) {
+        return values != null && values.size() > 1;
+    }
+
     public interface SampleOf {
         ValuesPairSample<?, ?> from(Collection<ShadowWithOwner> shadowWithOwners);
     }

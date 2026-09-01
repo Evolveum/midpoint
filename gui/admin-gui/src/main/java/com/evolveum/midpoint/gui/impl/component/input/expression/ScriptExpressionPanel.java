@@ -12,13 +12,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.behavior.CaretPreservingOnChangeBehavior;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +32,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -48,6 +49,8 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String C_DATA_PREFIX = "<![CDATA[";
     private static final String C_DATA_SUFFIX = "]]>";
 
+    private IModel<String> descriptionModel;
+
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
         this(id, model, null);
     }
@@ -63,11 +66,12 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
 
     protected void initLayout(MarkupContainer parent) {
         IModel<ExpressionUtil.Language> languageModel = createLanguageModel();
+        descriptionModel = createDescriptionModel();
 
         SimpleAceEditorPanel codePanel = createCodeInputPanel(languageModel);
 
         parent.add(new Label(ID_DESCRIPTION_LABEL, createStringResource("ScriptExpressionEvaluatorType.description")));
-        parent.add(createDescriptionField(createDescriptionModel()));
+        parent.add(createDescriptionField(descriptionModel));
 
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
@@ -93,13 +97,18 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
      */
     private @NotNull IModel<String> createDescriptionModel() {
         return new IModel<>() {
+
+            private String description = getModelObject() != null ? getModelObject().getDescription() : null;
+
             @Override
             public String getObject() {
-                return getModelObject() != null ? getModelObject().getDescription() : null;
+                return description;
             }
 
             @Override
             public void setObject(String value) {
+                description = value;
+
                 ExpressionType expression = getModelObject();
                 if (expression == null && StringUtils.isNotEmpty(value)) {
                     // Preserve a description entered before the script evaluator is created.
@@ -216,7 +225,6 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         return editorPanel;
     }
 
-
     private void updateEvaluatorValue(ExpressionUtil.Language language) {
         ScriptExpressionWrapper wrapper = getEvaluatorValue();
         if ((ExpressionUtil.Language.GROOVY.equals(language) && wrapper.language == null)
@@ -226,7 +234,9 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         }
         try {
             ScriptExpressionEvaluatorType evaluator = wrapper.language(language).toEvaluator();
-            ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+            ExpressionType expression = ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+            preserveDescription(expression);
+            getModel().setObject(expression);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
@@ -242,11 +252,29 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             ExpressionType expression = ExpressionUtil.updateScriptExpressionValue(
                     getModelObject(), wrapper.toEvaluator());
 
+            expression = preserveDescription(expression);
             getModel().setObject(expression);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
         }
+    }
+
+    /**
+     * Restores the description after updating or recreating the expression.
+     */
+    private ExpressionType preserveDescription(@Nullable ExpressionType expression) {
+        String description = descriptionModel.getObject();
+
+        if (expression == null && StringUtils.isNotEmpty(description)) {
+            expression = new ExpressionType();
+        }
+
+        if (expression != null) {
+            expression.setDescription(description);
+        }
+
+        return expression;
     }
 
     //don't remove it, used by class and method name

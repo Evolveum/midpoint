@@ -590,7 +590,9 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
             public Component getPanel(String id, DrawerModel model) {
                 WebMarkupContainer panel = createEvaluatorPanel(id, true, getDrawerEditModel());
                 if (panel instanceof EvaluatorExpressionPanel evaluatorPanel) {
-                    setTitleModel(evaluatorPanel.getValueContainerLabelModel(getPageBase()));
+                    IModel<String> valueContainerLabelModel = evaluatorPanel.getValueContainerLabelModel(getPageBase());
+                    IModel<String> expressionDrawerTitle = getExpressionDrawerTitle(valueContainerLabelModel);
+                    setTitleModel(expressionDrawerTitle);
                 }
                 return panel;
             }
@@ -604,4 +606,7 @@ public class ExpressionPanel extends BasePanel<ExpressionType> {
         return typeModel.getObject();
     }
 
+    protected IModel<String> getExpressionDrawerTitle(IModel<String> title) {
+        return title;
+    }
 }

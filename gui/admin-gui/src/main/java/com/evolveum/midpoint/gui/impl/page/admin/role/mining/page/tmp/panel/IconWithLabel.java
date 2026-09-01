@@ -68,14 +68,18 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     private @NotNull Component createComponent(IModel<String> model) {
-        Component component = isLink() ? new AjaxLinkPanel(IconWithLabel.ID_TEXT, model) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onClickPerform(target);
-            }
-        }
-                : new Label(IconWithLabel.ID_TEXT, model);
+        Component component;
+        if (isLink()) {
+            component = new AjaxLinkPanel(IconWithLabel.ID_TEXT, model) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    onClickPerform(target);
+                }
+            };
+        } else {
+            component = new Label(IconWithLabel.ID_TEXT, model);}
         component.setOutputMarkupId(true);
+        component.setEscapeModelStrings(getLabelEscapeModelStrings());
         component.add(AttributeModifier.replace(CLASS_CSS, getLabelComponentCssClass()));
         return component;
     }
@@ -86,6 +90,10 @@ public class IconWithLabel extends BasePanel<String> {
 
     protected void onClickPerform(AjaxRequestTarget target) {
         //override in subclass
+    }
+
+    protected boolean getLabelEscapeModelStrings() {
+        return true;
     }
 
     protected boolean isLink() {

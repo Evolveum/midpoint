@@ -556,6 +556,12 @@ class MappingsSuggestionOperation {
             return MappingEvaluationResult.of(null, 1.0F, isSystemProvided);
         }
 
+        // Do not send multi-valued attribute pairs to the microservice; fall back to as-is mapping.
+        if (valuePairsForLLM.hasMultivalue() || valuePairsForValidation.hasMultivalue()) {
+            LOGGER.trace("Multi-valued attribute values present. Using 'asIs' mapping (no LLM call).");
+            return MappingEvaluationResult.of(null, null, isSystemProvided);
+        }
+
         // Find best mapping by comparing as-is, heuristic, and AI options
         return findBestMappingExpression(
                 matchPair,

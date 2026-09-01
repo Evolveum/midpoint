@@ -36,8 +36,9 @@ Everything works identically to standard single-value attributes:
 * **Target attribute has data (As-Is check):**
   midPoint checks if the collections match identically across all samples:
   ** **Matches:** If all values match across the entire collection for every sample, the mapping passes as **As-Is** with quality `1.0`.
-  ** **Mismatches / Incompatible cardinality:** midPoint cannot match a multivalued attribute (List) with a single-value attribute (String) or collections with different sizes. The As-Is check fails and midPoint proceeds to script suggestion.
+  ** **Mismatches / Incompatible cardinality:** midPoint cannot match a multivalued attribute (List) with a single-value attribute (String) or collections with different sizes so it returns false.
 
 * **Script suggestion for multiple values:**
-  If values differ and require transformation:
-  ** The AI microservice fails when parsing multi-item lists against single-value expectations (raises a 500 error).
+  When any sampled value pair contains multiple values for either the shadow or focus attribute, midPoint does not send the data to the AI microservice.
+  Instead, it falls back to a direct **As-Is** mapping.
+  This prevents the microservice from receiving multi-item lists, which it cannot process and which previously caused a 500 error.

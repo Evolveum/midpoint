@@ -317,7 +317,7 @@ public class TestVelocityExpressions extends AbstractScriptTest {
         // Nothing to do here, Velocity is not supposed to support list literals
     }
 
-    @Test(enabled = false) // #11086
+    @Test
     public void testUserAdministrativeStatus() throws Exception {
         evaluateAndAssertStringScalarExpression(
                 "expression-user-administrative-status.xml",

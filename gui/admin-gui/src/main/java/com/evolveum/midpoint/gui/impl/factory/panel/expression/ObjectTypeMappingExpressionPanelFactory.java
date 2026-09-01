@@ -17,9 +17,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.gui.impl.component.input.expression.ExpressionPanel
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 @Component
 public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponentFactory<ExpressionType> implements Serializable {
@@ -55,6 +58,12 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
 
         return new ExpressionPanel(panelCtx.getComponentId(),
                 panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+
+            @Override
+            protected IModel<String> getExpressionDrawerTitle(IModel<String> title) {
+                IModel<String> expressionDrawerTitle = super.getExpressionDrawerTitle(title);
+                return createDrawerTitle(expressionDrawerTitle, panelCtx);
+            }
 
             @Override
             protected boolean isReadOnly() {
@@ -92,8 +101,11 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
                     }
 
                     @Override
+
                     public IModel<String> getTitle() {
-                        return createStringResource("IterationSettings.button.iterationSettings");
+                        IModel<String> title = createStringResource("IterationSettings.button.iterationSettings");
+                        return createDrawerTitle(title, panelCtx);
+
                     }
 
                     @Override
@@ -160,6 +172,36 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
                 ExpressionPanel.RecognizedEvaluator.ASSOCIATION_FROM_LINK == choice
                         || ExpressionPanel.RecognizedEvaluator.SHADOW_OWNER_REFERENCE_SEARCH == choice);
         return parentChoices;
+    }
+
+    private IModel<String> createDrawerTitle(IModel<String> baseTitle, PrismPropertyPanelContext<ExpressionType> panelCtx) {
+        String mappingName = getMappingName(panelCtx);
+
+        if (StringUtils.isEmpty(mappingName)) {
+            return baseTitle;
+        }
+
+        return createStringResource(
+                "ObjectTypeMappingExpressionPanelFactory.for.mapping",
+                new Object[] { baseTitle.getObject(), mappingName });    }
+
+    private static @Nullable String getMappingName(PrismPropertyPanelContext<ExpressionType> panelCtx) {
+        PrismPropertyWrapper<ExpressionType> expressionWrapper = panelCtx.getItemWrapperModel().getObject();
+
+        PrismContainerValueWrapper<MappingType> mappingValueWrapper =
+                expressionWrapper.getParentContainerValue(InboundMappingType.class);
+
+        if (mappingValueWrapper == null) {
+            mappingValueWrapper =
+                    expressionWrapper.getParentContainerValue(OutboundMappingType.class);
+        }
+
+        if (mappingValueWrapper == null) {
+            return null;
+        }
+
+        MappingType mapping = mappingValueWrapper.getRealValue();
+        return mapping != null ? mapping.getName() : null;
     }
 
 }

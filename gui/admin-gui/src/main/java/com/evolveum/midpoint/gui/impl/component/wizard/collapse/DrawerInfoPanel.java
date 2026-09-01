@@ -95,7 +95,13 @@ public class DrawerInfoPanel<M extends DrawerDescriptor<M>>
             protected String getIconCssClass() {
                 return getTitleIconOfSelectedItem();
             }
+
+            @Override
+            protected boolean getLabelEscapeModelStrings() {
+                return false;
+            }
         };
+        detailLabel.setEscapeModelStrings(false);
         detailLabel.setOutputMarkupId(true);
         detailsPanel.add(detailLabel);
 

@@ -316,7 +316,7 @@ public class Visualizer {
             result.recordHandledError(e);
             return null;
         } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                 SecurityViolationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
+                SecurityViolationException | ExpressionEvaluationException | SubscriptionComplianceException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
             result.recordWarning("Couldn't resolve object " + oid + ": " + e.getMessage(), e);
             return null;
