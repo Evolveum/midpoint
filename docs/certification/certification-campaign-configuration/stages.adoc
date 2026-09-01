@@ -7,8 +7,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2016-04-23T01:35:31.626+02:00
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/certification/stages/
-:page-moved-from: /midpoint/reference/roles-policies/policies/certification/stages/
+:page-moved-from: /midpoint/reference/roles-policies/certification/stages/, /midpoint/reference/roles-policies/policies/certification/stages/
 :page-description: This article describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 :page-keywords: certification stage, certification campaign, stage duration, deadline notification, reviewer
 :page-display-order: 30

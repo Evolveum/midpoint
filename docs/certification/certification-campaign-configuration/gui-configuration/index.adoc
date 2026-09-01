@@ -72,8 +72,8 @@ Collection views can also contain columns and actions configuration.
             </defaultView>
 ----
 
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/actions/[] to learn more about actions configuration.
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/columns-configuration/[] to learn more about columns configuration.
+Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/gui-configuration/actions/[] to learn more about actions configuration.
+Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/gui-configuration/columns-configuration/[] to learn more about columns configuration.
 
 You can also define object collection view configuration within the access certification definition (_view_ element).
 This configuration will be merged with the global configuration and applied to all campaigns based on the particular definition.

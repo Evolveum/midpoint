@@ -15,8 +15,7 @@ doc-type: config
 :page-description: This article describes what escalations are, how to use them in campaigns to enforce accountability, ensure higher scrutiny for risky items, and prevent stalled certifications.
 :page-keywords: escalation, certification campaign, escalate, timed action
 :page-toc: top
-:page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
-:page-moved-from: /midpoint/reference/roles-policies/policies/certification/escalation/
+:page-moved-from: /midpoint/reference/roles-policies/certification/escalation/, /midpoint/reference/roles-policies/policies/certification/escalation/
 
 This article describes what escalations are, how to use them in campaigns to enforce accountability, ensure higher scrutiny for risky items, and prevent stalled certifications.
 
