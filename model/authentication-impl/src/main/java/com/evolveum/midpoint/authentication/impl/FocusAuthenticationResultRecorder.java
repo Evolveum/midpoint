@@ -37,36 +37,42 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 @Component
 public class FocusAuthenticationResultRecorder {
 
-    private static final String DOT_CLASS = FocusAuthenticationResultRecorder.class.getName() + ".";
-    private static final String OPERATION_UPDATE_PRINCIPAL_DYNAMICALLY = DOT_CLASS + "updatePrincipalDynamically";
     private static final Trace LOGGER = TraceManager.getTrace(FocusAuthenticationResultRecorder.class);
 
-    @Autowired private ModelAuditRecorder auditProvider;
+    private static final String DOT_CLASS = FocusAuthenticationResultRecorder.class.getName() + ".";
+
+    private static final String OPERATION_UPDATE_PRINCIPAL_DYNAMICALLY = DOT_CLASS + "updatePrincipalDynamically";
+
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
-
     @Autowired private ModelAuditRecorder securityHelper;
     @Autowired private RepositoryService repositoryService;
 
     public void recordModuleAuthenticationAttemptSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-        AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, principal);
+        LoginEventType event = createLoginEvent(connEnv);
+        boolean successLoginAfterFail = applyModuleAttemptSuccess(principal.getFocus(), connEnv, event);
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            updatePrincipalDynamically(principal, focus -> applyModuleAttemptSuccess(focus, connEnv, event));
+        }
+    }
+
+    private boolean applyModuleAttemptSuccess(FocusType focus, ConnectionEnvironment connEnv, LoginEventType event) {
+        AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, focus);
 
         Integer failedLogins = authAttemptData.getFailedAttempts();
 
         boolean successLoginAfterFail = false;
         if (failedLogins != null && failedLogins > 0) {
             LOGGER.debug("Resetting {} failed module attempt(s) for user '{}' after successful authentication (sequence={}, module={})",
-                    failedLogins, principal.getUsername(), connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
+                    failedLogins, focus.getName(), connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
             authAttemptData.setFailedAttempts(0);
             successLoginAfterFail = true;
         }
-        LoginEventType event = new LoginEventType();
-        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-        event.setFrom(connEnv.getRemoteHostAddress());
 
         //TODO previoous successful auth
         //authAttemptData.(behavioralData.getLastSuccessfulLogin());
@@ -75,87 +81,43 @@ public class FocusAuthenticationResultRecorder {
         authAttemptData.setLockoutTimestamp(null);
         authAttemptData.setLockoutExpirationTimestamp(null);
 
-        ActivationType activation = principal.getFocus().getActivation();
+        ActivationType activation = focus.getActivation();
         if (activation != null) {
             if (LockoutStatusType.LOCKED.equals(activation.getLockoutStatus())) {
-                LOGGER.debug("Clearing lockout status for user '{}' after successful authentication", principal.getUsername());
+                LOGGER.debug("Clearing lockout status for user '{}' after successful authentication", focus.getName());
                 successLoginAfterFail = true;
             }
             activation.setLockoutStatus(LockoutStatusType.NORMAL);
             activation.setLockoutExpirationTimestamp(null);
         }
-
-        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
-            updatePrincipalDynamically(principal);
-        }
+        return successLoginAfterFail;
     }
 
     public void recordModuleAuthenticationAttemptFailure(MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, ConnectionEnvironment connEnv) {
-        FocusType focusAfter = principal.getFocus();
+        LoginEventType event = createLoginEvent(connEnv);
+        applyModuleAttemptFailure(principal.getFocus(), credentialsPolicy, connEnv, event);
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
+            updatePrincipalDynamically(principal, focus -> applyModuleAttemptFailure(focus, credentialsPolicy, connEnv, event));
+        }
+    }
 
-        AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, principal);
+    private void applyModuleAttemptFailure(
+            FocusType focus, CredentialPolicyType credentialsPolicy, ConnectionEnvironment connEnv, LoginEventType event) {
+        AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, focus);
         LOGGER.debug("recordModuleAuthenticationAttemptFailure: authAttemptData={}", authAttemptData);
 
-        Integer failedLogins = authAttemptData.getFailedAttempts();
-        LoginEventType lastFailedLogin = authAttemptData.getLastFailedAuthentication();
-        XMLGregorianCalendar lastFailedLoginTs = null;
-        if (lastFailedLogin != null) {
-            lastFailedLoginTs = lastFailedLogin.getTimestamp();
-        }
-        LOGGER.debug("recordModuleAuthenticationAttemptFailure: failedLogins={}, lastFailedLoginTs={}", failedLogins, lastFailedLoginTs);
-
-        if (credentialsPolicy != null) {
-            Duration lockoutFailedAttemptsDuration = credentialsPolicy.getLockoutFailedAttemptsDuration();
-            if (lockoutFailedAttemptsDuration != null) {
-                if (lastFailedLoginTs != null) {
-                    XMLGregorianCalendar failedLoginsExpirationTs = XmlTypeConverter.addDuration(lastFailedLoginTs, lockoutFailedAttemptsDuration);
-                    if (clock.isPast(failedLoginsExpirationTs)) {
-                        failedLogins = 0;
-                    }
-                }
-            }
-        }
-        if (failedLogins == null) {
-            failedLogins = 1;
-        } else {
-            failedLogins++;
-        }
+        Integer failedLogins = computeFailedLogins(
+                authAttemptData.getFailedAttempts(), authAttemptData.getLastFailedAuthentication(), credentialsPolicy);
 
         LOGGER.debug("Failed module attempt for user '{}': count={} (sequence={}, module={})",
-                principal.getUsername(), failedLogins, connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
+                focus.getName(), failedLogins, connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
         authAttemptData.setFailedAttempts(failedLogins);
-
-        LoginEventType event = new LoginEventType();
-        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-        event.setFrom(connEnv.getRemoteHostAddress());
-
         authAttemptData.setLastFailedAuthentication(event);
 
         if (SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
-            ActivationType activation = focusAfter.getActivation();
-            if (activation == null) {
-                activation = new ActivationType();
-                focusAfter.setActivation(activation);
-            }
-            activation.setLockoutStatus(LockoutStatusType.LOCKED);
-            XMLGregorianCalendar lockoutExpirationTs = null;
-            Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
-            if (lockoutDuration != null) {
-                lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
-            }
-            LOGGER.debug("User '{}' locked out after {} failed attempt(s), expiration={}",
-                    principal.getUsername(), failedLogins, lockoutExpirationTs);
-            activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
+            XMLGregorianCalendar lockoutExpirationTs = lockOutFocus(focus, credentialsPolicy, event, failedLogins);
             authAttemptData.setLockoutExpirationTimestamp(lockoutExpirationTs);
             authAttemptData.setLockoutTimestamp(event.getTimestamp());
-            focusAfter.getTrigger().add(
-                    new TriggerType()
-                            .handlerUri(ModelPublicConstants.UNLOCK_TRIGGER_HANDLER_URI)
-                            .timestamp(lockoutExpirationTs));
-        }
-
-        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
-            updatePrincipalDynamically(principal);
         }
     }
 
@@ -163,7 +125,16 @@ public class FocusAuthenticationResultRecorder {
         if (principal == null) {
             return;
         }
-        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
+        LoginEventType event = createLoginEvent(connEnv);
+        boolean successLoginAfterFail = applySequenceSuccess(principal.getFocus(), connEnv.getSequenceIdentifier(), event);
+        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
+            updatePrincipalDynamically(principal, focus -> applySequenceSuccess(focus, connEnv.getSequenceIdentifier(), event));
+        }
+        securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
+    }
+
+    private boolean applySequenceSuccess(FocusType focus, String sequenceIdentifier, LoginEventType event) {
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(focus, sequenceIdentifier);
 
         Integer failedLogins = behavior.getFailedLogins();
 
@@ -172,17 +143,10 @@ public class FocusAuthenticationResultRecorder {
             behavior.setFailedLogins(0);
             successLoginAfterFail = true;
         }
-        LoginEventType event = new LoginEventType();
-        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-        event.setFrom(connEnv.getRemoteHostAddress());
 
         behavior.setPreviousSuccessfulLogin(behavior.getLastSuccessfulLogin());
         behavior.setLastSuccessfulLogin(event);
-
-        if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
-            updatePrincipalDynamically(principal);
-        }
-        securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
+        return successLoginAfterFail;
     }
 
     public void recordSequenceAuthenticationFailure(String username, MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, String reason, ConnectionEnvironment connEnv) {
@@ -199,23 +163,42 @@ public class FocusAuthenticationResultRecorder {
         if (principal != null) {
             focusType = principal.getFocus();
             if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
-                processFocusChange(principal, credentialsPolicy, connEnv);
+                LoginEventType event = createLoginEvent(connEnv);
+                String sequenceIdentifier = connEnv.getSequenceIdentifier();
+                applySequenceFailure(principal.getFocus(), credentialsPolicy, sequenceIdentifier, event);
+                updatePrincipalDynamically(principal,
+                        focus -> applySequenceFailure(focus, credentialsPolicy, sequenceIdentifier, event));
             }
         }
         securityHelper.auditLoginFailure(username, focusType, connEnv, reason);
     }
 
-    private void processFocusChange(MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, ConnectionEnvironment connEnv) {
-        FocusType focusAfter = principal.getFocus();
+    private void applySequenceFailure(
+            FocusType focus, CredentialPolicyType credentialsPolicy, String sequenceIdentifier, LoginEventType event) {
+        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(focus, sequenceIdentifier);
 
-        AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
+        Integer failedLogins = computeFailedLogins(behavior.getFailedLogins(), behavior.getLastFailedLogin(), credentialsPolicy);
 
-        Integer failedLogins = behavior.getFailedLogins();
-        LoginEventType lastFailedLogin = behavior.getLastFailedLogin();
-        XMLGregorianCalendar lastFailedLoginTs = null;
-        if (lastFailedLogin != null) {
-            lastFailedLoginTs = lastFailedLogin.getTimestamp();
+        LOGGER.debug("Failed sequence attempt for user '{}': count={} (sequence={})",
+                focus.getName(), failedLogins, sequenceIdentifier);
+        behavior.setFailedLogins(failedLogins);
+        behavior.setLastFailedLogin(event);
+
+        if (SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
+            lockOutFocus(focus, credentialsPolicy, event, failedLogins);
         }
+    }
+
+    private LoginEventType createLoginEvent(ConnectionEnvironment connEnv) {
+        LoginEventType event = new LoginEventType();
+        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+        event.setFrom(connEnv.getRemoteHostAddress());
+        return event;
+    }
+
+    private @NotNull Integer computeFailedLogins(
+            Integer failedLogins, LoginEventType lastFailedLogin, CredentialPolicyType credentialsPolicy) {
+        XMLGregorianCalendar lastFailedLoginTs = lastFailedLogin != null ? lastFailedLogin.getTimestamp() : null;
 
         if (credentialsPolicy != null) {
             Duration lockoutFailedAttemptsDuration = credentialsPolicy.getLockoutFailedAttemptsDuration();
@@ -228,67 +211,63 @@ public class FocusAuthenticationResultRecorder {
                 }
             }
         }
-        if (failedLogins == null) {
-            failedLogins = 1;
-        } else {
-            failedLogins++;
-        }
-
-        LOGGER.debug("Failed sequence attempt for user '{}': count={} (sequence={})",
-                principal.getUsername(), failedLogins, connEnv.getSequenceIdentifier());
-        behavior.setFailedLogins(failedLogins);
-
-        LoginEventType event = new LoginEventType();
-        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-        event.setFrom(connEnv.getRemoteHostAddress());
-
-        behavior.setLastFailedLogin(event);
-
-        if (SecurityUtil.isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
-            ActivationType activation = focusAfter.getActivation();
-            if (activation == null) {
-                activation = new ActivationType();
-                focusAfter.setActivation(activation);
-            }
-            activation.setLockoutStatus(LockoutStatusType.LOCKED);
-            XMLGregorianCalendar lockoutExpirationTs = null;
-            Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
-            if (lockoutDuration != null) {
-                lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
-            }
-            LOGGER.debug("User '{}' locked out after {} failed sequence attempt(s), expiration={}",
-                    principal.getUsername(), failedLogins, lockoutExpirationTs);
-            activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
-            focusAfter.getTrigger().add(
-                    new TriggerType()
-                            .handlerUri(ModelPublicConstants.UNLOCK_TRIGGER_HANDLER_URI)
-                            .timestamp(lockoutExpirationTs));
-        }
-
-        updatePrincipalDynamically(principal);
+        return failedLogins == null ? 1 : failedLogins + 1;
     }
 
-    private Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull FocusType before, @NotNull FocusType after) {
-        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)before.asPrismObject())
-                .diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.DATA);
-        assert delta.isModify();
-        return delta.getModifications();
+    private XMLGregorianCalendar lockOutFocus(
+            FocusType focus, CredentialPolicyType credentialsPolicy, LoginEventType event, Integer failedLogins) {
+        ActivationType activation = focus.getActivation();
+        if (activation == null) {
+            activation = new ActivationType();
+            focus.setActivation(activation);
+        }
+        activation.setLockoutStatus(LockoutStatusType.LOCKED);
+        XMLGregorianCalendar lockoutExpirationTs = null;
+        Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
+        if (lockoutDuration != null) {
+            lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
+        }
+        LOGGER.debug("User '{}' locked out after {} failed attempt(s), expiration={}",
+                focus.getName(), failedLogins, lockoutExpirationTs);
+        activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
+        focus.getTrigger().add(
+                new TriggerType()
+                        .handlerUri(ModelPublicConstants.UNLOCK_TRIGGER_HANDLER_URI)
+                        .timestamp(lockoutExpirationTs));
+        return lockoutExpirationTs;
     }
 
-    private void updatePrincipalDynamically(@NotNull MidPointPrincipal principal) {
+    /**
+     * Persists the authentication result by applying the given mutation to the fresh repository
+     * object. The resulting delta contains only the changes made by this recorder; the same
+     * mutation is applied by the caller to the in-memory focus of the principal.
+     * Diffing against the in-memory principal focus is not correct, as it may be stale and
+     * the diff would revert concurrent modifications, e.g. resurrect the mail nonce spent during
+     * currently running authentication (#12082).
+     */
+    private void updatePrincipalDynamically(@NotNull MidPointPrincipal principal, @NotNull Consumer<FocusType> mutator) {
         OperationResult result = new OperationResult(OPERATION_UPDATE_PRINCIPAL_DYNAMICALLY);
         try {
             repositoryService.modifyObjectDynamically(FocusType.class,
                     principal.getOid(),
                     null,
-                    oldPrincipalValue ->
-                            computeModifications(oldPrincipalValue, principal.getFocus()),
+                    freshFocus -> computeModifications(freshFocus, mutator),
                     null,
                     result);
         } catch (CommonException e) {
             LOGGER.debug("Couldn't modify principal with the authentication result information: {}", e.getMessage(), e);
         }
 
+    }
+
+    private Collection<? extends ItemDelta<?, ?>> computeModifications(
+            @NotNull FocusType freshFocus, @NotNull Consumer<FocusType> mutator) {
+        FocusType updatedFocus = freshFocus.asPrismObject().clone().asObjectable();
+        mutator.accept(updatedFocus);
+        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>) freshFocus.asPrismObject())
+                .diff((PrismObject<FocusType>) updatedFocus.asPrismObject(), ParameterizedEquivalenceStrategy.DATA);
+        assert delta.isModify();
+        return delta.getModifications();
     }
 
 }
