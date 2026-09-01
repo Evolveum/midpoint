@@ -104,7 +104,7 @@ Role expressions, conditions, relation and parameters provide dynamic behavior o
 Archetypes, organizational structure and autoassignment expressions control dynamic role assignment.
 Then there are xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] that can be used for variety of purposes.
 On one hand they implement classic features, such as xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties].
-They can be used to implement advanced features, such as xref:/midpoint/reference/roles-policies/policies/certification/ad-hoc-certification/[micro-certifications].
+They can be used to implement advanced features, such as xref:/midpoint/reference/certification/ad-hoc-certification/[micro-certifications].
 Moreover, policy rules can be used as a last-resort mechanism to implement almost any kind of policy constraint.
 
 Roles, archetypes, organizational structure, policy rules and other midPoint mechanism all together form a consistent policy to control access to your applications.

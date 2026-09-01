@@ -93,5 +93,5 @@ reviewerSpecification ::
     Defines how reviewers are selected.
     In our example, everything will be reviewed by the administrator.
 
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/certification-campaign-configuration/stages/[] for a complete list of options for stage definitions and a more detailed explanation.
+Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/stages/[] for a complete list of options for stage definitions and a more detailed explanation.
 
