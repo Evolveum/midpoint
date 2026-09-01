@@ -40,6 +40,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
 * Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
+* Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 
 == Changes With Respect To Version 4.10.3
 
