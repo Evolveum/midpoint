@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2016-08-10T18:09:09.966+02:00
 :page-wiki-metadata-modify-user: martin.lizner
 :page-wiki-metadata-modify-date: 2018-04-12T13:09:03.875+02:00
-:page-keywords: [ 'activation', 'disable', 'delete' ]
+:page-keywords: activation, disable, delete
 :page-upkeep-status: yellow
 
 == Description

@@ -2497,6 +2497,8 @@ footer.app-footer a {
 .dropdown-menu .dropdown-item:focus-visible {
   position: relative;
   z-index: 2;
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
 }
 
 .help-icon-after-label {
@@ -2658,9 +2660,9 @@ footer.app-footer a {
   display: block;
   min-height: 31px;
   padding: 4px 8px;
-  background-color: var(--bs-gray-200);
+  background-color: var(--bs-tertiary-bg);
   border: 1px solid var(--bs-border-color);
-  color: var(--bs-gray-700);
+  color: var(--bs-body-color);
   border-radius: 4px;
   line-height: 1.5;
   font-family: var(--bs-body-font-family);
@@ -2697,4 +2699,14 @@ footer.app-footer a {
 .construction-lifecycle-state {
   display: inline-block;
   width: fit-content;
+}
+
+.showPasswordButton {
+  height: 24px;
+  width: 24px;
+}
+
+.menu-toggle {
+  display: block;
+  padding: 0.5rem 1rem;
 }

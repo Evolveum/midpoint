@@ -43,8 +43,15 @@ public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithP
     }
 
     public void addOperationResult(String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        addOperationResult(panelId, fixPanelId, result, fixAction, null, null);
+    }
+
+    /** @see OperationResultWrapper#OperationResultWrapper(OperationResult, String, SerializableConsumer, String, String) */
+    public void addOperationResult(
+            String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction,
+            String fixButtonLabelKey, String fixButtonIcon) {
         removeOperationResult(panelId);
-        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction);
+        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction, fixButtonLabelKey, fixButtonIcon);
         results.put(panelId, resultWrapper);
     }
 
@@ -52,6 +59,11 @@ public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithP
         if (results.containsKey(panelId)) {
             results.remove(panelId);
         }
+    }
+
+    /** Removes every entry whose panelId starts with {@code prefix} (e.g. {@code "<stepId>."}). */
+    public void removeOperationResultsByPrefix(String prefix) {
+        results.keySet().removeIf(panelId -> panelId.startsWith(prefix));
     }
 
     @Override

@@ -25,10 +25,17 @@ public class AuditConfiguration {
 
     private final ExpressionType eventRecordingExpression;
 
-    public AuditConfiguration(boolean recordResourceOids, List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord, ExpressionType eventRecordingExpression) {
+    private final boolean recordExternalServiceEvents;
+
+    private final boolean recordExternalServiceData;
+
+    public AuditConfiguration(boolean recordResourceOids, List<SystemConfigurationAuditEventRecordingPropertyType> propertiesToRecord,
+            ExpressionType eventRecordingExpression, boolean recordExternalServiceEvents, boolean recordExternalServiceData) {
         this.recordResourceOids = recordResourceOids;
         this.propertiesToRecord = propertiesToRecord;
         this.eventRecordingExpression = eventRecordingExpression;
+        this.recordExternalServiceEvents = recordExternalServiceEvents;
+        this.recordExternalServiceData = recordExternalServiceData;
     }
 
     public boolean isRecordResourceOids() {
@@ -41,5 +48,13 @@ public class AuditConfiguration {
 
     public ExpressionType getEventRecordingExpression() {
         return eventRecordingExpression;
+    }
+
+    public boolean isRecordExternalServiceEvents() {
+        return recordExternalServiceEvents;
+    }
+
+    public boolean isRecordExternalServiceData() {
+        return recordExternalServiceData;
     }
 }

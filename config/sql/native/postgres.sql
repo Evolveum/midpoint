@@ -105,6 +105,7 @@ CREATE TYPE ObjectType AS ENUM (
     'OBJECT_TEMPLATE',
     'ORG',
     'POLICY',
+    'PROJECTION_HOLDER',
     'REPORT',
     'REPORT_DATA',
     'RESOURCE',
@@ -214,7 +215,7 @@ CREATE TYPE ResourceAdministrativeStateType AS ENUM ('ENABLED', 'DISABLED');
 
 -- @description: Stores shadow kind values used to classify resource object shadows.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowKindType
-CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATION', 'UNKNOWN');
+CREATE TYPE ShadowKindType AS ENUM ('ACCOUNT', 'ENTITLEMENT', 'GENERIC', 'ASSOCIATION', 'WORK', 'UNKNOWN');
 
 -- @description: Stores synchronization situation values used by shadow lifecycle and synchronization processing.
 -- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#SynchronizationSituationType
@@ -503,6 +504,18 @@ CREATE TABLE m_assignment_holder (
 )
     INHERITS (m_object);
 
+-- Represents ProjectionHolderType (foci, cases, ...), see https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
+-- extending m_assignment_holder, but still abstract, hence the CHECK (false)
+-- @description: Abstract base table for projection holders such as foci and cases, all of which can hold projections (linkRef).
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#ProjectionHolderType
+CREATE TABLE m_projection_holder (
+    -- objectType will be overridden with GENERATED value in concrete table
+    objectType ObjectType NOT NULL CHECK (objectType = 'PROJECTION_HOLDER') NO INHERIT,
+
+    CHECK (FALSE) NO INHERIT
+)
+    INHERITS (m_assignment_holder);
+
 /*
 @description: Abstract base table for separately persisted container values.
 
@@ -757,7 +770,7 @@ CREATE TABLE m_focus (
 
     CHECK (FALSE) NO INHERIT
 )
-    INHERITS (m_assignment_holder);
+    INHERITS (m_projection_holder);
 
 -- for each concrete sub-table indexes must be added, validFrom, validTo, etc.
 
@@ -2906,7 +2919,7 @@ CREATE TABLE m_case (
     -- @description: Relation URI identifier of the case target reference.
     targetRefRelationId INTEGER REFERENCES m_uri(id)
 )
-    INHERITS (m_assignment_holder);
+    INHERITS (m_projection_holder);
 
 -- @description: Maintains the object OID registry when rows are inserted into `m_case`.
 CREATE TRIGGER m_case_oid_insert_tr BEFORE INSERT ON m_case
@@ -4250,4 +4263,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(60, $$ SELECT 1 $$, true);
+call apply_change(65, $$ SELECT 1 $$, true);

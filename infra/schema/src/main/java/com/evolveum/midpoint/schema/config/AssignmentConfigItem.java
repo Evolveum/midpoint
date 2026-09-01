@@ -13,44 +13,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 public class AssignmentConfigItem extends AbstractAssignmentConfigItem {
 
-    /**
-     * Activity path for this configuration item.
-     * Necessary for correct evaluation of virtual assignments that are coming from activity policies
-     * (mainly to correctly handle activity tree hierarchy and updating state and policy counters).
-     */
-    private ActivityPath activityPath;
-
     @SuppressWarnings("unused") // invoked dynamically
     public AssignmentConfigItem(@NotNull ConfigurationItem<AssignmentType> original) {
         super(original);
     }
 
-    private AssignmentConfigItem(@NotNull AssignmentType value, @NotNull ConfigurationItemOrigin origin, ActivityPath activityPath) {
+    private AssignmentConfigItem(@NotNull AssignmentType value, @NotNull ConfigurationItemOrigin origin) {
         super(value, origin, null);
-
-        this.activityPath = activityPath;
     }
 
     public static AssignmentConfigItem of(
             @NotNull AssignmentType bean,
             @NotNull OriginProvider<? super AssignmentType> originProvider) {
-        return of(bean, originProvider, null);
+        return new AssignmentConfigItem(bean, originProvider.origin(bean));
     }
 
-    public static AssignmentConfigItem of(
-            @NotNull AssignmentType bean,
-            @NotNull OriginProvider<? super AssignmentType> originProvider,
-            ActivityPath activityPath) {
-        return new AssignmentConfigItem(bean, originProvider.origin(bean), activityPath);
+    public static AssignmentConfigItem of(@NotNull AssignmentType bean, @NotNull ConfigurationItemOrigin origin) {
+        return new AssignmentConfigItem(bean, origin);
     }
 
     @Override
     public @NotNull String localDescription() {
         return "assignment";
-    }
-
-    @Override
-    public ActivityPath getActivityPath() {
-        return activityPath;
     }
 }

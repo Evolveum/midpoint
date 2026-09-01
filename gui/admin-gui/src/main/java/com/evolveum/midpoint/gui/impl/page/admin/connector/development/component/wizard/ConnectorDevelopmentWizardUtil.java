@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -25,11 +27,14 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -37,16 +42,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class ConnectorDevelopmentWizardUtil {
 
@@ -159,6 +169,126 @@ public class ConnectorDevelopmentWizardUtil {
         }
 
         return taskBean.getOid();
+    }
+
+    /**
+     * The single line shown in the step's feedback alert: always just a short summary (affected
+     * file count), regardless of how many errors there are - the concrete detail always goes to
+     * the sidebar instead, see {@link #reportScriptValidationErrors}.
+     */
+    public static String scriptValidationErrorMessage(
+            ConnDevArtifactValidationResult validation, String fileName, PageAdminLTE page) {
+        long affectedFiles = validation.errors().stream()
+                .map(error -> error.source() != null ? error.source() : fileName)
+                .distinct().count();
+        return page.createStringResource("ScriptConnectorStepPanel.validation.summary",
+                affectedFiles).getString();
+    }
+
+    /**
+     * Builds the per-error detail shown for one drawer entry, scoped to a single source file (the
+     * artifact under edit, or one broken sibling) - see {@link #reportScriptValidationErrors}.
+     */
+    private static OperationResult buildValidationOperationResult(
+            List<ConnDevArtifactValidationResult.Error> errors, String source) {
+        var result = new OperationResult("Script validation: " + source);
+        for (var error : errors) {
+            var sub = result.createSubresult(source + (error.phase() != null ? " (" + error.phase() + ")" : ""));
+            String message = error.line() != null
+                    ? source + ":" + error.line() + " - " + error.message()
+                    : source + " - " + error.message();
+            sub.recordFatalError(message);
+        }
+        result.computeStatus();
+        return result;
+    }
+
+    /**
+     * Drops every sidebar entry left over from a previous, now-superseded validation attempt for
+     * this artifact - {@code stepId} is the same prefix passed to {@link
+     * #reportScriptValidationErrors}, since one validation attempt can fan out into several
+     * entries (one per broken sibling file), not just one.
+     */
+    public static void clearScriptValidationErrors(AbstractWizardStepPanel<?> step, String stepId) {
+        if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+            wizardModel.removeOperationResultsByPrefix(stepId + ".");
+        }
+    }
+
+    /**
+     * Pushes the concrete validation error(s) to the wizard's right-side drawer and refreshes it -
+     * the feedback alert only ever shows the one-line summary from {@link
+     * #scriptValidationErrorMessage}. One entry is added per distinct affected file rather than a
+     * single combined entry, so a broken sibling script gets its own fix button independently of
+     * any others. The artifact under edit itself (its own errors have no {@code source}, so its
+     * entry uses {@code fileName} as a stand-in) gets the button's default "Fix it"/navigate-back
+     * behavior, pointed at this very step - which correctly hides it while the step is active. A
+     * broken sibling instead repurposes the same button as "Disable operation" (see {@link
+     * ConnectorDevelopmentOperation#disableArtifact}), since there's nowhere to navigate to fix a
+     * script other than editing its already-deployed content, which disabling bypasses.
+     */
+    public static void reportScriptValidationErrors(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String stepId,
+            ConnDevArtifactValidationResult validation, String fileName, AjaxRequestTarget target) {
+        if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+            return;
+        }
+        var bySource = validation.errors().stream()
+                .collect(Collectors.groupingBy(
+                        error -> error.source() != null ? error.source() : fileName,
+                        LinkedHashMap::new, Collectors.toList()));
+        for (var entry : bySource.entrySet()) {
+            String source = entry.getKey();
+            String panelId = stepId + "." + source;
+            var result = buildValidationOperationResult(entry.getValue(), source);
+            if (source.equals(fileName)) {
+                wizardModel.addOperationResult(panelId, step.getStepId(), result);
+            } else {
+                wizardModel.addOperationResult(panelId, result, disableAction(step, panelId, source),
+                        "OperationResultCollapsedItemPanel.disableButton", "fa fa-ban");
+            }
+        }
+        refreshDrawerPanel(step, target);
+    }
+
+    /**
+     * Builds the fix button's click handler for a broken sibling script's drawer entry, repurposed
+     * as "Disable operation" (see {@link #reportScriptValidationErrors}): marks it disabled in the
+     * manifest (see {@link ConnectorDevelopmentOperation#disableArtifact}), then removes just this
+     * one entry and refreshes the drawer - the original save attempt that surfaced the breakage is
+     * not retried automatically.
+     */
+    private static SerializableConsumer<AjaxRequestTarget> disableAction(
+            AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> step, String panelId, String source) {
+        return clickTarget -> {
+            Task task = step.getPageBase().createSimpleTask(ConnectorDevelopmentWizardUtil.class.getName() + ".disableArtifact");
+            try {
+                step.getDetailsModel().getConnectorDevelopmentOperation().disableArtifact(source, task, task.getResult());
+            } catch (IOException | CommonException | RuntimeException e) {
+                step.getPageBase().error("Couldn't disable " + source + ": " + e.getMessage());
+                clickTarget.add(step.getWizard().getPanel());
+                return;
+            }
+            if (step.getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                wizardModel.removeOperationResult(panelId);
+            }
+            refreshDrawerPanel(step, clickTarget);
+        };
+    }
+
+    /**
+     * Adds the wizard's right-side drawer ({@code mainForm:drawerInfoPanel}) to {@code target} so
+     * its content re-renders on this AJAX response - callers must invoke this after any change to
+     * the drawer's underlying model (e.g. via {@link WizardModelWithParentSteps#addOperationResult}
+     * or {@link WizardModelWithParentSteps#removeOperationResult}), since that change alone doesn't
+     * push anything to the browser. A no-op if the drawer isn't part of this wizard's component
+     * tree (e.g. not yet rendered).
+     */
+    public static void refreshDrawerPanel(AbstractWizardStepPanel<?> step, AjaxRequestTarget target) {
+        Component drawerInfoPanel = step.getWizard().getPanel().get("mainForm:drawerInfoPanel");
+        if (drawerInfoPanel != null) {
+            target.add(drawerInfoPanel);
+        }
     }
 
     public static <C extends PrismContainerWrapper<?>> boolean existContainerValue(C container, ItemPath path) {

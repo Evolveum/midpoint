@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * @author semancik
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteResourceObject" // not officially supported
 })
 @ActionDefinitionClass(DeleteResourceObjectSynchronizationActionType.class)
-public class DeleteResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
+public class DeleteResourceObjectAction<F extends ProjectionHolderType> extends BaseClockworkAction<F> {
 
     DeleteResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);

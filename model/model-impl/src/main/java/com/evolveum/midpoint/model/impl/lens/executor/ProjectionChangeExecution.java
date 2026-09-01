@@ -355,8 +355,8 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
      */
     private void updateLinks(OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
         LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null || !focusContext.represents(FocusType.class)) {
-            LOGGER.trace("Missing or non-FocusType focus context, not updating the links");
+        if (focusContext == null || !focusContext.represents(ProjectionHolderType.class)) {
+            LOGGER.trace("Missing or non-ProjectionHolderType focus context, not updating the links");
             return;
         }
 
@@ -367,7 +367,7 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
         }
 
         //noinspection unchecked
-        new LinkUpdater<>(context, (LensFocusContext<? extends FocusType>) focusContext, projCtx, shadowLivenessState, task, b)
+        new LinkUpdater<>(context, (LensFocusContext<? extends ProjectionHolderType>) focusContext, projCtx, shadowLivenessState, task, b)
                 .updateLinks(result);
     }
 }

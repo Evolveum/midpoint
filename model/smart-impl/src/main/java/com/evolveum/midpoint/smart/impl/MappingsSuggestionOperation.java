@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,6 +33,9 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.smart.impl.shadowsampling.MappingSampleResult;
@@ -177,6 +182,8 @@ class MappingsSuggestionOperation {
                     .forEach(mappingCandidates::proposeSystemMapping);
 
             var mappingFutures = new ArrayList<CompletableFuture<Void>>();
+            Authentication authentication = SecurityUtil.getAuthentication();
+            HttpConnectionInformation connectionInformation = getEffectiveConnectionInformation(ctx.b.securityContextManager);
 
             for (SchemaMatchOneResultType matchPair : schemaMatch.getSchemaMatchResult()) {
                 ItemPath shadowAttrPath = PrismContext.get().itemPathParser().asItemPath(matchPair.getShadowAttributePath());
@@ -185,7 +192,12 @@ class MappingsSuggestionOperation {
                 AtomicReference<Operation> operationReference = new AtomicReference<>();
                 AtomicReference<OperationResult> mappingResultReference = new AtomicReference<>();
                 var future = CompletableFuture.supplyAsync(() -> {
+                    Authentication oldAuthentication = SecurityUtil.getAuthentication();
+                    HttpConnectionInformation oldConnectionInformation = ctx.b.securityContextManager.getStoredConnectionInformation();
                     try {
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        ctx.b.securityContextManager.storeConnectionInformation(connectionInformation);
+
                         String matchPairDescription = shadowAttrPath + " <-> " + focusPropPath;
                         var op = mappingsSuggestionState.recordProcessingStart(matchPairDescription);
 
@@ -208,6 +220,9 @@ class MappingsSuggestionOperation {
                         return suggestMapping(matchPair, valuePairsForLLM, valuePairsForValidation, mappingResult);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
+                    } finally {
+                        SecurityContextHolder.getContext().setAuthentication(oldAuthentication);
+                        ctx.b.securityContextManager.storeConnectionInformation(oldConnectionInformation);
                     }
                 }).thenAccept(aiMapping -> {
                     Operation op = operationReference.get();
@@ -465,7 +480,8 @@ class MappingsSuggestionOperation {
             SchemaMatchOneResultType matchPair,
             ValuesPairSample<?, ?> valuesPairs,
             @Nullable String errorLog,
-            @Nullable String retryScript) {
+            @Nullable String retryScript,
+            OperationResult result) {
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(matchPair.getShadowAttribute())
                 .midPointAttribute(matchPair.getFocusProperty())
@@ -478,7 +494,8 @@ class MappingsSuggestionOperation {
                                 matchPair.getShadowAttribute().getName(),
                                 matchPair.getFocusProperty().getName())));
         return ctx.serviceClient
-                .invokeAsync(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class)
+                .invokeAsync(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class,
+                        ctx.callContext(result))
                 .join();
     }
 
@@ -507,7 +524,7 @@ class MappingsSuggestionOperation {
                 }
             }
             if (useAiService && isInbound) {
-                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair, parentResult);
                 if (categoricalResult != null) {
                     return categoricalResult;
                 }
@@ -524,7 +541,7 @@ class MappingsSuggestionOperation {
         // Check for missing target data
         if (valuePairsForValidation.isTargetDataMissing(MISSING_DATA_THRESHOLD)) {
             if (useAiService && isInbound) {
-                var categoricalResult = tryCategoricalMappingSuggestion(matchPair);
+                var categoricalResult = tryCategoricalMappingSuggestion(matchPair, parentResult);
                 if (categoricalResult != null) {
                     return categoricalResult;
                 }
@@ -551,7 +568,7 @@ class MappingsSuggestionOperation {
     /**
      * Attempts to suggest a categorical mapping when no correlated data pairs are available.
      */
-    private @Nullable MappingEvaluationResult tryCategoricalMappingSuggestion(SchemaMatchOneResultType matchPair) {
+    private @Nullable MappingEvaluationResult tryCategoricalMappingSuggestion(SchemaMatchOneResultType matchPair, OperationResult parentResult) {
         if (objectTypeStatistics == null) {
             return null;
         }
@@ -587,7 +604,8 @@ class MappingsSuggestionOperation {
         categoricalValues.get().forEach(v -> request.getMidPointCategoryValue().add(v));
 
         var response = ctx.serviceClient
-                .invokeAsync(SUGGEST_CATEGORICAL_MAPPING, request, SiSuggestMappingResponseType.class)
+                .invokeAsync(SUGGEST_CATEGORICAL_MAPPING, request, SiSuggestMappingResponseType.class,
+                        ctx.callContext(parentResult))
                 .join();
 
         var expression = buildScriptExpression(response);
@@ -680,7 +698,7 @@ class MappingsSuggestionOperation {
         String retryScript = null;
 
         for (int attempt = 0; attempt <= retryCount; attempt++) {
-            var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript);
+            var mappingResponse = askMicroserviceAsync(matchPair, valuePairsForLLM, errorLog, retryScript, parentResult);
             retryScript = mappingResponse != null ? mappingResponse.getTransformationScript() : null;
             var aiExpression = buildScriptExpression(mappingResponse);
             try {
@@ -763,16 +781,26 @@ class MappingsSuggestionOperation {
                 IterationSpecificationType iterationSpec = new IterationSpecificationType();
                 iterationSpec.setStart(1);
                 iterationSpec.setEnd(10);
+                iterationSpec.setUseTokenOnlyOnConflict(true);
                 suggestion.setIterationSpecification(iterationSpec);
                 return;
             }
         }
     }
 
+    private static @Nullable HttpConnectionInformation getEffectiveConnectionInformation(
+            SecurityContextManager securityContextManager) {
+        HttpConnectionInformation currentConnectionInformation = SecurityUtil.getCurrentConnectionInformation();
+        return currentConnectionInformation != null
+                ? currentConnectionInformation
+                : securityContextManager.getStoredConnectionInformation();
+    }
+
     private boolean mappingUsesIterationToken(AttributeMappingsSuggestionType mapping) {
         String script = extractScriptFromAttributeMapping(mapping);
         return script != null && (script.contains(ExpressionConstants.VAR_ITERATION_TOKEN)
-                || script.contains(ExpressionConstants.VAR_ITERATION));
+                || script.contains(ExpressionConstants.VAR_ITERATION)
+                || script.contains(ExpressionConstants.VAR_ATTEMPT));
     }
 
     private String extractScriptFromAttributeMapping(AttributeMappingsSuggestionType mapping) {

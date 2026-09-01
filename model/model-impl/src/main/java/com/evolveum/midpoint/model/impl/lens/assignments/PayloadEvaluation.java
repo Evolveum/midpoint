@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRuleBuilder;
-import com.evolveum.midpoint.repo.common.policy.PlainPolicyRuleIdentifier;
+import com.evolveum.midpoint.schema.policy.PlainPolicyRuleIdentifier;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.PolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -27,6 +27,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * Evaluation of assignment payload i.e. constructions (resource/persona), focus mappings
@@ -178,17 +181,26 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         return BooleanUtils.isFalse(policyRule.value().getEnabled());
     }
 
-    private ActivityPolicyRule createActivityPolicyRule(PolicyRuleConfigItem policyRuleCI) {
-        PolicyRuleType policyRule = policyRuleCI.value();
+    private ActivityPolicyRule createActivityPolicyRuleIfApplicable(PolicyRuleConfigItem policyRuleCI) {
 
-        ActivityPath activityPath = segment.assignmentConfigItem.getActivityPath();
+        ActivityPath activityPath = ctx.evalAssignment.getOrigin().getActivityPath();
         if (activityPath == null) {
             return null;
         }
 
-        return new ActivityPolicyRuleBuilder(policyRule, activityPath, policyRuleCI.origin())
-                // policy identifier in format ROLE_OID:INDUCEMENT_CID
-                .customPolicyRuleIdentifier(PlainPolicyRuleIdentifier.of(segment.getSourceOid(), segment.getAssignmentId()))
+        // So this is virtual assignment that came through an activity.
+        // This also means it must have an assignment ID: it is either right in the task, or in an existing role.
+        // In both cases, it already exists in the repository, so there must be assignment ID.
+        stateCheck(ctx.evalAssignment.isVirtual(), "assignment is not virtual");
+        stateNonNull(segment.getAssignmentId(), "no assignment ID?");
+
+        PolicyRuleType policyRule = policyRuleCI.value();
+
+        // policy rule identifier in format ROLE_OID:INDUCEMENT_CID (or TASK_OID:VIRTUAL_ASSIGNMENT_CID in unsupported case
+        // of inline assignment)
+        var ruleId = PlainPolicyRuleIdentifier.of(segment.getSourceOid(), segment.getAssignmentId());
+
+        return new ActivityPolicyRuleBuilder(policyRule, activityPath, ruleId, policyRuleCI.origin())
                 .build();
     }
 
@@ -203,9 +215,9 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             return;
         }
 
-        ActivityPolicyRule activityPolicyRule = createActivityPolicyRule(policyRule);
-
         LOGGER.trace("Collecting object policy rule '{}' in {}", policyRule.getName(), segment.source);
+
+        ActivityPolicyRule activityPolicyRule = createActivityPolicyRuleIfApplicable(policyRule);
         ctx.evalAssignment.addObjectPolicyRule(
                 createEvaluatedPolicyRule(policyRule, TargetType.OBJECT, activityPolicyRule));
     }
@@ -221,11 +233,11 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             return;
         }
 
-        ActivityPolicyRule activityPolicyRule = createActivityPolicyRule(policyRule);
-
         boolean appliesDirectly = appliesDirectly(ctx.assignmentPath);
         LOGGER.trace("Collecting target policy rule '{}' in {} (applies directly = {})",
                 policyRule.getName(), segment.source, appliesDirectly);
+
+        ActivityPolicyRule activityPolicyRule = createActivityPolicyRuleIfApplicable(policyRule);
         ctx.evalAssignment.addTargetPolicyRule(
                 createEvaluatedPolicyRule(
                         policyRule,

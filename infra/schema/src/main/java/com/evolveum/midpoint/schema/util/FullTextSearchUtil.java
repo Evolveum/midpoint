@@ -163,12 +163,25 @@ public class FullTextSearchUtil {
         return allWords.isEmpty() ? null : allWords;
     }
 
+    public static @Nullable String createSearchableText(String text) {
+        Set<String> words = new LinkedHashSet<>();
+        append(words, text);
+        return words.isEmpty() ? null : ' ' + String.join(" ", words) + ' ';
+    }
+
+    public static String[] normalizeWords(String text) {
+        if (StringUtils.isBlank(text)) {
+            return new String[0];
+        }
+        String normalized = PrismContext.get().getDefaultPolyStringNormalizer().normalize(text);
+        return StringUtils.split(normalized);
+    }
+
     private static void append(Set<String> allWords, String text) {
         if (StringUtils.isBlank(text)) {
             return;
         }
-        String normalized = PrismContext.get().getDefaultPolyStringNormalizer().normalize(text);
-        String[] words = StringUtils.split(normalized);
+        String[] words = normalizeWords(text);
         for (String word : words) {
             if (StringUtils.isNotBlank(word)) {
                 allWords.add(word); // set will handle duplicates

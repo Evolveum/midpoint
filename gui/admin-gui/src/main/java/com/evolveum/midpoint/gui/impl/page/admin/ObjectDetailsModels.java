@@ -135,6 +135,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         if (getPageBase() instanceof AbstractPageObjectDetails) {
             AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
             ctx.setShowedByWizard(page.isShowedByWizard());
+            ctx.setSuppliedObjectFromAuthorizedCase(page.isPendingObjectTransientPreview());
         }
         return ctx;
     }
@@ -197,7 +198,8 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     }
 
     public boolean isEditObject() {
-        return getPrismObject().getOid() != null;
+        return isPendingObjectTransientPreview()
+                || getPrismObject().getOid() != null;
     }
 
     protected PrismContext getPrismContext() {
@@ -209,6 +211,19 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
 
     public ObjectDelta<O> getDelta() {
         return delta;
+    }
+
+    /**
+     * Returns true if there are unsaved changes in the object.
+     * */
+    public boolean hasDelta() {
+        OperationResult result = new OperationResult("Collect deltas");
+        try {
+            return !collectDeltaWithoutSavedDeltas(result).isEmpty();
+        } catch (CommonException e) {
+            LOGGER.error("Cannot collect deltas", e);
+            return false;
+        }
     }
 
     private Collection<ObjectDelta<? extends ObjectType>> collectDeltasFromObject(OperationResult result) throws CommonException {
@@ -419,7 +434,16 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
     }
 
     protected boolean isReadonly() {
-        return false;
+        return isPendingObjectTransientPreview();
+    }
+
+    /**
+     * Returns whether the page renders an object reconstructed from an authorized case.
+     * Such an object is treated as existing for wrapper configuration, but is always read-only.
+     */
+    private boolean isPendingObjectTransientPreview() {
+        return getPageBase() instanceof AbstractPageObjectDetails<?, ?> page
+                && page.isPendingObjectTransientPreview();
     }
 
     public ItemStatus getObjectStatus() {

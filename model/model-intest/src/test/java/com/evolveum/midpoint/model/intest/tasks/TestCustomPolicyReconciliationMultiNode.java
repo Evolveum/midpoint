@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.test.TestActivityPolicyUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -21,7 +22,6 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -233,7 +233,7 @@ public class TestCustomPolicyReconciliationMultiNode extends AbstractEmptyModelI
         waitForTaskCloseOrSuspend(TASK_CUSTOM.oid, TIMEOUT);
 
         then("the whole tree completes on the first attempt; execute deletes the 4 allowed users");
-        String deletedId = ActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_CUSTOM.oid), SIMULATE, "max-deleted", true);
+        String deletedId = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(TASK_CUSTOM.oid), SIMULATE, "max-deleted", true);
         // @formatter:off
         assertTaskTree(TASK_CUSTOM.oid, "after successful run")
                 .display()

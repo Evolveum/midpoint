@@ -28,13 +28,15 @@ $theme-colors: map-merge(
 $grid-breakpoints: map-merge(
   $grid-breakpoints,
   (
-    "3xl": 1650px
+    "3xl": 1600px,
+    "4xl": 1800px,
   )
 );
 
 $container-max-widths: map-merge(
   $container-max-widths,
   (
-    "3xl": 1600px
+    "3xl": 1599.98px,
+    "4xl": 1799.98px,
   )
 );

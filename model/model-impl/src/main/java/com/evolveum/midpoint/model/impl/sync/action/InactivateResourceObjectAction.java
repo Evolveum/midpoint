@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateResourceObject" // not officially supported
 })
 @ActionDefinitionClass(InactivateResourceObjectSynchronizationActionType.class)
-class InactivateResourceObjectAction<F extends FocusType> extends BaseClockworkAction<F> {
+class InactivateResourceObjectAction<F extends ProjectionHolderType> extends BaseClockworkAction<F> {
 
     InactivateResourceObjectAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);

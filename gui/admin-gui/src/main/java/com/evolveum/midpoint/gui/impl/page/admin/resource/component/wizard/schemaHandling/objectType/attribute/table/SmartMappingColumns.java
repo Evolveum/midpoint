@@ -37,6 +37,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
@@ -141,7 +142,7 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
     }
 
     private @NotNull IColumn<PrismContainerValueWrapper<MappingType>, String> createExpressionColumn() {
-        return new PrismPropertyWrapperColumn<>(
+        return new MappingExpressionColumn<>(
                 table.getMappingTypeDefinition(),
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
@@ -226,7 +227,12 @@ record SmartMappingColumns<P extends Containerable>(SmartMappingTable<P> table) 
                         createSourceMultiselectModel(rowModel, table.getPageBase());
                 FocusDefinitionsMappingProvider provider =
                         new FocusDefinitionsMappingProvider(
-                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel);
+                                (IModel<PrismPropertyWrapper<VariableBindingDefinitionType>>) rowModel){
+                            @Override
+                            protected boolean showContainerChoices() {
+                                return true;
+                            }
+                        };
 
                 return new Select2MultiChoiceColumnPanel<>(componentId, multiselectModel, provider);
             }

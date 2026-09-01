@@ -12,12 +12,15 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerInfoPanel;
 
+import com.evolveum.midpoint.gui.impl.event.FormComponentUpdatingEvent;
+
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -26,6 +29,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -44,6 +48,9 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_HEADER = "header";
     private static final String ID_SAVE_FRAGMENT = "saveFragment";
+    private static final String ID_PROGRESS_CONTAINER = "progressContainer";
+    private static final String ID_PROGRESS_ICON = "progressIcon";
+    private static final String ID_PROGRESS_MESSAGE = "progressMessage";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_SUMMARY = "summary";
     private static final String ID_CARD = "card";
@@ -107,9 +114,61 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
             @Override
             protected Component createNextButton(String id, IModel<String> nextTitle) {
-                Fragment next = new Fragment(id, ID_SAVE_FRAGMENT, WizardWithNavigationPanel.this);
-                next.setRenderBodyOnly(true);
-                return next;
+                Fragment saveMessageFragment = new Fragment(id, ID_SAVE_FRAGMENT, WizardWithNavigationPanel.this) {
+                    @Override
+                    public void onEvent(IEvent<?> event) {
+                        super.onEvent(event);
+
+                        if (event.getPayload() instanceof FormComponentUpdatingEvent formComponentUpdatingEvent) {
+                            AjaxRequestTarget target = formComponentUpdatingEvent.AjaxRequestTarget();
+                            target.add(get(ID_PROGRESS_CONTAINER));
+                        }
+                    }
+                };
+                saveMessageFragment.add(new VisibleBehaviour(() -> getController().getHelper().getDetailsModel().isEditObject()));
+                saveMessageFragment.setOutputMarkupId(true);
+
+                WebMarkupContainer progressContainer = new WebMarkupContainer(ID_PROGRESS_CONTAINER);
+                progressContainer.setOutputMarkupId(true);
+                LoadableDetachableModel<String> progressMessageTitleModel = new LoadableDetachableModel<>() {
+                    @Override
+                    protected String load() {
+                        if (getController().getHelper().getDetailsModel().hasDelta()) {
+                            return getString("PageConnectorDevelopment.header.recognizedChanges.title");
+                        }
+                        return getString("PageConnectorDevelopment.header.save.title");
+                    }
+                };
+                progressContainer.add(AttributeAppender.replace("title", progressMessageTitleModel));
+                saveMessageFragment.add(progressContainer);
+
+                WebMarkupContainer progressIcon = new WebMarkupContainer(ID_PROGRESS_ICON);
+                progressIcon.setOutputMarkupId(true);
+                progressIcon.add(
+                        AttributeAppender.replace(
+                                "class",
+                                () -> getController().getHelper().getDetailsModel().hasDelta() ?
+                                        "fa fa-info-circle text-info" : "fa fa-check-circle text-success"));
+                progressContainer.add(progressIcon);
+
+                LoadableDetachableModel<String> progressMessageModel = new LoadableDetachableModel<>() {
+                    @Override
+                    protected String load() {
+                        if (getController().getHelper().getDetailsModel().hasDelta()) {
+                            return getString("PageConnectorDevelopment.header.recognizedChanges");
+                        }
+                        return getString("PageConnectorDevelopment.header.save");
+                    }
+                };
+                Label progressMessage = new Label(ID_PROGRESS_MESSAGE, progressMessageModel);
+                progressMessage.setOutputMarkupId(true);
+                progressMessage.add(
+                        AttributeAppender.replace(
+                                "class",
+                                () -> getController().getHelper().getDetailsModel().hasDelta() ? "text-info" : "text-success"));
+                progressContainer.add(progressMessage);
+
+                return saveMessageFragment;
             }
         };
         form.add(header);
@@ -240,15 +299,15 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
         listItem.add(badge);
     }
 
-    private WizardModelWithParentSteps getController() {
+    private AbstractWizardController<AH, ADM> getController() {
         return controller;
     }
 
     @Override
     public void onStepChanged(WizardStep newStep) {
         WizardStep step = getController().getActiveStep();
-        ((Component)step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
+        ((Component) step).add(AttributeAppender.append("class", () -> getController().getActiveStep().appendCssToWizard()));
 
-        ((MidpointForm)get(ID_MAIN_FORM)).addOrReplace((Component) step);
+        ((MidpointForm) get(ID_MAIN_FORM)).addOrReplace((Component) step);
     }
 }

@@ -180,6 +180,16 @@ public interface ConnectorDevelopmentOperation {
 
     void saveArtifact(ConnDevArtifactType endpoint, Task task, OperationResult result) throws IOException, CommonException;
 
+    /**
+     * Marks an already-deployed script as disabled in the manifest, so the connector skips it both
+     * when initializing for real and when reloading siblings during script validation. Lets the
+     * wizard offer a "Disable operation" action for a sibling script a schema change breaks,
+     * without deleting the script's content.
+     */
+    void disableArtifact(String filename, Task task, OperationResult result) throws IOException, CommonException;
+
+    ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result);
+
 
     default void  saveNativeSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
         saveArtifact(artifact, task, result);

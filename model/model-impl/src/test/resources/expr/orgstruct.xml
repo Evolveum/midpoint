@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -8,6 +8,14 @@
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+
+    <archetype oid="6a12b965-a1c2-47c9-87bd-19e84c71d814">
+        <name>Organizational unit</name>
+    </archetype>
+
+    <archetype oid="89a34123-1db7-4fc1-a053-6c42b82ef2ab">
+        <name>Project</name>
+    </archetype>
 
     <!-- Functional organizational structure -->
 
@@ -17,6 +25,9 @@
         <displayName>Governor Office</displayName>
         <identifier>0001</identifier>
         <subtype>functional</subtype>
+        <assignment>
+            <targetRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814" type="ArchetypeType"/>
+        </assignment>
         <costCenter>CC0</costCenter>
         <locality>The Governor's Mansion</locality>
     </org>
@@ -28,6 +39,9 @@
         <displayName>Ministry of Defense</displayName>
         <identifier>0002</identifier>
         <subtype>functional</subtype>
+        <assignment>
+            <targetRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814" type="ArchetypeType"/>
+        </assignment>
         <locality>The towers, bastions and bars</locality>
     </org>
 
@@ -38,6 +52,9 @@
         <displayName>Ministry of Offense</displayName>
         <identifier>0003</identifier>
         <subtype>functional</subtype>
+        <assignment>
+            <targetRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814" type="ArchetypeType"/>
+        </assignment>
         <costCenter>CC666</costCenter>
     </org>
 
@@ -48,6 +65,9 @@
         <displayName>Ministry of Rum</displayName>
         <identifier>0004</identifier>
         <subtype>functional</subtype>
+        <assignment>
+            <targetRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814" type="ArchetypeType"/>
+        </assignment>
         <costCenter>CCRUM</costCenter>
     </org>
 
@@ -58,6 +78,9 @@
         <displayName>Swashbuckler Section</displayName>
         <identifier>0005</identifier>
         <subtype>functional</subtype>
+        <assignment>
+            <targetRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814" type="ArchetypeType"/>
+        </assignment>
     </org>
 
     <org oid="00000000-8888-6666-0000-100000000006">
@@ -68,6 +91,9 @@
         <displayName>Scumm Bar</displayName>
         <identifier>0006</identifier>
         <subtype>functional</subtype>
+        <assignment>
+            <targetRef oid="6a12b965-a1c2-47c9-87bd-19e84c71d814" type="ArchetypeType"/>
+        </assignment>
         <locality>Mêlée Island</locality>
     </org>
 
@@ -78,6 +104,9 @@
         <description>Project organizational structure root</description>
         <displayName>Projects</displayName>
         <subtype>project</subtype>
+        <assignment>
+            <targetRef oid="89a34123-1db7-4fc1-a053-6c42b82ef2ab" type="ArchetypeType"/>
+        </assignment>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000001">
@@ -86,6 +115,9 @@
         <displayName>Save Elaine</displayName>
         <identifier>0001</identifier>
         <subtype>project</subtype>
+        <assignment>
+            <targetRef oid="89a34123-1db7-4fc1-a053-6c42b82ef2ab" type="ArchetypeType"/>
+        </assignment>
     </org>
 
     <org oid="00000000-8888-6666-0000-200000000002">
@@ -94,6 +126,9 @@
         <displayName>Kidnap and marry Elaine</displayName>
         <identifier>0002</identifier>
         <subtype>project</subtype>
+        <assignment>
+            <targetRef oid="89a34123-1db7-4fc1-a053-6c42b82ef2ab" type="ArchetypeType"/>
+        </assignment>
     </org>
 
     <!-- Users -->

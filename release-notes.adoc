@@ -58,6 +58,9 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 * xref:/midpoint/guides/updating-native-db/updating-to-pg18.adoc[Support for PostgreSQL 18]
 
+* bug:MID-11358[] Added connector signature verification for production environments without an active subscription,
+including import of signed allowed-connectors list and subscription compliance enforcement. See #TODO link to docs#
+
 #TODO#
 
 === Other Improvements
@@ -80,8 +83,13 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Upgraded AdminLTE to 4.1. See bug:MID-11538[].
 * Added support for "null" expression. See bug:MID-11867[].
 * Fixed handling of admin assign/unassign governance/member authorization. See bug:MID-11850[].
+* Upgraded Apache CXF to 4.2.2. See bug:MID-11948[]
+* Added configurable validation and processing of uploaded files, including content type verification, image conversion, and metadata stripping. See bug:MID-11849[].
+* Custom deployment colors (header color or skin) or a custom logo are now taken as an indication that midPoint runs in a production environment. See bug:MID-11977[].
+* Added lifecycle state configuration for construction inducement. See bug:MID-11922[].
+* Added English (Europe) locale. See bug:MID-10286[].
+* Added auditing of Smart Integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
 
-=== Major Bugfixes
 
 #TODO#
 
@@ -168,7 +176,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed reference value update in search panel. See bug:MID-11400[]
 * Fixed Role catalog query for Roles of teammates. See bug:MID-11221[]
 * Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11412[]
-* Fixed defaultOperationPolicy merging in objectType of the resource. See bug:MID-11413[]
+* Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 * Fixed custom relation translation. See bug:MID-11523[]
 * Fixed CSV export for Tasks table. See bug:MID-11652[]
 * Fixed breaking too long labels into lines. See bug:MID-11711[]
@@ -179,8 +187,18 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Improved handling of unavailable OIDC issuers during GUI authentication. See bug:MID-11293[]
 * Fixed resolver errors caused by unnecessary JAXB namespace imports in serialized enum schemas. See bug:MID-10558[]
 * Fixed suspension of iterative scripting tasks when a threshold policy action is triggered. See bug:MID-11073[]
-* Fixed internal server error when opening the OTP tab for a new application. See bug:MID-11927[]
 * Fixed obsolete property references in default authorization roles. See bug:MID-10570[]
+* Fixed intermittent freezing of composition activities with subtasks in clustered deployments. See bug:MID-11928[].
+* Fixed search authorization denial for queries with type filters when read access is item-limited. See bug:MID-11221[].
+* Fixed standalone audit database schema upgrades missing the `ROLE_ANALYSIS_OUTLIER` object type. See bug:MID-11884[]
+* Fixed visibility of sort icon for empty header cell. See bug:MID-11860[]
+* Fixed multiple times clicking on Submit request button in Role catalog. See bug:MID-11939[]
+* Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
+* Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
+* Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
+* Fixed stale resource reference in duplicated reconciliation tasks. See bug:MID-12053[]
+* Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
+* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
 
 === Releases Of Other Components
 
@@ -420,6 +438,13 @@ In such cases, if no explicit translation key was provided, midPoint attempted t
 Starting from 4.11 version, the orig value will never be translated.
 Please ensure that all PolyStringType values in your environment are defined correctly.
 If localization is required, explicitly define translation keys or language-specific values within the polystring.
+
+* Iteration specification (e.g., in object template or focus mapping) has a new boolean property `useTokenOnlyOnConflict` and changed default value for `start`.
+By default, `useTokenOnlyOnConflict` is `true`, which means the token expression is not evaluated for the first (non conflicting) attempt.
+The default `start` value is now `0` when `maxIterations` is defined, and `1` when it is not.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments (even when adding `end`), ensuring that new records continue to be iterated starting from 0 consistently with existing records.
+This can potentially break existing configurations that use a custom token expression and expect it to be evaluated on the first (non conflicting) attempt.
+In that case, set `useTokenOnlyOnConflict` to `false` explicitly.
 
 === Changes In Initial Objects Since 4.10
 

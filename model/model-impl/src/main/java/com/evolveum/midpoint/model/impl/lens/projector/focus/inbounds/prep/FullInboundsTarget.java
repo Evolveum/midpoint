@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Target in the "full mode". It is always the focal object, e.g., a user.
  */
-public class FullInboundsTarget<F extends FocusType> extends InboundsTarget<F> {
+public class FullInboundsTarget<F extends ProjectionHolderType> extends InboundsTarget<F> {
 
     @NotNull private final LensContext<F> lensContext;
 

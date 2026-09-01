@@ -53,10 +53,30 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
 
-        return new ExpressionPanel(panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+        return new ExpressionPanel(panelCtx.getComponentId(),
+                panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
+
+            @Override
+            protected boolean isReadOnly() {
+                IModel<PrismPropertyWrapper<ExpressionType>> itemWrapperModel = panelCtx.getItemWrapperModel();
+                if (itemWrapperModel != null && itemWrapperModel.getObject() != null) {
+                    return itemWrapperModel.getObject().isReadOnly();
+                }
+                return super.isReadOnly();
+            }
+
+            @Override
+            protected List<ExpressionPanel.RecognizedEvaluator> getChoices() {
+                return ObjectTypeMappingExpressionPanelFactory.this.getChoices(super.getChoices());
+            }
+
             @Override
             public List<CollapsedItem<DrawerModel>> getDrawerCollapsedItems() {
                 List<CollapsedItem<DrawerModel>> drawerCollapsedItems = super.getDrawerCollapsedItems();
+
+                if (getSelectedEvaluatorType() != RecognizedEvaluator.SCRIPT) {
+                    return drawerCollapsedItems;
+                }
 
                 PrismContainerValueWrapper<IterationSpecificationType> iterationValueWrapper = findIterationValueWrapper(panelCtx);
 
@@ -92,7 +112,16 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
                 return drawerCollapsedItems;
 
             }
+
+            @Override
+            protected String getAdditionalCssClassForTypeChoice() {
+                return getAdditionalLabelClass(panelCtx.unwrapWrapperModel());
+            }
         };
+    }
+
+    private String getAdditionalLabelClass(PrismPropertyWrapper<ExpressionType> wrapper) {
+        return !wrapper.isMetadata() && wrapper.isReadOnly() ? "prism-value-label-readonly" : null;
     }
 
     private static PrismContainerValueWrapper<IterationSpecificationType> findIterationValueWrapper(
@@ -124,6 +153,13 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
     @Override
     public Integer getOrder() {
         return 90;
+    }
+
+    protected List<ExpressionPanel.RecognizedEvaluator> getChoices(List<ExpressionPanel.RecognizedEvaluator> parentChoices) {
+        parentChoices.removeIf(choice ->
+                ExpressionPanel.RecognizedEvaluator.ASSOCIATION_FROM_LINK == choice
+                        || ExpressionPanel.RecognizedEvaluator.SHADOW_OWNER_REFERENCE_SEARCH == choice);
+        return parentChoices;
     }
 
 }

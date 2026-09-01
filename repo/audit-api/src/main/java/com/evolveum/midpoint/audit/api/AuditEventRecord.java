@@ -212,6 +212,8 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
 
     private final Map<String, String> customColumnProperty = new HashMap<>();
 
+    private final List<AuditEventRecordPayload> payloads = new ArrayList<>();
+
     // Just a hint for audit service proxy: these OID need not to be resolved, as they are known to not exist.
     private final Set<String> nonExistingReferencedObjects = new HashSet<>();
 
@@ -530,6 +532,15 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         return customColumnProperty;
     }
 
+    public List<AuditEventRecordPayload> getPayloads() {
+        return payloads;
+    }
+
+    public void addPayload(@NotNull AuditEventRecordPayload payload) {
+        Validate.notNull(payload, "Payload must not be null");
+        payloads.add(payload);
+    }
+
     public Set<String> getResourceOids() {
         return resourceOids;
     }
@@ -654,6 +665,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
             customColumn.setValue(customColumnEntry.getValue());
             auditRecord.getCustomColumnProperty().add(customColumn);
         }
+        payloads.forEach(payload -> auditRecord.getPayload().add(payload.toXml()));
 
         // TODO MID-5531 convert custom properties too? What about other than string types?
         return auditRecord;
@@ -690,6 +702,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         clone.references.putAll(references); // TODO deep clone?
         clone.resourceOids.addAll(resourceOids);
         clone.customColumnProperty.putAll(customColumnProperty);
+        clone.payloads.addAll(payloads);
         return clone;
     }
 
@@ -704,6 +717,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
                 + ", es=" + eventStage + ", D=" + deltas + ", ch=" + channel + ", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
                 + ", cuscolprop=" + customColumnProperty
+                + ", payloads=" + payloads
                 + ", prop=" + properties
                 + ", roid=" + resourceOids
                 + ", ref=" + references + "]";
@@ -765,6 +779,7 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Resource OIDs", resourceOids, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "References", references, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Custom column properties", customColumnProperty, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Payloads", payloads, indent + 1);
         DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
         if (deltas.isEmpty()) {
             sb.append(" none");

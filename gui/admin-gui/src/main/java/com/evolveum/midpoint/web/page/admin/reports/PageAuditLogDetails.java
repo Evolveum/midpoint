@@ -10,7 +10,10 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -44,6 +47,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -100,9 +104,14 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_MESSAGE = "message";
     private static final String ID_ADDITIONAL_ITEMS = "additionalItems";
     private static final String ID_ADDITIONAL_ITEM_LINE = "additionalItemLine";
+    private static final String ID_PAYLOAD_LIST_PANEL = "payloadListPanel";
+    private static final String ID_PAYLOAD_TITLE = "payloadTitle";
+    private static final String ID_PAYLOAD_EDITOR = "payloadEditor";
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_VALUE = "itemValue";
     private static final String ID_BUTTON_BACK = "back";
+
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private static final String DOT_CLASS = PageAuditLogDetails.class.getSimpleName() + ".";
     private static final String OPERATION_RESOLVE_REFERENCE_NAME = DOT_CLASS + "resolveReferenceName()";
@@ -192,6 +201,7 @@ public class PageAuditLogDetails extends PageBase {
         add(eventPanel);
 //        initAuditLogHistoryPanel(eventPanel);
         initEventPanel(eventPanel);
+        initPayloadsPanel(eventPanel);
         initDeltasPanel(eventPanel);
         initLayoutBackButton();
     }
@@ -411,6 +421,46 @@ public class PageAuditLogDetails extends PageBase {
     private String getDisplayName(String nameKey) {
         // null should not occur so we don't try to be nice when displaying it
         return nameKey != null ? createStringResource(nameKey).getString() : "(null)";
+    }
+
+    private void initPayloadsPanel(WebMarkupContainer eventPanel) {
+        ListView<AuditEventRecordPayloadType> payloadListPanel = new ListView<>(
+                ID_PAYLOAD_LIST_PANEL, () -> {
+                    AuditEventRecordType record = recordModel.getObject();
+                    return record != null
+                            ? record.getPayload().stream()
+                                    .filter(payload -> !StringUtils.isEmpty(payload.getContent()))
+                                    .toList()
+                            : List.of();
+                }) {
+
+            @Override
+            protected void populateItem(ListItem<AuditEventRecordPayloadType> item) {
+                AuditEventRecordPayloadType payload = item.getModelObject();
+                String contentType = payload.getContentType();
+                boolean json = contentType != null && contentType.toLowerCase(Locale.ROOT).contains("json");
+                item.add(new Label(ID_PAYLOAD_TITLE, createStringResource("PageAuditLogDetails.payload")));
+
+                AceEditor payloadEditor = new AceEditor(ID_PAYLOAD_EDITOR, () -> json
+                        ? prettyPrintJson(payload.getContent())
+                        : payload.getContent());
+                payloadEditor.setReadonly(true);
+                payloadEditor.setResizeToMaxHeight(true);
+                payloadEditor.setMode(json ? AceEditor.Mode.JSON : null);
+                item.add(payloadEditor);
+            }
+        };
+        payloadListPanel.add(new VisibleBehaviour(() -> !payloadListPanel.getModelObject().isEmpty()));
+        eventPanel.add(payloadListPanel);
+    }
+
+    private String prettyPrintJson(String content) {
+        try {
+            return JSON_MAPPER.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(JSON_MAPPER.readTree(content));
+        } catch (JsonProcessingException e) {
+            return content;
+        }
     }
 
     private void initDeltasPanel(WebMarkupContainer eventPanel) {

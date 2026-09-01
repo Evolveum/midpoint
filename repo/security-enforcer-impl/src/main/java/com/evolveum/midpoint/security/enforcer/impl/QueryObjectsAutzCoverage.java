@@ -62,6 +62,14 @@ public class QueryObjectsAutzCoverage implements ShortDumpable {
 
     private void addRequiredItem(
             @NotNull Class<?> type, @NotNull ItemPath itemPath) {
+        if (itemPath.isEmpty()) {
+            // Empty path means "the whole object". It comes from a bare TYPE discriminator in the filter,
+            // which does not evaluate any item values, so no item authorization is needed for it:
+            // object visibility is governed by the selector-derived security filters, and returned objects
+            // are pruned to readable items anyway. Requiring full read access here would deny queries
+            // whose type-specific equivalents are allowed. See issue 11221.
+            return;
+        }
         if (itemPath.startsWith(PrismConstants.T_PARENT)) {
             // temporary solution; we should know the broader context
             var parent = determineParent(type);

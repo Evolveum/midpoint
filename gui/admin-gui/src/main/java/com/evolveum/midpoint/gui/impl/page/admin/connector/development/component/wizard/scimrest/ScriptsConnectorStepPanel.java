@@ -37,6 +37,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -238,10 +239,29 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         for (ConnDevArtifactType scriptArtifact : valueModel.getObject()) {
+            ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(
+                    this, getStepId() + "." + scriptArtifact.getFilename());
+        }
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
+        for (ConnDevArtifactType scriptArtifact : valueModel.getObject()) {
             Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
             try {
                 ConnDevArtifactType script = scriptArtifact.clone();
                 WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
+                ConnDevArtifactValidationResult validation = getDetailsModel().getConnectorDevelopmentOperation()
+                        .validateArtifact(script, task, task.getResult());
+                if (!validation.ok()) {
+                    getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
+                            validation, script.getFilename(), getPageBase()));
+                    target.add(getFeedback());
+                    ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
+                            this, getStepId() + "." + script.getFilename(), validation, script.getFilename(), target);
+                    return false;
+                }
+                // Saved immediately (not after the whole batch validates) so that a later script
+                // in the same batch — e.g. a ConnId mapping referencing a schema attribute — is
+                // validated against this one as an already-deployed sibling, not just against
+                // whatever was on disk before this submit.
                 saveScript(script, task, task.getResult());
                 getDetailsModel().reloadPrismObjectByOid();
                 if (task.getResult() == null || task.getResult().isError()) {

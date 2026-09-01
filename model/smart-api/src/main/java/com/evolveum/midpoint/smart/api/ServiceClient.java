@@ -20,13 +20,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface ServiceClient extends AutoCloseable {
 
     /** Invokes the specified method on the remote microservice (or on its substitution) with the given request. */
-    <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException;
+    default <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException {
+        return invoke(method, request, responseClass, ClientCallContext.empty());
+    }
+
+    /** Invokes the specified method with caller-side context. */
+    <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass, ClientCallContext callContext)
+            throws SchemaException;
 
     /**
      * Asynchronously invokes the specified method on the remote microservice.
      * Returns a CompletableFuture that will complete with the response or exceptionally with SchemaException.
      */
-    <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass);
+    default <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass) {
+        return invokeAsync(method, request, responseClass, ClientCallContext.empty());
+    }
+
+    /** Asynchronously invokes the specified method with caller-side context. */
+    <REQ, RESP> CompletableFuture<RESP> invokeAsync(
+            Method method, REQ request, Class<RESP> responseClass, ClientCallContext callContext);
 
     /**
      * Returns AI provider and model info fetched from the remote service health endpoint.

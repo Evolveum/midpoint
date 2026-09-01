@@ -141,6 +141,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                     }
 
                     if (dto.getStatusInfo() != null) {
+                        dto.getStatusInfo().detach();
                         dto.getStatusInfo().reset();
                     } else {
                         LOGGER.debug("StatusInfo is null for DTO {}", dto);

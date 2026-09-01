@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.schema.policy.PolicyRuleIdentifier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -33,7 +34,7 @@ public class PreexistingValues implements DebugDumpable {
 
     private final @NotNull Map<ActivityPath, Integer> executionAttemptNumberMap;
 
-    /** Key is {@link ActivityPolicyRuleIdentifier#toString()}. Explained in {@link PreexistingValuesComputer#ruleCounters}. */
+    /** Key is {@link PolicyRuleIdentifier#asString()}. Explained in {@link PreexistingValuesComputer#ruleCounters}. */
     private final @NotNull Map<String, Integer> ruleCounters;
 
     private PreexistingValues(

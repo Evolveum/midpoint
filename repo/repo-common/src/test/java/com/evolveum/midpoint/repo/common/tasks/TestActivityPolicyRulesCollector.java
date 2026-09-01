@@ -11,6 +11,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -26,7 +30,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -113,16 +116,17 @@ public class TestActivityPolicyRulesCollector extends AbstractRepoCommonTest {
 
         when("virtual assignments are collected for the root activity and each embedded child");
         then("the root's virtual assignment is reported once everywhere, under the root's path");
-        assertThat(ActivityUtil.getAllVirtualAssignments(getRootActivity(task)))
+        var taskBean = task.getRawTaskObjectClonedIfNecessary().asObjectable();
+        assertThat(ActivityUtil.getAllVirtualAssignments(getRootActivity(task), taskBean))
                 .as("virtual assignments collected for the root activity")
                 .hasSize(1);
 
         for (Activity<?, ?> child : getChildren(task)) {
-            var virtualAssignments = ActivityUtil.getAllVirtualAssignments(child);
+            var virtualAssignments = ActivityUtil.getAllVirtualAssignments(child, taskBean);
             assertThat(virtualAssignments)
                     .as("virtual assignments collected for child '%s'", child.getIdentifier())
                     .hasSize(1);
-            assertThat(virtualAssignments.iterator().next().getRight())
+            assertThat(virtualAssignments.iterator().next().activityPath())
                     .as("path of the virtual assignment collected for child '%s' (must be the declaring parent's)",
                             child.getIdentifier())
                     .isEqualTo(ActivityPath.empty());
@@ -193,8 +197,9 @@ public class TestActivityPolicyRulesCollector extends AbstractRepoCommonTest {
     }
 
     private static List<ActivityPolicyRule> collectRules(Activity<?, ?> activity, Task task, OperationResult result)
-            throws ConfigurationException {
+            throws ConfigurationException, SchemaException, ObjectNotFoundException {
+        var originForEmbeddedRules = ConfigurationItemOrigin.undeterminedSafe(); // not important for these tests
         return ActivityPolicyRulesCollector.collectRules(
-                activity, task, CommonTaskBeans.get().objectResolver, result);
+                activity, originForEmbeddedRules, CommonTaskBeans.get().objectResolver, task, result);
     }
 }

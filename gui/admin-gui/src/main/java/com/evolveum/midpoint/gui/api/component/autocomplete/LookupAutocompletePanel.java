@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.component.autocomplete;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteTextRenderer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -16,8 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public class LookupAutocompletePanel<T> extends AutoCompleteTextPanel<T> {
 
-    public LookupAutocompletePanel(String id, IModel<T> model, Class<T> type, boolean strict, String lookupTableOid) {
-        super(id, model, type, strict, lookupTableOid);
+    public LookupAutocompletePanel(String id, IModel<T> model, Class<T> type, boolean strict, String lookupTableOid,
+            AbstractAutoCompleteTextRenderer<T> renderer) {
+        super(id, model, type, strict, lookupTableOid, renderer);
     }
 
     @Override

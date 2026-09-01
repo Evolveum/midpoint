@@ -119,7 +119,8 @@ public class SchemaMatchService {
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, options, null, task, result);
             var objectTypeStatistics = loadObjectTypeStats(resourceOid, typeIdentification, ctx.resource, ctx.typeDefinition, result);
             return doComputeSchemaMatch(
-                    serviceClient, ctx.objectClassDefinition, ctx.getFocusTypeDefinition(), ctx.resource, useAiService, objectTypeStatistics);
+                    serviceClient, ctx.objectClassDefinition, ctx.getFocusTypeDefinition(), ctx.resource, useAiService,
+                    objectTypeStatistics, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -158,7 +159,7 @@ public class SchemaMatchService {
                 throw new SchemaException("Focus type definition not found for " + focusTypeName);
             }
             return doComputeSchemaMatch(
-                    serviceClient, ctx.objectClassDefinition, focusTypeDefinition, ctx.resource, useAiService, null);
+                    serviceClient, ctx.objectClassDefinition, focusTypeDefinition, ctx.resource, useAiService, null, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -173,9 +174,11 @@ public class SchemaMatchService {
             PrismObjectDefinition<?> focusTypeDefinition,
             ResourceType resource,
             boolean useAiService,
-            ShadowObjectClassStatisticsType objectTypeStatistics)
+            ShadowObjectClassStatisticsType objectTypeStatistics,
+            Task task,
+            OperationResult result)
             throws SchemaException {
-        var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService);
+        var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService, task, result);
         var match = matchingOp.matchSchema(objectClassDef, focusTypeDefinition, resource);
 
         SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()

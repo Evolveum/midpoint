@@ -55,6 +55,18 @@ public class ItemsProgressInformation implements DebugDumpable, Serializable {
         return accumulator.toProgressInformation();
     }
 
+    /**
+     * Creates item progress information from a worker entry in the parent activity state overview.
+     *
+     * The entry contains worker-local item counters. Using these counters lets the GUI display
+     * processed object counts for worker rows instead of the parent/coordinator aggregate progress.
+     */
+    static @Nullable ItemsProgressInformation fromTaskOverview(@NotNull ActivityTaskStateOverviewType overview) {
+        Accumulator accumulator = new Accumulator();
+        accumulator.add(overview.getProgress());
+        return accumulator.toProgressInformation();
+    }
+
     static ItemsProgressInformation fromFullState(@NotNull ActivityStateType state,
             @NotNull ActivityPath activityPath, @NotNull TaskType task, @NotNull TaskResolver resolver) {
         if (BucketingUtil.isCoordinator(state)) {

@@ -2,7 +2,7 @@
 :page-nav-title: Value Policy
 :page-display-order: 3200
 :page-toc: top
-:page-keywords: [ 'rest', 'value', 'password', 'policy', 'endpoint' ]
+:page-keywords: rest, value, password, policy, endpoint
 :page-upkeep-status: green
 
 == Description

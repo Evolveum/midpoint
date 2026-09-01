@@ -81,7 +81,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
 
         WebMarkupContainer formContainer = new WebMarkupContainer(ID_FORM_CONTAINER);
-        formContainer.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
+        formContainer.add(new VisibleBehaviour(() -> isNoContainerFormVisible(nonContainerWrappers)));
         formContainer.add(AttributeAppender.append("class", getCssClassForFormContainer()));
         propertiesLabel.setOutputMarkupId(true);
         propertiesLabel.add(formContainer);
@@ -117,6 +117,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         removeButton.add(AttributeAppender.append("title", getString("VerticalFormDefaultContainerablePanel.removeValue")));
         removeButton.setOutputMarkupId(true);
         formContainer.add(removeButton);
+    }
+
+    protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+        return isShowMoreButtonVisible(nonContainerWrappers);
     }
 
     protected String getCssClassForFormContainer() {
@@ -280,6 +284,16 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                     return getCssClassForFormSubContainer();
                 }
                 return super.getCssClassForFormContainer();
+            }
+
+            @Override
+            protected boolean isShowMoreButtonVisible(IModel nonContainerWrappers, boolean defaultVisible) {
+                return VerticalFormDefaultContainerablePanel.this.isShowMoreButtonVisible(nonContainerWrappers);
+            }
+
+            @Override
+            protected boolean isNoContainerFormVisible(IModel nonContainerWrappers, boolean defaultVisible) {
+                return VerticalFormDefaultContainerablePanel.this.isNoContainerFormVisible(nonContainerWrappers);
             }
 
             @Override

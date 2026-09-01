@@ -97,9 +97,14 @@ class CorrelatorEvaluator {
                 },
                 null, ctx.task, result);
 
+        List<ItemPath> requiredResourcePaths = suggestions.stream()
+                .map(CorrelatorSuggestion::resourceAttrPath)
+                .filter(Objects::nonNull)
+                .toList();
+
         // Use correlation sampler for random shadow sampling
         List<PrismObject<ShadowType>> shadowSamples = samplerProvider.getCorrelationSampler(
-                ctx.typeDefinition, ctx.resource).sample(ctx.task, result);
+                ctx.typeDefinition, ctx.resource, requiredResourcePaths).sample(ctx.task, result);
 
         LOGGER.debug("Retrieved {} focus objects and sampled {} shadow objects", sampledFocuses.size(), shadowSamples.size());
 

@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author Radovan Semancik
  */
 @Component
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class)
+@ProcessorExecution(focusRequired = true, focusType = ProjectionHolderType.class)
 public class ProjectionValuesProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionValuesProcessor.class);
@@ -525,7 +525,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
             CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         IterationSpecificationType iterationSpec = getIterationSpecification(projCtx);
         if (iterationSpec == null) {
-            return LensUtil.formatIterationTokenDefault(iteration, 0);
+            return LensUtil.formatIterationTokenDefault(iteration, 0, true);
         }
         VariablesMap variables = createVariablesMap(context, projCtx);
         return LensUtil.formatIterationToken(

@@ -46,7 +46,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] |
 | inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] |  |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -121,6 +121,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | currentStageDeadline |  | xsd:dateTime |  |
 | currentStageOutcome |  | xsd:anyURI |  |
 | iteration |  | xsd:int |  |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | objectRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
 | orgRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
 | outcome |  | xsd:anyURI |  |
@@ -242,7 +243,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -393,6 +394,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | extension | Extension | tns:ExtensionType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | name | Name | t:PolyStringType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | objectRef | CaseType.objectRef | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
@@ -585,7 +587,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | extension | Extension | tns:ExtensionType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] |  |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType |  |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string |  |
 | locality | Locality | t:PolyStringType |  |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -669,7 +671,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | extension | Extension | tns:ExtensionType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -957,7 +959,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -1011,7 +1013,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] |
 | inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] |  |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -1029,6 +1031,21 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | tenantRef | Tenant | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | timezone | Timezone | xsd:string | xref:#_focustype[FocusType] |
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+|===
+
+
+
+[#_projectionholdertype]
+=== ProjectionHolderType
+
+Common parent of the xref:#_focustype[FocusType] and the xref:#_casetype[CaseType].
+In addition to the items inherited from the xref:#_assignmentholdertype[AssignmentHolderType], it defines the `linkRef` item (projections).
+
+[options="header", cols="10,10,18,30,12" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| linkRef | Projections | c:ObjectReferenceType |  |
 |===
 
 
@@ -1227,7 +1244,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -1328,7 +1345,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] | xref:#_abstractroletype[AbstractRoleType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_abstractroletype[AbstractRoleType]/ xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -1596,7 +1613,7 @@ Some recently added items, such as `personalNumber`, are only searchable in the 
 | honorificSuffix | Honorific Suffix | t:PolyStringType |  |
 | identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
-| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_projectionholdertype[ProjectionHolderType] |
 | locale | Locale | xsd:string | xref:#_focustype[FocusType] |
 | locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] |
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
