@@ -247,7 +247,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             ValidityPredefinedValueType value = (ValidityPredefinedValueType) object;
             DisplayType display = value.getDisplay();
             if (display != null && display.getLabel() != null) {
-                return WebComponentUtil.getTranslatedPolyString(display.getLabel());
+                return GuiDisplayTypeUtil.getTranslatedLabel(display);
             }
 
             return value.getDuration().toString();
