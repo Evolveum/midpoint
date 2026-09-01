@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.LocaleAutoCompleteRenderer;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -123,7 +123,7 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
                 SystemObjectsType.LOOKUP_LANGUAGES.value().equals(lookupTableOid);
     }
 
-    private LookupTableType getLookupTable(PageBase pageBase, String lookupTableOid) {
+    private LookupTableType getLookupTable(PageAdminLTE pageBase, String lookupTableOid) {
         return WebComponentUtil.loadLookupTable(lookupTableOid, pageBase);
     }
 }

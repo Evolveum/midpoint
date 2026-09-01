@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -205,7 +205,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
     }
 
     private IModel<List<DisplayableValue<ItemPathType>>> getChoices(
-            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapper, PageBase pageBase) {
+            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapper, PageAdminLTE pageBase) {
         return new LoadableDetachableModel<>() {
             @Override
             protected List<DisplayableValue<ItemPathType>> load() {
@@ -252,7 +252,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
     }
 
     private List<DisplayableValue<ItemPathType>> getAllAttributes(
-            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapperModel, PageBase pageBase) {
+            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapperModel, PageAdminLTE pageBase) {
 
         List<DisplayableValue<ItemPathType>> allAttributes = new ArrayList<>();
 

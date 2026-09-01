@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
@@ -543,7 +544,7 @@ public class ProvisioningObjectsUtil {
         }
     }
 
-    public static Collection<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase) {
+    public static Collection<QName> loadResourceObjectClassValues(ResourceType resource, PageAdminLTE pageBase) {
         try {
             ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
             if (schema != null) {

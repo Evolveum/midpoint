@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.qname;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
@@ -67,7 +67,7 @@ public class QNameAttributePanelFactory extends AbstractQNameWithChoicesPanelFac
     }
 
     private List<DisplayableValue<QName>> getAllAttributes(
-            IModel<? extends PrismValueWrapper<QName>> propertyWrapperModel, PageBase pageBase) {
+            IModel<? extends PrismValueWrapper<QName>> propertyWrapperModel, PageAdminLTE pageBase) {
 
         List<DisplayableValue<QName>> allAttributes = new ArrayList<>();
 
@@ -79,7 +79,7 @@ public class QNameAttributePanelFactory extends AbstractQNameWithChoicesPanelFac
     }
 
     protected List<? extends ShadowAttributeDefinition> getShadowAttributeDefinitions(
-            PrismValueWrapper<QName> propertyWrapper, PageBase pageBase) {
+            PrismValueWrapper<QName> propertyWrapper, PageAdminLTE pageBase) {
         ResourceSchema schema = ResourceDetailsModel.getResourceSchema(
                 propertyWrapper.getParent().findObjectWrapper(), pageBase);
 
