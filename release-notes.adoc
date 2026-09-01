@@ -36,8 +36,10 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 ++++
 
 == Changes with Respect To Version 4.9.8
+
 * Fixed GUI handling of business role duplication when role creation requires approval. See bug:MID-11784[]
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
+* Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 
 == Changes with Respect To Version 4.9.7
 
