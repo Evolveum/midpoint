@@ -31,6 +31,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 == Changes with Respect To Version 4.8.13
 
 * Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
+* Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 
 == Changes with Respect To Version 4.8.12
 
