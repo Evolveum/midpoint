@@ -95,7 +95,7 @@ By default, the system has 2 available responses:
     .. *Revoke* - The state is unacceptable and it should be fixed by removing the particular assignment.
 
 +
-If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions in xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration]):
+If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions in xref:/midpoint/reference/certification/certification-campaign-configuration/gui-configuration/actions/[GUI Action Configuration]):
 
     .. *Reduce* - The state is unacceptable but a simple assignment removal is not sufficient.
     This is useful in scenarios when you need to discuss the case to reach a solution.
