@@ -194,11 +194,11 @@ public class MidpointSaml2LogoutRequestResolver implements Saml2LogoutRequestRes
         cal.add(Calendar.MINUTE, 10);
         Date to = cal.getTime();
         X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
-                new X500Name("CN=MidPoint,O=Evolveum,L=,C="),
+                new X500Name("CN=MidPoint,O=Evolveum"),
                 privateKey.getCrtCoefficient(),
                 from,
                 to,
-                new X500Name("CN=MidPoint,O=Evolveum,L=,C="),
+                new X500Name("CN=MidPoint,O=Evolveum"),
                 subPubKeyInfo);
         return certBuilder;
     }
