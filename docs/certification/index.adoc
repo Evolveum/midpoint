@@ -73,7 +73,7 @@ If a reviewer cannot be assigned by the rules you specify, default reviewer is u
 
 The job of reviewers is to assess the certification cases assigned to them and carry out a decision within the time frame of the certification campaign stage.
 The decisions they can make are typically _accept_ and _reject_, but the available choices can be configured.
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/certification-campaign-configuration/gui-configuration/actions/[] for details about the available choices.
+Refer to xref:/midpoint/reference/certification/certification-campaign-configuration/gui-configuration/actions/[] for details about the available choices.
 
 === Stages
 
@@ -90,7 +90,7 @@ If, for example, you set that multiple people need to agree unanimously on a sol
 
 You can configure which cases get passed to the next stage.
 By default, only unresolved and accepted cases are transferred for further examination.
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[].
+Refer to xref:/midpoint/reference/certification/determining-case-outcome/[].
 
 === Time frame
 
@@ -108,7 +108,7 @@ After remediation, campaign can be closed.
 When some cases remain unresolved after the whole campaign ends, it is possible to reiterate the campaign.
 Campaign reiteration means that midPoint takes only the unresolved cases and runs them through the whole certification campaign anew.
 Reiteration gives another chance to reviewers who, for example, have not decided in time.
-Refer to xref:/midpoint/reference/roles-policies/policies/certification/iteration/[].
+Refer to xref:/midpoint/reference/certification/iteration/[].
 
 
 == Terminology

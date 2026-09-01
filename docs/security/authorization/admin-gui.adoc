@@ -614,7 +614,7 @@ use #selfRequestAssignments instead
 
 == Access certification actions
 
-Please see xref:/midpoint/reference/roles-policies/policies/certification/authorization/[Access Certification Security] for detailed list.
+Please see xref:/midpoint/reference/certification/authorization/[Access Certification Security] for detailed list.
 
 == See also:
 
