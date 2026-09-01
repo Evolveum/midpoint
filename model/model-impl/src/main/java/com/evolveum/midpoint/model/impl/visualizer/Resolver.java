@@ -76,7 +76,7 @@ public class Resolver {
                         provisioningService.applyDefinition(object, task, result);
                     } catch (
                             ObjectNotFoundException | CommunicationException | ConfigurationException |
-                            SubscriptionComplianceException e) {
+                                    SubscriptionComplianceException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
                                 ObjectTypeUtil.toShortString(object));
                     }
@@ -91,7 +91,7 @@ public class Resolver {
                     } catch (ObjectNotFoundException e) {
                         //ignore when object doesn't exist
                     } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                             SecurityViolationException | SubscriptionComplianceException e) {
+                            SecurityViolationException | SubscriptionComplianceException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                         warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                     }
@@ -123,8 +123,11 @@ public class Resolver {
                 if (managedByProvisioning && canApplyDefinition(objectDelta)) {
                     try {
                         provisioningService.applyDefinition(objectDelta, task, result);
-                    } catch (Throwable t) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", t, objectDelta);
+                    } catch (ObjectNotFoundException e) {
+                        LOGGER.warn("Couldn't apply definition on {} -- object not found (for more details run in debug mode)", objectDelta.getOid());
+                        LOGGER.debug("Couldn't apply definition on {} -- object not found", objectDelta, e);
+                    } catch (Exception e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e, objectDelta);
                     }
                 }
             }
@@ -152,7 +155,7 @@ public class Resolver {
                             result.recordHandledError(e);
                             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
                         } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
-                                 SecurityViolationException | SubscriptionComplianceException e) {
+                                SecurityViolationException | SubscriptionComplianceException e) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
                             warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
                         }

@@ -2943,6 +2943,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         ProcessedObjectImpl<O> parsed = ProcessedObjectImpl.parse(bean);
         try {
             parsed.applyDefinitions(task, result);
+        } catch (ObjectNotFoundException e) {
+            LOGGER.debug("Couldn't apply definitions on {} because the object was not found: {}", parsed, e.getMessage());
         } catch (CommonException e) {
             LoggingUtils.logException(LOGGER, "Couldn't apply definitions on {}", e, parsed);
         }

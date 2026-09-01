@@ -37,8 +37,8 @@ import java.util.List;
 public class VisualizationUtil {
 
     public static Visualization visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
-                                                          PrismContext prismContext, ModelInteractionService modelInteractionService,
-                                                          ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            PrismContext prismContext, ModelInteractionService modelInteractionService,
+            ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         List<Visualization> visualizations = new ArrayList<>();
         if (deltas != null) {
             if (deltas.getFocusPrimaryDelta() != null) {
@@ -54,8 +54,8 @@ public class VisualizationUtil {
     }
 
     public static Visualization visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,
-                                                         PrismContext prismContext, ModelInteractionService modelInteractionService,
-                                                         ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            PrismContext prismContext, ModelInteractionService modelInteractionService,
+            ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         List<Visualization> visualizations = new ArrayList<>();
         if (objectDeltaType != null) {
             ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);

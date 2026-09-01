@@ -281,7 +281,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
             return objectDefinition;
         } catch (ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | SchemaException |
-                 SubscriptionComplianceException e) {
+                SubscriptionComplianceException e) {
             result.recordException(e);
             throw e;
         } finally {
@@ -301,7 +301,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             try {
                 resource = provisioning.getObject(ResourceType.class, resourceOid, readOnly(), task, result);
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException
-                     | SubscriptionComplianceException e) {
+                    | SubscriptionComplianceException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
             ResourceObjectDefinition resourceObjectDefinition =
@@ -523,7 +523,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             securityConstraints = securityEnforcer.compileSecurityConstraints(
                     focus, true, SecurityEnforcer.Options.create(), task, result);
         } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
-                 SecurityViolationException | SubscriptionComplianceException e) {
+                SecurityViolationException | SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -981,7 +981,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         try {
             status = provisioning.getConnectorOperationalStatus(resourceOid, task, result);
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
-                 ExpressionEvaluationException | SubscriptionComplianceException e) {
+                ExpressionEvaluationException | SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -1004,8 +1004,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return mergeDeltas;
 
         } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
-                 CommunicationException | SecurityViolationException | RuntimeException | Error |
-                 SubscriptionComplianceException e) {
+                CommunicationException | SecurityViolationException | RuntimeException | Error |
+                SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -1040,8 +1040,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return objectLeft;
 
         } catch (ObjectNotFoundException | SchemaException | ConfigurationException | ExpressionEvaluationException |
-                 CommunicationException | SecurityViolationException | RuntimeException | Error |
-                 SubscriptionComplianceException e) {
+                CommunicationException | SecurityViolationException | RuntimeException | Error |
+                SubscriptionComplianceException e) {
             result.recordFatalError(e);
             throw e;
         }

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.page.error.PageError404;
 
 import org.apache.commons.lang3.StringUtils;
@@ -63,9 +64,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedIconColumn;
@@ -103,6 +101,7 @@ public class SimulationsGuiUtil {
 
         return label;
     }
+
     /**
      * Note: only simulation event marks (eventMarkRef) are handled here.
      * Policy statement marks (e.g. Protected) are stored on the live object via policyStatement/markRef
@@ -250,11 +249,11 @@ public class SimulationsGuiUtil {
                 displayName = getProcessedShadowName((ShadowType) obj, page);
             } catch (IllegalStateException ex) {
                 displayName = translate("ProcessedObjectsPanel.unknown.or.unavailable");
-                LOGGER.warn("Couldn't create processed shadow displayName; shadow data is probably incomplete or unavailable", ex);
+                LOGGER.debug("Couldn't create processed shadow displayName; shadow data is probably incomplete or unavailable", ex);
             } catch (SystemException ex) {
                 LOGGER.debug("Couldn't create processed shadow displayName", ex);
             }
-        }  else {
+        } else {
             displayName = WebComponentUtil.getDisplayName(obj.asPrismObject());
         }
 
@@ -488,7 +487,6 @@ public class SimulationsGuiUtil {
             @Override
             protected SimulationResultProcessedObjectType load() {
                 Task task = pageBase.getPageTask();
-
 
                 if (simulationResultProcessedObjectId == null) {
                     throw new RestartResponseException(PageError404.class);
