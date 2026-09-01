@@ -232,10 +232,6 @@ public class SchemaMatchService {
                 .type(getTypeName(shadowAttrDef))
                 .minOccurs(shadowAttrDef.getMinOccurs())
                 .maxOccurs(shadowAttrDef.getMaxOccurs());
-        //TODO this is a nasty hack for MCM demo, remove later.
-        if (isLdapResource(resource)) {
-            applicationAttrDefBean.setMaxOccurs(1);
-        }
         var midPointPropertyDefBean = createAttributeDefinition(
                 focusPropPath, focusPropDef, focusTypeDefinition);
 
@@ -299,20 +295,6 @@ public class SchemaMatchService {
         }
     }
 
-    //TODO this is a nasty hack for MCM demo, remove later.
-    private boolean isLdapResource(ResourceType resource) {
-        var connectorRef = resource.getConnectorRef();
-        if (connectorRef == null) {
-            return false;
-        }
-        if (connectorRef.getObject() != null && connectorRef.getObject().getRealValue() instanceof ConnectorType connector) {
-            String bundle = connector.getConnectorBundle();
-            String type = connector.getConnectorType();
-            return (bundle != null && bundle.toLowerCase().contains("ldap"))
-                    || (type != null && type.toLowerCase().contains("ldap"));
-        }
-        return false;
-    }
 
     /**
      * Saves the schema match result as a generic object. Deletes any existing schema match objects
