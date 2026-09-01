@@ -16,7 +16,7 @@
 @import "bootstrap-variables-merges";
 
 @import "../../../node_modules/bootstrap/scss/mixins";
-@import "../../../node_modules/bootstrap/scss/bootstrap";
+// AdminLTE compiles Bootstrap internally, importing full Bootstrap separately would duplicate its CSS.
 @import "../../../node_modules/admin-lte/src/scss/adminlte";
 
 @import "../../../node_modules/bootstrap5-toggle/dist/bootstrap5-toggle.css";
