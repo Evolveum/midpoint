@@ -7,7 +7,7 @@ doc-type: intro
 :page-nav-title: Architecture
 :page-toc: top
 :page-display-order: 10
-:page-keywords: [ 'dashboard', 'dashboards', 'architecture' ]
+:page-keywords: dashboard, dashboards, architecture
 :page-upkeep-status: green
 
 Connect the dots before building dashboards and understand how dashboards are built from individual widgets or what are the roles of object collections and other midPoint components involved.
