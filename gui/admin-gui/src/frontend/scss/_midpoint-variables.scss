@@ -20,11 +20,13 @@
 @import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins/breakpoints.scss";
 
 $grid-breakpoints: map-merge($grid-breakpoints, (
-        xxl: 1650px
+        xxl: 1650px,
+        3xl: 1800px
 ));
 
 $container-max-widths: map-merge($container-max-widths, (
-        xxl: 1600px
+        xxl: 1600px,
+        3xl: 1799.98px
 ));
 
 $theme-colors: map-merge(

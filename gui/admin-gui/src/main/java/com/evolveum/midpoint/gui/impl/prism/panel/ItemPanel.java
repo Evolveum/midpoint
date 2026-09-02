@@ -116,7 +116,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         if (getSettings() != null && getSettings().isDisplayedInColumn()) {
             return "col-12";
         }
-        return "col-xl-10 col-md-8 col-xs-12";
+        return "col-3xl-9 col-xxl-8 col-xl-7 col-md-6 col-xs-12";
     }
 
     protected IModel<List<VW>> createValuesModel() {
