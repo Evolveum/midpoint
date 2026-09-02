@@ -498,6 +498,10 @@ body.custom-hold-transition {
     & > .card-header {
       border-bottom-right-radius: valid-radius($border-radius);
       border-bottom-left-radius: valid-radius($border-radius);
+
+      a, .btn-tool {
+        color: inherit;
+      }
     }
 
     &:not(:has(> .card-body)) > .card-header {
