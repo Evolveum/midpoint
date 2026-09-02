@@ -9,46 +9,408 @@ doc-type: guide
 
 This document provides guidance for migration of script expression from legacy scripting languages (Groovy, etc.) to midPoint expression language (MEL).
 
-== MEL and Java
+== MEL is not Java
 
 MEL is an _expression_ language.
 The language was designed to implement simple expressions which compute a value.
-Computing a value is the entire purpose of MEL.
+In fact, entire purpose of MEL expression is computing a value.
 
 Unlike Java, Groovy or Python, MEL is _not_ an imperative language.
 MEL does not execute a sequence of commands.
-MEL expressions are _functional_ in nature.
-Result value is computed by a function, arguments of that function are result of different functions and so on.
+MEL expressions are _functional_ in nature (_functional_ as in _functional programming_).
+Result value is computed by a _function_, arguments of that function may be a result of different functions and so on, and so on.
 
-MEL is not Turing-complete - by purpose.
-We want MEL to be secure, which means that MEL has to be constrained.
+MEL is not a universal all-powerful Turing-complete language - by purpose.
+We want MEL to be _secure_, which means that MEL has to be constrained.
+Only a limited functionality is available to MEL expressions.
 Java classes and libraries are intentionally _not_ exposed to MEL expressions.
 There is a lot of bad things that can happen when a rich environment is available to expressions.
-Only a carefully selected set of functions is available to MEL.
+MEL expressions can use only a carefully selected set of safe functions.
 
-This way of thinking may look a bit odd at the first sight if you are used to imperative programming language such as Groovy or Java.
-_Expressions_ are not like that.
-However, MEL expressions has numerous benefits, and the language will look very natural once you get used to it.
+This way of thinking may look a bit odd at the first sight if you are used to powerful imperative programming language such as Groovy or Java.
+_Expressions_ are quite different.
+However, MEL has numerous benefits, and the language will look very natural once you get used to it.
 Just write the expression to compute and return a value.
 Let midPoint do the rest: all the iterations, type conversions, delta computations, retries and all the other stuff, both mundane and smart.
 That is what midPoint was built for.
 
+// TODO: Complex expressions may not be possible in MEL - and that is a good thing.
+
 == Security
 
-MEL is designed for security. Unlike Groovy, access to functionality is strictly controlled.
-Only very limited functionality is provided.
+MEL is _designed to be secure_.
+MEL expressions can use only the safe operations that are provided to them and nothing else.
+In that respect, MEL is very unlike Groovy, which exposes almost the entire Java environment to the script.
+MEL is the exact opposite.
+All mel operators and functions are designed to be secure.
+In fact, the entire expression language environment is designed to contain the expression within secure constraints.
 
-No side effects!
+This means that MEL is _not_ Turing-complete language - by its very design.
+There are no loops or similar flow control constructs, which means that an expression cannot even create an infinite loop to mount a _denial of service (DoS)_ attack.
 
-Complex expressions may not be possible in MEL - and that is a good thing.
+TIP: Even though there are no loops, this does not mean that you cannot deal with lists and multivalued data.
+Functions and macros such as `filter` and `map` provide very efficient and elegant means for list processing.
+In addition to that, there is the good old conditional operator (`?:`).
+
+MEL is designed in such a way that allows to expose the ability to write expressions even to users that cannot be fully trusted.
+Delegated administrators of roles and organizational units, owners of policies, designers of reports, maintainers of dashboards, customizers of the user interface - all such users can use MEL expressions without the risk of compromising system security.
+
+WARNING: The fact that MEL is a secure environment does not mean that you should grant ability to create expressions too liberally.
+MEL expressions are designed not to cause any harm by means of their execution.
+However, this does not mean that the return value provided by the expression cannot do any harm.
+Even a simple expression which always returns `true` can have serious consequences, e.g. in case that it is used as a xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[role autoassignment] expressions, assigning a dangerously powerful role to all users.
+Expressions are often implementing policies, and policies can be powerful.
+Always be mindful regarding the purpose of the expression and potential consequences it can have.
 
 == Flow Control
 
-if-then-else -> ?: operator
+Strictly speaking, expressions do not have any "flow", therefore there are no flow control mechanisms in MEL.
+Flow control is not necessary for expression evaluation.
+MEL functions are supposed to be _free of any side effects_, therefore exact order of their execution or repetition of execution is not important.
+Individual operators, functions and macros are executed in the order dictated by the structure of the expression, determined by CEL compiler and runtime.
 
-Use list functions/macros instead of loops.
+=== Conditionals
 
-Examples.
+The fact that there is no flow control does not mean that the expressions cannot handle conditions.
+There is a _conditional_ operator (`?:`) which can be used to branch evaluation of expression according to condition.
+
+.Conditional operator
+[source]
+----
+condition ? true branch : false branch
+----
+
+This operator works almost exactly as _if-then-else_ construct in Groovy.
+If the condition evaluates to `true`, the first branch will be evaluated and that value will be provided as a result of the conditional statement.
+If the condition evaluates to `false`, the other branch will be evaluated.
+Conditionals can be used for variety of purposes, such as conditional formatting:
+
+[source,mel]
+----
+isPresent(givenName) ? familyName + ', ' + givenName : familyName
+----
+
+This expression formats name in "reversed" form, such as `Doe, John`.
+However, it also handles case of mononyms, correctly formatting names such as `Teller`.
+
+Conditional expressions can be confusing, especially if it contains several nested conditionals.
+However, MEL expressions can be written as multi-line expressions.
+Clever indentation of the expression can make it much more readable (and make it look a bit like Python):
+
+[source,mel]
+----
+isPresent(givenName)
+    ? familyName + ', ' + givenName
+    : familyName
+----
+
+[NOTE]
+====
+Conditional operator needs to have the same datatype in both branches.
+E.g. both the _true branch_ and _false branch_ must return string value.
+While this usually does not make any problems, there may be issues in MEL expressions that combine _strings_ and _polystrings_ in the branches.
+E.g. following expression would fail:
+
+.Wrong expression
+[source,mel]
+----
+isPresent(fullName) ? fullName : 'John Doe'
+----
+
+The reason for the failure is that the type of `fullName` is _polystring_, which causes a mismatch of conditional branches data types.
+This can be solved by explicitly converting `fullName` to string:
+
+.Correct expression
+[source,mel]
+----
+isPresent(fullName) ? str(fullName) : 'John Doe'
+----
+
+However, in this case it is even easier to take advantage of the `default()` function:
+
+[source,mel]
+----
+default(fullName, 'John Doe')
+----
+====
+
+=== Beyond Conditionals
+
+While conditionals look straightforward, they tend to complicate the expressions.
+Especially if several nested conditionals are used in an expression, the code tends to become unreadable.
+While such practice is common in structured imperative languages such as Groovy or Python, this practice is not entirely desirable in MEL.
+
+In MEL, it is recommended to avoid use of conditionals whenever possible.
+Several methods to avoid use of conditional operators are described in following paragraphs.
+
+Default values can be set by using `default()` or `stringify()` functions:
+
+[source,mel]
+----
+default(fullName, 'John Doe')
+stringify(fullName, 'John Doe')
+----
+
+If an expression expects a single-value list, such list can be converted to scalar value using `single()` function without additional checks:
+
+[source,mel]
+----
+single(focus.assignment)
+----
+
+=== Loops
+
+MEL has no mechanisms for implementing loops as we know them from imperative languages.
+Loops are potentially dangerous, as they can form infinite loop, which may cripple the system.
+However, in midPoint expressions, loops are mostly used to process multi-valued data.
+MEL expressions can handle that in a very elegant way by using list operations (e.g. `map` and `filter`).
+
+The `filter()` operation checks all elements of a list, and returns those that match specified condition.
+For example, following expression returns all assignments whose target is a role.
+
+[source,mel]
+----
+focus.assignment.filter(a, a.isTargetRole())
+----
+
+The `map()` operation can be used to transform all values of a list.
+For example, the following expression transforms all assignments, returning their descriptions.
+The expression returns a list of descriptions of all assignments of an object.
+
+[source,mel]
+----
+focus.assignment.map(a, a.description)
+----
+
+The `filter()` and `map()` operations are often combined.
+For example, following expression returns descriptions of all assignments whose target is a role.
+
+[source,mel]
+----
+focus.assignment.filter(a, a.isTargetRole()).map(a, a.description)
+----
+
+As MEL expressions can be written on multiple lines, a nicer form of the expression is recommended.
+
+[source,mel]
+----
+focus.assignment
+    .filter(a, a.isTargetRole())
+    .map(a, a.description)
+----
+
+The combination of `filter()` and `map()` is so common, that there is even a shortcut to combine both into a single `map()` operation.
+
+[source,mel]
+----
+focus.assignment.map(a, a.isTargetRole(), a.description)
+----
+
+There are other macros such as `all`, `exists` and `exsists_one`.
+See xref:../specification/[full MEP specification] for the details.
+
+TIP: List operations may look like loops, but they are not.
+Such operations are based on finite list (e.g. search results or a list of fixed number of attempts),
+which guarantees that expression evaluation terminates eventually.
+There are no infinite loops in MEL.
+
+Another common usage of loops in midPoint expressions is _iteration_, e.g. finding a unique value.
+Even though MEL does not have loops, it is not really a problem, as midPoint can make iterations for you.
+xref:/midpoint/reference/concepts/iteration/[Native midPoint iterative mechanisms] should be used whenever possible,
+which avoids the need for iteration inside MEL expression.
+
+If iteration in the expression is still necessary, different scripting language must be used (e.g. Groovy),
+which may bring security, reliability and performance consequences.
+
+In case some form of limited iteration is really necessary, it can be implemented by using finite list of "attempts" and list operations.
+For example:
+
+[source,mel]
+----
+['1', '2', '3', '4', '5'].map(x, baseUsername + x).filter(u, expression to check uniqueness of u)
+----
+
+However, this approach should be used only as a last resort measure.
+Built-in midPoint xref:/midpoint/reference/concepts/iteration/[iteration mechanism] should be used whenever possible.
+
+== Multivalue Data
+
+Multi-valued items of midPoint objects behave as lists.
+E.g. expression `focus.assginemnt` evaluates to a _list_ of all assignments that the focus has.
+The macros above can be applied to multi-valued items.
+E.g. following expression returns a list of OIDs from `targetRef` of all assignments that have `targetRef` specified:
+
+[source,mel]
+----
+focus.assignment.map(a, isPresent(a.targetRef), a.targetRef.oid)
+----
+
+Multi-valued items are always represented as lists in MEL expressions, even if they are empty or they contains just a single value.
+This approach is necessary for consistency.
+However, it is often the case that a property or return value of a function is formally multi-valued, yet there is additional logic or convention due to which there is always at most one value.
+In such a case there is a `single()` function which converts a list to a scalar value.
+It can be very handy, especially with other functions which return lists:
+
+[source,mel]
+----
+single(resource.connectorConfiguration('host'))
+----
+
+Even though the `connectorConfiguration()` function always return list, `host` configuration property of most connectors is single-valued.
+Therefore, the `single()` function can reliably convert list return value to a scalar string.
+
+== Strings and Polystrings
+
+String is perhaps the most frequently used data type in midPoint expressions.
+In MEL, string literals are written using apostrophes:
+
+[source,mel]
+----
+'foobar'
+----
+
+Addition operator can be used to concatenate strings, in almost the same way as in Groovy:
+
+[source,mel]
+----
+'foo' + 'bar'
+----
+
+There are many functions that can be invoked on strings (as _member_ functions) or using strings (as _global_ functions):
+
+[source,mel]
+----
+ascii('Semančík')
+'foobar'.contains('foo')
+isBlank('bar')
+size('foobar')
+----
+
+xref:/midpoint/reference/concepts/polystring/[Polystrings] work in almost the same way as strings.
+When a polystring is used instead of string, its `orig` part is used, almost the same way as in Groovy.
+
+[source,mel]
+----
+focus.familyName + ', ' + focus.givenName   // Returns: Semančík, Radovan
+----
+
+Unlike Groovy, even comparison of strings ale polystrings works well in MEL.
+
+[source,mel]
+----
+focus.givenName == 'Jack'
+----
+
+Polystrings also work as structured object, with `orig` and `norm` parts.
+E.g. the following expression is using `norm` part of the polystrings to generate a username:
+
+[source,mel]
+----
+focus.givenName.norm.substring(0,1) + focus.familyName.norm
+----
+
+While polystrings work just like strings in most cases, there are some exceptions.
+CEL language is quite sensitive about correct data types.
+In some cases, expression evaluation may fail if strings and polystrings are mixed.
+Is such cases the polystrings need to be explicitly converted to strings.
+
+Three methods are available when polystrings (or any other data type) need to be converted to strings:
+
+[%autowidth]
+|===
+| Function | Purpose | Description | Recommended Use
+
+| `str()`
+| Nullable string conversion
+| Converts any data type to string.
+When a `null` value is provided as an argument, `null` value is returned.
+| Type conversions, e.g. in conditionals (`?:`) and mappings.
+
+| `stringify()`
+| Non-null string conversion
+| Formats any data type as string.
+Always returns string.
+When a `null` value is provided as an argument, default string is returned instead (usually empty string).
+| Output formatting (custom table columns/reports), string concatenation (avoids ugly "null" strings in output).
+
+| `string()`
+| Stock CEL data conversion
+| This is default type conversion provided by CEL.
+It only works with some data types.
+It does not handle `null` values well.
+| Almost never.
+It exists just because it came with CEL.
+
+|===
+
+See xref:../specification/[full MEP specification] for the details.
+
+== Structured Data
+
+Object structure can be accessed in mel using the selection operator (`.`) (a.k.a. _dot convention_).
+Following expression returns value of `name` property of the object stored in `focus` xref:/midpoint/reference/expressions/variables/[variable].
+
+[source,mel]
+----
+focus.name
+----
+
+Access to structured data can be nested.
+Following code returns value of `administrativeStatus` property located inside `activation` container, located in user object stored in variable `focus`.
+
+[source,mel]
+----
+focus.activation.administrativeStatus
+----
+
+Alternatively, _index operator_ (`[]`) can be used to access structured data:
+
+[source,mel]
+----
+focus['name']
+----
+
+Structure of the data is dictated by xref:/midpoint/reference/schema/common-data-model/[midPoint schema].
+
+WARNING: The Jave-like _getter_ convention does not work in MEL.
+E.g. `focus.getName()` will not work, use simple `focus.name` instead.
+Similarly, polystrings do not have `getOrig()` or `getNorm()` functions, use `x.orig` and `x.norm` fields instead.
+
+Access to extension items of objects is facilitated by an `extension` container.
+Object extension can be accessed directly, there is no need for any specialized function (such as `basic.getExtensionPropertyValues()` in Groovy).
+E.g. extension attribute `ship` of the object stored in the `focus` variable can be accessed as follows:
+
+[source,mel]
+----
+focus.extension.ship
+focus.extension['ship']
+----
+
+When working with midPoint (prism) objects, both strings and qnames can be used as indexes.
+String indexes work reliably, as long as there is no local name ambiguity in extensions.
+
+Similar approach works with xref:/midpoint/architecture/concepts/shadow/[shadow attributes] as well:
+
+[source,mel]
+----
+projection.attributes.cn
+projection.attributes['cn']
+----
+
+The `isPresent()` function can be used for tests regarding presence of value:
+
+[source,mel]
+----
+isPresent(foo)
+----
+
+The `isPresent()` function returns true value in case that the variable `foo` has value, i.e. it is not null.
+The `isPresent()` function works on plain data (variables) as well as structured data:
+
+[source,mel]
+----
+isPresent(focus.fullName)
+----
 
 == Variables
 
@@ -71,6 +433,72 @@ There is a new variable available to MEL expressions:
 * Variable `now` contains current timestamp.
 It is a fixed timestamp of an approximate moment of the script execution.
 Value of the variable does not change during script execution.
+
+=== Local Variable Binding
+
+MEL has a distinct character of _functional programming_ language.
+Local variables are not usually used in functional programming.
+This may be a major culture shock for programmers used to imperative languages such as Groovy.
+However, the fact is that there is usually no need for local variables in MEL.
+
+When a local variable is necessary, `cel.bind` macro may be used.
+It binds result of an expression to a local variable name:
+
+`cel.bind(_variable_, _value expression_, _result expression_)`
+
+Usual use of `cel.bind` macro is to avoid repetition of an expensive computation.
+For example:
+
+[source,mel]
+----
+cel.bind(x, expensiveComputation(), x > 0 ? x * 100 : 0)
+----
+
+In this case the `expensiveComputation()` is evaluated only once, with the result stored in local variable `x`.
+Subsequent expression can use variable `x` in its computation.
+
+== Null Values
+
+Unlike Groovy or Python, `null` values are usually handled completely transparently in MEL.
+For example, following expression is supposed to work reliably even in presence of `null` values.
+
+[source,mel]
+----
+focus.givenName.substring(0,1).uc() + focus.familyName.substring(0,1).uc()
+----
+
+The expression returns user's initials in upper case.
+The expression works even in presence of `null` values.
+E.g. it returns only one initial in case that either `givenName` or `familyName` is not set.
+The expression returns `null` if `focus` is `null`.
+
+No extra checks for `null` values or no extra operators (such as `?.` in Groovy) are (usually) necessary.
+
+When computing a default value for an item, it is strongly recommended to use `default()` function.
+
+[source,mel]
+----
+default(focus.fullName, 'John Doe')
+----
+
+Similarly, `stringify()` function can be used to convert any value to string without need for explicit checks.
+This function always returns string,
+
+[source,mel]
+----
+stringify(focus.extension.foobar)
+----
+
+These functions are designed to robustly handle all the strange and corner cases, such as value not present, it is `null`, it is an empty list, and so on.
+
+Explicit checks for `null` values or presence of values may be needed in rare cases.
+E.g. some MEL operators may not be able to work with `null` values, such as addition operator (`+`) when dealing with numeric values.
+For that purpose there is `isPresent()` functions which is designed to work reliably in all cases.
+
+[source,mel]
+----
+isPresent(focus.activation.activationStatus)
+----
 
 == Built-In Function Library Extensions
 
@@ -137,7 +565,7 @@ norm(log.debug('Original name: {}', input))
 ----
 
 * `midpoint` library is reworked as MEL language extension.
-Most of the functions of the original `midpoint` library are available as MEL functions, using `midpoint` prefix:
+Safe functions of the original `midpoint` library are available as MEL functions, using `midpoint` prefix:
 +
 [source,mel]
 ----
@@ -150,8 +578,7 @@ The function arguments were adapted to MEL environment, e.g. using strings or QN
 Some functions of the original built-in libraries are not available in MEL.
 There are several reasons for this:
 
-* MEL is heavily based on common expression language (CEL), which is an _expression_ language.
-Individual parts of the expressions are not supposed to cause side effects.
+* As MEL is an _expression_ language, individual parts of the expressions are not supposed to cause side effects.
 Therefore, functions that cause significant side effects are not available in MEL.
 For example, `midpoint.modifyObject(...)` and similar functions are not available in MEL,
 and there are no plans to support them.
@@ -175,21 +602,51 @@ Such functions are likely to appear in the future versions of midPoint, albeit t
 
 == Custom Function Libraries
 
-// TODO: Remember, no side effects!
+Functions from custom xref:/midpoint/reference/expressions/function-libraries/[expression function libraries] can be easily invoked from MEL.
+The function can be invoked by combining name of the library with name of the function.
+Following expression is invoking function `determineOrg()` from function library `mylib`, using `foo` as arguments.
+
+[source,mel]
+----
+mylib.determineOrg(foo)
+----
+
+The expression above is using simplified notation, which works for custom function that has at most one argument.
+As arguments of functions in custom function libraries are referencing the parameters by _name_ rather than their position, functions that have more than one argument need to use _map_ to specify parameter values:
+
+[source,mel]
+----
+mylib.generateIdentifier({ 'prefix': 'X', 'length': 10 })
+----
+
+The expression above invokes custom function `generateIdentifier()` with two parameters.
+Parameter `prefix` with value `X` and parameter `length` with value `10`.
+
+Unlike Groovy, custom function libraries can be invoked directly in MEL.
+There is no need to use a specialized function, such as `mylib.execute('generateIdentifier', ...)`.
+
+[WARNING]
+====
+Functional expression languages such as MEL/CEL are based on an assumption that functions as well as other operations are _free of any side effects_.
+I.e. the functions are supposed to be _idempotent_: no matter how many times they are executed, they produce the same result.
+This feature is important for consistency of expression evaluation, as the sequence of evaluation of individual functions or other operations is determined by CEL runtime.
+It is important to keep that in mind when creating custom function libraries that are meant to be invoked by MEL expressions.
+
+As a rule of thumb, the library function should _not_ make any modifications or change the state of midPoint repository.
+This is technically possible, as custom function in a custom library invoked by a MEL expression may be implemented in any scripting language, including unsafe languages such as Groovy.
+However, great care must be taken to avoid functions with side effects.
+CEL interpreter is not constrained regarding the sequence or multiplicity of function invocation.
+It may invoke functions several times, in any order, as long as the computation is correct.
+Correctness of the computation depends on the assumption that functions invoked from MEL are free from side effects.
+====
 
 == Combining MEL and Groovy
 
-TODO: "Semi-secure" configuration.
-
-== TODO
-
-TODO: use of single(), e.g.
-single(projection.primaryIdentifiers())
-
-TODO: binding
-
-TOOD: null values, optionals (e.g. `[? 'name']`)
+// TODO: "Semi-secure" configuration.
 
 
 == See Also
 
+* xref:../introduction/[MidPoint Expression Language Introduction]
+* xref:../specification/[MidPoint Expression Language Specification]
+* xref:../troubleshooting/[Troubleshooting MidPoint Expression Language]
