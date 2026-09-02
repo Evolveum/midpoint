@@ -452,6 +452,11 @@ public class StatisticsService {
             var statistics = computer.getStatistics()
                     .coverage(1.0f)
                     .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+            if (statistics.getSize() == 0) {
+                LOGGER.debug("No objects found, skipping object type statistics object creation for {}/{}/{}",
+                        resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
+                return statistics;
+            }
             var statsObject = ShadowObjectTypeUtil.createObjectTypeStatisticsObject(
                     resourceOid, resourceName,
                     typeIdentification.getKind().value(), typeIdentification.getIntent(),

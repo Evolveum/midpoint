@@ -160,6 +160,11 @@ public class ObjectTypeStatisticsComputationActivityRun
                 .coverage(1.0f) // TODO: compute coverage properly
                 .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
+        if (statistics.getSize() == 0) {
+            logger.debug("No objects found, skipping statistics object creation");
+            return;
+        }
+
         var statisticsObject = createObjectTypeStatisticsObject(
                 resource.getOid(),
                 resource.getName().getOrig(),
