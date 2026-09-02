@@ -35,6 +35,9 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.9.9
+* Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
+
 == Changes with Respect To Version 4.9.8
 
 * Updated multiple libraries, mainly spring-boot, tomcat, postgresql, multiple NPM dependencies.

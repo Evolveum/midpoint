@@ -138,9 +138,16 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         OperationResult result = context.getResult();
 
         try {
-            PrismObjectDefinition<O> objectDef = context.isSuppliedObjectFromAuthorizedCase()
-                    ? getModelInteractionService().getEditObjectDefinitionForPreauthorizedObject(object, phase, task, result)
-                    : getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
+            PrismObjectDefinition<O> objectDef;
+            if (context.isSuppliedObjectFromAuthorizedCase()) {
+                objectDef = getPrecomputedEditSecurityDefinition(context);
+                if (objectDef == null) {
+                    objectDef = getModelInteractionService().getEditObjectDefinitionForPreauthorizedObject(object, phase, task, result);
+                }
+            } else {
+                objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
+            }
+
             object.applyDefinition(objectDef);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                 | CommunicationException | SecurityViolationException e) {
@@ -148,6 +155,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             throw e;
         }
 
+    }
+
+    @SuppressWarnings("unchecked")
+    private PrismObjectDefinition<O> getPrecomputedEditSecurityDefinition(WrapperContext context) {
+        return (PrismObjectDefinition<O>) context.getPrecomputedEditSecurityDefinition();
     }
 
     protected void setupContextWithMetadataProcessing(PrismObject<O> object, WrapperContext context) {
