@@ -13,8 +13,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 
 public class ManualCaseUtils {
 
-    // TODO
     public static OperationResultStatus translateOutcomeToStatus(String outcome) {
+        return translateOutcomeToStatus(outcome, false);
+    }
+
+    /** When {@code closed}, a missing outcome is treated as a successful operation. */
+    public static OperationResultStatus translateOutcomeToStatus(String outcome, boolean closed) {
+        if (closed && outcome == null) {
+            return OperationResultStatus.SUCCESS;
+        }
         if (outcome == null) {
             return null;
         }
