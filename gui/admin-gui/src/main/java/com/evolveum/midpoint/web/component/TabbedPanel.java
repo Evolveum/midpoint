@@ -93,6 +93,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
         this.tabs = Args.notNull(tabs, "tabs");
 
+        setOutputMarkupId(true);
+
         final IModel<Integer> tabCount = new IModel<>() {
             private static final long serialVersionUID = 1L;
 
@@ -153,6 +155,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
         titleLink.add(AttributeAppender.append("class", () -> getSelectedTab() == index ? getSelectedTabCssClass() : ""));
         titleLink.setOutputMarkupPlaceholderTag(true);
         titleLink.setOutputMarkupId(true);
+        titleLink.setMarkupId(getTabLinkMarkupId(index));
+        titleLink.add(AttributeModifier.replace("aria-selected", (IModel<String>) () -> String.valueOf(getSelectedTab() == index)));
+        titleLink.add(AttributeModifier.replace("aria-controls", getTabPanelMarkupId(index)));
         item.add(titleLink);
 
         IModel<String> iconCssClass = null;
@@ -421,8 +426,19 @@ public class TabbedPanel<T extends ITab> extends Panel {
         }
         component.setOutputMarkupPlaceholderTag(true);
         component.setOutputMarkupId(true);
+        component.setMarkupId(getTabPanelMarkupId(currentTab));
+        // pairs this panel back to the tab that controls it, completing the ARIA tabs pattern
+        component.add(AttributeModifier.replace("aria-labelledby", getTabLinkMarkupId(currentTab)));
 
         addOrReplace(component);
+    }
+
+    private String getTabLinkMarkupId(int index) {
+        return getMarkupId() + "-tab-" + index;
+    }
+
+    private String getTabPanelMarkupId(int index) {
+        return getMarkupId() + "-tabpanel-" + index;
     }
 
     private WebMarkupContainer newPanel() {
