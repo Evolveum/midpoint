@@ -363,7 +363,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance
             if (state.isCreated() || state.isOpen()) {
                 return OperationResultStatus.IN_PROGRESS;
             } else if (state.isClosing() || state.isClosed()) {
-                return ManualCaseUtils.translateOutcomeToStatus(aCase.getOutcome());
+                return ManualCaseUtils.translateOutcomeToStatus(aCase.getOutcome(), true);
             } else {
                 throw new SchemaException("Unknown case state " + state);
             }

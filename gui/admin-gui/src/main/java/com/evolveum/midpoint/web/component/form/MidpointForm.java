@@ -40,7 +40,7 @@ public class MidpointForm<T> extends Form<T> {
 
     @Override
     protected void onRender() {
-        setFileCountMax(MultipartFormConfiguration.getMaxMultipartsLimit());
+        setFileCountMax(MultipartFormConfiguration.getMaxMultipartLimit());
         super.onRender();
     }
 
