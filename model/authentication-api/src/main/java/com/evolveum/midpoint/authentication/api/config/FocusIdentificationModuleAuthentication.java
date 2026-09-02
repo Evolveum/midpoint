@@ -10,7 +10,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModuleItemConfigurat
 
 import java.util.List;
 
-public interface FocusIdentificationModuleAuthentication extends ModuleAuthentication {
+public interface FocusIdentificationModuleAuthentication extends IdentificationModuleAuthentication {
 
     List<ModuleItemConfigurationType> getModuleConfiguration();
 }

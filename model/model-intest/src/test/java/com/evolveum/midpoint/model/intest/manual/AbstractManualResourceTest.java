@@ -2595,6 +2595,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         }
     }
 
+    protected void closeTicketWithoutOutcome(String caseOid) throws Exception {
+        itsmScenario.ticket.getByNameRequired(caseOid)
+                .replaceAttributeValues(DummyItsmScenario.Ticket.AttributeNames.STATE.local(), SchemaConstants.CASE_STATE_CLOSED);
+    }
+
     @Override
     protected CaseType assertCaseState(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
         var aCase = super.assertCaseState(oid, expectedState);
