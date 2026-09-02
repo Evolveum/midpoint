@@ -159,6 +159,11 @@ public class MappingsSuggestionStatisticsComputationActivityRun
                 .coverage(1.0f)
                 .timestamp(clock.currentTimeXMLGregorianCalendar());
 
+        if (statistics.getSize() == 0) {
+            LOGGER.debug("No objects found, skipping object type statistics object creation");
+            return;
+        }
+
         var def = getWorkDefinition();
         var statisticsObject = createObjectTypeStatisticsObject(
                 resource.getOid(),
