@@ -510,4 +510,22 @@ public class AuthSequenceUtil {
         String localPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         return localPath.startsWith(SchemaConstants.AUTH_MODULE_PREFIX);
     }
+
+    /**
+     * Returns a copy of the sequence that contains only the given number of modules executed first,
+     * listed in the execution order.
+     *
+     * Modules are executed in the order given by their `order` property, which does not have to match the
+     * order in which they are listed in the sequence: the security policy merge appends modules inherited
+     * from the generic policy after the ones defined by the specific policy. Therefore the first listed module
+     * is not necessarily the first executed one.
+     */
+    public static AuthenticationSequenceType sequenceWithFirstExecutedModulesOnly(AuthenticationSequenceType sequence, int count) {
+        AuthenticationSequenceType trimmed = sequence.clone();
+        List<AuthenticationSequenceModuleType> keptModules =
+                new ArrayList<>(SecurityPolicyUtil.getSortedModules(trimmed).subList(0, count));
+        trimmed.getModule().clear();
+        trimmed.getModule().addAll(keptModules);
+        return trimmed;
+    }
 }
