@@ -41,6 +41,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
 * Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 * Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
+* Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
 
 == Changes With Respect To Version 4.10.3
 
