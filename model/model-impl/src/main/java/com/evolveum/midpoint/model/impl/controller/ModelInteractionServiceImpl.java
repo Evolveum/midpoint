@@ -257,6 +257,23 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         return getEditObjectDefinition(object, phase, task, parentResult, false);
     }
 
+    @Override
+    public <O extends ObjectType> @NotNull PrismObject<O> applyReadSecurityToPreauthorizedObject(
+            @NotNull PrismObject<O> object, @NotNull Task task, @NotNull OperationResult parentResult)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
+        OperationResult result = parentResult.createMinorSubresult(APPLY_READ_SECURITY_TO_PREAUTHORIZED_OBJECT);
+        try {
+            return schemaTransformer.applySchemasAndSecurityToObject(object, ParsedGetOperationOptions.empty(), task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException | SubscriptionComplianceException e) {
+            result.recordException(e);
+            throw e;
+        } finally {
+            result.close();
+        }
+    }
+
     private <O extends ObjectType> @NotNull PrismObjectDefinition<O> getEditObjectDefinition(
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult, boolean reloadByOid)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,

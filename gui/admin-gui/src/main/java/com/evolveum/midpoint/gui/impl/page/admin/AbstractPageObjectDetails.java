@@ -47,6 +47,7 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.gui.impl.util.PendingObjectPreviewUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -99,6 +100,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     private boolean isDetailsNavigationPanelVisible = true;
     private boolean pendingObjectTransientPreview;
     private boolean pendingObjectUnavailable;
+    private PrismObjectDefinition<?> pendingObjectPrecomputedEditSecurityDefinition;
     private PendingObjectPreviewUtil.ApprovalState pendingObjectApprovalState =
             PendingObjectPreviewUtil.ApprovalState.UNKNOWN;
 
@@ -961,6 +963,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return pendingObjectTransientPreview;
     }
 
+    protected PrismObjectDefinition<?> getPendingObjectPrecomputedEditSecurityDefinition() {
+        return pendingObjectPrecomputedEditSecurityDefinition;
+    }
+
     /**
      * Loads an object for pending-preview navigation.
      *
@@ -971,9 +977,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
      * @return the persisted or reconstructed object, or {@code null} if the preview
      *         parameters or source case cannot provide a matching object
      */
-    private PrismObject<O> loadPendingObjectPreview(Task task, OperationResult result) {
+    private PrismObject<O> loadPendingObjectPreview(Task task, OperationResult result) throws CommonException {
         pendingObjectTransientPreview = false;
         pendingObjectUnavailable = false;
+        pendingObjectPrecomputedEditSecurityDefinition = null;
         pendingObjectApprovalState = PendingObjectPreviewUtil.ApprovalState.UNKNOWN;
 
         String expectedType = DetailsPageUtil.getPendingObjectPreviewType(getPageParameters());
@@ -1004,9 +1011,16 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         pendingObjectTransientPreview = true;
+        // Compute security constraints from the full object before read filtering removes selector-relevant data
+        pendingObjectPrecomputedEditSecurityDefinition =
+                getModelInteractionService().getEditObjectDefinitionForPreauthorizedObject(
+                        prismObject, AuthorizationPhaseType.REQUEST, task, result);
+
+        PrismObject<O> filteredPrismObject =
+                getModelInteractionService().applyReadSecurityToPreauthorizedObject(prismObject, task, result);
         pendingObjectApprovalState = PendingObjectPreviewUtil.determineApprovalState(
                 caseObject.asObjectable(), getType(), expectedOid, this, result);
-        return prismObject;
+        return filteredPrismObject;
     }
 
     private void showPendingObjectPreviewMessages(O previewObject) {

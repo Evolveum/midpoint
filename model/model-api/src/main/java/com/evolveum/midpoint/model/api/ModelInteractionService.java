@@ -78,6 +78,7 @@ public interface ModelInteractionService {
     String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
     String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
     String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
+    String APPLY_READ_SECURITY_TO_PREAUTHORIZED_OBJECT = CLASS_NAME_WITH_DOT + "applyReadSecurityToPreauthorizedObject";
     String GET_ALLOWED_REQUEST_ASSIGNMENT_ITEMS = CLASS_NAME_WITH_DOT + "getAllowedRequestAssignmentItems";
     String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
     String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
@@ -182,6 +183,20 @@ public interface ModelInteractionService {
             PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, SubscriptionComplianceException;
+
+    /**
+     * Applies target-object GET/READ filtering to a supplied object without reloading it from the repository.
+     *
+     * The caller must ensure that the supplied object was obtained through an authorized path. This method evaluates
+     * the current user's normal read authorizations for the supplied target object and removes items/values that are
+     * not readable. It intentionally does not reload the object by OID, because it is intended for supplied/transient
+     * objects that may have an OID but may not exist in the repository. The returned object may be the supplied object
+     * with unreadable content removed, or a filtered copy if cloning is required.
+     */
+    <O extends ObjectType> @NotNull PrismObject<O> applyReadSecurityToPreauthorizedObject(
+            @NotNull PrismObject<O> object, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException;
 
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(
             ResourceShadowCoordinates coordinates,

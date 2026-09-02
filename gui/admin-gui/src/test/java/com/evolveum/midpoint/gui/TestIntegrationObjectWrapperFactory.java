@@ -533,6 +533,23 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     }
 
+    private <O extends ObjectType> PrismObjectWrapper<O> createPreauthorizedObjectWrapper(
+            Task task, PrismObject<O> object, ItemStatus status, PrismObjectDefinition<O> precomputedEditSecurityDefinition)
+            throws SchemaException {
+        OperationResult result = task.getResult();
+
+        ModelServiceLocator modelServiceLocator = getServiceLocator(task);
+        PrismObjectWrapperFactory<O> factory = modelServiceLocator.findObjectWrapperFactory(object.getDefinition());
+        WrapperContext context = new WrapperContext(task, result);
+        context.setCreateIfEmpty(true);
+        context.setShowEmpty(true);
+        context.setSuppliedObjectFromAuthorizedCase(true);
+        context.setPrecomputedEditSecurityDefinition(precomputedEditSecurityDefinition);
+        context.setReadOnly(true);
+
+        return factory.createObjectWrapper(object, status, context);
+    }
+
     /** Verifies that deprecated synchronization action containers are not offered as new dropdown choices. */
     @Test
     public void test155SynchronizationActionDropdownSkipsDeprecatedUnlink() throws Exception {
@@ -1097,6 +1114,63 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        assertEquals("Wrong locality definition.canRead", Boolean.FALSE, (Boolean)localityNameWrapper.canRead());
 //        assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean)localityNameWrapper.canAdd());
 //        assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.canModify());
+    }
+
+    /**
+     * Verifies that wrapper security can use an edit definition computed from the full transient object
+     * even after selector-relevant data has been removed from the object shown in the pending preview.
+     *
+     * The test simulates read filtering by removing {@code subtype} before wrapper creation, while keeping
+     * the edit definition that was computed earlier from the complete object.
+     */
+    @Test
+    public void test803PrecomputedEditSchemaForFilteredPendingUser() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
+        login(USER_JACK_USERNAME);
+
+        Task task = getTestTask();
+
+        PrismObject<UserType> fullPendingUser = new UserType()
+                .name("pending-captain")
+                .fullName("Pending Captain")
+                .subtype("CAPTAIN")
+                .asPrismObject();
+
+        PrismObjectDefinition<UserType> editDefinition =
+                modelInteractionService.getEditObjectDefinitionForPreauthorizedObject(
+                        fullPendingUser, null, task, task.getResult());
+
+        PrismObject<UserType> filteredPendingUser = fullPendingUser.clone();
+
+        // Simulate read filtering removing data needed by the authorization selector
+        filteredPendingUser.asObjectable().getSubtype().clear();
+
+        PrismAsserts.assertPropertyValue(
+                filteredPendingUser,
+                UserType.F_FULL_NAME,
+                PolyString.fromOrig("Pending Captain"));
+        assertTrue(filteredPendingUser.asObjectable().getSubtype().isEmpty());
+
+        when();
+        PrismObjectWrapper<UserType> objectWrapper =
+                createPreauthorizedObjectWrapper(
+                        task,
+                        filteredPendingUser,
+                        ItemStatus.NOT_CHANGED,
+                        editDefinition);
+
+        then();
+        assertEquals("Wrong object wrapper readOnly", Boolean.TRUE, (Boolean) objectWrapper.isReadOnly());
+
+        PrismContainerValueWrapper<UserType> mainContainerValueWrapper = objectWrapper.getValue();
+
+        PrismPropertyWrapper<PolyString> fullNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_FULL_NAME);
+
+        assertNotNull("fullName wrapper is missing", fullNameWrapper);
+        assertEquals("Wrong fullName readOnly", Boolean.TRUE, (Boolean) fullNameWrapper.isReadOnly());
+        assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
     }
 
     private <C extends Containerable> void assertItemWrapperFullControl(
