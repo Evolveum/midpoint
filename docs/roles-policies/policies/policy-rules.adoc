@@ -249,7 +249,15 @@ Policy transitions are a means to define _when_ during the operation in question
 This is useful when you need to evaluate a value which may not exist before or after the operation (usually create and delete operations),
 or in case you need to evaluate a change of an attribute value from one value to another.
 
-MidPoint distinguishes the states _before_ and _after_ operations:
+There are two kinds of policy constraints in midPoint:
+
+* State-related constraints
+* Transition-related constraints
+
+A policy with a state-related constraint can evaluate an object at any time and fire because the object is not in the state prescribed by the policy.
+A transition-constrained policy rule, on the other hand, can trigger only in the context of an operation.
+
+Furthermore, midPoint distinguishes the states _before_ and _after_ operations:
 
 * Mappings generally consider both states.
 * Policy rules consider the _after_ state but you can override it with a policy transition statement.
@@ -258,6 +266,15 @@ For example, if your operation deletes an object:
 
 * The focus is defined _before_ the operation (the object still exists).
 * The focus is `null` _after_ the operation (there is no object to refer to).
+
+You can create a custom transition-related policy rule constraint by combining two state-related constraints.
+For example:
+
+* Before operation: _cost center_ attribute is not null
+* After operation: _cost center_ attribute is null.
+
+This policy will trigger only after operations that clear the _cost center_ attribute value;
+not for operations that change the value, fill the empty value, or leave the attribute empty.
 
 Policy transition is defined as follows:
 
