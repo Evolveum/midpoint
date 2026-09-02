@@ -357,6 +357,11 @@
                     <xsd:documentation>
                         <p>
                             Sets the maximum limit for multipart data inside submitted form (inputs and file uploads are counted).
+
+                            If not set, the value of the server.tomcat.max-part-count property (application.yml) is used.
+                            Tomcat enforces its own limit before the form is processed, so a value higher than
+                            server.tomcat.max-part-count has no effect.
+
                             Default value is 100.
                         </p>
                     </xsd:documentation>
