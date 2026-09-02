@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.evolveum.midpoint.authentication.api.config.*;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
@@ -28,10 +29,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
-import com.evolveum.midpoint.authentication.api.config.ArchetypeSelectionModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.config.FocusIdentificationModuleAuthentication;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.authentication.impl.MidpointProviderManager;
 import com.evolveum.midpoint.authentication.impl.factory.channel.AuthChannelRegistryImpl;
@@ -557,18 +554,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private int indexOfSubmittedIdentificationModule(List<AuthModule<?>> authModules, HttpServletRequest request) {
         for (int i = 0; i < authModules.size(); i++) {
             ModuleAuthentication moduleAuthentication = authModules.get(i).getBaseModuleAuthentication();
-            if (isIdentificationModule(moduleAuthentication)
+            if (moduleAuthentication instanceof IdentificationModuleAuthentication
                     && isRequestForAuthenticationModuleLoginPage(request, moduleAuthentication)) {
                 return i;
             }
         }
         return MidpointAuthentication.NO_MODULE_FOUND_INDEX;
-    }
-
-    /** Modules that establish the identity used for resolving the security policy of the flow. */
-    private boolean isIdentificationModule(ModuleAuthentication moduleAuthentication) {
-        return moduleAuthentication instanceof FocusIdentificationModuleAuthentication
-                || moduleAuthentication instanceof ArchetypeSelectionModuleAuthentication;
     }
 
     /**
