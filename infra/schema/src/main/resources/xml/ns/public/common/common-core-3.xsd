@@ -2784,7 +2784,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="hint" type="xsd:string" minOccurs="0">
+                    <xsd:element name="hint" type="t:ProtectedStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <xsd:documentation>

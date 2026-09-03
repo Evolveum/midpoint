@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 @Component
-public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<String> {
+public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<ProtectedStringType> {
 
     @PostConstruct
     public void register() {
@@ -33,7 +33,7 @@ public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<String
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<String> panelCtx) {
+    protected Panel getPanel(PrismPropertyPanelContext<ProtectedStringType> panelCtx) {
         return new PasswordHintPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), getPasswordModel(panelCtx.getItemWrapperModel()),
                     panelCtx.unwrapWrapperModel().isReadOnly());
     }
@@ -43,7 +43,7 @@ public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<String
         return PasswordType.F_HINT.matches(wrapper.getItemName());
     }
 
-    private static LoadableModel<ProtectedStringType> getPasswordModel(IModel<PrismPropertyWrapper<String>> hintValueWrapper) {
+    private static LoadableModel<ProtectedStringType> getPasswordModel(IModel<PrismPropertyWrapper<ProtectedStringType>> hintValueWrapper) {
         return new LoadableModel<>() {
 
             private static final long serialVersionUID = 1L;
@@ -67,6 +67,6 @@ public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<String
 
     @Override
     public Integer getOrder() {
-        return super.getOrder() - 10000;
+        return 799;
     }
 }
