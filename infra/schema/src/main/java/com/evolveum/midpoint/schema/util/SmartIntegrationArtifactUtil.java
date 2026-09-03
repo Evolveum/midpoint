@@ -97,7 +97,7 @@ public class SmartIntegrationArtifactUtil {
                 .scope(new SmartIntegrationArtifactScopeType()
                         .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                         .objectType(typeIdentification.asBean())
-.focusType(QNameUtil.qualifyIfNeeded(focusTypeName, NS_C)))
+                        .focusType(QNameUtil.qualifyIfNeeded(focusTypeName, NS_C)))
                 .statistics(statistics);
         setArchetype(object, SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS);
         return object;
