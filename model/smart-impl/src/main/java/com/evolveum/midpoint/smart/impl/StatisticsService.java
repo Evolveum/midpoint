@@ -9,6 +9,8 @@
 package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.*;
 
 import java.util.Collection;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -101,7 +104,7 @@ public class StatisticsService {
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
-                            .and().item(PATH_SCOPE_OBJECT_CLASS).eq(objectClassName)
+                            .and().item(PATH_SCOPE_OBJECT_CLASS).eq(qualifyObjectClassName(objectClassName))
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value())
                             .build(),
@@ -479,7 +482,7 @@ public class StatisticsService {
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
-                            .and().item(PATH_SCOPE_OBJECT_CLASS).eq(objectClassName)
+                            .and().item(PATH_SCOPE_OBJECT_CLASS).eq(qualifyObjectClassName(objectClassName))
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value())
                             .build(),
@@ -558,7 +561,7 @@ public class StatisticsService {
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
                             .and().item(PATH_SCOPE_KIND).eq(typeIdentification.getKind())
                             .and().item(PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
-                            .and().item(PATH_SCOPE_FOCUS_TYPE).eq(focusTypeName)
+                            .and().item(PATH_SCOPE_FOCUS_TYPE).eq(qualifyFocusTypeName(focusTypeName))
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
                             .build(),
@@ -603,7 +606,7 @@ public class StatisticsService {
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
                             .and().item(PATH_SCOPE_KIND).eq(typeIdentification.getKind())
                             .and().item(PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
-                            .and().item(PATH_SCOPE_FOCUS_TYPE).eq(focusTypeName)
+                            .and().item(PATH_SCOPE_FOCUS_TYPE).eq(qualifyFocusTypeName(focusTypeName))
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
                             .build(),
@@ -773,5 +776,13 @@ public class StatisticsService {
         } catch (Exception e) {
             LOGGER.warn("Failed to delete statistics object {}: {}", statisticsOid, e.getMessage(), e);
         }
+    }
+
+    private QName qualifyObjectClassName(QName objectClassName) {
+        return QNameUtil.qualifyIfNeeded(objectClassName, NS_RI);
+    }
+
+    private QName qualifyFocusTypeName(QName focusTypeName) {
+        return QNameUtil.qualifyIfNeeded(focusTypeName, NS_C);
     }
 }
