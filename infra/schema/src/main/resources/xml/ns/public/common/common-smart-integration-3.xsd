@@ -1907,7 +1907,7 @@
                     <xsd:element name="scope" type="tns:SmartIntegrationArtifactScopeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                What is the scope this artifact? Object class, object type, focus object type.
+                                What is the scope of this artifact? Object class, object type, focus object type.
                                 E.g., statistics for "all inetOrgPerson accounts on LDAP1", or suggestions
                                 for "account/default on LDAP2".
                             </xsd:documentation>
