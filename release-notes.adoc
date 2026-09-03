@@ -35,6 +35,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 300.
 * Fixed read-only fields presentation. See bug:MID-11853[]
+* Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
 
 == Changes with Respect To Version 4.8.12
 

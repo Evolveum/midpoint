@@ -31,11 +31,11 @@ public class PasswordHintPanel extends InputPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_HINT= "hint";
-    private final IModel<String> hintModel;
+    private final IModel<ProtectedStringType> hintModel;
     private final IModel<ProtectedStringType> passwordModel;
     private boolean isReadonly;
 
-    public PasswordHintPanel(String id, IModel<String> hintModel, IModel<ProtectedStringType> passwordModel, boolean isReadonly){
+    public PasswordHintPanel(String id, IModel<ProtectedStringType> hintModel, IModel<ProtectedStringType> passwordModel, boolean isReadonly){
         super(id);
         this.hintModel = hintModel;
         this.passwordModel = passwordModel;
@@ -49,7 +49,7 @@ public class PasswordHintPanel extends InputPanel {
     }
 
     private void initLayout() {
-        final TextField<String> hint = new TextField<>(ID_HINT, hintModel) {
+        final TextField<String> hint = new TextField<>(ID_HINT, new ProtectedStringClearPasswordModel(hintModel)) {
             private static final long serialVersionUID = 1L;
 
             @Override
