@@ -11,7 +11,6 @@
         <classes>
             <class name="com.evolveum.midpoint.smart.impl.TestCorrelatorSuggestions"/>
             <class name="com.evolveum.midpoint.smart.impl.TestDefaultServiceClientAudit"/>
-            <!--<class name="com.evolveum.midpoint.smart.impl.TestDiscoverObjectClassDetails"/>--> <!-- fails for now -->
             <!--<class name="com.evolveum.midpoint.smart.impl.TestMappingsSuggestionOperation"/>--> <!-- fails for now -->
             <class name="com.evolveum.midpoint.smart.impl.TestObjectTypesSuggestionOperation"/>
             <class name="com.evolveum.midpoint.smart.impl.TestPredefinedSynchronizationReactions"/>
