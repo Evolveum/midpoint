@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
@@ -129,7 +130,9 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
                     oldShadow == null ? "  null" : oldShadow.debugDumpLazily(1),
                     conflictingShadow == null ? "  null" : conflictingShadow.debugDumpLazily(1));
 
-            if (conflictingShadow != null) {
+            if (conflictingShadow != null && Objects.equals(conflictingShadow.getOid(), targetObjectState.getOid())) {
+                LOGGER.debug("DISCOVERY: conflicting shadow is the same as currently being modified, ignoring");
+            } else if (conflictingShadow != null) {
                 var adoptedConflictingShadow = ctx.adoptRawRepoShadow(conflictingShadow);
                 ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
                 change.setResource(ctx.getResource().asPrismObject());
