@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
@@ -24,9 +25,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOper
 class ElementState<O extends ObjectType> implements Serializable, Cloneable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ElementState.class);
+
+    private static final ItemPath PASSWORD_HINT_PATH = ItemPath.create(
+            FocusType.F_CREDENTIALS,
+            CredentialsType.F_PASSWORD,
+            PasswordType.F_HINT);
 
     /**
      * Type of object represented by this context.
@@ -894,14 +900,15 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     }
 
     void checkEncrypted() {
+        boolean tolerateLegacyPasswordHint = shouldTolerateLegacyPasswordHint();
         if (newObject != null) {
-            CryptoUtil.checkEncrypted(newObject);
+            checkEncrypted(newObject, tolerateLegacyPasswordHint);
         }
         if (oldObject != null) {
-            CryptoUtil.checkEncrypted(oldObject);
+            checkEncrypted(oldObject, tolerateLegacyPasswordHint);
         }
         if (currentObject != null) {
-            CryptoUtil.checkEncrypted(currentObject);
+            checkEncrypted(currentObject, tolerateLegacyPasswordHint);
         }
         if (primaryDelta != null) {
             CryptoUtil.checkEncrypted(primaryDelta);
@@ -910,6 +917,36 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
             CryptoUtil.checkEncrypted(secondaryDelta);
         }
         archivedSecondaryDeltas.checkEncrypted("secondary deltas");
+    }
+
+    private boolean shouldTolerateLegacyPasswordHint() {
+        String oldHint = getLegacyPasswordHintClearValue(oldObject);
+        return oldHint != null
+                && oldHint.equals(getLegacyPasswordHintClearValue(currentObject));
+    }
+
+    private String getLegacyPasswordHintClearValue(PrismObject<O> object) {
+        if (object == null || !(object.asObjectable() instanceof FocusType focus)) {
+            return null;
+        }
+
+        CredentialsType credentials = focus.getCredentials();
+        PasswordType password = credentials != null ? credentials.getPassword() : null;
+        ProtectedStringType hint = password != null ? password.getHint() : null;
+        return hint != null ? hint.getClearValue() : null;
+    }
+
+    /**
+     * Checks encrypted values, temporarily ignoring a legacy clear-text password hint when appropriate.
+     */
+    private void checkEncrypted(PrismObject<O> object, boolean tolerateLegacyPasswordHint) {
+        if (tolerateLegacyPasswordHint) {
+            PrismObject<O> clone = object.clone();
+            clone.removeProperty(PASSWORD_HINT_PATH);
+            CryptoUtil.checkEncrypted(clone);
+        } else {
+            CryptoUtil.checkEncrypted(object);
+        }
     }
 
     void forEachObject(Function<PrismObject<O>, PrismObject<O>> function) {

@@ -23,10 +23,13 @@ import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -76,6 +80,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class LensUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
+    private static final ItemPath PASSWORD_HINT_PATH = ItemPath.create(
+            FocusType.F_CREDENTIALS,
+            CredentialsType.F_PASSWORD,
+            PasswordType.F_HINT);
     private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     public static <F extends ObjectType> ResourceType getResourceReadOnly(
@@ -671,6 +679,7 @@ public class LensUtil {
         if (itemOld != null) {
             //noinspection unchecked, rawtypes
             itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
+            encryptEstimatedPasswordHintValue(ctx, itemDelta);
             return;
         }
         // Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
@@ -685,7 +694,36 @@ public class LensUtil {
             if (itemOld != null) {
                 //noinspection unchecked, rawtypes
                 itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
+                encryptEstimatedPasswordHintValue(ctx, itemDelta);
             }
+        }
+    }
+
+    /**
+     * Encrypts a legacy clear-text password hint in estimated old values before delta encryption validation,
+     * allowing the hint to be edited without failing the encryption check. This is needed for backward compatibility.
+     */
+    private static <O extends ObjectType> void encryptEstimatedPasswordHintValue(
+            LensElementContext<O> ctx, ItemDelta<?, ?> itemDelta) {
+        if (!PASSWORD_HINT_PATH.equivalent(itemDelta.getPath())
+                || ModelExecuteOptions.isNoCrypt(ctx.getLensContext().getOptions())) {
+            return;
+        }
+
+        Collection<? extends PrismValue> estimatedOldValues = itemDelta.getEstimatedOldValues();
+        if (estimatedOldValues == null || estimatedOldValues.isEmpty()) {
+            return;
+        }
+
+        try {
+            for (PrismValue value : estimatedOldValues) {
+                if (value instanceof PrismPropertyValue<?> ppv && ppv.getRealValue() instanceof ProtectedStringType protectedString
+                        && protectedString.getClearValue() != null && !protectedString.isHashed()) {
+                    ctx.getLensContext().getModelBeans().protector.encrypt(protectedString);
+                }
+            }
+        } catch (EncryptionException e) {
+            throw new SystemException(e.getMessage(), e);
         }
     }
 
