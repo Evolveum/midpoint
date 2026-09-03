@@ -55,10 +55,11 @@ public final class FocusStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_GET_FOCUS_STATISTICS);
 
         try {
+            var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
             if (!forceRegeneration) {
                 var latestStatistics =
                         smartIntegrationService.getLatestFocusObjectStatistics(
-                                focusObjectTypeName, resourceOid, kind, intent, task.getResult());
+                                focusObjectTypeName, resourceOid, typeIdentification, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, preSelectedAttribute,
@@ -68,7 +69,7 @@ public final class FocusStatisticsActions {
             }
 
             String taskOid = smartIntegrationService.regenerateFocusObjectStatistics(
-                    focusObjectTypeName, resourceOid, kind, intent, task, task.getResult());
+                    focusObjectTypeName, resourceOid, typeIdentification, task, task.getResult());
 
             showProgressPopup(target, pageBase, smartIntegrationService,
                     focusObjectTypeName, resourceOid, kind, intent, taskOid, preSelectedAttribute);
@@ -161,9 +162,10 @@ public final class FocusStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_FOCUS_STATISTICS);
 
         try {
+            var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
             var latestStatistics =
                     smartIntegrationService.getLatestFocusObjectStatistics(
-                            focusObjectTypeName, resourceOid, kind, intent, task.getResult());
+                            focusObjectTypeName, resourceOid, typeIdentification, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

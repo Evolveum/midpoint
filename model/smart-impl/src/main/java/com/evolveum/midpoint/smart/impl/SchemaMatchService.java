@@ -406,11 +406,7 @@ public class SchemaMatchService {
             ResourceObjectTypeDefinition typeDefinition,
             OperationResult result) {
         try {
-            var statsObj = statisticsService.getLatestObjectTypeStatistics(
-                    resourceOid,
-                    typeIdentification.getKind().value(),
-                    typeIdentification.getIntent(),
-                    result);
+            var statsObj = statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, result);
             if (statsObj != null) {
                 return SmartIntegrationArtifactUtil.getStatisticsRequired(statsObj);
             }

@@ -64,10 +64,7 @@ public final class ObjectTypeStatisticsActions {
             if (!forceRegeneration) {
                 var latestStatistics =
                         smartIntegrationService.getLatestObjectTypeStatistics(
-                                resourceOid,
-                                objectTypeIdentification.getKind().value(),
-                                objectTypeIdentification.getIntent(),
-                                task.getResult());
+                                resourceOid, objectTypeIdentification, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, resourceOid,
@@ -164,11 +161,8 @@ public final class ObjectTypeStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
 
         try {
-            ShadowKindType kind = objectTypeIdentification.getKind();
-            String intent = objectTypeIdentification.getIntent();
-
             var latestStatistics =
-                    smartIntegrationService.getLatestObjectTypeStatistics(resourceOid, kind.value(), intent, task.getResult());
+                    smartIntegrationService.getLatestObjectTypeStatistics(resourceOid, objectTypeIdentification, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

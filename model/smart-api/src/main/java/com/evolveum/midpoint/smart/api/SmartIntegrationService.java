@@ -88,12 +88,12 @@ public interface SmartIntegrationService {
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
     SmartIntegrationArtifactType getLatestObjectTypeStatistics(
-            String resourceOid, String kind, String intent, OperationResult parentResult)
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
             throws SchemaException;
 
     /** Deletes all object type statistics for the given resource, kind, and intent. */
     void deleteObjectTypeStatistics(
-            String resourceOid, String kind, String intent, OperationResult result)
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult result)
             throws SchemaException;
 
     /** Deletes all statistics objects for the given resource and object class. */
@@ -105,8 +105,7 @@ public interface SmartIntegrationService {
     SmartIntegrationArtifactType getLatestFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult parentResult)
             throws SchemaException;
 
@@ -114,8 +113,7 @@ public interface SmartIntegrationService {
     void deleteFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult result)
             throws SchemaException;
 
@@ -123,8 +121,7 @@ public interface SmartIntegrationService {
     String regenerateFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             Task task,
             OperationResult result)
             throws CommonException;

@@ -293,15 +293,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public SmartIntegrationArtifactType getLatestObjectTypeStatistics(
-            String resourceOid, String kind, String intent, OperationResult parentResult)
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
             throws SchemaException {
-        return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, parentResult);
+        return statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, parentResult);
     }
 
     @Override
-    public void deleteObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult result)
+    public void deleteObjectTypeStatistics(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult result)
             throws SchemaException {
-        statisticsService.deleteObjectTypeStatistics(resourceOid, kind, intent, result);
+        statisticsService.deleteObjectTypeStatistics(resourceOid, typeIdentification, result);
     }
 
     @Override
@@ -339,34 +340,31 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public SmartIntegrationArtifactType getLatestFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult parentResult)
             throws SchemaException {
-        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
+        return statisticsService.getLatestFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, parentResult);
     }
 
     @Override
     public void deleteFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult result)
             throws SchemaException {
-        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, result);
+        statisticsService.deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, result);
     }
 
     @Override
     public String regenerateFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             Task task,
             OperationResult result)
             throws CommonException {
-        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, task, result);
+        return statisticsService.regenerateFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, task, result);
     }
 
     @Override
@@ -480,8 +478,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         var result = parentResult.subresult(OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClass", objectClass)
-                .addParam("kind", objectTypeIdentification != null ? objectTypeIdentification.getKind().value() : null)
-                .addParam("intent", objectTypeIdentification != null ? objectTypeIdentification.getIntent() : null)
+                .addParam("type", objectTypeIdentification)
                 .build();
 
         try {

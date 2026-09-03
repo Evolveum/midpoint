@@ -1349,8 +1349,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         String taskOid = statisticsService.regenerateFocusObjectStatistics(
                 UserType.COMPLEX_TYPE,
                 RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
-                ShadowKindType.ACCOUNT,
-                "default",
+                ACCOUNT_DEFAULT,
                 task,
                 result);
 
@@ -1360,8 +1359,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var statsObject = statisticsService.getLatestFocusObjectStatistics(
                 UserType.COMPLEX_TYPE,
                 RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
-                ShadowKindType.ACCOUNT,
-                "default",
+                ACCOUNT_DEFAULT,
                 result);
         assertNotNull("Statistics object should exist", statsObject);
 

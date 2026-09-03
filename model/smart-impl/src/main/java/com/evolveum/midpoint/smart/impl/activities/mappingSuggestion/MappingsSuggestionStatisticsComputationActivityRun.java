@@ -118,7 +118,7 @@ public class MappingsSuggestionStatisticsComputationActivityRun
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
         var def = getWorkDefinition();
         var lastStatisticsObject = smartIntegrationService
-                .getLatestObjectTypeStatistics(def.getResourceOid(), def.getKind(), def.getIntent(), result);
+                .getLatestObjectTypeStatistics(def.getResourceOid(), def.getTypeIdentification(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 

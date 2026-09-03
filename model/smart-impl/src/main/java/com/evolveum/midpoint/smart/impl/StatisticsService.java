@@ -201,49 +201,45 @@ public class StatisticsService {
      */
     public @NotNull String regenerateObjectTypeStatistics(
             String resourceOid,
-            ResourceObjectTypeIdentification resourceObjectTypeIdentification,
+            ResourceObjectTypeIdentification typeIdentification,
             Task task,
             OperationResult parentResult) throws CommonException {
 
-        ShadowKindType kind = resourceObjectTypeIdentification.getKind();
-        String intent = resourceObjectTypeIdentification.getIntent();
-
         String runningTaskOid = findRunningObjectTypeStatisticsComputationTaskOid(
-                resourceOid, kind.value(), intent, parentResult, task);
+                resourceOid, typeIdentification, parentResult, task);
 
         if (runningTaskOid != null) {
-            LOGGER.debug("There is already a running statistics computation task (OID {}) for resourceOid {}, kind {}, intent {};"
+            LOGGER.debug("There is already a running statistics computation task (OID {}) for resourceOid {}, type {};"
                             + " will not start another one",
-                    runningTaskOid, resourceOid, kind, intent);
+                    runningTaskOid, resourceOid, typeIdentification);
             return runningTaskOid;
         }
 
         var result = parentResult.subresult(OP_SUBMIT_OBJECT_TYPE_STATISTICS_COMPUTATION)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind.value())
-                .addParam("intent", intent)
+                .addParam("type", typeIdentification)
                 .build();
 
         try {
-            deleteObjectTypeStatistics(resourceOid, kind.value(), intent, parentResult);
+            deleteObjectTypeStatistics(resourceOid, typeIdentification, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
                     .work(new WorkDefinitionsType()
                             .objectTypeStatisticsComputation(new ObjectTypeStatisticsComputationWorkDefinitionType()
                                     .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                                    .kind(kind)
-                                    .intent(intent)));
+                                    .kind(typeIdentification.getKind())
+                                    .intent(typeIdentification.getIntent())));
 
             var oid = modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
-                            .name("Regenerate statistics for " + resourceObjectTypeIdentification + " on " + resourceOid)
+                            .name("Regenerate statistics for " + typeIdentification + " on " + resourceOid)
                             .cleanupAfterCompletion(DEFAULT_STATISTICS_TTL)),
                     task,
                     result);
 
-            LOGGER.debug("Submitted regenerate statistics operation for resourceOid {}, kind {}, intent {}: {}",
-                    resourceOid, kind, intent, oid);
+            LOGGER.debug("Submitted regenerate statistics operation for resourceOid {}, type {}: {}",
+                    resourceOid, typeIdentification, oid);
             return oid;
 
         } catch (Throwable t) {
@@ -301,8 +297,9 @@ public class StatisticsService {
         return foundOidRef.get();
     }
 
-    private @Nullable String findRunningObjectTypeStatisticsComputationTaskOid(String resourceOid, String kind, String intent,
-            OperationResult result, Task task) throws CommonException {
+    private @Nullable String findRunningObjectTypeStatisticsComputationTaskOid(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult result, Task task)
+            throws CommonException {
 
         var query = PrismContext.get().queryFor(TaskType.class)
                 .item(ItemPath.create(
@@ -334,7 +331,8 @@ public class StatisticsService {
                 return true;
             }
 
-            if (kind.equals(def.getKind().value()) && intent.equals(def.getIntent())) {
+            if (typeIdentification.getKind().equals(def.getKind())
+                    && typeIdentification.getIntent().equals(def.getIntent())) {
                 foundOidRef.set(taskBean.getOid());
                 return false; // stop iterating, we found one
             }
@@ -367,20 +365,20 @@ public class StatisticsService {
         }
     }
 
-    public SmartIntegrationArtifactType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
+    public SmartIntegrationArtifactType getLatestObjectTypeStatistics(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
+                .addParam("type", typeIdentification)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
-                            .and().item(PATH_SCOPE_KIND).eq(kind)
-                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(PATH_SCOPE_KIND).eq(typeIdentification.getKind())
+                            .and().item(PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value())
                             .build(),
@@ -392,8 +390,8 @@ public class StatisticsService {
             if (latestStatisticsObject != null) {
                 var statistics = SmartIntegrationArtifactUtil.getStatisticsRequired(latestStatisticsObject);
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
-                    LOGGER.info("Object type statistics {} for resource {}/{}/{} expired, deleting",
-                            latestStatisticsObject.getOid(), resourceOid, kind, intent);
+                    LOGGER.info("Object type statistics {} for resource {}/{} expired, deleting",
+                            latestStatisticsObject.getOid(), resourceOid, typeIdentification);
                     deleteStatistics(latestStatisticsObject.getOid(), result);
                     return null;
                 }
@@ -504,22 +502,19 @@ public class StatisticsService {
     }
 
     public void deleteObjectTypeStatistics(
-            String resourceOid,
-            String kind,
-            String intent,
-            OperationResult parentResult) throws SchemaException {
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
+            throws SchemaException {
         var result = parentResult.subresult("deleteObjectTypeStatistics")
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
+                .addParam("type", typeIdentification)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
-                            .and().item(PATH_SCOPE_KIND).eq(kind)
-                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(PATH_SCOPE_KIND).eq(typeIdentification.getKind())
+                            .and().item(PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value())
                             .build(),
@@ -530,8 +525,8 @@ public class StatisticsService {
                 deleteStatistics(obj.getOid(), result);
             }
 
-            LOGGER.info("Manually deleted {} object type statistics for resource {}/{}/{}",
-                    objects.size(), resourceOid, kind, intent);
+            LOGGER.info("Manually deleted {} object type statistics for resource {}/{}",
+                    objects.size(), resourceOid, typeIdentification);
             result.recordSuccess();
         } catch (Throwable t) {
             result.recordException(t);
@@ -548,23 +543,21 @@ public class StatisticsService {
     public SmartIntegrationArtifactType getLatestFocusObjectStatistics(
             QName focusTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_FOCUS_OBJECT_STATISTICS)
                 .addParam("objectTypeName", focusTypeName)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind.value())
-                .addParam("intent", intent)
+                .addParam("type", typeIdentification)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
-                            .and().item(PATH_SCOPE_KIND).eq(kind)
-                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(PATH_SCOPE_KIND).eq(typeIdentification.getKind())
+                            .and().item(PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
                             .and().item(PATH_SCOPE_FOCUS_TYPE).eq(focusTypeName)
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
@@ -596,22 +589,20 @@ public class StatisticsService {
     public void deleteFocusObjectStatistics(
             QName focusTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult parentResult) throws SchemaException {
         var result = parentResult.subresult("deleteFocusObjectStatistics")
                 .addParam("focusTypeName", focusTypeName)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind.value())
-                .addParam("intent", intent)
+                .addParam("resourceObjectType", typeIdentification)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
                     SmartIntegrationArtifactType.class,
                     PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
                             .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
-                            .and().item(PATH_SCOPE_KIND).eq(kind)
-                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(PATH_SCOPE_KIND).eq(typeIdentification.getKind())
+                            .and().item(PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
                             .and().item(PATH_SCOPE_FOCUS_TYPE).eq(focusTypeName)
                             .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
                             .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
@@ -647,12 +638,11 @@ public class StatisticsService {
     public @NotNull String regenerateFocusObjectStatistics(
             @NotNull QName objectTypeName,
             @NotNull String resourceOid,
-            @NotNull ShadowKindType kind,
-            @NotNull String intent,
+            @NotNull ResourceObjectTypeIdentification typeIdentification,
             Task task,
             OperationResult parentResult) throws CommonException {
         String runningTaskOid = findRunningFocusObjectStatisticsComputationTaskOid(
-                objectTypeName, resourceOid, kind, intent, parentResult, task);
+                objectTypeName, resourceOid, typeIdentification, parentResult, task);
         if (runningTaskOid != null) {
             LOGGER.debug("There is already a running focus object statistics computation task (OID {}) for type {};"
                             + " will not start another one",
@@ -663,20 +653,19 @@ public class StatisticsService {
         var result = parentResult.subresult(OP_SUBMIT_FOCUS_OBJECT_STATISTICS_COMPUTATION)
                 .addParam("objectTypeName", objectTypeName)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind.value())
-                .addParam("intent", intent)
+                .addParam("resourceObjectType", typeIdentification)
                 .build();
 
         try {
-            deleteFocusObjectStatistics(objectTypeName, resourceOid, kind, intent, parentResult);
+            deleteFocusObjectStatistics(objectTypeName, resourceOid, typeIdentification, parentResult);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
                     .work(new WorkDefinitionsType()
                             .focusObjectStatisticsComputation(new FocusObjectStatisticsComputationWorkDefinitionType()
                                     .type(objectTypeName)
                                     .resourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE))
-                                    .kind(kind)
-                                    .intent(intent)));
+                                    .kind(typeIdentification.getKind())
+                                    .intent(typeIdentification.getIntent())));
 
             var oid = modelInteractionService.submit(
                     activity,
@@ -700,8 +689,7 @@ public class StatisticsService {
     private @Nullable String findRunningFocusObjectStatisticsComputationTaskOid(
             QName objectTypeName,
             String resourceOid,
-            ShadowKindType kind,
-            String intent,
+            ResourceObjectTypeIdentification typeIdentification,
             OperationResult result,
             Task task) throws CommonException {
 
@@ -730,8 +718,8 @@ public class StatisticsService {
 
             if (objectTypeName.equals(def.getType())
                     && resourceOid.equals(Referencable.getOid(def.getResourceRef()))
-                    && kind.equals(def.getKind())
-                    && intent.equals(def.getIntent())) {
+                    && typeIdentification.getKind().equals(def.getKind())
+                    && typeIdentification.getIntent().equals(def.getIntent())) {
                 foundOidRef.set(taskBean.getOid());
                 return false;
             }

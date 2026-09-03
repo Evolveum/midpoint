@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.cre
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
@@ -110,7 +111,8 @@ public class ObjectTypeStatisticsComputationActivityRun
 
         var res = Resource.of(resource);
         ResourceSchema completeSchemaRequired = res.getCompleteSchemaRequired();
-        ResourceObjectTypeDefinition objectTypeDefinition = completeSchemaRequired.getObjectTypeDefinition(getKind(), getIntent());
+        ResourceObjectTypeDefinition objectTypeDefinition =
+                completeSchemaRequired.getObjectTypeDefinitionRequired(getTypeIdentification());
         computer = new ObjectTypeStatisticsComputer(objectTypeDefinition);
 
         return true;
@@ -119,7 +121,7 @@ public class ObjectTypeStatisticsComputationActivityRun
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
 
         var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeStatistics(
-                getResourceOid(), getKind().value(), getIntent(), result);
+                getResourceOid(), getTypeIdentification(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 
@@ -130,7 +132,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         return new SearchSpecification<>(
                 ShadowType.class,
                 Resource.of(resource)
-                        .queryFor(getKind(), getIntent())
+                        .queryFor(getTypeIdentification())
                         .build(),
                 null,
                 false);
@@ -168,7 +170,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         var statisticsObject = createObjectTypeStatisticsArtifact(
                 resource.getOid(),
                 resource.getName().getOrig(),
-                getWorkDefinition().getTypeIdentification(),
+                getTypeIdentification(),
                 statistics);
 
         logger.debug("Adding statistics object:\n{}", statisticsObject.debugDump(1));
@@ -204,11 +206,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         return false;
     }
 
-    private @NotNull ShadowKindType getKind() {
-        return getWorkDefinition().getTypeIdentification().getKind();
-    }
-
-    private @NotNull String getIntent() {
-        return getWorkDefinition().getTypeIdentification().getIntent();
+    private ResourceObjectTypeIdentification getTypeIdentification() {
+        return getWorkDefinition().getTypeIdentification();
     }
 }
