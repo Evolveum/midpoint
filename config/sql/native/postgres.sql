@@ -2023,9 +2023,9 @@ CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (owne
 /*
 @description: Stores artifacts related to smart integration.
 
-Represents persistent SmartIntegrationArchitectType.
+Represents persistent SmartIntegrationArtifactType.
  */
--- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#SmartIntegrationArchitectType
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#SmartIntegrationArtifactType
 CREATE TABLE m_smart_integration_artifact (
     -- @description: Object identifier.
                         oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
