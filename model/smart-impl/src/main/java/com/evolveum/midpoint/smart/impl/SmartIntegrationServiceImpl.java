@@ -292,7 +292,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
+    public SmartIntegrationArtifactType getLatestObjectTypeStatistics(
+            String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException {
         return statisticsService.getLatestObjectTypeStatistics(resourceOid, kind, intent, parentResult);
     }
@@ -304,7 +305,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
+    public SmartIntegrationArtifactType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
         return statisticsService.getLatestObjectClassStatistics(resourceOid, objectClassName, parentResult);
     }
@@ -335,7 +336,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestFocusObjectStatistics(
+    public SmartIntegrationArtifactType getLatestFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
             ShadowKindType kind,
@@ -369,9 +370,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, OperationResult parentResult)
+    public SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
             throws SchemaException {
-        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, kind, intent, parentResult);
+        return schemaMatchService.getLatestObjectTypeSchemaMatch(resourceOid, typeIdentification, parentResult);
     }
 
     @Override
@@ -633,7 +635,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public ObjectTypesSuggestionType suggestObjectTypes(
             String resourceOid,
             QName objectClassName,
-            ShadowObjectClassStatisticsType statistics,
+            ObjectSetStatisticsType statistics,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
@@ -751,7 +753,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             SchemaMatchResultType schemaMatch,
             Boolean isInbound,
             Boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            @Nullable ObjectSetStatisticsType objectTypeStatistics,
             @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable CurrentActivityState<?> activityState,
             Task task,

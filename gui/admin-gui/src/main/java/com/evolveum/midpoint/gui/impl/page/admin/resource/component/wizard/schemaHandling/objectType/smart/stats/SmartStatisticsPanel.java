@@ -67,7 +67,7 @@ import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValuePatternCountType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -75,7 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * (depending on the context of invocation). It includes a list of attributes with their respective statistics,
  * and for each selected attribute, it shows the most common values and value patterns.
  **/
-public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsType> implements Popupable {
+public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> implements Popupable {
 
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
     private static final String ID_SEARCH_INPUT = "searchInput";
@@ -133,7 +133,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     public SmartStatisticsPanel(
             String id,
-            IModel<ShadowObjectClassStatisticsType> model,
+            IModel<ObjectSetStatisticsType> model,
             String resourceOid,
             QName objectClassName) {
         super(id, model);
@@ -146,7 +146,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     public SmartStatisticsPanel(
             String id,
-            IModel<ShadowObjectClassStatisticsType> model,
+            IModel<ObjectSetStatisticsType> model,
             String resourceOid,
             ResourceObjectTypeIdentification objectTypeIdentification) {
         super(id, model);
@@ -159,7 +159,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     public SmartStatisticsPanel(
             String id,
-            IModel<ShadowObjectClassStatisticsType> model,
+            IModel<ObjectSetStatisticsType> model,
             String resourceOid,
             ResourceObjectTypeIdentification objectTypeIdentification,
             QName focusType) {
@@ -209,7 +209,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         renderListViewRows(getModelObject());
     }
 
-    protected List<ListViewRow> renderListViewRows(@NotNull ShadowObjectClassStatisticsType statistics) {
+    protected List<ListViewRow> renderListViewRows(@NotNull ObjectSetStatisticsType statistics) {
         Stream<ListViewRow> rows = statistics.getAttribute().stream()
                 .map(item -> toAttributeRow(item, statistics));
 
@@ -268,7 +268,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     private @NotNull ListViewRow toAttributeRow(
             @NotNull ShadowAttributeStatisticsType item,
-            @NotNull ShadowObjectClassStatisticsType statistics) {
+            @NotNull ObjectSetStatisticsType statistics) {
         String refStr = item.getRef().getItemPath().lastName().toString();
         int count = statistics.getSize() - item.getMissingValueCount();
 
@@ -281,7 +281,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             ShadowAttributeStatisticsType item) implements Serializable {
     }
 
-    private @NotNull WebMarkupContainer buildLeftPanel(ShadowObjectClassStatisticsType statistics) {
+    private @NotNull WebMarkupContainer buildLeftPanel(ObjectSetStatisticsType statistics) {
         WebMarkupContainer left = new WebMarkupContainer(ID_LEFT_PANEL);
         left.setOutputMarkupId(true);
 
@@ -371,7 +371,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         return get(ID_LEFT_PANEL).get(ID_SHOW_ALL_BUTTON);
     }
 
-    private @NotNull WebMarkupContainer buildChips(@NotNull ShadowObjectClassStatisticsType statistics) {
+    private @NotNull WebMarkupContainer buildChips(@NotNull ObjectSetStatisticsType statistics) {
         WebMarkupContainer chips = new WebMarkupContainer(ID_CHIPS_CONTAINER);
         chips.setOutputMarkupId(true);
 
@@ -396,7 +396,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     private @NotNull WebMarkupContainer buildListView(
-            ShadowObjectClassStatisticsType statistics,
+            ObjectSetStatisticsType statistics,
             @NotNull IModel<ShadowAttributeStatisticsType> selectedAttribute) {
 
         WebMarkupContainer container = new WebMarkupContainer(ID_LIST_VIEW_CONTAINER);
@@ -967,7 +967,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     @Nullable
     private ShadowAttributeStatisticsType findAttributeByPath(
-            @NotNull ShadowObjectClassStatisticsType statistics,
+            @NotNull ObjectSetStatisticsType statistics,
             @NotNull ItemPathType path) {
 
         return statistics.getAttribute().stream()

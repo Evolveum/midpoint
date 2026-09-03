@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -49,7 +49,7 @@ public class ObjectClassStatisticsComputer {
         aggregator.postProcessStatistics();
     }
 
-    public ShadowObjectClassStatisticsType getStatistics() {
+    public ObjectSetStatisticsType getStatistics() {
         return aggregator.getStatistics();
     }
 

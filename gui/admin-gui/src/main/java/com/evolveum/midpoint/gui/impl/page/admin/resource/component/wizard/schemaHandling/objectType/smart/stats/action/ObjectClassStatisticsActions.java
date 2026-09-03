@@ -9,14 +9,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationArtifactType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -46,7 +45,7 @@ public final class ObjectClassStatisticsActions {
 
         try {
             if (!forceRegeneration) {
-                GenericObjectType latestStatistics =
+                var latestStatistics =
                         smartIntegrationService.getLatestObjectClassStatistics(
                                 resourceOid, objectClassName, task.getResult());
 
@@ -72,12 +71,11 @@ public final class ObjectClassStatisticsActions {
     private static void showStatisticsPopup(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
-            @NotNull GenericObjectType statisticsObject,
+            @NotNull SmartIntegrationArtifactType statisticsObject,
             @NotNull String resourceOid,
             @NotNull QName objectClassName) throws SchemaException {
 
-        ShadowObjectClassStatisticsType statistics =
-                ShadowObjectClassUtil.getStatisticsRequired(statisticsObject);
+        var statistics = SmartIntegrationArtifactUtil.getStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),
@@ -131,7 +129,7 @@ public final class ObjectClassStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
 
         try {
-            GenericObjectType latestStatistics =
+            var latestStatistics =
                     smartIntegrationService.getLatestObjectClassStatistics(
                             resourceOid, objectClassName, task.getResult());
 

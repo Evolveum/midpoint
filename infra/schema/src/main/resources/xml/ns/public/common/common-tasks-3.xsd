@@ -10454,7 +10454,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ObjectTypesSuggestionWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -10584,7 +10584,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ObjectTypesRelatedSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -10955,7 +10955,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ObjectTypeStatisticsComputationWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11042,7 +11042,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>FocusObjectStatisticsComputationWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11159,7 +11159,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ObjectTypesSuggestionWorkDefinitionType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11196,7 +11196,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>CorrelationSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11270,7 +11270,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>MappingsSuggestionWorkStateType.statisticsRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11281,7 +11281,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>MappingsSuggestionWorkDefinitionType.schemaMatchRef</a:displayName>
-                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                                <a:objectReferenceTargetType>c:SmartIntegrationArtifactType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

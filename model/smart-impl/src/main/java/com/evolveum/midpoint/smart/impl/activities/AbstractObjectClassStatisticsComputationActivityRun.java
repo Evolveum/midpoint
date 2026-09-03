@@ -6,11 +6,10 @@
 
 package com.evolveum.midpoint.smart.impl.activities;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectClassUtil.createStatisticsObject;
-
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createObjectClassStatisticsArtifact;
 
 /**
  * Base activity run for computing statistics for a specific object class on a resource.
@@ -165,13 +166,13 @@ public abstract class AbstractObjectClassStatisticsComputationActivityRun<
             return;
         }
 
-        var statisticsObject = createStatisticsObject(
+        var statisticsObject = createObjectClassStatisticsArtifact(
                 resource.getOid(),
                 resource.getName().getOrig(),
                 getObjectClassName(),
                 statistics);
 
-        logger.debug("Adding statistics object:\n{}", statisticsObject.debugDump(1));
+        logger.debug("Adding statistics object:\n{}", statisticsObject.debugDumpLazily(1));
 
         var oid = getBeans().repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
         storeStatisticsObjectOid(oid, result);

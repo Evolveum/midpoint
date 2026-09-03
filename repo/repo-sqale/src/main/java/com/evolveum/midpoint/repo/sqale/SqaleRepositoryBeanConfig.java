@@ -182,6 +182,8 @@ public class SqaleRepositoryBeanConfig {
                 .register(OrgType.COMPLEX_TYPE, QOrgMapping.initOrgMapping(repositoryContext))
                 .register(ProjectionHolderType.COMPLEX_TYPE,
                         QProjectionHolderMapping.initProjectionHolderMapping(repositoryContext))
+                .register(SmartIntegrationArtifactType.COMPLEX_TYPE,
+                        QSmartIntegrationArtifactMapping.init(repositoryContext))
                 .register(ReportType.COMPLEX_TYPE, QReportMapping.init(repositoryContext))
                 .register(ReportDataType.COMPLEX_TYPE, QReportDataMapping.init(repositoryContext))
                 .register(RoleAnalysisClusterType.COMPLEX_TYPE, QClusterObjectMapping.init(repositoryContext))

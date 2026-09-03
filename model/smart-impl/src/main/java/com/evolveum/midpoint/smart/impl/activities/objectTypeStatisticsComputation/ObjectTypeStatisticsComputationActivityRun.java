@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil.createObjectTypeStatisticsObject;
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createObjectTypeStatisticsArtifact;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -165,11 +165,10 @@ public class ObjectTypeStatisticsComputationActivityRun
             return;
         }
 
-        var statisticsObject = createObjectTypeStatisticsObject(
+        var statisticsObject = createObjectTypeStatisticsArtifact(
                 resource.getOid(),
                 resource.getName().getOrig(),
-                getKind().value(),
-                getIntent(),
+                getWorkDefinition().getTypeIdentification(),
                 statistics);
 
         logger.debug("Adding statistics object:\n{}", statisticsObject.debugDump(1));
@@ -197,7 +196,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         var parentState = this.getActivityState();
         parentState.setWorkStateItemRealValues(
                 ObjectTypeStatisticsComputationWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 
@@ -206,10 +205,10 @@ public class ObjectTypeStatisticsComputationActivityRun
     }
 
     private @NotNull ShadowKindType getKind() {
-        return getWorkDefinition().getShadowTypeKind();
+        return getWorkDefinition().getTypeIdentification().getKind();
     }
 
     private @NotNull String getIntent() {
-        return getWorkDefinition().getIntent();
+        return getWorkDefinition().getTypeIdentification().getIntent();
     }
 }

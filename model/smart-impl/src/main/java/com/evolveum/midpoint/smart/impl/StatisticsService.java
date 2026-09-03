@@ -9,8 +9,9 @@
 package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.*;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Objects;
@@ -22,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -43,9 +45,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -89,7 +89,8 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource and object class.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public GenericObjectType getLatestObjectClassStatistics(String resourceOid, QName objectClassName, OperationResult parentResult)
+    SmartIntegrationArtifactType getLatestObjectClassStatistics(
+            String resourceOid, QName objectClassName, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_STATISTICS)
                 .addParam("resourceOid", resourceOid)
@@ -97,34 +98,29 @@ public class StatisticsService {
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME)
-                            .eq(objectClassName.getLocalPart())
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(PATH_SCOPE_OBJECT_CLASS).eq(objectClassName)
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value())
                             .build(),
                     null,
                     result);
 
-            var latestStatistics = objects.stream()
-                    .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
-                            o.asObjectable().getExtension(), MODEL_EXTENSION_STATISTICS) != null)
-                    .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectClassUtil.getStatisticsRequired(o).getTimestamp())))
-                    .orElse(null);
+            var latestStatisticsObject = getLatestStatistics(objects);
 
-            if (latestStatistics != null) {
-                var statistics = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
+            if (latestStatisticsObject != null) {
+                var statistics = SmartIntegrationArtifactUtil.getStatisticsRequired(latestStatisticsObject);
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Statistics {} for resource {} and class {} expired, deleting",
-                            latestStatistics.getOid(), resourceOid, objectClassName);
-                    deleteStatistics(latestStatistics.getOid(), result);
+                            latestStatisticsObject.getOid(), resourceOid, objectClassName);
+                    deleteStatistics(latestStatisticsObject.getOid(), result);
                     return null;
                 }
             }
 
-            return latestStatistics != null ? latestStatistics.asObjectable() : null;
+            return latestStatisticsObject != null ? latestStatisticsObject.asObjectable() : null;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -136,10 +132,10 @@ public class StatisticsService {
     /**
      * Starts regeneration of statistics for the given resource object class.
      *
-     * <p>If a statistics computation task for the same resource and object class
+     * If a statistics computation task for the same resource and object class
      * is already running, its task OID is returned and no new task is started.
      * Otherwise, existing statistics are deleted and a new computation task
-     * is submitted.</p>
+     * is submitted.
      *
      * @return OID of the running or newly created statistics computation task
      */
@@ -196,10 +192,10 @@ public class StatisticsService {
     /**
      * Starts regeneration of statistics for the given resource object class.
      *
-     * <p>If a statistics computation task for the same resource and object class
+     * If a statistics computation task for the same resource and object class
      * is already running, its task OID is returned and no new task is started.
      * Otherwise, existing statistics are deleted and a new computation task
-     * is submitted.</p>
+     * is submitted.
      *
      * @return OID of the running or newly created statistics computation task
      */
@@ -355,26 +351,23 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given resource, kind and intent.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public ShadowObjectClassStatisticsType loadObjectTypeStatistics(ObjectReferenceType statisticsRef, OperationResult result) {
+    public ObjectSetStatisticsType loadObjectTypeStatistics(ObjectReferenceType statisticsRef, OperationResult result) {
         try {
-            if (statisticsRef == null) {
-                return null;
-            }
             var statisticsOid = Referencable.getOid(statisticsRef);
             if (statisticsOid == null) {
                 return null;
             }
             var statisticsObject = repositoryService
-                    .getObject(GenericObjectType.class, statisticsOid, null, result)
+                    .getObject(SmartIntegrationArtifactType.class, statisticsOid, null, result)
                     .asObjectable();
-            return ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
+            return SmartIntegrationArtifactUtil.getStatisticsRequired(statisticsObject);
         } catch (Exception e) {
             LOGGER.warn("Failed to load object type statistics, proceeding without them: {}", e.getMessage());
             return null;
         }
     }
 
-    public GenericObjectType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
+    public SmartIntegrationArtifactType getLatestObjectTypeStatistics(String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_STATISTICS)
                 .addParam("resourceOid", resourceOid)
@@ -383,36 +376,30 @@ public class StatisticsService {
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(PATH_SCOPE_KIND).eq(kind)
+                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
                     result);
 
-            var latestStatistics = objects.stream()
-                    .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
-                            o.asObjectable().getExtension(), MODEL_EXTENSION_OBJECT_TYPE_STATISTICS) != null)
-                    .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(o).getTimestamp())))
-                    .orElse(null);
+            var latestStatisticsObject = getLatestStatistics(objects);
 
-            if (latestStatistics != null) {
-                var statistics = ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(latestStatistics);
+            if (latestStatisticsObject != null) {
+                var statistics = SmartIntegrationArtifactUtil.getStatisticsRequired(latestStatisticsObject);
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Object type statistics {} for resource {}/{}/{} expired, deleting",
-                            latestStatistics.getOid(), resourceOid, kind, intent);
-                    deleteStatistics(latestStatistics.getOid(), result);
+                            latestStatisticsObject.getOid(), resourceOid, kind, intent);
+                    deleteStatistics(latestStatisticsObject.getOid(), result);
                     return null;
                 }
             }
 
-            return latestStatistics != null ? latestStatistics.asObjectable() : null;
+            return latestStatisticsObject != null ? latestStatisticsObject.asObjectable() : null;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -421,11 +408,20 @@ public class StatisticsService {
         }
     }
 
+    private static @Nullable PrismObject<SmartIntegrationArtifactType> getLatestStatistics(
+            Collection<PrismObject<SmartIntegrationArtifactType>> objects) {
+        return objects.stream()
+                .filter(o -> o.asObjectable().getStatistics() != null)
+                .max(Comparator.comparing(
+                        o -> toMillis(o.asObjectable().getStatistics().getTimestamp())))
+                .orElse(null);
+    }
+
     /**
      * Synchronously computes object type statistics by iterating all matching shadows in the repository,
      * persists the result, and returns it. Returns {@code null} if computation fails.
      */
-    public @Nullable ShadowObjectClassStatisticsType computeObjectTypeStatisticsSync(
+    public @Nullable ObjectSetStatisticsType computeObjectTypeStatisticsSync(
             String resourceOid,
             String resourceName,
             ResourceObjectTypeIdentification typeIdentification,
@@ -457,19 +453,15 @@ public class StatisticsService {
                         resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
                 return statistics;
             }
-            var statsObject = ShadowObjectTypeUtil.createObjectTypeStatisticsObject(
-                    resourceOid, resourceName,
-                    typeIdentification.getKind().value(), typeIdentification.getIntent(),
-                    statistics);
+            var statsObject = createObjectTypeStatisticsArtifact(resourceOid, resourceName, typeIdentification, statistics);
             repositoryService.addObject(statsObject.asPrismObject(), null, result);
             LOGGER.info("Synchronously computed and saved object type statistics for {}/{}/{}",
                     resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
             return statistics;
         } catch (Throwable t) {
             result.recordException(t);
-            LOGGER.warn("Failed to compute object type statistics synchronously for {}/{}/{}: {}",
-                    resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent(),
-                    t.getMessage());
+            LOGGER.warn("Failed to compute object type statistics synchronously for {}/{}: {}",
+                    resourceOid, typeIdentification, t.getMessage());
             return null;
         } finally {
             result.close();
@@ -486,12 +478,12 @@ public class StatisticsService {
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME)
-                            .eq(objectClassName.getLocalPart())
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(PATH_SCOPE_OBJECT_CLASS).eq(objectClassName)
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value())
                             .build(),
                     null,
                     result);
@@ -523,14 +515,13 @@ public class StatisticsService {
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(PATH_SCOPE_KIND).eq(kind)
+                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
                     result);
@@ -554,53 +545,46 @@ public class StatisticsService {
      * Returns the object holding last known statistics for the given focus object type and resource/kind/intent.
      * Automatically deletes expired statistics based on configured TTL (default: 24 hours).
      */
-    public GenericObjectType getLatestFocusObjectStatistics(
-            QName objectTypeName,
+    public SmartIntegrationArtifactType getLatestFocusObjectStatistics(
+            QName focusTypeName,
             String resourceOid,
             ShadowKindType kind,
             String intent,
             OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_FOCUS_OBJECT_STATISTICS)
-                .addParam("objectTypeName", objectTypeName)
+                .addParam("objectTypeName", focusTypeName)
                 .addParam("resourceOid", resourceOid)
                 .addParam("kind", kind.value())
                 .addParam("intent", intent)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME)
-                            .eq(objectTypeName.getLocalPart())
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind.value())
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(PATH_SCOPE_KIND).eq(kind)
+                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(PATH_SCOPE_FOCUS_TYPE).eq(focusTypeName)
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
                     result);
 
-            var latestStatistics = objects.stream()
-                    .filter(o -> ObjectTypeUtil.getExtensionItemRealValue(
-                            o.asObjectable().getExtension(), MODEL_EXTENSION_FOCUS_OBJECT_STATISTICS) != null)
-                    .max(Comparator.comparing(
-                            o -> toMillis(FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(o).getTimestamp())))
-                    .orElse(null);
+            var latestStatisticsObject = getLatestStatistics(objects);
 
-            if (latestStatistics != null) {
-                var statistics = FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(latestStatistics);
+            if (latestStatisticsObject != null) {
+                var statistics = SmartIntegrationArtifactUtil.getStatisticsRequired(latestStatisticsObject);
                 if (isStatisticsExpired(statistics.getTimestamp(), result)) {
                     LOGGER.info("Focus object statistics {} for type {} expired, deleting",
-                            latestStatistics.getOid(), objectTypeName);
-                    deleteStatistics(latestStatistics.getOid(), result);
+                            latestStatisticsObject.getOid(), focusTypeName);
+                    deleteStatistics(latestStatisticsObject.getOid(), result);
                     return null;
                 }
             }
 
-            return latestStatistics != null ? latestStatistics.asObjectable() : null;
+            return latestStatisticsObject != null ? latestStatisticsObject.asObjectable() : null;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -610,29 +594,27 @@ public class StatisticsService {
     }
 
     public void deleteFocusObjectStatistics(
-            QName objectTypeName,
+            QName focusTypeName,
             String resourceOid,
             ShadowKindType kind,
             String intent,
             OperationResult parentResult) throws SchemaException {
         var result = parentResult.subresult("deleteFocusObjectStatistics")
-                .addParam("objectTypeName", objectTypeName)
+                .addParam("focusTypeName", focusTypeName)
                 .addParam("resourceOid", resourceOid)
                 .addParam("kind", kind.value())
                 .addParam("intent", intent)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_FOCUS_OBJECT_TYPE_NAME)
-                            .eq(objectTypeName.getLocalPart())
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind.value())
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(PATH_SCOPE_KIND).eq(kind)
+                            .and().item(PATH_SCOPE_INTENT).eq(intent)
+                            .and().item(PATH_SCOPE_FOCUS_TYPE).eq(focusTypeName)
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value())
                             .build(),
                     null,
                     result);
@@ -642,7 +624,7 @@ public class StatisticsService {
             }
 
             LOGGER.info("Manually deleted {} focus object statistics for type {}",
-                    objects.size(), objectTypeName);
+                    objects.size(), focusTypeName);
             result.recordSuccess();
         } catch (Throwable t) {
             result.recordException(t);
@@ -798,7 +780,7 @@ public class StatisticsService {
      */
     private void deleteStatistics(String statisticsOid, OperationResult result) {
         try {
-            repositoryService.deleteObject(GenericObjectType.class, statisticsOid, result);
+            repositoryService.deleteObject(SmartIntegrationArtifactType.class, statisticsOid, result);
             LOGGER.debug("Deleted expired statistics object {}", statisticsOid);
         } catch (Exception e) {
             LOGGER.warn("Failed to delete statistics object {}: {}", statisticsOid, e.getMessage(), e);

@@ -74,7 +74,7 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     /** Returns the object holding last known statistics for the given resource and object class. */
-    GenericObjectType getLatestObjectClassStatistics(
+    SmartIntegrationArtifactType getLatestObjectClassStatistics(
             String resourceOid, QName objectClassName, OperationResult result)
             throws SchemaException;
 
@@ -87,7 +87,7 @@ public interface SmartIntegrationService {
             throws CommonException;
 
     /** Returns OID of the object holding last known statistics for the given resource, kind and intent. */
-    GenericObjectType getLatestObjectTypeStatistics(
+    SmartIntegrationArtifactType getLatestObjectTypeStatistics(
             String resourceOid, String kind, String intent, OperationResult parentResult)
             throws SchemaException;
 
@@ -102,7 +102,7 @@ public interface SmartIntegrationService {
             throws SchemaException;
 
     /** Returns the object holding last known statistics for the given focus object type and resource/kind/intent. */
-    GenericObjectType getLatestFocusObjectStatistics(
+    SmartIntegrationArtifactType getLatestFocusObjectStatistics(
             QName objectTypeName,
             String resourceOid,
             ShadowKindType kind,
@@ -130,8 +130,8 @@ public interface SmartIntegrationService {
             throws CommonException;
 
     /** Returns the object holding last known schema match for the given resource, kind and intent. */
-    GenericObjectType getLatestObjectTypeSchemaMatch(
-            String resourceOid, String kind, String intent, OperationResult parentResult)
+    SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
             throws SchemaException;
 
     /** Computes schema match pairs for the given resource and object type. */
@@ -195,7 +195,7 @@ public interface SmartIntegrationService {
     ObjectTypesSuggestionType suggestObjectTypes(
             String resourceOid,
             QName objectClassName,
-            ShadowObjectClassStatisticsType statistics,
+            ObjectSetStatisticsType statistics,
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes,
             Task task,
@@ -283,7 +283,7 @@ public interface SmartIntegrationService {
             SchemaMatchResultType schemaMatch,
             Boolean isInbound,
             Boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            @Nullable ObjectSetStatisticsType objectTypeStatistics,
             @Nullable List<ItemPath> targetPathsToIgnore,
             @Nullable CurrentActivityState<?> activityState,
             Task task,

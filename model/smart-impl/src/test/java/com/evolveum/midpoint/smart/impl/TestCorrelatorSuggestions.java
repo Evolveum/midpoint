@@ -116,7 +116,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
     }
 
     /** Computes statistics for a specific type identification (kind/intent) using ObjectTypeRelatedStatisticsComputer. */
-    private ShadowObjectClassStatisticsType computeStatistics(
+    private ObjectSetStatisticsType computeStatistics(
             DummyTestResource resource,
             ResourceObjectTypeIdentification typeIdentification,
             Task task,
@@ -683,7 +683,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         var statusAttr = STATUS.path();
         var namePath = ItemPath.create(FocusType.F_NAME).toStringStandalone();
 
-        var statistics = new ShadowObjectClassStatisticsType().size(100);
+        var statistics = new ObjectSetStatisticsType().size(100);
         statistics.getAttribute().add(new ShadowAttributeStatisticsType()
                 .ref(emailAttr.toBean()).missingValueCount(0).uniqueValueCount(95));
         statistics.getAttribute().add(new ShadowAttributeStatisticsType()

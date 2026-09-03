@@ -312,10 +312,11 @@
     </xsd:complexType>
     <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionType"/>
 
-    <xsd:complexType name="ShadowObjectClassStatisticsType">
+    <xsd:complexType name="ObjectSetStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
-                Statistical data about a particular object class needed for suggesting object types delineations.
+                Statistical data about a set of objects, for example about particular object class needed
+                for suggesting object types delineations.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -1040,7 +1041,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="statistics" type="tns:ShadowObjectClassStatisticsType">
+            <xsd:element name="statistics" type="tns:ObjectSetStatisticsType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Statistical data about objects having a particular object class needed
@@ -1881,6 +1882,102 @@
                         Operation-specific result data.
                         The structure of this value depends on the particular Smart Integration operation.
                         The value may be absent if the operation has not completed yet or does not produce any result.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SmartIntegrationArtifactType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents an artifact used in smart integration processes and activities. For example, statistics related
+                to a set of objects (resource object class, resource object type, focus object type, ...) or an interim
+                computed data, like schema matching proposal.
+
+                It has archetypes indicating specific type of the artifact (statistics, schema matching, ...)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="scope" type="tns:SmartIntegrationArtifactScopeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What is the scope this artifact? Object class, object type, focus object type.
+                                E.g., statistics for "all inetOrgPerson accounts on LDAP1", or suggestions
+                                for "account/default on LDAP2".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statistics" type="tns:ObjectSetStatisticsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Statistical data, used for further analysis, if applicable.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="schemaMatch" type="tns:SchemaMatchResultType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the schema matching process, if applicable.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="smartIntegrationArtifact" type="tns:SmartIntegrationArtifactType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="SmartIntegrationArtifactScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a set of resource or focus objects related to a smart integration artifact (typically,
+                objects from which statistics were made).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource on which the objects reside.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specification of the object type. Mutually exclusive with "objectClass".
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specification of the object class. Mutually exclusive with "objectType".
+                            QName should be qualified, usually in ".../resource/instance-3" namespace.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="focusType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of focus objects that are in the scope. This is a specialty when we are working with focus
+                        objects (like users) that are related to given resource object type. QName should be qualified,
+                        usually in "common-3" namespace.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchOneResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiAttributeDefinitionType;
 
 /**
@@ -48,11 +48,11 @@ class PostSchemaMatchHeuristics {
     static final double PRESENCE_THRESHOLD = 0.9;
 
     private final PrismObjectDefinition<?> focusTypeDefinition;
-    private final ShadowObjectClassStatisticsType objectTypeStatistics;
+    private final ObjectSetStatisticsType objectTypeStatistics;
 
     PostSchemaMatchHeuristics(
             PrismObjectDefinition<?> focusTypeDefinition,
-            ShadowObjectClassStatisticsType objectTypeStatistics) {
+            ObjectSetStatisticsType objectTypeStatistics) {
         this.focusTypeDefinition = focusTypeDefinition;
         this.objectTypeStatistics = objectTypeStatistics;
     }

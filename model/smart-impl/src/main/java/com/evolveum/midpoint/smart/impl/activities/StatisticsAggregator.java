@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowValuePatternType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -40,7 +40,7 @@ class StatisticsAggregator<K> {
     private final AtomicInteger size = new AtomicInteger();
 
     /** JAXB statistics object being built. */
-    private final ShadowObjectClassStatisticsType statistics = new ShadowObjectClassStatisticsType();
+    private final ObjectSetStatisticsType statistics = new ObjectSetStatisticsType();
 
     StatisticsAggregator(@NotNull Function<ItemPathType, K> refResolver) {
         this.refResolver = refResolver;
@@ -142,7 +142,7 @@ class StatisticsAggregator<K> {
      * All values and patterns are emitted without any filtering or top-N limits.
      */
     synchronized void postProcessStatistics(
-            BiPredicate<ShadowAttributeStatisticsType, ShadowObjectClassStatisticsType> removePredicate) {
+            BiPredicate<ShadowAttributeStatisticsType, ObjectSetStatisticsType> removePredicate) {
 
         statistics.setSize(size.get());
 
@@ -175,7 +175,7 @@ class StatisticsAggregator<K> {
         }
     }
 
-    ShadowObjectClassStatisticsType getStatistics() {
+    ObjectSetStatisticsType getStatistics() {
         return statistics;
     }
 

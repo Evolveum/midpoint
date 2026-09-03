@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.activities.mappingSuggestion;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil.createObjectTypeStatisticsObject;
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createObjectTypeStatisticsArtifact;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -165,11 +165,10 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         }
 
         var def = getWorkDefinition();
-        var statisticsObject = createObjectTypeStatisticsObject(
+        var statisticsObject = createObjectTypeStatisticsArtifact(
                 resource.getOid(),
                 resource.getName().getOrig(),
-                def.getKind(),
-                def.getIntent(),
+                def.getTypeIdentification(),
                 statistics);
 
         LOGGER.debug("Adding object type statistics object:\n{}", statisticsObject.debugDump(1));
@@ -183,7 +182,7 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
                 MappingsSuggestionWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 }

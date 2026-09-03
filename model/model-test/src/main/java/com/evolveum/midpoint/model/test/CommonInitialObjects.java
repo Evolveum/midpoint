@@ -114,6 +114,23 @@ public interface CommonInitialObjects {
             ARCHETYPES, "538-archetype-task-certification-reiterate-campaign.xml",
             SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value());
 
+    // Smart integration archetypes
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-focus-object-type-statistics.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-resource-object-class-statistics.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-resource-object-type-statistics.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-schema-match.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH.value());
+
     TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
             MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
 

@@ -90,6 +90,7 @@ DO $$ BEGIN
         'SERVICE',
         'SHADOW',
         'SIMULATION_RESULT',
+        'SMART_INTEGRATION_ARTIFACT',
         'SYSTEM_CONFIGURATION',
         'TASK',
         'USER',
