@@ -114,7 +114,7 @@ public class SmartIntegrationArtifactUtil {
     public static SmartIntegrationArtifactType createSchemaMatchArtifact(
             String resourceOid, ResourceObjectTypeIdentification type, SchemaMatchResultType schemaMatch) {
         var object = new SmartIntegrationArtifactType()
-                .name("Statistics for %s:%s (%s)".formatted(resourceOid, type, schemaMatch.getTimestamp()))
+                .name("Schema match for %s:%s (%s)".formatted(resourceOid, type, schemaMatch.getTimestamp()))
                 .scope(new SmartIntegrationArtifactScopeType()
                         .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                         .objectType(type.asBean()))
