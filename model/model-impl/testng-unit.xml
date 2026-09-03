@@ -40,6 +40,8 @@
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignmentEvaluatorDynamic"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestAssignedMappings"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestElementStateCheckEncrypted"/>
+            <class name="com.evolveum.midpoint.model.impl.lens.TestPasswordHintEstimatedOldValueEncryption"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjector"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestProjectorRoleEntitlement"/>
             <class name="com.evolveum.midpoint.model.impl.lens.TestDependencies"/>

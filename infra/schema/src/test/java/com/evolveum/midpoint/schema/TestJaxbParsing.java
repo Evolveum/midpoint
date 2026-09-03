@@ -99,6 +99,35 @@ public class TestJaxbParsing extends AbstractSchemaTest {
         // TODO: more asserts
     }
 
+    /**
+     * Verifies that a legacy plain-text password hint is parsed as a {@link ProtectedStringType}
+     * with the original value stored as clear text.
+     */
+    @Test
+    public void testParseLegacyPasswordHint() throws Exception {
+        String xml = """
+                <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+                    <name>test</name>
+                    <credentials>
+                        <password>
+                            <hint>plain text hint</hint>
+                        </password>
+                    </credentials>
+                </user>
+                """;
+
+        // WHEN
+        UserType user = PrismTestUtil.getPrismContext()
+                .parserFor(xml)
+                .xml()
+                .parseRealValue(UserType.class);
+
+        // THEN
+        ProtectedStringType hint = user.getCredentials().getPassword().getHint();
+        assertNotNull(hint);
+        assertEquals("plain text hint", hint.getClearValue());
+    }
+
     @Test
     public void testParseModernRoleFromJaxb() throws SchemaException, IOException {
         testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role.xml"));
