@@ -9,7 +9,6 @@ package com.evolveum.midpoint.smart.impl.activities;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 
-import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
