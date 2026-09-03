@@ -19,9 +19,14 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author lskublik
@@ -31,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.HINT)
 public class PagePasswordHint extends PageAbstractAuthenticationModule<ModuleAuthentication> {
     @Serial private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(PagePasswordHint.class);
 
     private static final String ID_HINT_PANEL = "hintPanel";
     private static final String ID_HINT_LABEL = "hintLabel";
@@ -78,8 +85,17 @@ public class PagePasswordHint extends PageAbstractAuthenticationModule<ModuleAut
     }
 
     private String getUserPasswordHint(@NotNull UserType user) {
-        return user.getCredentials() != null && user.getCredentials().getPassword() != null ?
+        ProtectedStringType protectedHint = user.getCredentials() != null && user.getCredentials().getPassword() != null ?
                 user.getCredentials().getPassword().getHint() : null;
+        if (protectedHint == null) {
+            return null;
+        }
+        try {
+            return getMidpointApplication().getProtector().decryptString(protectedHint);
+        } catch (EncryptionException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt password hint", e);
+            return null;
+        }
     }
 
     @Override

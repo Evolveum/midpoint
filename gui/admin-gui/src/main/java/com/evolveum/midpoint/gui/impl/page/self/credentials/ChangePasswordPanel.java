@@ -416,11 +416,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             passwordDelta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
         }
 
-        String newHintValue = getHintValue();
-        if (StringUtils.isNotEmpty(newHintValue)) {
+        ProtectedStringType newHintValue = getHintValue();
+        if (newHintValue != null && !newHintValue.isEmpty()) {
             ItemPath hintPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_HINT);
-            PropertyDelta<String> hintDelta = getPrismContext().deltaFactory().property()
+            PropertyDelta<ProtectedStringType> hintDelta = getPrismContext().deltaFactory().property()
                     .createModificationReplaceProperty(hintPath, objDef, newHintValue);
 
             modifications.add(hintDelta);
@@ -429,7 +429,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), modifications, UserType.class));
     }
 
-    private String getHintValue() {
+    private ProtectedStringType getHintValue() {
         return getModelObject().getCredentials() != null && getModelObject().getCredentials().getPassword() != null ?
                 getModelObject().getCredentials().getPassword().getHint() : null;
     }

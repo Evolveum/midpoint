@@ -45,6 +45,7 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
 * Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
 * Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
+* Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
 
 == Changes With Respect To Version 4.10.3
 
