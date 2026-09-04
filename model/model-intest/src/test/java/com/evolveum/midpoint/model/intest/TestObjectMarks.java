@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -855,4 +857,70 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
                 .assertEffectiveMarks();
     }
 
+    /**
+     * Two independent marking rules on a role. When one of them stops matching, its mark must be removed
+     * while the mark of the other (still matching) rule stays.
+     *
+     * See #12154
+     */
+    @Test
+    public void test710ObjectMarkRemovedWhenOneOfTwoRulesStopsMatching() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var roleName = getTestNameShort();
+
+        given("two marks and a role with two marking rules (one on description, the other on cost center)");
+        var markAOid = addObject(new MarkType().name(roleName + "-mark-a"), task, result);
+        var markBOid = addObject(new MarkType().name(roleName + "-mark-b"), task, result);
+
+        var roleOid = addObject(
+                new RoleType()
+                        .name(roleName)
+                        .description("legacy")
+                        .costCenter("privileged")
+                        .assignment(new AssignmentType()
+                                .policyRule(markingRule("mark-legacy", markAOid,
+                                        prismContext.queryFor(RoleType.class)
+                                                .item(RoleType.F_DESCRIPTION).eq("legacy")
+                                                .buildFilter())))
+                        .assignment(new AssignmentType()
+                                .policyRule(markingRule("mark-privileged", markBOid,
+                                        prismContext.queryFor(RoleType.class)
+                                                .item(RoleType.F_COST_CENTER).eq("privileged")
+                                                .buildFilter()))),
+                task, result);
+
+        then("both marks are present");
+        assertRole(roleOid, "both rules matching")
+                .display()
+                .assertEffectiveMarks(markAOid, markBOid);
+
+        when("the description is changed so that only the second rule matches");
+        modifyObjectReplaceProperty(RoleType.class, roleOid, RoleType.F_DESCRIPTION, task, result, "other");
+
+        then("only the second mark remains");
+        assertRole(roleOid, "one rule matching")
+                .display()
+                .assertEffectiveMarks(markBOid);
+
+        when("the cost center is changed so that no rule matches");
+        modifyObjectReplaceProperty(RoleType.class, roleOid, RoleType.F_COST_CENTER, task, result, "other");
+
+        then("no marks remain");
+        assertRole(roleOid, "no rule matching")
+                .display()
+                .assertEffectiveMarks();
+    }
+
+    private PolicyRuleType markingRule(String name, String markOid, ObjectFilter filter) throws SchemaException {
+        return new PolicyRuleType()
+                .name(name)
+                .policyConstraints(new PolicyConstraintsType()
+                        .objectState(new StatePolicyConstraintType()
+                                .filter(prismContext.getQueryConverter().createSearchFilterType(filter))))
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .policyActions(new PolicyActionsType()
+                        .record(new RecordPolicyActionType()))
+                .evaluationTarget(PolicyRuleEvaluationTargetType.OBJECT);
+    }
 }

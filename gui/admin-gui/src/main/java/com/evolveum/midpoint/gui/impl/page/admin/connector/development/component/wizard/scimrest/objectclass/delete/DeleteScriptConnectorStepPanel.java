@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
         containerPath = "empty")
 public class DeleteScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-delete-script";
+    public static final String PANEL_TYPE = "cdw-delete-script";
 
     static final String TASK_DELETE_SCRIPTS_KEY = "taskDeleteScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
