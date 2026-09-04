@@ -150,6 +150,10 @@ public interface ConnectorDevelopmentOperation {
     }
 
     String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, boolean retry, Task task, OperationResult result);
+
+    String submitFixObjectClass(
+            String objectClass, List<String> midpointErrors, List<ConnDevArtifactType> currentScripts,
+            boolean retry, Task task, OperationResult result);
     // FIXME: Also add operation results
     // Midpoint local
     ResourceType testConnection(ConnectorConfigurationType type);

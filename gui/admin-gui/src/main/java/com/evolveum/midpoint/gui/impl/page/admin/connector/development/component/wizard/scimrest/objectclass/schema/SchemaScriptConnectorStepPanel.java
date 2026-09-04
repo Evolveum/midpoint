@@ -50,7 +50,7 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
     private static final String DOT_CLASS = SchemaScriptConnectorStepPanel.class.getName() + ".";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
 
-    private static final String PANEL_TYPE = "cdw-schema-script";
+    public static final String PANEL_TYPE = "cdw-schema-script";
     static final String TASK_NATIVE_SCRIPTS_KEY = "taskNativeScriptKey";
     static final String TASK_CONNID_SCRIPTS_KEY = "taskConnIdScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;

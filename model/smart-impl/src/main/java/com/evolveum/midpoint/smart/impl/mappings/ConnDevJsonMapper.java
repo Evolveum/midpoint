@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl.mappings;
 
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -202,6 +203,65 @@ public class ConnDevJsonMapper {
                     + " - " + ret.getObject() + "/" + ret.getObjectAttribute());
         }
         return ret;
+    }
+
+    // ---- Object-class fix ----
+
+    /**
+     * Builds one {@code scripts} override entry ({@code {operationKey, code}}) for the object-class
+     * fix request, from a script the caller wants used instead of the one stored in the session.
+     * Returns {@code null} for an artifact that isn't a fix-eligible object-class script (e.g. no
+     * object class, no content, or not one of the known CRUD/search/schema kinds), so the caller can
+     * filter a list with this before adding it to the request. The lower-cased object-class prefix
+     * (see {@code normalize_object_class_name} in midpilot-connector-gen) matters here: the fix
+     * endpoint does a strict, case-sensitive lookup and rejects an unrecognized key outright.
+     */
+    public static ObjectNode mapArtifactToFixScriptOverrideJson(ConnDevArtifactType artifact) {
+        if (artifact == null || artifact.getObjectClass() == null || artifact.getContent() == null) {
+            return null;
+        }
+        var knownType = ConnectorDevelopmentArtifacts.classify(artifact);
+        var suffix = knownType != null ? knownType.fixOperationKeySuffix : null;
+        if (suffix == null) {
+            return null;
+        }
+        var operationKey = artifact.getObjectClass().strip().toLowerCase() + suffix;
+        var json = JSON.objectNode();
+        json.set("operationKey", JSON.textNode(operationKey));
+        json.set("code", JSON.textNode(artifact.getContent()));
+        return json;
+    }
+
+    public static ConnDevFixObjectClassResultType mapFixObjectClassResultFromJson(JsonNode json, String objectClass) {
+        var ret = new ConnDevFixObjectClassResultType();
+        var scripts = json.get("scripts");
+        if (scripts != null) {
+            for (var script : scripts) {
+                var artifact = artifactFromFixScriptJson(script, objectClass);
+                if (artifact != null) {
+                    ret.artifact(artifact);
+                }
+            }
+        }
+        var changedOperations = json.get("changedOperations");
+        if (changedOperations != null) {
+            for (var change : changedOperations) {
+                var operationKey = toText(change.get("operationKey"));
+                if (operationKey != null) {
+                    ret.changedOperation(operationKey);
+                }
+            }
+        }
+        ret.analysis(toText(json.get("analysis")));
+        return ret;
+    }
+
+    private static ConnDevArtifactType artifactFromFixScriptJson(JsonNode script, String objectClass) {
+        var knownType = ConnectorDevelopmentArtifacts.classifyByFixOperationKey(toText(script.get("operationKey")), objectClass);
+        if (knownType == null) {
+            return null;
+        }
+        return knownType.create(objectClass).content(toText(script.get("code")));
     }
 
     // ---- Utilities ----
