@@ -204,6 +204,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed Velocity expressions rendering schema enum values in upper case. See bug:MID-11086[]
 * Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 * Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
+* Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
 
 === Releases Of Other Components
 
