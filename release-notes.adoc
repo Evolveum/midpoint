@@ -36,12 +36,15 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 
 == Changes With Respect To Version 4.10.4
 
+* Updated multiple libraries, mainly spring-boot, tomcat, postgresql, multiple NPM dependencies.
 * Fixed worker progress reporting for distributed bucketed tasks. See bug:MID-11186[]
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Fixed simulated reference attributes being requested from connectors. See bug:MID-11807[]
 * Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 * Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
+* Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
+* Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
 
 == Changes With Respect To Version 4.10.3
 
