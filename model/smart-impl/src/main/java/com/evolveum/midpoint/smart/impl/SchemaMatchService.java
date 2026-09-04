@@ -117,7 +117,7 @@ public class SchemaMatchService {
                     .item(ResourceType.F_CONNECTOR_REF).resolve()
                     .build();
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, options, null, task, result);
-            var objectTypeStatistics = loadObjectTypeStats(resourceOid, typeIdentification, ctx.resource, ctx.typeDefinition, result);
+            var objectTypeStatistics = loadObjectTypeStats(resourceOid, typeIdentification, ctx.resource, ctx.typeDefinition, task, result);
             return doComputeSchemaMatch(
                     serviceClient, ctx.objectClassDefinition, ctx.getFocusTypeDefinition(), ctx.resource, useAiService,
                     objectTypeStatistics, task, result);
@@ -409,6 +409,7 @@ public class SchemaMatchService {
             ResourceObjectTypeIdentification typeIdentification,
             ResourceType resource,
             ResourceObjectTypeDefinition typeDefinition,
+            Task task,
             OperationResult result) {
         try {
             var statsObj = statisticsService.getLatestObjectTypeStatistics(
@@ -426,6 +427,7 @@ public class SchemaMatchService {
                     resource.getName() != null ? resource.getName().getOrig() : null,
                     typeIdentification,
                     typeDefinition,
+                    task,
                     result);
         } catch (Exception e) {
             LOGGER.warn("Failed to load object type statistics for uniqueness filter: {}", e.getMessage());

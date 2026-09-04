@@ -104,10 +104,26 @@ public class WizardPanel extends BasePanel implements WizardListener {
         response.render(OnDomReadyHeaderItem.forScript(
                 "MidPointTheme.updatePageUrlParameter('" + WizardModelBasic.PARAM_STEP + "', '" + wizardModelBasic.getActiveStep().getStepId() + "');"));
 
-        String stepStatusId = get(ID_HEADER + ":" + ID_STEP_STATUS).getMarkupId();
-        String stepPage = getString("WizardPanel.stepStatus", wizardModelBasic.getActiveStep().getTitle().getObject());
         response.render(OnDomReadyHeaderItem.forScript(
-                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", stepStatusId, stepPage, 400)));
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", getStepStatusMarkupId(), buildStepStatusMessage(), 400)));
+    }
+
+    private String getStepStatusMarkupId() {
+        return get(ID_HEADER + ":" + ID_STEP_STATUS).getMarkupId();
+    }
+
+    protected String buildStepStatusMessage() {
+        WizardStep activeStep = wizardModelBasic.getActiveStep();
+        return activeStep.getStepStatusMessage();
+    }
+
+    /**
+     * Re-announces the current step status
+     */
+    public void announceStepStatus(AjaxRequestTarget target) {
+        target.appendJavaScript(
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", getStepStatusMarkupId(),
+                        buildStepStatusMessage(), 400));
     }
 
     @Override

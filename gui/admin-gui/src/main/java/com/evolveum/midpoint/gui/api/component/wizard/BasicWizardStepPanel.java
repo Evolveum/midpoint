@@ -381,4 +381,13 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     protected boolean isOnlyChildCentered() {
         return false;
     }
+
+    public String getStepStatusMessage() {
+        String message = super.getStepStatusMessage();
+        String heading = getTextModel().getObject();
+        if (StringUtils.isNotEmpty(heading)) {
+            message += " " + heading;
+        }
+        return message;
+    }
 }

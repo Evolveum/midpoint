@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardMode
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.ConnectionConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.InitObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -249,6 +250,7 @@ public class ConnectorIdentificationConnectorStepPanel extends AbstractFormWizar
         if (result != null && !result.isError()) {
             if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
                 wizardModel.invalidateChildrenSteps(ConnectionConnectorStepPanel.PANEL_TYPE);
+                wizardModel.invalidateChildrenSteps(InitObjectClassConnectorStepPanel.PANEL_TYPE);
             }
             super.onNextPerformed(target);
         } else {

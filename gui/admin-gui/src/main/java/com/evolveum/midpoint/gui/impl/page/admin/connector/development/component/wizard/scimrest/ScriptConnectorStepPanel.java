@@ -176,7 +176,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public String appendCssToWizard() {
-        return "col-12 col-xl-10 col-xxl-8";
+        return "col-12";
     }
 
     @Override
@@ -244,6 +244,15 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return valueModel;
     }
 
+    /**
+     * Forces {@link #valueModel} to reload from disk on next access, e.g. after
+     * {@link RepairObjectClassButton} saved a fixed script directly (bypassing this step's own
+     * submit) - mirrors what {@link #onRefreshPerformed} already does for its own "Regenerate" flow.
+     */
+    public void detachLoadedScript() {
+        valueModel.detach();
+    }
+
     @Override
     protected void initCustomButtons(RepeatingView customButtons) {
         AjaxIconButton testResource = new AjaxIconButton(
@@ -258,6 +267,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         testResource.showTitleAsLabel(true);
         testResource.add(AttributeAppender.append("class", "ms-auto"));
         customButtons.add(testResource);
+
+        customButtons.add(new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,
+                () -> valueModel.getObject() != null ? List.of(valueModel.getObject()) : List.of()));
     }
 
     private void onRefreshPerformed(AjaxRequestTarget target) {

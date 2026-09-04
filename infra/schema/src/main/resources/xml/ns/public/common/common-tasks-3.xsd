@@ -2733,6 +2733,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="fixObjectClass" type="tns:ConnDevFixObjectClassDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="refreshSchema" type="tns:ConnDevRefreshSchemaWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -11729,6 +11737,50 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="artifact" type="tns:ConnDevArtifactType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Fix Object Class -->
+
+    <xsd:complexType name="ConnDevFixObjectClassDefinitionType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="objectClass" type="xsd:string"/>
+                    <xsd:element name="midpointError" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="artifact" type="tns:ConnDevArtifactType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevFixObjectClassWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevFixObjectClassResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevFixObjectClassResultType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="connectorRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xas:appinfo>
+                        <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
+                    </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="artifact" type="tns:ConnDevArtifactType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="changedOperation" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="analysis" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

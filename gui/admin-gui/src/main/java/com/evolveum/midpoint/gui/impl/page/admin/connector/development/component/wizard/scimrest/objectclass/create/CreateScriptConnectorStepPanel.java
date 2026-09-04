@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
         containerPath = "empty")
 public class CreateScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-create-script";
+    public static final String PANEL_TYPE = "cdw-create-script";
 
     static final String TASK_CREATE_SCRIPTS_KEY = "taskCreateScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;

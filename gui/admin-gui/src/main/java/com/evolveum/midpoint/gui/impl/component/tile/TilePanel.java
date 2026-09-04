@@ -6,9 +6,11 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -16,6 +18,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
@@ -35,6 +38,8 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
     private static final String ID_TITLE = "title";
 
     private static final String ID_DESCRIPTION = "description";
+
+    private static final String ID_SR_ONLY_MESSAGE = "srOnlyMessage";
 
     private boolean horizontal = true;
 
@@ -74,6 +79,11 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
         description.add(getDescriptionBehaviour());
         add(description);
 
+        Label srOnlyMessage = new Label(ID_SR_ONLY_MESSAGE, getSrOnlyMessageModel());
+        srOnlyMessage.add(AttributeAppender.append("class", "visually-hidden"));
+        srOnlyMessage.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getSrOnlyMessageModel().getObject())));
+        add(srOnlyMessage);
+
         if(isClickBehaviorEnabled()) {
             add(new AjaxEventBehavior("click") {
 
@@ -103,6 +113,10 @@ public class TilePanel<T extends Tile<O>, O extends Serializable> extends BasePa
 
     protected VisibleEnableBehaviour getDescriptionBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    protected IModel<String> getSrOnlyMessageModel() {
+        return Model.of((String) null);
     }
 
     protected Component createIconPanel(String idIcon) {

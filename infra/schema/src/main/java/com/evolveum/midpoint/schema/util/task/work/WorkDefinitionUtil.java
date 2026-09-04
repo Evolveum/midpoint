@@ -89,6 +89,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getDiscoverObjectClassEndpoints());
         addTypedParameters(values, definitions.getDiscoverConnectivityEndpoint());
         addTypedParameters(values, definitions.getGenerateConnectorArtifact());
+        addTypedParameters(values, definitions.getFixObjectClass());
         addTypedParameters(values, definitions.getRefreshSchema());
 
         addUntypedParameters(values, definitions.getExtension());
