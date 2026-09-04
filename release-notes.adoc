@@ -303,13 +303,11 @@ Note that production deployments in Windows environments are supported only for 
 Following Java platform versions are supported:
 
 * Java 25.
-
-* Java 21.
 This is a *recommended* platform.
 
-* Java 17.
+* Java 21.
 
-OpenJDK 21 is the recommended Java platform to run midPoint.
+OpenJDK 25 is the recommended Java platform to run midPoint.
 
 Support for Oracle builds of JDK is provided only for the period in which Oracle provides public support (free updates) for their builds.
 
