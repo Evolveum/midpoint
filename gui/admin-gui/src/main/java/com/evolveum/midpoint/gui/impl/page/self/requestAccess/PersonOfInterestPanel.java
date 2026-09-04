@@ -320,6 +320,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                             case GROUP_OTHERS -> groupOthersPerformed(target, tile);
                         }
                     }
+
+                    @Override
+                    protected IModel<String> getSrOnlyMessageModel() {
+                        if (getModelObject().getValue().type != TileType.GROUP_OTHERS) {
+                            return super.getSrOnlyMessageModel();
+                        }
+
+                        return PersonOfInterestPanel.this.createStringResource("PersonOfInterestPanel.groupOthers.description");
+                    }
                 };
                 item.add(tp);
             }
