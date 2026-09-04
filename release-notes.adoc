@@ -203,6 +203,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed GUI visualization failure for dynamic Prism containers without a compile-time class. See bug:MID-11550[]
 * Fixed Velocity expressions rendering schema enum values in upper case. See bug:MID-11086[]
 * Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
+* Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
 
 === Releases Of Other Components
 
