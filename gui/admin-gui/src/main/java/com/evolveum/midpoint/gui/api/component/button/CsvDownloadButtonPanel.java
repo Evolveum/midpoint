@@ -63,8 +63,21 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
     private static final long serialVersionUID = 1L;
 
+    private String resolveExportEncoding() {
+        try {
+            CompiledGuiProfile profile = getPageBase().getCompiledGuiProfile();
+            if (profile.getDefaultExportSettings() != null
+                    && profile.getDefaultExportSettings().getEncoding() != null) {
+                return profile.getDefaultExportSettings().getEncoding();
+            }
+        } catch (Exception ex) {
+            LOGGER.warn("Unable to get export encoding setting, falling back to utf-8", ex);
+        }
+        return "utf-8";
+    }
+
     private void initLayout() {
-        StreamingCsvDataExporter csvDataExporter = new StreamingCsvDataExporter(getPageBase()) {
+        StreamingCsvDataExporter csvDataExporter = new StreamingCsvDataExporter(getPageBase(), resolveExportEncoding()) {
             private static final long serialVersionUID = 1L;
 
             @Override
