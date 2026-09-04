@@ -158,6 +158,12 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
                 showTableFragment(target, MappingDirection.INBOUND);
             }
         });
+        steps.add(new InboundMappingRangeStepPanel(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, MappingDirection.INBOUND);
+            }
+        });
         steps.add(new InboundMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -178,6 +184,12 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
         steps.add(new OutboundMappingMainConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, MappingDirection.OUTBOUND);
+            }
+        });
+        steps.add(new OutboundMappingRangeStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target, MappingDirection.OUTBOUND);
