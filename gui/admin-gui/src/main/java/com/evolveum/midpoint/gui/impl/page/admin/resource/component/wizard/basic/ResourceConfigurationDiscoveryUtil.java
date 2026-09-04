@@ -181,10 +181,18 @@ public final class ResourceConfigurationDiscoveryUtil {
             @NotNull PrismPropertyWrapper<Object> item,
             @NotNull Collection<? extends DisplayableValue<Object>> values) {
 
-        if (values.size() == 1 && item.isEmpty()) {
-            item.getValues().iterator().next().setRealValue(
-                    values.iterator().next().getValue());
+        if (values.size() != 1 || !item.isEmpty()) {
+            return;
         }
+
+        Object value = values.iterator().next().getValue();
+
+        if (value instanceof Character character
+                && String.class.equals(item.getTypeClass())) {
+            value = character.toString();
+        }
+
+        item.getValues().iterator().next().setRealValue(value);
     }
 
     /**
