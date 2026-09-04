@@ -33,4 +33,8 @@ public class WizardStepPanel<T> extends BasePanel<T> implements WizardStep {
     public WizardModel getWizard() {
         return wizard;
     }
+
+    public String getStepStatusMessage() {
+        return getString("WizardPanel.stepStatus", getTitle().getObject());
+    }
 }

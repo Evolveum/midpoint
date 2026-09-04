@@ -33,6 +33,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -500,13 +501,21 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         tiles.getObject().forEach(t -> t.setSelected(false));
 
-        if (!groupOthers.isSelected()) {
+        boolean opensGroupOthersScreen = !groupOthers.isSelected();
+        if (opensGroupOthersScreen) {
             selectionState.setObject(SelectionState.USERS);
         }
 
         groupOthers.toggle();
 
         target.add(this);
+        if (opensGroupOthersScreen) {
+            announceStepStatus(target);
+        }
+    }
+
+    private void announceStepStatus(AjaxRequestTarget target) {
+        ((WizardPanel) getWizard().getPanel()).announceStepStatus(target);
     }
 
     private GroupSelectionType getSelectedGroupSelection() {
@@ -680,6 +689,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         selectionState.setObject(SelectionState.TILES);
         target.add(this);
+        announceStepStatus(target);
 
         return false;
     }
