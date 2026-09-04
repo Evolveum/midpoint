@@ -235,6 +235,7 @@
         <groovy.version>4.0.24</groovy.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <tomcat.version>11.0.25</tomcat.version>
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <log4j2.version>2.26.1</log4j2.version>
         <rabbit-amqp-client.version>5.34.0</rabbit-amqp-client.version>
