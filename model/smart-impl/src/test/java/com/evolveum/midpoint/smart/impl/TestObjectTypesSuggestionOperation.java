@@ -8,6 +8,8 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createObjectClassStatisticsArtifact;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
@@ -31,9 +33,8 @@ import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPropertyRealValues;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.impl.activities.ObjectClassStatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
@@ -124,7 +125,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         return new MockServiceClientImpl(responses);
     }
 
-    private ShadowObjectClassStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)
+    private ObjectSetStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)
             throws CommonException {
         var resource = Resource.of(RESOURCE_DUMMY.get());
         var accountDef = resource
@@ -343,26 +344,21 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         var expiredTimestamp = XmlTypeConverter.createXMLGregorianCalendar(
                 new Date(System.currentTimeMillis() - 25 * 60 * 60 * 1000));
-        var statistics = new ShadowObjectClassStatisticsType()
+        var statistics = new ObjectSetStatisticsType()
                 .timestamp(expiredTimestamp)
                 .size(100)
                 .coverage(1.0f);
 
-        var statisticsObject = new GenericObjectType()
-                .name("Expired Statistics");
-        var holderPcv = statisticsObject.asPrismContainerValue();
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "account");
+        var expiredStatisticsObject = createObjectClassStatisticsArtifact(
+                RESOURCE_DUMMY.oid, "dummy", OC_ACCOUNT_QNAME, statistics);
 
-        String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+        String oid = repositoryService.addObject(expiredStatisticsObject.asPrismObject(), null, result);
         assertThat(oid).isNotNull();
 
-        var retrieved = smartIntegrationService.getLatestObjectClassStatistics(
-                RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
+        var retrieved = smartIntegrationService.getLatestObjectClassStatistics(RESOURCE_DUMMY.oid, OC_ACCOUNT_QNAME, result);
 
         assertThat(retrieved).isNull();
-        assertNoRepoObject(GenericObjectType.class, oid);
+        assertNoRepoObject(SmartIntegrationArtifactType.class, oid);
     }
 
     @Test
@@ -372,17 +368,13 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         var freshTimestamp = XmlTypeConverter.createXMLGregorianCalendar(
                 new Date(System.currentTimeMillis() - 1 * 60 * 60 * 1000));
-        var statistics = new ShadowObjectClassStatisticsType()
+        var statistics = new ObjectSetStatisticsType()
                 .timestamp(freshTimestamp)
                 .size(100)
                 .coverage(1.0f);
 
-        var statisticsObject = new GenericObjectType()
-                .name("Fresh Statistics");
-        var holderPcv = statisticsObject.asPrismContainerValue();
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
-        setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "account");
+        var statisticsObject = createObjectClassStatisticsArtifact(
+                RESOURCE_DUMMY.oid, "dummy", OC_ACCOUNT_QNAME, statistics);
 
         String oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
 
@@ -391,7 +383,7 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oid);
-        var retrievedStats = ShadowObjectClassUtil.getStatisticsRequired(retrieved.asPrismObject());
+        var retrievedStats = SmartIntegrationArtifactUtil.getStatisticsRequired(retrieved.asPrismObject());
         assertThat(retrievedStats.getSize()).isEqualTo(100);
     }
 
@@ -403,17 +395,13 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
         // Create multiple statistics objects for the same resource
         var timestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
         for (int i = 0; i < 3; i++) {
-            var statistics = new ShadowObjectClassStatisticsType()
+            var statistics = new ObjectSetStatisticsType()
                     .timestamp(timestamp)
                     .size(100 + i)
                     .coverage(1.0f);
 
-            var statisticsObject = new GenericObjectType()
-                    .name("Statistics " + i);
-            var holderPcv = statisticsObject.asPrismContainerValue();
-            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_STATISTICS, statistics);
-            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
-            setExtensionPropertyRealValues(holderPcv, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "account");
+            var statisticsObject = createObjectClassStatisticsArtifact(
+                    RESOURCE_DUMMY.oid, "dummy" + i, OC_ACCOUNT_QNAME, statistics);
 
             repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
         }
@@ -440,37 +428,30 @@ public class TestObjectTypesSuggestionOperation extends AbstractSmartIntegration
 
         var timestamp = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 
-        // Create an object WITHOUT statistics extension
-        var objectWithoutStats = new GenericObjectType()
-                .name("Object Without Statistics");
-        var pcvWithoutStats = objectWithoutStats.asPrismContainerValue();
-        setExtensionPropertyRealValues(pcvWithoutStats, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
-        setExtensionPropertyRealValues(pcvWithoutStats, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "group");
+        // Create an object WITHOUT statistics (two calls, as the statistics are obligatory in the util method)
+        var objectWithoutStats = createObjectClassStatisticsArtifact(
+                RESOURCE_DUMMY.oid, "dummy-no-stats", OC_GROUP_QNAME, new ObjectSetStatisticsType());
+        objectWithoutStats.setStatistics(null);
 
         repositoryService.addObject(objectWithoutStats.asPrismObject(), null, result);
 
         // Create an object WITH statistics extension
-        var statistics = new ShadowObjectClassStatisticsType()
+        var statistics = new ObjectSetStatisticsType()
                 .timestamp(timestamp)
                 .size(200)
                 .coverage(1.0f);
 
-        var objectWithStats = new GenericObjectType()
-                .name("Object With Statistics");
-        var pcvWithStats = objectWithStats.asPrismContainerValue();
-        setExtensionPropertyRealValues(pcvWithStats, MODEL_EXTENSION_STATISTICS, statistics);
-        setExtensionPropertyRealValues(pcvWithStats, MODEL_EXTENSION_RESOURCE_OID, RESOURCE_DUMMY.oid);
-        setExtensionPropertyRealValues(pcvWithStats, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME, "group");
+        var objectWithStats = createObjectClassStatisticsArtifact(
+                RESOURCE_DUMMY.oid, "dummy-with-stats", OC_GROUP_QNAME, statistics);
 
         String oidWithStats = repositoryService.addObject(objectWithStats.asPrismObject(), null, result);
 
         // Retrieve statistics - should only return the object WITH statistics
-        var retrieved = smartIntegrationService.getLatestObjectClassStatistics(
-                RESOURCE_DUMMY.oid, new QName(NS_RI, "group"), result);
+        var retrieved = smartIntegrationService.getLatestObjectClassStatistics(RESOURCE_DUMMY.oid, OC_GROUP_QNAME, result);
 
         assertThat(retrieved).isNotNull();
         assertThat(retrieved.getOid()).isEqualTo(oidWithStats);
-        var retrievedStats = ShadowObjectClassUtil.getStatisticsRequired(retrieved.asPrismObject());
+        var retrievedStats = SmartIntegrationArtifactUtil.getStatisticsRequired(retrieved.asPrismObject());
         assertThat(retrievedStats.getSize()).isEqualTo(200);
     }
 

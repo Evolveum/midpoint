@@ -8,10 +8,11 @@
 
 package com.evolveum.midpoint.smart.impl.activities.objectTypeStatisticsComputation;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil.createObjectTypeStatisticsObject;
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createObjectTypeStatisticsArtifact;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
@@ -110,7 +111,8 @@ public class ObjectTypeStatisticsComputationActivityRun
 
         var res = Resource.of(resource);
         ResourceSchema completeSchemaRequired = res.getCompleteSchemaRequired();
-        ResourceObjectTypeDefinition objectTypeDefinition = completeSchemaRequired.getObjectTypeDefinition(getKind(), getIntent());
+        ResourceObjectTypeDefinition objectTypeDefinition =
+                completeSchemaRequired.getObjectTypeDefinitionRequired(getTypeIdentification());
         computer = new ObjectTypeStatisticsComputer(objectTypeDefinition);
 
         return true;
@@ -119,7 +121,7 @@ public class ObjectTypeStatisticsComputationActivityRun
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
 
         var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeStatistics(
-                getResourceOid(), getKind().value(), getIntent(), result);
+                getResourceOid(), getTypeIdentification(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 
@@ -130,7 +132,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         return new SearchSpecification<>(
                 ShadowType.class,
                 Resource.of(resource)
-                        .queryFor(getKind(), getIntent())
+                        .queryFor(getTypeIdentification())
                         .build(),
                 null,
                 false);
@@ -165,11 +167,10 @@ public class ObjectTypeStatisticsComputationActivityRun
             return;
         }
 
-        var statisticsObject = createObjectTypeStatisticsObject(
+        var statisticsObject = createObjectTypeStatisticsArtifact(
                 resource.getOid(),
                 resource.getName().getOrig(),
-                getKind().value(),
-                getIntent(),
+                getTypeIdentification(),
                 statistics);
 
         logger.debug("Adding statistics object:\n{}", statisticsObject.debugDump(1));
@@ -197,7 +198,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         var parentState = this.getActivityState();
         parentState.setWorkStateItemRealValues(
                 ObjectTypeStatisticsComputationWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 
@@ -205,11 +206,7 @@ public class ObjectTypeStatisticsComputationActivityRun
         return false;
     }
 
-    private @NotNull ShadowKindType getKind() {
-        return getWorkDefinition().getShadowTypeKind();
-    }
-
-    private @NotNull String getIntent() {
-        return getWorkDefinition().getIntent();
+    private ResourceObjectTypeIdentification getTypeIdentification() {
+        return getWorkDefinition().getTypeIdentification();
     }
 }

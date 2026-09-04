@@ -38,7 +38,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
 import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
-import com.evolveum.midpoint.smart.impl.shadowsampling.MappingSampleResult;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.SystemMappingSuggestion;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
@@ -88,7 +87,7 @@ class MappingsSuggestionOperation {
     private final CategoricalAttributeRegistry categoricalAttributeRegistry;
     private final boolean isInbound;
     private final boolean useAiService;
-    @Nullable private final ShadowObjectClassStatisticsType objectTypeStatistics;
+    @Nullable private final ObjectSetStatisticsType objectTypeStatistics;
     private final int retryCount;
 
     private MappingsSuggestionOperation(
@@ -102,7 +101,7 @@ class MappingsSuggestionOperation {
             CategoricalAttributeRegistry categoricalAttributeRegistry,
             boolean isInbound,
             boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            @Nullable ObjectSetStatisticsType objectTypeStatistics,
             int retryCount) {
         this.ctx = ctx;
         this.qualityAssessor = qualityAssessor;
@@ -129,7 +128,7 @@ class MappingsSuggestionOperation {
             CategoricalAttributeRegistry categoricalAttributeRegistry,
             boolean isInbound,
             boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            @Nullable ObjectSetStatisticsType objectTypeStatistics,
             int retryCount)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {

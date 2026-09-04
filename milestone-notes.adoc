@@ -10,6 +10,24 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 
 == 4.11-RC2
 == 4.11-RC1
+
+=== 2026-09-03 Changed objects used by Smart integration functionality
+
+Task: https://support.evolveum.com/wp/11337[11337]
+Description: We now use `SmartIntegrationArtifactType` for data storage, instead of `GenericObjectType`
+
+Required Upgrade Steps - before upgrade:
+
+- Delete all tasks related to Smart integration. These tasks carry out intermediate results and are transient in nature.
+So they can be safely deleted. It is necessary to avoid errors when new data format is used. (If not deleted before the
+upgrade, it can be done also afterwards, risking some warnings and errors in the log and in GUI.)
+
+Required Upgrade Steps:
+
+- Apply DB upgrade script
+
+* Related commits: <this one>
+
 == 4.11-M6
 
 === 2026-08-21 Removed obsolete xercesImpl dependency

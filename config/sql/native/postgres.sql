@@ -119,6 +119,7 @@ CREATE TYPE ObjectType AS ENUM (
     'SERVICE',
     'SHADOW',
     'SIMULATION_RESULT',
+    'SMART_INTEGRATION_ARTIFACT',
     'SYSTEM_CONFIGURATION',
     'TASK',
     'USER',
@@ -2019,6 +2020,69 @@ CREATE TABLE m_shadow_ref_attribute (
 -- @usedFor: shadow reference attribute owner searches
 CREATE INDEX m_shadow_ref_attribute_ownerOid_idx ON m_shadow_ref_attribute (ownerOid);
 
+/*
+@description: Stores artifacts related to smart integration.
+
+Represents persistent SmartIntegrationArtifactType.
+ */
+-- @type: http://midpoint.evolveum.com/xml/ns/public/common/common-3#SmartIntegrationArtifactType
+CREATE TABLE m_smart_integration_artifact (
+    -- @description: Object identifier.
+                        oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+                        objectType ObjectType GENERATED ALWAYS AS ('SMART_INTEGRATION_ARTIFACT') STORED
+                            CHECK (objectType = 'SMART_INTEGRATION_ARTIFACT'),
+
+    -- @description: OID of the resourceRef (describing the scope).
+                        resourceRefTargetOid UUID,
+    -- @description: Object type of the resourceRef (describing the scope) - should be ResourceType.
+                        resourceRefTargetType ObjectType,
+    -- @description: Relation URI identifier of the resourceRef (describing the scope).
+                        resourceRefRelationId INTEGER REFERENCES m_uri(id),
+    -- @description: Object class (describing the scope).
+                        objectClassId INTEGER REFERENCES m_uri(id),
+    -- @description: Resource object kind (describing the scope)..
+                        kind ShadowKindType,
+    -- @description: Resource object intent (describing the scope).
+                        intent TEXT,
+    -- @description: Focus object type (describing the scope).
+                        focusTypeId INTEGER REFERENCES m_uri(id)
+)
+    INHERITS (m_assignment_holder);
+
+-- @description: Maintains the object OID registry when rows are inserted into `m_smart_integration_artifact`.
+CREATE TRIGGER m_smart_integration_artifact_oid_insert_tr BEFORE INSERT ON m_smart_integration_artifact
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+-- @description: Maintains object update metadata before rows are updated in `m_smart_integration_artifact`.
+CREATE TRIGGER m_smart_integration_artifact_update_tr BEFORE UPDATE ON m_smart_integration_artifact
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+-- @description: Removes the object OID registry entry when rows are deleted from `m_smart_integration_artifact`.
+CREATE TRIGGER m_smart_integration_artifact_oid_delete_tr AFTER DELETE ON m_smart_integration_artifact
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+-- @description: Speeds up lookup by original object name.
+-- @usedFor: original name searches
+CREATE INDEX m_smart_integration_artifact_nameOrig_idx ON m_smart_integration_artifact (nameOrig);
+-- @description: Speeds up lookup by normalized object name.
+-- @usedFor: normalized name lookup
+CREATE UNIQUE INDEX m_smart_integration_artifact_nameNorm_idx ON m_smart_integration_artifact (nameNorm);
+CREATE INDEX m_smart_integration_artifact_ext_idx ON m_smart_integration_artifact USING gin(ext);
+-- @description: Speeds up full-text-like object searches.
+-- @usedFor: full-text-like object searches
+CREATE INDEX m_smart_integration_artifact_fullTextInfo_idx ON m_smart_integration_artifact USING gin(fullTextInfo gin_trgm_ops);
+-- @description: Speeds up filtering or ordering by creation time.
+-- @usedFor: creation time filters and ordering
+CREATE INDEX m_smart_integration_artifact_createTimestamp_idx ON m_smart_integration_artifact (createTimestamp);
+-- @description: Speeds up filtering or ordering by modification time.
+-- @usedFor: modification time filters and ordering
+CREATE INDEX m_smart_integration_artifact_modifyTimestamp_idx ON m_smart_integration_artifact (modifyTimestamp);
+-- @description: Speeds up filtering or ordering by resourceRef + kind + intent + (optionally) focusTypeId.
+-- @usedFor: scope filters and ordering
+CREATE INDEX m_smart_integration_artifact_scope_object_type_idx
+    ON m_smart_integration_artifact (resourceRefTargetOid, kind, intent, focusTypeId);
+-- @description: Speeds up filtering or ordering by resourceRef + object class.
+-- @usedFor: scope filters and ordering
+CREATE INDEX m_smart_integration_artifact_scope_object_class_idx
+    ON m_smart_integration_artifact (resourceRefTargetOid, objectClassId);
 
 -- @region: system-objects
 -- @regionTitle: System objects
@@ -4263,4 +4327,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(65, $$ SELECT 1 $$, true);
+call apply_change(67, $$ SELECT 1 $$, true);

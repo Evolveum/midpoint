@@ -14,6 +14,8 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,7 +37,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class TestParseGenericObject extends AbstractSchemaTest {
 
-    private static final QName EXTENSION_TYPE_QNAME = new QName(NS_MODEL_EXT, "GenericObjectExtensionType");
     public static final File GENERIC_FILE = new File("src/test/resources/common/generic-sample-configuration.xml");
 
     @Test
@@ -123,7 +124,7 @@ public class TestParseGenericObject extends AbstractSchemaTest {
         assertPropertyDefinition(generic, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
         PrismContainer<?> extensionContainer = generic.findContainer(GenericObjectType.F_EXTENSION);
-        assertContainerDefinition(extensionContainer, "extension", EXTENSION_TYPE_QNAME, 0, 1);
+        assertContainerDefinition(extensionContainer, "extension", ExtensionType.COMPLEX_TYPE, 0, 1);
         PrismContainerDefinition<?> extensionContainerDefinition = extensionContainer.getDefinition();
         //assertTrue("Extension container definition is NOT dynamic", extensionContainerDefinition.isDynamic());
         PrismContainerValue<?> extensionContainerValue = extensionContainer.getValue();

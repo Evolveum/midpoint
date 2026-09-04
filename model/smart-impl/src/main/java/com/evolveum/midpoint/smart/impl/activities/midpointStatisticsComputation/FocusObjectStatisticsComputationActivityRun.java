@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.smart.impl.activities.midpointStatisticsComputation;
 
 import static com.evolveum.midpoint.repo.common.activity.run.ErrorHandlingStrategyExecutor.FollowUpAction.CONTINUE;
-import static com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil.createFocusObjectStatisticsObject;
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createFocusTypeStatisticsArtifact;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * The activity processes objects of the given type (e.g. {@link UserType}).
  * If resource/kind/intent filters are specified, only focuses that have shadows
  * matching these criteria will be processed.
- * Computed statistics are persisted as a {@link GenericObjectType}.
+ * Computed statistics are persisted as a {@link SmartIntegrationArtifactType}.
  */
 public class FocusObjectStatisticsComputationActivityRun extends PlainIterativeActivityRun<
         FocusType,
@@ -113,7 +113,7 @@ public class FocusObjectStatisticsComputationActivityRun extends PlainIterativeA
     }
 
     @Override
-    public void iterateOverItemsInBucket(OperationResult opResult) throws CommonException {
+    public void iterateOverItemsInBucket(OperationResult opResult) {
         // @formatter:off
         final ObjectQuery shadowQuery = PrismContext.get().queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(getWorkDefinition().getResourceOid())
@@ -163,12 +163,10 @@ public class FocusObjectStatisticsComputationActivityRun extends PlainIterativeA
                 .coverage(1.0f)
                 .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
-        var objectTypeName = getWorkDefinition().getObjectType().getLocalPart();
+        var objectTypeName = getWorkDefinition().getObjectType();
         var resourceOid = getWorkDefinition().getResourceOid();
-        var kind = getWorkDefinition().getKind().value();
-        var intent = getWorkDefinition().getIntent();
-        var statisticsObject = createFocusObjectStatisticsObject(
-                objectTypeName, resourceOid, kind, intent, statistics);
+        var typeIdentification = getWorkDefinition().getTypeIdentification();
+        var statisticsObject = createFocusTypeStatisticsArtifact(objectTypeName, resourceOid, typeIdentification, statistics);
 
         LOGGER.debug("Adding focus object statistics object:\n{}", statisticsObject.debugDump(1));
 
@@ -182,7 +180,7 @@ public class FocusObjectStatisticsComputationActivityRun extends PlainIterativeA
         var parentState = this.getActivityState();
         parentState.setWorkStateItemRealValues(
                 FocusObjectStatisticsComputationWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 }
