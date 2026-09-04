@@ -76,32 +76,20 @@ class PolicyStateRecorder {
             computeNewMarks(rule, evaluatedPolicyStatements);
         }
 
-        // apply collected deltas for effective marks (policyStatements + policyRules)
-        // We use "existing" values (taken from object new, see above) to avoid phantom adds and deletes.
-        var newMarkRefs = objectNew.getEffectiveMarkRef();
-        if (evaluatedPolicyStatements.isNotEmpty()) {
+        // Effective marks are fully determined by the policy rules and policy statements: anything else present
+        // in the object (e.g. a mark computed by a rule that no longer applies) is removed.
+        // We use "existing" values to avoid phantom adds and deletes. See #12154.
+        var existingMarkRefs = objectNew.getEffectiveMarkRef();
+        var marksToDelete = evaluatedPolicyStatements.collectMarksToDelete(existingMarkRefs);
+        var marksToAdd = evaluatedPolicyStatements.collectMarksToAdd(existingMarkRefs);
+        if (!marksToDelete.isEmpty() || !marksToAdd.isEmpty()) {
             elementContext.addToPendingObjectPolicyStateModifications(
                     PrismContext.get().deltaFor(ObjectType.class)
                             .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                            .deleteRealValues(
-                                    CloneUtil.cloneCollectionMembers(
-                                            evaluatedPolicyStatements.collectMarksToDelete(newMarkRefs)))
-                            .addRealValues(
-                                    CloneUtil.cloneCollectionMembers(
-                                            evaluatedPolicyStatements.collectMarksToAdd(newMarkRefs)))
+                            .deleteRealValues(CloneUtil.cloneCollectionMembers(marksToDelete))
+                            .addRealValues(CloneUtil.cloneCollectionMembers(marksToAdd))
                             .asItemDelta());
         }
-
-        // something strange here - probably something forgotten, let's clean up
-        // TODO What if there are some evaluated policy statements, but an extra effectiveMarkRef? We should clean that up as well.
-        if (evaluatedPolicyStatements.isEmpty()) {
-            elementContext.addToPendingObjectPolicyStateModifications(
-                    PrismContext.get().deltaFor(ObjectType.class)
-                            .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                            .deleteRealValues(CloneUtil.cloneCollectionMembers(newMarkRefs))
-                            .asItemDelta());
-        }
-
     }
 
     void applyAssignmentState(
