@@ -160,11 +160,6 @@ public abstract class AbstractObjectClassStatisticsComputationActivityRun<
                 .coverage(1.0f) // TODO: compute coverage properly
                 .timestamp(beans.clock.currentTimeXMLGregorianCalendar());
 
-        if (statistics.getSize() == 0) {
-            logger.debug("No objects found, skipping statistics object creation");
-            return;
-        }
-
         var statisticsObject = createStatisticsObject(
                 resource.getOid(),
                 resource.getName().getOrig(),
