@@ -216,15 +216,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_APPLICATION_EDIT_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationEdit");
     public static final String AUTZ_UI_APPLICATION_EDIT_URL = NS_AUTHORIZATION_UI + "#applicationEdit";
 
-    //connectors
-    public static final QName AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorDevelopmentsAll");
-    public static final String AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorDevelopmentsAll";
-
-    public static final QName AUTZ_UI_CONNECTOR_DEVELOPMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorDevelopments");
-    public static final String AUTZ_UI_CONNECTOR_DEVELOPMENTS_URL = NS_AUTHORIZATION_UI + "#connectorDevelopments";
-
-    public static final QName AUTZ_UI_CONNECTOR_DEVELOPMENT_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorDevelopment");
-    public static final String AUTZ_UI_CONNECTOR_DEVELOPMENT_URL = NS_AUTHORIZATION_UI + "#connectorDevelopment";
+    // connector generator wizard
+    public static final QName AUTZ_UI_CONNECTOR_WIZARD_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorWizard");
+    public static final String AUTZ_UI_CONNECTOR_WIZARD_URL = NS_AUTHORIZATION_UI + "#connectorWizard";
 
     //message template
     public static final QName AUTZ_UI_MESSAGE_TEMPLATE_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplate");

@@ -12,6 +12,8 @@ import com.evolveum.midpoint.model.api.util.ConnectorGeneratorConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -58,10 +60,12 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS = CLASS_DOT + "DiscoverObjectClassEndpoints";
     public static final String OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS = CLASS_DOT + "DiscoverConnectivityEndpoints";
     public static final String OPERATION_REFRESH_SCHEMA = CLASS_DOT + "RefreshSchema";
+    public static final String OPERATION_DOWNLOAD_CONNECTOR = CLASS_DOT + "DownloadConnector";
 
     @Autowired private ConnectorDevelopmentService connectorDevelopmentService;
     @Autowired private MidpointConfiguration configuration;
     @Autowired private ModelService modelService;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     @PostMapping(ConnectorGeneratorConstants.RPC_START_FROM_NEW)
     public ResponseEntity<?> startFromNew(
@@ -463,45 +467,56 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     public ResponseEntity<?> downloadConnector(
             @RequestParam("name") @NotNull String name,
             HttpServletResponse response
-    ) throws IOException {
-        Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
-        List<Object> dirs = config.getList("scanDirectory");
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_DOWNLOAD_CONNECTOR);
 
-        File downloadDirectory = dirs.stream()
-                .filter(d -> d != null && d.toString().contains("connid-connectors"))
-                .findFirst()
-                .map(Object::toString)
-                .map(File::new)
-                .orElse(null);
+        try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
 
-        if (downloadDirectory == null || !downloadDirectory.exists()) {
-            return ResponseEntity.internalServerError().body("Base connector directory configuration not found.");
+            Configuration config = configuration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
+            List<Object> dirs = config.getList("scanDirectory");
+
+            File downloadDirectory = dirs.stream()
+                    .filter(d -> d != null && d.toString().contains("connid-connectors"))
+                    .findFirst()
+                    .map(Object::toString)
+                    .map(File::new)
+                    .orElse(null);
+
+            if (downloadDirectory == null || !downloadDirectory.exists()) {
+                return ResponseEntity.internalServerError().body("Base connector directory configuration not found.");
+            }
+
+            File connectorDir = new File(downloadDirectory, name);
+
+            String canonicalBase = downloadDirectory.getCanonicalPath();
+            String canonicalTarget = connectorDir.getCanonicalPath();
+
+            if (!canonicalTarget.equals(canonicalBase + "/" + name)) {
+                return ResponseEntity.internalServerError().body("Invalid name or version format.");
+            }
+
+            if (!connectorDir.exists() || !connectorDir.isDirectory()) {
+                return ResponseEntity.internalServerError().body("Connector directory not found.");
+            }
+
+            response.setContentType("application/jar");
+            String cleanFileName = name.replaceAll("[^a-zA-Z0-9.-]", "_") + ".jar";
+
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + cleanFileName + "\"");
+
+            try (JarOutputStream jarOutputStream = new JarOutputStream(response.getOutputStream())) {
+                jarDirectory(connectorDir, connectorDir, jarOutputStream);
+                jarOutputStream.flush();
+            }
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return handleException(result, e);
+        } finally {
+            finishRequest(task, result);
         }
-
-        File connectorDir = new File(downloadDirectory, name);
-
-        String canonicalBase = downloadDirectory.getCanonicalPath();
-        String canonicalTarget = connectorDir.getCanonicalPath();
-
-        if (!canonicalTarget.equals(canonicalBase + "/" + name)) {
-            return ResponseEntity.internalServerError().body("Invalid name or version format.");
-        }
-
-        if (!connectorDir.exists() || !connectorDir.isDirectory()) {
-            return ResponseEntity.internalServerError().body("Connector directory not found.");
-        }
-
-        response.setContentType("application/jar");
-        String cleanFileName = name.replaceAll("[^a-zA-Z0-9.-]", "_") + ".jar";
-
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + cleanFileName + "\"");
-
-        try (JarOutputStream jarOutputStream = new JarOutputStream(response.getOutputStream())) {
-            jarDirectory(connectorDir, connectorDir, jarOutputStream);
-            jarOutputStream.flush();
-        }
-
-        return ResponseEntity.ok().build();
     }
 
     private void jarDirectory(File rootDir, File currentFile, JarOutputStream jarOutputStream) throws IOException {
@@ -543,6 +558,8 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
             CommunicationException,
             ConfigurationException,
             ObjectNotFoundException, SubscriptionComplianceException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+
         PrismObject<ConnectorDevelopmentType> connectorDevelopmentType = modelService.getObject(
                 ConnectorDevelopmentType.class,
                 oid,
