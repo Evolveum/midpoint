@@ -1,8 +1,14 @@
-= Native PostgreSQL Repository
+---
+midpoint-feature: identity-repository
+doc-type: intro
+---
+= Native PostgreSQL repository
 :page-since: "4.4"
 :page-upkeep-status: orange
 :page-keywords: PostgreSQL, repository, database
 :page-display-order: 40
+:page-description: This section contains description, configuration reference, and migration and maintenance guides of the native PostgreSQL repository for midPoint.
+:page-keywords: postgresql, native repository, database, repository
 
 MidPoint stores its data in a relational database.
 The database of choice for midPoint is PostgreSQL, leading open source relational database.
