@@ -123,21 +123,35 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     @Override
+    public void setInitialObject(@NotNull PrismObject<O> object) {
+        boolean migratePasswordHint = shouldEncryptPasswordHint(getPasswordHint(object));
+        PrismObject<O> preparedObject = prepareFocusObject(object, migratePasswordHint);
+        super.setInitialObject(preparedObject);
+
+        if (migratePasswordHint) {
+            addPasswordHintMigrationDelta(preparedObject);
+        }
+    }
+
+    @Override
     public void setLoadedObject(@NotNull PrismObject<O> object) {
-        PrismObject<O> preparedObject = prepareLoadedObject(object);
+        boolean migratePasswordHint = shouldEncryptPasswordHint(getPasswordHint(object));
+        PrismObject<O> preparedObject = prepareFocusObject(object, migratePasswordHint);
         state.setCurrentAndOptionallyOld(preparedObject, shouldSetOldObject());
+
+        if (migratePasswordHint) {
+            addPasswordHintMigrationDelta(preparedObject);
+        }
+
         rewriteOldObject = false;
     }
 
     /**
-     * Prepares a loaded focus object for Lens processing by encrypting a legacy clear-text password hint when needed.
-     *
-     * If a plaintext hint is found and cryptography is enabled, the hint is encrypted and a secondary delta is created
-     * so that the encrypted value is persisted even when the hint itself was not explicitly modified.
+     * Prepares a focus object for Lens processing by encrypting a legacy clear-text
+     * password hint when needed.
      */
-    private PrismObject<O> prepareLoadedObject(@NotNull PrismObject<O> object) {
-        ProtectedStringType hint = getPasswordHint(object);
-        if (!shouldEncryptPasswordHint(hint)) {
+    private PrismObject<O> prepareFocusObject(@NotNull PrismObject<O> object, boolean migratePasswordHint) {
+        if (!migratePasswordHint) {
             return object;
         }
 
@@ -147,7 +161,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             throw new SystemException(e.getMessage(), e);
         }
 
-        addPasswordHintMigrationDelta(object);
         return object;
     }
 
