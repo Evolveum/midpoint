@@ -16,6 +16,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,17 @@ public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithP
     /** Removes every entry whose panelId starts with {@code prefix} (e.g. {@code "<stepId>."}). */
     public void removeOperationResultsByPrefix(String prefix) {
         results.keySet().removeIf(panelId -> panelId.startsWith(prefix));
+    }
+
+    /**
+     * Removes every entry whose fixPanelId is one of {@code fixPanelIds} - e.g. every script step of
+     * one object class, once a bulk fix of that object class has consumed the errors they reported.
+     */
+    public void removeOperationResultsForFixSteps(Collection<String> fixPanelIds) {
+        if (fixPanelIds == null || fixPanelIds.isEmpty()) {
+            return;
+        }
+        results.values().removeIf(wrapper -> fixPanelIds.contains(wrapper.getFixPanelId()));
     }
 
     @Override

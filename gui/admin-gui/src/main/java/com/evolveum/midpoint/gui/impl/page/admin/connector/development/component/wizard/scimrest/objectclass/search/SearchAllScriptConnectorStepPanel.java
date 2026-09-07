@@ -41,7 +41,7 @@ import java.io.IOException;
         containerPath = "empty")
 public class SearchAllScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-search-all-script";
+    public static final String PANEL_TYPE = "cdw-search-all-script";
 
     static final String TASK_SEARCH_ALL_SCRIPTS_KEY = "taskSearchAllScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;

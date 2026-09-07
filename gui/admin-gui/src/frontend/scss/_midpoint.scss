@@ -2029,6 +2029,10 @@ button.tooltip-button[data-tooltip]:hover::after {
   min-width: 400px;
 }
 
+.toast .btn-close {
+  opacity: 1;
+}
+
 .lh-1 {
   line-height: 1;
 }
@@ -2354,11 +2358,21 @@ footer.app-footer a {
 }
 
 .select2-selection__clear {
-  max-height: 20px;
+  max-height: 24px;
   display: flex;
   align-items: center;
-  margin-top: 2px;
+  justify-content: center;
 }
+
+.select2-container--bootstrap-5 {
+  .select2-selection--single .select2-selection__clear,
+  .select2-selection--multiple .select2-selection__clear {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+  }
+}
+
 
 .select2-selection__clear:focus {
   outline: none;
@@ -2472,6 +2486,13 @@ footer.app-footer a {
       right: 0.5rem;
       transform: translateY(-50%);
       height: auto;
+    }
+
+    .select2-selection__clear {
+      width: 24px;
+      height: 24px;
+      margin: 0 0.375rem 0 0.2rem;
+      padding: 0;
     }
   }
 }

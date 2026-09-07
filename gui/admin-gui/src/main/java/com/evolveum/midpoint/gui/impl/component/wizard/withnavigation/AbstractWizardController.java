@@ -125,6 +125,14 @@ public abstract class AbstractWizardController<AH extends AssignmentHolderType, 
         }
     }
 
+    @Override
+    public void setActiveStepWithinActivePart(String id) {
+        AbstractWizardPartItem<AH, ADM> activePartItem = getActivePartItem();
+        if (activePartItem != null) {
+            activePartItem.setActiveStepById(id);
+        }
+    }
+
     public int getActiveStepIndex() {
         if (indexOfActivePart == -1) {
             return -1;

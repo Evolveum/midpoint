@@ -26,6 +26,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,6 +106,11 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
         operationResultCollapsedItem.removeOperationResultsByPrefix(prefix);
     }
 
+    /** Removes every drawer entry whose fixPanelId is one of {@code fixPanelIds}. */
+    public void removeOperationResultsForFixSteps(Collection<String> fixPanelIds) {
+        operationResultCollapsedItem.removeOperationResultsForFixSteps(fixPanelIds);
+    }
+
     public boolean isStepWithError(String stepId) {
         if (StringUtils.isEmpty(stepId)) {
             return false;
@@ -122,6 +128,29 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
                 .map(OperationResultWrapper::getResult)
                 .toList();
     }
+
+    /**
+     * Same as {@link #getOperationResultsForFixStep(String)}, but aggregated across every step in
+     * {@code stepIds} - e.g. all script steps of one object class - for a summary action ("repair
+     * the whole object class") that has to see everything currently reported broken for it.
+     */
+    public List<OperationResult> getOperationResultsForFixSteps(Collection<String> stepIds) {
+        if (stepIds == null || stepIds.isEmpty()) {
+            return List.of();
+        }
+        return operationResultCollapsedItem.getResults().stream()
+                .filter(operationResultWrapper -> stepIds.contains(operationResultWrapper.getFixPanelId()))
+                .map(OperationResultWrapper::getResult)
+                .toList();
+    }
+
+    /**
+     * Like {@link #setActiveStepById(String)}, but only searches (and only ever moves the active
+     * step within) the part item that is already active - it never switches to a different part, so
+     * it never re-initializes one either. Has no effect if no step in the active part matches
+     * {@code id}.
+     */
+    public abstract void setActiveStepWithinActivePart(String id);
 
     public abstract boolean isShowedSummary();
 

@@ -413,7 +413,7 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
     private boolean saveAuthScript(AjaxRequestTarget target) {
         ConnDevArtifactType artifact = authScriptModel.getObject();
         if (artifact == null) {
-            artifact = ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION.create();
+            return true;
         }
         Task task = getPageBase().createSimpleTask("saveAuthScript");
         try {
