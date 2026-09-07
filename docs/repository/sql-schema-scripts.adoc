@@ -1,4 +1,4 @@
-= SQL Schema Scripts
+= SQL schema scripts
 :page-wiki-name: SQL Schema Scripts
 :page-wiki-id: 26869987
 :page-wiki-metadata-create-user: mederly
@@ -7,6 +7,8 @@
 :page-wiki-metadata-modify-date: 2020-03-24T15:58:04.805+01:00
 :page-upkeep-status: orange
 :page-display-order: 30
+:page-description: A brief description of where to find the schema scripts.
+:page-keywords: repository, schema scripts
 
 Schema scripts are contained in the distribution archive under `doc/config/sql`.
 The directory contains `README.txt` file explaining what to do depending on the used repository type.
