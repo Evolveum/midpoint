@@ -9,8 +9,14 @@
 <suite name="unit">
     <test name="Default" parallel="none" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.smart.impl.TestSmartIntegrationServiceImpl"/>
+            <class name="com.evolveum.midpoint.smart.impl.TestCorrelatorSuggestions"/>
             <class name="com.evolveum.midpoint.smart.impl.TestDefaultServiceClientAudit"/>
+            <!--<class name="com.evolveum.midpoint.smart.impl.TestMappingsSuggestionOperation"/>--> <!-- fails for now -->
+            <class name="com.evolveum.midpoint.smart.impl.TestObjectTypesSuggestionOperation"/>
+            <class name="com.evolveum.midpoint.smart.impl.TestPredefinedSynchronizationReactions"/>
+            <class name="com.evolveum.midpoint.smart.impl.TestServiceClientFactory"/>
+            <class name="com.evolveum.midpoint.smart.impl.TestSmartIntegrationServiceImpl"/>
+            <class name="com.evolveum.midpoint.smart.impl.TestSystemMappingsSuggestion"/>
         </classes>
     </test>
 </suite>

@@ -26,12 +26,12 @@ public class WizardHeaderStepHelper implements Serializable {
         return stepIndex == activeStepIndex;
     }
 
-    public IModel<String> getStepPanelAriaLabelModel(int stepIndex, String stepName) {
+    public IModel<String> getStepPanelAriaLabelModel(int stepIndex) {
         return isStepActive(stepIndex) ?
                 parentPanel.createStringResource("WizardPanel.step.selected.ariaLabel", getIndexToAnnounce(stepIndex),
-                        totalStepsCount, stepName)
+                        totalStepsCount)
                 : parentPanel.createStringResource("WizardPanel.step.notSelected.ariaLabel",
-                getIndexToAnnounce(stepIndex), totalStepsCount, stepName);
+                getIndexToAnnounce(stepIndex), totalStepsCount);
     }
 
     private int getIndexToAnnounce(int index) {

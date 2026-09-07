@@ -57,6 +57,7 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ATTRIBUTES = CLASS_DOT + "DiscoverObjectClassAttribute";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_ENDPOINTS = CLASS_DOT + "DiscoverObjectClassEndpoints";
     public static final String OPERATION_DISCOVER_CONNECTIVITY_ENDPOINTS = CLASS_DOT + "DiscoverConnectivityEndpoints";
+    public static final String OPERATION_REFRESH_SCHEMA = CLASS_DOT + "RefreshSchema";
 
     @Autowired private ConnectorDevelopmentService connectorDevelopmentService;
     @Autowired private MidpointConfiguration configuration;
@@ -415,6 +416,21 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
         );
     }
 
+    @PostMapping(ConnectorGeneratorConstants.RPC_REFRESH_SCHEMA_SUBMIT_OPERATION)
+    public ResponseEntity<?> submitRefreshSchema(
+            @RequestParam("oid") @NotNull String oid
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_REFRESH_SCHEMA);
+
+        return submitOperation(
+                oid,
+                task,
+                result,
+                (operation) -> operation.submitRefreshSchema(task, result)
+        );
+    }
+
     @GetMapping(ConnectorGeneratorConstants.RPC_DISCOVER_OBJECT_CLASS_ENDPOINTS_STATUS_INFO)
     public ResponseEntity<?> getDiscoverObjectClassEndpointsStatus(
             @RequestParam("token") @NotNull String token
@@ -426,6 +442,20 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.getDiscoverObjectClassEndpointsStatus(token, task, result)
+        );
+    }
+
+    @GetMapping(ConnectorGeneratorConstants.RPC_REFRESH_SCHEMA_STATUS_INFO)
+    public ResponseEntity<?> getRefreshSchemaStatus(
+            @RequestParam("token") @NotNull String token
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_REFRESH_SCHEMA);
+
+        return handleStatusInfo(
+                task,
+                result,
+                (service) -> service.getRefreshSchemaStatus(token, task, result)
         );
     }
 

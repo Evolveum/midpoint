@@ -197,6 +197,22 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
+        public String submitFixObjectClass(
+                String objectClass, List<String> midpointErrors, List<ConnDevArtifactType> currentScripts,
+                boolean retry, Task task, OperationResult result) {
+            var definition = new ConnDevFixObjectClassDefinitionType()
+                    .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    .skipCache(retry)
+                    .objectClass(objectClass);
+            midpointErrors.forEach(definition::midpointError);
+            if (currentScripts != null) {
+                currentScripts.forEach(script -> definition.artifact(script.clone()));
+            }
+            return submitTask("Fixing object class '" + objectClass + "' for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().fixObjectClass(definition), task, result);
+        }
+
+        @Override
         public ResourceType testConnection(ConnectorConfigurationType type) {
             return null;
         }
@@ -395,6 +411,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token,result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevGenerateArtifactResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevFixObjectClassResultType> getFixObjectClassStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return new StatusInfoImpl<>(
+                getTask(token,result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevFixObjectClassResultType.class
         );
     }
 

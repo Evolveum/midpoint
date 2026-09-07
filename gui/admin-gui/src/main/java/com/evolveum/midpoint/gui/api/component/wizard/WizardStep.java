@@ -95,4 +95,8 @@ public interface WizardStep extends Serializable {
     default boolean isStatusStep() {
         return false;
     }
+
+    default String getStepStatusMessage() {
+        return null;
+    };
 }

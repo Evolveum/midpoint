@@ -132,7 +132,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         expandableLabelContainer.setOutputMarkupId(true);
         expandableLabelContainer.setOutputMarkupPlaceholderTag(true);
         expandableLabelContainer.add(AttributeModifier.append("aria-expanded", getExpandedContainerValueModel()));
-        expandableLabelContainer.add(AttributeModifier.append("aria-label", getExpandableLabelContainerAriaLabelModel()));
         header.add(expandableLabelContainer);
 
         var headerLabelModel = getLabelModel();
@@ -146,19 +145,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         header.add(getHelpLabel());
 
         initButtons(header);
-
-        //commented due to wcag issue "Accessible labels are confusing"
-//        header.add(AttributeAppender.append(
-//                "aria-label",
-//                () -> {
-//                    String key = "PrismContainerPanel.header";
-//                    if (getModelObject().getDefinition().isMultiValue()) {
-//                        key = "PrismContainerValuePanel.header";
-//                    }
-//                    return getParentPage().createStringResource(
-//                                    key, headerLabelModel.getObject())
-//                            .getString();
-//                }));
 
         //TODO always visible if isObject
 
@@ -370,15 +356,4 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
     }
 
-    private LoadableDetachableModel<String> getExpandableLabelContainerAriaLabelModel() {
-        return new LoadableDetachableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return getString(
-                        isContainerExpanded() ? "PrismObjectPanel.collapseContainer" : "PrismObjectPanel.expandContainer");
-            }
-        };
-    }
 }

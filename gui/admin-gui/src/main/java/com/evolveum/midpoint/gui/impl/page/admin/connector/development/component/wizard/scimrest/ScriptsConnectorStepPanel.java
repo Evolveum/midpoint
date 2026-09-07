@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevScriptIntentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
@@ -175,13 +176,20 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
 
     private List<ITab> createScriptsTabs() {
         return valueModel.getObject().stream()
-                .map(scriptArtifact ->
-                        (ITab) new AbstractTab(() -> scriptArtifact.getFilename()) {
+                .map(ConnDevArtifactType::getIntent)
+                .map(intent ->
+                        (ITab) new AbstractTab(() -> findArtifact(intent).getFilename()) {
                             @Override
                             public WebMarkupContainer getPanel(String id) {
+                                IModel<ConnDevArtifactType> artifactModel = new IModel<>() {
+                                    @Override
+                                    public ConnDevArtifactType getObject() {
+                                        return findArtifact(intent);
+                                    }
+                                };
                                 SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(
                                         id,
-                                        new PropertyModel<>(scriptArtifact, ConnDevArtifactType.F_CONTENT.getLocalPart()),
+                                        new PropertyModel<>(artifactModel, ConnDevArtifactType.F_CONTENT.getLocalPart()),
                                         400) {
 
                                     protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
@@ -210,9 +218,25 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
                 ).toList();
     }
 
+    private ConnDevArtifactType findArtifact(ConnDevScriptIntentType intent) {
+        return valueModel.getObject().stream()
+                .filter(artifact -> artifact.getIntent() == intent)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    /**
+     * Forces {@link #valueModel} to reload from disk on next access, e.g. after
+     * {@link RepairObjectClassButton} saved a fixed script directly (bypassing this step's own
+     * submit) - mirrors what {@link #onRefreshPerformed} already does for its own "Regenerate" flow.
+     */
+    public void detachLoadedScripts() {
+        valueModel.detach();
+    }
+
     @Override
     public String appendCssToWizard() {
-        return "col-12 col-xl-10 col-xxl-8";
+        return "col-12";
     }
 
     @Override
@@ -305,6 +329,8 @@ public abstract class ScriptsConnectorStepPanel extends AbstractWizardStepPanel<
         testResource.showTitleAsLabel(true);
         testResource.add(AttributeAppender.append("class", "ms-auto"));
         customButtons.add(testResource);
+
+        customButtons.add(new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName, valueModel::getObject));
     }
 
     private void onRefreshPerformed(AjaxRequestTarget target) {

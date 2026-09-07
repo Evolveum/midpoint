@@ -2029,6 +2029,10 @@ button.tooltip-button[data-tooltip]:hover::after {
   min-width: 400px;
 }
 
+.toast .btn-close {
+  opacity: 1;
+}
+
 .lh-1 {
   line-height: 1;
 }

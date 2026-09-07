@@ -624,6 +624,35 @@ public abstract class ConnectorDevelopmentBackend {
         }
     }
 
+    /**
+     * Fixes every generated script of one object class in a single pass: loads search, create,
+     * update, delete, native-schema, and ConnID code for {@code objectClass}, hands it to the
+     * generation service together with {@code midpointErrors}, and returns the whole set back
+     * (including scripts the service left unchanged).
+     */
+    public ConnDevFixObjectClassResultType fixObjectClass(
+            String objectClass, List<String> midpointErrors, List<ConnDevArtifactType> currentScripts, boolean skipCache) {
+        var body = JSON_FACTORY.objectNode();
+        var errors = JSON_FACTORY.arrayNode();
+        midpointErrors.forEach(error -> errors.add(JSON_FACTORY.textNode(error)));
+        body.set("midpointErrors", errors);
+        var scripts = JSON_FACTORY.arrayNode();
+        if (currentScripts != null) {
+            for (var script : currentScripts) {
+                var override = ConnDevJsonMapper.mapArtifactToFixScriptOverrideJson(script);
+                if (override != null) {
+                    scripts.add(override);
+                }
+            }
+        }
+        body.set("scripts", scripts);
+        try (var job = client().postJob("codegen/{sessionId}/classes/" + objectClass + "/fix", body, apiType(), skipCache)) {
+            return job.waitAndProcess(SLEEP_TIME, canRun(), json -> ConnDevJsonMapper.mapFixObjectClassResultFromJson(json, objectClass));
+        } catch (IOException e) {
+            throw new SystemException("Couldn't fix scripts for objectClass " + objectClass, e);
+        }
+    }
+
     public abstract List<ConnDevHttpEndpointType> discoverObjectClassEndpoints(String objectClass, boolean skipCache);
     public abstract List<ConnDevHttpEndpointType> discoverConnectivityEndpoints(boolean skipCache);
 

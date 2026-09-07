@@ -16,7 +16,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -192,7 +191,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return ChangePasswordPanel.this.arePasswordInputFieldsAssociatedWithLabels();
             }
         };
-        passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
         PasswordLimitationsPanel passwordLimitationsPanel = createLimitationPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);

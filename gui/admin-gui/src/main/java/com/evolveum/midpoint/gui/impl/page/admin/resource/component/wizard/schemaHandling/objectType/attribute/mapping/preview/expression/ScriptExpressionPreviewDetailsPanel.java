@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
@@ -40,7 +41,7 @@ public class ScriptExpressionPreviewDetailsPanel extends BasePanel<ExpressionTyp
     protected void onInitialize() {
         super.onInitialize();
 
-        add(new Label(ID_LANGUAGE, Model.of(getLanguage())));
+        add(new Label(ID_LANGUAGE, getLanguageModel()));
 
         AceEditorPanel editorPanel = new AceEditorPanel(
                 ID_EDITOR,
@@ -57,15 +58,18 @@ public class ScriptExpressionPreviewDetailsPanel extends BasePanel<ExpressionTyp
         }
     }
 
-    private @NotNull String getLanguage() {
+    private @NotNull IModel<String> getLanguageModel() {
         ScriptExpressionEvaluatorType script = getScriptEvaluator();
-        if (script == null || StringUtils.isBlank(script.getLanguage())) {
-            return "Groovy";
+
+        ExpressionUtil.Language language = script != null && StringUtils.isNotBlank(script.getLanguage())
+                ? ExpressionUtil.converLanguage(script.getLanguage())
+                : null;
+
+        if (language == null) {
+            language = ExpressionUtil.Language.GROOVY;
         }
 
-        String language = script.getLanguage();
-        int lastSlash = language.lastIndexOf("#");
-        return lastSlash >= 0 ? language.substring(lastSlash + 1) : language;
+        return createStringResource("Language." + language.name());
     }
 
     private String getCode() {

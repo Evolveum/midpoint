@@ -38,7 +38,7 @@ import java.io.IOException;
         containerPath = "empty")
 public class SearchByIdScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-search-by-id-script";
+    public static final String PANEL_TYPE = "cdw-search-by-id-script";
 
     static final String TASK_SEARCH_BY_ID_SCRIPTS_KEY = "taskSearchByIdScriptKey";
 

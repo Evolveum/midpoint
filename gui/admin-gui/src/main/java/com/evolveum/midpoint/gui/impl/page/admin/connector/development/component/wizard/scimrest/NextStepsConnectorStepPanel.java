@@ -10,6 +10,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -107,6 +108,11 @@ public class NextStepsConnectorStepPanel extends AbstractWizardStepPanel<Connect
 
     private ConnectorDevelopmentController getController() {
         return (ConnectorDevelopmentController) getWizard();
+    }
+
+    @Override
+    protected void initCustomButtons(RepeatingView customButtons) {
+        customButtons.add(new RepairObjectClassButton(customButtons.newChildId(), this, objectClassModel));
     }
 
     @Override

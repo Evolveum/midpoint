@@ -24,6 +24,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -422,14 +424,15 @@ public class StatisticsService {
     }
 
     /**
-     * Synchronously computes object type statistics by iterating all matching shadows in the repository,
-     * persists the result, and returns it. Returns {@code null} if computation fails.
+     * Synchronously computes object type statistics by iterating all matching shadows, fetching attributes
+     * live from the resource (not just cached repository values), persists the result, and returns it.
      */
     public @Nullable ShadowObjectClassStatisticsType computeObjectTypeStatisticsSync(
             String resourceOid,
             String resourceName,
             ResourceObjectTypeIdentification typeIdentification,
             ResourceObjectTypeDefinition typeDefinition,
+            Task task,
             OperationResult parentResult) {
         var result = parentResult.subresult("computeObjectTypeStatisticsSync")
                 .addParam("resourceOid", resourceOid)
@@ -442,12 +445,12 @@ public class StatisticsService {
                     .and().item(ShadowType.F_KIND).eq(typeIdentification.getKind())
                     .and().item(ShadowType.F_INTENT).eq(typeIdentification.getIntent())
                     .build();
-            repositoryService.searchObjectsIterative(ShadowType.class, query,
+            modelService.searchObjectsIterative(ShadowType.class, query,
                     (shadow, lResult) -> {
                         computer.process(shadow.asObjectable());
                         return true;
                     },
-                    null, true, result);
+                    null, task, result);
             computer.postProcessStatistics();
             var statistics = computer.getStatistics()
                     .coverage(1.0f)
