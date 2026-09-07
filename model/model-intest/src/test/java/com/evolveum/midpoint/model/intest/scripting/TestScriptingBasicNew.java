@@ -59,7 +59,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final String PASSWORD_HINT_MIGRATION_SKIPPED_USER_NAME = "test905-migrate-password-hint-encrypted";
     private static final String PASSWORD_HINT_MIGRATION_CLEAR_VALUE = "plain text hint";
     private static final String PASSWORD_HINT_MIGRATION_UNRELATED_VALUE = "unchanged password value";
-    private static final String PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX = "password-hint-auto-migration-";
+    private static final String LEGACY_PASSWORD_HINT_USER_NAME_PREFIX = "legacy-password-hint-";
 
     @Override
     String getSuffix() {
@@ -227,11 +227,11 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     }
 
     /**
-     * Verifies that a legacy clear-text password hint is automatically encrypted
+     * Verifies that a legacy clear-text password hint is left untouched (and does not break the operation)
      * when an unrelated modification is executed on the user.
      */
     @Test
-    public void test901AutoMigrateLegacyPasswordHintOnUnrelatedModification() throws Exception {
+    public void test901LegacyPasswordHintUntouchedOnUnrelatedModification() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -239,7 +239,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         ProtectedStringType passwordValue = protector.encryptString(PASSWORD_HINT_MIGRATION_UNRELATED_VALUE);
 
         String userOid = addPasswordHintUser(
-                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "unrelated-modification",
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "unrelated-modification",
                 ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
                 passwordValue.clone(),
                 RepoAddOptions.createAllowUnencryptedValues(),
@@ -262,9 +262,8 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
 
         ProtectedStringType hintAfter = userAfter.getCredentials().getPassword().getHint();
 
-        assertThat(hintAfter.getClearValue()).isNull();
-        assertThat(hintAfter.isEncrypted()).isTrue();
-        assertThat(protector.decryptString(hintAfter)).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.getClearValue()).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.isEncrypted()).isFalse();
 
         ProtectedStringType passwordValueAfter = userAfter.getCredentials().getPassword().getValue();
 
@@ -272,8 +271,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     }
 
     /**
-     * Verifies that an explicitly modified password hint is handled by the normal
-     * model encryption path instead of the automatic migration delta.
+     * Verifies that an explicitly modified password hint is encrypted by the normal model encryption path.
      */
     @Test
     public void test902DirectPasswordHintModification() throws Exception {
@@ -282,7 +280,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         OperationResult result = task.getResult();
 
         String userOid = addPasswordHintUser(
-                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "direct-edit",
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "direct-edit",
                 ProtectedStringType.fromClearValue("old hint"),
                 null,
                 RepoAddOptions.createAllowUnencryptedValues(),
@@ -326,7 +324,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         ProtectedStringType encryptedHint = protector.encryptString(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
 
         String userOid = addPasswordHintUser(
-                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "already-encrypted",
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "already-encrypted",
                 encryptedHint.clone(),
                 null,
                 null,
@@ -353,16 +351,17 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     }
 
     /**
-     * Verifies that automatic password-hint migration is skipped when noCrypt is enabled.
+     * Verifies that an operation with noCrypt works on a user with a legacy clear-text password hint
+     * and leaves the hint untouched.
      */
     @Test
-    public void test904NoCryptSkipsAutomaticPasswordHintMigration() throws Exception {
+    public void test904NoCryptLeavesLegacyPasswordHintUntouched() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String userOid = addPasswordHintUser(
-                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "no-crypt",
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "no-crypt",
                 ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
                 null,
                 RepoAddOptions.createAllowUnencryptedValues(),
@@ -393,17 +392,17 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     }
 
     /**
-     * Verifies that the automatic password-hint migration is also applied when Lens is initialized
-     * with a focus object directly, without loading it later through the context loader.
+     * Verifies that a legacy clear-text password hint is left untouched by a recompute, which starts
+     * with a focus object set directly into the context, without loading it through the context loader.
      */
     @Test
-    public void test906AutoMigrateLegacyPasswordHintOnRecompute() throws Exception {
+    public void test906LegacyPasswordHintUntouchedOnRecompute() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String userOid = addPasswordHintUser(
-                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "recompute",
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "recompute",
                 ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
                 null,
                 RepoAddOptions.createAllowUnencryptedValues(),
@@ -419,9 +418,8 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                 .getPassword()
                 .getHint();
 
-        assertThat(hintAfter.getClearValue()).isNull();
-        assertThat(hintAfter.isEncrypted()).isTrue();
-        assertThat(protector.decryptString(hintAfter)).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.getClearValue()).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.isEncrypted()).isFalse();
     }
 
     /**

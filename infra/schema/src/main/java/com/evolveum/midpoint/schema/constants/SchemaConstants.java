@@ -167,6 +167,8 @@ public abstract class SchemaConstants {
             PasswordType.F_VALUE);
     public static final ItemPath PATH_PASSWORD_FORCE_CHANGE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
             PasswordType.F_FORCE_CHANGE);
+    public static final ItemPath PATH_PASSWORD_HINT = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
+            PasswordType.F_HINT);
     public static final ItemPath PATH_PASSWORD_METADATA = ItemPath.create(C_CREDENTIALS, CredentialsType.F_PASSWORD,
             PasswordType.F_METADATA);
     public static final ItemPath PATH_NONCE = ItemPath.create(C_CREDENTIALS, CredentialsType.F_NONCE);
