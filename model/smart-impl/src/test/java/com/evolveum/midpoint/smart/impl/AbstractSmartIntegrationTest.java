@@ -8,21 +8,34 @@
 package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
 
 import java.io.File;
+import java.util.*;
+import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiAttributeMatchSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiMatchSchemaRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestMappingRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestCategoricalMappingRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestMappingResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiAttributeDefinitionType;
 
 /**
  * Abstract superclass for Smart Integration tests.
@@ -38,6 +51,22 @@ public abstract class AbstractSmartIntegrationTest extends AbstractModelIntegrat
 
     static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
+    protected record AttributePair(String appAttribute, String midPointAttribute) {}
+
+    protected record MockMapping(AttributePair pair, List<String> scripts) {
+
+        public MockMapping {
+            scripts = scripts != null ? List.copyOf(scripts) : List.of();
+        }
+
+        public MockMapping(ItemPath focusPath, ItemPath shadowPath, String... scripts) {
+            this(
+                    new AttributePair(asStringSimple(shadowPath), asStringSimple(focusPath)),
+                    scripts != null ? Arrays.stream(scripts).filter(Objects::nonNull).toList() : List.of()
+            );
+        }
+    }
+
     // Override the service client factory with our mocked version
     @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")
     ServiceClientFactory clientFactoryMock;
@@ -47,6 +76,54 @@ public abstract class AbstractSmartIntegrationTest extends AbstractModelIntegrat
 
     @Autowired
     protected com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService connectorDevelopmentService;
+
+    protected ServiceClient createClient(MockMapping... mappings) {
+        SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
+        Map<AttributePair, Deque<String>> scriptsByPair = new HashMap<>();
+
+        if (mappings != null) {
+            for (MockMapping mapping : mappings) {
+                matchResponse.attributeMatch(
+                        new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(mapping.pair().appAttribute())
+                                .midPointAttribute(mapping.pair().midPointAttribute())
+                );
+
+                if (!mapping.scripts().isEmpty()) {
+                    scriptsByPair.put(mapping.pair(), new ArrayDeque<>(mapping.scripts()));
+                }
+            }
+        }
+
+        Function<Object, Object> responseFunction = request -> {
+            if (request instanceof SiMatchSchemaRequestType) {
+                return matchResponse;
+            }
+            String appName = null;
+            String midName = null;
+            if (request instanceof SiSuggestMappingRequestType suggestRequest) {
+                appName = nameOf(suggestRequest.getApplicationAttribute());
+                midName = nameOf(suggestRequest.getMidPointAttribute());
+            } else if (request instanceof SiSuggestCategoricalMappingRequestType categoricalRequest) {
+                appName = nameOf(categoricalRequest.getApplicationAttribute());
+                midName = nameOf(categoricalRequest.getMidPointAttribute());
+            }
+            if (appName != null && midName != null) {
+                Deque<String> queue = scriptsByPair.get(new AttributePair(appName, midName));
+                String script = queue != null ? queue.poll() : null;
+                if (script != null) {
+                    return new SiSuggestMappingResponseType().transformationScript(script);
+                }
+            }
+            return new SiSuggestMappingResponseType();
+        };
+
+        return new MockServiceClientImpl(responseFunction);
+    }
+
+    private static String nameOf(SiAttributeDefinitionType attribute) {
+        return attribute != null ? attribute.getName() : null;
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
