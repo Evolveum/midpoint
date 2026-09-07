@@ -283,6 +283,67 @@ public class TestCryptoUtil extends AbstractUnitTest {
 
     // MID-4942
     @SuppressWarnings("SimplifiedTestNGAssertion")
+    /**
+     * Clear-text values at tolerated paths (legacy password hint) are accepted, everything else is still checked.
+     */
+    @Test
+    public void test250CheckEncryptedWithToleratedPaths() throws Exception {
+        given();
+        List<ItemPath> tolerated = List.of(SchemaConstants.PATH_PASSWORD_HINT);
+
+        when("user with a clear-text hint only");
+        PrismObject<UserType> clearHint = userWithPassword(new PasswordType().hint(ProtectedStringType.fromClearValue("hint")));
+        CryptoUtil.checkEncrypted(clearHint, tolerated);
+        assertCheckEncryptedFails(clearHint, List.of());
+
+        when("user with a clear-text hint and a clear-text password");
+        PrismObject<UserType> clearBoth = userWithPassword(new PasswordType()
+                .hint(ProtectedStringType.fromClearValue("hint"))
+                .value(ProtectedStringType.fromClearValue(PASSWORD_PLAINTEXT)));
+        assertCheckEncryptedFails(clearBoth, tolerated);
+
+        when("user without a hint and with a clear-text password");
+        PrismObject<UserType> clearPassword = userWithPassword(new PasswordType()
+                .value(ProtectedStringType.fromClearValue(PASSWORD_PLAINTEXT)));
+        assertCheckEncryptedFails(clearPassword, tolerated);
+
+        when("user with an encrypted hint");
+        PrismObject<UserType> encryptedHint = userWithPassword(new PasswordType().hint(protector.encryptString("hint")));
+        CryptoUtil.checkEncrypted(encryptedHint, tolerated);
+        CryptoUtil.checkEncrypted(encryptedHint, List.of());
+
+        when("tolerated path does not match the clear-text item");
+        assertCheckEncryptedFails(clearHint, List.of(SchemaConstants.PATH_PASSWORD_VALUE));
+
+        when("tolerated path under a multi-valued container");
+        ItemPath assignmentDescription = ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
+        PrismObject<UserType> assignments = new UserType()
+                .name("tolerated")
+                .assignment(new AssignmentType().description("first"))
+                .assignment(new AssignmentType().description("second"))
+                .credentials(new CredentialsType().password(new PasswordType()
+                        .hint(ProtectedStringType.fromClearValue("hint"))))
+                .asPrismObject();
+        CryptoUtil.checkEncrypted(assignments, List.of(assignmentDescription, SchemaConstants.PATH_PASSWORD_HINT));
+        assertCheckEncryptedFails(assignments, List.of(assignmentDescription));
+    }
+
+    private PrismObject<UserType> userWithPassword(PasswordType password) {
+        return new UserType()
+                .name("tolerated")
+                .credentials(new CredentialsType().password(password))
+                .asPrismObject();
+    }
+
+    private void assertCheckEncryptedFails(PrismObject<UserType> user, List<ItemPath> tolerated) {
+        try {
+            CryptoUtil.checkEncrypted(user, tolerated);
+            fail("Unexpected success of the encryption check on " + user);
+        } catch (IllegalStateException e) {
+            displayExpectedException(e);
+        }
+    }
+
     @Test
     public void test300Reencryption() throws Exception {
         // GIVEN
