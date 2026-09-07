@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -64,6 +65,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final String PASSWORD_HINT_MIGRATION_SKIPPED_USER_NAME = "test905-migrate-password-hint-encrypted";
     private static final String PASSWORD_HINT_MIGRATION_CLEAR_VALUE = "plain text hint";
     private static final String PASSWORD_HINT_MIGRATION_UNRELATED_VALUE = "unchanged password value";
+    private static final String PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX = "password-hint-auto-migration-";
     private static final int THRESHOLD_TEST_USERS = 10;
 
     @Override
@@ -229,6 +231,204 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                 .assertAssignments(1)
                 .assignments()
                     .assertRole(ROLE_SUPERUSER.oid);
+    }
+
+    /**
+     * Verifies that a legacy clear-text password hint is automatically encrypted
+     * when an unrelated modification is executed on the user.
+     */
+    @Test
+    public void test901AutoMigrateLegacyPasswordHintOnUnrelatedModification() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ProtectedStringType passwordValue = protector.encryptString(PASSWORD_HINT_MIGRATION_UNRELATED_VALUE);
+
+        String userOid = addPasswordHintUser(
+                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "unrelated-modification",
+                ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
+                passwordValue.clone(),
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("unrelated edit")
+                        .asObjectDelta(userOid),
+                null,
+                task,
+                result);
+
+        then();
+        UserType userAfter = getUser(userOid).asObjectable();
+
+        assertThat(userAfter.getDescription()).isEqualTo("unrelated edit");
+
+        ProtectedStringType hintAfter = userAfter.getCredentials().getPassword().getHint();
+
+        assertThat(hintAfter.getClearValue()).isNull();
+        assertThat(hintAfter.isEncrypted()).isTrue();
+        assertThat(protector.decryptString(hintAfter)).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+
+        ProtectedStringType passwordValueAfter = userAfter.getCredentials().getPassword().getValue();
+
+        assertThat(passwordValueAfter.getEncryptedDataType()).isEqualTo(passwordValue.getEncryptedDataType());
+    }
+
+    /**
+     * Verifies that an explicitly modified password hint is handled by the normal
+     * model encryption path instead of the automatic migration delta.
+     */
+    @Test
+    public void test902DirectPasswordHintModification() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String userOid = addPasswordHintUser(
+                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "direct-edit",
+                ProtectedStringType.fromClearValue("old hint"),
+                null,
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(
+                                UserType.F_CREDENTIALS,
+                                CredentialsType.F_PASSWORD,
+                                PasswordType.F_HINT)
+                        .replace(ProtectedStringType.fromClearValue("new hint"))
+                        .asObjectDelta(userOid),
+                null,
+                task,
+                result);
+
+        then();
+        ProtectedStringType hintAfter = getUser(userOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getClearValue()).isNull();
+        assertThat(hintAfter.isEncrypted()).isTrue();
+        assertThat(protector.decryptString(hintAfter)).isEqualTo("new hint");
+    }
+
+    /**
+     * Verifies that an already encrypted password hint is not modified during
+     * an unrelated user modification.
+     */
+    @Test
+    public void test903AlreadyEncryptedPasswordHintIsUnchanged() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ProtectedStringType encryptedHint = protector.encryptString(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+
+        String userOid = addPasswordHintUser(
+                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "already-encrypted",
+                encryptedHint.clone(),
+                null,
+                null,
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("unrelated edit")
+                        .asObjectDelta(userOid),
+                null,
+                task,
+                result);
+
+        then();
+        ProtectedStringType hintAfter = getUser(userOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getEncryptedDataType()).isEqualTo(encryptedHint.getEncryptedDataType());
+    }
+
+    /**
+     * Verifies that automatic password-hint migration is skipped when noCrypt is enabled.
+     */
+    @Test
+    public void test904NoCryptSkipsAutomaticPasswordHintMigration() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String userOid = addPasswordHintUser(
+                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "no-crypt",
+                ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
+                null,
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("unrelated edit")
+                        .asObjectDelta(userOid),
+                ModelExecuteOptions.create().noCrypt(true),
+                task,
+                result);
+
+        then();
+
+        // Read directly from repository because the hint is intentionally left unencrypted.
+        ProtectedStringType hintAfter = repositoryService
+                .getObject(UserType.class, userOid, null, result)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getClearValue()).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.isEncrypted()).isFalse();
+    }
+
+    /**
+     * Verifies that the automatic password-hint migration is also applied when Lens is initialized
+     * with a focus object directly, without loading it later through the context loader.
+     */
+    @Test
+    public void test906AutoMigrateLegacyPasswordHintOnRecompute() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String userOid = addPasswordHintUser(
+                PASSWORD_HINT_AUTO_MIGRATION_USER_NAME_PREFIX + "recompute",
+                ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
+                null,
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        recomputeUser(userOid, task, result);
+
+        then();
+        ProtectedStringType hintAfter = getUser(userOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getClearValue()).isNull();
+        assertThat(hintAfter.isEncrypted()).isTrue();
+        assertThat(protector.decryptString(hintAfter)).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
     }
 
     /**
@@ -568,5 +768,25 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                 .and().item(UserType.F_TELEPHONE_NUMBER).eq("1000000")
                 .build();
         return repositoryService.countObjects(UserType.class, query, null, result);
+    }
+
+    private String addPasswordHintUser(String name, ProtectedStringType hint, ProtectedStringType passwordValue,
+            RepoAddOptions options, OperationResult result) throws Exception {
+
+        var password = new PasswordType().hint(hint);
+
+        if (passwordValue != null) {
+            password.value(passwordValue);
+        }
+
+        var user = new UserType()
+                .name(name)
+                .credentials(new CredentialsType()
+                        .password(password));
+
+        return repositoryService.addObject(
+                user.asPrismObject(),
+                options,
+                result);
     }
 }
