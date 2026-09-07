@@ -1,18 +1,48 @@
-= MidPoint Repository
+---
+midpoint-feature: identity-repository
+doc-type: intro
+---
+= MidPoint repository
 :page-nav-title: Repository
 :page-display-order: 850
 :page-upkeep-status: green
 :page-liquid:
+:page-description: MidPoint repository is a central database in which midPoint stores all the identity and operational data with which it works.
+:page-keywords: repository, database, backup, mission critical
 
-Following pages describe midPoint repository (database) configuration.
+MidPoint repository is a central database in which midPoint stores all the identity, configuration, and operational data with which it works.
+
+Without the repository, there is no midPoint. +
+The repository is a mission-critical component. +
+It is vital to keep the repository safely backed up and accessible at all times.
+
+== Introduction to midPoint repository
+
+The midPoint repository is a relational database (DB) that holds xref:/glossary/#focus[focal objects], xref:/glossary/#shadow[shadows], xref:/glossary/#role[roles], xref:/glossary/#assignment[assignments], xref:/glossary/#policy[policies], etc., as well as the operational data, such as statuses of xref:/midpoint/architecture/concepts/task/[tasks].
+If you deploy midPoint in a cluster, such as xref:/midpoint/get-started/install/containers/kubernetes/[Kubernetes], all the cluster nodes rely on the central DB for the data to work with as well as for coordination of their work.
+The nodes communicate with the repository database rather than with each other.
+
+The role of the repository is to store data, not to implement business logic.
+It provides midPoint with all the data it needs to do its job and preserves its state across restarts.
+
+In other words, repository stores, midPoint decides.
+All the policy evaluations, mapping execution, or synchronization rule application is what midPoint performs based on the data it fetches from the repository.
+
+The repository is not only about identity data, though.
+It holds also the runtime operational data preserving midPoint state across restarts.
+This includes, for example, tasks states and their scheduling.
+It may also contain audit log data, unless you decide to store those in a separate database.
+
+== Configuration and instructions
+
+This section contains information on repository configuration, inspection, and upgrades.
 
 ++++
-{% children %}
+{% children style: table %}
 ++++
 
-include::../_reference-disclaimer.adoc[]
+== See also
 
-== See Also
-
-* For conceptual and design overview see xref:/midpoint/architecture/archive/subsystems/repo/[Repository Subsystem].
-* For information how to query objects in the repository see xref:/midpoint/reference/concepts/query/[midPoint Query].
+* xref:/midpoint/get-started/install/system-requirements/#database_system_sizing[] for information about sizing the repository server
+* xref:/midpoint/reference/deployment/clustering-ha/[] regarding the high availability setup
+* xref:/midpoint/reference/concepts/query/[] for information on querying objects in the repository
