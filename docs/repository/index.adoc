@@ -10,7 +10,7 @@ doc-type: intro
 :page-description: MidPoint repository is a central database in which midPoint stores all the identity and operational data with which it works.
 :page-keywords: repository, database, backup, mission critical
 
-MidPoint repository is a central database in which midPoint stores all the identity, configuration, and operational data with which it works.
+MidPoint repository is the central database in which midPoint stores all the identity, configuration, and operational data with which it works.
 
 Without the repository, there is no midPoint. +
 The repository is a mission-critical component. +
@@ -18,20 +18,17 @@ It is vital to keep the repository safely backed up and accessible at all times.
 
 == Introduction to midPoint repository
 
-The midPoint repository is a relational database (DB) that holds xref:/glossary/#focus[focal objects], xref:/glossary/#shadow[shadows], xref:/glossary/#role[roles], xref:/glossary/#assignment[assignments], xref:/glossary/#policy[policies], etc., as well as the operational data, such as statuses of xref:/midpoint/architecture/concepts/task/[tasks].
-If you deploy midPoint in a cluster, such as xref:/midpoint/get-started/install/containers/kubernetes/[Kubernetes], all the cluster nodes rely on the central DB for the data to work with as well as for coordination of their work.
-The nodes communicate with the repository database rather than with each other.
+The midPoint repository is a relational database and the beating heart of all operations midPoint performs.
 
 The role of the repository is to store data, not to implement business logic.
-It provides midPoint with all the data it needs to do its job and preserves its state across restarts.
+It provides midPoint with all the data it needs to do its job.
 
 In other words, repository stores, midPoint decides.
-All the policy evaluations, mapping execution, or synchronization rule application is what midPoint performs based on the data it fetches from the repository.
+The repository holds xref:/glossary/#focus[focal objects], xref:/glossary/#shadow[shadows], xref:/glossary/#role[roles], xref:/glossary/#assignment[assignments], xref:/glossary/#policy[policies], etc.
+All the policy evaluations, mapping execution, or synchronization decisions is what midPoint performs based on the data it fetches from the repository.
 
-The repository is not only about identity data, though.
-It holds also the runtime operational data preserving midPoint state across restarts.
-This includes, for example, tasks states and their scheduling.
-It may also contain audit log data, unless you decide to store those in a separate database.
+The repository also holds all the configuration and runtime operational data, such as the xref:/midpoint/reference/concepts/system-configuration-object/[global configuration] or statuses of xref:/midpoint/architecture/concepts/task/[tasks], preserving midPoint state across restarts.
+It may also contain xref:/glossary/#audit[audit log] data, unless you decide to xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[store audit log in a separate database].
 
 == Configuration and instructions
 
