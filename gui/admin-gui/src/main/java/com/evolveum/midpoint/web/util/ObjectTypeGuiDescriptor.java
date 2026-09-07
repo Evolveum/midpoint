@@ -101,7 +101,9 @@ public enum ObjectTypeGuiDescriptor {
 
     SCHEMA(ObjectTypes.SCHEMA, "ObjectType.SchemaType", "", ""),
 
-    ALLOWED_CONNECTORS_LIST(ObjectTypes.ALLOWED_CONNECTORS_LIST, "ObjectType.AllowedConnectorsListType", "", "");
+    ALLOWED_CONNECTORS_LIST(ObjectTypes.ALLOWED_CONNECTORS_LIST, "ObjectType.AllowedConnectorsListType", "", ""),
+
+    SMART_INTEGRATION_ARTIFACT(ObjectTypes.SMART_INTEGRATION_ARTIFACT, "ObjectType.SmartIntegrationArtifactType", "", "");
 
     public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 
