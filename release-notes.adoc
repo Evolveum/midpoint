@@ -34,6 +34,7 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 * Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 300.
+* Fixed read-only fields presentation. See bug:MID-11853[]
 
 == Changes with Respect To Version 4.8.12
 
