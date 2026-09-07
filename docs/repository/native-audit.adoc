@@ -1,8 +1,16 @@
-= Native PostgreSQL Audit Trail
-:page-nav-title: SQL Audit
+---
+midpoint-feature: audit-trail
+doc-type: config
+---
+= Native PostgreSQL audit trail
+:page-nav-title: SQL audit
 :page-display-order: 15
 :page-since: "4.4"
 :page-toc: top
+:page-description: This article is a configuration reference for setting up the auditing functionality of midPoint.
+:page-keywords: audit, audit log, sql audit, audit trail, audit repository
+
+This article is a configuration reference for setting up the auditing functionality of midPoint.
 
 *First things first!* You want to check configuration overview lower, make the necessary changes in the new `config.xml`,
 but before you run your midPoint in production mode, you have to consider *audit migration* and *partitioning*.
