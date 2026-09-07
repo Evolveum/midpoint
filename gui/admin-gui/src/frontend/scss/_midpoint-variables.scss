@@ -21,12 +21,14 @@
 
 $grid-breakpoints: map-merge($grid-breakpoints, (
         xxl: 1650px,
-        3xl: 1800px
+        3xl: 1800px,
+        4xl: 2000px
 ));
 
 $container-max-widths: map-merge($container-max-widths, (
         xxl: 1600px,
-        3xl: 1799.98px
+        3xl: 1799.98px,
+        4xl: 1999.98px
 ));
 
 $theme-colors: map-merge(
