@@ -6,23 +6,22 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.*;
+import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExecutedDelta;
 
-import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.model.impl.lens.indexing.IndexingConfigurationImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,17 +30,16 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExecutedDelta;
 
 /**
  * @author semancik
@@ -50,11 +48,6 @@ import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.hasExe
 public class LensFocusContext<O extends ObjectType> extends LensElementContext<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
-
-    private static final ItemPath PASSWORD_HINT_PATH = ItemPath.create(
-            FocusType.F_CREDENTIALS,
-            CredentialsType.F_PASSWORD,
-            PasswordType.F_HINT);
 
     /**
      * True if the focus object was deleted by our processing.
@@ -122,78 +115,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     @Override
-    public void setInitialObject(@NotNull PrismObject<O> object) {
-        boolean migratePasswordHint = shouldEncryptPasswordHint(getPasswordHint(object));
-        PrismObject<O> preparedObject = prepareFocusObject(object, migratePasswordHint);
-        super.setInitialObject(preparedObject);
-
-        if (migratePasswordHint) {
-            addPasswordHintMigrationDelta(preparedObject);
-        }
-    }
-
-    @Override
     public void setLoadedObject(@NotNull PrismObject<O> object) {
-        boolean migratePasswordHint = shouldEncryptPasswordHint(getPasswordHint(object));
-        PrismObject<O> preparedObject = prepareFocusObject(object, migratePasswordHint);
-        state.setCurrentAndOptionallyOld(preparedObject, shouldSetOldObject());
-
-        if (migratePasswordHint) {
-            addPasswordHintMigrationDelta(preparedObject);
-        }
-
+        state.setCurrentAndOptionallyOld(object, shouldSetOldObject());
         rewriteOldObject = false;
-    }
-
-    /**
-     * Prepares a focus object for Lens processing by encrypting a legacy clear-text
-     * password hint when needed.
-     */
-    private PrismObject<O> prepareFocusObject(@NotNull PrismObject<O> object, boolean migratePasswordHint) {
-        if (!migratePasswordHint) {
-            return object;
-        }
-
-        try {
-            lensContext.getModelBeans().protector.encrypt(getPasswordHint(object));
-        } catch (EncryptionException e) {
-            throw new SystemException(e.getMessage(), e);
-        }
-
-        return object;
-    }
-
-    private void addPasswordHintMigrationDelta(@NotNull PrismObject<O> object) {
-        if (primaryItemDeltaExists(PASSWORD_HINT_PATH)) {
-            return;
-        }
-
-        try {
-            swallowToSecondaryDeltaUnchecked(
-                    PrismContext.get()
-                            .deltaFor(getObjectTypeClass())
-                            .item(PASSWORD_HINT_PATH)
-                            .replace(getPasswordHint(object).clone())
-                            .asItemDelta());
-        } catch (SchemaException e) {
-            throw new SystemException(e.getMessage(), e);
-        }
-    }
-
-    private boolean shouldEncryptPasswordHint(ProtectedStringType hint) {
-        return !ModelExecuteOptions.isNoCrypt(lensContext.getOptions())
-                && hint != null && hint.getClearValue() != null
-                && !hint.isHashed() && !hint.isEncrypted();
-    }
-
-    private ProtectedStringType getPasswordHint(@NotNull PrismObject<O> object) {
-        if (!(object.asObjectable() instanceof FocusType focus)
-                || focus.getCredentials() == null
-                || focus.getCredentials().getPassword() == null) {
-            return null;
-        }
-
-        return focus.getCredentials().getPassword().getHint();
     }
 
     private boolean shouldSetOldObject() {
@@ -347,7 +271,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // The name is misleading but we keep it for compatibility reasons.
     @SuppressWarnings("unused")
     @Deprecated
-    public void swallowToWave0SecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+    public void swallowToWave0SecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
         swallowToSecondaryDelta(itemDelta);
     }
 
@@ -375,7 +299,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             if (objectNew == null) {
                 return false;
             }
-            Item<PrismValue,ItemDefinition<?>> item = objectNew.findItem(itemPath);
+            Item<PrismValue, ItemDefinition<?>> item = objectNew.findItem(itemPath);
             return item != null && !item.getValues().isEmpty();
         } else if (isDelete()) {
             // We do not care any more
@@ -420,12 +344,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         sb.append("\n");
 
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("new"), getObjectNew(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("deleted"), deleted, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("new"), getObjectNew(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("deleted"), deleted, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent + 1);
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append(getDebugDumpTitle("older secondary deltas")).append(":");
         ObjectDeltaWaves<O> secondaryDeltas = state.getArchivedSecondaryDeltas();
@@ -437,7 +361,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         sb.append("\n");
 
-        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Policy rules context", policyRulesContext, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Assignment ID store",
                 assignmentIdStore != null ? assignmentIdStore.shortDump() : null, indent + 1);

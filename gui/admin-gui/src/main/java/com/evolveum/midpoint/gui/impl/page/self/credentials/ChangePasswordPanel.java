@@ -418,10 +418,8 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
         ProtectedStringType newHintValue = getHintValue();
         if (newHintValue != null && !newHintValue.isEmpty()) {
-            ItemPath hintPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-                    CredentialsType.F_PASSWORD, PasswordType.F_HINT);
             PropertyDelta<ProtectedStringType> hintDelta = getPrismContext().deltaFactory().property()
-                    .createModificationReplaceProperty(hintPath, objDef, newHintValue);
+                    .createModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_HINT, objDef, newHintValue);
 
             modifications.add(hintDelta);
         }
