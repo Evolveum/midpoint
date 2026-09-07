@@ -30,12 +30,16 @@ The {release-version} release brings security, stability, and miscellaneous bug 
 
 == Changes with Respect To Version 4.8.13
 
+* Upgraded multiple dependencies, mainly spring-boot, postgresql and multiple NPM packages.
+* Removed Xerces dependency. See bug:MID-12034[].
 * Fixed encoding handling issues in csv report import and export. See bug:MID-11413[]
 * Fixed self-registration confirmation not invalidating the used email nonce, which blocked subsequent password reset requests. See bug:MID-12082[].
 * Fixed authentication flow reuse across shared HTTP sessions. See bug:MID-10821[]
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 300.
 * Fixed read-only fields presentation. See bug:MID-11853[]
 * Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
+* Fixed automatic setting of `archetypeRef` when creating a new object from an archetyped collection view. See bug:MID-11914[].
+* Improved styles - label size and form breaks on generated forms. See bug:MID-11628[].
 
 == Changes with Respect To Version 4.8.12
 
