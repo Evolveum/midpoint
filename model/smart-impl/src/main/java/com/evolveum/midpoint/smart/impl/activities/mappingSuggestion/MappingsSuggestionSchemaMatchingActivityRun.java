@@ -24,15 +24,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaMatchResultType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Computes schema match, persists it as a GenericObjectType,
+ * Computes schema match, persists it as a smart integration artifact,
  * and stores a reference to it in the parent work state for reuse.
  */
 public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRun<
@@ -53,14 +51,14 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
                 MappingsSuggestionWorkStateType.F_SCHEMA_MATCH_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 
     private @Nullable String findLatestSchemaMatchObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
         var lastSchemaMatchObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeSchemaMatch(
-                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), result);
+                workDef.getResourceOid(), workDef.getTypeIdentification(), result);
         return lastSchemaMatchObject != null ? lastSchemaMatchObject.getOid() : null;
     }
 
@@ -92,7 +90,7 @@ public class MappingsSuggestionSchemaMatchingActivityRun extends LocalActivityRu
         var match = SmartIntegrationBeans.get().smartIntegrationService
                 .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
         var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService
-                .saveSchemaMatch(resourceOid, workDef.getKind(), workDef.getIntent(), match, result);
+                .saveSchemaMatch(resourceOid, workDef.getTypeIdentification(), match, result);
 
         setSchemaMatchObjectOidInWorkState(schemaMatchOid, result);
 

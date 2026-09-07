@@ -170,7 +170,6 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            //noinspection resource
             var serviceClient = new MockServiceClientImpl(
                     new SiSuggestObjectTypesResponseType()
                             .objectType(new SiSuggestedObjectTypeType()

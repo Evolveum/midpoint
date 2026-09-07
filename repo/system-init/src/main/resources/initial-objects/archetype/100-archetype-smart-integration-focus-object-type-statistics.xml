@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype oid="504e000b-2432-4fcb-b25b-caece57e502a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Smart integration focus object type statistics</name>
+    <description>Statistics for focus objects (users, roles, etc) related to given object type on a resource</description>
+    <archetypePolicy>
+        <display>
+            <label>
+                <orig>Focus object type statistics</orig>
+                <translation>
+                    <key>SmartIntegration.Archetype.FocusObjectTypeStatistics.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Focus object type statistics objects</orig>
+                <translation>
+                    <key>SmartIntegration.Archetype.FocusObjectTypeStatistics.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-chart-column</cssClass>
+                <color>#ffc107</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>SmartIntegrationArtifactType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

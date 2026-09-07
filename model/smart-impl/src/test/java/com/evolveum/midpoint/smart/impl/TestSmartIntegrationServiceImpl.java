@@ -32,6 +32,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
@@ -782,7 +782,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         when("suggesting object types with invalid filter");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
-                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ShadowObjectClassStatisticsType(), null, null, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, new ObjectSetStatisticsType(), null, null, task, result);
 
         then("there is at least one suggestion with non-empty filter");
         assertSuccess(result);
@@ -829,7 +829,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
                 RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME,
-                new ShadowObjectClassStatisticsType(), null, null, task, result);
+                new ObjectSetStatisticsType(), null, null, task, result);
 
         then("validation error is handled and partial result is returned");
         assertSuccess(result);
@@ -1057,7 +1057,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @SuppressWarnings("SameParameterValue")
-    private ShadowObjectClassStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)
+    private ObjectSetStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)
             throws CommonException {
         var resource = Resource.of(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.get());
         var accountDef = resource
@@ -1075,8 +1075,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return computer.getStatistics();
     }
 
-    private static ShadowObjectClassStatisticsType parseStatistics(File file) throws IOException, SchemaException {
-        return parseFile(file, ShadowObjectClassStatisticsType.class);
+    private static ObjectSetStatisticsType parseStatistics(File file) throws IOException, SchemaException {
+        return parseFile(file, ObjectSetStatisticsType.class);
     }
 
     private static <T> T parseFile(File file, Class<T> clazz) throws IOException, SchemaException {
@@ -1084,7 +1084,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Computes statistics for a specific type identification (kind/intent) using ObjectTypeRelatedStatisticsComputer. */
-    private ShadowObjectClassStatisticsType computeStatistics(
+    private ObjectSetStatisticsType computeStatistics(
             DummyTestResource resource,
             ResourceObjectTypeIdentification typeIdentification,
             Task task,
@@ -1349,24 +1349,21 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         String taskOid = statisticsService.regenerateFocusObjectStatistics(
                 UserType.COMPLEX_TYPE,
                 RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
-                ShadowKindType.ACCOUNT,
-                "default",
+                ACCOUNT_DEFAULT,
                 task,
                 result);
 
         waitForTaskFinish(taskOid);
 
         then("The statistics calculation task should contain stats about two users");
-        GenericObjectType statsObject = statisticsService.getLatestFocusObjectStatistics(
+        var statsObject = statisticsService.getLatestFocusObjectStatistics(
                 UserType.COMPLEX_TYPE,
                 RESOURCE_DUMMY_FOR_STATS_CALCULATION.oid,
-                ShadowKindType.ACCOUNT,
-                "default",
+                ACCOUNT_DEFAULT,
                 result);
         assertNotNull("Statistics object should exist", statsObject);
 
-        ShadowObjectClassStatisticsType stats = FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(
-                statsObject.asPrismObject());
+        ObjectSetStatisticsType stats = SmartIntegrationArtifactUtil.getStatisticsRequired(statsObject.asPrismObject());
         assertNotNull("Statistics should not be null", stats);
         assertEquals("Should have 2 processed user (linked and correlated)", 2, stats.getSize());
     }

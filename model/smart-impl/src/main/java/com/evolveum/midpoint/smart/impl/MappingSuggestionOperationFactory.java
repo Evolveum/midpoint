@@ -16,7 +16,7 @@ import com.evolveum.midpoint.smart.impl.mappings.heuristics.HeuristicRuleMatcher
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 
 @Component
 public class MappingSuggestionOperationFactory {
@@ -48,7 +48,7 @@ public class MappingSuggestionOperationFactory {
     MappingsSuggestionOperation create(ServiceClient client, String resourceOid,
             ResourceObjectTypeIdentification typeIdentification, CurrentActivityState<?> activityState,
             boolean isInbound, boolean useAiService,
-            @Nullable ShadowObjectClassStatisticsType objectTypeStatistics,
+            @Nullable ObjectSetStatisticsType objectTypeStatistics,
             int retryCount,
             Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,

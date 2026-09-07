@@ -66,7 +66,7 @@ public class FocusObjectStatisticsComputer {
         aggregator.postProcessStatistics(this::shouldRemoveAttribute);
     }
 
-    public ShadowObjectClassStatisticsType getStatistics() {
+    public ObjectSetStatisticsType getStatistics() {
         return aggregator.getStatistics();
     }
 
@@ -101,7 +101,7 @@ public class FocusObjectStatisticsComputer {
 
     private boolean shouldRemoveAttribute(
             ShadowAttributeStatisticsType stats,
-            ShadowObjectClassStatisticsType statistics) {
+            ObjectSetStatisticsType statistics) {
 
         return stats.getMissingValueCount() == statistics.getSize()
                 || (stats.getValueCount().isEmpty()

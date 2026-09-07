@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectRefere
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
@@ -84,7 +84,7 @@ class ObjectTypesSuggestionOperation {
      * and send it back to the service to guide a second attempt. If issues persist, partial results are used.
      */
     ObjectTypesSuggestionType suggestObjectTypes(
-            ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ObjectSetStatisticsType shadowObjectClassStatistics,
             OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
@@ -315,7 +315,7 @@ class ObjectTypesSuggestionOperation {
     }
 
     private @NotNull SiSuggestObjectTypesResponseType generateObjectTypeSuggestion(
-            ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ObjectSetStatisticsType shadowObjectClassStatistics,
             @Nullable List<SiValidationErrorFeedbackEntryType> validationFeedback, OperationResult parentResult) throws SchemaException {
         var siRequest = new SiSuggestObjectTypesRequestType()
                 .schema(ResourceObjectClassSchemaSerializer.serialize(ctx.objectClassDefinition, ctx.resource))

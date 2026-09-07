@@ -27,6 +27,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.*;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.other.MSmartIntegrationArtifact;
+import com.evolveum.midpoint.repo.sqale.qmodel.other.QSmartIntegrationArtifact;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import org.testng.annotations.Test;
@@ -2801,6 +2805,57 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
 
         MObject row = selectObjectByOid(QMessageTemplate.class, messageTemplate.getOid());
         assertThat(row).isNotNull(); // no additional columns
+    }
+
+    /** Tests storing of and searching for {@link SmartIntegrationArtifactType}. */
+    @Test
+    public void test862SmartIntegrationArtifact() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("smart integration artifact");
+        String objectName = "sia_" + getTestNumber();
+        var resourceOid = UUID.randomUUID();
+        var now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        var statistics = new ObjectSetStatisticsType()
+                .size(1000)
+                .timestamp(now);
+        var object = new SmartIntegrationArtifactType()
+                .name(objectName)
+                .scope(new SmartIntegrationArtifactScopeType()
+                        .resourceRef(resourceOid.toString(), ResourceType.COMPLEX_TYPE)
+                        .objectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT.asBean())
+                        .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                        .focusType(UserType.COMPLEX_TYPE))
+                .statistics(statistics);
+        SmartIntegrationArtifactUtil.setArchetype(
+                object, SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS);
+
+        when("adding it to the repository");
+        repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("it is stored and relevant items are in columns");
+        assertThatOperationResult(result).isSuccess();
+
+        MSmartIntegrationArtifact row = selectObjectByOid(
+                QSmartIntegrationArtifact.class, UUID.fromString(object.getOid()));
+        assertThat(row.resourceRefTargetOid).isEqualTo(resourceOid);
+        assertThat(row.resourceRefTargetType).isEqualTo(MObjectType.RESOURCE);
+        assertCachedUri(row.objectClassId, SchemaConstants.RI_ACCOUNT_OBJECT_CLASS);
+        assertThat(row.kind).isEqualTo(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT.getKind());
+        assertThat(row.intent).isEqualTo(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT.getIntent());
+        assertCachedUri(row.focusTypeId, UserType.COMPLEX_TYPE);
+
+        and("search can traverse scope.objectType.kind");
+        var query = prismContext.queryFor(SmartIntegrationArtifactType.class)
+                .item(SmartIntegrationArtifactType.F_SCOPE,
+                        SmartIntegrationArtifactScopeType.F_OBJECT_TYPE,
+                        ResourceObjectTypeIdentificationType.F_KIND)
+                .eq(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT.getKind())
+                .build();
+        var found = repositoryService.searchObjects(SmartIntegrationArtifactType.class, query, null, result);
+        assertThat(found)
+                .extracting(PrismObject::getOid)
+                .contains(object.getOid());
     }
     // endregion
 

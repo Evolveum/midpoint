@@ -1548,6 +1548,61 @@ call apply_change(65, $aa$
     ALTER TYPE ShadowKindType ADD VALUE IF NOT EXISTS 'WORK' AFTER 'ASSOCIATION';
 $aa$);
 
+-- @change: Adds `SMART_INTEGRATION_ARTIFACT` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `SMART_INTEGRATION_ARTIFACT`.
+call apply_change(66, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SMART_INTEGRATION_ARTIFACT' AFTER 'SIMULATION_RESULT';
+$aa$);
+
+-- @change: Adds smart integration artifact object table, triggers, and indexes.
+-- @since: 4.11
+-- @affects: table m_smart_integration_artifact | New table | Stores smart integration artifact objects.
+-- @affects: trigger m_smart_integration_artifact_oid_insert_tr | New trigger | Reserves OID rows for inserted smart integration artifacts.
+-- @affects: trigger m_smart_integration_artifact_update_tr | New trigger | Maintains update metadata for smart integration artifacts.
+-- @affects: trigger m_smart_integration_artifact_oid_delete_tr | New trigger | Releases OID rows for deleted smart integration artifacts.
+-- @affects: index m_smart_integration_artifact_nameOrig_idx | New index | Speeds up lookup by original object name.
+-- @affects: index m_smart_integration_artifact_nameNorm_idx | New unique index | Enforces uniqueness and speeds up lookup by normalized object name.
+-- @affects: index m_smart_integration_artifact_ext_idx | New GIN index | Speeds up filtering or searching by extension values.
+-- @affects: index m_smart_integration_artifact_fullTextInfo_idx | New GIN trigram index | Speeds up full-text-like object searches.
+-- @affects: index m_smart_integration_artifact_createTimestamp_idx | New index | Speeds up filtering or ordering by creation time.
+-- @affects: index m_smart_integration_artifact_modifyTimestamp_idx | New index | Speeds up filtering or ordering by modification time.
+-- @affects: index m_smart_integration_artifact_scope_object_type_idx | New composite index | Speeds up filtering or ordering by resource reference, kind, intent, and focus type.
+-- @affects: index m_smart_integration_artifact_scope_object_class_idx | New composite index | Speeds up filtering or ordering by resource reference and object class.
+call apply_change(67, $aa$
+    CREATE TABLE m_smart_integration_artifact (
+        oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+        objectType ObjectType GENERATED ALWAYS AS ('SMART_INTEGRATION_ARTIFACT') STORED
+            CHECK (objectType = 'SMART_INTEGRATION_ARTIFACT'),
+        resourceRefTargetOid UUID,
+        resourceRefTargetType ObjectType,
+        resourceRefRelationId INTEGER REFERENCES m_uri(id),
+        objectClassId INTEGER REFERENCES m_uri(id),
+        kind ShadowKindType,
+        intent TEXT,
+        focusTypeId INTEGER REFERENCES m_uri(id)
+    )
+        INHERITS (m_assignment_holder);
+
+    CREATE TRIGGER m_smart_integration_artifact_oid_insert_tr BEFORE INSERT ON m_smart_integration_artifact
+        FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+    CREATE TRIGGER m_smart_integration_artifact_update_tr BEFORE UPDATE ON m_smart_integration_artifact
+        FOR EACH ROW EXECUTE FUNCTION before_update_object();
+    CREATE TRIGGER m_smart_integration_artifact_oid_delete_tr AFTER DELETE ON m_smart_integration_artifact
+        FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+    CREATE INDEX m_smart_integration_artifact_nameOrig_idx ON m_smart_integration_artifact (nameOrig);
+    CREATE UNIQUE INDEX m_smart_integration_artifact_nameNorm_idx ON m_smart_integration_artifact (nameNorm);
+    CREATE INDEX m_smart_integration_artifact_ext_idx ON m_smart_integration_artifact USING gin(ext);
+    CREATE INDEX m_smart_integration_artifact_fullTextInfo_idx ON m_smart_integration_artifact USING gin(fullTextInfo gin_trgm_ops);
+    CREATE INDEX m_smart_integration_artifact_createTimestamp_idx ON m_smart_integration_artifact (createTimestamp);
+    CREATE INDEX m_smart_integration_artifact_modifyTimestamp_idx ON m_smart_integration_artifact (modifyTimestamp);
+    CREATE INDEX m_smart_integration_artifact_scope_object_type_idx
+        ON m_smart_integration_artifact (resourceRefTargetOid, kind, intent, focusTypeId);
+    CREATE INDEX m_smart_integration_artifact_scope_object_class_idx
+        ON m_smart_integration_artifact (resourceRefTargetOid, objectClassId);
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

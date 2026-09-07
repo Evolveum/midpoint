@@ -58,15 +58,6 @@ public class ObjectTypeRelatedSuggestionWorkDefinition extends AbstractWorkDefin
         return typeIdentification;
     }
 
-    public String getKind() {
-        return typeIdentification.getKind().value();
-    }
-
-    public String getIntent() {
-        return typeIdentification.getIntent();
-    }
-
-
     public @Nullable String getSchemaMatchObjectOid() {
         return schemaMatchObjectOid;
     }
