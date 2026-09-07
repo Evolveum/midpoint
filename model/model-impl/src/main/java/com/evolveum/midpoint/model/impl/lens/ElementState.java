@@ -7,10 +7,28 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
+import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordEndEmbedded;
+import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordStartEmbedded;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOperationType.*;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -19,45 +37,27 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-
-import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
-import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordEndEmbedded;
-import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordStartEmbedded;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOperationType.*;
 
 /**
  * Encapsulates the maintenance of the state of an element (focus, projection).
  *
  * Holds mainly:
  *
- *  - basic information like type, definition, and OID
- *  - state: old, current, new
- *  - deltas: primary, secondary, current (i.e. current -> new), summary (i.e. old -> new)
- *  - archived secondary deltas
- *  - flags related to the validity of computed components (see below), to avoid needless recomputation
- *  - various other state flags (see in the description)
+ * - basic information like type, definition, and OID
+ * - state: old, current, new
+ * - deltas: primary, secondary, current (i.e. current -> new), summary (i.e. old -> new)
+ * - archived secondary deltas
+ * - flags related to the validity of computed components (see below), to avoid needless recomputation
+ * - various other state flags (see in the description)
  *
  * Implementation notes:
  *
@@ -486,6 +486,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     //endregion
 
     //region Invalidations
+
     /**
      * Invalidates all computed values. Called e.g. when parameters for current object adjuster change.
      */
@@ -640,6 +641,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     //endregion
 
     //region State updates
+
     /**
      * Sets OID of the new object but also to the deltas (if applicable).
      */
@@ -820,6 +822,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     //endregion
 
     //region Remembering and restoring the state
+
     /**
      * Creates a representation of a state to be (maybe) restored later.
      *
@@ -891,15 +894,20 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         // TODO: object definition?
     }
 
+    /**
+     * Checks that all protected values are encrypted. Legacy clear-text password hints (stored as plain strings
+     * before 4.11) are tolerated in the objects; they get encrypted only when the hint itself is modified.
+     * The deltas are checked strictly.
+     */
     void checkEncrypted() {
         if (newObject != null) {
-            CryptoUtil.checkEncrypted(newObject);
+            CryptoUtil.checkEncrypted(newObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (oldObject != null) {
-            CryptoUtil.checkEncrypted(oldObject);
+            CryptoUtil.checkEncrypted(oldObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (currentObject != null) {
-            CryptoUtil.checkEncrypted(currentObject);
+            CryptoUtil.checkEncrypted(currentObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (primaryDelta != null) {
             CryptoUtil.checkEncrypted(primaryDelta);

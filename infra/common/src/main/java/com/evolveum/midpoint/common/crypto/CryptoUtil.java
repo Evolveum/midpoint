@@ -9,10 +9,7 @@ package com.evolveum.midpoint.common.crypto;
 import java.io.ByteArrayOutputStream;
 import java.security.Provider;
 import java.security.Security;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -26,6 +23,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.Holder;
@@ -84,13 +82,41 @@ public class CryptoUtil {
 
     // Checks that everything is encrypted
     public static <T extends ObjectType> void checkEncrypted(final PrismObject<T> object) {
+        checkEncrypted(object, List.of());
+    }
+
+    /**
+     * Checks that everything is encrypted, except for values at the tolerated paths. This is meant for data
+     * that was stored as clear text by older versions and is encrypted only when modified.
+     *
+     * @param toleratedClearTextPaths paths of values that are allowed to be clear text -> whole path must not contain any multi-value segments
+     */
+    public static <T extends ObjectType> void checkEncrypted(
+            final PrismObject<T> object, @NotNull Collection<ItemPath> toleratedClearTextPaths) {
+
+        boolean hasToleratedPath = toleratedClearTextPaths.stream().anyMatch(p -> {
+            PrismProperty<?> property = object.findProperty(p);
+            if (property == null || property.isEmpty()) {
+                return false;
+            }
+
+            if (!(property.getRealValue() instanceof ProtectedStringType ps)) {
+                return false;
+            }
+
+            return ps.hasClearValue();
+        });
+
+        if (!hasToleratedPath) {
+            toleratedClearTextPaths = List.of();
+        }
+
         try {
             //noinspection unchecked
-            object.accept(createCheckingVisitor());
+            object.accept(createVisitor(createCheckingProcessor(), toleratedClearTextPaths));
         } catch (IllegalStateException e) {
             throw new IllegalStateException(e.getMessage() + " in " + object, e);
         }
-
     }
 
     // Checks that everything is encrypted
@@ -238,10 +264,12 @@ public class CryptoUtil {
     private static class CombinedVisitor implements ConfigurableVisitor, JaxbVisitor {
 
         private final ProtectedStringProcessor processor;
+        @NotNull private final Collection<ItemPath> skippedPaths;
         private String lastPropName = "?";
 
-        private CombinedVisitor(ProtectedStringProcessor processor) {
+        private CombinedVisitor(ProtectedStringProcessor processor, @NotNull Collection<ItemPath> skippedPaths) {
             this.processor = processor;
+            this.skippedPaths = skippedPaths;
         }
 
         @Override
@@ -262,6 +290,9 @@ public class CryptoUtil {
         public void visit(Visitable visitable) {
             if (visitable instanceof PrismPropertyValue) {
                 PrismPropertyValue<?> pval = (PrismPropertyValue<?>) visitable;
+                if (isSkipped(pval)) {
+                    return;
+                }
                 Object realValue = pval.getRealValue();
                 if (realValue instanceof JaxbVisitable) {
                     String oldLastPropName = lastPropName;
@@ -272,6 +303,14 @@ public class CryptoUtil {
             }
         }
 
+        private boolean isSkipped(PrismPropertyValue<?> pval) {
+            if (skippedPaths.isEmpty()) {
+                return false;
+            }
+            ItemPath path = pval.getPath().namedSegmentsOnly();
+            return skippedPaths.stream().anyMatch(skipped -> skipped.equivalent(path));
+        }
+
         @Override
         public boolean shouldVisitEmbeddedObjects() {
             return true; // Needed to encrypt secrets in embedded objects. See also 60328c40b2b99c6cf41ab6ce90145fae941d07bd.
@@ -280,7 +319,13 @@ public class CryptoUtil {
 
     @NotNull
     private static CombinedVisitor createVisitor(ProtectedStringProcessor processor) {
-        return new CombinedVisitor(processor);
+        return createVisitor(processor, List.of());
+    }
+
+    @NotNull
+    private static CombinedVisitor createVisitor(
+            ProtectedStringProcessor processor, @NotNull Collection<ItemPath> skippedPaths) {
+        return new CombinedVisitor(processor, skippedPaths);
     }
 
     private static String determinePropName(PrismPropertyValue<?> value) {
