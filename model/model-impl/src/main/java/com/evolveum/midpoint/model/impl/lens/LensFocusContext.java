@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.common.LinkManager;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeC
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.model.impl.lens.indexing.IndexingConfigurationImpl;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -48,6 +51,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class LensFocusContext<O extends ObjectType> extends LensElementContext<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
+
+    private static final ItemPath PASSWORD_HINT_PATH = ItemPath.create(
+            FocusType.F_CREDENTIALS,
+            CredentialsType.F_PASSWORD,
+            PasswordType.F_HINT);
 
     /**
      * True if the focus object was deleted by our processing.
@@ -116,8 +124,64 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     @Override
     public void setLoadedObject(@NotNull PrismObject<O> object) {
-        state.setCurrentAndOptionallyOld(object, shouldSetOldObject());
+        PrismObject<O> preparedObject = prepareLoadedObject(object);
+        state.setCurrentAndOptionallyOld(preparedObject, shouldSetOldObject());
         rewriteOldObject = false;
+    }
+
+    /**
+     * Prepares a loaded focus object for Lens processing by encrypting a legacy clear-text password hint when needed.
+     *
+     * If a plaintext hint is found and cryptography is enabled, the hint is encrypted and a secondary delta is created
+     * so that the encrypted value is persisted even when the hint itself was not explicitly modified.
+     */
+    private PrismObject<O> prepareLoadedObject(@NotNull PrismObject<O> object) {
+        ProtectedStringType hint = getPasswordHint(object);
+        if (!shouldEncryptPasswordHint(hint)) {
+            return object;
+        }
+
+        try {
+            lensContext.getModelBeans().protector.encrypt(getPasswordHint(object));
+        } catch (EncryptionException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+
+        addPasswordHintMigrationDelta(object);
+        return object;
+    }
+
+    private void addPasswordHintMigrationDelta(@NotNull PrismObject<O> object) {
+        if (primaryItemDeltaExists(PASSWORD_HINT_PATH)) {
+            return;
+        }
+
+        try {
+            swallowToSecondaryDeltaUnchecked(
+                    PrismContext.get()
+                            .deltaFor(getObjectTypeClass())
+                            .item(PASSWORD_HINT_PATH)
+                            .replace(getPasswordHint(object).clone())
+                            .asItemDelta());
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
+
+    private boolean shouldEncryptPasswordHint(ProtectedStringType hint) {
+        return !ModelExecuteOptions.isNoCrypt(lensContext.getOptions())
+                && hint != null && hint.getClearValue() != null
+                && !hint.isHashed() && !hint.isEncrypted();
+    }
+
+    private ProtectedStringType getPasswordHint(@NotNull PrismObject<O> object) {
+        if (!(object.asObjectable() instanceof FocusType focus)
+                || focus.getCredentials() == null
+                || focus.getCredentials().getPassword() == null) {
+            return null;
+        }
+
+        return focus.getCredentials().getPassword().getHint();
     }
 
     private boolean shouldSetOldObject() {
