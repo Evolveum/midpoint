@@ -168,7 +168,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 .replaceAttributeValues(attr.local(), values);
     }
 
-    private ShadowObjectClassStatisticsType computeStatistics(
+    private ObjectSetStatisticsType computeStatistics(
             DummyTestResource resource,
             ResourceObjectTypeIdentification typeIdentification,
             Task task,

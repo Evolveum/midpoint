@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.impl.activities.midpointStatisticsComputatio
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BasicObjectSetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusObjectStatisticsComputationWorkDefinitionType;
@@ -35,8 +36,7 @@ public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWork
 
     private final @NotNull QName objectType;
     private final @NotNull String resourceOid;
-    private final @NotNull ShadowKindType kind;
-    private final @NotNull String intent;
+    private final @NotNull ResourceObjectTypeIdentification typeIdentification;
     @Nullable private final String statisticsObjectOid;
 
     public FocusObjectStatisticsComputationWorkDefinition(@NotNull WorkDefinitionInfo info) throws ConfigurationException {
@@ -50,12 +50,13 @@ public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWork
         resourceOid = configNonNull(
                 Referencable.getOid(typed.getResourceRef()),
                 "No resource OID specified");
-        kind = configNonNull(
+        var kind = configNonNull(
                 typed.getKind(),
                 "No shadow kind specified");
-        intent = configNonNull(
+        var intent = configNonNull(
                 typed.getIntent(),
                 "No shadow intent specified");
+        typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
         statisticsObjectOid = Referencable.getOid(typed.getStatisticsRef());
     }
 
@@ -67,12 +68,16 @@ public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWork
         return resourceOid;
     }
 
+    public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return typeIdentification;
+    }
+
     public @NotNull ShadowKindType getKind() {
-        return kind;
+        return typeIdentification.getKind();
     }
 
     public @NotNull String getIntent() {
-        return intent;
+        return typeIdentification.getIntent();
     }
 
     public @Nullable String getStatisticsObjectOid() {
@@ -91,8 +96,7 @@ public class FocusObjectStatisticsComputationWorkDefinition extends AbstractWork
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "objectType", objectType, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "kind", kind, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent + 1);
+        DebugUtil.debugDumpShortWithLabelLn(sb, "typeIdentification", typeIdentification, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "statisticsObjectOid", statisticsObjectOid, indent + 1);
     }
 }

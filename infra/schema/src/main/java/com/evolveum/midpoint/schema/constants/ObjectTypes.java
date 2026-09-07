@@ -148,6 +148,10 @@ public enum ObjectTypes {
             ProjectionHolderType.COMPLEX_TYPE, SchemaConstantsGenerated.C_PROJECTION_HOLDER, ProjectionHolderType.class,
             ObjectManager.MODEL, "projectionHolders"),
 
+    SMART_INTEGRATION_ARTIFACT(
+            SmartIntegrationArtifactType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SMART_INTEGRATION_ARTIFACT, SmartIntegrationArtifactType.class,
+            ObjectManager.MODEL, "smartIntegrationArtifacts"),
+
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 

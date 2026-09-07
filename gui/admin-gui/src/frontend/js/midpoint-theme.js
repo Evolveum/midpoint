@@ -61,6 +61,8 @@ export default class MidPointTheme {
             });
         });
 
+        self.initSelect2ClearButtonAccessibility();
+
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
                 return this.each(function () {
@@ -814,30 +816,54 @@ export default class MidPointTheme {
         });
     }
 
+    initSelect2ClearButtonAccessibility() {
+        const fixClearButton = (el) => {
+            const $clear = $(el);
+            if ($clear.attr('tabindex') === '0') {
+                return;
+            }
+
+            $clear.attr({
+                'tabindex': 0,
+                'role': 'button',
+                'aria-label': 'Clear selection'
+            });
+
+            $clear.on('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    $(this).trigger('mousedown');
+                }
+            });
+        };
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType !== 1) {
+                        return;
+                    }
+                    if (node.matches && node.matches('.select2-selection__clear')) {
+                        fixClearButton(node);
+                    }
+                    if (node.querySelectorAll) {
+                        node.querySelectorAll('.select2-selection__clear').forEach(fixClearButton);
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, {childList: true, subtree: true});
+
+        document.querySelectorAll('.select2-selection__clear').forEach(fixClearButton);
+    }
+
     initSelect2MultiChoice(containerHtmlElement) {
         var container = $("#" + containerHtmlElement.id)
         if (container.length) {
             var select = container.find("select");
             if (select.length) {
                 var attribute = select.attr("aria-label")
-
-                $('.select2-selection__clear').each(function () {
-                    const $clear = $(this);
-                    if (!$clear.attr('tabindex')) {
-                        $clear.attr({
-                            'tabindex': 0,
-                            'role': 'button',
-                            'aria-label': 'Clear selection'
-                        });
-
-                        $clear.on('keydown', function (e) {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                $(this).trigger('mousedown');
-                            }
-                        });
-                    }
-                });
 
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");

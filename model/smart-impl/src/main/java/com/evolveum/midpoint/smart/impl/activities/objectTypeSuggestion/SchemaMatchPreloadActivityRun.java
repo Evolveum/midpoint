@@ -18,6 +18,8 @@ import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -100,11 +102,9 @@ class SchemaMatchPreloadActivityRun
                         .computeSchemaMatchByObjectClass(resourceOid, objectClassName, focusTypeName, true, task, result);
 
                 for (var objectTypeBean : typesWithThisFocus) {
-                    var kind = objectTypeBean.getKind().value();
-                    var intent = objectTypeBean.getIntent();
-                    var schemaMatchOid = schemaMatchService
-                            .saveSchemaMatch(resourceOid, kind, intent, match, result);
-                    LOGGER.debug("Schema match cached with OID {} for type kind={} intent={}", schemaMatchOid, kind, intent);
+                    var type = ResourceObjectTypeIdentification.of(objectTypeBean.getKind(), objectTypeBean.getIntent());
+                    var schemaMatchOid = schemaMatchService.saveSchemaMatch(resourceOid, type, match, result);
+                    LOGGER.debug("Schema match cached with OID {} for type {}", schemaMatchOid, type);
                 }
             } catch (Exception e) {
                 LoggingUtils.logException(LOGGER,

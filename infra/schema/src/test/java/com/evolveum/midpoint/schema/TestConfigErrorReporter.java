@@ -38,7 +38,7 @@ public class TestConfigErrorReporter extends AbstractSchemaTest {
         } catch (ConfigurationException e) {
             displayExpectedException(e);
             assertThat(e)
-                    .hasMessage("No 'ref' in attribute definition with ID 10 in the definition of type ACCOUNT/test in resource:null(dummy)");
+                    .hasMessage("No 'ref' in attribute definition with ID 10 in the definition of type account/test in resource:null(dummy)");
         }
 
         when("ref-less object class attribute is accessed");
