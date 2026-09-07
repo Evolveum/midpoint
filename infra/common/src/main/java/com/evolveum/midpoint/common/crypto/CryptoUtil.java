@@ -30,6 +30,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import javax.xml.namespace.QName;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -95,6 +98,12 @@ public class CryptoUtil {
      */
     public static <T extends ObjectType> void checkEncrypted(
             final PrismObject<T> object, @NotNull Collection<ItemPath> toleratedClearTextPaths) {
+
+        // Performance optimization: the (relatively expensive) path matching in CombinedVisitor#isSkipped
+        // is done only if the object contains an item with the name of a tolerated path at all.
+        if (!containsAnyItem(object, toleratedClearTextPaths)) {
+            toleratedClearTextPaths = List.of();
+        }
         try {
             //noinspection unchecked
             object.accept(createVisitor(createCheckingProcessor(), toleratedClearTextPaths));
@@ -111,6 +120,27 @@ public class CryptoUtil {
         } catch (IllegalStateException e) {
             throw new IllegalStateException(e.getMessage() + " in delta " + delta, e);
         }
+    }
+
+    /** Walks the whole object once and looks for an item named like the last segment of any of the paths. */
+    private static boolean containsAnyItem(PrismObject<?> object, Collection<ItemPath> paths) {
+        Set<QName> names = new HashSet<>();
+        for (ItemPath path : paths) {
+            ItemName lastName = path.lastName();
+            if (lastName != null) {
+                names.add(lastName);
+            }
+        }
+        if (names.isEmpty()) {
+            return false;
+        }
+        Holder<Boolean> found = new Holder<>(false);
+        object.accept(visitable -> {
+            if (visitable instanceof Item<?, ?> item && QNameUtil.matchAny(item.getElementName(), names)) {
+                found.setValue(true);
+            }
+        });
+        return found.getValue();
     }
 
     @NotNull
