@@ -26,6 +26,9 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
@@ -671,6 +674,7 @@ public class LensUtil {
         if (itemOld != null) {
             //noinspection unchecked, rawtypes
             itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
+            encryptLegacyPasswordHintInEstimatedOldValues(ctx, itemDelta);
             return;
         }
         // Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
@@ -685,7 +689,47 @@ public class LensUtil {
             if (itemOld != null) {
                 //noinspection unchecked, rawtypes
                 itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
+                encryptLegacyPasswordHintInEstimatedOldValues(ctx, itemDelta);
             }
+        }
+    }
+
+    /**
+     * A legacy clear-text password hint is tolerated in the objects but not in the deltas. So when the hint
+     * is being modified, its clear-text old value copied into the delta must be encrypted, otherwise the delta
+     * would fail the encryption check. The values are replaced by encrypted copies; the objects are not touched.
+     */
+    private static void encryptLegacyPasswordHintInEstimatedOldValues(LensElementContext<?> ctx, ItemDelta<?, ?> itemDelta) {
+        if (!SchemaConstants.PATH_PASSWORD_HINT.equivalent(itemDelta.getPath())
+                || ModelExecuteOptions.isNoCrypt(ctx.getLensContext().getOptions())) {
+            return;
+        }
+        Collection<? extends PrismValue> oldValues = itemDelta.getEstimatedOldValues();
+        if (oldValues == null || oldValues.isEmpty()) {
+            return;
+        }
+        List<PrismValue> replacement = new ArrayList<>(oldValues.size());
+        boolean replaced = false;
+        for (PrismValue oldValue : oldValues) {
+            if (oldValue instanceof PrismPropertyValue<?> ppv
+                    && ppv.getRealValue() instanceof ProtectedStringType protectedString
+                    && protectedString.getClearValue() != null
+                    && !protectedString.isHashed()) {
+                PrismPropertyValue<?> copy = ppv.clone();
+                try {
+                    ctx.getLensContext().getModelBeans().protector.encrypt((ProtectedStringType) copy.getRealValue());
+                } catch (EncryptionException e) {
+                    throw new SystemException("Couldn't encrypt legacy password hint: " + e.getMessage(), e);
+                }
+                replacement.add(copy);
+                replaced = true;
+            } else {
+                replacement.add(oldValue);
+            }
+        }
+        if (replaced) {
+            //noinspection unchecked, rawtypes
+            itemDelta.setEstimatedOldValues((Collection) replacement);
         }
     }
 
