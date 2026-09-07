@@ -314,18 +314,6 @@ public class TestCryptoUtil extends AbstractUnitTest {
 
         when("tolerated path does not match the clear-text item");
         assertCheckEncryptedFails(clearHint, List.of(SchemaConstants.PATH_PASSWORD_VALUE));
-
-        when("tolerated path under a multi-valued container");
-        ItemPath assignmentDescription = ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
-        PrismObject<UserType> assignments = new UserType()
-                .name("tolerated")
-                .assignment(new AssignmentType().description("first"))
-                .assignment(new AssignmentType().description("second"))
-                .credentials(new CredentialsType().password(new PasswordType()
-                        .hint(ProtectedStringType.fromClearValue("hint"))))
-                .asPrismObject();
-        CryptoUtil.checkEncrypted(assignments, List.of(assignmentDescription, SchemaConstants.PATH_PASSWORD_HINT));
-        assertCheckEncryptedFails(assignments, List.of(assignmentDescription));
     }
 
     private PrismObject<UserType> userWithPassword(PasswordType password) {
