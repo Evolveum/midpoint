@@ -1237,17 +1237,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     public void test400SuggestCorrelationRules() throws CommonException {
         skipIfRealService();
 
-        var mockClient = new MockServiceClientImpl(
-                new SiMatchSchemaResponseType()
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.FULLNAME.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_FULL_NAME)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(Account.AttributeNames.EMAIL.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_EMAIL_ADDRESS)))
-                        .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
-                                .midPointAttribute(asStringSimple(UserType.F_NAME))));
+        var mockClient = createClient(
+                new MockMapping(ItemPath.create(UserType.F_FULL_NAME), Account.AttributeNames.FULLNAME.path()),
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), Account.AttributeNames.EMAIL.path()),
+                new MockMapping(ItemPath.create(UserType.F_NAME), ICFS_NAME_PATH)
+        );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
