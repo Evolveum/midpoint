@@ -37,6 +37,7 @@ public abstract class AbstractSmartIntegrationTest extends AbstractModelIntegrat
             COMMON_DIR, "role-superuser.xml", "00000000-0000-0000-0000-000000000004");
 
     static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
+    static final QName OC_GROUP_QNAME = new QName(NS_RI, "group");
 
     // Override the service client factory with our mocked version
     @TestBean(methodName = "com.evolveum.midpoint.smart.impl.TestServiceClientFactory#create")

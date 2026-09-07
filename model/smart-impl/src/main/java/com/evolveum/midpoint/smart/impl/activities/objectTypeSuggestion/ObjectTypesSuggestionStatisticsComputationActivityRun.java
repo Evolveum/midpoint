@@ -85,7 +85,7 @@ public class ObjectTypesSuggestionStatisticsComputationActivityRun
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
                 ObjectTypesSuggestionWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 }

@@ -374,6 +374,14 @@ END $$;
 $aa$);
 
 
+-- Smart integration artifact
+-- @change: Adds `SMART_INTEGRATION_ARTIFACT` object type value.
+-- @since: 4.11
+-- @affects: enum ObjectType | Modified enum type | Adds `SMART_INTEGRATION_ARTIFACT`.
+call apply_audit_change(16, $aa$
+    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SMART_INTEGRATION_ARTIFACT' AFTER 'SIMULATION_RESULT';
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 
 -- IMPORTANT: update apply_audit_change number at the end of postgres-audit.sql

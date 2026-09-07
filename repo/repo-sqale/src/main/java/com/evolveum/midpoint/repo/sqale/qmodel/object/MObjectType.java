@@ -101,8 +101,8 @@ public enum MObjectType {
     USER(QUser.class, UserType.class, UserType::new),
     VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class, ValuePolicyType::new),
     POLICY(QPolicy.class, PolicyType.class, PolicyType::new),
-    ALLOWED_CONNECTORS_LIST(QAllowedConnectorsList.class, AllowedConnectorsListType.class, AllowedConnectorsListType::new);
-
+    ALLOWED_CONNECTORS_LIST(QAllowedConnectorsList.class, AllowedConnectorsListType.class, AllowedConnectorsListType::new),
+    SMART_INTEGRATION_ARTIFACT(QSmartIntegrationArtifact.class, SmartIntegrationArtifactType.class, SmartIntegrationArtifactType::new);
 
     private final Class<? extends QObject<?>> queryType;
     private final Class<? extends ObjectType> schemaType;
