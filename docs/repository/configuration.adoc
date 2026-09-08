@@ -1,10 +1,16 @@
-= Repository Configuration
+---
+midpoint-feature: identity-repository
+doc-type: config
+---
+= Repository configuration
 :page-nav-title: Configuration
 :page-display-order: 10
 :page-toc: top
+:page-since: "4.4"
+:page-description: This article is a configuration reference for the midPoint native PostgreSQL repository.
+:page-keywords: repository, database, repository configuration, native repository, postgresql
 
-[IMPORTANT]
-This page documents only the new Native repository introduced in midPoint 4.4.
+This article is a configuration reference for the midPoint native PostgreSQL repository.
 
 == Configuration overview
 
