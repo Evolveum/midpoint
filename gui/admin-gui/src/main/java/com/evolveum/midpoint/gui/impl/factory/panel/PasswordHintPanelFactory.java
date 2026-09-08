@@ -44,7 +44,7 @@ public class PasswordHintPanelFactory extends AbstractGuiComponentFactory<Protec
         return PasswordType.F_HINT.matches(wrapper.getItemName());
     }
 
-    private static LoadableModel<ProtectedStringType> getPasswordModel(IModel<PrismPropertyWrapper<ProtectedStringType>> hintValueWrapper) {
+    public static LoadableModel<ProtectedStringType> getPasswordModel(IModel<PrismPropertyWrapper<ProtectedStringType>> hintValueWrapper) {
         return new LoadableModel<>() {
 
             private static final long serialVersionUID = 1L;
