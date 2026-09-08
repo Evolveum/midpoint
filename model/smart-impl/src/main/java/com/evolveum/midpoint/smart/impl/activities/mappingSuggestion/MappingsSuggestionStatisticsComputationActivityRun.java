@@ -174,6 +174,7 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         LOGGER.debug("Adding object type statistics object:\n{}", statisticsObject.debugDump(1));
 
         var oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+
         storeStatisticsObjectOid(oid, result);
     }
 

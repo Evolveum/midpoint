@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
@@ -232,12 +233,10 @@ class MappingsSuggestionOperation {
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
                     }
                 }).exceptionally(e -> {
-                    Throwable cause = e.getCause() != null // e = CompletionException
-                            ? e.getCause().getCause() != null // e.getCause = RuntimeException
-                                ? e.getCause().getCause() // e.getCause.getCause = Actual interesting exception
-                                : e.getCause()
-                            : e;
+                    Throwable cause = unwrapCompletionException(e);
                     Operation op = operationReference.get();
+                    OperationResult mappingResult = mappingResultReference.get();
+
                     if (cause instanceof LowQualityMappingException) {
                         LOGGER.debug("Skipping mapping due to low quality: {}", cause.getMessage());
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.SKIP);
@@ -247,7 +246,11 @@ class MappingsSuggestionOperation {
                     } else {
                         LoggingUtils.logException(LOGGER, "Couldn't suggest mapping for {}", cause,
                                 matchPair.getShadowAttributePath());
+
                         mappingsSuggestionState.recordProcessingEnd(op, ItemProcessingOutcomeType.FAILURE);
+                        mappingsSuggestionState.recordException(cause);
+                        mappingsSuggestionState.setResultStatus(OperationResultStatus.PARTIAL_ERROR);
+                        mappingResult.recordStatus(OperationResultStatus.PARTIAL_ERROR, cause);
                     }
                     return null;
                 }).thenRun(() -> {
@@ -272,6 +275,17 @@ class MappingsSuggestionOperation {
         } finally {
             mappingsSuggestionState.close(result);
         }
+    }
+
+    private static Throwable unwrapCompletionException(Throwable throwable) {
+        Throwable cause = throwable;
+
+        while ((cause instanceof RuntimeException)
+                && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+
+        return cause;
     }
 
     /**

@@ -11,9 +11,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -194,7 +196,57 @@ public class SmartGeneratingAlertDto implements Serializable {
                 ? new Object[] { getSuggestedObjectsCount() }
                 : new Object[0];
 
+        if(state == SmartGenerationState.FINISHED &&  hasErrors()){
+          return pageBase.createStringResource("SmartGeneratingPanel.defaultText.finished.with.errors");
+        }
+
         return state.createTextModel(pageBase, args);
+    }
+
+    public boolean hasErrors() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return false;
+        }
+
+        return isFinished() && isErrorStatus(statusInfo.getObject().getStatus());
+    }
+
+    public @Nullable String getMessage() {
+        if (!hasErrors()) {
+            return null;
+        }
+
+        return statusInfo.getObject().getLocalizedMessage();
+    }
+
+    public @Nullable OperationResult getErrorsOperationResult() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return null;
+        }
+
+        OperationResultType resultBean = statusInfo.getObject().getOperationResult();
+        if (resultBean == null) {
+            return null;
+        }
+
+        OperationResult result = OperationResult.createOperationResult(resultBean);
+        retainErrorBranches(result);
+
+        return result;
+    }
+
+    /** Retains error results and the ancestors needed to display their location in the result tree. */
+    private boolean retainErrorBranches(@NotNull OperationResult result) {
+        result.getSubresults().removeIf(subResult -> !retainErrorBranches(subResult));
+        OperationResultStatus status = result.getStatus();
+        return isErrorStatus(status.createStatusType())
+                || !result.getSubresults().isEmpty();
+    }
+
+    private boolean isErrorStatus(@Nullable OperationResultStatusType status) {
+        return status == OperationResultStatusType.PARTIAL_ERROR
+                || status == OperationResultStatusType.FATAL_ERROR
+                || status == OperationResultStatusType.HANDLED_ERROR;
     }
 
     public IModel<String> getDefaultSubTextModel(PageBase pageBase) {
@@ -202,7 +254,7 @@ public class SmartGeneratingAlertDto implements Serializable {
 
         if (state == SmartGenerationState.FINISHED) {
 
-            if(getSuggestedObjectsCount() == 0) {
+            if (getSuggestedObjectsCount() == 0) {
                 return pageBase.createStringResource("SmartGeneratingPanel.defaultText.finished.noSuggestions");
             }
 
