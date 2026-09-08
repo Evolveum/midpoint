@@ -17,6 +17,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -35,6 +36,7 @@ public class TablePanel<T> extends Panel implements Table {
 
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
+    private static final String ID_LIVE_STATUS = "liveStatus";
 
     private final IModel<Boolean> showPaging = new Model<>(true);
     private final IModel<Boolean> showCount = new Model<>(true);
@@ -57,6 +59,10 @@ public class TablePanel<T> extends Panel implements Table {
     }
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, long pageSize) {
+        WebMarkupContainer liveStatus = new WebMarkupContainer(ID_LIVE_STATUS);
+        liveStatus.setOutputMarkupId(true);
+        add(liveStatus);
+
         DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, (int) pageSize);
 
         table.setOutputMarkupId(true);
@@ -115,6 +121,11 @@ public class TablePanel<T> extends Panel implements Table {
     @Override
     public DataTable<T, ?> getDataTable() {
         return (DataTable<T, ?>) get(ID_TABLE);
+    }
+
+    @Override
+    public String getLiveStatusMarkupId() {
+        return get(ID_LIVE_STATUS).getMarkupId();
     }
 
     public NavigatorPanel getNavigatorPanel() {

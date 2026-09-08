@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.sort.AjaxFallbackOrderByBorder;
@@ -24,7 +22,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.util.string.Strings;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+
+import java.io.Serial;
 
 /**
  * @author lazyman
@@ -113,43 +114,31 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
             @Override
             protected OrderByLink newOrderByLink(String id, Object property, ISortStateLocator stateLocator) {
-                return new AjaxOrderByLink<String>(ORDER_LINK_ID, (String) property, stateLocator) {
-                    private static final long serialVersionUID = 1L;
+                AjaxOrderByLink<String> link = new AjaxOrderByLink<String>(ORDER_LINK_ID, (String) property, stateLocator) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        onAjaxClick(target);
-                    }
-
-                    @Override
-                    protected void onComponentTag(ComponentTag tag) {
-                        super.onComponentTag(tag);
-
                         SortOrder currentOrder = stateLocator.getSortState().getPropertySortOrder(property);
+                        String columnLabel = getColumnLabel(property);
 
-                        String columnLabel = getColumnLabelFromParent();
-                        if (columnLabel == null || columnLabel.isEmpty()) {
-                            columnLabel = property.toString();
-                        }
+                        onAjaxClick(target);
 
-                        String ariaLabel = switch (currentOrder) {
-                            case ASCENDING ->
-                                    LocalizationUtil.translate("TableHeadersToolbar.item.sorted.ascending", columnLabel);
-                            case DESCENDING ->
-                                    LocalizationUtil.translate("TableHeadersToolbar.item.sorted.descending", columnLabel);
-                            default -> LocalizationUtil.translate("TableHeadersToolbar.item.unsorted", columnLabel);
-                        };
-                        tag.put("aria-label", ariaLabel);
+                        TableHeadersToolbar.this.announceSortStatus(target, currentOrder, columnLabel);
+                        target.focusComponent(this);
                     }
 
-                    private String getColumnLabelFromParent() {
-                        Component c = getParent().get(ORDER_LINK_ID + ":" + HEADER_BODY_ID + ":"+ LABEL_ID);
-                        if (c instanceof Label) {
+                    private String getColumnLabel(Object property) {
+                        Component c = get(HEADER_BODY_ID + ":" + LABEL_ID);
+                        if (c instanceof Label && c.getDefaultModelObjectAsString() != null
+                                && !c.getDefaultModelObjectAsString().isEmpty()) {
                             return c.getDefaultModelObjectAsString();
                         }
-                        return null;
+                        return property.toString();
                     }
                 };
+                link.setOutputMarkupId(true);
+                return link;
             }
         };
     }
@@ -160,5 +149,26 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
     protected void refreshTable(AjaxRequestTarget target) {
         target.add(getTable());
+    }
+
+    private void announceSortStatus(AjaxRequestTarget target, SortOrder order, String columnLabel) {
+        Table table = getTable().findParent(Table.class);
+        if (table == null) {
+            return;
+        }
+
+        String liveStatusId = table.getLiveStatusMarkupId();
+        if (liveStatusId == null) {
+            return;
+        }
+
+        String message = switch (order) {
+            case ASCENDING -> LocalizationUtil.translate("TableHeadersToolbar.aria.status.sorted.ascending", columnLabel);
+            case DESCENDING -> LocalizationUtil.translate("TableHeadersToolbar.aria.status.sorted.descending", columnLabel);
+            default -> LocalizationUtil.translate("TableHeadersToolbar.item.unsorted", columnLabel);
+        };
+
+        target.appendJavaScript(
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", liveStatusId, message, 300));
     }
 }

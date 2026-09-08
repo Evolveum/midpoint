@@ -60,6 +60,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_TABLE_CONTAINER = "tableContainer";
 
     private static final String ID_SEARCH_RESULT_INFO = "searchResultInfo";
+    private static final String ID_LIVE_STATUS = "liveStatus";
 
     private static final String ID_PAGING_FOOTER = "pagingFooter";
     private static final String ID_PAGING = "paging";
@@ -123,6 +124,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card shadow-sm mb-3" : ""));
         add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
+
+        WebMarkupContainer liveStatus = new WebMarkupContainer(ID_LIVE_STATUS);
+        liveStatus.setOutputMarkupId(true);
+        add(liveStatus);
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.add(AttributeAppender.append("class", getTableContainerAdditionalCssClasses()));
@@ -288,6 +293,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     @Override
     public DataTable getDataTable() {
         return (DataTable) get(ID_TABLE_CONTAINER).get(ID_TABLE);
+    }
+
+    @Override
+    public String getLiveStatusMarkupId() {
+        return get(ID_LIVE_STATUS).getMarkupId();
     }
 
     public WebMarkupContainer getDataTableContainer() {
