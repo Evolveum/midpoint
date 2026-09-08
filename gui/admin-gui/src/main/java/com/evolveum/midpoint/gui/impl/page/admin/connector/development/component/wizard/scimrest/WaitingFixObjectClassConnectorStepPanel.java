@@ -119,7 +119,7 @@ public class WaitingFixObjectClassConnectorStepPanel extends WaitingConnectorSte
     }
 
     @Override
-    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException {
         return getDetailsModel().getServiceLocator().getConnectorService().getFixObjectClassStatus(token, task, result);
     }
 

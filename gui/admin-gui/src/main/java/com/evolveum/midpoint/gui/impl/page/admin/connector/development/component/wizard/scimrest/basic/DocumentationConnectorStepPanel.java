@@ -46,7 +46,6 @@ import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -128,7 +127,7 @@ public class DocumentationConnectorStepPanel extends AbstractWizardStepPanel<Con
                 try {
                     statusInfo =
                             getDetailsModel().getServiceLocator().getConnectorService().getDiscoverDocumentationStatus(token, task, result);
-                } catch (SchemaException | ObjectNotFoundException e) {
+                } catch (CommonException e) {
                     throw new RuntimeException(e);
                 }
                 ConnDevDiscoverDocumentationResultType documentationResultBean = statusInfo.getResult();

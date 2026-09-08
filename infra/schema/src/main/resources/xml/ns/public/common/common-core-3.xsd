@@ -12727,6 +12727,10 @@
                     <xsd:documentation>
                         Default language for script expressions.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:displayName>SystemConfigurationExpressionsType.defaultScriptLanguage</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">

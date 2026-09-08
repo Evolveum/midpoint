@@ -31,10 +31,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_URL,
-                        label = "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.label",
-                        description = "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_DEVELOPMENT_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL,
                         label = "PageAdminConnectorDevelopments.auth.connectorGenerator.label",
                         description = "PageAdminConnectorDevelopments.auth.connectorGenerator.description")
         })
