@@ -1,3 +1,7 @@
+---
+midpoint-feature: identity-repository-generic
+doc-type: config
+---
 = Generic Repository Configuration
 :page-wiki-name: Generic Repository Configuration
 :page-nav-title: Repository Configuration

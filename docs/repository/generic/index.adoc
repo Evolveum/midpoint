@@ -1,3 +1,7 @@
+---
+midpoint-feature: identity-repository-generic
+doc-type: intro
+---
 = Generic Repository
 :page-upkeep-status: orange
 :page-deprecated: true

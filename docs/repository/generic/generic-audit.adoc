@@ -1,3 +1,7 @@
+---
+midpoint-feature: audit-trail
+doc-type: config
+---
 = Generic SQL Audit Trail
 :page-nav-title: SQL Audit
 :page-display-order: 15
