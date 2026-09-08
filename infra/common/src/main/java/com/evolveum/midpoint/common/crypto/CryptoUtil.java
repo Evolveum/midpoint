@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import java.util.List;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.Holder;
@@ -37,6 +39,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  */
 public class CryptoUtil {
+
+    /**
+     * Items that may contain clear-text values in stored objects: these were plain strings before 4.11 and are
+     * encrypted only when modified. The encryption checks of stored objects tolerate them; everything else must be encrypted.
+     */
+    public static final List<ItemPath> LEGACY_CLEAR_TEXT_PATHS = List.of(SchemaConstants.PATH_PASSWORD_HINT);
 
     private static final Trace LOGGER = TraceManager.getTrace(CryptoUtil.class);
 

@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -901,13 +900,13 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
      */
     void checkEncrypted() {
         if (newObject != null) {
-            CryptoUtil.checkEncrypted(newObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
+            CryptoUtil.checkEncrypted(newObject, CryptoUtil.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (oldObject != null) {
-            CryptoUtil.checkEncrypted(oldObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
+            CryptoUtil.checkEncrypted(oldObject, CryptoUtil.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (currentObject != null) {
-            CryptoUtil.checkEncrypted(currentObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
+            CryptoUtil.checkEncrypted(currentObject, CryptoUtil.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (primaryDelta != null) {
             CryptoUtil.checkEncrypted(primaryDelta);

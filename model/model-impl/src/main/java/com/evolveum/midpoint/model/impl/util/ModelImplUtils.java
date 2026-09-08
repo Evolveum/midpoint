@@ -59,12 +59,6 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 public class ModelImplUtils {
 
-    /**
-     * Items that may contain clear-text values in stored objects: these were plain strings before 4.11 and are
-     * encrypted only when modified. The encryption checks tolerate them; everything else must be encrypted.
-     */
-    public static final List<ItemPath> LEGACY_CLEAR_TEXT_PATHS = List.of(SchemaConstants.PATH_PASSWORD_HINT);
-
     private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName() + ".resolveReference";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelImplUtils.class);

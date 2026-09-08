@@ -762,7 +762,7 @@ public class ObjectRetriever {
             prismObject.checkConsistence();
         }
         if (InternalsConfig.readEncryptionChecks) {
-            CryptoUtil.checkEncrypted(prismObject);
+            CryptoUtil.checkEncrypted(prismObject, CryptoUtil.LEGACY_CLEAR_TEXT_PATHS);
         }
     }
 

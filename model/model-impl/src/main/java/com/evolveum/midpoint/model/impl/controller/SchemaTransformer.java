@@ -28,7 +28,6 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataPolicyProcessor;
 import com.evolveum.midpoint.model.impl.controller.transformer.DefinitionAccessProcessor;
@@ -308,7 +307,7 @@ public class SchemaTransformer {
 
     private <T extends ObjectType> void validateObject(PrismObject<T> object, ParsedGetOperationOptions options) {
         if (InternalsConfig.readEncryptionChecks) {
-            CryptoUtil.checkEncrypted(object, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
+            CryptoUtil.checkEncrypted(object, CryptoUtil.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (InternalsConfig.consistencyChecks) {
             boolean tolerateRaw;
