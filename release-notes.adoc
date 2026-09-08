@@ -1,9 +1,11 @@
 ---
 layout: release
-release-version: '4.10.5'
+release-version: '4.10.6'
+visibility: hidden
 ---
-= MidPoint 4.10 "Braille" - Update 5
-:release-version: 4.10.5
+= MidPoint 4.10 "Braille" - Update 6
+:release-version: 4.10.6
+:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
