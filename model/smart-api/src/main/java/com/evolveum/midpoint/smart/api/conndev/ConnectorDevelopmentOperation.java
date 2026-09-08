@@ -41,6 +41,14 @@ public interface ConnectorDevelopmentOperation {
 
     String submitExportConnector(Task task, OperationResult result);
 
+    /**
+     * Same as {@link #submitExportConnector}, but the packaged bundle excludes {@code lib/}
+     * (third-party dependency jars). Currently used by the wizard's "Upload connector" action,
+     * which just downloads this slimmer bundle - a future version of that action is expected to
+     * upload it to another microservice instead.
+     */
+    String submitUploadConnector(Task task, OperationResult result);
+
     // Midpoint local (+ download framework)
 
     String submitDiscoverObjectClasses(Task task, OperationResult result);

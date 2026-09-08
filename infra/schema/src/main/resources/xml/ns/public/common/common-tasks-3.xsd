@@ -2669,6 +2669,14 @@
                     </xsd:annotation>
                 </xsd:element>
 
+                <xsd:element name="uploadConnector" type="tns:ConnDevUploadConnectorWorkDefinitionType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+
                 <xsd:element name="discoverDocumentation" type="tns:ConnDevDiscoverDocumentationWorkDefinitionType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -11436,12 +11444,48 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="ConnDevUploadConnectorWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Packages the connector bundle the same way exportConnector does, but without its
+                lib/ directory (third-party dependency jars) - the bundle produced here is not meant
+                to be a self-contained, deployable connector jar. Currently used by the wizard's
+                "Upload connector" action, which just downloads this slimmer bundle; a future version
+                of that action is expected to upload it to another microservice instead.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConnDevBaseWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="version" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Explicit version for the uploaded connector bundle. If not specified,
+                                the current connector version is used as-is.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnDevUploadConnectorWorkStateType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:ConnDevExportConnectorResultType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="ConnDevExportConnectorResultType">
         <xsd:sequence>
             <xsd:element name="fileName" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the exported connector bundle jar file, relative to the midPoint home
+                        Name of the exported connector bundle file, relative to the midPoint home
                         "export" directory on the node identified by nodeRef.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -11449,7 +11493,7 @@
             <xsd:element name="nodeRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Node where the exported connector bundle jar file is stored.
+                        Node where the exported connector bundle file is stored.
                     </xsd:documentation>
                     <xas:appinfo>
                         <a:objectReferenceTargetType>NodeType</a:objectReferenceTargetType>
@@ -11462,6 +11506,15 @@
                     <xas:appinfo>
                         <a:objectReferenceTargetType>ConnectorType</a:objectReferenceTargetType>
                     </xas:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MIME content type of the bundle file, set by the activity that produced it
+                        (e.g. "application/java-archive" for a jar, "application/zip" for a plain
+                        zip) - so a consumer never needs to guess the type from the file name.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
