@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Evolveum and contributors
+ * Copyright (C) 2010-2026 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -31,39 +31,42 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 /**
- * Waiting step for the "export connector" background activity. Shown as a single-step part item
- * (see {@code ExportConnectorDevPartItem}). On completion the step stashes the export result in
- * {@link ConnectorDevelopmentDetailsModel#setPendingExportResult}, so that the download can be
- * triggered by the "next steps" summary panel once it replaces this step in the same AJAX response
- * (a download behavior attached to this step would be invalidated by that replacement).
+ * Waiting step for the "upload connector" background activity. Shown as a single-step part item
+ * (see {@code UploadConnectorDevPartItem}). Its own activity ({@code UploadConnectorActivityHandler})
+ * packages a lib/-less bundle - a sibling of, but a separate activity from, the "export connector"
+ * one - and shares its result type and download mechanism (via
+ * {@link ConnectorDevelopmentDetailsModel#setPendingExportResult}) with
+ * {@link WaitingConnectorExportingStepPanel}, since the two produce the same shape of result. A
+ * future version of this action is expected to upload the bundle to another microservice instead of
+ * downloading it.
  */
-@PanelType(name = "cdw-connector-waiting-exporting-connector")
-@PanelInstance(identifier = "cdw-connector-waiting-exporting-connector",
+@PanelType(name = "cdw-connector-waiting-uploading-connector")
+@PanelInstance(identifier = "cdw-connector-waiting-uploading-connector",
         applicableForType = ConnectorDevelopmentType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingExportingConnector", icon = "fa fa-download"),
+        display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.connectorWaitingUploadingConnector", icon = "fa-solid fa-gears"),
         containerPath = "empty")
-public class WaitingConnectorExportingStepPanel extends WaitingConnectorStepPanel implements WizardParentStep {
+public class WaitingConnectorUploadingStepPanel extends WaitingConnectorStepPanel implements WizardParentStep {
 
-    private static final String PANEL_TYPE = "cdw-connector-waiting-exporting-connector";
+    private static final String PANEL_TYPE = "cdw-connector-waiting-uploading-connector";
 
-    public WaitingConnectorExportingStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+    public WaitingConnectorUploadingStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
     }
 
     @Override
     protected ItemName getActivityType() {
-        return WorkDefinitionsType.F_EXPORT_CONNECTOR;
+        return WorkDefinitionsType.F_UPLOAD_CONNECTOR;
     }
 
     @Override
     protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException {
-        return getDetailsModel().getServiceLocator().getConnectorService().getExportConnectorStatus(token, task, result);
+        return getDetailsModel().getServiceLocator().getConnectorService().getUploadConnectorStatus(token, task, result);
     }
 
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
-        return getDetailsModel().getConnectorDevelopmentOperation().submitExportConnector(task, result);
+        return getDetailsModel().getConnectorDevelopmentOperation().submitUploadConnector(task, result);
     }
 
     @Override
@@ -78,17 +81,17 @@ public class WaitingConnectorExportingStepPanel extends WaitingConnectorStepPane
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingExportingConnector");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingUploadingConnector");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingExportingConnector.text");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingUploadingConnector.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingExportingConnector.subText");
+        return createStringResource("PageConnectorDevelopment.wizard.step.connectorWaitingUploadingConnector.subText");
     }
 
     @Override
@@ -99,7 +102,7 @@ public class WaitingConnectorExportingStepPanel extends WaitingConnectorStepPane
 
     @Override
     protected Model<String> getIconModel() {
-        return Model.of("fa fa-download");
+        return Model.of("fa-solid fa-gears");
     }
 
     @Override
