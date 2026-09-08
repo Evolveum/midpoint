@@ -10,9 +10,13 @@ package com.evolveum.midpoint.smart.impl;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -102,6 +106,11 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
                 activityBasedTaskInformation.getProgressInformation() : null;
     }
 
+    /** Returns the task operation result, if available. */
+    public @Nullable OperationResultType getOperationResult() {
+        return taskInformation.getTask().getResult();
+    }
+
     @Override
     public boolean wasStarted() {
         return getRealizationStartTimestamp() != null;
@@ -137,6 +146,7 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
                     .separator(LocalizableMessageList.SEMICOLON)
                     .buildOptimized();
         }
+
         var otherMessages = taskInformation.getTaskHealthMessages();
         if (!otherMessages.isEmpty()) {
             var deduplicated = otherMessages.stream().distinct().toList();
@@ -144,12 +154,57 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
                     .fallbackMessage(String.join("; ", deduplicated))
                     .build();
         }
+
+        var partialErrorMessages = getActivityMessages(OperationResultStatusType.PARTIAL_ERROR);
+
+        if (!partialErrorMessages.isEmpty()) {
+            return new LocalizableMessageListBuilder()
+                    .messages(partialErrorMessages)
+                    .separator(LocalizableMessageList.SEMICOLON)
+                    .buildOptimized();
+        }
         return null;
     }
 
     @Override
     public @Nullable String getLocalizedMessage() {
         return SmartIntegrationBeans.get().localizationService.translate(getMessage());
+    }
+
+    /** Returns messages from activities with the specified result status. */
+    private List<LocalizableMessage> getActivityMessages(OperationResultStatusType status) {
+        var taskActivityState = taskInformation.getTask().getActivityState();
+        if (taskActivityState == null || taskActivityState.getActivity() == null) {
+            return List.of();
+        }
+
+        var messages = new ArrayList<LocalizableMessage>();
+        collectActivityMessages(
+                taskActivityState.getActivity(),
+                status,
+                messages);
+
+        return messages.stream()
+                .distinct()
+                .toList();
+    }
+
+    /** Collects messages from the activity and its children with the specified result status. */
+    private void collectActivityMessages(
+            ActivityStateType activity,
+            OperationResultStatusType status,
+            List<LocalizableMessage> messages) {
+
+        if (activity.getResultStatus() == status
+                && activity.getMessage() != null) {
+            messages.add(
+                    LocalizationUtil.toLocalizableMessage(
+                            activity.getMessage()));
+        }
+
+        for (ActivityStateType child : activity.getActivity()) {
+            collectActivityMessages(child, status, messages);
+        }
     }
 
     @Override

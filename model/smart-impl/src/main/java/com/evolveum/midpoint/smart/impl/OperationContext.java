@@ -184,8 +184,8 @@ class OperationContext {
                     activityState.markComplete(
                             OperationResultStatus.SUCCESS, SmartIntegrationBeans.get().clock.currentTimeMillis());
                 } else {
-                    // Unlike traditional iterative activities, an error means that the activity is not complete.
-                    // We may revise this policy later.
+                    activityState.markComplete(
+                            activityState.getResultStatus(), SmartIntegrationBeans.get().clock.currentTimeMillis());
                 }
                 activityState.flushPendingTaskModificationsChecked(result);
             } catch (ActivityRunException e) {

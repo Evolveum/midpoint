@@ -11,6 +11,8 @@ import java.io.Serializable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -153,4 +155,9 @@ public interface StatusInfo<T> extends Serializable, DebugDumpable {
         var objectClassName = getObjectClassName();
         return objectClassName != null ? objectClassName.getLocalPart() : null;
     }
+
+    /**
+     * Returns the operation result, including subResults, if available.
+     */
+    OperationResultType getOperationResult();
 }

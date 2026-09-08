@@ -103,6 +103,13 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     ), task, result);
         }
 
+        public String submitUploadConnector(Task task, OperationResult result) {
+            return submitTask("Uploading connector for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().uploadConnector(new ConnDevUploadConnectorWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         public String submitDiscoverBasicInformation(Task task, OperationResult result) {
             return submitTask("Discover Basic Information for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverGlobalInformation(new ConnDevDiscoverGlobalInformationWorkDefinitionType()
@@ -481,6 +488,15 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         return new StatusInfoImpl<>(
                 getTask(token, task, result),
                 ConnDevExportConnectorWorkStateType.F_RESULT,
+                ConnDevExportConnectorResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevExportConnectorResultType> getUploadConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
+                ConnDevUploadConnectorWorkStateType.F_RESULT,
                 ConnDevExportConnectorResultType.class
         );
     }

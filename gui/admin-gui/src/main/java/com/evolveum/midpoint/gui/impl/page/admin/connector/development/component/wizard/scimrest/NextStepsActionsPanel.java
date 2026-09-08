@@ -108,7 +108,7 @@ public class NextStepsActionsPanel extends BasePanel {
                 return exportResult.getFileName();
             }
         };
-        downloadBehavior.setContentType("application/java-archive");
+        downloadBehavior.setContentType(exportResult.getContentType());
         add(downloadBehavior);
 
         RequestCycle.get().find(AjaxRequestTarget.class)
@@ -128,6 +128,7 @@ public class NextStepsActionsPanel extends BasePanel {
                     case NEW_OBJECT_CLASS -> createNewObjectClass(target);
                     case ADD_RELATIONSHIP -> createNewRelationship(target);
                     case EXPORT_CONNECTOR -> exportConnector(target);
+                    case UPLOAD -> uploadConnector(target);
                     case CREATE_RESOURCE -> {
                         ResourceCreationPopup popup = new ResourceCreationPopup(getPageBase().getMainPopupBodyId()) {
                             @Override
@@ -171,6 +172,10 @@ public class NextStepsActionsPanel extends BasePanel {
 
     private void exportConnector(AjaxRequestTarget target) {
         controller.exportConnector(target);
+    }
+
+    private void uploadConnector(AjaxRequestTarget target) {
+        controller.uploadConnector(target);
     }
 
     public enum ConnectorAction implements TileEnum {

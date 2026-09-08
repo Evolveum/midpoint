@@ -83,7 +83,7 @@ public class MappingsSuggestionRemoteServiceCallActivityRun extends LocalActivit
 
         LOGGER.debug("Suggestions written to the work state:\n{}", suggestedMappings.debugDump(1));
 
-        return ActivityRunResult.success();
+        return ActivityRunResult.finished(result.getComputeStatus());
     }
 
 }
