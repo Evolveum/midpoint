@@ -423,16 +423,16 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     }
 
     @Override
-    public StatusInfo<ConnDevFixObjectClassResultType> getFixObjectClassStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevFixObjectClassResultType> getFixObjectClassStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevFixObjectClassResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
                 getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
