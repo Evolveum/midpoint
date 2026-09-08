@@ -35,8 +35,6 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
@@ -107,7 +105,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
                 try {
                     statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-                } catch (SchemaException | ObjectNotFoundException e) {
+                } catch (CommonException e) {
                     throw new RuntimeException(e);
                 }
                 ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();

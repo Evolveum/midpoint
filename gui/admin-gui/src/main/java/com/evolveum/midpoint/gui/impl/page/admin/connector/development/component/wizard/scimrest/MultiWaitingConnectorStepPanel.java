@@ -43,8 +43,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -209,7 +207,7 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
 
     protected abstract List<ItemName> getActivityTypes();
 
-    protected abstract StatusInfo<?> obtainResult(ItemName activityType, String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    protected abstract StatusInfo<?> obtainResult(ItemName activityType, String token, Task task, OperationResult result) throws CommonException;
 
     protected abstract String triggerOperation(Task task, OperationResult result);
 
@@ -232,7 +230,7 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
                     Task task = app.createSimpleTask(OP_DETERMINE_STATUS);
                     OperationResult result = task.getResult();
                     return obtainResult(activityType, token, task, result);
-                } catch (SchemaException|ObjectNotFoundException e) {
+                } catch (CommonException e) {
                     throw new RuntimeException(e);
                 }
             }

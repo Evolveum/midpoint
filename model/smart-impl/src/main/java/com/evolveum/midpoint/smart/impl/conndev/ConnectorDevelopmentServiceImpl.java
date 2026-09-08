@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
@@ -60,6 +62,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Autowired private TaskManager taskManager;
     @Autowired private ModelService modelService;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     private static ConnectorDevelopmentServiceImpl instance;
 
@@ -335,6 +338,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
         try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
                             .work(work),
@@ -364,51 +369,54 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 .build();
     }
 
-    private @NotNull TaskType getTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private @NotNull TaskType getTask(String oid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
         return taskManager
                 .getObject(TaskType.class, oid, taskRetrievalOptions(), result)
                 .asObjectable();
     }
 
     @Override
-    public StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevCreateConnectorResultType.class);
     }
 
     @Override
-    public StatusInfoImpl<ConnDevDiscoverGlobalInformationResultType> getDiscoverBasicInformationStatus(String token, Task testTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfoImpl<ConnDevDiscoverGlobalInformationResultType> getDiscoverBasicInformationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverGlobalInformationResultType.class
                 );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverDocumentationResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevProcessDocumentationResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevGenerateArtifactResultType> getGenerateArtifactStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevGenerateArtifactResultType> getGenerateArtifactStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevGenerateArtifactResultType.class
         );
@@ -426,52 +434,52 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Override
     public StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassInformationResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassAttributesResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassEndpointsResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevRefreshSchemaResultType> getRefreshSchemaStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevRefreshSchemaResultType> getRefreshSchemaStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevRefreshSchemaWorkStateType.F_RESULT,
                 ConnDevRefreshSchemaResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverConnectivityEndpointResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevExportConnectorResultType> getExportConnectorStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevExportConnectorResultType> getExportConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevExportConnectorWorkStateType.F_RESULT,
                 ConnDevExportConnectorResultType.class
         );

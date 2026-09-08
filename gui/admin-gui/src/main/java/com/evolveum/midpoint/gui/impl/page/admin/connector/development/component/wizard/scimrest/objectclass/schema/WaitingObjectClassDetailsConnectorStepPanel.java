@@ -24,8 +24,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -64,7 +63,7 @@ public class WaitingObjectClassDetailsConnectorStepPanel extends MultiWaitingCon
 
     @Override
     protected StatusInfo<?> obtainResult(ItemName activityType, String token, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws CommonException {
         var service = getDetailsModel().getServiceLocator().getConnectorService();
         if (WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_ENDPOINTS.equals(activityType)) {
             return service.getDiscoverObjectClassEndpointsStatus(token, task, result);
