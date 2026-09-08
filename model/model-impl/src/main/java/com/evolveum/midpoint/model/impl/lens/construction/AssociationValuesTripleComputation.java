@@ -321,8 +321,10 @@ public class AssociationValuesTripleComputation {
                         .ignoreValueMetadata();
 
                 builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
-                builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
-                builder.now(env.now);
+                builder = builder
+                        .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class)
+                        .now(env.now)
+                        .defaultRangeSupplier(lensContext);
 
                 var mapping = builder.build();
 

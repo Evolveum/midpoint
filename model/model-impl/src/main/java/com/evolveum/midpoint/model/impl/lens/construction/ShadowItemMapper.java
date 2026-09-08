@@ -15,8 +15,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowItemDefinition;
 
@@ -198,7 +198,7 @@ abstract class ShadowItemMapper
     protected abstract String getItemType();
 
     public boolean isVisible(Task task) {
-        var lifecycleState = ((ShadowAttributeDefinition<?, ?, ?, ?>) itemDefinition).getLifecycleState();
+        var lifecycleState = itemDefinition.getLifecycleState();
         return SimulationUtil.isVisible(lifecycleState, task.getExecutionMode());
     }
 
@@ -255,7 +255,7 @@ abstract class ShadowItemMapper
         /** Legacy mapping "origin". (Will be probably removed soon.) */
         @NotNull private final OriginType originType;
 
-        /** Mapping kind. For reporting purposes. */
+        /** Mapping kind. For purposes of reporting and default range determination. */
         @NotNull private final MappingKindType mappingKind;
 
         /** The prepared or evaluated mapping. */
@@ -268,6 +268,7 @@ abstract class ShadowItemMapper
             this.mappingConfigItem = mappingConfigItem;
             this.originType = originType;
             this.mappingKind = mappingKind;
+            assert mappingKind == MappingKindType.CONSTRUCTION || mappingKind == MappingKindType.OUTBOUND;
         }
 
         @Override
@@ -289,6 +290,9 @@ abstract class ShadowItemMapper
                     construction.getMappingFactory().createMappingBuilder(mappingConfigItem, getShortDesc());
 
             ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
+
+            LensProjectionContext projCtx = constructionEvaluation.projectionContext;
+            LensContext lensCtx = construction.lensContext;
 
             //noinspection unchecked,rawtypes
             mappingBuilder = construction.initializeMappingBuilder(
@@ -323,12 +327,13 @@ abstract class ShadowItemMapper
 
             // TODO: other variables?
 
+            mappingBuilder.defaultRangeSupplier(lensCtx);
+
             mapping = mappingBuilder.build();
 
-            LensProjectionContext projCtx = constructionEvaluation.projectionContext;
             construction.getMappingEvaluator().evaluateMapping(
                     mapping,
-                    projCtx != null ? forProjectionContext(projCtx) : forModelContext(construction.lensContext),
+                    projCtx != null ? forProjectionContext(projCtx) : forModelContext(lensCtx),
                     constructionEvaluation.task,
                     constructionEvaluation.result);
 

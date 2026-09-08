@@ -177,6 +177,7 @@ public abstract class ResourceObjectConstruction<
         if (builder == null) {
             return null;
         }
+        builder = builder.defaultRangeSupplier(null); // we don't deal with existing values here, so range is not applicable
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
 
         getMappingEvaluator().evaluateMapping(

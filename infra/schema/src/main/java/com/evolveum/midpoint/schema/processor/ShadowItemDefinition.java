@@ -19,6 +19,8 @@ import java.io.Serializable;
 /** Definition of the shadow attribute or association. */
 public interface ShadowItemDefinition extends ShadowItemLayeredDefinition, Serializable {
 
+    boolean isMultiValue();
+
     default boolean isVisible(@NotNull ExecutionModeProvider executionModeProvider) {
         return SimulationUtil.isVisible(getLifecycleState(), executionModeProvider);
     }

@@ -219,4 +219,9 @@ public interface ShadowAssociationDefinition
             return getReferenceAttributeDefinition();
         }
     }
+
+    @Override
+    default boolean isMultiValue() {
+        return PrismContainerDefinition.super.isMultiValue();
+    }
 }

@@ -253,7 +253,8 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     .originType(OriginType.INBOUND)
                     .originObject(resource)
                     .mappingSpecification(inboundsSource.createMappingSpec(mappingCI.getName(), itemDefinition))
-                    .now(inboundsContext.env.now);
+                    .now(inboundsContext.env.now)
+                    .defaultRangeSupplier(inboundsContext.getDefaultRangeSupplier());
 
             if (isComplexAttribute()) {
                 // "<asIs>" won't work for complex attributes -> the reasonable default is "<complexAttributeSynchronization>"

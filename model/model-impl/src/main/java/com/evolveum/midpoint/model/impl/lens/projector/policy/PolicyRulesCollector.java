@@ -396,7 +396,8 @@ class PolicyRulesCollector<O extends ObjectType> {
                 .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT,
                         evaluatedAssignment != null ? evaluatedAssignment.getAssignment() : null, AssignmentType.class)
                 .addRootVariableDefinition(focusOdo)
-                .ignoreValueMetadata();
+                .ignoreValueMetadata()
+                .defaultRangeSupplier(null); // not needed for conditions
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 

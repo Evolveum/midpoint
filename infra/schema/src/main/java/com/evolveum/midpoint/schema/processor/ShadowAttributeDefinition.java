@@ -327,4 +327,9 @@ public interface ShadowAttributeDefinition<
      * regardless of what attributes are modified and in what way.
      */
     boolean isVolatileOnModifyOperation();
+
+    @Override
+    default boolean isMultiValue() {
+        return PrismItemBasicDefinition.super.isMultiValue();
+    }
 }

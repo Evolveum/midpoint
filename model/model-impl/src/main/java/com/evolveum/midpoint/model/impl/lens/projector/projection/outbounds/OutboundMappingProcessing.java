@@ -165,6 +165,8 @@ public class OutboundMappingProcessing {
         configureShadowVariables(builder, shadow);
         configureAdditionalVariables(builder, resource, systemConfiguration);
 
+        builder.defaultRangeSupplier(null); // TODO do we need to have default ranges here?
+
         final MappingImpl<PrismValue, ItemDefinition<?>> mappingImpl = builder.build();
 
         LOGGER.trace("Evaluating mapping: {}", mappingImpl.getMappingContextDescription());

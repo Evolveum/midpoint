@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -67,4 +68,7 @@ public abstract class InboundsContext implements ExecutionModeProvider {
     public @NotNull MappingEvaluationEnvironment getEnv() {
         return env;
     }
+
+    /** Provides default range for the mapping evaluation. Relevant only for computations in the Projector. */
+    abstract Mapping.DefaultRangeSupplier getDefaultRangeSupplier();
 }

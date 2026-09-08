@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
@@ -54,5 +55,10 @@ public class LimitedInboundsContext extends InboundsContext {
     @Override
     public @NotNull PathSet getCorrelationItemPaths() {
         return correlationItemPaths;
+    }
+
+    @Override
+    Mapping.DefaultRangeSupplier getDefaultRangeSupplier() {
+        return null; // We don't have a focus, so we don't need default range. TODO: but what about associations processing?
     }
 }

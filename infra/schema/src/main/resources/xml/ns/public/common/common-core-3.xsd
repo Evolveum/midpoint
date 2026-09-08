@@ -12208,6 +12208,18 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="mappings" type="tns:SystemConfigurationMappingsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Settings related to evaluation of mappings.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SystemConfigurationType.mappings</a:displayName>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="audit" type="tns:SystemConfigurationAuditType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -12692,6 +12704,86 @@
                     <xsd:documentation>
                         Selector(s) for target objects to which this property derivation applies.
                         If multiple selectors are defined, at least one of them has to match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationMappingsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                System-wide settings related to evaluation of mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="defaultRanges" type="tns:SystemConfigurationMappingsDefaultRangesType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default ranges for various kinds of mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="SystemConfigurationMappingsDefaultRangesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default ranges for various kinds of mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="inboundSingleValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for inbound mappings with single-valued target item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inboundMultiValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for inbound mappings with multi-valued target item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outboundSingleValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for outbound mappings with single-valued target item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outboundMultiValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for outbound mappings with multi-valued target item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusSingleValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for focus mappings (present in templates or assignments) with single-valued target item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusMultiValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for focus mappings (present in templates or assignments) with multi-valued target item.
+                        Role auto-assignment mappings are not covered by this default.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

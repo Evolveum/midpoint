@@ -67,6 +67,10 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         this.mapping = mapping;
         this.mappingOrigin = mappingOrigin;
         this.mappingKind = mappingKind;
+        assert mappingKind ==
+                MappingKindType.ASSIGNED
+                || mappingKind == MappingKindType.AUTO_ASSIGN
+                || mappingKind == MappingKindType.TEMPLATE;
         this.originObject = originObject;
     }
 

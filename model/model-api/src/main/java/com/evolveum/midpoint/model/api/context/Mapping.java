@@ -12,7 +12,11 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionPredefinedType;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -47,4 +51,9 @@ public interface Mapping<V extends PrismValue, D extends ItemDefinition<?>> exte
      */
     @Experimental
     boolean isConditionSatisfied();
+
+    interface DefaultRangeSupplier extends Serializable {
+        /** Provides default mapping range for specified mapping kind and target item cardinality. */
+        @Nullable ValueSetDefinitionPredefinedType getDefaultRangeFor(MappingKindType kind, boolean isMultiValued);
+    }
 }

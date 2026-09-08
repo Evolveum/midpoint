@@ -79,7 +79,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author semancik
  */
-public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
+public class LensContext<F extends ObjectType> implements ModelContext<F>, Mapping.DefaultRangeSupplier, Cloneable {
 
     @Serial private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
@@ -2112,6 +2112,40 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
 
         return null;
+    }
+
+    public @Nullable ValueSetDefinitionPredefinedType getDefaultRangeFor(MappingKindType kind, boolean multivalued) {
+
+        if (kind == null) {
+            if (InternalsConfig.isConsistencyChecks()) {
+                throw new IllegalArgumentException("Cannot determine default range for 'null' mapping kind");
+            } else {
+                LOGGER.error("Cannot determine default range for 'null' mapping kind");
+                return null;
+            }
+        }
+
+        var systemConfigurationBean = getSystemConfigurationBean();
+        var mappingsConfigurationBean = systemConfigurationBean != null ? systemConfigurationBean.getMappings() : null;
+        var defaultRangesBean = mappingsConfigurationBean != null ? mappingsConfigurationBean.getDefaultRanges() : null;
+        if (defaultRangesBean == null) {
+            return null;
+        }
+
+        return switch (kind) {
+            case OUTBOUND, CONSTRUCTION ->
+                    multivalued ? defaultRangesBean.getOutboundMultiValued() : defaultRangesBean.getOutboundSingleValued();
+            case INBOUND ->
+                    multivalued ? defaultRangesBean.getInboundMultiValued() : defaultRangesBean.getInboundSingleValued();
+            case TEMPLATE, ASSIGNED ->
+                    multivalued ? defaultRangesBean.getFocusMultiValued() : defaultRangesBean.getFocusSingleValued();
+            case AUTO_ASSIGN ->
+                    null; // TODO reconsider this
+            case CONDITION, ASSIGNMENT_CONDITION, POLICY_RULE_CONDITION ->
+                    null; // these are not really mappings, so they don't have default ranges
+            case OTHER ->
+                    null; // currently used for diagnostic mapping evaluation (playground)
+        };
     }
 
     public enum ExportType {

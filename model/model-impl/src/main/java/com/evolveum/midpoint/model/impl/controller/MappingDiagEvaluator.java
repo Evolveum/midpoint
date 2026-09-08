@@ -64,7 +64,8 @@ public class MappingDiagEvaluator {
                     .defaultSourceContextIdi(sourceContext)
                     .targetContextDefinition(createTargetContext(request, sourceContext))
                     .profiling(true)
-                    .now(clock.currentTimeXMLGregorianCalendar());
+                    .now(clock.currentTimeXMLGregorianCalendar())
+                    .defaultRangeSupplier(null); // Intentionally no default for diagnostic evaluator.
 
             MappingImpl<?, ?> mapping = builder.build();
 

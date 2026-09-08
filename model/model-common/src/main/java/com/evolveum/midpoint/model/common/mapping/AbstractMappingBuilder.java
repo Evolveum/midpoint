@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.VisibleForTesting;
 
+import static com.evolveum.midpoint.model.api.context.Mapping.*;
+
 /**
  * Builder is used to construct a configuration of Mapping object, which - after building - becomes
  * immutable.
@@ -114,6 +116,10 @@ public abstract class AbstractMappingBuilder<
 
     /** @see AbstractMappingImpl#ignoreValueMetadata */
     boolean ignoreValueMetadata;
+
+    /** @see AbstractMappingImpl#defaultRangeSupplier */
+    DefaultRangeSupplier defaultRangeSupplier;
+
     private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
@@ -268,6 +274,11 @@ public abstract class AbstractMappingBuilder<
 
     public RT ignoreValueMetadata() {
         ignoreValueMetadata = true;
+        return typedThis();
+    }
+
+    public RT defaultRangeSupplier(DefaultRangeSupplier val) {
+        defaultRangeSupplier = val;
         return typedThis();
     }
 

@@ -98,7 +98,8 @@ class ConditionEvaluator {
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
                 .addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
                 .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, ctx.ae, AssignmentEvaluator.class)
-                .ignoreValueMetadata();
+                .ignoreValueMetadata()
+                .defaultRangeSupplier(null); // Condition evaluation does not need ranges (there are no "existing values").
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
         MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();

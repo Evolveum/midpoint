@@ -134,7 +134,12 @@ public class ProjectionMappingSetEvaluator {
             // Initialize mapping (using Inversion of Control)
             MappingBuilder<V, D> initializedMappingBuilder = params.getInitializer().initialize(mappingBuilder);
 
-            MappingImpl<V, D> mapping = initializedMappingBuilder.build();
+            var mappingKind = initializedMappingBuilder.getMappingKind();
+            assert mappingKind == MappingKindType.INBOUND || mappingKind == MappingKindType.OUTBOUND;
+
+            MappingImpl<V, D> mapping = initializedMappingBuilder
+                    .defaultRangeSupplier(targetContext.getLensContext())
+                    .build();
 
             mapping.evaluateTimeValidity(task, result);
             boolean timeConstraintValid = mapping.isTimeConstraintValid();

@@ -312,6 +312,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * @see AbstractMappingBuilder#ignoreValueMetadata()
      */
     final boolean ignoreValueMetadata;
+
+    /**
+     * Supplies the default [predefined] range if no range is specified in the mapping bean.
+     * Designed to be system-wide configurable per mapping type, see #11863.
+     */
+    @Nullable private final DefaultRangeSupplier defaultRangeSupplier;
     //endregion
 
     //region Working and output properties
@@ -466,6 +472,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         parser = new MappingParser<>(this);
         valueMetadataDefinition = SchemaRegistry.get().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
         ignoreValueMetadata = builder.ignoreValueMetadata;
+        defaultRangeSupplier = builder.defaultRangeSupplier;
     }
 
     private MappingSpecificationType createDefaultSpecification() {
@@ -524,6 +531,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.parser = prototype.parser;
         this.valueMetadataDefinition = prototype.valueMetadataDefinition;
         this.ignoreValueMetadata = prototype.ignoreValueMetadata;
+        this.defaultRangeSupplier = prototype.defaultRangeSupplier;
     }
 
     public ObjectResolver getObjectResolver() {
@@ -968,15 +976,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             LOGGER.trace("Not treating own yield in negative values, as provenance is not supported here.");
         }
 
-        VariableBindingDefinitionType target = mappingBean.getTarget();
-        ValueSetDefinitionType explicitRangeSetDefBean = target != null ? target.getSet() : null;
-        ValueSetDefinitionType effectiveRangeSetDefBean;
-        // As of 4.9: Multivalues have by default provenance set mapping.
-        if (explicitRangeSetDefBean == null && shouldUseMatchingProvenance()) {
-            effectiveRangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
-        } else {
-            effectiveRangeSetDefBean = explicitRangeSetDefBean;
-        }
+        VariableBindingDefinitionType targetDefBean = mappingBean.getTarget();
+        ValueSetDefinitionType explicitRangeSetDefBean = targetDefBean != null ? targetDefBean.getSet() : null;
+        ValueSetDefinitionType effectiveRangeSetDefBean = getEffectiveRangeSetDefBean(explicitRangeSetDefBean);
         if (effectiveRangeSetDefBean == null) {
             LOGGER.trace("No range set definition, skipping range check.");
             return;
@@ -1002,7 +1004,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
                 effectiveRangeSetDefBean,
-                ValueSetDefinition.ExtraSetSpecification.fromBean(target),
+                ValueSetDefinition.ExtraSetSpecification.fromBean(targetDefBean),
                 getOutputDefinition(),
                 valueMetadataDefinition,
                 getExpressionProfile(),
@@ -1022,6 +1024,32 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 addToMinusIfNecessary(originalValue, rangeSetDef, result);
             }
         }
+    }
+
+    private @Nullable ValueSetDefinitionType getEffectiveRangeSetDefBean(ValueSetDefinitionType explicitRangeSetDefBean) {
+        // Explicit range takes precedence over all defaults.
+        if (explicitRangeSetDefBean != null) {
+            return explicitRangeSetDefBean;
+        }
+
+        // Default range (defined in the system configuration) takes precedence over generic default for multivalued items.
+        var outputDefinition = getOutputDefinition();
+        if (defaultRangeSupplier != null && outputDefinition != null) {
+            var defaultRange = defaultRangeSupplier.getDefaultRangeFor(mappingKind, outputDefinition.isMultiValue());
+            if (defaultRange != null) {
+                return new ValueSetDefinitionType().predefined(defaultRange);
+            }
+        }
+
+        // As of 4.9, multi-valued targets have provenance-based ranges by default.
+        // The necessary condition is that these mappings are named; otherwise we cannot recognize the provenance.
+        if (outputDefinition != null
+                && outputDefinition.isMultiValue()
+                && mappingBean.getName() != null) {
+            return new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
+        }
+
+        return null;
     }
 
     /**
@@ -1728,10 +1756,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @Override
     public boolean isPushChanges() {
         return pushChanges;
-    }
-
-    private boolean shouldUseMatchingProvenance() {
-        return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
     }
 
     private static MappingSpecificationType createMappingAliasSpecification(MappingSpecificationType spec, String alias) {

@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import org.jetbrains.annotations.NotNull;
@@ -65,5 +66,10 @@ public class FullInboundsContext extends InboundsContext {
     @Override
     public @NotNull PathSet getCorrelationItemPaths() {
         return new PathSet();
+    }
+
+    @Override
+    Mapping.DefaultRangeSupplier getDefaultRangeSupplier() {
+        return lensContext;
     }
 }

@@ -171,7 +171,8 @@ abstract public class ValueMetadataComputation {
         createCustomMappingVariables(builder, mappingBean);
         builder.targetContextDefinition(metadataDefinition)
                 .now(env.now)
-                .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
+                .conditionMaskOld(false) // We are not interested in old values (deltas are irrelevant in metadata mappings).
+                .defaultRangeSupplier(null); // For the time being we have no default range for metadata mappings.
         return builder.build();
     }
 
