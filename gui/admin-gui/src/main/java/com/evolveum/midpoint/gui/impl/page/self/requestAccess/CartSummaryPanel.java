@@ -585,8 +585,6 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         };
 
         page.showMainPopup(panel, target);
-        page.getMainPopup().getDialogComponent().add(AttributeAppender.replace("class", "modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"));
-        page.getMainPopup().getDialogComponent().add(AttributeAppender.replace("style", ""));
     }
 
     private void removeItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
