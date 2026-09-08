@@ -1,9 +1,9 @@
 ---
-release-version: '4.9.8'
+release-version: '4.9.9'
 ---
-= Installing MidPoint 4.9.8 "Verne" - Update 6 From Binary Distribution
+= Installing MidPoint 4.9.9 "Verne" - Update 6 From Binary Distribution
 :page-layout: release-install-4-9-and-later
-:release-version: 4.9.8
+:release-version: 4.9.9
 :page-nav-title: Installation Instructions
 :page-liquid:
 
