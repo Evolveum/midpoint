@@ -8,12 +8,14 @@ package com.evolveum.midpoint.gui.api.component.password;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.PasswordHintPanelFactory;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -35,6 +37,15 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
+        if (isPasswordHint()) {
+            // The hint is a protected string too, but it is edited as a plain text with its own validation.
+            Component panel = new PasswordHintPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
+                    PasswordHintPanelFactory.getPasswordModel(getModel()), !isEditable());
+            panel.setOutputMarkupId(true);
+            item.add(panel);
+            return panel;
+        }
+
         Component panel = new PasswordPropertyPanel(ID_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
                     item.getModelObject() == null || item.getModelObject().getRealValue() == null,
@@ -68,6 +79,11 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
         panel.setOutputMarkupId(true);
         item.add(panel);
         return panel;
+    }
+
+    private boolean isPasswordHint() {
+        PrismPropertyWrapper<ProtectedStringType> propertyWrapper = getModelObject();
+        return propertyWrapper != null && PasswordType.F_HINT.matches(propertyWrapper.getItemName());
     }
 
     private boolean useGlobalValuePolicy() {
