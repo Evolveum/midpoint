@@ -1,3 +1,7 @@
+---
+midpoint-feature: identity-repository-postgresql
+doc-type: guide
+---
 = Using Native PostgreSQL Repository
 :page-toc: top
 :page-display-order: 1
