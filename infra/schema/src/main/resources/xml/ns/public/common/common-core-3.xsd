@@ -12744,6 +12744,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="general" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default range for all supported inbound, outbound, and focus mappings, regardless of output item
+                        cardinality. Role auto-assign mappings are not covered by this default.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="inboundSingleValued" type="tns:ValueSetDefinitionPredefinedType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

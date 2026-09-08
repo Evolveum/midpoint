@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationMappingsDefaultRangesType.*;
+
 import static com.google.common.base.Preconditions.checkState;
 
 import static com.evolveum.midpoint.model.impl.lens.LensFocusContext.fromLensFocusContextBean;
@@ -21,6 +23,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -2134,11 +2139,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Mappi
 
         return switch (kind) {
             case OUTBOUND, CONSTRUCTION ->
-                    multivalued ? defaultRangesBean.getOutboundMultiValued() : defaultRangesBean.getOutboundSingleValued();
+                    determineDefaultRange(multivalued, defaultRangesBean, F_OUTBOUND_SINGLE_VALUED, F_OUTBOUND_MULTI_VALUED);
             case INBOUND ->
-                    multivalued ? defaultRangesBean.getInboundMultiValued() : defaultRangesBean.getInboundSingleValued();
+                    determineDefaultRange(multivalued, defaultRangesBean, F_INBOUND_SINGLE_VALUED, F_INBOUND_MULTI_VALUED);
             case TEMPLATE, ASSIGNED ->
-                    multivalued ? defaultRangesBean.getFocusMultiValued() : defaultRangesBean.getFocusSingleValued();
+                    determineDefaultRange(multivalued, defaultRangesBean, F_FOCUS_SINGLE_VALUED, F_FOCUS_MULTI_VALUED);
             case AUTO_ASSIGN ->
                     null; // TODO reconsider this
             case CONDITION, ASSIGNMENT_CONDITION, POLICY_RULE_CONDITION ->
@@ -2146,6 +2151,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Mappi
             case OTHER ->
                     null; // currently used for diagnostic mapping evaluation (playground)
         };
+    }
+
+    private ValueSetDefinitionPredefinedType determineDefaultRange(
+            boolean multivalued, SystemConfigurationMappingsDefaultRangesType defaultRangesBean, ItemName singleValuedQName, ItemName multiValuedQName) {
+        @SuppressWarnings("unchecked")
+        var defaultRangesPcv =
+                (PrismContainerValue<SystemConfigurationMappingsDefaultRangesType>) defaultRangesBean.asPrismContainerValue();
+        var specific =
+                defaultRangesPcv.getPropertyRealValue(
+                        multivalued ? multiValuedQName : singleValuedQName,
+                        ValueSetDefinitionPredefinedType.class);
+        if (specific != null) {
+            return specific;
+        } else {
+            return defaultRangesBean.getGeneral();
+        }
     }
 
     public enum ExportType {
