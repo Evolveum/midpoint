@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +19,8 @@ public class HelpDrawerInfoModel
         implements DrawerDescriptor<HelpDrawerInfoModel> {
 
     @Serial private static final long serialVersionUID = 1L;
+
+    private static final String ICON = "fa fa-info-circle text-primary";
 
     private final IModel<List<CollapsedItem<HelpDrawerInfoModel>>> itemsModel;
 
@@ -37,7 +38,9 @@ public class HelpDrawerInfoModel
             IModel<String> titleModel,
             IModel<String> helpContentModel) {
 
-        HelpCollapsedItem helpItem = new HelpCollapsedItem(titleModel, helpContentModel);
+        List<HelpTab> tabs = List.of(new HelpTab(List.of(new HelpChapter(helpContentModel))));
+
+        HelpCollapsedItem helpItem = new HelpCollapsedItem(titleModel, tabs);
         helpItem.setSelected(true);
         itemsModel = Model.ofList(List.of(helpItem));
     }
@@ -69,24 +72,24 @@ public class HelpDrawerInfoModel
         @Serial private static final long serialVersionUID = 1L;
 
         private final IModel<String> titleModel;
-        private final IModel<String> helpContentModel;
+        private final HelpContentModel content;
 
         private HelpCollapsedItem(
                 IModel<String> titleModel,
-                IModel<String> helpContentModel) {
+                List<HelpTab> tabs) {
             this.titleModel = titleModel;
-            this.helpContentModel = helpContentModel;
+            this.content = new HelpContentModel(tabs);
         }
 
         @Override
         public @NotNull IModel<String> getIcon() {
-            return Model.of("fa fa-info-circle text-primary");
+            return Model.of(ICON);
         }
 
         @Override
         @NotNull
         IModel<String> getTitleIconCss() {
-            return Model.of("fa fa-info-circle text-primary");
+            return Model.of(ICON);
         }
 
         @Override
@@ -96,9 +99,7 @@ public class HelpDrawerInfoModel
 
         @Override
         public @NotNull Component getPanel(String id, HelpDrawerInfoModel drawerModel) {
-            MultiLineLabel label = new MultiLineLabel(id, helpContentModel);
-            label.setEscapeModelStrings(false);
-            return label;
+            return new HelpContentPanel(id, Model.of(content));
         }
     }
 }
