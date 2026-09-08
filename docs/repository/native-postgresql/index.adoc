@@ -1,5 +1,5 @@
 ---
-midpoint-feature: identity-repository
+midpoint-feature: identity-repository-postgresql
 doc-type: intro
 ---
 = Native PostgreSQL repository
