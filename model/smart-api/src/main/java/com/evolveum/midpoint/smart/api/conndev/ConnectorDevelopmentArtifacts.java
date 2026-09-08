@@ -29,8 +29,6 @@ public class ConnectorDevelopmentArtifacts {
                 "search.filter.op.groovy", ConnDevObjectClassInfoType.F_SEARCH_FILTER_OPERATION, "SearchFilter"),
         NATIVE_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.NATIVE,
                 "native.schema.groovy", ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT, "NativeSchema"),
-        CONNID_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.CONNID,
-                "connid.schema.groovy", ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT, "Connid"),
         TEST_CONNECTION_DEFINITION(true, ConnDevOperationType.TEST_CONNECTION, null,
                 "test.op.groovy", ConnDevConnectorType.F_TEST_OPERATION, null),
         RELATIONSHIP_SCHEMA_DEFINITION(true, ConnDevOperationType.SCHEMA, ConnDevScriptIntentType.RELATION,
@@ -126,7 +124,6 @@ public class ConnectorDevelopmentArtifacts {
         addIfPresent(artifacts, connector.getTestOperation());
         for (var objClass : connector.getObjectClass()) {
             addIfPresent(artifacts, objClass.getNativeSchemaScript());
-            addIfPresent(artifacts, objClass.getConnidSchemaScript());
             addIfPresent(artifacts, objClass.getSearchAllOperation());
             addIfPresent(artifacts, objClass.getSearchIdOperation());
             addIfPresent(artifacts, objClass.getSearchFilterOperation());

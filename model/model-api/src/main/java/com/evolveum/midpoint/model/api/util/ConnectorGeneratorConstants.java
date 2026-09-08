@@ -40,7 +40,6 @@ public class ConnectorGeneratorConstants {
     public static final String RPC_REFRESH_SCHEMA_STATUS_INFO = "/rpc/refreshSchemaStatusInfo";
 
     public static final String RPC_GENERATE_NATIVE_SCHEMA_SUBMIT_OPERATION = "/rpc/generateNativeSchemaSubmitOperation";
-    public static final String RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION = "/rpc/generateConnIdSchemaSubmitOperation";
     public static final String RPC_GENERATE_AUTHENTICATION_SCRIPT_SUBMIT_OPERATION = "/rpc/generateAuthenticationScriptSubmitOperation";
 
     public static final String RPC_DOWNLOAD_CONNECTOR = "/rpc/downloadConnector";
