@@ -45,7 +45,7 @@ These predefined validation areas can be customized as described below.
 
 == Configuration options
 
-You can customize the configuration of the pre-defined `jpegPhoto` and `output/evidence` properties, as well as add new validation for your custom fields using xref:/midpoint/reference/schema/custom-schema-extension/changing-schema-extension-via-GUI/[extensions] represented by the `extension/<custom_property>` properties in the configuration `<path>` element. +
+You can customize the configuration of the pre-defined `jpegPhoto` and `output/evidence` properties. +
 For example, you can broaden or restrict upload to other formats, or convert the uploaded image to a different format.
 
 File upload configuration is controlled by `fileUploadConfiguration` in the xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI configuration].
