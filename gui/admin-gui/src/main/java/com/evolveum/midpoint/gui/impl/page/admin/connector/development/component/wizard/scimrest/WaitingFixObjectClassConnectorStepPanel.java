@@ -165,9 +165,7 @@ public class WaitingFixObjectClassConnectorStepPanel extends WaitingConnectorSte
                 if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
                     parentWizardModel.removeOperationResultsForFixSteps(RepairObjectClassButton.OBJECT_CLASS_SCRIPT_STEP_IDS);
                     for (WizardStep step : parentWizardModel.getActiveChildrenSteps()) {
-                        if (step instanceof ScriptsConnectorStepPanel scriptsStep) {
-                            scriptsStep.detachLoadedScripts();
-                        } else if (step instanceof ScriptConnectorStepPanel scriptStep) {
+                        if (step instanceof ScriptConnectorStepPanel scriptStep) {
                             scriptStep.detachLoadedScript();
                         }
                     }

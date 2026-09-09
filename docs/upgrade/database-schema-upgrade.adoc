@@ -1,4 +1,8 @@
-= Database Schema Upgrade
+---
+midpoint-feature: identity-repository
+doc-type: guide
+---
+= Database schema upgrade
 :page-wiki-name: Database Schema Upgrade
 :page-wiki-id: 17761220
 :page-wiki-metadata-create-user: semancik
@@ -8,6 +12,8 @@
 :page-alias: { "parent" : "/midpoint/reference/repository/", "display-order" : 800 }
 :page-upkeep-status: orange
 :page-toc: top
+:page-description: This guide describes how to upgrade midPoint native PostgreSQL repository.
+:page-keywords: repository, database, postgresql, upgrade, native repository
 
 == Introduction
 
@@ -26,11 +32,11 @@ Although the required information is already present in the repository as part o
 Running the Reindex Repository Task recomputes these values and populates the new columns.
 It is highly recommended to run Reindex Repository Task (GUI -> About -> Reindex Repository Objects) after database schema upgrades.
 
-== Upgrading Native PostgreSQL Repository
+== Upgrading native PostgreSQL repository
 
 This section describes how to upgrade the xref:/midpoint/reference/repository/native-postgresql/[Native repository].
 
-=== Upgrade Script Location
+=== Upgrade script location
 
 Upgrade scripts are included in every midPoint release in the same directories.
 
@@ -163,7 +169,7 @@ Do not use them to run upgrade scripts!
 ====
 
 
-=== Executing Upgrade Scripts Using Ninja
+=== Executing upgrade scripts using Ninja
 
 Executing upgrade scripts using the `psql` command-line tool may not always be straightforward.
 In containerized deployments, the upgrade scripts are typically located in the midPoint container, while the PostgreSQL database runs in a separate database container.
@@ -176,7 +182,7 @@ To upgrade the database schema using Ninja, see xref:/midpoint/reference/deploym
 
 This approach avoids the need to install the PostgreSQL client or manually establish a connection to the database.
 
-== See Also
+== See also
 
 * xref:/midpoint/reference/upgrade/upgradeability/[Upgradeability]
 

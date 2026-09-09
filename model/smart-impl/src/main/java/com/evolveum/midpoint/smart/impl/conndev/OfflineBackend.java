@@ -130,13 +130,8 @@ public class OfflineBackend extends ConnectorDevelopmentBackend {
                           updatable true
                           creatable true
                        }
-                    }
-                    """;
-            case CONNID_SCHEMA_DEFINITION -> """
-                    objectClass("${objectClass}") {
-                        // See https://docs.evolveum.com/connectors/scimrest-framework/ for documentation
-                        connIdAttribute("UID","id")
-                        connIdAttribute("NAME","name")
+                       connIdAttribute("UID","id")
+                       connIdAttribute("NAME","name")
                     }
                     """;
             case SEARCH_ALL_DEFINITION -> """

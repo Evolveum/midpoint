@@ -42,6 +42,8 @@ public interface ConnectorDevelopmentService {
 
     StatusInfo<ConnDevExportConnectorResultType> getExportConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
 
+    StatusInfo<ConnDevExportConnectorResultType> getUploadConnectorStatus(String token, Task task, OperationResult result) throws CommonException;
+
     /**
      * Cluster-aware download of an exported connector bundle jar, previously stored under
      * {@code fileName} in the midPoint home "export" directory of the node identified by

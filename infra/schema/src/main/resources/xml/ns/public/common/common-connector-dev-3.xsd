@@ -300,7 +300,6 @@
                     <xsd:element name="searchAllOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="searchFilterOperation" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="nativeSchemaScript" type="tns:ConnDevArtifactType"/>
-                    <xsd:element name="connidSchemaScript" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="createScript" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="updateScript" type="tns:ConnDevArtifactType"/>
                     <xsd:element name="deleteScript" type="tns:ConnDevArtifactType"/>

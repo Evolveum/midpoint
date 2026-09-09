@@ -31,9 +31,6 @@ public class SchemaConnectorDevPartItem extends AbstractWizardPartItem<Connector
         return ConnectorDevelopmentWizardUtil.isOperationStarted(
                 getObjectDetailsModel(),
                 ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION,
-                getParameter()) || ConnectorDevelopmentWizardUtil.isOperationStarted(
-                getObjectDetailsModel(),
-                ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION,
                 getParameter());
     }
 
@@ -44,9 +41,7 @@ public class SchemaConnectorDevPartItem extends AbstractWizardPartItem<Connector
         }
 
         return ConnectorDevelopmentWizardUtil.isScriptConfirmed(
-                getObjectDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION, getParameter())
-                && ConnectorDevelopmentWizardUtil.isScriptConfirmed(
-                getObjectDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION, getParameter());
+                getObjectDetailsModel(), ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION, getParameter());
     }
 
     @Override

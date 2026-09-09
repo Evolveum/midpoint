@@ -15,14 +15,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.jar.JarEntry;
+import java.util.function.Predicate;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -55,32 +58,40 @@ public class ConnectorExportServiceImpl implements ConnectorExportService {
     }
 
     @Override
-    public File packBundle(String directory, File targetFile, Map<String, Map<String, String>> propertyOverrides)
+    public File packAsJar(String directory, File targetFile, Map<String, Map<String, String>> propertyOverrides)
             throws IOException {
-        if (directory.contains("/") || directory.contains("\\")) {
-            throw new IllegalArgumentException("Invalid directory name: " + directory);
-        }
-        var bundleDir = new File(bundleDirectory, directory);
-        if (!bundleDir.isDirectory()) {
-            throw new IllegalStateException("Directory " + directory + " does not exist");
-        }
+        var bundleDir = validateBundleDir(directory);
         var manifestFile = new File(bundleDir, MANIFEST_PATH);
-        if (!manifestFile.isFile()) {
-            throw new IllegalStateException(
-                    "Directory " + directory + " is not a connector bundle, " + MANIFEST_PATH + " is missing");
-        }
-
-        var tmpFile = new File(targetFile.getPath() + TMP_SUFFIX);
-        try {
+        return writeAtomically(targetFile, tmpFile -> {
             Manifest manifest;
             try (var manifestStream = new FileInputStream(manifestFile)) {
                 manifest = new Manifest(manifestStream);
             }
+            // The bundle's own manifest becomes the jar's official one, so it must not also be
+            // written again as a regular entry by writeFileEntries() below.
             try (var jar = new JarOutputStream(new FileOutputStream(tmpFile), manifest)) {
-                var remainingOverrides = new HashMap<>(propertyOverrides);
-                writeFileEntries(jar, bundleDir, remainingOverrides);
-                writeMissingOverriddenEntries(jar, remainingOverrides);
+                writeEntries(jar, bundleDir, propertyOverrides, entryName -> !MANIFEST_PATH.equals(entryName));
             }
+        });
+    }
+
+    @Override
+    public File packAsZip(String directory, File targetFile, Map<String, Map<String, String>> propertyOverrides, Collection<String> excludedPathPrefixes)
+            throws IOException {
+        var bundleDir = validateBundleDir(directory);
+        return writeAtomically(targetFile, tmpFile -> {
+            try (var zip = new ZipOutputStream(new FileOutputStream(tmpFile))) {
+                writeEntries(zip, bundleDir, propertyOverrides,
+                        entryName -> excludedPathPrefixes.stream().noneMatch(entryName::startsWith));
+            }
+        });
+    }
+
+    /** Writes to a {@code .tmp} sibling of {@code targetFile} first, then atomically renames it into place. */
+    private File writeAtomically(File targetFile, TmpFileWriter writer) throws IOException {
+        var tmpFile = new File(targetFile.getPath() + TMP_SUFFIX);
+        try {
+            writer.writeTo(tmpFile);
             Files.move(tmpFile.toPath(), targetFile.toPath(), ATOMIC_MOVE, REPLACE_EXISTING);
         } catch (IOException | RuntimeException e) {
             tmpFile.delete();
@@ -89,34 +100,63 @@ public class ConnectorExportServiceImpl implements ConnectorExportService {
         return targetFile;
     }
 
-    private void writeFileEntries(JarOutputStream jar, File bundleDir, Map<String, Map<String, String>> remainingOverrides)
+    @FunctionalInterface
+    private interface TmpFileWriter {
+        void writeTo(File tmpFile) throws IOException;
+    }
+
+    private File validateBundleDir(String directory) {
+        if (directory.contains("/") || directory.contains("\\")) {
+            throw new IllegalArgumentException("Invalid directory name: " + directory);
+        }
+        var bundleDir = new File(bundleDirectory, directory);
+        if (!bundleDir.isDirectory()) {
+            throw new IllegalStateException("Directory " + directory + " does not exist");
+        }
+        if (!new File(bundleDir, MANIFEST_PATH).isFile()) {
+            throw new IllegalStateException(
+                    "Directory " + directory + " is not a connector bundle, " + MANIFEST_PATH + " is missing");
+        }
+        return bundleDir;
+    }
+
+    private void writeEntries(
+            ZipOutputStream archive, File bundleDir, Map<String, Map<String, String>> propertyOverrides, Predicate<String> entryFilter)
+            throws IOException {
+        var remainingOverrides = new HashMap<>(propertyOverrides);
+        writeFileEntries(archive, bundleDir, remainingOverrides, entryFilter);
+        writeMissingOverriddenEntries(archive, remainingOverrides);
+    }
+
+    private void writeFileEntries(
+            ZipOutputStream archive, File bundleDir, Map<String, Map<String, String>> remainingOverrides, Predicate<String> entryFilter)
             throws IOException {
         Path root = bundleDir.toPath();
         try (Stream<Path> files = Files.walk(root)) {
             var regularFiles = files.filter(Files::isRegularFile).sorted().toList();
             for (Path file : regularFiles) {
                 String entryName = root.relativize(file).toString().replace(File.separatorChar, '/');
-                if (MANIFEST_PATH.equals(entryName) || file.getFileName().toString().endsWith(TMP_SUFFIX)) {
+                if (file.getFileName().toString().endsWith(TMP_SUFFIX) || !entryFilter.test(entryName)) {
                     continue;
                 }
-                jar.putNextEntry(new JarEntry(entryName));
+                archive.putNextEntry(new ZipEntry(entryName));
                 var overrides = remainingOverrides.remove(entryName);
                 if (overrides != null) {
-                    jar.write(overriddenProperties(file.toFile(), overrides));
+                    archive.write(overriddenProperties(file.toFile(), overrides));
                 } else {
-                    Files.copy(file, jar);
+                    Files.copy(file, archive);
                 }
-                jar.closeEntry();
+                archive.closeEntry();
             }
         }
     }
 
-    private void writeMissingOverriddenEntries(JarOutputStream jar, Map<String, Map<String, String>> remainingOverrides)
+    private void writeMissingOverriddenEntries(ZipOutputStream archive, Map<String, Map<String, String>> remainingOverrides)
             throws IOException {
         for (var override : remainingOverrides.entrySet()) {
-            jar.putNextEntry(new JarEntry(override.getKey()));
-            jar.write(overriddenProperties(null, override.getValue()));
-            jar.closeEntry();
+            archive.putNextEntry(new ZipEntry(override.getKey()));
+            archive.write(overriddenProperties(null, override.getValue()));
+            archive.closeEntry();
         }
     }
 

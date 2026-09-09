@@ -52,7 +52,6 @@ public class SchemaObjectClassConnectorStepPanel extends AbstractObjectClassConn
                 new ObjectClassSelectConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingObjectClassDetailsConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingNativeSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingConnIdSchemaConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new WaitingFixObjectClassConnectorStepPanel(getHelper(), getObjectClassModel(), PANEL_TYPE),
                 new SchemaScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
                 new ShowSchemaConnectorStepPanel(getHelper(), getObjectClassModel()));

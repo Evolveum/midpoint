@@ -41,6 +41,14 @@ public interface ConnectorDevelopmentOperation {
 
     String submitExportConnector(Task task, OperationResult result);
 
+    /**
+     * Same as {@link #submitExportConnector}, but the packaged bundle excludes {@code lib/}
+     * (third-party dependency jars). Currently used by the wizard's "Upload connector" action,
+     * which just downloads this slimmer bundle - a future version of that action is expected to
+     * upload it to another microservice instead.
+     */
+    String submitUploadConnector(Task task, OperationResult result);
+
     // Midpoint local (+ download framework)
 
     String submitDiscoverObjectClasses(Task task, OperationResult result);
@@ -55,10 +63,6 @@ public interface ConnectorDevelopmentOperation {
 
     default String submitGenerateNativeSchema(String objectClass, boolean retry, Task task, OperationResult result) {
         return submitGenerateArtifact(NATIVE_SCHEMA_DEFINITION.create(objectClass), retry, task, result);
-    }
-
-    default String submitGenerateConnIdSchema(String objectClass, boolean retry, Task testTask, OperationResult testOperationResult) {
-        return submitGenerateArtifact(CONNID_SCHEMA_DEFINITION.create(objectClass), retry, testTask, testOperationResult);
     }
 
     default String submitGenerateAuthenticationScript(boolean retry, Task task, OperationResult result) {
@@ -209,10 +213,6 @@ public interface ConnectorDevelopmentOperation {
         saveArtifact(artifact, task, result);
     }
 
-    default void saveConnIdSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
-        saveArtifact(artifact, task, result);
-        resetResourceSchema(task, result);
-    }
     void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {

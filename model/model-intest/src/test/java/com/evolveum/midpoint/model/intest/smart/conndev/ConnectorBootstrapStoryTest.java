@@ -302,15 +302,6 @@ public class ConnectorBootstrapStoryTest extends AbstractEmptyModelIntegrationTe
         assertThat(scriptResponse.getArtifact()).isNotNull();
         // Here script should be displayed and provided to the user for checking
         development.saveNativeSchemaScript(scriptResponse.getArtifact(), task, result);
-
-        var connidToken = development.submitGenerateConnIdSchema("User", verbose, getTestTask(), getTestOperationResult());
-        var connidResponse = waitForFinish(
-                () -> connectorService.getGenerateArtifactStatus(connidToken, task, result),
-                TIMEOUT);
-
-        assertThat(connidResponse.getArtifact()).isNotNull();
-
-        development.saveConnIdSchemaScript(connidResponse.getArtifact(), task, result);
         assertThat(development.getObject().getApplication().getDetectedSchema().getObjectClass()).isNotEmpty();
 
     }

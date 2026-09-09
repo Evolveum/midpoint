@@ -375,7 +375,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     @Override
     public int getWidth() {
-        return 1000;
+        return 0;
     }
 
     @Override
@@ -391,6 +391,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     @Override
     public String getHeightUnit() {
         return "px";
+    }
+
+    @Override
+    public String getCssClassForDialog() {
+        return "modal-xl modal-dialog-centered modal-dialog-scrollable";
     }
 
     @Override

@@ -567,8 +567,6 @@ public abstract class ConnectorDevelopmentBackend {
         var content = switch (classification) {
             case NATIVE_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "native-schema", "native schema script", body, skipCache);
-            case CONNID_SCHEMA_DEFINITION -> generateObjectClassScript(artifactSpec,
-                    "connid", "ConnID mapping script", body, skipCache);
             case SEARCH_ALL_DEFINITION -> generateObjectClassScript(artifactSpec,
                     "search/" + ConnDevJsonMapper.toServiceIntent(artifactSpec.getIntent()),
                     "search script", body, skipCache);
@@ -877,7 +875,6 @@ public abstract class ConnectorDevelopmentBackend {
         for (var oc : connector.getObjectClass()) {
             var name = oc.getName();
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/native-schema", oc.getNativeSchemaScript());
-            putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/connid", oc.getConnidSchemaScript());
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/create", oc.getCreateScript());
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/update", oc.getUpdateScript());
             putCodegenArtifact(client, "codegen/{sessionId}/classes/" + name + "/delete", oc.getDeleteScript());

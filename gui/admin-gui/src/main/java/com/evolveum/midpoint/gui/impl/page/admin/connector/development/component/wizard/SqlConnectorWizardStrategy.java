@@ -27,7 +27,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaObjectClassConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.SchemaScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.ShowSchemaConnectorStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingConnIdSchemaConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingNativeSchemaConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema.WaitingObjectClassDetailsConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.search.SearchAllObjectClassConnectorStepPanel;
@@ -75,7 +74,6 @@ public class SqlConnectorWizardStrategy implements ConnectorWizardStrategy {
                 new ObjectClassSelectConnectorStepPanel(helper, objectClassModel),
                 new WaitingObjectClassDetailsConnectorStepPanel(helper, objectClassModel),
                 new WaitingNativeSchemaConnectorStepPanel(helper, objectClassModel),
-                new WaitingConnIdSchemaConnectorStepPanel(helper, objectClassModel),
                 new WaitingFixObjectClassConnectorStepPanel(helper, objectClassModel, SchemaObjectClassConnectorStepPanel.PANEL_TYPE),
                 new SchemaScriptConnectorStepPanel(helper, objectClassModel),
                 new ShowSchemaConnectorStepPanel(helper, objectClassModel),

@@ -21,7 +21,6 @@ public class ConnectorManifestWriter {
     private static final YAMLMapper YAML = new YAMLMapper();
     private static final Set<ConnectorDevelopmentArtifacts.KnownArtifactType> SCHEMA_ARTIFACTS = Set.of(
             ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION,
-            ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION,
             ConnectorDevelopmentArtifacts.KnownArtifactType.RELATIONSHIP_SCHEMA_DEFINITION);
     private final ObjectNode application;
     private final ObjectNode connector;
