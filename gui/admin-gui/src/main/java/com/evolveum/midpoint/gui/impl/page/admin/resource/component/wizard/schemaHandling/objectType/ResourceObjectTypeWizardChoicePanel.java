@@ -42,6 +42,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionTaskButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -99,8 +100,6 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
     @Override
     protected Component createTilePanel(String id, IModel<Tile<ResourceObjectTypePreviewTileType>> tileModel) {
-        ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
-
         return new WizardGuideTilePanel<>(id, tileModel) {
 
             private @NotNull Boolean getDescription() {
@@ -120,7 +119,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             @Override
             protected IModel<Badge> getBadgeModel() {
                 ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
-                ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
+                ResourceType resource = getResource();
                 ResourceGuideObjectTypeTileState state = computeState(tile, resource, getValueModel(),
                         ResourceObjectTypeWizardChoicePanel.this);
                 return state.badgeModel(ResourceObjectTypeWizardChoicePanel.this);
@@ -129,6 +128,10 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             @Override
             protected IModel<String> getDescriptionTooltipModel() {
                 ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
+                ResourceType resource = getResource();
+                if (resource == null) {
+                    return null;
+                }
 
                 PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> wrapper = getValueModel().getObject();
                 ResourceObjectTypeDefinitionType real = wrapper != null ? wrapper.getRealValue() : null;
@@ -143,8 +146,21 @@ public abstract class ResourceObjectTypeWizardChoicePanel
             @Override
             protected boolean isLocked() {
                 ResourceObjectTypePreviewTileType tile = tileModel.getObject().getValue();
+                ResourceType resource = getResource();
                 return computeState(tile, resource, getValueModel(),
                         ResourceObjectTypeWizardChoicePanel.this) == ResourceGuideObjectTypeTileState.TEMPORARY_LOCKED;
+            }
+
+            private ResourceType getResource() {
+                try {
+                    ResourceDetailsModel detailsModel = getAssignmentHolderDetailsModel();
+                    if (detailsModel != null && detailsModel.getObjectWrapper() != null) {
+                        return detailsModel.getObjectWrapper().getObjectApplyDelta().asObjectable();
+                    }
+                } catch (CommonException e) {
+                    LOGGER.error("Couldn't get resource with applied deltas", e);
+                }
+                return getAssignmentHolderDetailsModel() != null ? getAssignmentHolderDetailsModel().getObjectType() : null;
             }
 
             @Override
