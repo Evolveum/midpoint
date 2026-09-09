@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.model.LambdaModel;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +128,7 @@ public class VariableBindingDefinitionTypePanel extends BasePanel<VariableBindin
         set.setCondition(expressionType);
     }
 
-    private @NonNull ValueSetDefinitionType getValueSetDefinitionType() {
+    private ValueSetDefinitionType getValueSetDefinitionType() {
         VariableBindingDefinitionType var = VariableBindingDefinitionTypePanel.this.getModelObject();
         if (var == null) {
             var = new VariableBindingDefinitionType();
