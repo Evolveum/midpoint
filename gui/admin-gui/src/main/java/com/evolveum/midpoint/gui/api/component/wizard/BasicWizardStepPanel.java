@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import java.io.Serial;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -23,6 +24,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -310,6 +312,16 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
         return new StringResourceModel(key)
                 .setDefaultValue("");
+    }
+
+    /**
+     * Context aware list of documentation tabs for this step, one tab per help source. When it returns a
+     * non-empty list, the drawer shows tabs and chapter navigation.
+     *
+     * @return
+     */
+    public List<HelpTab> getHelpTabs() {
+        return null;
     }
 
     public boolean onNextPerformed(AjaxRequestTarget target) {

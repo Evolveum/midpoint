@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerDescriptor;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.WizardHelpCollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
@@ -33,6 +34,7 @@ import java.util.Optional;
 public abstract class WizardModelWithParentSteps extends WizardModel implements DrawerDescriptor {
 
     private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
+    private final WizardHelpCollapsedItem helpCollapsedItem = new WizardHelpCollapsedItem(this);
 
     public abstract void init(Page page);
 
@@ -55,11 +57,14 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
     }
 
     private @NotNull List<CollapsedItem> getCollapsedItemsList() {
+        if (helpCollapsedItem.isVisible()) {
+            return List.of(operationResultCollapsedItem, helpCollapsedItem);
+        }
         return List.of(operationResultCollapsedItem);
     }
 
     public boolean isCollapsedItemsVisible() {
-        return operationResultCollapsedItem.isVisible();
+        return operationResultCollapsedItem.isVisible() || helpCollapsedItem.isVisible();
     }
 
     public Optional<CollapsedItem> getSelectedCollapsedItem() {
