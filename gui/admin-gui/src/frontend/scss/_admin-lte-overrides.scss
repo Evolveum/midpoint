@@ -70,6 +70,12 @@
   color: $gray-700;
 }
 
+.form-control::placeholder {
+  color: $gray-700;
+  opacity: 0.9;
+  font-style: italic;
+}
+
 .popover {
   z-index:1040;
 }
