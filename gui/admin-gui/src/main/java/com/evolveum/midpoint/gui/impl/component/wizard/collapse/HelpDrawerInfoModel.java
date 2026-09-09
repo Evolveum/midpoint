@@ -72,13 +72,13 @@ public class HelpDrawerInfoModel
         @Serial private static final long serialVersionUID = 1L;
 
         private final IModel<String> titleModel;
-        private final HelpContentModel content;
+        private final List<HelpTab> tabs;
 
         private HelpCollapsedItem(
                 IModel<String> titleModel,
                 List<HelpTab> tabs) {
             this.titleModel = titleModel;
-            this.content = new HelpContentModel(tabs);
+            this.tabs = tabs;
         }
 
         @Override
@@ -99,7 +99,7 @@ public class HelpDrawerInfoModel
 
         @Override
         public @NotNull Component getPanel(String id, HelpDrawerInfoModel drawerModel) {
-            return new HelpContentPanel(id, Model.of(content));
+            return new HelpContentPanel(id, () -> tabs);
         }
     }
 }

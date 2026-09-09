@@ -49,7 +49,7 @@ public class WizardHelpCollapsedItem extends CollapsedItem<WizardModelWithParent
 
     @Override
     public @NotNull Component getPanel(String id, WizardModelWithParentSteps drawerModel) {
-        return new HelpContentPanel(id, Model.of(new HelpContentModel(getTabs())));
+        return new HelpContentPanel(id, this::getTabs);
     }
 
     @Override
