@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="bg-white rounded shadow-sm border-start border-4 p-2" wicket:id="container">
+        <div class="d-flex flex-row align-items-start">
+            <div class="px-1">
+                <i wicket:id="icon"></i>
+            </div>
+            <div class="clamp-3-lines fw-bold" wicket:id="title"></div>
+            <div class="ms-auto">
+                <button class="btn my-auto p-0 me-1" wicket:id="expandCollapseButton"></button>
+            </div>
+        </div>
+
+        <div class="d-flex flex-column" wicket:id="details">
+            <div class="border rounded bg-white mt-2">
+                <div class="p-2 border-bottom" wicket:id="scriptRow">
+                    <div class="small text-secondary">
+                        <wicket:message key="ProcessedExceptionPanel.script"/>
+                    </div>
+                    <div class="text-break" wicket:id="scriptValue"></div>
+                </div>
+                <div class="p-2 border-bottom" wicket:id="mapRow">
+                    <div class="small text-secondary" wicket:id="mapLabel"></div>
+                    <div class="text-break" wicket:id="mapValue"></div>
+                </div>
+                <div class="p-2">
+                    <a class="btn btn-link p-0" wicket:id="stackTraceLink">
+                        <wicket:message key="ProcessedExceptionPanel.viewFullErrorStack"/>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-2" wicket:id="text"></div>
+
+            <div class="d-flex flex-row gap-2 mt-3">
+                <button class="btn btn-light border w-50" wicket:id="ignoreButton"></button>
+                <button class="btn btn-primary w-50" wicket:id="fixButton"></button>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>
