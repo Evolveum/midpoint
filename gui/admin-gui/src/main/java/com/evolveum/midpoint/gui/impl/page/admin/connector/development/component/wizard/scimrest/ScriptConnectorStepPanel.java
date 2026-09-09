@@ -229,6 +229,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
+
+        onAfterSave(target);
         if (result != null && !result.isError()) {
             isReloaded = false;
             super.onNextPerformed(target);
@@ -236,6 +238,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             target.add(getFeedback());
         }
         return false;
+    }
+
+    protected void onAfterSave(AjaxRequestTarget target) {
     }
 
     protected final LoadableModel<ConnDevArtifactType> getValueModel() {

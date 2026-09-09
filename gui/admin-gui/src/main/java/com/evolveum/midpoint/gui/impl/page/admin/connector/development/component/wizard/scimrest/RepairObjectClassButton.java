@@ -48,15 +48,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
  * {@code RepeatingView} custom-buttons strip next to "Regenerate" - a Panel there renders an extra
  * empty row element, since the repeater's per-item markup expects a single plain component tag.
  * <p>
- * Embedded identically by every script step of an object class ({@code ScriptsConnectorStepPanel}
- * for the schema step, {@code ScriptConnectorStepPanel} for search/create/update/delete, and
- * {@code NextStepsConnectorStepPanel}), since a blocking error on an early step (e.g. schema) would
- * otherwise leave the fix unreachable if it only lived on the final "next steps" step.
+ * Embedded identically by every script step of an object class ({@code ScriptConnectorStepPanel}
+ * for schema/search/create/update/delete, and {@code NextStepsConnectorStepPanel}), since a blocking
+ * error on an early step (e.g. schema) would otherwise leave the fix unreachable if it only lived on
+ * the final "next steps" step.
  */
 public class RepairObjectClassButton extends AjaxIconButton {
 
     /**
-     * PANEL_TYPE constants of every editable script step of one object class (native/ConnID schema,
+     * PANEL_TYPE constants of every editable script step of one object class (native schema,
      * search all/by-id/filter, create, update, delete). These are fixed strings, not per-object-class
      * ids - the wizard reuses the same step instance across object classes - so the whole set can be
      * used to collect every midPoint error currently reported for the object class shown here.
@@ -161,8 +161,8 @@ public class RepairObjectClassButton extends AjaxIconButton {
      * content, the same way {@code ConnectorDevelopmentOperation.submitGenerateEndpointBasedScript}
      * builds its own repair override ({@code artifactDef.create(objectClass).setContent(currentScript)}).
      * Never forward the host's own artifact instance directly: it can originate from a live
-     * {@code PrismContainerValueWrapper} (see {@code ScriptsConnectorStepPanel}/{@code
-     * ScriptConnectorStepPanel}'s {@code valueModel}), and cloning that into the fix task's work
+     * {@code PrismContainerValueWrapper} (see {@code ScriptConnectorStepPanel}'s {@code valueModel}),
+     * and cloning that into the fix task's work
      * definition fails to marshal ({@code confirm} being required but unset). Returns {@code null}
      * for an artifact that isn't one of the known CRUD/search/schema kinds.
      */

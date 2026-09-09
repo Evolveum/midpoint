@@ -52,7 +52,6 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
     public static final String OPERATION_PROCESS_DOCUMENTATION = CLASS_DOT + "ProcessDocumentation";
     public static final String OPERATION_GENERATE_ARTIFACT = CLASS_DOT + "GenerateArtifact";
     public static final String OPERATION_GENERATE_NATIVE_SCHEMA = CLASS_DOT + "GenerateNativeSchema";
-    public static final String OPERATION_GENERATE_CONN_ID_SCHEMA = CLASS_DOT + "GenerateConnIdSchema";
     public static final String OPERATION_GENERATE_AUTHENTICATION_SCRIPT = CLASS_DOT + "GenerateAuthenticationScript";
     public static final String OPERATION_DISCOVER_OBJECT_CLASSES = CLASS_DOT + "DiscoverObjectClasses";
     public static final String OPERATION_DISCOVER_OBJECT_CLASS_INFORMATION = CLASS_DOT + "DiscoverObjectClassInformation";
@@ -243,24 +242,6 @@ public class ConnectorDevelopmentRestController extends AbstractRestController {
                 result,
                 (operation) ->
                         operation.submitGenerateNativeSchema(objectClass, retry, task, result)
-        );
-    }
-
-    @PostMapping(ConnectorGeneratorConstants.RPC_GENERATE_CONN_ID_SCHEMA_SUBMIT_OPERATION)
-    public ResponseEntity<?> submitOperationGenerateConnIdSchema(
-            @RequestParam("oid") @NotNull String oid,
-            @RequestParam("objectClass") @NotNull String objectClass,
-            @RequestParam("retry") boolean retry
-    ) {
-        var task = initRequest();
-        var result = createSubresult(task, OPERATION_GENERATE_CONN_ID_SCHEMA);
-
-        return submitOperation(
-                oid,
-                task,
-                result,
-                (operation) ->
-                        operation.submitGenerateConnIdSchema(objectClass, retry, task, result)
         );
     }
 

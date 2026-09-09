@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -271,6 +272,21 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
         };
     }
 
+    @Override
+    protected OperationResult onSavePerformed(AjaxRequestTarget target) {
+        OperationResult operationResult = super.onSavePerformed(target);
+
+        // Make sure newly created resource has its oid pageParameter
+        // (prevent empty resource page when navigating e.g. resource -> task (back) -> resource)
+        getPageBase().getPageParameters().add(OnePageParameterEncoder.PARAMETER, getResourceOid());
+
+        return operationResult;
+    }
+
+    private String getResourceOid() {
+        return getAssignmentHolderModel().getObjectType().getOid();
+    }
+
     protected void exitToPreview(AjaxRequestTarget target) {
         getBreadcrumb().clear();
         SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(
@@ -294,7 +310,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             }
 
             private void manageResourceWizardStorage() {
-                String oid = getAssignmentHolderModel().getObjectType().getOid();
+                String oid = getResourceOid();
                 getPageBase().getSessionStorage().getResourceWizardStorage().markPreviewDataClicked(oid);
             }
 

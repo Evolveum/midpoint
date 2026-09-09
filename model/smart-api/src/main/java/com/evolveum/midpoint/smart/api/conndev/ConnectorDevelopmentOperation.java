@@ -65,10 +65,6 @@ public interface ConnectorDevelopmentOperation {
         return submitGenerateArtifact(NATIVE_SCHEMA_DEFINITION.create(objectClass), retry, task, result);
     }
 
-    default String submitGenerateConnIdSchema(String objectClass, boolean retry, Task testTask, OperationResult testOperationResult) {
-        return submitGenerateArtifact(CONNID_SCHEMA_DEFINITION.create(objectClass), retry, testTask, testOperationResult);
-    }
-
     default String submitGenerateAuthenticationScript(boolean retry, Task task, OperationResult result) {
         return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), retry, task, result);
     }
@@ -217,10 +213,6 @@ public interface ConnectorDevelopmentOperation {
         saveArtifact(artifact, task, result);
     }
 
-    default void saveConnIdSchemaScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {
-        saveArtifact(artifact, task, result);
-        resetResourceSchema(task, result);
-    }
     void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
     default void saveSearchAllScript(ConnDevArtifactType artifact, Task task, OperationResult result) throws IOException, CommonException {

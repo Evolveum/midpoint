@@ -9,6 +9,27 @@
 <body>
 <wicket:panel>
     <div wicket:id="pathPanel"></div>
+    <div class="pt-3 mb-2" wicket:id="range">
+        <div class="border-bottom prism-title">
+            <wicket:message key="VariableBindingDefinitionType.set"/>
+        </div>
+        <div class="row ms-0 me-0 mt-2">
+            <div class="col-xl-2 col-md-4 col-xs-12 prism-property-label">
+                <wicket:message key="ValueSetDefinitionType.predefined"/>
+            </div>
+            <div class="prism-property-value col-xl-10 col-md-8 col-xs-12 pe-0">
+                <div wicket:id="predefinedInput"></div>
+            </div>
+        </div>
+        <div class="row ms-0 me-0 mt-2">
+            <div class="col-xl-2 col-md-4 col-xs-12 prism-property-label">
+                <wicket:message key="ValueSetDefinitionType.condition"/>
+            </div>
+            <div class="prism-property-value col-xl-10 col-md-8 col-xs-12 pe-0">
+                <div wicket:id="conditionInput"></div>
+            </div>
+        </div>
+    </div>
 </wicket:panel>
 </body>
 </html>

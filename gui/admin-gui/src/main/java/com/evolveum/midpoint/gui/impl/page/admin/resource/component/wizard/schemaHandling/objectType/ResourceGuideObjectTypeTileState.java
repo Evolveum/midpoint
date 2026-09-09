@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getEnabledCapability;
-
 import java.util.List;
 
 import org.apache.wicket.model.IModel;
@@ -22,12 +20,11 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
 import javax.xml.namespace.QName;
 
@@ -193,13 +190,11 @@ public enum ResourceGuideObjectTypeTileState {
     }
 
     private static boolean isActivationEnabled(ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
-        ActivationCapabilityType activationCap = getEnabledCapability(resource, real, ActivationCapabilityType.class);
-        return activationCap != null && Boolean.TRUE.equals(activationCap.isEnabled());
+        return ResourceTypeUtil.isActivationCapabilityEnabled(resource, real);
     }
 
     private static boolean isCredentialsEnabled(ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
-        CredentialsCapabilityType credentialsCap = getEnabledCapability(resource, real, CredentialsCapabilityType.class);
-        return credentialsCap != null && Boolean.TRUE.equals(credentialsCap.isEnabled());
+        return ResourceTypeUtil.isCredentialsCapabilityEnabled(resource, real);
     }
 
     private static boolean isCorrelationConfigured(@NotNull ResourceObjectTypeDefinitionType real) {

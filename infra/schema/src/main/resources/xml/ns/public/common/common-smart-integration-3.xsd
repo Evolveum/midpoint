@@ -56,6 +56,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="connectorGeneratorApiKey" type="t:ProtectedStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        API key used to authenticate requests to the midpilot microservice.
+                        If configured, it is sent with every request made to that service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="connectorFrameworkUrl" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

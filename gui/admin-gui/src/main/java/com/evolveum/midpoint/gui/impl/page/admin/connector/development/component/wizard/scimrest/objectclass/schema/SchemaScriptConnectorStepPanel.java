@@ -7,12 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass.schema;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptsConnectorStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.ScriptConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -33,8 +32,6 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -45,14 +42,13 @@ import java.util.List;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageConnectorDevelopment.wizard.step.schemaScript", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
+public class SchemaScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
     private static final String DOT_CLASS = SchemaScriptConnectorStepPanel.class.getName() + ".";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
 
     public static final String PANEL_TYPE = "cdw-schema-script";
     static final String TASK_NATIVE_SCRIPTS_KEY = "taskNativeScriptKey";
-    static final String TASK_CONNID_SCRIPTS_KEY = "taskConnIdScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;
 
     public SchemaScriptConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper, IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel) {
@@ -61,8 +57,8 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
     }
 
     @Override
-    protected List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptTypes() {
-        return List.of(ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION, ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION);
+    protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
+        return ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION;
     }
 
     @Override
@@ -72,11 +68,7 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
 
     @Override
     protected void saveScript(ConnDevArtifactType object, Task task, OperationResult result) throws IOException, CommonException {
-        if (object.getIntent() == ConnDevScriptIntentType.NATIVE) {
-            getDetailsModel().getConnectorDevelopmentOperation().saveNativeSchemaScript(object, task, result);
-        } else if (object.getIntent() == ConnDevScriptIntentType.CONNID) {
-            getDetailsModel().getConnectorDevelopmentOperation().saveConnIdSchemaScript(object, task, result);
-        }
+        getDetailsModel().getConnectorDevelopmentOperation().saveNativeSchemaScript(object, task, result);
     }
 
     @Override
@@ -114,30 +106,5 @@ public class SchemaScriptConnectorStepPanel extends ScriptsConnectorStepPanel {
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    protected List<ConnDevArtifactType> getOriginalContainerValues() {
-        List<ConnDevArtifactType> list = new ArrayList<>();
-        try {
-            PrismContainerWrapper<ConnDevArtifactType> container = valueModel.getObject().findContainer(ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT);
-            if (container != null) {
-                list.add(container.getValue().getRealValue());
-            }
-        } catch (SchemaException e) {
-            //todo
-            return null;
-        }
-
-        try {
-            PrismContainerWrapper<ConnDevArtifactType> container = valueModel.getObject().findContainer(ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT);
-            if (container != null) {
-                list.add(container.getValue().getRealValue());
-            }
-        } catch (SchemaException e) {
-            //todo
-            return null;
-        }
-        return list;
     }
 }

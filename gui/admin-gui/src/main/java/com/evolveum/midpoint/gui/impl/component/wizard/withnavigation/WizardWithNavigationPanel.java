@@ -61,6 +61,8 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
     private static final String ID_CONTENT_BODY = "contentBody";
     private static final String ID_DRAWER_INFO_PANEL = "drawerInfoPanel";
 
+    private static final String DRAWER_WIDTH = "32rem";
+
     private final AbstractWizardController<AH, ADM> controller;
 
     public WizardWithNavigationPanel(String id, AbstractWizardController<AH, ADM> controller) {
@@ -234,7 +236,12 @@ public class WizardWithNavigationPanel<AH extends AssignmentHolderType, ADM exte
 
         form.add(new WebMarkupContainer(ID_CONTENT_BODY));
 
-        DrawerInfoPanel drawerInfoPanel = new DrawerInfoPanel(ID_DRAWER_INFO_PANEL, getController());
+        DrawerInfoPanel drawerInfoPanel = new DrawerInfoPanel(ID_DRAWER_INFO_PANEL, getController()) {
+            @Override
+            protected String getMinWidth() {
+                return DRAWER_WIDTH;
+            }
+        };
         drawerInfoPanel.setOutputMarkupId(true);
         form.add(drawerInfoPanel);
     }

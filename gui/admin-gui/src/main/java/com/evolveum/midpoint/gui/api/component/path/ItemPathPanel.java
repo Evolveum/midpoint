@@ -59,6 +59,9 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
     private boolean switchToTextFieldEnabled = false;
 
+    private boolean showSetContainer = false;
+
+
     public enum ItemPathPanelMode {
         NAMESPACE_MODE,
         TEXT_MODE;

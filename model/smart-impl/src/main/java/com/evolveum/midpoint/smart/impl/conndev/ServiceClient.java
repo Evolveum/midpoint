@@ -16,6 +16,8 @@ import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
@@ -33,6 +35,7 @@ public class ServiceClient {
 
     private static final String SESSION_PATTERN = "{sessionId}";
     private static final String RELATIVE_SESSION_ENDPOINT = "session/{sessionId}";
+    private static final String API_KEY_HEADER = "X-API-Key";
 
 
 
@@ -42,19 +45,28 @@ public class ServiceClient {
     private final String apiBase;
 
     private static SSLContext trustAllContext;
+    private final String apiKey;
     private final String sessionId;
     private final CloseableHttpClient client;
     private final SessionRestoration restoration;
     private final SessionRestoration synchronization;
     private final String sessionEndpoint;
 
-    public ServiceClient(String apiBase, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client) {
+    public ServiceClient(String apiBase, String apiKey, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client) {
         this.client = client;
+        this.apiKey = apiKey;
         this.sessionId = sessionId;
         this.restoration = restoration;
         this.synchronization = synchronization;
         this.apiBase = (apiBase.endsWith("/") ? apiBase : apiBase + "/" );
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
+    }
+
+    private CloseableHttpResponse execute(ClassicHttpRequest request) throws IOException {
+        if (apiKey != null) {
+            request.setHeader(API_KEY_HEADER, apiKey);
+        }
+        return client.execute(request);
     }
 
     public Job postJob(String endpoint, String apiType, boolean skipCache) throws IOException {
@@ -178,7 +190,7 @@ public class ServiceClient {
         }
 
         public void startJob0(HttpPost request) throws IOException {
-            try(var response = client.execute(request)) {
+            try(var response = execute(request)) {
                 if (HttpStatus.SC_OK == response.getCode()) {
                     var result = parseJson(response.getEntity().getContent());
                     jobId = result.get("jobId").asText();
@@ -191,7 +203,7 @@ public class ServiceClient {
 
         public void refresh() {
             var request = new HttpGet(uri + "?jobId=" + jobId);
-            try(var response = client.execute(request)) {
+            try(var response = execute(request)) {
                 if (HttpStatus.SC_OK == response.getCode()) {
                     latestResult = parseJson(response.getEntity().getContent());
                     updateState();
@@ -287,7 +299,7 @@ public class ServiceClient {
 
     private void ensureSessionExists() throws IOException {
         int code;
-        try (var response = client.execute(new HttpHead(sessionEndpoint))) {
+        try (var response = execute(new HttpHead(sessionEndpoint))) {
             code = response.getCode();
         }
         if (HttpStatus.SC_NOT_FOUND == code) {
@@ -299,7 +311,7 @@ public class ServiceClient {
 
     private void createSession() throws IOException {
         int code;
-        try (var response = client.execute(new HttpPost(sessionEndpoint))) {
+        try (var response = execute(new HttpPost(sessionEndpoint))) {
             code = response.getCode();
         }
         if (code == HttpStatus.SC_OK || code == HttpStatus.SC_CREATED) {
@@ -331,7 +343,7 @@ public class ServiceClient {
             var uri = appendSession(apiBase + apiUri);
             var request = new HttpPut(uri);
             request.setEntity(entitySupplier.get());
-            try (var uploadResponse = client.execute(request)) {
+            try (var uploadResponse = execute(request)) {
                 if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
                     return;
                 }
@@ -342,7 +354,7 @@ public class ServiceClient {
         public void putDocumentationIfMissing(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
             var uri = appendSession(apiBase + apiUri);
             int checkCode;
-            try (var response = client.execute(new HttpHead(uri))) {
+            try (var response = execute(new HttpHead(uri))) {
                 checkCode = response.getCode();
             }
             if (checkCode == HttpStatus.SC_OK || checkCode == HttpStatus.SC_NO_CONTENT) {
@@ -381,7 +393,7 @@ public class ServiceClient {
             var uri = documentationUri(docId);
             var request = new HttpPost(uri);
             request.setEntity(builder.build());
-            try (var response = client.execute(request)) {
+            try (var response = execute(request)) {
                 if (response.getCode() < 200 || response.getCode() >= 300) {
                     throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code " + response.getCode());
                 }
@@ -399,7 +411,7 @@ public class ServiceClient {
             var uri = documentationUri(docId);
             while (true) {
                 int code;
-                try (var response = client.execute(new HttpHead(uri))) {
+                try (var response = execute(new HttpHead(uri))) {
                     code = response.getCode();
                 }
                 if (code == HttpStatus.SC_NO_CONTENT || code == HttpStatus.SC_OK) {
@@ -426,7 +438,7 @@ public class ServiceClient {
          */
         public String getDocumentation(String docId) throws IOException {
             var uri = documentationUri(docId);
-            try (var response = client.execute(new HttpGet(uri))) {
+            try (var response = execute(new HttpGet(uri))) {
                 if (HttpStatus.SC_OK == response.getCode()) {
                     return new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
                 }
