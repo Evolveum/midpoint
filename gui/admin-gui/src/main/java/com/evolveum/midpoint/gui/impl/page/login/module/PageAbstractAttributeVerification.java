@@ -135,6 +135,9 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         PropertyModel<String> valueModel = new PropertyModel<>(itemWrapper, "value.realValue");
         TextPanel<String> valuePanel = new TextPanel<>(ID_ATTRIBUTE_VALUE, valueModel);
         valuePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", headerLabel));
+        if (areAllItemsMandatory(itemWrapper) || itemWrapper.isMandatory()) {
+            valuePanel.getBaseFormComponent().add(AttributeAppender.append("aria-required", "true"));
+        }
         addNameAttribute(valuePanel.getBaseFormComponent(), item);
         item.add(valuePanel);
 

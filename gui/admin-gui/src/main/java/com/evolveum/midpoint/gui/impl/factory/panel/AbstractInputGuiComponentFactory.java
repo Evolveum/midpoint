@@ -102,6 +102,12 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
                         panelCtx.forceMandatoryCheck()));
             }
 
+            if (panelCtx.isMandatory()) {
+                // the visual "required" asterisk (see ItemHeaderPanel) is only decorative -
+                // screen readers need this on the actual input to announce the required state
+                formComponent.add(AttributeAppender.append("aria-required", "true"));
+            }
+
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }
