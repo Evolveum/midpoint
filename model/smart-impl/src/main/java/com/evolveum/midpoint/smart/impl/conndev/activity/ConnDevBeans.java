@@ -3,6 +3,8 @@ package com.evolveum.midpoint.smart.impl.conndev.activity;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
 
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorExportService;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstallationService;
@@ -53,6 +55,7 @@ public class ConnDevBeans {
     @Autowired public ProvisioningService provisioningService;
     @Autowired public SystemObjectCache systemObjectCache;
     @Autowired public MidpointConfiguration configuration;
+    @Autowired public Protector protector;
     private CloseableHttpClient client;
 
     @PostConstruct
@@ -124,12 +127,25 @@ public class ConnDevBeans {
         return null;
     }
 
+    public String getConnectorGeneratorApiKey(OperationResult result) {
+        try {
+            var systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
+            if (systemConfiguration != null && systemConfiguration.getSmartIntegration() != null) {
+                var apiKey = systemConfiguration.getSmartIntegration().getConnectorGeneratorApiKey();
+                return apiKey != null ? protector.decryptString(apiKey) : null;
+            }
+        } catch (SchemaException | EncryptionException e) {
+            throw new SystemException("Could not get system configuration.", e);
+        }
+        return null;
+    }
+
     public ServiceClient client(String sessionId, ServiceClient.SessionRestoration restoration, ServiceClient.SessionRestoration synchronization, OperationResult result) {
         var apiBase = getServiceUrl(result);
         if (apiBase == null) {
             throw new SystemException("Connector Generation Service  not configured.");
         }
-        return new ServiceClient(apiBase, sessionId, restoration, synchronization, client);
+        return new ServiceClient(apiBase, getConnectorGeneratorApiKey(result), sessionId, restoration, synchronization, client);
     }
 
     public boolean isOffline() {
