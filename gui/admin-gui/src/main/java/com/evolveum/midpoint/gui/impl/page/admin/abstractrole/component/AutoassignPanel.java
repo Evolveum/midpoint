@@ -9,14 +9,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -35,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AutoassignPanel<AR extends AbstractRoleType> extends AbstractObjectMainPanel<AR, FocusDetailsModels<AR>> {
 
     @Serial private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(AutoassignPanel.class);
 
     private static final String ID_AUTOASSIGN = "autoassign";
 
@@ -71,6 +80,46 @@ public class AutoassignPanel<AR extends AbstractRoleType> extends AbstractObject
 
     public AutoassignPanel(String id, FocusDetailsModels<AR> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        if (getObjectWrapper() != null) {
+            try {
+
+                PrismContainerWrapper<Containerable> autoassignWrapper = getObjectWrapper().findContainer(RoleType.F_AUTOASSIGN);
+                setExpanded(autoassignWrapper, ItemPath.EMPTY_PATH);
+
+                setExpanded(autoassignWrapper, AutoassignSpecificationType.F_FOCUS);
+
+                setExpanded(
+                        autoassignWrapper,
+                        ItemPath.create(AutoassignSpecificationType.F_FOCUS, FocalAutoassignSpecificationType.F_SELECTOR));
+
+                setExpanded(
+                        autoassignWrapper,
+                        ItemPath.create(AutoassignSpecificationType.F_FOCUS, FocalAutoassignSpecificationType.F_MAPPING));
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find container " + getObjectWrapper(), e);
+            }
+        }
+    }
+
+    private static void setExpanded(PrismContainerWrapper<Containerable> parentWrapper, ItemPath path) throws SchemaException {
+        PrismContainerWrapper<Containerable> childWrapper = parentWrapper.findContainer(path);
+        childWrapper.setExpanded(true);
+        if (parentWrapper.getStatus() == ItemStatus.ADDED) {
+            childWrapper.setShowEmpty(true, true);
+        }
+
+        for (PrismContainerValueWrapper<Containerable> value : childWrapper.getValues()) {
+            value.setExpanded(true);
+            if (parentWrapper.getStatus() == ItemStatus.ADDED) {
+                value.setShowEmpty(true);
+            }
+        }
     }
 
     @Override
