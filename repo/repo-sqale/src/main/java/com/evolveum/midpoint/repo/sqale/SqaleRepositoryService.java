@@ -137,16 +137,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         UUID oidUuid = SqaleUtils.oidToUuidMandatory(oid);
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
-        logger.debug("Getting object '{}' with OID '{}': {}",
-                type.getSimpleName(), oid, parentResult.getOperation());
-        InternalMonitor.recordRepositoryRead(type, oid);
-
         OperationResult operationResult = parentResult.subresult(opNamePrefix + OP_GET_OBJECT)
                 .addQualifier(type.getSimpleName())
                 .setMinor()
                 .addParam(OperationResult.PARAM_TYPE, type.getName())
                 .addParam(OperationResult.PARAM_OID, oid)
                 .build();
+
+        logger.debug("Getting object '{}' with OID '{}': {}",
+                type.getSimpleName(), oid, parentResult.getOperation());
+        InternalMonitor.recordRepositoryRead(type, oid);
 
         PrismObject<T> object = null;
         long opHandle = registerOperationStart(OP_GET_OBJECT, type);
@@ -167,9 +167,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             recordFatalError(operationResult, t);
             throw t;
         } finally {
+            operationResult.computeStatus(true); // compute status but don't close the result (because of the log below)
+            OperationLogger.logGetObject(type, oid, options, object, operationResult); // to be logged to the result before closing
             operationResult.close();
             registerOperationFinish(opHandle);
-            OperationLogger.logGetObject(type, oid, options, object, operationResult);
         }
     }
 

@@ -116,8 +116,7 @@ class LogRecorder implements LoggingEventSink {
         OPEN_RECORDERS.add(newRecorder.id);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Opened recorder {}, path = {}, stack trace:", newRecorder, newRecorder.getPath(),
-                    new RuntimeException("dummy"));
+            LOGGER.trace("Opened recorder {}, path = {}", newRecorder, newRecorder.getPath());
             LOGGER.trace("Recorders now open: {}", OPEN_RECORDERS);
         }
 
@@ -192,7 +191,7 @@ class LogRecorder implements LoggingEventSink {
         OPEN_RECORDERS.remove(id);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Closed recorder {}, path = {}, stack trace:", this, getPath(), new RuntimeException("dummy"));
+            LOGGER.trace("Closed recorder {}, path = {}", this, getPath());
             LOGGER.trace("Recorders still open: {}", OPEN_RECORDERS);
         }
     }
