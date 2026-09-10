@@ -1,0 +1,48 @@
+= Download integrations
+
+:experimental:
+:page-toc: top
+:page-description:
+:page-keywords:
+
+You can browse integrations and download them from the xref:/midpoint/reference/interfaces/integration-catalog[Integration catalog] without having to log in.
+
+To get integration methods that allow you to connect midPoint with your target applications, follow these steps:
+
+. In your web browser, navigate to the Integration catalog at https://integrations.evolveum.com.
+. Locate the application that you need to integrate with midPoint:
+** The *Featured integration apps* listing shows the most prominent or widely used applications.
+** The *More apps* section below lists all integrations in the catalog.
+** Alternatively, you can use the search field to locate the application that you want to integrate with midPoint.
+
++
+.Locate the application using Search
+image::ic-search-integrations.webp["Locate the application using Search"]
+
++
+You can use pre-defined filters to narrow down the listing by clicking [.nowrap]#icon:filter[] btn:[Filter]#:
+
++
+.Apply filters to search results
+image::ic-filters.webp["Apply filters to search results"]
+
++
+Configure filters by expanding and editing them, or click the btn:[Reset filter] button next to the [.nowrap]#icon:filter[] btn:[Filter]# button to remove any applied filters.
+
++
+.Expand filters edit them
+image::ic-expand-filter.webp["Expand filters edit them"]
+
+. Click your target application.
+. In the application detail, hover your mouse over an integration.
+
++
+.Hover your mouse over an integration
+image::ic-application-detail.webp["Hover your mouse over an integration"]
+
++
+Based on your permissions, this displays the available buttons.
+
+. Click the [.nowrap]#icon:download[] btn:[Download]# button to download a package file containing the integration including the connector and other relevant information, such as documentation (if available).
+. Import the connector found in the package into your midPoint installation.
+. xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/#validation[Validate the connector] in your midPoint installation.

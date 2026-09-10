@@ -1,0 +1,44 @@
+= Integration catalog
+
+:experimental:
+:page-toc: top
+:page-description:
+:page-keywords:
+
+
+== Introduction
+
+Integration catalog (IC) is a collection of integration methods that you can use to connect your applications, such as LDAP servers, to midPoint.
+It serves as a readily available library of xref:/connectors/[connectors].
+
+The catalog is available at link:https://integrations.evolveum.com[https://integrations.evolveum.com] and has the following major levels:
+
+* *Applications* - The target application or application type that you are connecting to midPoint, such as LDAP server, Google Apps, or Open Project.
+Each application can be connected to midPoint through one or more different _integration methods_.
+When applications are integrated with, i.e., connected to, midPoint, they serve as xref:/midpoint/reference/resources/[resources]. 
+* *Integration methods* - Wrappers that define using which protocols, such as SCIM or REST API,  applications are integrated and contain one or more _connectors_.
+* *Connectors* - The actual connector binaries that connect to target application.
+These are Java modules that you upload into midPoint and configure them to integrate the target application as intended.
+
+[[permissions]]
+== User permissions
+
+The catalog features available to you depend on your permissions level.
+Some features are available to users without having to log in but some require logging in, or even elevated permissions.
+You can access Integration catalog using your Evolveum Support portal user credentials.
+
+The catalog features that are available to you are based on your permissions:
+
+* Not logged in - You can browse the Integration catalog (IC) and download integration methods even if you do not log into the catalog.
+* Standard logged-in user - In addition to browsing and downloading integration methods, you can like individual integration methods and request adding of integrations of applications that you have not found in the catalog.
+* Contributor permissions (individual or organization) - You can submit new applications and integration methods to the catalog.
+To be able to contribute, request permissions in the link:https://support.evolveum.com[Evolveum Support portal].
+
+[[features]]
+== Integration catalog features
+
+The major features of the Integration catalog are:
+
+* xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

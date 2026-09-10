@@ -1,0 +1,37 @@
+= Request integration
+
+:experimental:
+:page-toc: top
+:page-description:
+:page-keywords:
+
+
+This describes a feature of the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog] that enables you to request new methods for integrating applications with midPoint from the Evolveum team.
+
+Before requesting a new integration, xref:/midpoint/reference/interfaces/integration-catalog/download-integrations/[search the catalog] to make sure the integration you need is not already available in the Integration catalog (IC).
+
+If you did not find the application that you need to integrate with midPoint with the required integration method in the IC, you can request an addition to the catalog:
+
+. xref:/midpoint/reference/master/interfaces/integration-catalog/#permissions[Log into] the Integration catalog.
+. At the landing page, scroll to the bottom and click [.nowrap]#icon:call-pull-request[] btn:[Request Tailored Solution]#.
+
++
+.Request tailored solution
+image::ic-request-tailored-solution.webp["Request tailored solution"]
+
+. Fill in the following information:
+** Integration application name - The name of the application for which you need a new integration method.
+** Integration method - Select the protocol that should be used for the integration, such as REST API or SCIM.
+** Short description of the requested integration with the specific use case (required capabilities) you need it for.
+While short, the description should be descriptive and specific enough for the implementation team to best understand your intentions.
+** System version - The version of the application for which you need an integration.
+While not mandatory, this may be relevant as various application versions may use different protocols.
+** Your contact information so that the Evolveum team can get back to you in case further details are needed.
+** Deployment type - Whether the application is on-premise, cloud, or whether it is used in both of those environments.
+** Configure requested capabilities - Define if the requested capabilities should apply to all, or only to specific object classes.
+
++
+.Request application integration
+image::ic-request-application.webp["Request application integration form"]
+
+. Click [.nowrap]#btn:[Submit request]# and wait for the Evolveum team to review your request and get back to you.
