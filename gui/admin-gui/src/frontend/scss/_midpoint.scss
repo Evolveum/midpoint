@@ -2077,6 +2077,10 @@ select:focus-visible {
   @include smooth-transition(0.03s);
 }
 
+.btn-group > .btn:focus-visible {
+  z-index: 1002;
+}
+
 #skip-link {
   position: fixed;
   left: 0;
