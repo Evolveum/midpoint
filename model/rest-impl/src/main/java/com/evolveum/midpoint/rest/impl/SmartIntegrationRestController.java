@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.model.api.util.SmartIntegrationOperationExecutor;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -50,8 +51,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      */
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestObjectTypes(
-            @RequestParam("resourceOid") String resourceOid,
-            @RequestParam("objectClass") String objectClass
+            @RequestBody ObjectTypesSuggestionWorkDefinitionType objectTypesSuggestionWorkDefinitionType
     ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_OBJECT_TYPES);
@@ -60,11 +60,11 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.submitSuggestObjectTypesOperation(
-                        resourceOid,
-                        QName.valueOf(objectClass),
-                        List.of(),
+                        objectTypesSuggestionWorkDefinitionType.getResourceRef().getOid(),
+                        objectTypesSuggestionWorkDefinitionType.getObjectclass(),
+                        objectTypesSuggestionWorkDefinitionType.getPermissions(),
                         null,
-                        null,
+                        objectTypesSuggestionWorkDefinitionType.getPreviousDelineation(),
                         task,
                         result
                 )
@@ -92,9 +92,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      */
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_CORRELATIONS_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestCorrelations(
-            @RequestParam("resourceOid") String resourceOid,
-            @RequestParam("kind") String kind,
-            @RequestParam("intent") String intent
+            @RequestBody CorrelationSuggestionWorkDefinitionType correlationSuggestionWorkDefinitionType
     ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_CORRELATIONS);
@@ -103,13 +101,13 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.submitSuggestCorrelationOperation(
-                        resourceOid,
+                        correlationSuggestionWorkDefinitionType.getResourceRef().getOid(),
                         ResourceObjectTypeIdentification.of(
-                                ShadowKindType.fromValue(kind),
-                                intent
+                                correlationSuggestionWorkDefinitionType.getObjectType().getKind(),
+                                correlationSuggestionWorkDefinitionType.getObjectType().getIntent()
                         ),
-                        List.of(),
-                        false,
+                        correlationSuggestionWorkDefinitionType.getPermissions(),
+                        correlationSuggestionWorkDefinitionType.getForceRecomputeSchemaMatch(),
                         task,
                         result
                 )
@@ -137,10 +135,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
      */
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_MAPPINGS_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestMappings(
-            @RequestParam("resourceOid") String resourceOid,
-            @RequestParam("kind") String kind,
-            @RequestParam("intent") String intent,
-            @RequestParam("isInbound") Boolean isInbound
+            @RequestBody MappingsSuggestionWorkDefinitionType mappingsSuggestionWorkDefinitionType
     ) {
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_MAPPINGS);
@@ -149,18 +144,15 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.submitSuggestMappingsOperation(
-                        resourceOid,
+                        mappingsSuggestionWorkDefinitionType.getResourceRef().getOid(),
                         ResourceObjectTypeIdentification.of(
-                                ShadowKindType.fromValue(kind),
-                                intent
+                                mappingsSuggestionWorkDefinitionType.getObjectType().getKind(),
+                                mappingsSuggestionWorkDefinitionType.getObjectType().getIntent()
                         ),
-                        isInbound,
-                        null,
-                        List.of(
-                                DataAccessPermissionType.SCHEMA_ACCESS,
-                                DataAccessPermissionType.RAW_DATA_ACCESS
-                        ),
-                        false,
+                        mappingsSuggestionWorkDefinitionType.getInbound(),
+                        mappingsSuggestionWorkDefinitionType.getTargetPathsToIgnore(),
+                        mappingsSuggestionWorkDefinitionType.getPermissions(),
+                        mappingsSuggestionWorkDefinitionType.getForceRecomputeSchemaMatch(),
                         task,
                         result
                 )
@@ -188,8 +180,9 @@ public class SmartIntegrationRestController extends AbstractRestController {
      */
     @PostMapping(SmartIntegrationConstants.RPC_SUGGEST_ASSOCIATION_TYPE_SUBMIT_OPERATION)
     public ResponseEntity<?> submitOperationSuggestAssociations(
-            @RequestParam("resourceOid") String resourceOid
+            @RequestBody AssociationSuggestionWorkDefinitionType associationSuggestionWorkDefinitionType
     ) {
+
         var task = initRequest();
         var result = createSubresult(task, OPERATION_SUGGEST_ASSOCIATION_TYPE);
 
@@ -197,7 +190,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
                 task,
                 result,
                 (service) -> service.submitSuggestAssociationsOperation(
-                        resourceOid,
+                        associationSuggestionWorkDefinitionType.getResourceRef().getOid(),
                         task,
                         result
                 )
