@@ -33,6 +33,7 @@ export default class MidPointTheme {
 
             self.removeAdminLteSkipLinks();
             self.labelHoneypotFields();
+            self.observeAutocompleteScrollIntoView();
         });
         // expand/collapse for sidebarMenuPanel
         jQuery(function ($) {
@@ -564,6 +565,26 @@ export default class MidPointTheme {
                     }
                 }
             }
+        });
+    }
+
+    //necessary to make the focused list item totally visible for user
+    observeAutocompleteScrollIntoView() {
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') {
+                    continue;
+                }
+                const el = mutation.target;
+                if (el.classList && el.classList.contains('selected') && el.closest('.wicket-aa')) {
+                    el.scrollIntoView({block: 'nearest', inline: 'nearest'});
+                }
+            }
+        });
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class'],
+            subtree: true,
         });
     }
 
