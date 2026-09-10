@@ -1702,8 +1702,19 @@ div.search-popover > fieldset {
   white-space: nowrap;
   padding-right: 18px;
 
-    & > div > label > a {
+    & > div > a {
       text-decoration: underline;
+    }
+
+    & > div > label.checkbox-target-label {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+    }
+
+    & > div {
+      margin-top: 0.4rem;
+      margin-bottom: 0.4rem;
     }
 }
 
@@ -2075,6 +2086,10 @@ select:focus-visible {
   outline-offset: 3px;
   z-index: 1001;
   @include smooth-transition(0.03s);
+}
+
+.btn-group > .btn:focus-visible {
+  z-index: 1002;
 }
 
 #skip-link {

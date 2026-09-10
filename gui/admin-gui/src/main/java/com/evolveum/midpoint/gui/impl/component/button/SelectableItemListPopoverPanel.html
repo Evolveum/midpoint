@@ -13,13 +13,13 @@
             <fieldset class="border-0 border-bottom mb-2 p-1" wicket:id="itemList">
                 <legend class="mb-1 p-0" wicket:id="itemsTitle"/>
                 <div wicket:id="items" class="mb-1 mt-1 d-flex align-items-center px-1">
-                    <label class="form-check-label align-items-center d-flex gap-2 flex-grow-1 m-0 me-2">
-                        <input wicket:id="itemCheckbox" class="ms-1" type="checkbox">
-                        <a wicket:id="itemLink" class="flex-grow-1" wicket:message="title:SelectableItemListPopoverPanel.addItem">
-                            <span wicket:id="itemName"/>
-                        </a>
+                    <label class="checkbox-target-label d-flex align-items-center justify-content-start flex-shrink-0">
+                        <input wicket:id="itemCheckbox" type="checkbox">
                     </label>
-                    <i wicket:id="itemHelp" tabindex="0" role="button" class="clickable-by-enter ms-auto ps-1 ms-1"/>
+                    <a wicket:id="itemLink" class="form-check-label align-items-center d-flex gap-2 flex-grow-1 m-0 me-1" wicket:message="title:SelectableItemListPopoverPanel.addItem">
+                        <span wicket:id="itemName"/>
+                    </a>
+                    <i wicket:id="itemHelp" tabindex="0" role="button" class="clickable-by-enter ms-auto ps-1 ms-1 me-1"/>
                 </div>
             </fieldset>
 
