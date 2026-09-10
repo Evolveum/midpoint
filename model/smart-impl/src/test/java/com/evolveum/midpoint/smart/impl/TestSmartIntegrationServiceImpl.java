@@ -22,14 +22,12 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
@@ -47,6 +45,7 @@ import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -85,6 +84,10 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final TestObject<UserType> USER1 = TestObject.file(TEST_DIR, "user1.xml", "00000000-0000-0000-0000-999000001001");
     private static final TestObject<UserType> USER2 = TestObject.file(TEST_DIR, "user2.xml", "00000000-0000-0000-0000-999000001002");
     private static final TestObject<UserType> USER3 = TestObject.file(TEST_DIR, "user3.xml", "00000000-0000-0000-0000-999000001003");
+    private static final TestObject<SchemaType> SCHEMA_MY_CUSTOMER = TestObject.file(TEST_DIR, "schema-my-customer.xml", "f9fa99f6-51b7-4eb1-9c72-46ecb9133e1f");
+    private static final String NS_MY_CUSTOMER = "http://evolveum.com/myCustomer/poc";
+    private static final ItemName EXT_DEPARTMENT_NUMBER = new ItemName(NS_MY_CUSTOMER, "departmentNumber", "myCustomer");
+    private static final ItemPath EXT_DEPARTMENT_NUMBER_PATH = ItemPath.create(ObjectType.F_EXTENSION, EXT_DEPARTMENT_NUMBER);
 
     private static final ResourceObjectTypeIdentification GENERIC_ORGANIZATIONAL_UNIT =
             ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, "organizationalUnit");
@@ -116,11 +119,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     @Autowired
     private StatisticsService statisticsService;
 
+    @Autowired
+    private SchemaMatchService schemaMatchService;
+
+    @Autowired
+    private DataSource dataSource;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult, CommonInitialObjects.SERVICE_ORIGIN_ARTIFICIAL_INTELLIGENCE);
+        addObject(SCHEMA_MY_CUSTOMER, initTask, initResult);
 
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_NO_PAGING, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING, initTask, initResult);
@@ -132,6 +142,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         initTestObjects(initTask, initResult, USER_JACK, USER_JIM, USER_ALICE, USER_BOB, USER1, USER2, USER3);
         createAndLinkAccounts(initTask, initResult);
+        populateMappingSuggestionExtensionSamples(initTask, initResult);
     }
 
     private void createDummyAccounts() throws Exception {
@@ -202,6 +213,20 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "i")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "c");
         linkAccount(USER_BOB, initTask, initResult);
+    }
+
+    private void populateMappingSuggestionExtensionSamples(Task task, OperationResult result) throws Exception {
+        populateMappingSuggestionExtensionSample(USER_ALICE, "A", task, result);
+        populateMappingSuggestionExtensionSample(USER_BOB, "B", task, result);
+        populateMappingSuggestionExtensionSample(USER_JACK, "C", task, result);
+        populateMappingSuggestionExtensionSample(USER_JIM, "D", task, result);
+    }
+
+    private void populateMappingSuggestionExtensionSample(
+            TestObject<UserType> user, String value, Task task, OperationResult result) throws Exception {
+        modifyUserReplace(user.oid, EXT_DEPARTMENT_NUMBER_PATH, task, result, value);
+        dummyForMappingsAndCorrelation.account.getByNameRequired(user.getNameOrig())
+                .replaceAttributeValues(Account.AttributeNames.DEPARTMENT.local(), value);
     }
 
     private void linkAccount(TestObject<?> user, Task task, OperationResult result) throws CommonException, IOException {
@@ -1231,6 +1256,73 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(midPointAttributesNumber)
                 .as("number of midPoint attributes in request")
                 .isLessThanOrEqualTo(100);
+    }
+
+    /**
+     * Verifies that mapping-suggestion tasks preserve dynamic extension namespaces
+     * in persisted ItemPath values.
+     */
+    @Test
+    public void test320SuggestMappingsTaskPersistsCustomExtensionOutboundSourcePathNamespace() throws Exception {
+        skipIfRealService();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ItemPath sourcePath = EXT_DEPARTMENT_NUMBER_PATH;
+        ItemPath shadowAttributePath = Account.AttributeNames.DEPARTMENT.path();
+
+        given("a cached schema match using a custom-extension focus path");
+        schemaMatchService.saveSchemaMatch(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                new SchemaMatchResultType()
+                        .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+                        .schemaMatchResult(new SchemaMatchOneResultType()
+                                .shadowAttributePath(
+                                        PrismContext.get().itemPathSerializer()
+                                                .serializeStandalone(shadowAttributePath))
+                                .focusPropertyPath(
+                                        PrismContext.get().itemPathSerializer()
+                                                .serializeStandalone(sourcePath))
+                                .isSystemProvided(true)),
+                result);
+
+        TestServiceClientFactory.mockServiceClient(clientFactoryMock, new MockServiceClientImpl());
+
+        when("the mapping-suggestion task is executed");
+        String taskOid = smartIntegrationService.submitSuggestMappingsOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                false,
+                null,
+                List.of(DataAccessPermissionType.SCHEMA_ACCESS),
+                false,
+                task,
+                result);
+
+        waitForTaskFinish(taskOid);
+
+        then("the persisted task contains a self-contained custom-extension source path");
+        String rawTaskJson = getRawSqaleFullObjectJson(taskOid);
+
+        assertThat(rawTaskJson)
+                .contains("c:extension/myCustomer:departmentNumber")
+                .contains("\"myCustomer\"")
+                .contains(NS_MY_CUSTOMER);
+    }
+
+    private String getRawSqaleFullObjectJson(String oid) throws Exception {
+        try (var connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("select fullobject from m_task where oid = ?")) {
+
+            statement.setObject(1, UUID.fromString(oid));
+
+            try (var resultSet = statement.executeQuery()) {
+                assertThat(resultSet.next()).isTrue();
+                return new String(resultSet.getBytes(1), StandardCharsets.UTF_8);
+            }
+        }
     }
 
     @Test
