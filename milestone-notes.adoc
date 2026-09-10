@@ -11,6 +11,11 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC2
 == 4.11-RC1
 
+=== 2026-09-03 Password hints now stored as protected string
+
+Task: https://support.evolveum.com/wp/12111[12111]
+Description: Password hints now stored as ProtectedStringType instead of plain strings. See xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
+
 === 2026-09-03 Changed objects used by Smart integration functionality
 
 Task: https://support.evolveum.com/wp/11337[11337]
