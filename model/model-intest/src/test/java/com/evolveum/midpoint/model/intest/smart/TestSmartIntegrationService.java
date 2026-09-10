@@ -422,7 +422,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 if (suggestMappingCalls.getAndIncrement() == 0) {
                     throw new RuntimeException("LLM went crazy here");
                 }
-                return new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')");
+                return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
             } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
                 return new SiSuggestMappingResponseType().transformationScript(null);
             }

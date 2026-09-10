@@ -88,24 +88,6 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         );
     }
 
-    private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths) {
-        if (focusPaths.size() != shadowPaths.size()) {
-            throw new IllegalArgumentException("focusPaths and shadowPaths must have the same size");
-        }
-        SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
-        for (int i = 0; i < focusPaths.size(); i++) {
-            matchResponse.attributeMatch(
-                    new SiAttributeMatchSuggestionType()
-                            .applicationAttribute(asStringSimple(shadowPaths.get(i)))
-                            .midPointAttribute(asStringSimple(focusPaths.get(i)))
-            );
-        }
-        return new MockServiceClientImpl(
-                matchResponse,
-                new SiSuggestMappingResponseType().transformationScript(null)
-        );
-    }
-
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -265,8 +247,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -301,8 +282,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
-                List.of(EMAIL.path())
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -338,8 +318,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -378,8 +357,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -415,8 +393,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -456,8 +433,7 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
-                List.of(EMAIL.path())
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -503,8 +479,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
         refreshShadows();
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
-                List.of(PERSONAL_NUMBER.path(), EMAIL.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path()),
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -560,8 +536,8 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
 
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
-                List.of(PERSONAL_NUMBER.path(), EMAIL.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path()),
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
@@ -615,14 +591,9 @@ public class TestCorrelatorSuggestions extends AbstractSmartIntegrationTest {
         OperationResult result = task.getResult();
 
         var mockClient = createClient(
-                List.of(
-                        ItemPath.create(FocusType.F_NAME),
-                        ItemPath.create(UserType.F_PERSONAL_NUMBER),
-                        ItemPath.create(UserType.F_DESCRIPTION)),
-                List.of(
-                        EMAIL.path(),
-                        PERSONAL_NUMBER.path(),
-                        DEPARTMENT.path())
+                new MockMapping(ItemPath.create(FocusType.F_NAME), EMAIL.path()),
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path()),
+                new MockMapping(ItemPath.create(UserType.F_DESCRIPTION), DEPARTMENT.path())
         );
         TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
