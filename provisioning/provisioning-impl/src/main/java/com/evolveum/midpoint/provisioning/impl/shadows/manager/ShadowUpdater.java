@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.setEffectiveOperationPolicy;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 
 import java.util.ArrayList;
@@ -495,7 +496,7 @@ public class ShadowUpdater {
         executeRepoShadowModifications(ctx, repoShadow.shadow(), shadowModifications, result);
 
         // The effectiveMarkRefs were applied (via modifications above), but transient properties were net. Let's do that here.
-        repoShadow.getBean().setEffectiveOperationPolicy(effectiveMarksAndPolicies.effectiveOperationPolicy());
+        setEffectiveOperationPolicy(repoShadow.getBean(), effectiveMarksAndPolicies.effectiveOperationPolicy());
         repoShadow.getBean().setProtectedObject(effectiveMarksAndPolicies.isProtected());
 
         return repoShadow;

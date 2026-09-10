@@ -39,6 +39,19 @@ public class ObjectOperationPolicyTypeUtil {
             SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
             SynchronizeMembershipOperationPolicyConfigurationType.F_TOLERANT);
 
+    /**
+     * Attaches the effective operation policy and marks the value actually attached to the object as transient.
+     *
+     * The generated setter may clone a value that is already attached elsewhere, so the transient flag has to be set
+     * on the value obtained back from the target object.
+     */
+    public static void setEffectiveOperationPolicy(@NotNull ObjectType object, @Nullable ObjectOperationPolicyType policy) {
+        object.setEffectiveOperationPolicy(policy);
+        if (policy != null) {
+            object.getEffectiveOperationPolicy().asPrismContainerValue().setTransient(true);
+        }
+    }
+
     /** Returns the `delete` policy severity, or `null` if there are no restrictions. */
     public static @Nullable OperationPolicyViolationSeverityType getDeletionRestrictionSeverity(
             @NotNull ObjectOperationPolicyType policy) {

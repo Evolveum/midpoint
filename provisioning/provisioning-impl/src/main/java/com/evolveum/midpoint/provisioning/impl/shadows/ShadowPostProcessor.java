@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.setEffectiveOperationPolicy;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -207,7 +208,7 @@ class ShadowPostProcessor {
             shadow.applyDefinition(classification.getDefinitionRequired());
         }
         // TODO should we provide empty policy here, or should we stop requiring policy for these shadows?
-        shadow.getBean().setEffectiveOperationPolicy(new ObjectOperationPolicyType());
+        setEffectiveOperationPolicy(shadow.getBean(), new ObjectOperationPolicyType());
     }
 
     /** For regular embedded shadows we do a full post-processing. */
