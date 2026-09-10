@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TraceType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -93,6 +94,16 @@ public interface OperationResultBuilder {
 
     OperationResult setImportance(OperationResultImportanceType value);
 
+    /**
+     * Sets a tracing profile for this {@link OperationResult}.
+     *
+     * It influences collecting additional data, e.g. log entries and {@link TraceType} entries.
+     *
+     * IMPORTANT: Set the profile before {@link OperationResult#recordStart(String, Object[])} is called.
+     * Otherwise e.g. logging won't correctly work at the top level. The easiest way to ensure this is to use
+     * {@link OperationResultBuilder} to create the {@link OperationResult} and set the profile before calling
+     * {@link OperationResultBuilder#build()}.
+     */
     OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
 
     OperationResultBuilder operationKind(OperationKindType kind);
