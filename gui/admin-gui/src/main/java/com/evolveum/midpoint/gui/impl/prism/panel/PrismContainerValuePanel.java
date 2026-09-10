@@ -214,7 +214,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             }
         };
         sortPropertiesButton.add(AttributeAppender.append("data-tooltip", this::getSortButtonTitle));
-        sortPropertiesButton.add(AttributeAppender.append("aria-label", this::getSortButtonTitle));
+        sortPropertiesButton.add(AttributeAppender.append("aria-label", this::getSortButtonAriaLabel));
         sortPropertiesButton.add(new VisibleBehaviour(this::shouldBeButtonsShown));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
@@ -224,6 +224,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private String getSortButtonTitle() {
         return getModelObject().isSorted() ? getString("PrismObjectPanel.sortPropertiesByOrder")
                 : getString("PrismObjectPanel.sortPropertiesByName");
+    }
+
+    private String getSortButtonAriaLabel() {
+        return getModelObject().isSorted() ? getString("PrismObjectPanel.sortPropertiesByOrder.ariaLabel")
+                : getString("PrismObjectPanel.sortPropertiesByName.ariaLabel");
     }
 
     private AjaxLink createAddMoreButton() {
@@ -310,10 +315,21 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         target.add(getValuePanel());
         target.add(getSortButton());
         target.add(getFeedbackPanel());
+
+        WebMarkupContainer statusMessage = getAnnouncementStatusMessageComponent();
+        String announcement = wrapper.isSorted()
+                ? getString("PrismObjectPanel.sortPropertiesByName.announce")
+                : getString("PrismObjectPanel.sortPropertiesByOrder.announce");
+        target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageByPath('%s', '%s', %d);",
+                statusMessage.getPageRelativePath(), announcement, 150));
     }
 
     private ToggleIconButton<Void> getSortButton() {
         return (ToggleIconButton) get(createComponentPath(ID_MAIN_CONTAINER, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
+    }
+
+    private WebMarkupContainer getAnnouncementStatusMessageComponent() {
+        return (WebMarkupContainer) get(createComponentPath(ID_MAIN_CONTAINER, ID_HEADER_CONTAINER, ID_HEADER_STATUS_MESSAGE));
     }
 
     public void refreshPanel(AjaxRequestTarget target) {
