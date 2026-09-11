@@ -860,19 +860,10 @@ public class ExpressionUtil {
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
-                shortDesc, task, parentResult);
-
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
-        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
-        context.setExpressionFactory(expressionFactory);
-        context.setExpressionProfile(expressionProfile);
-        PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
-
-        LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
-
-        return getExpressionOutputValue(outputTriple, shortDesc);
+        Collection<V> values = evaluateExpressionNative(
+                sources, variables, outputDefinition, expressionType, expressionProfile,
+                expressionFactory, shortDesc, task, parentResult);
+        return getSingleValue(values, shortDesc);
     }
 
     @NotNull
@@ -906,11 +897,16 @@ public class ExpressionUtil {
         return evaluateExpression(null, variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc, task, parentResult);
     }
 
-    public static <V extends PrismValue> V getExpressionOutputValue(PrismValueDeltaSetTriple<V> outputTriple, String shortDesc) throws ExpressionEvaluationException {
+    public static <V extends PrismValue> V getExpressionOutputValue(PrismValueDeltaSetTriple<V> outputTriple, String shortDesc)
+            throws ExpressionEvaluationException {
         if (outputTriple == null) {
             return null;
         }
-        Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
+        return getSingleValue(outputTriple.getNonNegativeValues(), shortDesc);
+    }
+
+    private static <V extends PrismValue> @Nullable V getSingleValue(Collection<V> nonNegativeValues, String shortDesc)
+            throws ExpressionEvaluationException {
         if (nonNegativeValues.isEmpty()) {
             return null;
         }

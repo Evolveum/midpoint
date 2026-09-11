@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.Collection;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
@@ -183,6 +184,10 @@ public class ScriptExpressionEvaluationContext {
         THREAD_LOCAL_CONTEXT.set(oldContext);
     }
 
+    /**
+     * Returns the {@link ScriptExpressionEvaluationContext} for the current thread. This is useful when script calls
+     * methods e.g. in {@link MidpointFunctions} that need to access the context.
+     */
     public static ScriptExpressionEvaluationContext getThreadLocal() {
         return THREAD_LOCAL_CONTEXT.get();
     }

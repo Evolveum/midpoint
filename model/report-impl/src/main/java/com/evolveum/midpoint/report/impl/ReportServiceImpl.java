@@ -12,12 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.expression.*;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.task.api.ExpressionEnvironment;
 
 import com.google.common.base.Preconditions;
 import jakarta.xml.bind.JAXBElement;
@@ -37,26 +33,22 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
-import com.evolveum.midpoint.task.api.ExpressionEnvironment;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionUtil;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -65,6 +57,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -84,8 +77,6 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private AuditService auditService;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private SecurityEnforcer securityEnforcer;
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
-    @Autowired private ArchetypeManager archetypeManager;
     @Autowired private ExpressionProfileManager expressionProfileManager;
 
     @Autowired private Clock clock;
@@ -95,7 +86,6 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private LocalizationService localizationService;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
     @Autowired private BulkActionsService bulkActionsService;
-    @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ReportFunctions reportFunctions;
 
     @Autowired(required = false) private List<ReportOutputCreatedListener> reportOutputCreatedListeners;
@@ -113,17 +103,25 @@ public class ReportServiceImpl implements ReportService {
 
         Preconditions.checkNotNull(report, "Report must not be null.");
 
-        // TODO why do we circumvent the standard expression evaluation mechanism here (for scripts)?
+        applyDefaultsForScripts(expression, report);
+
+        // This is a hack: putting functions library as a plain variable.
+        var variablesCopy = variables.shallowClone();
+        variablesCopy.put(MidPointConstants.FUNCTION_LIBRARY_REPORT_VARIABLE_NAME, reportFunctions, ReportFunctions.class);
+
+        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+        try {
+            return ExpressionUtil.evaluateExpressionNative(null, variablesCopy, null, expression,
+                    determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
+        } finally {
+            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
+
+    private static void applyDefaultsForScripts(ExpressionType expression, PrismObject<ReportType> report) {
         List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
         if (evaluators.size() == 1
                 && evaluators.get(0).getValue() instanceof ScriptExpressionEvaluatorType scriptExpressionBean) {
-            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-            context.setVariables(variables);
-            context.setContextDescription(shortDesc);
-            context.setTask(task);
-            context.setResult(result);
-            setupExpressionProfiles(context, report);
-
             if (scriptExpressionBean.getObjectVariableMode() == null) {
                 var defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
                 scriptExpressionBean.setObjectVariableMode(
@@ -131,36 +129,16 @@ public class ReportServiceImpl implements ReportService {
                                 ? ObjectVariableModeType.OBJECT
                                 : defaultScriptConfiguration.getObjectVariableMode());
             }
-            context.setScriptBean(scriptExpressionBean);
-            context.setObjectResolver(objectResolver);
-
-            ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                    scriptExpressionBean, context.getOutputDefinition(), context.getExpressionProfile(),
-                    context.getContextDescription(), context.getResult());
-
-            scriptExpression.setFunctionLibraryBindings(createFunctionLibraries(scriptExpression.getFunctionLibraryBindings()));
-
-            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
-                    new ExpressionEnvironment(context.getTask(), context.getResult()));
-            try {
-                return scriptExpression.evaluate(context);
-            } finally {
-                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+            if (expression.isAllowEmptyValues() == null) {
+                // This was the original behavior before unifying script with other expressions
+                // but this is not honored for scripts anyway (see SingleShotEvaluation), so it's kind of useless here.
+                expression.setAllowEmptyValues(true);
             }
-        } else {
-            return ExpressionUtil.evaluateExpressionNative(null, variables, null, expression,
-                    determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
+            if (scriptExpressionBean.getRelativityMode() == null) {
+                // for compatibility reasons with the previous behavior
+                scriptExpressionBean.setRelativityMode(TransformExpressionRelativityModeType.ABSOLUTE);
+            }
         }
-    }
-
-    private Collection<FunctionLibraryBinding> createFunctionLibraries(Collection<FunctionLibraryBinding> originalFunctions) {
-        FunctionLibraryBinding reportLib = new FunctionLibraryBinding(
-                MidPointConstants.FUNCTION_LIBRARY_REPORT_VARIABLE_NAME,
-                reportFunctions);
-
-        Collection<FunctionLibraryBinding> functions = new ArrayList<>(originalFunctions);
-        functions.add(reportLib);
-        return functions;
     }
 
     public PrismContext getPrismContext() {
@@ -171,35 +149,6 @@ public class ReportServiceImpl implements ReportService {
             @NotNull PrismObject<ReportType> report, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException {
         return expressionProfileManager.determineExpressionProfile(report, result);
-    }
-
-    private void setupExpressionProfiles(ScriptExpressionEvaluationContext context, PrismObject<ReportType> report)
-            throws SchemaException, ConfigurationException {
-        ExpressionProfile expressionProfile = determineExpressionProfile(report, context.getResult());
-        LOGGER.trace("Using expression profile {} for report evaluation, determined from: '{}'",
-                expressionProfile == null ? null : expressionProfile.getIdentifier(), report);
-        context.setExpressionProfile(expressionProfile);
-        context.setScriptExpressionProfile(
-                findScriptExpressionProfile(expressionProfile, report));
-    }
-
-    private @Nullable ScriptLanguageExpressionProfile findScriptExpressionProfile(
-            ExpressionProfile expressionProfile, PrismObject<ReportType> report) {
-        if (expressionProfile == null) {
-            return null;
-        }
-        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
-        ExpressionEvaluatorProfile scriptEvaluatorProfile =
-                evaluatorsProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
-        if (scriptEvaluatorProfile == null) {
-            return null;
-        }
-        return scriptEvaluatorProfile.getScriptExpressionProfile(getScriptLanguageName(report));
-    }
-
-    private String getScriptLanguageName(PrismObject<ReportType> report) {
-        // Hardcoded for now
-        return GroovyScriptEvaluator.LANGUAGE_NAME;
     }
 
     @Override

@@ -11,6 +11,23 @@ The upgrade instructions between releases are in the https://docs.evolveum.com/m
 == 4.11-RC2
 == 4.11-RC1
 
+=== 2026-09-11 Script execution in reports may behave slightly differently
+
+Task: https://support.evolveum.com/wp/10948[10948]
+Description:
+
+As part of hardening the enforcement of expression profiles, evaluation of scripts in reports was unified with the evaluation of other scripts and expressions in midPoint.
+This may affect deployments that depend on the subtleties of previous implementation, for example, that the order of values returned by the script is preserved, which is no longer the case.
+(MidPoint generally does not guarantee ordering of values.)
+
+Required Upgrade Steps:
+
+- Check correctness of the reports, especially if they depend on the ordering of values provided by scripts.
+
+Notes & References:
+
+* Related commits: <this one>
+
 === 2026-09-03 Password hints now stored as protected string
 
 Task: https://support.evolveum.com/wp/12111[12111]
