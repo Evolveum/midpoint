@@ -2,10 +2,13 @@
 midpoint-feature: simulation
 doc-type: intro
 ---
-= Simulations
+= Simulation usage reference
+:page-nav-title: Simulation
 :page-toc: top
 :page-since: "4.7"
 :page-upkeep-status: green
+:page-description: This article describes usage of the midPoint simulation feature that provides a safe environment for conducting a "what-if" analysis before activating configuration changes.
+:page-keywords: simulation, test, testing, preview, development environment, task, activity, preview mode, development configuration, simulation result
 
 == Introduction
 
