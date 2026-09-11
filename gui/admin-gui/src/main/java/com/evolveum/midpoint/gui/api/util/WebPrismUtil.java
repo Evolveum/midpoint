@@ -764,7 +764,8 @@ public class WebPrismUtil {
     public static int getNumberOfSameMappingNames(PrismContainerValueWrapper containerValue, String value) {
         int numberOfSameRef = 0;
 
-        if (AbstractMappingType.class.isAssignableFrom(containerValue.getDefinition().getTypeClass())) {
+        if (containerValue.getDefinition() != null
+                && AbstractMappingType.class.isAssignableFrom(containerValue.getDefinition().getTypeClass())) {
             try {
                 PrismPropertyWrapper<String> nameProperty = containerValue.findProperty(AbstractMappingType.F_NAME);
                 String name = nameProperty.getValue().getRealValue();
