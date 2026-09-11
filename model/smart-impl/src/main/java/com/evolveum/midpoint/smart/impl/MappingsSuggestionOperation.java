@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
@@ -432,7 +433,7 @@ class MappingsSuggestionOperation {
     }
 
     /** Builds the final suggestion structure for the given direction while encapsulating path handling quirks. */
-    private static AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
+    private AttributeMappingsSuggestionType buildAttributeMappingSuggestion(
             ValuesPairSample<?, ?> pairSample,
             @Nullable Float expectedQuality,
             @Nullable ExpressionType expression,
@@ -442,16 +443,25 @@ class MappingsSuggestionOperation {
                 .ref(pairSample.shadowAttributePath().rest().toBean()); // FIXME! what about activation, credentials, etc?
 
         if (pairSample.direction() == MappingDirection.INBOUND) {
+            ItemDefinition<?> targetDef = ctx.getFocusTypeDefinition().findItemDefinition(pairSample.focusPropertyPath());
+            var rangePredefined = targetDef != null && targetDef.isMultiValue()
+                    ? ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE
+                    : ValueSetDefinitionPredefinedType.ALL;
+
             def.inbound(new InboundMappingType()
                     .name(pairSample.shadowAttributePath().lastName().getLocalPart() + "-into-" + pairSample.focusPropertyPath())
                     .strength(strength)
-                    .target(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
+                    .target(new VariableBindingDefinitionType()
+                            .path(sanitizedFocusPath.toBean())
+                            .set(new ValueSetDefinitionType().predefined(rangePredefined)))
                     .expression(expression));
         } else {
             def.outbound(new OutboundMappingType()
                     .name(pairSample.focusPropertyPath() + "-to-" + pairSample.shadowAttributePath().lastName().getLocalPart())
                     .strength(strength)
                     .source(new VariableBindingDefinitionType().path(sanitizedFocusPath.toBean()))
+                    .target(new VariableBindingDefinitionType()
+                            .set(new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.ALL)))
                     .expression(expression));
         }
 

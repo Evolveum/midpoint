@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.setEffectiveOperationPolicy;
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -332,7 +333,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             b.shadowUpdater.markShadowTombstone(shadow, effectiveCtx.getTask(), result);
         }
         var bean = shadow.getBean();
-        bean.setEffectiveOperationPolicy(
+        setEffectiveOperationPolicy(bean,
                 ObjectOperationPolicyHelper.get().computeEffectivePolicy(bean, effectiveCtx.getExecutionMode(), result));
     }
 

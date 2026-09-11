@@ -6,11 +6,14 @@
 
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.fromOrig;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,6 +25,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -936,5 +942,62 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         assertThat(estimatedOldValue.asContainerable().getTargetRef().getOid()).isEqualTo(ROLE_RED_SAILOR_OID);
 
         assertThat(objectDelta.debugDump()).contains(ROLE_JUDGE_OID);
+    }
+
+    /**
+     * Verifies that the transient effective operation policy is not persisted in the execution audit
+     * when an account is created from an archetype-induced construction. See MID-11951.
+     */
+    @Test
+    public void test430TransientOperationPolicyNotPresentInAuditedShadowAdd() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String username = "mid-11951";
+
+        given("an archetype inducing an account construction");
+        ArchetypeType archetype = new ArchetypeType()
+                .name("archetype-" + username)
+                .inducement(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(INTENT_DEFAULT)));
+        String archetypeOid = addObject(archetype.asPrismObject(), task, result);
+        long lastAuditId = getAuditRecordsMaxId(task, result);
+
+        when("a user assigned to the archetype is added");
+        UserType user = new UserType()
+                .name(username)
+                .assignment(new AssignmentType()
+                        .targetRef(archetypeOid, ArchetypeType.COMPLEX_TYPE));
+        String userOid = addObject(user.asPrismObject(), task, result);
+
+        then("the account is created");
+        assertSuccess(result);
+        String shadowOid = getLiveLinkRefOid(userOid, RESOURCE_DUMMY_OID);
+        assertDummyAccount(null, username);
+
+        and("the persisted execution audit contains the shadow add without effective operation policy");
+        List<ObjectDeltaType> shadowAddDeltas = getAuditRecordsAfterId(lastAuditId, task, result).stream()
+                .filter(record -> record.getEventStage() == AuditEventStageType.EXECUTION)
+                .flatMap(record -> record.getDelta().stream())
+                .map(ObjectDeltaOperationType::getObjectDelta)
+                .filter(Objects::nonNull)
+                .filter(delta -> delta.getChangeType() == ChangeTypeType.ADD)
+                .filter(delta -> ShadowType.COMPLEX_TYPE.equals(delta.getObjectType()))
+                .filter(delta -> shadowOid.equals(delta.getOid()))
+                .toList();
+        assertThat(shadowAddDeltas).hasSize(1);
+
+        ShadowType auditedShadow = (ShadowType) shadowAddDeltas.get(0).getObjectToAdd();
+        assertThat(auditedShadow.getEffectiveOperationPolicy()).isNull();
+        assertThat(auditedShadow.getResourceRef().getOid()).isEqualTo(RESOURCE_DUMMY_OID);
+        assertThat(auditedShadow.getObjectClass()).isEqualTo(RI_ACCOUNT_OBJECT_CLASS);
+        assertThat(auditedShadow.getKind()).isEqualTo(ShadowKindType.ACCOUNT);
+        assertThat(auditedShadow.getIntent()).isEqualTo(INTENT_DEFAULT);
+        assertThat(auditedShadow.isExists()).isFalse();
+        var uid = auditedShadow.asPrismObject().findProperty(SchemaConstants.ICFS_UID_PATH);
+        assertThat(uid).isNotNull();
+        assertThat(uid.getRealValue()).isEqualTo(username);
     }
 }

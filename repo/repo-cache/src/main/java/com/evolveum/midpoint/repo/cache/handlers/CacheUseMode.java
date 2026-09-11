@@ -341,6 +341,7 @@ class CacheUseMode {
             //  - iterationMethod
 
             // Eliminate harmless options (retrieve is already eliminated)
+            clone.setDefinitionProcessing(null); // definition processing  is done only at model level, not relevant for caching
             clone.doNotDiscovery(null);
             clone.setForceRefresh(null);
             clone.setForceRetry(null);

@@ -6,7 +6,11 @@
 
 package com.evolveum.midpoint.gui;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 
@@ -14,7 +18,10 @@ import com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials;
 
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.basic.Label;
 import org.javasimon.Split;
 import org.javasimon.Stopwatch;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,8 +29,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.menu.DetailsNavigationPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment.AllAssignmentsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
@@ -40,6 +50,8 @@ import com.evolveum.midpoint.tools.testng.PerformanceTestMethodMixin;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -57,6 +69,10 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
     private static final File FILE_USERS = new File(TEST_DIR, "users.xml");
     private static final File FILE_ARCHETYPE_TEACHER = new File(TEST_DIR, "archetype-teacher.xml");
     private static final String ARCHETYPE_TEACHER_OID = "b27830c5-f02a-4273-ab7e-b6bd0e1026dc";
+    private static final String PERSON_TEMPLATE_TITLE = "Person";
+    private static final String EDITED_USER_NAME = "user10";
+    private static final String ASSIGNMENTS_MENU_TITLE = "Assignments";
+    private static final String ALL_ASSIGNMENTS_MENU_TITLE = "All";
 
     private static final int REPETITION_COUNT = 10;
 
@@ -137,10 +153,6 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
     }
 
     private void runTestFor(Class pageToRender, String stopwatchName, String stopwatchDescription) {
-        runTestFor(pageToRender, null, stopwatchName, stopwatchDescription);
-    }
-
-    private void runTestFor(Class pageToRender, PageParameters params, String stopwatchName, String stopwatchDescription) {
         Stopwatch stopwatch = stopwatch(stopwatchName, stopwatchDescription);
         for (int i = 0; i < REPETITION_COUNT; i++) {
             try (Split ignored = stopwatch.start()) {
@@ -173,10 +185,9 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
         Stopwatch stopwatch = stopwatch("newUser", "New user");
         for (int i = 0; i < REPETITION_COUNT; i++) {
             tester.startPage(PageUser.class);
-            tester.debugComponentTrees();
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                tester.executeAjaxEvent("detailsView:template:template:additionalButtons:0:additionalButton:compositedButton", "click");
+                clickTemplateTile(PERSON_TEMPLATE_TITLE);
             }
         }
         queryListener.dumpAndStop();
@@ -189,9 +200,6 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
         displayValue("Operation performance (by time)",
                 OperationsPerformanceInformationUtil.format(performanceInformation,
                         new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
-
-//        runTestFor(PageUser.class, "newUser", "New user");
-
     }
 
     @Test
@@ -201,17 +209,10 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
         for (int i = 0; i < REPETITION_COUNT; i++) {
             tester.startPage(PageUsers.class);
 
-            String idTable = "mainForm:table";
-            tester.assertComponent(idTable, MainObjectListPanel.class);
-
-            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
-
-            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
-
             Stopwatch stopwatch = stopwatch("editUser", "Edit User");
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                tester.clickLink(id);
+                clickUserName(EDITED_USER_NAME);
             }
         }
 
@@ -233,14 +234,7 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
 
         for (int i = 0; i < REPETITION_COUNT; i++) {
             tester.startPage(PageUsers.class);
-
-            String idTable = "mainForm:table";
-            tester.assertComponent(idTable, MainObjectListPanel.class);
-
-            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
-
-            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
-            tester.clickLink(id);
+            clickUserName(EDITED_USER_NAME);
 
             Stopwatch stopwatch = stopwatch("showProjections", "User's projection tab");
             try (Split ignored = stopwatch.start()) {
@@ -267,21 +261,16 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
 
         for (int i = 0; i < REPETITION_COUNT; i++) {
             tester.startPage(PageUsers.class);
-
-            String idTable = "mainForm:table";
-            tester.assertComponent(idTable, MainObjectListPanel.class);
-
-            tester.debugComponentTrees(":rows:.*:cells:3:cell:link");
-
-            String id = idTable + ":items:itemsTable:box:tableContainer:table:body:rows:3:cells:3:cell:link";
-            tester.clickLink(id);
+            clickUserName(EDITED_USER_NAME);
 
             Stopwatch stopwatch = stopwatch("showAssignments", "User's assignmentTab");
             try (Split ignored = stopwatch.start()) {
                 queryListener.start();
-                //order 0 == All Assignments
-                clickOnDetailsAssignmentMenu(0, com.evolveum.midpoint.gui.impl.page.admin.user.PageUser.class);
+                clickDetailsSubmenu(ASSIGNMENTS_MENU_TITLE, ALL_ASSIGNMENTS_MENU_TITLE);
             }
+            AllAssignmentsPanel<?> assignmentsPanel = findComponent(
+                    tester.getLastRenderedPage(), AllAssignmentsPanel.class, panel -> true);
+            assertNotNull("All Assignments panel was not rendered", assignmentsPanel);
         }
 
         queryListener.dumpAndStop();
@@ -296,8 +285,94 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
                         new AbstractStatisticsPrinter.Options(AbstractStatisticsPrinter.Format.TEXT, AbstractStatisticsPrinter.SortBy.TIME), null, null));
     }
 
+    private void clickTemplateTile(String title) {
+        TilePanel<?, ?> matchingTile = findComponent(
+                tester.getLastRenderedPage(), TilePanel.class,
+                tile -> title.equals(tile.getModelObject().getTitle()));
+
+        assertNotNull("No template tile with title '" + title + "' was rendered", matchingTile);
+        tester.executeAjaxEvent(matchingTile.getPageRelativePath(), "click");
+    }
+
+    private void clickDetailsMenu(String title) {
+        DetailsNavigationPanel<?> navigationPanel = findComponent(
+                tester.getLastRenderedPage(), DetailsNavigationPanel.class,
+                panel -> panel.findParent(DetailsNavigationPanel.class) == null);
+        assertNotNull("No details navigation panel was rendered", navigationPanel);
+
+        AjaxLink<?> matchingLink = findAjaxLinkByLabel(navigationPanel, title);
+        assertNotNull("No details menu link with title '" + title + "' was rendered", matchingLink);
+        tester.clickLink(matchingLink.getPageRelativePath());
+    }
+
+    private void clickDetailsSubmenu(String menuTitle, String submenuTitle) {
+        DetailsNavigationPanel<?> navigationPanel = findComponent(
+                tester.getLastRenderedPage(), DetailsNavigationPanel.class,
+                panel -> panel.findParent(DetailsNavigationPanel.class) == null);
+        assertNotNull("No details navigation panel was rendered", navigationPanel);
+
+        AjaxLink<?> menuLink = findAjaxLinkByLabel(navigationPanel, menuTitle);
+        assertNotNull("No details menu link with title '" + menuTitle + "' was rendered", menuLink);
+
+        DetailsNavigationPanel<?> submenu = findComponent(menuLink.getParent(), DetailsNavigationPanel.class, panel -> true);
+        assertNotNull("No submenu for details menu '" + menuTitle + "' was rendered", submenu);
+
+        if (!submenu.isVisibleInHierarchy()) {
+            clickDetailsMenu(menuTitle);
+            navigationPanel = findComponent(
+                    tester.getLastRenderedPage(), DetailsNavigationPanel.class,
+                    panel -> panel.findParent(DetailsNavigationPanel.class) == null);
+            assertNotNull("No details navigation panel was rendered", navigationPanel);
+            menuLink = findAjaxLinkByLabel(navigationPanel, menuTitle);
+            assertNotNull("No details menu link with title '" + menuTitle + "' was rendered", menuLink);
+            submenu = findComponent(menuLink.getParent(), DetailsNavigationPanel.class, panel -> true);
+            assertNotNull("No submenu for details menu '" + menuTitle + "' was rendered", submenu);
+        }
+
+        AjaxLink<?> submenuLink = findAjaxLinkByLabel(submenu, submenuTitle);
+        assertNotNull("No details submenu link with title '" + submenuTitle + "' was rendered", submenuLink);
+        tester.clickLink(submenuLink.getPageRelativePath());
+    }
+
+    private void clickUserName(String userName) {
+        SelectableDataTable.SelectableRowItem<?> matchingRow = findComponent(
+                tester.getLastRenderedPage(), SelectableDataTable.SelectableRowItem.class,
+                row -> row.getModelObject() instanceof SelectableBean<?> bean
+                        && bean.getValue() instanceof UserType user
+                        && userName.equals(WebComponentUtil.getName(user)));
+
+        assertNotNull("No rendered user row for '" + userName + "' was found", matchingRow);
+
+        AjaxLink<?> nameLink = findAjaxLinkByLabel(matchingRow, userName);
+        assertNotNull("No name link for user '" + userName + "' was found", nameLink);
+        tester.clickLink(nameLink.getPageRelativePath());
+    }
+
+    private AjaxLink<?> findAjaxLinkByLabel(MarkupContainer parent, String value) {
+        Label matchingLabel = findComponent(parent, Label.class,
+                label -> value.equals(label.getDefaultModelObjectAsString())
+                        && label.findParent(AjaxLink.class) != null);
+        return matchingLabel != null ? matchingLabel.findParent(AjaxLink.class) : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <C extends Component> C findComponent(MarkupContainer parent, Class<? extends Component> type, Predicate<C> predicate) {
+        AtomicReference<C> result = new AtomicReference<>();
+        parent.visitChildren(Component.class, (component, visit) -> {
+            if (type.isInstance(component)) {
+                C matchingComponent = (C) component;
+                if (!predicate.test(matchingComponent)) {
+                    return;
+                }
+                result.set(matchingComponent);
+                visit.stop();
+            }
+        });
+        return result.get();
+    }
+
     @Test
-    public void test310orgTree() throws Exception {
+    public void test310orgTree() {
         logger.info(getTestName());
         runTestFor(PageOrgTree.class, "orgTree", "Organization tree");
     }

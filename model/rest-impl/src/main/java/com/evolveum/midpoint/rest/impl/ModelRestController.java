@@ -18,6 +18,8 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.*;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -250,11 +252,11 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "options", required = false) List<String> options,
             @RequestParam(value = "include", required = false) List<String> include,
             @RequestParam(value = "exclude", required = false) List<String> exclude,
-            @RequestParam(value = "resolveNames", required = false) List<String> resolveNames) {
+            @RequestParam(value = "resolveNames", required = false) List<String> resolveNames,
+            @Experimental @RequestParam(value = "tracingProfile", required = false) String tracingProfileName) {
         logger.debug("model rest service for get operation start");
 
         Task task = initRequest();
-        OperationResult result = createSubresult(task, "getObject");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         Collection<SelectorOptions<GetOperationOptions>> getOptions =
@@ -262,7 +264,11 @@ public class ModelRestController extends AbstractRestController {
                         resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 
         ResponseEntity<?> response;
+        OperationResult result = null;
+        String opName = "getObject";
+
         try {
+            result = createSubresult(task, opName, tracingProfileName);
             PrismObject<? extends ObjectType> object;
             if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
                 object = getCurrentNodeObject(getOptions, task, result);
@@ -275,10 +281,13 @@ public class ModelRestController extends AbstractRestController {
 
             response = createResponse(HttpStatus.OK, object, result);
         } catch (Exception ex) {
+            if (result == null) {
+                result = createSubresult(task, opName); // fallback that always succeeds
+            }
             response = handleException(result, ex);
         }
 
-        result.computeStatus();
+        result.close();
         finishRequest(task, result);
         return response;
     }
@@ -705,14 +714,17 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "exclude", required = false) List<String> exclude,
             @RequestParam(value = "resolveNames", required = false) List<String> resolveNames,
             @RequestParam(value = "returnTotalCount", required = false) Boolean returnTotalCount,
+            @Experimental @RequestParam(value = "tracingProfile", required = false) String tracingProfileName,
             @RequestBody QueryType queryType) {
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("searchObjects");
+        OperationResult result = null;
+        String opName = "searchObjects";
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
+            result = createSubresult(task, opName, tracingProfileName);
             ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
                     exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
@@ -737,10 +749,13 @@ public class ModelRestController extends AbstractRestController {
 
             response = createResponse(HttpStatus.OK, listType, result, true, headers);
         } catch (Exception ex) {
+            if (result == null) {
+                result = createSubresult(task, opName); // fallback that always succeeds
+            }
             response = handleException(result, ex);
         }
 
-        result.computeStatus();
+        result.close();
         finishRequest(task, result);
         return response;
     }

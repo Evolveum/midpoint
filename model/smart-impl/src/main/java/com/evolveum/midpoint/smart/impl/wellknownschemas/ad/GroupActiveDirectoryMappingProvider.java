@@ -51,13 +51,13 @@ public class GroupActiveDirectoryMappingProvider implements WellKnownSchemaProvi
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", AbstractRoleType.F_IDENTIFIER));
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("sAMAccountName", RoleType.F_NAME, MappingStrengthType.STRONG));
         String prefixScript = resourceName != null
-                ? "'" + resourceName.replace("'", "\\'") + "' + '-' + input"
-                : "'RESOURCE_NAME-' + input";
+                ? "'" + resourceName.replace("'", "\\'") + "' + ':' + input"
+                : "'RESOURCE_NAME:' + input";
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "sAMAccountName",
                 RoleType.F_NAME,
                 prefixScript,
-                "Inbound: group name with resource prefix (<resource>-<sAMAccountName>)",
+                "Inbound: group name with resource prefix (<resource>:<sAMAccountName>)",
                 MappingStrengthType.STRONG));
         return mappings;
     }

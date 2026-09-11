@@ -199,11 +199,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Validate.notNull(parentResult, "Operation result must not be null.");
         Validate.notNull(clazz, "Object class must not be null.");
 
-        enterModelMethod();
-
         PrismObject<T> object;
-
-        OP_LOGGER.trace("MODEL OP enter getObject({},{},{})", clazz.getSimpleName(), oid, rawOptions);
 
         OperationResult result = parentResult.subresult(GET_OBJECT)
                 .setMinor()
@@ -211,6 +207,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addArbitraryObjectCollectionAsParam("options", rawOptions)
                 .addParam("class", clazz)
                 .build();
+
+        enterModelMethod();
+
+        OP_LOGGER.trace("MODEL OP enter getObject({},{},{})", clazz.getSimpleName(), oid, rawOptions);
 
         try {
             var parsedOptions = preProcessOptionsSecurity(rawOptions, task, result);
@@ -229,21 +229,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             object = schemaTransformer.applySchemasAndSecurityToObject(object, parsedOptions, task, result);
             executeResolveOptions(object.asObjectable(), parsedOptions, task, result);
 
+            OP_LOGGER.debug("MODEL OP exit getObject({},{},{}): {}", clazz.getSimpleName(), oid, rawOptions, object);
+            OP_LOGGER.trace("MODEL OP exit getObject({},{},{}):\n{}", clazz.getSimpleName(), oid, rawOptions, object.debugDumpLazily(1));
+            return object;
+
         } catch (Throwable t) {
             OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}",
                     clazz.getSimpleName(), oid, rawOptions, t.getClass().getSimpleName(), t.getMessage());
             ModelImplUtils.recordException(result, t);
             throw t;
         } finally {
-            result.close();
-            result.cleanup();
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
             exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
-        OP_LOGGER.debug("MODEL OP exit getObject({},{},{}): {}", clazz.getSimpleName(), oid, rawOptions, object);
-        OP_LOGGER.trace("MODEL OP exit getObject({},{},{}):\n{}", clazz.getSimpleName(), oid, rawOptions, object.debugDumpLazily(1));
-        return object;
     }
 
     private void executeResolveOptions(
