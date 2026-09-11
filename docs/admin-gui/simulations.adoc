@@ -2,14 +2,17 @@
 midpoint-feature: simulation
 doc-type: intro
 ---
-= Simulations
+= Simulation in GUI
+:page-nav-title: Simulation
 :page-toc: top
 :page-since: "4.7"
-:page-upkeep-status: green
+:page-upkeep-status: yellow
+:page-description: This article describes usage of the midPoint simulation feature in the graphical user interface.
+:page-keywords: simulation, test, testing, preview, development environment, task, activity, preview mode, development configuration, gui, simulation result
 
 == Introduction
 
-This document describes user interface for feature called simulations.
+This document describes user interface for feature called simulation.
 More information about how simulation works and related topics can be found in xref:/midpoint/reference/simulation[simulations] and xref:/midpoint/reference/simulation/tutorial/index.adoc[simulation tutorial].
 
 == User interface
