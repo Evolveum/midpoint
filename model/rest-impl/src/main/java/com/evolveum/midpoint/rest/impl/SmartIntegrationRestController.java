@@ -41,6 +41,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
     private static final String OPERATION_SUGGEST_MAPPINGS = CLASS_DOT + "SuggestMappings";
     private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "SuggestFocusType";
     private static final String OPERATION_SUGGEST_ASSOCIATION_TYPE = CLASS_DOT + "SuggestAssociations";
+    private static final String OPERATION_GET_AI_INFO = CLASS_DOT + "GetAiInfo";
 
     @Autowired private SmartIntegrationService smartIntegrationService;
 
@@ -232,6 +233,28 @@ public class SmartIntegrationRestController extends AbstractRestController {
             var focusTypeName = smartIntegrationService.suggestFocusType(
                     resourceOid, typeIdentification, List.of(DataAccessPermissionType.SCHEMA_ACCESS), task, result);
             return createResponse(HttpStatus.OK, focusTypeName.getFocusType().getLocalPart(), result);
+        } catch (Throwable t) {
+            return handleException(result, t);
+        } finally {
+            finishRequest(task, result);
+        }
+    }
+
+    /**
+     * Retrieves information about the configured AI smart integration service.
+     */
+    @GetMapping(SmartIntegrationConstants.RPC_GET_AI_INFO)
+    public ResponseEntity<?> getAiInfo() {
+
+        var task = initRequest();
+        var result = createSubresult(task, OPERATION_GET_AI_INFO);
+
+        try {
+            return createResponse(
+                    HttpStatus.OK,
+                    smartIntegrationService.getAiInfo(),
+                    result
+            );
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {
