@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -126,6 +127,20 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                             @Override
                             protected DisplayNamePanel<MappingType> createDisplayNamePanel(String displayNamePanelId) {
                                 return new DisplayNamePanel<>(displayNamePanelId, Model.of(item.getModelObject().getRealValue()));
+                            }
+
+                            @Override
+                            protected @NotNull List<ITab> createTabs() {
+                                List<ITab> mappingTabs = super.createTabs();
+                                mappingTabs.add(new PanelTab(createStringResource("MappingRangePanel.range")) {
+                                    @Serial private static final long serialVersionUID = 1L;
+
+                                    @Override
+                                    public WebMarkupContainer createPanel(String panelId) {
+                                        return new MappingRangePanel(panelId, getModel());
+                                    }
+                                });
+                                return mappingTabs;
                             }
                         };
                     }
