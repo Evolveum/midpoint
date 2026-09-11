@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -85,10 +86,11 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     public MelScriptEvaluator(PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration,
             BasicExpressionFunctions basicExpressionFunctions,
             MidpointFunctions midpointExpressionFunctions,
             CacheInvalidationDispatcher cacheInvalidationDispatcher) {
-        super(prismContext, protector, localizationService);
+        super(prismContext, protector, localizationService, configuration);
         this.basicExpressionFunctions = basicExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
                 basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality);
@@ -318,5 +320,10 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         // However, it assumes that all ExpressionEvaluationExceptions are already formatted.
         MelException melCause = ExceptionUtil.findCause(e, MelException.class);
         return Objects.requireNonNullElse(melCause, e);
+    }
+
+    @Override
+    protected boolean isConsideredSafe() {
+        return true;
     }
 }

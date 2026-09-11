@@ -84,6 +84,7 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
                         beans.prismContext,
                         beans.protector,
                         LocalizationTestUtil.getLocalizationService(),
+                        ExpressionTestUtil.testingExpressionsConfiguration(),
                         (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
                         // Instantiating MidPointFunctionsImpl manually in this test would be a nightmare (if even
                         // possible). We don't even need it for our purposes, so just set it to null. We just need to

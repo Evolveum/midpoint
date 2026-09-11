@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script.jsr223;
 import javax.script.*;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
@@ -36,9 +37,13 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
     private final ScriptEngine scriptEngine;
     private final String engineName;
 
-    public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext,
-            Protector protector, LocalizationService localizationService) {
-        super(prismContext, protector, localizationService);
+    public Jsr223ScriptEvaluator(
+            String engineName,
+            PrismContext prismContext,
+            Protector protector,
+            LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration) {
+        super(prismContext, protector, localizationService, configuration);
 
         this.engineName = engineName;
         ScriptEngineManager scriptEngineManager = new ScriptEngineManager();

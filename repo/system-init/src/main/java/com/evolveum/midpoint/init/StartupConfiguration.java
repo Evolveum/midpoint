@@ -16,6 +16,10 @@ import java.util.*;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
+
+import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -87,7 +91,12 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
 
     private boolean silent = false;
 
+    /** Parsed configuration from {@code config.xml} file. */
     private XMLConfiguration config;
+
+    /** Expressions are evaluated frequently, so we want to cache the configuration section. */
+    private final Lazy<ExpressionsConfigurationSection> expressionsConfigurationSection = Lazy.from(
+            () -> new ExpressionsConfigurationSectionImpl(getConfiguration(EXPRESSIONS_CONFIGURATION)));
 
     /**
      * Normalized name of midPoint home directory.
@@ -205,7 +214,7 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
                     && System.getProperty(MidpointConfiguration.MIDPOINT_CONFIG_FILE_PROPERTY) == null) {
                 extractConfigurationFile(configFile);
             }
-            createXmlConfiguration(configFile.getPath());
+            parseConfiguration(configFile.getPath());
         } catch (ConfigurationException e) {
             String message = "Unable to read configuration file [" + configFile + "]: " + e.getMessage();
             LOGGER.error(message);
@@ -276,7 +285,8 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
         StatusPrinter.printInCaseOfErrorsOrWarnings(context);
     }
 
-    private void createXmlConfiguration(String filename) throws ConfigurationException {
+    /** Parses configuration into {@link #config} */
+    private void parseConfiguration(String filename) throws ConfigurationException {
         Map<String, Lookup> lookups = new HashMap<>(
                 ConfigurationInterpolator.getDefaultPrefixLookups());
         lookups.put(RandomLookup.PREFIX, new RandomLookup());
@@ -409,6 +419,10 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     @Override
     public SystemConfigurationSection getSystemSection() {
         return new SystemConfigurationSectionImpl(getConfiguration(SYSTEM_CONFIGURATION));
+    }
+
+    public @NotNull ExpressionsConfigurationSection getExpressionsSection() {
+        return expressionsConfigurationSection.get();
     }
 
     @Override

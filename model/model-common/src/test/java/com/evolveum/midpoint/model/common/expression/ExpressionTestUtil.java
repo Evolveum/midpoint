@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.expression.script.TestingExpressionConfiguration;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
@@ -109,10 +111,14 @@ public class ExpressionTestUtil {
 
         scriptExpressionFactory.registerEvaluator(
                 new GroovyScriptEvaluator(
-                        prismContext, protector, LocalizationTestUtil.getLocalizationService()));
+                        prismContext, protector, LocalizationTestUtil.getLocalizationService(), testingExpressionsConfiguration()));
 
         Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator(
-                "ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());
+                "ECMAScript",
+                prismContext,
+                protector,
+                LocalizationTestUtil.getLocalizationService(),
+                testingExpressionsConfiguration());
         if (jsEvaluator.isInitialized()) {
             scriptExpressionFactory.registerEvaluator(jsEvaluator);
         }
@@ -149,5 +155,13 @@ public class ExpressionTestUtil {
         modelCommonBeans.init();
 
         return modelCommonBeans;
+    }
+
+    public static ExpressionsConfigurationSection testingExpressionsConfiguration() {
+        return new TestingExpressionConfiguration(false);
+    }
+
+    public static ExpressionsConfigurationSection testingExpressionsConfiguration(boolean restrictedMode) {
+        return new TestingExpressionConfiguration(restrictedMode);
     }
 }

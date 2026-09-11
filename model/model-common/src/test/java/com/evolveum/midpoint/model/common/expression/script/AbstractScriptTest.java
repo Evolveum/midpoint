@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.schema.expression.*;
@@ -85,6 +86,8 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     protected PrismContext prismContext;
     protected ScriptExpressionFactory scriptExpressionfactory;
     protected ScriptEvaluator evaluator;
+    /** As {@link #evaluator} but having {@link ExpressionsConfigurationSection#isSafeExpressionsOnly()} set to `true`. */
+    protected ScriptEvaluator evaluatorInRestrictedMode;
     protected LocalizationService localizationService;
     protected final Clock clock = new Clock();
     protected Protector protector;
@@ -104,7 +107,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         localizationService = LocalizationTestUtil.getLocalizationService();
-        initializeScriptEvaluator();
+        initializeScriptEvaluators();
         if (!evaluator.isInitialized()) {
             display("Script engine for " + evaluator.getLanguageName() + " missing, skipping the tests.");
             throw new SkipException("Script engine not available");
@@ -114,12 +117,22 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         display("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
     }
 
-    protected void initializeScriptEvaluator() {
-        evaluator = createEvaluator(prismContext, protector, clock);
+    protected void initializeScriptEvaluators() {
+        evaluator = createEvaluator(prismContext, protector, clock, false);
+        evaluatorInRestrictedMode = createEvaluator(prismContext, protector, clock, true);
         scriptExpressionfactory.replaceEvaluator(evaluator);
     }
 
-    protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock);
+    protected void switchToRestrictedMode() {
+        scriptExpressionfactory.replaceEvaluator(evaluatorInRestrictedMode);
+    }
+
+    protected void switchToUnrestrictedMode() {
+        scriptExpressionfactory.replaceEvaluator(evaluator);
+    }
+
+    protected abstract ScriptEvaluator createEvaluator(
+            PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode);
 
     protected abstract File getTestDir();
 
@@ -129,8 +142,11 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     @Test
     public void testExpressionSimple() throws Exception {
-        evaluateAndAssertStringScalarExpression("expression-simple.xml",
-                null, "foobar1");
+        executeSimpleScript();
+    }
+
+    protected void executeSimpleScript() throws CommonException, IOException{
+        evaluateAndAssertStringScalarExpression("expression-simple.xml", null, "foobar1");
     }
 
     @Test
@@ -653,6 +669,4 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         assertEquals("Unexpected number of script compilations after " + desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
         assertEquals("Unexpected number of script executions after " + desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
     }
-
-
 }

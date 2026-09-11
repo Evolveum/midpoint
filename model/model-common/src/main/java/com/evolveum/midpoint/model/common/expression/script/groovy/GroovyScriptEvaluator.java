@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import groovy.lang.Binding;
@@ -58,8 +59,10 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     @NotNull private static final ScriptLanguageExpressionProfile BUILTIN_GROOVY_LANGUAGE_PROFILE;
 
     /** Called by Spring but also by lower-level tests */
-    public GroovyScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
-        super(prismContext, protector, localizationService);
+    public GroovyScriptEvaluator(
+            PrismContext prismContext, Protector protector, LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration) {
+        super(prismContext, protector, localizationService, configuration);
 
         // No initialization here. Compilers/interpreters are initialized on demand.
     }

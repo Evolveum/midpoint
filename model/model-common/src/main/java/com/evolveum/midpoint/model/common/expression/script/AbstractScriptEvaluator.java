@@ -11,6 +11,10 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,12 +54,17 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     private final PrismContext prismContext;
     private final Protector protector;
     private final LocalizationService localizationService;
+    private final ExpressionsConfigurationSection configuration;
 
-    public AbstractScriptEvaluator(PrismContext prismContext, Protector protector,
-            LocalizationService localizationService) {
+    public AbstractScriptEvaluator(
+            PrismContext prismContext,
+            Protector protector,
+            LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration) {
         this.prismContext = prismContext;
         this.protector = protector;
         this.localizationService = localizationService;
+        this.configuration = configuration;
     }
 
     public PrismContext getPrismContext() {
@@ -75,7 +84,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        checkProfileRestrictions(context);
+        checkProfileAndSafetyRestrictions(context);
 
         String codeString = context.getScriptBean().getCode();
         if (codeString == null) {
@@ -114,7 +123,14 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
             throws Exception;
 
 
-    private void checkProfileRestrictions(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+    private void checkProfileAndSafetyRestrictions(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+        if (configuration.isSafeExpressionsOnly() && !isConsideredSafe()) {
+            throw new SecurityViolationException(
+                    ("Script interpreter for language '%s' is not considered safe; script execution prohibited in %s").formatted(
+                            getLanguageName(),
+                            context.getContextDescription()));
+        }
+
         var scriptExpressionProfile = context.getScriptExpressionProfile();
         if (scriptExpressionProfile == null) {
             return; // no restrictions
@@ -123,8 +139,8 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         if (scriptExpressionProfile.hasRestrictions()) {
             if (!doesSupportRestrictions()) {
                 throw new SecurityViolationException(
-                        ("Script interpreter for language %s does not support restrictions as imposed by expression profile %s;"
-                                + " script execution prohibited in %s").formatted(
+                        ("Script interpreter for language '%s' does not support restrictions as imposed by expression"
+                                + " profile '%s'; script execution prohibited in %s").formatted(
                                 getLanguageName(),
                                 context.getExpressionProfile().getIdentifier(),
                                 context.getContextDescription()));
@@ -134,9 +150,12 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         } else {
             // No restrictions
             if (scriptExpressionProfile.getDefaultDecision() != AccessDecision.ALLOW) {
-                throw new SecurityViolationException("Script interpreter for language " + getLanguageName()
-                        + " is not allowed in expression profile " + context.getExpressionProfile().getIdentifier()
-                        + "; script execution prohibited in " + context.getContextDescription());
+                throw new SecurityViolationException(
+                        ("Script interpreter for language '%s' is not allowed in expression profile '%s';"
+                                + " script execution prohibited in %s").formatted(
+                                getLanguageName(),
+                                context.getExpressionProfile().getIdentifier(),
+                                context.getContextDescription()));
             }
         }
     }
@@ -378,5 +397,14 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         //  ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
         //noinspection unchecked
         return (Class<T>) String.class;
+    }
+
+    /**
+     * Safe script evaluators are those that execute untrusted scripts. Currently, only MEL has this property.
+     *
+     * @see MidpointConfiguration#isSafeExpressionsOnly()
+     */
+    protected boolean isConsideredSafe() {
+        return false;
     }
 }

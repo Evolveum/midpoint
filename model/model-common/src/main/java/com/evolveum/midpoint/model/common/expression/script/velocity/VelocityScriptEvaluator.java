@@ -10,6 +10,7 @@ import java.io.StringWriter;
 import java.util.Map;
 import java.util.Properties;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 
@@ -36,8 +37,12 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
     private static final String LANGUAGE_NAME = "velocity";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
-    public VelocityScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
-        super(prismContext, protector, localizationService);
+    public VelocityScriptEvaluator(
+            PrismContext prismContext,
+            Protector protector,
+            LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration) {
+        super(prismContext, protector, localizationService, configuration);
         Velocity.init(new Properties());
     }
 

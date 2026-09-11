@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,8 +38,11 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
     @NotNull private final ScriptCache<I, C, K> scriptCache;
 
     public AbstractCachingScriptEvaluator(
-            PrismContext prismContext, Protector protector, LocalizationService localizationService) {
-        super(prismContext, protector, localizationService);
+            PrismContext prismContext,
+            Protector protector,
+            LocalizationService localizationService,
+            ExpressionsConfigurationSection configuration) {
+        super(prismContext, protector, localizationService, configuration);
         this.scriptCache = new ScriptCache<>();
     }
 

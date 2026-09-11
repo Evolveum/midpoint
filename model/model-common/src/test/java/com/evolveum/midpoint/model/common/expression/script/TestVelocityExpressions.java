@@ -7,18 +7,25 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
+
+import static org.testng.AssertJUnit.fail;
 
 /**
  * @author Radovan Semancik
@@ -26,8 +33,9 @@ import java.io.File;
 public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
-        return new VelocityScriptEvaluator(prismContext, protector, localizationService);
+    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return new VelocityScriptEvaluator(
+                prismContext, protector, localizationService, ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode));
     }
 
     @Override
@@ -37,7 +45,7 @@ public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionList() throws Exception {
-        evaluateAndAssertStringScalarExpression(        // velocity has no support for output other than String
+        evaluateAndAssertStringScalarExpression( // velocity has no support for output other than String
                 "expression-list.xml",
                 createVariables(
                         "jack",
@@ -325,4 +333,21 @@ public class TestVelocityExpressions extends AbstractScriptTest {
                 "enabled");
     }
 
+    /**
+     * If {@link ExpressionsConfigurationSection#isSafeExpressionsOnly()} is set to {@code true}, then the script evaluator
+     * should not be able to execute scripts that are not safe, like those in Velocity.
+     */
+    @Test
+    public void testInRestrictedMode() throws CommonException, IOException {
+        switchToRestrictedMode();
+        try {
+            executeSimpleScript();
+            fail("unexpected success");
+        } catch (SecurityViolationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining("is not considered safe; script execution prohibited");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
 }

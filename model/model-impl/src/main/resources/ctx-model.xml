@@ -51,6 +51,9 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
     </bean>
 
     <bean id="groovyScriptEvaluator"
@@ -58,6 +61,9 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
     </bean>
 
     <bean id="pythonScriptEvaluator"
@@ -66,6 +72,9 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
     </bean>
 
     <bean id="velocityScriptEvaluator"
@@ -73,6 +82,9 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
     </bean>
 
     <bean id="melScriptEvaluator"
@@ -80,11 +92,13 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
+        <constructor-arg name="configuration">
+            <bean factory-bean="midpointConfiguration" factory-method="getExpressionsSection"/>
+        </constructor-arg>
         <constructor-arg name="basicExpressionFunctions" ref="basicFunctionObject"/>
         <constructor-arg name="midpointExpressionFunctions" ref="midpointFunctionsImpl"/>
         <constructor-arg name="cacheInvalidationDispatcher" ref="cacheInvalidationDispatcherImpl"/>
     </bean>
-
 
     <bean id="scriptExpressionFactory"
             class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory">
