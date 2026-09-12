@@ -141,18 +141,27 @@ public class SecurityUtil {
     }
 
     public static String getInvitationSequenceIdentifier(SecurityPolicyType securityPolicy) {
+        return getSequenceIdentifierForChannel(securityPolicy, SchemaConstants.CHANNEL_INVITATION_URI);
+    }
+
+    public static String getAccountActivationSequenceIdentifier(SecurityPolicyType securityPolicy) {
+        return getSequenceIdentifierForChannel(securityPolicy, SchemaConstants.CHANNEL_ACCOUNT_ACTIVATION_URI);
+    }
+
+    /** Returns identifier of the first authentication sequence bound to given channel, null if there is none. */
+    public static String getSequenceIdentifierForChannel(SecurityPolicyType securityPolicy, String channelId) {
         if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
             return null;
         }
-        AuthenticationSequenceType invitationSequence = securityPolicy.getAuthentication().getSequence().stream()
+        AuthenticationSequenceType sequence = securityPolicy.getAuthentication().getSequence().stream()
                 .filter(s -> s.getChannel() != null
-                        && SchemaConstants.CHANNEL_INVITATION_URI.equals(s.getChannel().getChannelId()))
+                        && channelId.equals(s.getChannel().getChannelId()))
                 .findFirst()
                 .orElse(null);
-        if (invitationSequence == null) {
+        if (sequence == null) {
             return null;
         }
-        return invitationSequence.getIdentifier();
+        return sequence.getIdentifier();
     }
 
     public static <T extends CredentialPolicyType> T getEffectiveCredentialsPolicy(

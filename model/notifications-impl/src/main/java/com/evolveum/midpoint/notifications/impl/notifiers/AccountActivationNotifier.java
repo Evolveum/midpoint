@@ -91,8 +91,15 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
 
         var event = ctx.event();
         StringBuilder body = new StringBuilder();
-        String message = "Your accounts was successfully created. To activate your accounts, please click on the link below.";
-        body.append(message).append("\n\n").append(createConfirmationLink(getUser(event), configuration, result)).append("\n\n");
+        String link = createConfirmationLink(getUser(event), configuration, result);
+        if (link != null) {
+            body.append("Your accounts was successfully created. To activate your accounts, please click on the link below.");
+            body.append("\n\n").append(link).append("\n\n");
+        } else {
+            getLogger().warn("Account activation link could not be created for {}, sending notification without it", getUser(event));
+            body.append("Your accounts was successfully created, but they are not activated yet. "
+                    + "Please contact system administrator to activate them.\n\n");
+        }
 
         FocusType owner = (FocusType) event.getRequesteeObject();
         String userOrOwner = owner instanceof UserType ? "User" : "Owner";
@@ -125,7 +132,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             }
             for (Object att : shadow.getAttributes().asPrismContainerValue().getItems()) {
                 if (att instanceof ShadowSimpleAttribute<?> attribute) {
-                    body.append(" - ").append(attribute.getDisplayName()).append(": ");
+                    body.append(" - ").append(getAttributeLabel(attribute)).append(": ");
                     if (attribute.isSingleValue()) {
                         body.append(attribute.getRealValue()).append("\n");
                     } else {
@@ -144,6 +151,11 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             body.append(" (").append(requester.getName()).append(", oid ").append(requester.getOid()).append(")\n");
         }
         return body.toString();
+    }
+
+    private String getAttributeLabel(ShadowSimpleAttribute<?> attribute) {
+        String displayName = attribute.getDisplayName();
+        return StringUtils.isNotBlank(displayName) ? displayName : attribute.getElementName().getLocalPart();
     }
 
     private String getRequestorDisplayName(ObjectType requester) {

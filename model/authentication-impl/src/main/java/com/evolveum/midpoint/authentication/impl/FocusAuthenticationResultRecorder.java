@@ -54,11 +54,28 @@ public class FocusAuthenticationResultRecorder {
     @Autowired private RepositoryService repositoryService;
 
     public void recordModuleAuthenticationAttemptSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
+        if (isOutsideOfSequence(connEnv)) {
+            return;
+        }
         LoginEventType event = createLoginEvent(connEnv);
         boolean successLoginAfterFail = applyModuleAttemptSuccess(principal.getFocus(), connEnv, event);
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
             updatePrincipalDynamically(principal, focus -> applyModuleAttemptSuccess(focus, connEnv, event));
         }
+    }
+
+    /**
+     * Module attempt data are keyed by sequence and module identifiers. An evaluator invoked outside of an authentication
+     * sequence (no identifiers) has nowhere to record the attempt, and recording it under a null key would only corrupt
+     * the focus behavior data.
+     */
+    private boolean isOutsideOfSequence(ConnectionEnvironment connEnv) {
+        if (StringUtils.isEmpty(connEnv.getSequenceIdentifier()) || StringUtils.isEmpty(connEnv.getModuleIdentifier())) {
+            LOGGER.debug("Authentication attempt outside of an authentication sequence (sequence={}, module={}), "
+                    + "not recording module attempt data", connEnv.getSequenceIdentifier(), connEnv.getModuleIdentifier());
+            return true;
+        }
+        return false;
     }
 
     private boolean applyModuleAttemptSuccess(FocusType focus, ConnectionEnvironment connEnv, LoginEventType event) {
@@ -94,6 +111,9 @@ public class FocusAuthenticationResultRecorder {
     }
 
     public void recordModuleAuthenticationAttemptFailure(MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, ConnectionEnvironment connEnv) {
+        if (isOutsideOfSequence(connEnv)) {
+            return;
+        }
         LoginEventType event = createLoginEvent(connEnv);
         applyModuleAttemptFailure(principal.getFocus(), credentialsPolicy, connEnv, event);
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {

@@ -1721,7 +1721,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             if (StringUtils.isNotEmpty(invitationSequenceId)) {
                 Task task = taskManager.createTaskInstance("save nonce to user");
                 OperationResult result = new OperationResult("save nonce to user");
-                NonceType nonce = generateNonce(user, task, result);
+                NonceType nonce = generateNonce(user, invitationSequenceId, task, result);
                 saveNonceToUser(user, nonce, task, result);
 
                 String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_INVITATION_URI, invitationSequenceId, securityPolicy.getAuthentication().getSequence(), false);
@@ -1746,11 +1746,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
 
-    private NonceType generateNonce(UserType user, Task task, OperationResult result)
+    private NonceType generateNonce(UserType user, String sequenceIdentifier, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, EncryptionException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ProtectedStringType nonceCredentials = new ProtectedStringType();
-        String nonceValue = modelInteractionService.generateNonce(getNonceCredentialsPolicy(user, task, result), task, result);
+        String nonceValue = modelInteractionService.generateNonce(
+                getNonceCredentialsPolicy(user, sequenceIdentifier, task, result), task, result);
         nonceCredentials.setClearValue(nonceValue);
         protector.encrypt(nonceCredentials);
 
@@ -1760,7 +1761,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return nonceType;
     }
 
-    private NonceCredentialsPolicyType getNonceCredentialsPolicy(UserType user, Task task, OperationResult result)
+    private NonceCredentialsPolicyType getNonceCredentialsPolicy(
+            UserType user, String sequenceIdentifier, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
@@ -1772,41 +1774,38 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         List<NonceCredentialsPolicyType> nonceCredentialsPolicies = credentialPolicy.getNonce();
-        String invitationCredentialName = getNonceCredentialsPolicyName(user, task, result);
-        if (invitationCredentialName == null) {
+        String credentialName = getNonceCredentialsPolicyName(securityPolicy, sequenceIdentifier);
+        if (credentialName == null) {
             return null;
         }
         return nonceCredentialsPolicies
                 .stream()
-                .filter(n -> invitationCredentialName.equals(n.getName()))
+                .filter(n -> credentialName.equals(n.getName()))
                 .findFirst()
                 .orElse(null);
     }
 
-    private String getNonceCredentialsPolicyName(UserType user, Task task, OperationResult result) throws
-            SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        SecurityPolicyType securityPolicy = modelInteractionService.getSecurityPolicy(user.asPrismObject(), task, result);
-        if (securityPolicy.getFlow() == null) {
+    /** Name of the nonce credential used by the (first) mail nonce module of given authentication sequence. */
+    private String getNonceCredentialsPolicyName(SecurityPolicyType securityPolicy, String sequenceIdentifier) {
+        if (securityPolicy.getAuthentication() == null || sequenceIdentifier == null) {
             return null;
         }
-        String sequenceIdentifier = SecurityUtil.getInvitationSequenceIdentifier(securityPolicy);
-        AuthenticationSequenceType invitationAuthSequence = securityPolicy.getAuthentication()
+        AuthenticationSequenceType authSequence = securityPolicy.getAuthentication()
                 .getSequence()
                 .stream()
                 .filter(seq -> sequenceIdentifierMatch(seq, sequenceIdentifier))
                 .findFirst()
                 .orElse(null);
-        if (invitationAuthSequence == null || invitationAuthSequence.getModule().isEmpty()) {
+        if (authSequence == null || authSequence.getModule().isEmpty()) {
             return null;
         }
-        AuthenticationSequenceModuleType module = invitationAuthSequence.getModule().get(0);
+        AuthenticationSequenceModuleType module = authSequence.getModule().get(0);
         String moduleIdentifier = module.getIdentifier() != null ? module.getIdentifier() : module.getName();
         if (StringUtils.isEmpty(moduleIdentifier)) {
             return null;
         }
 
-        MailNonceAuthenticationModuleType invitationAuthModule = securityPolicy.getAuthentication()
+        MailNonceAuthenticationModuleType nonceModule = securityPolicy.getAuthentication()
                 .getModules()
                 .getMailNonce()
                 .stream()
@@ -1814,7 +1813,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 .findFirst()
                 .orElse(null);
 
-        return invitationAuthModule != null ? invitationAuthModule.getCredentialName() : null;
+        return nonceModule != null ? nonceModule.getCredentialName() : null;
     }
 
     private boolean sequenceIdentifierMatch(AuthenticationSequenceType seq, String sequenceIdentifier) {
@@ -1858,9 +1857,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
 
+    /**
+     * Creates the account activation link (issue 5490). The link points to the authentication sequence bound to the
+     * account activation channel and carries a freshly generated one-time nonce. Returns null when no such sequence
+     * is configured, so no link without a token is ever sent out.
+     */
     @Override
-    public String createAccountActivationLink(UserType userType) {
-        return createBaseConfirmationLink(SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, userType.getOid());
+    public String createAccountActivationLink(UserType user) {
+        try {
+            SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
+            String sequenceId = SecurityUtil.getAccountActivationSequenceIdentifier(securityPolicy);
+            if (StringUtils.isEmpty(sequenceId)) {
+                LOGGER.warn("No authentication sequence for channel {} is configured in the security policy, "
+                        + "account activation link for {} cannot be created", SchemaConstants.CHANNEL_ACCOUNT_ACTIVATION_URI, user);
+                return null;
+            }
+            Task task = taskManager.createTaskInstance("save nonce to user");
+            OperationResult result = new OperationResult("save nonce to user");
+            NonceType nonce = generateNonce(user, sequenceId, task, result);
+            saveNonceToUser(user, nonce, task, result);
+
+            String prefix = createPrefixLinkByAuthSequence(
+                    SchemaConstants.CHANNEL_ACCOUNT_ACTIVATION_URI, sequenceId, securityPolicy.getAuthentication().getSequence());
+            String urlEncodedNonce = URLEncoder.encode(getPlaintext(nonce.getValue()), StandardCharsets.UTF_8);
+            return createBaseConfirmationLink(prefix, user) + "&" + SchemaConstants.TOKEN + "=" + urlEncodedNonce;
+        } catch (Exception e) {
+            LOGGER.error("Could not create account activation link for the user {}: {}", user, e.getMessage(), e);
+            return null;
+        }
     }
 
     private String createBaseConfirmationLink(String prefix, UserType userType) {

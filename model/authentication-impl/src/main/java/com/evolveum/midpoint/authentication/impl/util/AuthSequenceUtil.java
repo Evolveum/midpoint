@@ -75,6 +75,7 @@ public class AuthSequenceUtil {
                 .put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI)
                 .put("invitation", SchemaConstants.CHANNEL_INVITATION_URI)
                 .put("identityRecovery", SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI)
+                .put("activate", SchemaConstants.CHANNEL_ACCOUNT_ACTIVATION_URI)
                 .build();
     }
 
