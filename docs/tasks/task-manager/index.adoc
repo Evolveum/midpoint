@@ -150,10 +150,11 @@ This is parameter is particularly useful to <<schedule-single-run-tasks,postpone
 . `latestStartTime`: Latest time when the task is allowed to start.
 Usable for any kind of task.
 
-. `latestFinishTime`: Latest time when the task is allowed to run.
-    A reason to specify this time may be because another task conflicting with this task is scheduled to start at this time, so the task for which you specify `latestFinishTime` must NOT run after that moment.
-    It is a responsibility of the task handler to finish working when this time comes.
-    It is not enforced by the task manager.
+// There is also latestFinishTime but it is not implemented and used;
+// it was a proposal which was never done.
+// Something similar was implemented in 4.10 as part of (sponsored) task activity policies, where you can specify maximum execution time for given activity.
+// But it's specified as a duration, not as specific (absolute) moment in time.
+// See Pavol's comment in https://support.evolveum.com/wp/10767 for details.
 
 In the following sections, we examine scheduling for both recurring and single-run tasks in more detail.
 
