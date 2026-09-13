@@ -166,8 +166,11 @@ Usable for any kind of task.
 . `latestStartTime`: Latest time when the task is allowed to start.
 Usable for any kind of task.
 
-. `latestFinishTime`: Latest time when the task is allowed to run (a reason that one could have to specify this time is perhaps because another task that conflicts with this one is scheduled to start at this time, so the first one must NOT run at that moment).
-It is the responsibility of the task handler to finish working when this time arrives - it will not be enforced by the task manager.
+// There is also latestFinishTime but it is not implemented and used;
+// it was a proposal which was never done.
+// Something similar was implemented in 4.10 as part of (sponsored) task activity policies, where you can specify maximum execution time for given activity.
+// But it's specified as a duration, not as specific (absolute) moment in time.
+// See Pavol's comment in https://support.evolveum.com/wp/10767 for details.
 
 Besides these parameters, there is also the last one, called `misfireAction`, which controls what is to be done when the planned start time arrives without the task actually starting (e.g. because no node or thread is available to execute the task at that time).
 There are the following possibilities:
