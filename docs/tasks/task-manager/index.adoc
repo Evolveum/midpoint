@@ -180,9 +180,7 @@ There are the following possibilities:
 . `reschedule`: The task will be rescheduled according to its schedule.
 (This can be used only for loosely-bound recurring tasks.)
 
-. `forget`: The task will not be executed at all.
-(This can be used only for scheduled single-run tasks.
-And is not implemented yet.)
+// `forget` option removed as per info in https://support.evolveum.com/wp/10774
 
 === Resilient and Non-resilient Tasks (ThreadStopAction Attribute)
 
