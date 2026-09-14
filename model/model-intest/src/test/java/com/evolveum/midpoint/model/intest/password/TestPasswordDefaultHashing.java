@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.intest.password;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowPurposeType;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -18,9 +18,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Password test with HASHING storage for all credential types.
@@ -28,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestPasswordDefaultHashing extends AbstractPasswordTest {
@@ -96,7 +94,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 
         // User and default dummy account should have unchanged passwords
         assertUserPassword(userAfter, USER_PASSWORD_AA_CLEAR);
-         assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
+        assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
 
         // this one is not changed
         assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
@@ -123,16 +121,35 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
         assertIncompleteShadowPassword(shadow);
     }
 
+    /**
+     * The activation link must lead to the account activation authentication sequence and must carry the one-time
+     * nonce that was stored in the user. A bare link with just the user identification is not acceptable.
+     *
+     * Issue: 5490
+     */
     @Override
-    protected void assertAccountActivationNotification(String dummyResourceName, String username) {
+    protected void assertAccountActivationNotification(String dummyResourceName, String username) throws Exception {
         checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 1);
         String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
         if (!body.contains("activat")) {
-            fail("Activation not mentioned in "+dummyResourceName+" dummy account activation notification message : "+body);
+            fail("Activation not mentioned in " + dummyResourceName + " dummy account activation notification message : " + body);
         }
-        if (!body.contains("activate/accounts")) {
-            fail("Link seems to be missing in "+dummyResourceName+" dummy account activation notification message : "+body);
+        String expectedLinkPrefix = "/auth/accountActivation?user=" + username + "&token=";
+        int linkStart = body.indexOf(expectedLinkPrefix);
+        if (linkStart < 0) {
+            fail("Link to the account activation sequence is missing in " + dummyResourceName + " dummy account activation notification message : " + body);
         }
+        String token = body.substring(linkStart + expectedLinkPrefix.length()).split("\\s")[0];
+        assertThat(token)
+                .as("nonce token in activation link")
+                .isNotBlank();
+
+        PrismObject<UserType> user = findUserByUsernameFullRequired(username);
+        NonceType nonce = user.asObjectable().getCredentials().getNonce();
+        assertThat(nonce)
+                .as("nonce stored in user " + username)
+                .isNotNull();
+        assertThat(protector.decryptString(nonce.getValue())).as("stored nonce").isEqualTo(token);
     }
 
     /**
