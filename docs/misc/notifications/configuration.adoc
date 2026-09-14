@@ -434,9 +434,7 @@ _separateNotificationToEachRecipient_ (the default value, a notification message
 
 |===
 
-An example:
-
-TODO
+See a xref:/midpoint/reference/misc/notifications/#general-notifier-example[general notifier example].
 
 === simpleUserNotifier
 
