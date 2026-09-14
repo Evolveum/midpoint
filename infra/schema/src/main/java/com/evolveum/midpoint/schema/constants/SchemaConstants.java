@@ -520,6 +520,12 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_IDENTITY_RECOVERY_QNAME = new QName(NS_CHANNEL, "identityRecovery");
     public static final String CHANNEL_IDENTITY_RECOVERY_URI = qNameToUri(CHANNEL_IDENTITY_RECOVERY_QNAME);
 
+    // Account activation channel. Used when a user sets the password to accounts that were created without it
+    // (e.g. when password hashing is used). The user authenticates by the mail nonce from the activation link
+    // and by the password, see PageAccountActivation.
+    public static final QName CHANNEL_ACCOUNT_ACTIVATION_QNAME = new QName(NS_CHANNEL, "accountActivation");
+    public static final String CHANNEL_ACCOUNT_ACTIVATION_URI = qNameToUri(CHANNEL_ACCOUNT_ACTIVATION_QNAME);
+
 
     // Catch-all channel for all user operations in user interface.
     public static final String CHANNEL_USER_LOCAL = "user";
