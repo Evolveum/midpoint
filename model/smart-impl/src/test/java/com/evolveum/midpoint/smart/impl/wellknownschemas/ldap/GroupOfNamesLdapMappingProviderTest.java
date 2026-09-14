@@ -46,7 +46,7 @@ public class GroupOfNamesLdapMappingProviderTest extends WellKnownSchemaTestBase
         final ExpressionType expression = getExpression(systemMappingSuggestions);
         final String output = evaluateExpression(expression, "input", "app:customer-conversions:developers");
 
-        Assert.assertEquals(output, "ldap-app:customer-conversions:developers");
+        Assert.assertEquals(output, "ldap:app:customer-conversions:developers");
     }
 
     @Test

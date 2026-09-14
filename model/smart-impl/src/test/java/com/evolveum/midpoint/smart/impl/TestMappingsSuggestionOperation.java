@@ -199,6 +199,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should be asIs (null)")
                 .isNull();
+        assertThat(mapping.getDefinition().getInbound().get(0).getTarget().getSet().getPredefined())
+                .isEqualTo(ValueSetDefinitionPredefinedType.ALL);
     }
 
     @Test
@@ -424,6 +426,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getOutbound().getExpression())
                 .as("Outbound asIs should have null expression")
                 .isNull();
+        assertThat(mapping.getDefinition().getOutbound().getTarget().getSet().getPredefined())
+                .isEqualTo(ValueSetDefinitionPredefinedType.ALL);
     }
 
     @Test

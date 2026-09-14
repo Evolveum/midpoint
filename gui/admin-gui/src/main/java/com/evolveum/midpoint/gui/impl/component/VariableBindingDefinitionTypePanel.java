@@ -138,6 +138,7 @@ public class VariableBindingDefinitionTypePanel extends BasePanel<VariableBindin
         ValueSetDefinitionType set = var.getSet();
         if (set == null) {
             set = new ValueSetDefinitionType();
+            var.setSet(set);
         }
         return set;
     }

@@ -994,6 +994,40 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="AiInfoType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provides information about the AI service used by the system, including its provider, the configured model, and the current health status of the service.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="provider" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifies the provider of the AI service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="model" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifies the model currently used to provide the AI service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="healthStatus" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Indicates the current health status of the AI service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- interaction metadata and suggestion quality are to be defined later -->
 
     <!-- ================================================================================================================== -->
