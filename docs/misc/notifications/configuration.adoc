@@ -397,9 +397,7 @@ Applies to concrete notifiers, not to the general one.
 
 |===
 
-An example:
-
-TODO
+See a xref:/midpoint/reference/misc/notifications/#general-notifier-example[general notifier example].
 
 === simpleUserNotifier
 
