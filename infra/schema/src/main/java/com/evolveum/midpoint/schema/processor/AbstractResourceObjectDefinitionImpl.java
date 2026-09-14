@@ -685,6 +685,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public String getExternalGroup() {
+        return null;
+    }
+
+    @Override
     public String getDocumentationPreview() {
         return null;
     }

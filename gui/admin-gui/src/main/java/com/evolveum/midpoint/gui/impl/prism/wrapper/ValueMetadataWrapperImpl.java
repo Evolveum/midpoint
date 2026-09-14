@@ -172,6 +172,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public String getExternalGroup() {
+        return metadataValueWrapper.getExternalGroup();
+    }
+
+    @Override
     public String getDocumentationPreview() {
         return metadataValueWrapper.getDocumentationPreview();
     }

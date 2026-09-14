@@ -258,6 +258,16 @@ public class TransformableComplexTypeDefinition
     }
 
     @Override
+    public String getExternalGroup() {
+        return "";
+    }
+
+    @Override
+    public void setExternalGroup(String group) {
+        // Noop
+    }
+
+    @Override
     public void setSchemaContextDefinition(SchemaContextDefinition schemaContextDefinition) {
     }
 

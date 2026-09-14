@@ -476,6 +476,15 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                     configPropertiesCtd.mutator().createPropertyDefinition(icfPropertyName, xsdTypeName);
             propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
             propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
+            // ICF assigns a default group message key ("<name>.group") to every property,
+            // so getGroup() never returns null. A property is only explicitly grouped
+            // if the resolved group differs from that default.
+            // NOTE: ConnID does not  return group key, but rather translated message
+            String group = icfProperty.getGroup(null);
+            String defaultGroup = icfPropertyName + ".group";
+            if (group != null && !group.isEmpty() && !group.equals(defaultGroup)) {
+                propertyDefinition.setExternalGroup(group);
+            }
             propertyDefinition.setMaxOccurs(multivalue ? -1 : 1);
             if (icfProperty.isRequired() && icfProperty.getValue() == null) {
                 // If ICF says that the property is required it may not be in fact really required if it also has a default value

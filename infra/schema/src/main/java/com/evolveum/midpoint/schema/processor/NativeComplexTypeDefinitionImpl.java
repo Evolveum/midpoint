@@ -62,6 +62,7 @@ public class NativeComplexTypeDefinitionImpl
     // Move the following to PrismPresentationDefinition if there will be more of them
     private String displayName;
     private Integer displayOrder;
+    private String externalGroup;
 
     @NotNull private final List<NativeShadowAttributeDefinitionImpl<?>> attributeDefinitions = new ArrayList<>();
     //endregion
@@ -226,6 +227,11 @@ public class NativeComplexTypeDefinitionImpl
         this.displayOrder = displayOrder;
     }
 
+    public void setExternalGroup(String group) {
+        checkMutable();
+        this.externalGroup = group;
+    }
+
     @Override
     public <T> NativeShadowAttributeDefinitionBuilder<T> newPropertyLikeDefinition(QName elementName, QName typeName) {
         return new NativeShadowAttributeDefinitionImpl<>(ItemName.fromQName(elementName), typeName);
@@ -295,6 +301,11 @@ public class NativeComplexTypeDefinitionImpl
     @Override
     public Integer getDisplayOrder() {
         return displayOrder;
+    }
+
+    @Override
+    public String getExternalGroup() {
+        return externalGroup;
     }
 
     @Override

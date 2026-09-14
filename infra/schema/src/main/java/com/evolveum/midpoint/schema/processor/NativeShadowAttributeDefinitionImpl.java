@@ -382,6 +382,11 @@ public class NativeShadowAttributeDefinitionImpl<T>
     public String getHelp() {
         return PrismPresentationDefinition.Delegable.super.getHelp();
     }
+
+    @Override
+    public String getExternalGroup() {
+        return PrismPresentationDefinition.Delegable.super.getExternalGroup();
+    }
     //endregion
 
     @Override
