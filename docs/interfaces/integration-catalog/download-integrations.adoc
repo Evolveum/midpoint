@@ -1,11 +1,12 @@
 = Download integrations
-
 :experimental:
 :page-toc: top
 :page-description:
 :page-keywords:
 
-You can browse integrations and download them from the xref:/midpoint/reference/interfaces/integration-catalog[Integration catalog] without having to log in.
+This describes how you can browse and download integrations from the xref:/midpoint/reference/interfaces/integration-catalog[Integration catalog].
+
+== Browse and download integrations
 
 To get integration methods that allow you to connect midPoint with your target applications, follow these steps:
 
@@ -27,7 +28,7 @@ You can use pre-defined filters to narrow down the listing by clicking [.nowrap]
 image::ic-filters.webp["Apply filters to search results"]
 
 +
-Configure filters by expanding and editing them, or click the btn:[Reset filter] button next to the [.nowrap]#icon:filter[] btn:[Filter]# button to remove any applied filters.
+Configure filters by expanding and editing them, or click the btn:[Reset filter] button next to the [.nowrap]#icon:filter[] btn:[Filter]# button to remove all applied filters.
 
 +
 .Expand filters edit them
@@ -41,8 +42,16 @@ image::ic-expand-filter.webp["Expand filters edit them"]
 image::ic-application-detail.webp["Hover your mouse over an integration"]
 
 +
-Based on your permissions, this displays the available buttons.
+Note that the available buttons may differ from those in the image above based on your permissions.
 
 . Click the [.nowrap]#icon:download[] btn:[Download]# button to download a package file containing the integration including the connector and other relevant information, such as documentation (if available).
 . Import the connector found in the package into your midPoint installation.
 . xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/#validation[Validate the connector] in your midPoint installation.
+
+== See also
+
+* xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
+* xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

@@ -1,15 +1,14 @@
 = Integration catalog
-
 :experimental:
 :page-toc: top
-:page-description:
-:page-keywords:
+:page-description: This section describes the Integration catalog, a standalone collection of integration methods that you can use to connect your applications, such as LDAP servers, to midPoint.
+:page-keywords: integration catalog, integration, connector, application, integration methods
 
+This section describes the Integration catalog, a standalone collection of integration methods that you can use to connect your applications, such as LDAP servers, to midPoint.
 
 == Introduction
 
-Integration catalog (IC) is a collection of integration methods that you can use to connect your applications, such as LDAP servers, to midPoint.
-It serves as a readily available library of xref:/connectors/[connectors].
+The Integration catalog (IC) serves as a readily available library of xref:/connectors/[connectors].
 
 The catalog is available at link:https://integrations.evolveum.com[https://integrations.evolveum.com] and has the following major levels:
 
@@ -41,4 +40,6 @@ The major features of the Integration catalog are:
 
 * xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
 * xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
 * xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

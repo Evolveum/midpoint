@@ -1,0 +1,33 @@
+= Upgrade existing integration
+:experimental:
+:page-description: This describes how to upgrade your custom integration method that you have previously created in the Integration catalog.
+:page-keywords: integration catalog, integration, share connector, upload connector, share connectors, upload integration, midpoint integration
+
+This describes how to upgrade your custom integration method that you have previously created in the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog].
+
+
+As integrations may become dated over time, you may want to update and publish a new version of an integration.
+
+This process shares the same configuration options with the xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/[uploading custom connectors] process.
+
+. Make sure you have xref:/midpoint/reference/interfaces/integration-catalog/#features[sufficient privileges] to contribute to the Integration catalog. 
+. xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/#licenses[Search for the application] for which you want to publish a new integration version in the Integration catalog.
+. Open it by clicking it and hover your mouse over the integration that you want to upgrade.
+
++
+.Hover your mouse over an integration
+image::../ic-application-detail.webp["Hover your mouse over an integration"]
+
+. Click [.nowrap]#icon:edit[] btn:[Edit and upgrade]#.
+. Update any information you need.
+. At the bottom of the page:
+** Click [.nowrap]#icon:arrow-up[] btn:[Save as new version]#,
+** or click [.nowrap]#icon:save[] btn:[Save]# to override the integration with your changes.
+
+== See also
+
+* xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
+* xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

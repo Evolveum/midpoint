@@ -1,49 +1,13 @@
-= Share connectors
-
+= Upload custom connector
 :experimental:
 :page-toc: top
-:page-description:
-:page-keywords: share connector, upload connector, share connectors, upload integration, midpoint integration
+:page-description: This describes how to upload custom connectors to the Integration catalog
+:page-keywords: integration catalog, integration, custom connector, upload connector, share connector
 
-This describes a feature of the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog] that enables you to share your custom integration (connector) with other users of the catalog.
-
-This page is intended for midPoint administrators who integrate applications with midPoint using custom connectors.
-
-== Introduction
-
-Starting with midPoint 4.11, you can use your custom connectors without any limitations if you have a xref:/support/subscription-sponsoring/[midPoint Support Subscription].
-
-If you do not have a midPoint subscription, you have a 90-day period since deploying the connector during which you need to either obtain a subscription, or make your custom connector available to public as open source, i.e., publish it as an integration method in the Integration catalog (IC), to continue using it.
-
-To obtain a subscription, see link:https://evolveum.com/services/support-subscriptions/[Support Subscriptions].
-
-Alternatively, see how to share your connector below.
-
-[[before-you-start]]
-== Before you start
-
-Before you decide to share your custom connector, make sure:
-
-* The connector source code is publicly accessible.
-* The connector is distributed under one of the <<licenses,supported open-source licenses>>.
-* You have the information required to build and identify the connector (e.g., the connector class and bundle name).
-* You have tested the connector with the midPoint versions you intend to declare as supported.
-
-
-[[share-connector]]
-== Share connector
-
-Sharing connectors as integration methods in the Integration catalog (IC) is an alternative to obtaining a xref:/support/subscription-sponsoring/[midPoint Support Subscription] to ensure you will be able to use your custom connector after 90 days after its deployment.
-
-To share a connector and make it available to all midPoint users:
-
-. <<upload-integration,Upload a new integration method>> featuring your custom connector.
-. Wait until the Evolveum team approves and publishes the integration method.
-. <<validation,Validate>> your custom connector by downloading the connectors sheet from the IC and importing it into your midPoint installation.
-
+This describes how to upload custom connectors to the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog].
 
 [[upload-integration]]
-== Upload an integration
+== Create new integration
 
 You can upload your own connectors into the Integration catalog (IC) to make them available for your own engineers and for other midPoint engineers.
 Connectors are uploaded together with some necessary configuration details as _integration methods_.
@@ -51,10 +15,10 @@ Connectors are uploaded together with some necessary configuration details as _i
 To start the upload, at the IC landing page, scroll down and click the [.nowrap]#icon:upload[] btn:[Upload and publish]# button.
 
 .Uploading a new integration method
-image::ic-upload-and-publish.webp["Upload a new integration method"]
+image::../ic-upload-and-publish.webp["Upload a new integration method"]
 
-The upload process takes you through the following steps, in which you define particular aspects of the new integration.
-These provide the necessary details that categorize the integration, and at the same time, enable the Evolveum team to build and publish your custom connector in the Integration catalog.
+The upload process takes you through the steps below, in which you define particular aspects of the new integration.
+These provide the necessary details that enable the Evolveum team to build and publish your custom connector in the Integration catalog.
 
 Note that you need xref:/midpoint/reference/interfaces/integration-catalog/#permissions[sufficient privileges] to contribute to the Integration catalog.
 
@@ -99,7 +63,7 @@ They include the most common protocols, such as SCIM, REST API, etc.
 Typically, only one integration method type is selected, however, you can create hybrid integrations in which multiple protocols complement each other.
 
 .Select integration method type
-image::ic-select-integration-method-type.webp["select integration method type"]
+image::../ic-select-integration-method-type.webp["select integration method type"]
 
 
 [[define-integration-method]]
@@ -119,7 +83,7 @@ Configure the following:
 
 +
 .Example capabilities definition for object classes
-image::ic-define-capabilities-object-class.webp["Define capabilities for object classes",height=66%]
+image::../ic-define-capabilities-object-class.webp["Define capabilities for object classes",height=66%]
 
 * *Integration Tutorial* - Enables you to upload documentation, setup guides, or other relevant information related to the deployment of the integration method.
 You can either input the text directly into the text field, or you can upload documents in one of the following formats: PDF, XML, JSON, YAML, TXT.
@@ -193,17 +157,17 @@ You can copy this directly from GitHub by clicking the btn:[Code] button, and su
 
 +
 .Clone URL from GitHub
-image::ic-github-clone-url.webp["Clone URL from GitHub"]
+image::../ic-github-clone-url.webp["Clone URL from GitHub"]
 
 * *Commit hash* - Define the specific commit hash of the connector release tag that allows building a stable version of the connector.
 Both full and short (7-character) notations of the commit hash from your Git repository are allowed. +
 In GitHub, this can be found by:
 .. Clicking the btn:[Tags] link.
 +
-image::ic-tag.webp["Go to Tags in the repository"]
+image::../ic-tag.webp["Go to Tags in the repository"]
 .. Copying the 7-character commit hash for the appropriate tag.
 +
-image::ic-tag-commit-hash.webp["Copy the commit hash"]
+image::../ic-tag-commit-hash.webp["Copy the commit hash"]
 * *Project folder path* - Specify the folder where the connector source code is located.
 Leave this field empty if the code is in the main (root) directory of the repository.
 * *Class name* - Specify the full Java class name that implements the connector.
@@ -236,7 +200,7 @@ The Evolveum team will review all details and may get back to you in the ticket 
 
 [NOTE]
 ====
-Please make sure that all information you provide is accurate and up to date.
+Make sure that all information you provide is accurate and up to date.
 As the contributor, you are responsible for the information submitted with the integration method, including details such as the connector license, source repository, version, and maintainer information.
 The Evolveum team reviews the submission, but some details, such as licensing information, cannot be independently verified in all cases and therefore rely on the information provided by the contributor.
 ====
@@ -244,51 +208,14 @@ The Evolveum team reviews the submission, but some details, such as licensing in
 The information you entered is used to build the connector from the provided source code by the Evolveum team.
 The connector, together with the entered details, is then made available in the Integration catalog.
 
-Once the connector is published, you can download the <<share-connector,integrations sheet>> and validate your custom connector in your midPoint installation.
+Once the connector is published, you can download the integrations sheet and xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[validate your custom connector] in your midPoint installation.
 At the same time, other users will also be able to download the connector you have contributed to the catalog.
 
-== Upgrade an integration
+== See also
 
-As integrations may become dated over time, you may want to update and publish a new version of an integration.
-
-This process is very similar to the <<upload-integration,upload process>>.
-
-. Make sure you have xref:/midpoint/reference/interfaces/integration-catalog/#features[sufficient privileges] to contribute to the Integration catalog. 
-. xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/#licenses[Search for the application] for which you want to publish a new integration version in the Integration catalog.
-. Open it by clicking it and hover your mouse over the integration that you want to upgrade.
-
-+
-.Hover your mouse over an integration
-image::ic-application-detail.webp["Hover your mouse over an integration"]
-
-. Click [.nowrap]#icon:edit[] btn:[Edit and upgrade]#.
-. Update any information you need.
-. At the bottom of the page:
-** Click [.nowrap]#icon:arrow-up[] btn:[Save as new version]#,
-** or click [.nowrap]#icon:save[] btn:[Save]# to override the integration with your changes.
-
-
-[[validation]]
-== Validate custom connector
-
-Once your custom connector has been successfully built and published by the Evolveum team, you can validate your connector in your own midPoint installation.
-This is a necessary step to make sure the connector will remain operational after the 90-day period after deploying it.
-
-To validate your connector:
-
-. On the IC landing page, scroll all the way down and click the [.nowrap]#icon:download[] btn:[Download Sheet]# button.
-
-+
-.Download connectors sheet
-image::ic-download-connector-sheet.webp["Download connectors sheet"]
-
-+
-This downloads a JSON file containing the list of the currently available, Evolveum-approved connectors.
-. In midPoint, in the left side main menu, click [.nowrap]#icon:upload[] btn:[Import object]#.
-. In the Import object page, click [.nowrap]#btn:[Choose file]# and select the downloaded JSON file.
-. Make sure [.nowrap]#*Overwrite existing object*# is checked, and click [.nowrap]#btn:[Import object]#.
-
-+
-.Importing connectors sheet into midPoint
-image::ic-import-sheet.webp["Importing connectors sheet into midPoint"]
-This checks that your custom connector is available in the IC, and makes it available in your midPoint.
+* xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
+* xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors[Sharing custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
+* xref:/midpoint/reference/interfaces/integration-catalog/request-integration[Requesting new integration methods]

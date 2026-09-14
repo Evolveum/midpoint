@@ -1,0 +1,48 @@
+= Share custom connector
+:experimental:
+:page-toc: top
+:page-description: This page describes how to share your custom connectors in the Integration catalog with other users of the catalog.
+:page-keywords: integration catalog, integration, share connector, upload connector, share connectors, upload integration, midpoint integration
+
+This page describes how to share your custom connectors in the xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog] with other users of the catalog.
+It is intended for midPoint administrators who integrate applications with midPoint using custom connectors.
+
+== Introduction
+
+Starting with midPoint 4.11, you can use your custom connectors without any limitations if you have a xref:/support/subscription-sponsoring/[midPoint Support Subscription].
+
+If you do not have a midPoint subscription, you have a 90-day period since deploying the connector during which you need to either obtain a subscription, or make your custom connector available to public as open source, i.e., publish it as an integration method in the Integration catalog (IC), to continue using it.
+
+To obtain a subscription, see link:https://evolveum.com/services/support-subscriptions/[Support Subscriptions].
+
+Alternatively, see how to share your connector below.
+
+[[before-you-start]]
+== Before you start
+
+Before you decide to share your custom connector, make sure:
+
+* The connector source code is publicly accessible.
+* The connector is distributed under one of the <<licenses,supported open-source licenses>>.
+* You have the information required to build and identify the connector (e.g., the connector class and bundle name).
+* You have tested the connector with the midPoint versions you intend to declare as supported.
+
+
+[[share-connector]]
+== Share connector
+
+Sharing connectors as integration methods in the Integration catalog (IC) is an alternative to obtaining a xref:/support/subscription-sponsoring/[midPoint Support Subscription] to ensure you will be able to use your custom connector after 90 days after its deployment.
+
+To share a connector and make it available to all midPoint users:
+
+. <<upload-integration,Upload a new integration method>> featuring your custom connector.
+. Wait until the Evolveum team approves and publishes the integration method.
+. <<validation,Validate>> your custom connector by downloading the connectors sheet from the IC and importing it into your midPoint installation.
+
+
+== See also
+
+* xref:/midpoint/reference/interfaces/integration-catalog/[Integration catalog]
+* xref:/midpoint/reference/interfaces/integration-catalog/download-integrations[Downloading integration methods]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/validate-connector/[Validating custom connectors]
+* xref:/midpoint/reference/interfaces/integration-catalog/share-connectors/upgrade-integration/[Upgrading existing integration methods]
