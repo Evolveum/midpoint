@@ -31,6 +31,8 @@ public interface ExpressionEvaluator<V extends PrismValue> {
      * Executes the evaluation in a given context. The context provides necessary data,
      * evaluator provides definition of processing that should be carried out.
      *
+     * It is the responsibility of the implementation to check the expression profile!
+     *
      * @return Result of the evaluation in the form of delta set triple (i.e. added, deleted, unchanged values).
      */
     PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)

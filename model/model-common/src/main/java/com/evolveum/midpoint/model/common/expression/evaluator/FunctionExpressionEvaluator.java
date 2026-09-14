@@ -75,10 +75,9 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-        checkEvaluatorProfile(context);
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
         try {

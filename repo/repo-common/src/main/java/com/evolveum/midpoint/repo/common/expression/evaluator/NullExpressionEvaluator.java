@@ -33,10 +33,8 @@ public class NullExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
             throws SecurityViolationException {
-
-        checkEvaluatorProfile(context);
 
         return PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
     }

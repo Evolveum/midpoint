@@ -58,10 +58,9 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context,
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
-        checkEvaluatorProfile(context);
 
         long counterValue = getSequenceCounterValue(sequenceOid, repositoryService, result);
 

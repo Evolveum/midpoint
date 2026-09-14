@@ -80,12 +80,10 @@ class AssociationSynchronizationExpressionEvaluator
     }
 
     @Override
-    public ComplexItemEvaluationResult<PrismContainerValue<AssignmentType>> evaluate(
+    protected ComplexItemEvaluationResult<PrismContainerValue<AssignmentType>> evaluateInternal(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        checkEvaluatorProfile(context);
 
         var defaultSource = stateNonNull(context.getDefaultSource(), "No default source");
         var associationDefinition =

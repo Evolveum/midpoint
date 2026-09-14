@@ -64,11 +64,9 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        checkEvaluatorProfile(context);
 
         ValuePolicyType valuePolicy = getValuePolicy(context, result);
 

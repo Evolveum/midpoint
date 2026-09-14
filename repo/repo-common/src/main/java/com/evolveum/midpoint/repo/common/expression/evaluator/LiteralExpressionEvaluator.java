@@ -44,11 +44,9 @@ public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefi
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, SubscriptionComplianceException {
-
-        ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
         // Cached parsed value is defensively cloned so it can be further changed.
         Item<V, D> output = CloneUtil.clone(parseLiteralItem(context));
