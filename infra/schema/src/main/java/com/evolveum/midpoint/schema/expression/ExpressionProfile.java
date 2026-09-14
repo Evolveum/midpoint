@@ -17,8 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileTyp
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 /**
- * Profile for evaluation of "regular" expressions, bulk actions, and function libraries.
+ * Profile for evaluation of all kinds of expressions.
  *
  * @author Radovan Semancik
  */
@@ -33,16 +35,15 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             AccessDecision.ALLOW);
 
     /**
-     * Profile that mimics the legacy non-root behavior for bulk actions:
-     * no expressions - this limits all of "execute-script", "notification" (with unsafe custom event handler), and
-     * the new "evaluate-expression" actions.
+     * Profile that mimics the legacy non-root behavior for bulk actions: there are no expressions allowed. This ensures the
+     * safety of unsafe actions: `execute-script`, `evaluate-expression`, and `notification` (with unsafe custom event handler).
      */
     private static final ExpressionProfile LEGACY_UNPRIVILEGED_BULK_ACTIONS = new ExpressionProfile(
             SchemaConstants.LEGACY_UNPRIVILEGED_BULK_ACTIONS_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
             BulkActionsProfile.full(), // actions without scripts/expressions are safe
             FunctionLibrariesProfile.none(),
-            AccessDecision.DENY); // actually does not matter
+            AccessDecision.DENY); // this actually does not matter
 
     /**
      * Profile that forbids everything.
@@ -52,7 +53,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             ExpressionEvaluatorsProfile.none(),
             BulkActionsProfile.none(),
             FunctionLibrariesProfile.none(),
-            AccessDecision.DENY); // actually does not matter
+            AccessDecision.DENY); // this actually does not matter
 
     /**
      * Profile for safe scripting: allows only MEL script evaluator.
@@ -62,10 +63,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
             new ExpressionEvaluatorsProfile(
                     AccessDecision.DENY,
-                    List.of(new ExpressionEvaluatorProfile(
+                    List.of(new ExpressionEvaluatorProfileImpl(
                             SchemaConstantsGenerated.C_SCRIPT,
                             AccessDecision.DENY,
-                            List.of(new ScriptLanguageExpressionProfile(
+                            List.of(new ScriptLanguageExpressionProfileImpl(
                                     "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel",
                                     AccessDecision.ALLOW,
                                     true,
@@ -81,6 +82,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
      */
     @NotNull private final String identifier;
 
+    /** Profiles for individual evaluators (`script`, `path`, `value`, etc). */
     @NotNull private final ExpressionEvaluatorsProfile evaluatorsProfile;
 
     /** Profile for midPoint scripting language (bulk actions). */
@@ -139,8 +141,8 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
                 identifier, bulkActionsProfile.getIdentifier(), librariesProfile.getIdentifier());
     }
 
-    public @NotNull ExpressionEvaluatorsProfile getEvaluatorsProfile() {
-        return evaluatorsProfile;
+    public ExpressionEvaluatorProfile getEvaluatorProfile(QName qualifiedEvaluatorName) {
+        return evaluatorsProfile.getEvaluatorProfile(qualifiedEvaluatorName);
     }
 
     public @NotNull AccessDecision getPrivilegeElevation() {

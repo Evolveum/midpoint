@@ -422,6 +422,14 @@ public class MiscSchemaUtil {
         return null;
     }
 
+    /**
+     * This is NOT A REAL METHOD. It is here to mark all the places
+     * where proper handling of expression profiles should be later added.
+     */
+    public static ExpressionProfile getExpressionProfileFull() {
+        return ExpressionProfile.full();
+    }
+
     public static void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {
         if (viewDisplay.getLabel() == null) {
             viewDisplay.setLabel(archetypeDisplay.getLabel());

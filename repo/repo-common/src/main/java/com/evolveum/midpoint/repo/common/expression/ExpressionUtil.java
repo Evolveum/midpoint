@@ -1261,10 +1261,7 @@ public class ExpressionUtil {
     public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?> evaluator, ExpressionEvaluationContext context)
             throws SecurityViolationException {
         ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
-        if (profile == null) {
-            return; // no restrictions
-        }
-        if (profile.getDecision() != AccessDecision.ALLOW) {
+        if (profile.getDefaultDecision() != AccessDecision.ALLOW) {
             throw new SecurityViolationException(
                     "Access to evaluator %s not allowed (expression profile: %s) in %s".formatted(
                             evaluator.shortDebugDump(),

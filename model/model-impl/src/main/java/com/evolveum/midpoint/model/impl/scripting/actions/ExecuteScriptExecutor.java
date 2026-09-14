@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,10 +80,13 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
+        var expressionProfile = context.getExpressionProfile();
+        var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         var script = scriptFactory.createScript(
                 parameters.script,
                 parameters.outputDefinition,
-                context.getExpressionProfile(),
+                expressionProfile,
+                scriptExpressionEvaluatorProfile,
                 "script", result);
 
         VariablesMap variables = createVariables(externalVariables);

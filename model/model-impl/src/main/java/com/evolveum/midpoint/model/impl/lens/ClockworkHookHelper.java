@@ -8,6 +8,10 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -151,9 +155,11 @@ public class ClockworkHookHelper {
         LOGGER.trace("Executing {}", shortDesc);
         // TODO: it would be nice to cache this
         // null output definition: this script has no output
+        var expressionProfile = context.getPrivilegedExpressionProfile();
+        var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
                 scriptExpressionEvaluatorType, null,
-                context.getPrivilegedExpressionProfile(), shortDesc, result);
+                expressionProfile, scriptExpressionEvaluatorProfile, shortDesc, result);
 
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);

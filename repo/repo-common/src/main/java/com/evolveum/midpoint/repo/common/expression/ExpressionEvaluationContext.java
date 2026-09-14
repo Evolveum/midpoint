@@ -116,16 +116,18 @@ public class ExpressionEvaluationContext {
 
     /**
      * Expression profile used when evaluating the expression. Set at the start of expression evaluation.
+     *
+     * Set to nonsense value here just to make sure it will get correctly initialized.
      */
-    private ExpressionProfile expressionProfile;
+    @NotNull private ExpressionProfile expressionProfile = ExpressionProfile.none();
 
     /**
-     * Evaluator profile for specific expression evaluator in question. It is computed
-     * on the start of expression evaluation.
+     * Evaluator profile for specific expression evaluator (`script`, `assignmentTargetSearch`, ...) in question.
+     * It is computed at the start of expression evaluation.
      *
-     * Set to nonsense value just to make sure it will get correctly initialized.
+     * Set to nonsense value here just to make sure it will get correctly initialized.
      */
-    private ExpressionEvaluatorProfile expressionEvaluatorProfile = ExpressionEvaluatorProfile.forbidden();
+    @NotNull private ExpressionEvaluatorProfile expressionEvaluatorProfile = ExpressionEvaluatorProfile.none();
 
     /**
      * Computes value metadata in given situation.
@@ -179,19 +181,19 @@ public class ExpressionEvaluationContext {
         this.skipEvaluationMinus = skipEvaluationMinus;
     }
 
-    public ExpressionProfile getExpressionProfile() {
+    public @NotNull ExpressionProfile getExpressionProfile() {
         return expressionProfile;
     }
 
-    public void setExpressionProfile(ExpressionProfile expressionProfile) {
+    public void setExpressionProfile(@NotNull ExpressionProfile expressionProfile) {
         this.expressionProfile = expressionProfile;
     }
 
-    ExpressionEvaluatorProfile getExpressionEvaluatorProfile() {
+    @NotNull ExpressionEvaluatorProfile getExpressionEvaluatorProfile() {
         return expressionEvaluatorProfile;
     }
 
-    public void setExpressionEvaluatorProfile(ExpressionEvaluatorProfile expressionEvaluatorProfile) {
+    void setExpressionEvaluatorProfile(@NotNull ExpressionEvaluatorProfile expressionEvaluatorProfile) {
         this.expressionEvaluatorProfile = expressionEvaluatorProfile;
     }
 

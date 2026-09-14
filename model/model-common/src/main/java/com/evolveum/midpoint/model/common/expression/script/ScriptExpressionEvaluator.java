@@ -55,13 +55,9 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
     private final Script script;
 
     ScriptExpressionEvaluator(
-            QName elementName,
-            ScriptExpressionEvaluatorType scriptBean,
-            D outputDefinition,
-            Protector protector,
-            Script script,
-            LocalizationService localizationService) {
-        super(elementName, scriptBean, outputDefinition, protector, localizationService);
+            QName elementName, Script script, Protector protector, LocalizationService localizationService) {
+        //noinspection unchecked
+        super(elementName, script.getScriptBean(), (D) script.getOutputDefinition(), protector, localizationService);
         this.script = script;
     }
 

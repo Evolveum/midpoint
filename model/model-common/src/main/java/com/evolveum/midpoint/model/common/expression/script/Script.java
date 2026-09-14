@@ -13,15 +13,14 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBi
 
 import com.evolveum.midpoint.repo.common.expression.Expression;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +32,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+
+import org.jetbrains.annotations.NotNullByDefault;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Executable form of {@link ScriptExpressionEvaluatorType}.
@@ -46,41 +48,62 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  *
  * @author Radovan Semancik
  */
+@SuppressWarnings("UnstableApiUsage")
+@NotNullByDefault
 public class Script {
 
     private static final String OP_EXECUTE = Script.class.getName() + ".execute";
 
+    /** Who will execute this script? */
     private final ScriptExecutor executor;
+
+    /** The XML form of the script (code + some parameters). TODO not all parameters are relevant here! */
     private final ScriptExpressionEvaluatorType scriptBean;
 
-    private ItemDefinition<?> outputDefinition;
-    private ObjectResolver objectResolver;
-    private Collection<FunctionLibraryBinding> functionLibraryBindings;
-    private ExpressionProfile expressionProfile;
-    private ScriptLanguageExpressionProfile scriptExpressionProfile;
-    private PrismContext prismContext;
+    /** The profile for the respective script language (Groovy, Velocity, etc.) */
+    private final ScriptLanguageExpressionProfile scriptLanguageExpressionProfile;
+
+    /** The "root" expression profile. Used e.g. to determine what library functions can this script call. */
+    private final ExpressionProfile expressionProfile;
+
+    /** Definition of the output item (type + cardinality). Used e.g. to postprocess the result of the script execution. */
+    @Nullable private ItemDefinition<?> outputDefinition;
+
+    /** Scripts sometimes need to resolve objects (when references are passed as arguments). TODO check that! */
+    @Nullable private ObjectResolver objectResolver;
+
+    /** Built-in plus user-defined (repo) libraries */
+    private Collection<FunctionLibraryBinding> functionLibraryBindings = List.of();
+
+    private PrismContext prismContext = PrismContext.get();
 
     private static final Trace LOGGER = TraceManager.getTrace(Script.class);
     private static final int MAX_CODE_CHARS = 42;
 
-    Script(ScriptExecutor executor, ScriptExpressionEvaluatorType scriptBean) {
+    Script(
+            ScriptExpressionEvaluatorType scriptBean,
+            ScriptExecutor executor,
+            ExpressionProfile expressionProfile,
+            ScriptLanguageExpressionProfile scriptLanguageExpressionProfile) {
         this.scriptBean = scriptBean;
         this.executor = executor;
+        this.expressionProfile = expressionProfile;
+        this.scriptLanguageExpressionProfile = scriptLanguageExpressionProfile;
     }
 
-    public ScriptExpressionEvaluatorType getScriptBean() {
+    ScriptExpressionEvaluatorType getScriptBean() {
         return scriptBean;
     }
 
-    public ItemDefinition<?> getOutputDefinition() {
+    public @Nullable ItemDefinition<?> getOutputDefinition() {
         return outputDefinition;
     }
 
-    public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
+    public void setOutputDefinition(@Nullable ItemDefinition<?> outputDefinition) {
         this.outputDefinition = outputDefinition;
     }
 
-    public ObjectResolver getObjectResolver() {
+    public @Nullable ObjectResolver getObjectResolver() {
         return objectResolver;
     }
 
@@ -88,11 +111,11 @@ public class Script {
         this.objectResolver = objectResolver;
     }
 
-    public Collection<FunctionLibraryBinding> getFunctionLibraryBindings() {
+    Collection<FunctionLibraryBinding> getFunctionLibraryBindings() {
         return functionLibraryBindings;
     }
 
-    public void setFunctionLibraryBindings(Collection<FunctionLibraryBinding> functionLibraryBindings) {
+    void setFunctionLibraryBindings(Collection<FunctionLibraryBinding> functionLibraryBindings) {
         this.functionLibraryBindings = functionLibraryBindings;
     }
 
@@ -100,16 +123,8 @@ public class Script {
         return expressionProfile;
     }
 
-    public void setExpressionProfile(ExpressionProfile expressionProfile) {
-        this.expressionProfile = expressionProfile;
-    }
-
-    void setScriptExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
-        this.scriptExpressionProfile = scriptExpressionProfile;
-    }
-
-    public ScriptLanguageExpressionProfile getScriptExpressionProfile() {
-        return scriptExpressionProfile;
+    ScriptLanguageExpressionProfile getScriptLanguageExpressionProfile() {
+        return scriptLanguageExpressionProfile;
     }
 
     public PrismContext getPrismContext() {
@@ -121,18 +136,17 @@ public class Script {
     }
 
     /**
-     * Evaluates this expression in the given context.
+     * Executes this script in the given context.
      *
-     * The context must reference this expression. Hence, it is better to call
+     * The context must reference this script. Hence, it is better to call
      * {@link ScriptExecutionContext#execute()} instead of this method.
      */
-    @NotNull
     public <V extends PrismValue> List<V> execute(ScriptExecutionContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
         Preconditions.checkArgument(
-                context.getScript() == this, "Context does not reference this expression");
+                context.getScript() == this, "Context does not reference this script");
 
         OperationResult parentResult = context.getResult();
         OperationResult result = parentResult.subresult(OP_EXECUTE)
@@ -226,7 +240,7 @@ public class Script {
     }
 
     private boolean isExplicitlyTraced() {
-        return scriptBean != null && Boolean.TRUE.equals(scriptBean.isTrace());
+        return Boolean.TRUE.equals(scriptBean.isTrace());
     }
 
     private void trace(String msg, Object... args) {
@@ -238,25 +252,15 @@ public class Script {
     }
 
     private String formatVariables(VariablesMap variables) {
-        if (variables == null) {
-            return "null";
-        }
         return variables.formatVariables();
     }
 
     private String formatProfile() {
         StringBuilder sb = new StringBuilder();
-        if (expressionProfile != null) {
-            sb.append(expressionProfile.getIdentifier());
-        } else {
-            sb.append("null (no profile)");
-        }
-        if (scriptExpressionProfile != null) {
-            sb.append("; ");
-            ExpressionPermissionProfile permissionProfile = scriptExpressionProfile.getPermissionProfile();
-            if (permissionProfile != null) {
-                sb.append("permission=").append(permissionProfile.getIdentifier());
-            }
+        sb.append(expressionProfile.getIdentifier());
+        var permissionProfile = scriptLanguageExpressionProfile.getPermissionProfile();
+        if (permissionProfile != null) {
+            sb.append("; permission=").append(permissionProfile.getIdentifier());
         }
         return sb.toString();
     }

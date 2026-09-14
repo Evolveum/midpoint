@@ -131,12 +131,8 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
                             context.getContextDescription()));
         }
 
-        var scriptExpressionProfile = context.getScriptExpressionProfile();
-        if (scriptExpressionProfile == null) {
-            return; // no restrictions
-        }
-
-        if (scriptExpressionProfile.hasRestrictions()) {
+        var languageExpressionProfile = context.getScriptLanguageExpressionProfile();
+        if (languageExpressionProfile.hasRestrictions()) {
             if (!doesSupportRestrictions()) {
                 throw new SecurityViolationException(
                         ("Script interpreter for language '%s' does not support restrictions as imposed by expression"
@@ -149,7 +145,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
             }
         } else {
             // No restrictions
-            if (scriptExpressionProfile.getDefaultDecision() != AccessDecision.ALLOW) {
+            if (languageExpressionProfile.getDefaultDecision() != AccessDecision.ALLOW) {
                 throw new SecurityViolationException(
                         ("Script interpreter for language '%s' is not allowed in expression profile '%s';"
                                 + " script execution prohibited in %s").formatted(
@@ -163,7 +159,6 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     protected boolean doesSupportRestrictions() {
         return false;
     }
-
 
     /**
      * Returns simple variable map: name -> value, including function libraries, contexts and all other objects.
@@ -367,7 +362,7 @@ public abstract class AbstractScriptExecutor implements ScriptExecutor {
     private @NotNull <T> Class<T> determineJavaReturnType(@NotNull ItemDefinition<?> outputDefinition) {
         QName xsdReturnType = outputDefinition.getTypeName();
 
-        // Ugly hack. Indented to allow xsd:anyType return type, see MID-6775.
+        // Ugly hack. Intended to allow xsd:anyType return type, see MID-6775.
         if (QNameUtil.match(xsdReturnType, DOMUtil.XSD_ANYTYPE)) {
             //noinspection unchecked
             return (Class<T>) Object.class;

@@ -145,8 +145,8 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         executeSimpleScript();
     }
 
-    protected void executeSimpleScript() throws CommonException, IOException{
-        executeAndAssertStringScalarExpression("expression-simple.xml", null, "foobar1");
+    void executeSimpleScript() throws CommonException, IOException {
+        executeAndAssertStringScalarExpression("expression-simple.xml", createVariables(), "foobar1");
     }
 
     @Test
@@ -169,6 +169,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         // WHEN
 
         MidpointTestContext testContext = getTestContext();
+        assert testContext != null;
 
         ParallelTestThread[] threads = TestUtil.multithread(
                 (threadIndex) -> {
@@ -362,20 +363,20 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     public void testExpressionListLiteral() throws Exception {
         evaluateAndAssertStringListExpression(
                 "expression-list-literal.xml",
-                null,
+                createVariables(),
                 "alfa", "bravo", "charlie");
     }
 
     @Test
     public void testExpressionFunc() throws Exception {
         executeAndAssertStringScalarExpression("expression-func.xml",
-                null, "gulocka v jamocke");
+                createVariables(), "gulocka v jamocke");
     }
 
     @Test
     public void testExpressionFuncConcatName() throws Exception {
         executeAndAssertStringScalarExpression("expression-func-concatname.xml",
-                null, "Horatio Torquemada Marley");
+                createVariables(), "Horatio Torquemada Marley");
     }
 
     protected ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException {
@@ -407,26 +408,27 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
     private Script createScript(
             ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
-        String language = Objects.requireNonNull(expressionType.getLanguage());
-        Script script = new Script(scriptFactory.getExecutorSimple(language), expressionType);
+        var language = Objects.requireNonNull(expressionType.getLanguage());
+        var scriptLanguageExpressionProfile = createScriptLanguageExpressionProfile(language);
+        var expressionProfile = createExpressionProfile(scriptLanguageExpressionProfile);
+        var script = new Script(
+                expressionType,
+                Objects.requireNonNull(scriptFactory.getExecutorSimple(language)),
+                expressionProfile,
+                scriptLanguageExpressionProfile);
         script.setOutputDefinition(outputDefinition);
         script.setObjectResolver(scriptFactory.getObjectResolver());
         script.setFunctionLibraryBindings(new ArrayList<>(scriptFactory.getBuiltInLibraryBindings()));
-        ScriptLanguageExpressionProfile scriptExpressionProfile = createScriptExpressionProfile(language);
-        script.setScriptExpressionProfile(scriptExpressionProfile);
-        script.setExpressionProfile(createExpressionProfile(scriptExpressionProfile));
         return script;
     }
 
-    private ExpressionProfile createExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
-        if (scriptExpressionProfile == null) {
-            return null;
-        }
-        ExpressionEvaluatorProfile evaluatorProfile =
-                new ExpressionEvaluatorProfile(
+    private @NotNull ExpressionProfile createExpressionProfile(
+            @NotNull ScriptLanguageExpressionProfileImpl scriptLanguageExpressionProfile) {
+        ExpressionEvaluatorProfileImpl evaluatorProfile =
+                new ExpressionEvaluatorProfileImpl(
                         ScriptExpressionEvaluatorFactory.ELEMENT_NAME,
                         AccessDecision.DENY,
-                        List.of(scriptExpressionProfile));
+                        List.of(scriptLanguageExpressionProfile));
 
         return new ExpressionProfile(
                 this.getClass().getSimpleName(),
@@ -438,8 +440,9 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 AccessDecision.ALLOW);
     }
 
-    protected ScriptLanguageExpressionProfile createScriptExpressionProfile(@NotNull String language) {
-        return null;
+    protected @NotNull ScriptLanguageExpressionProfileImpl createScriptLanguageExpressionProfile(@NotNull String language) {
+        return new ScriptLanguageExpressionProfileImpl(
+                language, AccessDecision.ALLOW, false, null);
     }
 
     protected <T> List<PrismPropertyValue<T>> executeScript(
@@ -631,7 +634,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         displayValue("Size expression result", expressionResult);
         if (expectedResult == null) {
             assertNull("Unexpected non-null result: "+expressionResult, expressionResult);
-            return;
         } else {
             assertNotNull("Unexpected ull result", expressionResult);
             assertEquals("Expression " + getTestName() + " resulted in wrong value",
@@ -646,7 +648,6 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         displayValue("Size expression result", expressionResult);
         if (expectedResult == null) {
             assertNull("Unexpected non-null result: "+expressionResult, expressionResult);
-            return;
         } else {
             assertNotNull("Unexpected ull result", expressionResult);
             assertEquals("Expression " + getTestName() + " resulted in wrong value",

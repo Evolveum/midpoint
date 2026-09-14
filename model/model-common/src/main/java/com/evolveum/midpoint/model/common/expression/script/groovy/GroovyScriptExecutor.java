@@ -14,6 +14,8 @@ import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSe
 import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfileImpl;
+
 import groovy.lang.Binding;
 import groovy.lang.GString;
 import groovy.lang.GroovyClassLoader;
@@ -123,12 +125,7 @@ public class GroovyScriptExecutor extends AbstractCachingScriptExecutor<GroovyCl
             CompilerConfiguration compilerConfiguration,
             ScriptExecutionContext context) throws SecurityViolationException {
 
-        var languageProfile = context.getScriptExpressionProfile();
-        if (languageProfile == null) {
-            // No configuration is needed for "almighty" compiler.
-            return;
-        }
-
+        var languageProfile = context.getScriptLanguageExpressionProfile();
         if (!languageProfile.isTypeChecking()) {
             if (languageProfile.hasRestrictions()) {
                 throw new SecurityViolationException(
@@ -236,7 +233,7 @@ public class GroovyScriptExecutor extends AbstractCachingScriptExecutor<GroovyCl
 
         permissionProfile.freeze();
 
-        BUILTIN_GROOVY_LANGUAGE_PROFILE = new ScriptLanguageExpressionProfile(
+        BUILTIN_GROOVY_LANGUAGE_PROFILE = new ScriptLanguageExpressionProfileImpl(
                 SchemaConstants.BUILTIN_GROOVY_EXPRESSION_PROFILE_ID,
                 AccessDecision.DEFAULT,
                 false, // actually, this information is not used

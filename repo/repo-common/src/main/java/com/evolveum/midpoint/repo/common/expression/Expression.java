@@ -88,7 +88,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
      *
      * @see ExpressionEvaluationContext#expressionProfile
      */
-    @Nullable private final ExpressionProfile expressionProfile;
+    @NotNull private final ExpressionProfile expressionProfile;
 
     /** The evaluator that contains the core of the processing. */
     @NotNull private final ExpressionEvaluator<V> evaluator;
@@ -103,7 +103,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     private Expression(
             @Nullable ExpressionConfigItem expressionCI,
             @Nullable D outputDefinition,
-            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionProfile expressionProfile,
             @NotNull ExpressionEvaluator<V> evaluator,
             @NotNull ObjectResolver objectResolver,
             @Nullable SecurityContextManager securityContextManager) {
@@ -123,7 +123,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     static <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> create(
             @Nullable ExpressionConfigItem expressionCI,
             @Nullable D outputDefinition,
-            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionProfile expressionProfile,
             @NotNull ExpressionFactory factory,
             String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
@@ -167,7 +167,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         context.setExpressionProfile(expressionProfile);
-        context.setExpressionEvaluatorProfile(ExpressionEvaluatorProfile.forbidden()); // will be determined later
+        context.setExpressionEvaluatorProfile(expressionProfile.getEvaluatorProfile(evaluator.getElementName()));
 
         VariablesMap processedVariables = null;
 
@@ -251,9 +251,6 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
-        context.setExpressionEvaluatorProfile(
-                determineExpressionEvaluatorProfile(context));
-
         PrismValueDeltaSetTriple<V> outputTriple = evaluator.evaluate(context, result);
 
         if (outputTriple == null) {
@@ -265,29 +262,6 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
         checkOutputTripleConsistence(outputTriple);
 
         return outputTriple;
-    }
-
-    private ExpressionEvaluatorProfile determineExpressionEvaluatorProfile(ExpressionEvaluationContext context)
-            throws SecurityViolationException {
-        ExpressionProfile expressionProfile = context.getExpressionProfile();
-        if (expressionProfile == null) {
-            return null; // everything is allowed
-        }
-
-        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
-
-        ExpressionEvaluatorProfile evaluatorProfile = evaluatorsProfile.getEvaluatorProfile(evaluator.getElementName());
-        if (evaluatorProfile != null) {
-            return evaluatorProfile; // evaluator profile will sort everything out, no need to decide here
-        }
-
-        if (evaluatorsProfile.getDefaultDecision() == AccessDecision.ALLOW) {
-            return null; // no evaluator profile, but we are allowed at the expression level
-        } else {
-            throw new SecurityViolationException(
-                    "Access to expression evaluator %s not allowed (expression profile: %s) in %s".formatted(
-                            evaluator.shortDebugDump(), expressionProfile.getIdentifier(), context.getContextDescription()));
-        }
     }
 
     private boolean isAllowEmptyValues() {
@@ -418,7 +392,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
 
             Object value = variableDefBean.getValue();
             if (value != null) {
-                ItemName varQName = new ItemName(SchemaConstants.NS_C, varName);
+                ItemName varQName = ItemName.from(SchemaConstants.NS_C, varName);
                 // Only String values are supported now
                 var def = PrismContext.get().definitionFactory()
                         .newPropertyDefinition(varQName, PrimitiveType.STRING.getQname());

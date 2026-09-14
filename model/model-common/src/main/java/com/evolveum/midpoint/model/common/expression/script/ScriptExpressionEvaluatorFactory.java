@@ -7,11 +7,14 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
+
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 /**
  * @author semancik
  */
+@SuppressWarnings("UnstableApiUsage") // because of NotNullByDefault
+@NotNullByDefault
 @Component
 public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
@@ -59,31 +64,30 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            Collection<JAXBElement<?>> evaluatorElements,
             @Nullable D outputDefinition,
-            @Nullable ExpressionProfile expressionProfile,
-            @NotNull ExpressionFactory expressionFactory,
-            @NotNull String contextDescription,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, SecurityViolationException {
+            ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory,
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException, SecurityViolationException {
 
-        ScriptExpressionEvaluatorType evaluatorBean =
+        ScriptExpressionEvaluatorType scriptBean =
                 getSingleEvaluatorBeanRequired(evaluatorElements, ScriptExpressionEvaluatorType.class, contextDescription);
+        var expressionEvaluatorProfile = getEvaluatorProfile(expressionProfile);
 
         Script script =
                 scriptFactory.createScript(
-                        evaluatorBean, outputDefinition, expressionProfile, contextDescription, result);
+                        scriptBean, outputDefinition, expressionProfile, expressionEvaluatorProfile, contextDescription, result);
 
-        return new ScriptExpressionEvaluator<>(
-                ELEMENT_NAME,
-                evaluatorBean,
-                outputDefinition,
-                protector,
-                script,
-                localizationService);
+        return new ScriptExpressionEvaluator<>(ELEMENT_NAME, script, protector, localizationService);
     }
 
     public ScriptFactory getScriptFactory() {
         return scriptFactory;
+    }
+
+    public static ExpressionEvaluatorProfile getEvaluatorProfile(ExpressionProfile expressionProfile) {
+        return expressionProfile.getEvaluatorProfile(ELEMENT_NAME);
     }
 }

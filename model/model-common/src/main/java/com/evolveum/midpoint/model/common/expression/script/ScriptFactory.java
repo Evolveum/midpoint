@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorsProfile;
 
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,10 +29,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.schema.AccessDecision;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -132,70 +129,38 @@ public class ScriptFactory {
         return builtInLibraryBindings;
     }
 
+    /**
+     * Creates a script.
+     *
+     * Note that the caller is responsible for providing an {@link ExpressionEvaluatorProfile}, even though it can be easily
+     * derived from the {@link ExpressionProfile}. The evaluator profile is what matters; the root expression profile is there
+     * mainly to decide about called function libraries (and later maybe other features).
+     */
     public Script createScript(
             @NotNull ScriptExpressionEvaluatorType scriptExpressionBean,
-            ItemDefinition<?> outputDefinition,
-            ExpressionProfile expressionProfile,
+            @Nullable ItemDefinition<?> outputDefinition,
+            @NotNull ExpressionProfile expressionProfile,
+            @NotNull ExpressionEvaluatorProfile evaluatorExpressionProfile,
             String shortDesc,
             OperationResult result)
             throws ExpressionSyntaxException, SecurityViolationException {
 
-        String language = determineLanguage(scriptExpressionBean, result);
-        ScriptExecutor executor = getExecutor(language, shortDesc);
-        Script expression = new Script(executor, scriptExpressionBean);
-        expression.setPrismContext(prismContext);
-        expression.setOutputDefinition(outputDefinition);
-        expression.setObjectResolver(objectResolver);
+        var language = determineLanguage(scriptExpressionBean, result);
+        var executor = getExecutor(language, shortDesc);
+
+        var qualifiedLanguageUri = executor.getLanguageUrl(); // The URI in script bean may be unqualified or missing
+        var scriptLanguageExpressionProfile = evaluatorExpressionProfile.getScriptLanguageExpressionProfile(qualifiedLanguageUri);
+
+        var script = new Script(
+                scriptExpressionBean, executor, expressionProfile, scriptLanguageExpressionProfile);
+        script.setPrismContext(prismContext);
+        script.setOutputDefinition(outputDefinition);
+        script.setObjectResolver(objectResolver);
         Collection<FunctionLibraryBinding> allLibraryBindings = new ArrayList<>(builtInLibraryBindings);
         allLibraryBindings.addAll(
                 getRepoFunctionLibraryBindings(result));
-        expression.setFunctionLibraryBindings(allLibraryBindings);
-
-        // It is not very elegant to process expression profile and script expression profile here.
-        // It is somehow redundant, as it was already pre-processed in the expression evaluator/factory
-        // We are throwing that out and we are processing it again. But this is a consequence of having
-        // the duality of Expression and Script. TODO consider how to avoid duplicate computation of the profile
-        expression.setExpressionProfile(expressionProfile);
-        expression.setScriptExpressionProfile(
-                getScriptLanguageExpressionProfileOrFail(
-                        expressionProfile,
-                        // We need "normalized" language URI here hence not taking one from the script bean
-                        executor.getLanguageUrl(),
-                        shortDesc));
-
-        return expression;
-    }
-
-    private ScriptLanguageExpressionProfile getScriptLanguageExpressionProfileOrFail(
-            ExpressionProfile expressionProfile, @NotNull String language, String shortDesc) throws SecurityViolationException {
-        if (expressionProfile == null) {
-            return null;
-        }
-        ExpressionEvaluatorsProfile evaluatorsProfile = expressionProfile.getEvaluatorsProfile();
-
-        ExpressionEvaluatorProfile evaluatorProfile =
-                evaluatorsProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
-        if (evaluatorProfile == null) {
-            if (evaluatorsProfile.getDefaultDecision() == AccessDecision.ALLOW) {
-                return null;
-            } else {
-                throw new SecurityViolationException(
-                        "Access to script expression evaluator not allowed (expression profile: %s) in %s".formatted(
-                                expressionProfile.getIdentifier(), shortDesc));
-            }
-        }
-        ScriptLanguageExpressionProfile languageProfile = evaluatorProfile.getScriptExpressionProfile(language);
-        if (languageProfile == null) {
-            if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
-                return null;
-            } else {
-                throw new SecurityViolationException(
-                        "Access to script language %s not allowed (expression profile: %s) in %s".formatted(
-                                language, expressionProfile.getIdentifier(), shortDesc));
-            }
-        }
-
-        return languageProfile;
+        script.setFunctionLibraryBindings(allLibraryBindings);
+        return script;
     }
 
     private @NotNull Collection<FunctionLibraryBinding> getRepoFunctionLibraryBindings(OperationResult result)

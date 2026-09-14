@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
@@ -104,7 +108,7 @@ public class ExpressionProfileCompiler {
             List<BulkActionsProfile> bulkActionsProfiles,
             List<FunctionLibrariesProfile> librariesProfiles)
             throws ConfigurationException {
-        List<ExpressionEvaluatorProfile> compiledEvaluatorProfiles = new ArrayList<>();
+        List<ExpressionEvaluatorProfileImpl> compiledEvaluatorProfiles = new ArrayList<>();
         for (ExpressionEvaluatorProfileType evaluatorBean : expressionProfileBean.getEvaluator()) {
             compiledEvaluatorProfiles.add(compileEvaluatorProfile(evaluatorBean, permissionProfiles));
         }
@@ -158,24 +162,25 @@ public class ExpressionProfileCompiler {
         }
     }
 
-    private ExpressionEvaluatorProfile compileEvaluatorProfile(
+    private ExpressionEvaluatorProfileImpl compileEvaluatorProfile(
             ExpressionEvaluatorProfileType evaluatorBean, List<ExpressionPermissionProfile> permissionProfiles)
             throws ConfigurationException {
-        List<ScriptLanguageExpressionProfile> compiledScriptLanguageProfiles = new ArrayList<>();
+        List<ScriptLanguageExpressionProfileImpl> compiledScriptLanguageProfiles = new ArrayList<>();
         for (var scriptProfileBean : evaluatorBean.getScript()) {
             compiledScriptLanguageProfiles.add(
                     compileScriptLanguageProfile(scriptProfileBean, permissionProfiles));
         }
-        return new ExpressionEvaluatorProfile(
-                configNonNull(evaluatorBean.getType(), "No evaluator type in profile: %s", evaluatorBean),
+        QName type = configNonNull(evaluatorBean.getType(), "No evaluator type in profile: %s", evaluatorBean);
+        return new ExpressionEvaluatorProfileImpl(
+                QNameUtil.qualifyIfNeeded(type, SchemaConstants.NS_C),
                 AccessDecision.translate(evaluatorBean.getDecision()),
                 compiledScriptLanguageProfiles);
     }
 
-    private ScriptLanguageExpressionProfile compileScriptLanguageProfile(
+    private ScriptLanguageExpressionProfileImpl compileScriptLanguageProfile(
             ScriptLanguageExpressionProfileType bean, List<ExpressionPermissionProfile> permissionProfiles)
             throws ConfigurationException {
-        return new ScriptLanguageExpressionProfile(
+        return new ScriptLanguageExpressionProfileImpl(
                 configNonNull(bean.getLanguage(), "No language URL in script profile: %s", bean),
                 AccessDecision.translate(bean.getDecision()),
                 Boolean.TRUE.equals(bean.isTypeChecking()),

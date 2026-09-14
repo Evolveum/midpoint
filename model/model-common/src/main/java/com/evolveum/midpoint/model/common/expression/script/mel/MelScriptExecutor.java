@@ -187,7 +187,7 @@ public class MelScriptExecutor extends AbstractCachingScriptExecutor<CelRuntime,
         builder.setOptions(celOptions);
         builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
         builder.setTypeProvider(getTypeProvider());
-        builder.addLibraries(midPointCelExtensionManager.getCompilerLibraries(context.getExpressionProfile()));
+        builder.addLibraries(midPointCelExtensionManager.getCompilerLibraries(context.getScriptLanguageExpressionProfile()));
         addCompilerVariables(builder, context);
         addFunctionLibraryDeclarations(builder, context);
         builder.setResultType(determineResultType(context));
@@ -284,7 +284,7 @@ public class MelScriptExecutor extends AbstractCachingScriptExecutor<CelRuntime,
         // TODO: consider expression profiles?
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
-        builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getExpressionProfile()));
+        builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getScriptLanguageExpressionProfile()));
         builder.setRuntimeEquality(runtimeEquality);
         addFunctionLibraryImplementations(builder, context);
         return builder.build();

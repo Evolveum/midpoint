@@ -12918,6 +12918,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Evaluator type. This should correspond to the name of evaluator element.
+                        If unqualified, default namespace is "common-3".
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ExpressionEvaluatorProfileType.type</a:displayName>

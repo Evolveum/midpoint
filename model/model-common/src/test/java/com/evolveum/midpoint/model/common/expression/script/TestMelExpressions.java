@@ -3370,7 +3370,7 @@ public class TestMelExpressions extends AbstractScriptTest {
     public void testMapDefaultNull() throws Exception {
         executeAndAssertStringScalarExpression(
                 "expression-map-default-null.xml",
-                null,
+                createVariables(),
                 "HELLO");
     }
 

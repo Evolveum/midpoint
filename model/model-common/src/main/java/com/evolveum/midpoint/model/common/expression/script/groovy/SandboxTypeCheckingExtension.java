@@ -57,9 +57,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
             } else {
                 sb.append("not allowed");
             }
-            if (getContext().getExpressionProfile() != null) {
-                sb.append(" (applied expression profile '").append(getContext().getExpressionProfile().getIdentifier()).append("')");
-            }
+            sb.append(" (expression profile '").append(getContext().getExpressionProfile().getIdentifier()).append("')");
             addStaticTypeError(sb.toString(), expression);
         }
     }
@@ -70,12 +68,8 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
         if (builtinDecision != AccessDecision.DEFAULT) {
             return builtinDecision;
         }
-        var scriptExpressionProfile = getContext().getScriptExpressionProfile();
-        if (scriptExpressionProfile == null) {
-            LOGGER.trace("decideClass: profile==null [{},{}] : ALLOW", className, methodName);
-            return AccessDecision.ALLOW;
-        }
-        var methodDecision = scriptExpressionProfile.decideClassAccess(className, methodName);
+        var languageProfile = getContext().getScriptLanguageExpressionProfile();
+        var methodDecision = languageProfile.decideClassAccess(className, methodName);
         LOGGER.trace("decideClass: profile({}) [{},{}] : {}",
                 getContext().getExpressionProfile().getIdentifier(), className, methodName, methodDecision);
         return methodDecision;

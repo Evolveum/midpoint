@@ -15,12 +15,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.common.Clock;
 
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -487,7 +490,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         executeAndAssertStringScalarExpression(
                 "expression-string-exec.xml",
-                null,
+                createVariables(),
                 RESULT_STRING_EXEC);
 
         // THEN
@@ -504,7 +507,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         executeAndAssertStringScalarExpression(
                 "expression-list-exec.xml",
-                null,
+                createVariables(),
                 RESULT_STRING_EXEC);
 
         // THEN
@@ -548,12 +551,12 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         assertTrue("Even Horatio was wrong! " + horatio1Time + " -> " + horatio2Time, horatio2Time <= horatio1Time);
     }
 
-    private long executeCachingScript(String filname, String expectedResult, String desc)
+    private long executeCachingScript(String filename, String expectedResult, String desc)
             throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
         OperationResult result = createOperationResult(desc);
-        ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
+        ScriptExpressionEvaluatorType scriptType = parseScriptType(filename);
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
@@ -590,8 +593,9 @@ public class TestGroovyExpressions extends AbstractScriptTest {
     private Script createCachingScriptExpression(
             ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
         Script script = new Script(
-                scriptFactory.getExecutorSimple(expressionType.getLanguage()),
-                expressionType);
+                expressionType, Objects.requireNonNull(scriptFactory.getExecutorSimple(expressionType.getLanguage())),
+                ExpressionProfile.full(),
+                ScriptLanguageExpressionProfile.full());
         script.setOutputDefinition(outputDefinition);
         script.setObjectResolver(scriptFactory.getObjectResolver());
         script.setFunctionLibraryBindings(new ArrayList<>(scriptFactory.getBuiltInLibraryBindings()));

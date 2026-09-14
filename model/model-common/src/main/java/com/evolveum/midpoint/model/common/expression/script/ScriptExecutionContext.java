@@ -17,8 +17,8 @@ import com.evolveum.midpoint.prism.PrismNamespaceContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Context in which given {@link Script} is executed. The script expression is part of the context.
@@ -43,8 +44,8 @@ public class ScriptExecutionContext {
     private static final ThreadLocal<ScriptExecutionContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
     private VariablesMap variables;
-    private Function<Object, Object> additionalConvertor;
-    private ScriptExpressionReturnTypeType suggestedReturnType;
+    @Nullable private Function<Object, Object> additionalConvertor;
+    @Nullable private ScriptExpressionReturnTypeType suggestedReturnType;
 
     @NotNull private final Script script;
 
@@ -62,13 +63,13 @@ public class ScriptExecutionContext {
 
     private ScriptEvaluationTraceType trace;
 
-    private PrismNamespaceContext namespaceContext;
+    @Nullable private PrismNamespaceContext namespaceContext;
 
     public ScriptExecutionContext(@NotNull Script script) {
         this.script = script;
     }
 
-    public ScriptExpressionEvaluatorType getScriptBean() {
+    public @NotNull ScriptExpressionEvaluatorType getScriptBean() {
         return script.getScriptBean();
     }
 
@@ -84,19 +85,19 @@ public class ScriptExecutionContext {
         return script.getOutputDefinition();
     }
 
-    public Function<Object, Object> getAdditionalConvertor() {
+    public @Nullable Function<Object, Object> getAdditionalConvertor() {
         return additionalConvertor;
     }
 
-    public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+    public void setAdditionalConvertor(@Nullable Function<Object, Object> additionalConvertor) {
         this.additionalConvertor = additionalConvertor;
     }
 
-    public ScriptExpressionReturnTypeType getSuggestedReturnType() {
+    public @Nullable ScriptExpressionReturnTypeType getSuggestedReturnType() {
         return suggestedReturnType;
     }
 
-    public void setSuggestedReturnType(ScriptExpressionReturnTypeType suggestedReturnType) {
+    public void setSuggestedReturnType(@Nullable ScriptExpressionReturnTypeType suggestedReturnType) {
         this.suggestedReturnType = suggestedReturnType;
     }
 
@@ -108,12 +109,12 @@ public class ScriptExecutionContext {
         return script.getFunctionLibraryBindings();
     }
 
-    public ExpressionProfile getExpressionProfile() {
+    public @NotNull ExpressionProfile getExpressionProfile() {
         return script.getExpressionProfile();
     }
 
-    public ScriptLanguageExpressionProfile getScriptExpressionProfile() {
-        return script.getScriptExpressionProfile();
+    public @NotNull ScriptLanguageExpressionProfile getScriptLanguageExpressionProfile() {
+        return script.getScriptLanguageExpressionProfile();
     }
 
     public @NotNull Script getScript() {
@@ -198,11 +199,11 @@ public class ScriptExecutionContext {
         this.trace = trace;
     }
 
-    public PrismNamespaceContext getNamespaceContext() {
+    public @Nullable PrismNamespaceContext getNamespaceContext() {
         return namespaceContext;
     }
 
-    public void setNamespaceContext(PrismNamespaceContext namespaceContext) {
+    public void setNamespaceContext(@Nullable PrismNamespaceContext namespaceContext) {
         this.namespaceContext = namespaceContext;
     }
 
