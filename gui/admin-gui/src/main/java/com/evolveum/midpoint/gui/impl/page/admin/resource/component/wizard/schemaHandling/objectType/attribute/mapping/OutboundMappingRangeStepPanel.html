@@ -11,7 +11,15 @@
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
     <div class="col-8">
-        <div wicket:id="range"/>
+        <div class="card shadow-sm mb-3">
+            <div class="bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 w-100">
+                <div class="d-flex align-items-center text-start">
+                    <i class="fa fa-filter"></i>
+                    <span class="ms-2"><wicket:message key="PageResource.wizard.step.attributes.outbound.range"/></span>
+                </div>
+            </div>
+            <div class="p-3 pt-0" wicket:id="range"/>
+        </div>
     </div>
 </wicket:extend>
 </html>
