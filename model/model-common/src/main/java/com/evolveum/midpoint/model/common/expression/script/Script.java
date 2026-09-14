@@ -8,10 +8,12 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 
+import com.evolveum.midpoint.repo.common.expression.Expression;
+
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -33,36 +35,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTrac
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
- * FIXME review this description
+ * Executable form of {@link ScriptExpressionEvaluatorType}.
  *
- * The expressions should be created by ExpressionFactory. They expect correct setting of
- * expression evaluator and proper conversion form the XML ExpressionType. Factory does this.
+ * Normally created as part of evaluating {@link Expression} (via {@link ScriptExpressionEvaluator}).
+ * But can be also used in standalone mode by calling {@link ScriptFactory#createScript
+ * (ScriptExpressionEvaluatorType, ItemDefinition, ExpressionProfile, String, OperationResult)} directly.
  *
- * FIXME resolve the duplication with {@link ScriptExpressionEvaluationContext}
+ * @see ScriptExpressionEvaluator
+ * @see ScriptExecutionContext
  *
  * @author Radovan Semancik
  */
-public class ScriptExpression {
+public class Script {
 
-    private static final String OP_EVALUATE = ScriptExpression.class.getName() + ".evaluate";
+    private static final String OP_EXECUTE = Script.class.getName() + ".execute";
 
-    private final ScriptEvaluator evaluator;
+    private final ScriptExecutor executor;
     private final ScriptExpressionEvaluatorType scriptBean;
 
     private ItemDefinition<?> outputDefinition;
-    private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
     private Collection<FunctionLibraryBinding> functionLibraryBindings;
     private ExpressionProfile expressionProfile;
     private ScriptLanguageExpressionProfile scriptExpressionProfile;
     private PrismContext prismContext;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Script.class);
     private static final int MAX_CODE_CHARS = 42;
 
-    ScriptExpression(ScriptEvaluator evaluator, ScriptExpressionEvaluatorType scriptBean) {
+    Script(ScriptExecutor executor, ScriptExpressionEvaluatorType scriptBean) {
         this.scriptBean = scriptBean;
-        this.evaluator = evaluator;
+        this.executor = executor;
+    }
+
+    public ScriptExpressionEvaluatorType getScriptBean() {
+        return scriptBean;
     }
 
     public ItemDefinition<?> getOutputDefinition() {
@@ -101,8 +108,8 @@ public class ScriptExpression {
         this.scriptExpressionProfile = scriptExpressionProfile;
     }
 
-    void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
-        this.additionalConvertor = additionalConvertor;
+    public ScriptLanguageExpressionProfile getScriptExpressionProfile() {
+        return scriptExpressionProfile;
     }
 
     public PrismContext getPrismContext() {
@@ -113,35 +120,22 @@ public class ScriptExpression {
         this.prismContext = prismContext;
     }
 
+    /**
+     * Evaluates this expression in the given context.
+     *
+     * The context must reference this expression. Hence, it is better to call
+     * {@link ScriptExecutionContext#execute()} instead of this method.
+     */
     @NotNull
-    public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
+    public <V extends PrismValue> List<V> execute(ScriptExecutionContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        if (context.getScriptBean() == null) {
-            context.setScriptBean(scriptBean);
-        }
-        if (context.getFunctionLibraryBindings() == null) {
-            context.setFunctionLibraryBindings(functionLibraryBindings);
-        }
-        if (context.getExpressionProfile() == null) {
-            context.setExpressionProfile(expressionProfile);
-        }
-        if (context.getScriptExpressionProfile() == null) {
-            context.setScriptExpressionProfile(scriptExpressionProfile);
-        }
-        if (context.getOutputDefinition() == null) {
-            context.setOutputDefinition(outputDefinition);
-        }
-        if (context.getAdditionalConvertor() == null) {
-            context.setAdditionalConvertor(additionalConvertor);
-        }
-        if (context.getObjectResolver() == null) {
-            context.setObjectResolver(objectResolver);
-        }
+        Preconditions.checkArgument(
+                context.getScript() == this, "Context does not reference this expression");
 
         OperationResult parentResult = context.getResult();
-        OperationResult result = parentResult.subresult(OP_EVALUATE)
+        OperationResult result = parentResult.subresult(OP_EXECUTE)
                 .setMinor()
                 .addContext("context", context.getContextDescription())
                 .build();
@@ -154,10 +148,10 @@ public class ScriptExpression {
             context.setTrace(null);
         }
         context.setResult(result); // a bit of hack: this is to provide some tracing of script evaluation
-        ScriptExpressionEvaluationContext oldContext = context.setupThreadLocal();
+        ScriptExecutionContext oldContext = context.setupThreadLocal();
         try {
 
-            List<V> expressionResult = evaluator.evaluate(context);
+            List<V> expressionResult = executor.execute(context);
             if (context.getTrace() != null) {
                 context.getTrace().getResult().addAll(
                         TraceUtil.toAnyValueTypeList(expressionResult));
@@ -177,13 +171,13 @@ public class ScriptExpression {
         }
     }
 
-    private void traceExpressionSuccess(ScriptExpressionEvaluationContext context, Object returnValue) {
+    private void traceExpressionSuccess(ScriptExecutionContext context, Object returnValue) {
         if (!isTrace()) {
             return;
         }
         trace("""
-                        Script expression trace:
-                        ---[ SCRIPT expression {}]---------------------------
+                        Script execution trace:
+                        ---[ SCRIPT {}]---------------------------
                         Language: {}
                         Relativity mode: {}
                         Variables:
@@ -193,7 +187,7 @@ public class ScriptExpression {
                         {}
                         Result: {}""",
                 context.getContextDescription(),
-                evaluator.getLanguageName(),
+                executor.getLanguageName(),
                 scriptBean.getRelativityMode(),
                 formatVariables(context.getVariables()),
                 formatProfile(),
@@ -201,14 +195,14 @@ public class ScriptExpression {
                 SchemaDebugUtil.prettyPrint(returnValue));
     }
 
-    private void traceExpressionFailure(ScriptExpressionEvaluationContext context, Throwable exception) {
+    private void traceExpressionFailure(ScriptExecutionContext context, Throwable exception) {
         LOGGER.error("Expression error: {}", exception.getMessage(), exception);
         if (!isTrace()) {
             return;
         }
         trace("""
-                        Script expression failure:
-                        ---[ SCRIPT expression {}]---------------------------
+                        Script execution failure:
+                        ---[ SCRIPT {}]---------------------------
                         Language: {}
                         Relativity mode: {}
                         Variables:
@@ -218,7 +212,7 @@ public class ScriptExpression {
                         {}
                         Error: {}""",
                 context.getContextDescription(),
-                evaluator.getLanguageName(),
+                executor.getLanguageName(),
                 scriptBean.getRelativityMode(),
                 formatVariables(context.getVariables()),
                 formatProfile(),
@@ -273,6 +267,6 @@ public class ScriptExpression {
 
     @Override
     public String toString() {
-        return "ScriptExpression(" + formatCode() + ")";
+        return "Script(" + formatCode() + ")";
     }
 }

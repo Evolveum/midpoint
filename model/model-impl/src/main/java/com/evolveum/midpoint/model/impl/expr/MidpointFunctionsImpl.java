@@ -39,6 +39,7 @@ import javax.xml.stream.events.XMLEvent;
 import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.common.AvailableLocale;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
@@ -64,7 +65,6 @@ import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
@@ -327,7 +327,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     private boolean isThereDeletedAccountContextForEvaluateOld(ModelContext<?> ctx, String resourceOid) {
-        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+        ScriptExecutionContext scriptContext = ScriptExecutionContext.getThreadLocal();
         if (scriptContext == null || scriptContext.isEvaluateNew()) {
             return false; // Deleted context counts only if we are evaluating the old state
         }
@@ -347,7 +347,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         ModelElementContext<?> focusContext = projectionContext.getModelContext().getFocusContextRequired();
-        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+        ScriptExecutionContext scriptContext = ScriptExecutionContext.getThreadLocal();
 
         SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
         SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
@@ -566,7 +566,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         ModelElementContext<?> focusContext = ctx.getFocusContextRequired();
 
         PrismObject<?> focus;
-        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+        ScriptExecutionContext scriptContext = ScriptExecutionContext.getThreadLocal();
         if (scriptContext == null) {
             focus = focusContext.getObjectAny();
         } else if (scriptContext.isEvaluateNew()) {
@@ -937,7 +937,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
 
         // fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
-        ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+        ScriptExecutionContext ctx = ScriptExecutionContext.getThreadLocal();
         if (ctx != null) {
             return ctx.getTask();
         }
@@ -952,7 +952,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public OperationResult getCurrentResult() {
         // This is the most current operation result, reflecting e.g. the fact that mapping evaluation was started.
-        ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+        ScriptExecutionContext ctx = ScriptExecutionContext.getThreadLocal();
         if (ctx != null) {
             return ctx.getResult();
         } else {
@@ -1266,7 +1266,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private PrismNamespaceContext getNamespaceContext() {
         return Objects.requireNonNullElse(
-                ScriptExpressionEvaluationContext.getThreadLocal().getNamespaceContext(),
+                ScriptExecutionContext.getThreadLocal().getNamespaceContext(),
                 PrismNamespaceContext.EMPTY);
     }
 
@@ -2177,7 +2177,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Boolean isEvaluateNew() {
-        ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+        ScriptExecutionContext scriptContext = ScriptExecutionContext.getThreadLocal();
         if (scriptContext == null) {
             return null;
         }

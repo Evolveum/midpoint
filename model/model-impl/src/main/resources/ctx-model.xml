@@ -45,8 +45,8 @@
         <constructor-arg name="implementation" ref="logFunctionObject"/>
     </bean>
 
-    <bean id="javascriptScriptEvaluator"
-            class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator">
+    <bean id="javascriptScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor">
         <constructor-arg name="engineName" value="JavaScript"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
@@ -56,8 +56,8 @@
         </constructor-arg>
     </bean>
 
-    <bean id="groovyScriptEvaluator"
-            class="com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator">
+    <bean id="groovyScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptExecutor">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
@@ -66,8 +66,8 @@
         </constructor-arg>
     </bean>
 
-    <bean id="pythonScriptEvaluator"
-            class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator">
+    <bean id="pythonScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor">
         <constructor-arg name="engineName" value="python"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
@@ -77,8 +77,8 @@
         </constructor-arg>
     </bean>
 
-    <bean id="velocityScriptEvaluator"
-            class="com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator">
+    <bean id="velocityScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptExecutor">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
@@ -87,8 +87,8 @@
         </constructor-arg>
     </bean>
 
-    <bean id="melScriptEvaluator"
-            class="com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator">
+    <bean id="melScriptExecutor"
+            class="com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="localizationService" ref="localizationService"/>
@@ -100,8 +100,8 @@
         <constructor-arg name="cacheInvalidationDispatcher" ref="cacheInvalidationDispatcherImpl"/>
     </bean>
 
-    <bean id="scriptExpressionFactory"
-            class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory">
+    <bean id="scriptFactory"
+            class="com.evolveum.midpoint.model.common.expression.script.ScriptFactory">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="builtInLibraryBindings">
             <list>
@@ -112,11 +112,11 @@
         </constructor-arg>
         <constructor-arg name="evaluators">
             <list>
-                <ref bean="javascriptScriptEvaluator"/>
-                <ref bean="groovyScriptEvaluator"/>
-                <ref bean="pythonScriptEvaluator"/>
-                <ref bean="velocityScriptEvaluator"/>
-                <ref bean="melScriptEvaluator"/>
+                <ref bean="javascriptScriptExecutor"/>
+                <ref bean="groovyScriptExecutor"/>
+                <ref bean="pythonScriptExecutor"/>
+                <ref bean="velocityScriptExecutor"/>
+                <ref bean="melScriptExecutor"/>
             </list>
         </constructor-arg>
         <constructor-arg name="objectResolver" ref="modelObjectResolver"/>

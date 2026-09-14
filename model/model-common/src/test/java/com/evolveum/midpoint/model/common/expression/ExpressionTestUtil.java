@@ -32,9 +32,9 @@ import com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressi
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
@@ -107,24 +107,24 @@ public class ExpressionTestUtil {
         Collection<FunctionLibraryBinding> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         functions.add(FunctionLibraryUtil.createLogFunctionLibraryBinding(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(functions, resolver);
+        ScriptFactory scriptFactory = new ScriptFactory(functions, resolver);
 
-        scriptExpressionFactory.registerEvaluator(
-                new GroovyScriptEvaluator(
+        scriptFactory.registerExecutor(
+                new GroovyScriptExecutor(
                         prismContext, protector, LocalizationTestUtil.getLocalizationService(), testingExpressionsConfiguration()));
 
-        Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator(
+        Jsr223ScriptExecutor jsExecutor = new Jsr223ScriptExecutor(
                 "ECMAScript",
                 prismContext,
                 protector,
                 LocalizationTestUtil.getLocalizationService(),
                 testingExpressionsConfiguration());
-        if (jsEvaluator.isInitialized()) {
-            scriptExpressionFactory.registerEvaluator(jsEvaluator);
+        if (jsExecutor.isInitialized()) {
+            scriptFactory.registerExecutor(jsExecutor);
         }
 
         expressionFactory.registerEvaluatorFactory(
-                new ScriptExpressionEvaluatorFactory(scriptExpressionFactory));
+                new ScriptExpressionEvaluatorFactory(scriptFactory));
 
         return expressionFactory;
     }

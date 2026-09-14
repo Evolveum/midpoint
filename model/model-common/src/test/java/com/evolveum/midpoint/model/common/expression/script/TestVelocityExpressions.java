@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
-import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptExecutor;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -33,8 +33,8 @@ import static org.testng.AssertJUnit.fail;
 public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
-        return new VelocityScriptEvaluator(
+    protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return new VelocityScriptExecutor(
                 prismContext, protector, localizationService, ExpressionTestUtil.testingExpressionsConfiguration(restrictedMode));
     }
 
@@ -45,7 +45,7 @@ public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionList() throws Exception {
-        evaluateAndAssertStringScalarExpression( // velocity has no support for output other than String
+        executeAndAssertStringScalarExpression( // velocity has no support for output other than String
                 "expression-list.xml",
                 createVariables(
                         "jack",
@@ -327,7 +327,7 @@ public class TestVelocityExpressions extends AbstractScriptTest {
 
     @Test
     public void testUserAdministrativeStatus() throws Exception {
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-user-administrative-status.xml",
                 createUserScriptVariables(),
                 "enabled");

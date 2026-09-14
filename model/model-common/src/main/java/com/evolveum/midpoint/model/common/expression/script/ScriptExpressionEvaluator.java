@@ -38,9 +38,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * It is a part of {@link Expression} and {@link ExpressionEvaluator} framework.
  *
- * This class is a bridge between the "relativity" and "script execution" aspects of the script expression evaluation:
+ * This class is a bridge between the "relativity" and "script execution" aspects of the script expression evaluation,
+ * using {@link Script#execute(ScriptExecutionContext)} to do the actual script execution.
  *
- * . {@link ScriptExpression} evaluates scripts and ignores all those complex aspects of expressions' relativity,
+ * The division of labor is as follows:
+ *
+ * . {@link Script#execute(ScriptExecutionContext)} simply executes scripts and ignores aspects of expressions' relativity,
  * . and {@link AbstractValueTransformationExpressionEvaluator} and the super-classes deal with relativity handling (etc)
  * and ignore technical aspects of running Groovy/JS/whatever scripts.
  *
@@ -49,22 +52,22 @@ import org.jetbrains.annotations.Nullable;
 public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
                 extends AbstractValueTransformationExpressionEvaluator<V, D, ScriptExpressionEvaluatorType> {
 
-    private final ScriptExpression scriptExpression;
+    private final Script script;
 
     ScriptExpressionEvaluator(
             QName elementName,
             ScriptExpressionEvaluatorType scriptBean,
             D outputDefinition,
             Protector protector,
-            ScriptExpression scriptExpression,
+            Script script,
             LocalizationService localizationService) {
         super(elementName, scriptBean, outputDefinition, protector, localizationService);
-        this.scriptExpression = scriptExpression;
+        this.script = script;
     }
 
     @Override
     protected void checkEvaluatorProfile(ExpressionEvaluationContext context) {
-        // Do nothing here. The profile will be checked inside ScriptExpression.
+        // Do nothing here. The profile will be checked inside Script.
     }
 
     @Override
@@ -73,8 +76,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         var eeCtx = vtCtx.getExpressionEvaluationContext();
-        scriptExpression.setAdditionalConvertor(eeCtx.getAdditionalConvertor());
-        ScriptExpressionEvaluationContext sCtx = new ScriptExpressionEvaluationContext();
+        ScriptExecutionContext sCtx = new ScriptExecutionContext(script);
         sCtx.setVariables(vtCtx.getVariablesMap());
         sCtx.setSuggestedReturnType(getReturnType());
         sCtx.setEvaluateNew(vtCtx.isEvaluateNew());
@@ -84,7 +86,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
         sCtx.setResult(result);
         sCtx.setNamespaceContext(eeCtx.getNamespaceContext());
 
-        return scriptExpression.evaluate(sCtx);
+        return sCtx.execute();
     }
 
     @Nullable
@@ -101,6 +103,6 @@ public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefin
 
     @Override
     public String shortDebugDump() {
-        return "script: "+scriptExpression.toString();
+        return "script: "+ script.toString();
     }
 }

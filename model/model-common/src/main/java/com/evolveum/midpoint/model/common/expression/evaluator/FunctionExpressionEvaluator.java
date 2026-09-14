@@ -19,8 +19,6 @@ import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.config.FunctionCallArgumentConfigItem;
 import com.evolveum.midpoint.schema.config.FunctionExpressionEvaluatorConfigItem;
 
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -96,8 +94,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
                     functionLibraryManager.createFunctionExpression(
                             function.function(), outputDefinition, functionExpressionProfile, context.getTask(), result);
 
-            ExpressionEvaluationContext functionEvaluationContext =
-                    createFunctionEvaluationContext(function, functionExpressionProfile, context, result);
+            ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, context, result);
 
             return evaluateFunctionExpression(functionExpression, functionEvaluationContext, result);
         } catch (Throwable t) {
@@ -109,8 +106,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
     }
 
     private @NotNull ExpressionEvaluationContext createFunctionEvaluationContext(
-            FunctionInLibrary functionInLibrary, @NotNull ExpressionProfile functionExpressionProfile,
-            ExpressionEvaluationContext context, OperationResult parentResult)
+            FunctionInLibrary functionInLibrary, ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
@@ -137,7 +133,9 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
                                 context.getExpressionProfile(), // this is the caller's profile
                                 shortDesc, context.getTask(), argumentResult);
 
-                PrismValueDeltaSetTriple<V> argumentValueTriple = argumentExpression.evaluate(context, argumentResult);
+                var argumentEvaluationContext = context.shallowClone();
+                PrismValueDeltaSetTriple<V> argumentValueTriple =
+                        argumentExpression.evaluate(argumentEvaluationContext, argumentResult);
 
                 // TODO why simple value here, not a triple?
                 V argumentValue = ExpressionUtil.getExpressionOutputValue(argumentValueTriple, shortDesc);
@@ -154,9 +152,6 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
         ExpressionEvaluationContext functionContext = context.shallowClone();
         functionContext.setVariables(functionVariables);
-        functionContext.setExpressionProfile(functionExpressionProfile);
-        // to be sure it gets initialized correctly
-        functionContext.setExpressionEvaluatorProfile(ExpressionEvaluatorProfile.forbidden());
         return functionContext;
     }
 
@@ -166,7 +161,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_FUNCTION);
         try {
-            return functionExpression.evaluate(functionContext, parentResult);
+            return functionExpression.evaluate(functionContext, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

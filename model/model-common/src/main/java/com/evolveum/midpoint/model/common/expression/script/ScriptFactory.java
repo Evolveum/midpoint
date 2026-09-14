@@ -39,26 +39,24 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
-import static com.evolveum.midpoint.model.api.BulkAction.LOG;
-
 /**
- * Creates {@link ScriptExpression} instances. They evaluate Groovy/JS/Python/Velocity/... scripts.
+ * Creates {@link Script} instances. They evaluate Groovy/JS/Python/Velocity/... scripts.
  *
  * Responsibilities:
  *
- * . creates {@link ScriptExpression} instances from {@link ScriptExpressionEvaluatorType} beans;
- * . manages {@link ScriptEvaluator} instances for individual languages (Groovy, JavaScript, ...);
+ * . creates {@link Script} instances from {@link ScriptExpressionEvaluatorType} beans;
+ * . manages {@link ScriptExecutor} instances for individual languages (Groovy, JavaScript, ...);
  *
  * @author Radovan Semancik
  */
-public class ScriptExpressionFactory {
+public class ScriptFactory {
 
     private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
-    private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ScriptFactory.class);
 
     /** Indexed by full language URL, always non-null. Values are non-null as well. Concurrency is just for sure. */
-    @NotNull private final Map<String, ScriptEvaluator> evaluatorMap = new ConcurrentHashMap<>();
+    @NotNull private final Map<String, ScriptExecutor> executorMap = new ConcurrentHashMap<>();
 
     @NotNull private final ObjectResolver objectResolver;
 
@@ -75,23 +73,23 @@ public class ScriptExpressionFactory {
     private String systemDefaultLanguage = null;
 
     // Invoked by Spring
-    public ScriptExpressionFactory(
+    public ScriptFactory(
             @NotNull PrismContext prismContext,
             @NotNull Collection<FunctionLibraryBinding> builtInLibraryBindings,
-            @NotNull Collection<ScriptEvaluator> evaluators,
+            @NotNull Collection<ScriptExecutor> executors,
             @NotNull ObjectResolver objectResolver,
             @NotNull FunctionLibraryManager functionLibraryManager,
             @NotNull SystemObjectCache systemObjectCache) {
         this.prismContext = prismContext;
         this.builtInLibraryBindings = Collections.unmodifiableCollection(builtInLibraryBindings);
-        registerEvaluators(evaluators);
+        registerExecutors(executors);
         this.objectResolver = objectResolver;
         this.functionLibraryManager = functionLibraryManager;
         this.systemObjectCache = systemObjectCache;
     }
 
     @VisibleForTesting
-    public ScriptExpressionFactory(
+    public ScriptFactory(
             @NotNull Collection<FunctionLibraryBinding> builtInLibraryBindings,
             @NotNull ObjectResolver objectResolver) {
         this.prismContext = PrismContext.get();
@@ -101,27 +99,27 @@ public class ScriptExpressionFactory {
         this.systemObjectCache = null;
     }
 
-    private void registerEvaluators(@NotNull Collection<ScriptEvaluator> evaluators) {
-        for (ScriptEvaluator evaluator : evaluators) {
-            registerEvaluator(evaluator);
+    private void registerExecutors(@NotNull Collection<ScriptExecutor> executors) {
+        for (ScriptExecutor executor : executors) {
+            registerExecutor(executor);
         }
     }
 
     @VisibleForTesting
-    public void registerEvaluator(@NotNull ScriptEvaluator evaluator) {
-        registerEvaluator(evaluator.getLanguageUrl(), evaluator);
+    public void registerExecutor(@NotNull ScriptExecutor evaluator) {
+        registerExecutor(evaluator.getLanguageUrl(), evaluator);
     }
 
-    private void registerEvaluator(@NotNull String language, @NotNull ScriptEvaluator evaluator) {
-        if (evaluatorMap.containsKey(language)) {
+    private void registerExecutor(@NotNull String language, @NotNull ScriptExecutor evaluator) {
+        if (executorMap.containsKey(language)) {
             throw new IllegalArgumentException("Evaluator for language " + language + " already registered");
         }
-        evaluatorMap.put(language, evaluator);
+        executorMap.put(language, evaluator);
     }
 
     @VisibleForTesting
-    public void replaceEvaluator(@NotNull ScriptEvaluator evaluator) {
-        evaluatorMap.put(evaluator.getLanguageUrl(), evaluator);
+    public void replaceExecutor(@NotNull ScriptExecutor evaluator) {
+        executorMap.put(evaluator.getLanguageUrl(), evaluator);
     }
 
     @VisibleForTesting
@@ -134,7 +132,7 @@ public class ScriptExpressionFactory {
         return builtInLibraryBindings;
     }
 
-    public ScriptExpression createScriptExpression(
+    public Script createScript(
             @NotNull ScriptExpressionEvaluatorType scriptExpressionBean,
             ItemDefinition<?> outputDefinition,
             ExpressionProfile expressionProfile,
@@ -143,8 +141,8 @@ public class ScriptExpressionFactory {
             throws ExpressionSyntaxException, SecurityViolationException {
 
         String language = determineLanguage(scriptExpressionBean, result);
-        ScriptEvaluator evaluator = getEvaluator(language, shortDesc);
-        ScriptExpression expression = new ScriptExpression(evaluator, scriptExpressionBean);
+        ScriptExecutor executor = getExecutor(language, shortDesc);
+        Script expression = new Script(executor, scriptExpressionBean);
         expression.setPrismContext(prismContext);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(objectResolver);
@@ -155,15 +153,14 @@ public class ScriptExpressionFactory {
 
         // It is not very elegant to process expression profile and script expression profile here.
         // It is somehow redundant, as it was already pre-processed in the expression evaluator/factory
-        // We are throwing that out and we are processing it again. But maybe this is consequence of having
-        // the duality of Expression and ScriptExpression ... maybe the ScriptExpression is unnecessary abstraction
-        // and it should be removed.
+        // We are throwing that out and we are processing it again. But this is a consequence of having
+        // the duality of Expression and Script. TODO consider how to avoid duplicate computation of the profile
         expression.setExpressionProfile(expressionProfile);
         expression.setScriptExpressionProfile(
                 getScriptLanguageExpressionProfileOrFail(
                         expressionProfile,
                         // We need "normalized" language URI here hence not taking one from the script bean
-                        evaluator.getLanguageUrl(),
+                        executor.getLanguageUrl(),
                         shortDesc));
 
         return expression;
@@ -210,14 +207,14 @@ public class ScriptExpressionFactory {
         }
     }
 
-    private @NotNull ScriptEvaluator getEvaluator(String languageUri, String shortDesc) throws ExpressionSyntaxException {
-        ScriptEvaluator evaluator = getEvaluatorSimple(languageUri);
-        if (evaluator != null) {
-            return evaluator;
+    private @NotNull ScriptExecutor getExecutor(String languageUri, String shortDesc) throws ExpressionSyntaxException {
+        ScriptExecutor executor = getExecutorSimple(languageUri);
+        if (executor != null) {
+            return executor;
         }
 
         if (QNameUtil.isUnqualified(languageUri)) {
-            List<Map.Entry<String, ScriptEvaluator>> matching = evaluatorMap.entrySet().stream()
+            List<Map.Entry<String, ScriptExecutor>> matching = executorMap.entrySet().stream()
                     .filter(entry -> QNameUtil.matchUri(entry.getKey(), languageUri))
                     .collect(Collectors.toList());
             if (!matching.isEmpty()) {
@@ -231,8 +228,8 @@ public class ScriptExpressionFactory {
     }
 
     @VisibleForTesting
-    public @Nullable ScriptEvaluator getEvaluatorSimple(String languageUri) {
-        return evaluatorMap.get(languageUri);
+    public @Nullable ScriptExecutor getExecutorSimple(String languageUri) {
+        return executorMap.get(languageUri);
     }
 
     private String determineLanguage(ScriptExpressionEvaluatorType expressionBean, OperationResult result) {

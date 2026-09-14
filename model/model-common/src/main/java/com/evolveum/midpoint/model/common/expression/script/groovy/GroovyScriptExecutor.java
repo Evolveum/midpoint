@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import groovy.lang.Binding;
@@ -28,8 +29,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.syntax.SyntaxException;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptExecutor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * "Sandboxing" based on type checking inspired by work of Cédric Champeau (http://melix.github.io/blog/2015/03/sandboxing.html)
  */
-public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<GroovyClassLoader, Class<?>, String> {
+public class GroovyScriptExecutor extends AbstractCachingScriptExecutor<GroovyClassLoader, Class<?>, String> {
 
     public static final String LANGUAGE_NAME = "Groovy";
     private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
@@ -59,7 +59,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     @NotNull private static final ScriptLanguageExpressionProfile BUILTIN_GROOVY_LANGUAGE_PROFILE;
 
     /** Called by Spring but also by lower-level tests */
-    public GroovyScriptEvaluator(
+    public GroovyScriptExecutor(
             PrismContext prismContext, Protector protector, LocalizationService localizationService,
             ExpressionsConfigurationSection configuration) {
         super(prismContext, protector, localizationService, configuration);
@@ -68,7 +68,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected String getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) {
+    protected String getScriptCachingKey(String codeString, ScriptExecutionContext context) {
         return codeString;
     }
 
@@ -88,7 +88,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected Class<?> compileScript(String codeString, ScriptExpressionEvaluationContext context)
+    protected Class<?> compileScript(String codeString, ScriptExecutionContext context)
             throws ExpressionEvaluationException, SecurityViolationException {
         try {
             return getInterpreter(context).parseClass(codeString, context.getContextDescription());
@@ -113,15 +113,15 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected GroovyClassLoader createInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+    protected GroovyClassLoader createInterpreter(ScriptExecutionContext context) throws SecurityViolationException {
         CompilerConfiguration compilerConfiguration = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
         configureCompiler(compilerConfiguration, context);
-        return new GroovyClassLoader(GroovyScriptEvaluator.class.getClassLoader(), compilerConfiguration);
+        return new GroovyClassLoader(GroovyScriptExecutor.class.getClassLoader(), compilerConfiguration);
     }
 
     private void configureCompiler(
             CompilerConfiguration compilerConfiguration,
-            ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+            ScriptExecutionContext context) throws SecurityViolationException {
 
         var languageProfile = context.getScriptExpressionProfile();
         if (languageProfile == null) {
@@ -176,7 +176,7 @@ public class GroovyScriptEvaluator extends AbstractCachingScriptEvaluator<Groovy
     }
 
     @Override
-    protected Object evaluateScript(Class<?> compiledScriptClass, ScriptExpressionEvaluationContext context) throws Exception {
+    protected Object executeScript(Class<?> compiledScriptClass, ScriptExecutionContext context) throws Exception {
 
         if (!Script.class.isAssignableFrom(compiledScriptClass)) {
             throw new ExpressionEvaluationException("Expected groovy script class, but got " + compiledScriptClass);

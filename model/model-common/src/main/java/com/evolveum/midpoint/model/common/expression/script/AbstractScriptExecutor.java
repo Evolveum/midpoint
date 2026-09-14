@@ -47,16 +47,16 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  */
-public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
+public abstract class AbstractScriptExecutor implements ScriptExecutor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractScriptEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractScriptExecutor.class);
 
     private final PrismContext prismContext;
     private final Protector protector;
     private final LocalizationService localizationService;
     private final ExpressionsConfigurationSection configuration;
 
-    public AbstractScriptEvaluator(
+    public AbstractScriptExecutor(
             PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
@@ -80,7 +80,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     }
 
     @Override
-    public @NotNull <V extends PrismValue> List<V> evaluate(@NotNull ScriptExpressionEvaluationContext context)
+    public @NotNull <V extends PrismValue> List<V> execute(@NotNull ScriptExecutionContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
@@ -92,7 +92,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         }
 
         try {
-            Object rawResult = evaluateInternal(codeString, context);
+            Object rawResult = executeInternal(codeString, context);
 
             return convertResultToPrismValues(rawResult, context);
 
@@ -116,14 +116,14 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         }
     }
 
-    /** Executes the evaluation. Responsible for incrementing respective {@link InternalCounters}. */
-    public abstract @Nullable Object evaluateInternal(
+    /** Executes the script. Responsible for incrementing respective {@link InternalCounters}. */
+    public abstract @Nullable Object executeInternal(
             @NotNull String codeString,
-            @NotNull ScriptExpressionEvaluationContext context)
+            @NotNull ScriptExecutionContext context)
             throws Exception;
 
 
-    private void checkProfileAndSafetyRestrictions(ScriptExpressionEvaluationContext context) throws SecurityViolationException {
+    private void checkProfileAndSafetyRestrictions(ScriptExecutionContext context) throws SecurityViolationException {
         if (configuration.isSafeExpressionsOnly() && !isConsideredSafe()) {
             throw new SecurityViolationException(
                     ("Script interpreter for language '%s' is not considered safe; script execution prohibited in %s").formatted(
@@ -168,7 +168,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     /**
      * Returns simple variable map: name -> value, including function libraries, contexts and all other objects.
      */
-    protected Map<String, Object> prepareUnifiedScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
+    protected Map<String, Object> prepareUnifiedScriptVariablesValueMap(ScriptExecutionContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
@@ -182,7 +182,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     /**
      * Returns typed variable map: name -> TypedValue, just for the variables.
      */
-    protected Map<String, TypedValue<?>> prepareScriptVariablesTypedValueMap(ScriptExpressionEvaluationContext context)
+    protected Map<String, TypedValue<?>> prepareScriptVariablesTypedValueMap(ScriptExecutionContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Map<String, TypedValue<?>> scriptVariableMap = new HashMap<>();
@@ -193,9 +193,8 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     /**
      * Process functional libraries (name -> implementation) into a map, including a value conversion by lambda.
      */
-    protected <T> void prepareFunctionLibraryMap(ScriptExpressionEvaluationContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    protected <T> void prepareFunctionLibraryMap(
+            ScriptExecutionContext context, Map<String,T> map, Function<TypedValue<?>,T> converter) {
 
         // Functions
         for (FunctionLibraryBinding funcLib : emptyIfNull(context.getFunctionLibraryBindings())) {
@@ -209,7 +208,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
      * Process variables (name -> TypedValue) into a map, including a value conversion by lambda.
      * This method is processing the variables ONLY, it does NOT contain functions and function libraries.
      */
-    protected <T> void prepareScriptVariablesMap(ScriptExpressionEvaluationContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
+    protected <T> void prepareScriptVariablesMap(ScriptExecutionContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
@@ -286,7 +285,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
     }
 
     private @NotNull <T, V extends PrismValue> List<V> convertResultToPrismValues(
-            Object evalRawResult, @NotNull ScriptExpressionEvaluationContext context)
+            Object evalRawResult, @NotNull ScriptExecutionContext context)
             throws ExpressionEvaluationException {
 
         ItemDefinition<?> outputDefinition = context.getOutputDefinition();
@@ -343,7 +342,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         return values;
     }
 
-    private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, ScriptExpressionEvaluationContext context)
+    private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, ScriptExecutionContext context)
             throws ExpressionEvaluationException {
         try {
             return ExpressionUtil.convertValue(expectedType, context.getAdditionalConvertor(), rawValue, getProtector());

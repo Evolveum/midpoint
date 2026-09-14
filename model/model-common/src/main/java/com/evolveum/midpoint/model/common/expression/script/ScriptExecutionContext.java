@@ -7,19 +7,23 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismNamespaceContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
@@ -27,29 +31,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The whole evaluation of a script: {@link ScriptExpressionEvaluatorType} compiled into {@link ScriptExpression} and evaluated.
+ * Context in which given {@link Script} is executed. The script expression is part of the context.
  *
- * The "context" can be understood just like e.g. `LensContext` - the whole operation, including the script itself.
- *
- * @see ScriptEvaluator#evaluate(ScriptExpressionEvaluationContext)
+ * @see #execute()
+ * @see Script
  *
  * @author semancik
  */
-public class ScriptExpressionEvaluationContext {
+public class ScriptExecutionContext {
 
-    private static final ThreadLocal<ScriptExpressionEvaluationContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<ScriptExecutionContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
-    private ScriptExpressionEvaluatorType scriptBean;
     private VariablesMap variables;
-    private ItemDefinition<?> outputDefinition;
     private Function<Object, Object> additionalConvertor;
     private ScriptExpressionReturnTypeType suggestedReturnType;
-    private ObjectResolver objectResolver;
-    private Collection<FunctionLibraryBinding> functionLibraryBindings;
-    private ExpressionProfile expressionProfile;
-    private ScriptLanguageExpressionProfile scriptExpressionProfile;
 
-    private ScriptExpression scriptExpression;
+    @NotNull private final Script script;
+
+    /**
+     * Whether we are evaluating 'old' or 'new' state of things.
+     * Used only when executing the script as part of {@link Expression} evaluation.
+     *
+     * TODO this is probably a layering violation
+     */
     private boolean evaluateNew = false;
 
     private String contextDescription;
@@ -60,12 +64,12 @@ public class ScriptExpressionEvaluationContext {
 
     private PrismNamespaceContext namespaceContext;
 
-    public ScriptExpressionEvaluatorType getScriptBean() {
-        return scriptBean;
+    public ScriptExecutionContext(@NotNull Script script) {
+        this.script = script;
     }
 
-    public void setScriptBean(ScriptExpressionEvaluatorType scriptBean) {
-        this.scriptBean = scriptBean;
+    public ScriptExpressionEvaluatorType getScriptBean() {
+        return script.getScriptBean();
     }
 
     public VariablesMap getVariables() {
@@ -77,11 +81,7 @@ public class ScriptExpressionEvaluationContext {
     }
 
     public ItemDefinition<?> getOutputDefinition() {
-        return outputDefinition;
-    }
-
-    public void setOutputDefinition(ItemDefinition<?> outputDefinition) {
-        this.outputDefinition = outputDefinition;
+        return script.getOutputDefinition();
     }
 
     public Function<Object, Object> getAdditionalConvertor() {
@@ -101,43 +101,23 @@ public class ScriptExpressionEvaluationContext {
     }
 
     public ObjectResolver getObjectResolver() {
-        return objectResolver;
-    }
-
-    public void setObjectResolver(ObjectResolver objectResolver) {
-        this.objectResolver = objectResolver;
+        return script.getObjectResolver();
     }
 
     public Collection<FunctionLibraryBinding> getFunctionLibraryBindings() {
-        return functionLibraryBindings;
-    }
-
-    public void setFunctionLibraryBindings(Collection<FunctionLibraryBinding> functionLibraryBindings) {
-        this.functionLibraryBindings = functionLibraryBindings;
+        return script.getFunctionLibraryBindings();
     }
 
     public ExpressionProfile getExpressionProfile() {
-        return expressionProfile;
-    }
-
-    public void setExpressionProfile(ExpressionProfile expressionProfile) {
-        this.expressionProfile = expressionProfile;
+        return script.getExpressionProfile();
     }
 
     public ScriptLanguageExpressionProfile getScriptExpressionProfile() {
-        return scriptExpressionProfile;
+        return script.getScriptExpressionProfile();
     }
 
-    public void setScriptExpressionProfile(ScriptLanguageExpressionProfile scriptExpressionProfile) {
-        this.scriptExpressionProfile = scriptExpressionProfile;
-    }
-
-    public ScriptExpression getScriptExpression() {
-        return scriptExpression;
-    }
-
-    public void setScriptExpression(ScriptExpression scriptExpression) {
-        this.scriptExpression = scriptExpression;
+    public @NotNull Script getScript() {
+        return script;
     }
 
     public boolean isEvaluateNew() {
@@ -173,41 +153,41 @@ public class ScriptExpressionEvaluationContext {
     }
 
     @SuppressWarnings("WeakerAccess") // Can be used e.g. from the overlay code
-    public ScriptExpressionEvaluationContext setupThreadLocal() {
-        ScriptExpressionEvaluationContext oldContext = THREAD_LOCAL_CONTEXT.get();
+    public ScriptExecutionContext setupThreadLocal() {
+        ScriptExecutionContext oldContext = THREAD_LOCAL_CONTEXT.get();
         THREAD_LOCAL_CONTEXT.set(this);
         return oldContext;
     }
 
     @SuppressWarnings("WeakerAccess") // Can be used e.g. from the overlay code
-    public void cleanupThreadLocal(ScriptExpressionEvaluationContext oldContext) {
+    public void cleanupThreadLocal(ScriptExecutionContext oldContext) {
         THREAD_LOCAL_CONTEXT.set(oldContext);
     }
 
     /**
-     * Returns the {@link ScriptExpressionEvaluationContext} for the current thread. This is useful when script calls
+     * Returns the {@link ScriptExecutionContext} for the current thread. This is useful when script calls
      * methods e.g. in {@link MidpointFunctions} that need to access the context.
      */
-    public static ScriptExpressionEvaluationContext getThreadLocal() {
+    public static ScriptExecutionContext getThreadLocal() {
         return THREAD_LOCAL_CONTEXT.get();
     }
 
-    public static @NotNull ScriptExpressionEvaluationContext getThreadLocalRequired() {
+    public static @NotNull ScriptExecutionContext getThreadLocalRequired() {
         return MiscUtil.stateNonNull(
                 THREAD_LOCAL_CONTEXT.get(),
-                "No ScriptExpressionEvaluationContext for current thread found");
+                "No script execution context for current thread found");
     }
 
     public static @NotNull Task getTaskRequired() {
         return MiscUtil.stateNonNull(
                 getThreadLocalRequired().getTask(),
-                "No task in ScriptExpressionEvaluationContext for the current thread found");
+                "No task in script execution context for the current thread found");
     }
 
     public static @NotNull OperationResult getOperationResultRequired() {
         return MiscUtil.stateNonNull(
                 getThreadLocalRequired().getResult(),
-                "No operation result in ScriptExpressionEvaluationContext for the current thread found");
+                "No operation result in script execution context for the current thread found");
     }
 
     public ScriptEvaluationTraceType getTrace() {
@@ -224,5 +204,17 @@ public class ScriptExpressionEvaluationContext {
 
     public void setNamespaceContext(PrismNamespaceContext namespaceContext) {
         this.namespaceContext = namespaceContext;
+    }
+
+    /**
+     * Executes the {@link #script} in this context.
+     *
+     * Originally {@link Script#execute(ScriptExecutionContext)} method was used. But there is a duplication of
+     * parameters there, as {@link Script} and {@link ScriptExecutionContext} are to be paired together.
+     */
+    public @NotNull <V extends PrismValue> List<V> execute()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return script.execute(this);
     }
 }

@@ -6872,7 +6872,7 @@
                     </xsd:element>
                     <!--
                     TODO: Consider renaming, because returnTypeof type QName is used also in expression, which is a mere level above and can be confusing.
-                     Also - this seems to do nothing at the moment, it probably ends in ScriptExpressionEvaluationContext#suggestedReturnType and is not used further.
+                     Also - this seems to do nothing at the moment, it probably ends in ScriptExecutionContext#suggestedReturnType and is not used further.
                      Related Jira: MID-8552
                     -->
                     <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">

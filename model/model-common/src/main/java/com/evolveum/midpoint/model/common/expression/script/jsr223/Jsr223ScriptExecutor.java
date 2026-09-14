@@ -10,9 +10,9 @@ import javax.script.*;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
-import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.AbstractCachingScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptExecutor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -23,21 +23,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Generic expression evaluator that is using javax.script (JSR-223) engine.
+ * Generic script executor that is using javax.script (JSR-223) engine.
  *
- * This evaluator does not really support expression profiles. It has just one global almighty compiler ({@link ScriptEngine}).
- * Groovy is handled by {@link GroovyScriptEvaluator}.
+ * This executor does not really support expression profiles. It has just one global almighty compiler ({@link ScriptEngine}).
+ * Groovy (which supports profiles) is handled by {@link GroovyScriptExecutor}.
  *
  * @author Radovan Semancik
  */
-public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<ScriptEngine, CompiledScript, String> {
+public class Jsr223ScriptExecutor extends AbstractCachingScriptExecutor<ScriptEngine, CompiledScript, String> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Jsr223ScriptExecutor.class);
 
     private final ScriptEngine scriptEngine;
     private final String engineName;
 
-    public Jsr223ScriptEvaluator(
+    public Jsr223ScriptExecutor(
             String engineName,
             PrismContext prismContext,
             Protector protector,
@@ -59,28 +59,28 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
 
     // Not really used, but required by interface contract
     @Override
-    protected ScriptEngine createInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException, ConfigurationException {
+    protected ScriptEngine createInterpreter(ScriptExecutionContext context) throws SecurityViolationException, ConfigurationException {
         return scriptEngine;
     }
 
     @Override
-    protected String getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) {
+    protected String getScriptCachingKey(String codeString, ScriptExecutionContext context) {
         return codeString;
     }
 
     @Override
-    protected CompiledScript compileScript(String codeString, ScriptExpressionEvaluationContext evaluationContext)
+    protected CompiledScript compileScript(String codeString, ScriptExecutionContext evaluationContext)
             throws Exception {
         return ((Compilable) scriptEngine).compile(codeString);
     }
 
     @Override
-    protected Object evaluateScript(CompiledScript compiledScript, ScriptExpressionEvaluationContext context) throws Exception {
+    protected Object executeScript(CompiledScript compiledScript, ScriptExecutionContext context) throws Exception {
         Bindings bindings = convertToBindings(context);
         return compiledScript.eval(bindings);
     }
 
-    private Bindings convertToBindings(ScriptExpressionEvaluationContext context)
+    private Bindings convertToBindings(ScriptExecutionContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Bindings bindings = scriptEngine.createBindings();

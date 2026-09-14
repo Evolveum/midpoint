@@ -9,7 +9,7 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import com.evolveum.midpoint.schema.AccessDecision;
@@ -141,7 +141,7 @@ public class MidPointCelExtensionManager {
         if (evaluatorProfile == null) {
             return null;
         }
-        return evaluatorProfile.getScriptExpressionProfile(MelScriptEvaluator.LANGUAGE_URL);
+        return evaluatorProfile.getScriptExpressionProfile(MelScriptExecutor.LANGUAGE_URL);
     }
 
     private boolean isAllowed(ScriptLanguageExpressionProfile scriptExpressionProfile, String name) {

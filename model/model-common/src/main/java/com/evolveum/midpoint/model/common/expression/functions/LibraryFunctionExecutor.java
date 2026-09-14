@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryManager.FunctionInLibrary;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -21,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.evaluator.FunctionExpressionEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -66,7 +66,7 @@ public class LibraryFunctionExecutor {
 
         Validate.notNull(functionName, "Function name must be specified");
 
-        OperationResult result = ScriptExpressionEvaluationContext.getOperationResultRequired();
+        OperationResult result = ScriptExecutionContext.getOperationResultRequired();
 
         Map<String, Object> params = Objects.requireNonNullElseGet(rawParams, Map::of);
         Set<String> paramNames = params.keySet();
@@ -75,14 +75,14 @@ public class LibraryFunctionExecutor {
             FunctionConfigItem function =
                     library.findFunction(functionName, paramNames, "custom function evaluation");
 
-            var callerProfile = ScriptExpressionEvaluationContext.getThreadLocalRequired().getExpressionProfile();
+            var callerProfile = ScriptExecutionContext.getThreadLocalRequired().getExpressionProfile();
             functionLibraryManager.checkCallAllowed(
                     new FunctionInLibrary(function, library),
                     callerProfile);
 
             LOGGER.trace("function to execute {}", function);
 
-            var task = ScriptExpressionEvaluationContext.getTaskRequired();
+            var task = ScriptExecutionContext.getTaskRequired();
             D outputDefinition = ExpressionEvaluationUtil.prepareFunctionOutputDefinition(function);
 
             ExpressionProfile functionExpressionProfile =
@@ -92,8 +92,7 @@ public class LibraryFunctionExecutor {
                     functionLibraryManager.createFunctionExpression(
                             function, outputDefinition, functionExpressionProfile, task, result);
 
-            ExpressionEvaluationContext functionEvaluationContext =
-                    createFunctionEvaluationContext(function, functionExpressionProfile, params, task);
+            ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, params, task);
 
             PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(functionEvaluationContext, result);
             LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -108,7 +107,7 @@ public class LibraryFunctionExecutor {
     }
 
     private @NotNull ExpressionEvaluationContext createFunctionEvaluationContext(
-            FunctionConfigItem function, ExpressionProfile functionExpressionProfile, Map<String, Object> params, Task task)
+            FunctionConfigItem function, Map<String, Object> params, Task task)
             throws SchemaException, ConfigurationException {
         VariablesMap variables = new VariablesMap();
         if (MapUtils.isNotEmpty(params)) {
@@ -125,7 +124,6 @@ public class LibraryFunctionExecutor {
                         variables,
                         "custom function execute",
                         task);
-        context.setExpressionProfile(functionExpressionProfile);
         context.setExpressionFactory(expressionFactory);
         return context;
     }

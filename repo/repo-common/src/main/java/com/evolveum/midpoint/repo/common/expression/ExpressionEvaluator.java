@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an expression evaluator (e.g. literal, path, script, assignmentTargetSearch, etc).
- * Can apply it in given evaluation context.
+ * Can be applied in given evaluation context.
  *
  * The evaluators were originally stateless; but they are created anew for each expression evaluation (at least when evaluated
  * as part of mappings evaluation), so we can afford to keep some state in them - as needed for (experimental)

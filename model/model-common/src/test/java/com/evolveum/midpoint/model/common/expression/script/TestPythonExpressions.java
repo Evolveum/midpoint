@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -32,8 +32,8 @@ public class TestPythonExpressions extends AbstractScriptTest {
      * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
      */
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
-        return new Jsr223ScriptEvaluator(
+    protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return new Jsr223ScriptExecutor(
                 "python", prismContext, protector, localizationService, testingExpressionsConfiguration(restrictedMode));
     }
 

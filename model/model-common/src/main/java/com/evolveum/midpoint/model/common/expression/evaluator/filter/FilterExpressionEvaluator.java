@@ -48,7 +48,7 @@ public class FilterExpressionEvaluator<V extends PrismValue, D extends ItemDefin
     @Override
     protected void checkEvaluatorProfile(ExpressionEvaluationContext context) {
         // TODO!
-        // Do nothing here. The profile will be checked inside ScriptExpression.
+        // Do nothing here. The profile will be checked inside Script.
     }
 
     @Override

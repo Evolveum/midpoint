@@ -115,8 +115,7 @@ public class ExpressionEvaluationContext {
     private VariableProducer variableProducer;
 
     /**
-     * Optional when the context is created. If not specified at that time, then it will be set here at the start
-     * of expression evaluation from the {@link Expression}.
+     * Expression profile used when evaluating the expression. Set at the start of expression evaluation.
      */
     private ExpressionProfile expressionProfile;
 

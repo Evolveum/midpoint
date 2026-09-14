@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -79,8 +79,8 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
         final FunctionLibraryBinding basicFunctionLibraryBinding =
                 FunctionLibraryUtil.createBasicFunctionLibraryBinding(beans.prismContext, beans.protector, new Clock());
         //noinspection DataFlowIssue - supress warnings caused by the `null` midpointFunctions parameter
-        scriptExpressionEvaluatorFactory.getScriptExpressionFactory().registerEvaluator(
-                new MelScriptEvaluator(
+        scriptExpressionEvaluatorFactory.getScriptFactory().registerExecutor(
+                new MelScriptExecutor(
                         beans.prismContext,
                         beans.protector,
                         LocalizationTestUtil.getLocalizationService(),

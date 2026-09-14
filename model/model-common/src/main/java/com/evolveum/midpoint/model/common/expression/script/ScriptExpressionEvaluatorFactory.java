@@ -39,7 +39,7 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 
     public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_SCRIPT;
 
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptFactory scriptFactory;
     @Autowired private LocalizationService localizationService;
     @Autowired private Protector protector;
 
@@ -48,8 +48,8 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     }
 
     @VisibleForTesting
-    public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory) {
-        this.scriptExpressionFactory = scriptExpressionFactory;
+    public ScriptExpressionEvaluatorFactory(ScriptFactory scriptFactory) {
+        this.scriptFactory = scriptFactory;
     }
 
     @Override
@@ -70,8 +70,8 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
         ScriptExpressionEvaluatorType evaluatorBean =
                 getSingleEvaluatorBeanRequired(evaluatorElements, ScriptExpressionEvaluatorType.class, contextDescription);
 
-        ScriptExpression scriptExpression =
-                scriptExpressionFactory.createScriptExpression(
+        Script script =
+                scriptFactory.createScript(
                         evaluatorBean, outputDefinition, expressionProfile, contextDescription, result);
 
         return new ScriptExpressionEvaluator<>(
@@ -79,11 +79,11 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
                 evaluatorBean,
                 outputDefinition,
                 protector,
-                scriptExpression,
+                script,
                 localizationService);
     }
 
-    public ScriptExpressionFactory getScriptExpressionFactory() {
-        return scriptExpressionFactory;
+    public ScriptFactory getScriptFactory() {
+        return scriptFactory;
     }
 }

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Script evaluator that caches compiled scripts in {@link #scriptCache}.
+ * Script executor that caches compiled scripts in {@link #scriptCache}.
  *
  * @param <I> script interpreter/compiler/runtime
  * @param <C> compiled code
@@ -31,13 +31,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractScriptEvaluator {
+public abstract class AbstractCachingScriptExecutor<I, C, K> extends AbstractScriptExecutor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractCachingScriptEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractCachingScriptExecutor.class);
 
     @NotNull private final ScriptCache<I, C, K> scriptCache;
 
-    public AbstractCachingScriptEvaluator(
+    public AbstractCachingScriptExecutor(
             PrismContext prismContext,
             Protector protector,
             LocalizationService localizationService,
@@ -55,17 +55,17 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
     }
 
     @Override
-    public @Nullable Object evaluateInternal(
-            @NotNull String codeString, @NotNull ScriptExpressionEvaluationContext context)
+    public @Nullable Object executeInternal(
+            @NotNull String codeString, @NotNull ScriptExecutionContext context)
             throws Exception {
 
         C compiledScript = getCompiledScript(codeString, context);
 
         InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-        return evaluateScript(compiledScript, context);
+        return executeScript(compiledScript, context);
     }
 
-    private C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context)
+    private C getCompiledScript(String codeString, ScriptExecutionContext context)
             throws ExpressionEvaluationException, SecurityViolationException, SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         K key = getScriptCachingKey(codeString, context);
         C cachedCompiledScript = scriptCache.getCode(context.getExpressionProfile(), key);
@@ -85,7 +85,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
         return compiledScript;
     }
 
-    protected I getInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException, ConfigurationException {
+    protected I getInterpreter(ScriptExecutionContext context) throws SecurityViolationException, ConfigurationException {
         I existingInterpreter = getScriptCache().getInterpreter(context.getExpressionProfile());
         if (existingInterpreter != null) {
             return existingInterpreter;
@@ -95,12 +95,12 @@ public abstract class AbstractCachingScriptEvaluator<I, C, K> extends AbstractSc
         return newInterpreter;
     }
 
-    protected abstract I createInterpreter(ScriptExpressionEvaluationContext context) throws SecurityViolationException, ConfigurationException;
+    protected abstract I createInterpreter(ScriptExecutionContext context) throws SecurityViolationException, ConfigurationException;
 
-    protected abstract K getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
+    protected abstract K getScriptCachingKey(String codeString, ScriptExecutionContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
-    protected abstract C compileScript(String codeString, ScriptExpressionEvaluationContext context) throws Exception;
+    protected abstract C compileScript(String codeString, ScriptExecutionContext context) throws Exception;
 
-    protected abstract Object evaluateScript(C compiledScript, ScriptExpressionEvaluationContext context)
+    protected abstract Object executeScript(C compiledScript, ScriptExecutionContext context)
             throws Exception;
 }

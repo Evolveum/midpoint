@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.BulkAction;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -39,7 +39,7 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
 
     private static final String PARAM_SCRIPT = "script";
 
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptFactory scriptFactory;
 
     @PostConstruct
     public void init() {
@@ -77,7 +77,7 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        var scriptExpression = scriptExpressionFactory.createScriptExpression(
+        var script = scriptFactory.createScript(
                 parameters.script,
                 parameters.outputDefinition,
                 context.getExpressionProfile(),
@@ -88,8 +88,8 @@ public class ExecuteScriptExecutor extends AbstractExecuteExecutor<ScriptExecuti
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
 
         LensContext<?> lensContext = getLensContext(externalVariables);
-        List<?> rv = ModelImplUtils.evaluateScript(
-                scriptExpression, lensContext, variables, true,
+        List<?> rv = ModelImplUtils.executeScript(
+                script, lensContext, variables, true,
                 "in '" + getName() + "' action", context.getTask(), result);
 
         if (rv.isEmpty()) {

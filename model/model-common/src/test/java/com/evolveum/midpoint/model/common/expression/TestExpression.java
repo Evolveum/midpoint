@@ -580,7 +580,7 @@ public class TestExpression extends AbstractModelCommonTest {
     void skipIfEcmaScriptEngineNotSupported() {
         ScriptExpressionEvaluatorFactory evaluatorFactory = (ScriptExpressionEvaluatorFactory)
                 expressionFactory.getEvaluatorFactory(SchemaConstantsGenerated.C_SCRIPT);
-        if (evaluatorFactory.getScriptExpressionFactory().getEvaluatorSimple(
+        if (evaluatorFactory.getScriptFactory().getExecutorSimple(
                 "http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript") == null) {
             display("Script engine for ECMAScript missing, skipping the tests.");
             throw new SkipException("Script engine not available");

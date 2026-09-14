@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
@@ -30,8 +30,8 @@ import static org.testng.AssertJUnit.fail;
 public class TestJavaScriptExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
-        return new Jsr223ScriptEvaluator(
+    protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return new Jsr223ScriptExecutor(
                 "JavaScript",
                 prismContext,
                 protector,

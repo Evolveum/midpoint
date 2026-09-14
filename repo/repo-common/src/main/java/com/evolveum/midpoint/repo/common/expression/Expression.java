@@ -58,6 +58,21 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
  * .. expression profile checking;
  * .. logfile tracing (but currently NOT trace file tracing);
  *
+ * Overall flow:
+ *
+ * . {@link ExpressionType} bean is parsed into {@link Expression} (by {@link ExpressionFactory}).
+ * .. As part of that, expression evaluator bean (like {@link ScriptExpressionEvaluatorType}) or beans (like literal constants)
+ * are parsed into {@link ExpressionEvaluator} (by respective {@link ExpressionEvaluatorFactory}).
+ * . {@link Expression} is evaluated by calling {@link #evaluate(ExpressionEvaluationContext, OperationResult)}.
+ * .. As part of that, the evaluator is called: {@link ExpressionEvaluator#evaluate(ExpressionEvaluationContext, OperationResult)}
+ *
+ * In short:
+ *
+ * * {@link ExpressionType} bean -> {@link Expression} (includes {@link ExpressionEvaluator}) -> output triple
+ *
+ * For scripts it is more complicated, because they can be executed also outside of the expression framework.
+ * See `ScriptExpressionEvaluator` in `model-common`.
+ *
  * @author semancik
  */
 public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
@@ -69,8 +84,9 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
     @Nullable private final D outputDefinition;
 
     /**
-     * Expression profile that is used as a default for {@link ExpressionEvaluationContext#expressionProfile};
-     * but also during expression initialization - TODO clarify this!
+     * Expression profile that is used to evaluate this expression.
+     *
+     * @see ExpressionEvaluationContext#expressionProfile
      */
     @Nullable private final ExpressionProfile expressionProfile;
 
@@ -150,9 +166,8 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
-        if (context.getExpressionProfile() == null) {
-            context.setExpressionProfile(expressionProfile);
-        }
+        context.setExpressionProfile(expressionProfile);
+        context.setExpressionEvaluatorProfile(ExpressionEvaluatorProfile.forbidden()); // will be determined later
 
         VariablesMap processedVariables = null;
 
