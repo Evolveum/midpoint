@@ -30,6 +30,7 @@ public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
     private static final Trace LOGGER = TraceManager.getTrace(HoneypotBehaviour.class);
 
     private static final String HONEYPOT_FIELD_NAME = "hpField-";
+    private static final String HONEYPOT_FIELD_NAME_JS = "hpb-id";
 
     public HoneypotBehaviour() {
         super("submit");
@@ -60,7 +61,7 @@ public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
                 boolean findSomeParameter = false;
 
                 for (String parameterName : postParams.getParameterNames()) {
-                    if (parameterName.startsWith(HONEYPOT_FIELD_NAME)) {
+                    if (parameterName.startsWith(HONEYPOT_FIELD_NAME) || parameterName.startsWith(HONEYPOT_FIELD_NAME_JS)) {
                         LOGGER.debug("Validating parameter with name " + parameterName);
                         findSomeParameter = true;
                         StringValue paramValue = postParams.getParameterValue(parameterName);
