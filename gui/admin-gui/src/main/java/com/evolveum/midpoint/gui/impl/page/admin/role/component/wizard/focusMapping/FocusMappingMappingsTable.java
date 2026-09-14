@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
@@ -65,6 +66,7 @@ public class FocusMappingMappingsTable extends AbstractMappingsTable<MappingsTyp
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't find property for strength in " + newValue);
             }
+            MappingRangeUtils.initializeRange(newValue);
         }
         return newValue;
     }

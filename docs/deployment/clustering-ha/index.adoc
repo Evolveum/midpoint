@@ -81,9 +81,6 @@ The best way how to avoid configuration discrepancy like this is to have common 
 If that is not possible or practical, make sure that all nodes use the same settings.
 ====
 
-In some circumstances, the Quartz component in task manager needs to use a separate database.
-If that's the case, a proper configuration is needed.
-
 When deploying clustered nodes, ensure your *system time is synchronized* across all nodes (using link:https://en.wikipedia.org/wiki/Network_Time_Protocol[NTP] or similar service).
 Otherwise, unexpected behaviour may occur, such as tasks restarting on different nodes.
 

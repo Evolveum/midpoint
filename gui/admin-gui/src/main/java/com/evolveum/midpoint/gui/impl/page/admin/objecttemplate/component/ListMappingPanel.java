@@ -10,6 +10,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangePanel;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable;
 
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -254,6 +261,15 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
     }
 
     @Override
+    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        PrismContainerValueWrapper newValue = super.createNewValue(value, target);
+        if (newValue != null) {
+            MappingRangeUtils.initializeRange(newValue);
+        }
+        return newValue;
+    }
+
+    @Override
     protected IModel<PrismContainerWrapper<MappingType>> getContainerModel() {
         return PrismContainerWrapperModel.fromContainerValueWrapper(getValueModel(), ObjectTemplateType.F_MAPPING);
     }
@@ -284,6 +300,19 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
                     return ItemVisibility.HIDDEN;
                 }
                 return ItemVisibility.AUTO;
+            }
+
+            @Override
+            protected List<ITab> createTabs() {
+                List<ITab> tabs = super.createTabs();
+                tabs.add(new PanelTab(createStringResource("MappingRangePanel.range")) {
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new MappingRangePanel(panelId, getModel());
+                    }
+                });
+                return tabs;
             }
         };
     }
