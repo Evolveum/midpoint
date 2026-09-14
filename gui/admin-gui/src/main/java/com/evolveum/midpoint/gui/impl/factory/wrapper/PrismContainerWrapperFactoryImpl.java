@@ -111,6 +111,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         if (context.getVirtualItemSpecification() != null) {
             return context.getVirtualItemSpecification();
         }
+        if (parent == null) {
+            return null;
+        }
         for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
             if (virtualContainer.getPath() == null) {
                 continue;
