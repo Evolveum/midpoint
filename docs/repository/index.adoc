@@ -24,11 +24,11 @@ The role of the repository is to store data, not to implement business logic.
 It provides midPoint with all the data it needs to do its job.
 
 In other words, repository stores, midPoint decides.
-The repository holds xref:/glossary/#focus[focal objects], xref:/glossary/#shadow[shadows], xref:/glossary/#role[roles], xref:/glossary/#assignment[assignments], xref:/glossary/#policy[policies], etc.
+The repository holds glossref:focus[focal objects], glossref:shadow[shadows], glossref:role[roles], glossref:assignment[assignments], glossref:policy[policies], etc.
 All the policy evaluations, mapping execution, or synchronization decisions is what midPoint performs based on the data it fetches from the repository.
 
 The repository also holds all the configuration and runtime operational data, such as the xref:/midpoint/reference/concepts/system-configuration-object/[global configuration] or statuses of xref:/midpoint/architecture/concepts/task/[tasks], preserving midPoint state across restarts.
-It may also contain xref:/glossary/#audit[audit log] data, unless you decide to xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[store audit log in a separate database].
+It may also contain glossref:audit[audit log] data, unless you decide to xref:/midpoint/reference/repository/native-audit/#sql-audit-using-its-own-database[store audit log in a separate database].
 
 == Configuration and instructions
 
