@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
@@ -47,7 +48,7 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
 
     @Override
     protected final PrismContainerValueWrapper<MappingType> createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
-        return createNewVirtualMappingValue(
+        PrismContainerValueWrapper<MappingType> newValue = createNewVirtualMappingValue(
                 value,
                 getValueModel(),
                 getMappingType(),
@@ -55,6 +56,11 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
                 getItemNameOfRefAttribute(),
                 getPageBase(),
                 target);
+
+        if (newValue != null) {
+            MappingRangeUtils.initializeRange(newValue);
+        }
+        return newValue;
     }
 
 

@@ -1054,6 +1054,16 @@ export default class MidPointTheme {
         const picker = new TempusDominus(containerId, configuration);
         const pickerStatus = document.getElementById(pickerStatusId);
 
+        let dateTimePickerOpener = null;
+        picker.subscribe('show.td', () => {
+            dateTimePickerOpener = document.activeElement;
+        });
+        picker.subscribe('hide.td', () => {
+            if (dateTimePickerOpener && document.body.contains(dateTimePickerOpener)) {
+                dateTimePickerOpener.focus();
+            }
+        });
+
         if (pickerStatus) {
             picker.subscribe('show.td', () => {
                 pickerStatus.textContent = '';
@@ -1065,6 +1075,31 @@ export default class MidPointTheme {
                 pickerStatus.textContent = '';
                 setTimeout(() => {
                     pickerStatus.textContent = messageClose;
+                }, 250);
+            });
+            // announce hour/minute/meridiem (and date) selection changes
+            picker.subscribe('change.td', (event) => {
+                if (!event.date) {
+                    return;
+                }
+                const formatted = messageCurrent.replace('{0}', event.date.format());
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = formatted;
+                }, 250);
+            });
+            // announce navigation between months/years/decades (previous/next buttons,
+            // or switching into a different view)
+            picker.subscribe('update.td', () => {
+                const switchEl = picker.display && picker.display.widget
+                    && picker.display.widget.querySelector('.calendar-header .picker-switch');
+                const label = switchEl && switchEl.textContent.trim();
+                if (!label) {
+                    return;
+                }
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = label;
                 }, 250);
             });
         }
@@ -1105,7 +1140,30 @@ export default class MidPointTheme {
                             e.stopImmediatePropagation();
                             e.preventDefault();
                         }
+                        return;
                     }
+
+                    // fixes arrows keys navigation in year view
+                    const arrowDeltas = { ArrowUp: -3, ArrowDown: 3, ArrowLeft: -1, ArrowRight: 1 };
+                    const delta = arrowDeltas[e.key];
+                    if (delta === undefined) {
+                        return;
+                    }
+                    const $yearsContainer = $(e.target).closest('.date-container-years');
+                    if ($yearsContainer.length === 0) {
+                        return;
+                    }
+                    const currentYear = parseInt($(e.target).attr('data-value'), 10);
+                    if (isNaN(currentYear)) {
+                        return;
+                    }
+                    const $target = $yearsContainer.find('[data-value="' + (currentYear + delta) + '"]');
+                    if ($target.length === 0) {
+                        return;
+                    }
+                    $target.focus();
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
                 });
             }
 
@@ -1121,21 +1179,12 @@ export default class MidPointTheme {
             });
 
             const $switchEl = $('.calendar-header .picker-switch');
-            $switchEl.attr("aria-live", "polite");
-            const switchElId = 'pickerSwitch-' + Math.random().toString(16).substr(2, 6);
-            $switchEl.attr('id', switchElId);
+            $switchEl.attr('role', 'button');
 
             // we add aria-live="polite" to every focused element so that it is announced
             $actionElements.on('focus', function () {
                 $actionElements.removeAttr('aria-live');
-                if ($(this).closest('.calendar-header').length > 0) {
-                    const prevButton = $('.calendar-header .previous');
-                    const nextButton = $('.calendar-header .next');
-                    prevButton.removeAttr('aria-label');
-                    prevButton.attr('aria-describedby', switchElId);
-                    nextButton.removeAttr('aria-label');
-                    nextButton.attr('aria-describedby', switchElId);
-                } else {
+                if ($(this).closest('.calendar-header').length === 0) {
                     $(this).attr('aria-live', 'polite');
                 }
             });
@@ -1143,10 +1192,8 @@ export default class MidPointTheme {
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
             prevButton.attr('role', 'button');
-            prevButton.attr('aria-describedby', switchElId);
             prevButton.focus();
             nextButton.attr('role', 'button');
-            nextButton.attr('aria-describedby', switchElId);
 
             prevButton.on('click', function () {
                 event.preventDefault();

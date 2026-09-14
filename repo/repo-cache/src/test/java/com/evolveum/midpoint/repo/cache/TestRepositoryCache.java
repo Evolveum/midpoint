@@ -458,7 +458,6 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         testUsingUnsafeOptions(b -> b.retrieve(new RelationalValueSearchQuery(null)));
         testUsingUnsafeOptions(b -> b.distinct());
         testUsingUnsafeOptions(b -> b.attachDiagData());
-        testUsingUnsafeOptions(b -> b.definitionProcessing(DefinitionProcessingOption.FULL));
         testUsingUnsafeOptions(b -> b.iterationMethod(IterationMethodType.FETCH_ALL));
     }
 

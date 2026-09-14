@@ -51,13 +51,13 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER));
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", RoleType.F_NAME, MappingStrengthType.STRONG));
         String prefixScript = resourceName != null
-                ? "'" + resourceName.replace("'", "\\'") + "' + '-' + input"
-                : "'RESOURCE_NAME-' + input";
+                ? "'" + resourceName.replace("'", "\\'") + "' + ':' + input"
+                : "'RESOURCE_NAME:' + input";
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "cn",
                 RoleType.F_NAME,
                 prefixScript,
-                "Inbound: group name with resource prefix (<resource>-<cn>)",
+                "Inbound: group name with resource prefix (<resource>:<cn>)",
                 MappingStrengthType.STRONG));
         return mappings;
     }

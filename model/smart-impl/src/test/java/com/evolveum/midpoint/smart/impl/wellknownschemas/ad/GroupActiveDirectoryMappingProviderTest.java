@@ -47,7 +47,7 @@ public class GroupActiveDirectoryMappingProviderTest extends WellKnownSchemaTest
         final ExpressionType expression = getExpression(systemMappingSuggestions);
         final String output = evaluateExpression(expression, "input", "app:customer-conversions:developers");
 
-        Assert.assertEquals(output, "AD-app:customer-conversions:developers");
+        Assert.assertEquals(output, "AD:app:customer-conversions:developers");
     }
 
     @Test

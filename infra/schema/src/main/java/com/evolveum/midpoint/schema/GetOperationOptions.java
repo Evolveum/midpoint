@@ -209,7 +209,10 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     private Boolean attachDiagData;
 
     /**
-     * TODO, currently used only in model-impl SchemaTransformer, so it seems.
+     * Whether to reduce definitions from the objects retrieved, with the goal of reducing memory footprint.
+     * Currently implemented at the `model` level, so it is considered to be cache-friendly.
+     *
+     * @see DefinitionProcessingOption
      */
     private DefinitionProcessingOption definitionProcessing;
 
