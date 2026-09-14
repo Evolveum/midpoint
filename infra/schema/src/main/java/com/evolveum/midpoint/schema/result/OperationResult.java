@@ -1295,6 +1295,20 @@ public class OperationResult
         computeStatusIfUnknown();
     }
 
+    public void closeWithSummarizedSuccesses() {
+        closeWithSummarizedSuccesses(false);
+    }
+
+    /**
+     * Closes this result and summarizes successful subResults to reduce the size
+     * and memory footprint of large result trees (e.g. in task objects).
+     */
+    public void closeWithSummarizedSuccesses(boolean summarizeSubResults) {
+        close();
+        summarizeSuccesses = true;
+        summarize(summarizeSubResults);
+    }
+
     public boolean isClosed() {
         return status != OperationResultStatus.UNKNOWN
                 && status != null
