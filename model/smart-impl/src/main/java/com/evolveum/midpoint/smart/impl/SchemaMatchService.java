@@ -123,7 +123,7 @@ public class SchemaMatchService {
             result.recordException(t);
             throw t;
         } finally {
-            result.close();
+            result.closeWithSummarizedSuccesses();
         }
     }
 
