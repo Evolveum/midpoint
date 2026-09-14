@@ -12,6 +12,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -234,6 +236,7 @@ public class UploadDownloadPanel extends InputPanel {
             LOGGER.trace("Upload file error.", e);
             final String errorMessage = getString("UploadPanel.message.uploadError") + " " + e.getMessage();
             input.error(errorMessage);
+            showFeedbackIfNeeded(target);
         } finally {
             validatedUploadedFile = null;
         }
@@ -253,16 +256,19 @@ public class UploadDownloadPanel extends InputPanel {
             updateValue(null);
             LOGGER.trace("Remove file success.");
             input.success(getString("UploadPanel.message.removeSuccess"));
-            target.add(UploadDownloadPanel.this);
+            target.add(input);
         } catch (Exception e) {
             LOGGER.trace("Remove file error.", e);
             input.error(getString("UploadPanel.message.removeError") + " " + e.getMessage());
+        } finally {
+            showFeedbackIfNeeded(target);
         }
     }
 
     public void uploadFileFailed(AjaxRequestTarget target) {
         validatedUploadedFile = null;
         LOGGER.trace("Upload file validation failed.");
+        showFeedbackIfNeeded(target);
     }
 
     /**
@@ -313,5 +319,13 @@ public class UploadDownloadPanel extends InputPanel {
 
     private FileUploadField getInputFile() {
         return (FileUploadField) get(ID_INPUT_FILE);
+    }
+
+    //todo show feedback only on pre-login pages (e.g. post-authentication)? on object details page it can bother the user
+    private void showFeedbackIfNeeded(AjaxRequestTarget target) {
+        if (getPage() instanceof PageBase) {
+            return;
+        }
+        target.add(getParentPage().getFeedbackPanel());
     }
 }
