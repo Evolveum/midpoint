@@ -3783,7 +3783,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertSingleAccountPasswordNotification(dummyResourceName, username, password);
     }
 
-    protected abstract void assertAccountActivationNotification(String dummyResourceName, String username);
+    protected abstract void assertAccountActivationNotification(String dummyResourceName, String username) throws Exception;
 
     private void assertShadowPurpose(RawRepoShadow shadow, boolean focusCreated) {
         assertShadowPurpose(shadow.getPrismObject(), focusCreated);
