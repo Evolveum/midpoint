@@ -92,8 +92,8 @@ including import of signed allowed-connectors list and subscription compliance e
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
 * Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
 * Account activation now uses a dedicated authentication sequence and a one-time link.
-A sequence bound to the accountActivation channel must be configured in the security policy, otherwise no activation link is sent.
 This is mainly used when password hashing is enabled.
+See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
 
 #TODO#
 
