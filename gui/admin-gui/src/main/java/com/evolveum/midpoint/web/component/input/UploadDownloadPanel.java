@@ -110,7 +110,17 @@ public class UploadDownloadPanel extends InputPanel {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 super.onError(target);
-                UploadDownloadPanel.this.uploadFileFailed(target);
+                if (!fileUpload.hasErrorMessage()) {
+                    //we don't need to validate other fields and show their errors when upload file action is produced
+                    fileUpload.getForm().getRootForm().visitChildren(FormComponent.class, (otherComponent, visit) -> {
+                        if (otherComponent != fileUpload) {
+                            otherComponent.getFeedbackMessages().clear();
+                        }
+                    });
+                    UploadDownloadPanel.this.uploadFilePerformed(target);
+                } else {
+                    UploadDownloadPanel.this.uploadFileFailed(target);
+                }
             }
         });
         fileUpload.add(new VisibleBehaviour(() -> !isReadOnly));
@@ -164,7 +174,7 @@ public class UploadDownloadPanel extends InputPanel {
         downloadBehavior.setFileName(getDownloadFileName());
         add(downloadBehavior);
 
-        add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
+        AjaxSubmitButton downloadButton = new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
 
             @Serial
             private static final long serialVersionUID = 1L;
@@ -173,7 +183,9 @@ public class UploadDownloadPanel extends InputPanel {
             protected void onSubmit(AjaxRequestTarget target) {
                 downloadPerformed(downloadBehavior, target);
             }
-        });
+        };
+        downloadButton.setDefaultFormProcessing(false);
+        add(downloadButton);
 
         AjaxSubmitButton deleteButton = new AjaxSubmitButton(ID_BUTTON_DELETE) {
 
@@ -185,6 +197,7 @@ public class UploadDownloadPanel extends InputPanel {
                 removeFilePerformed(target);
             }
         };
+        deleteButton.setDefaultFormProcessing(false);
         deleteButton.add(new VisibleBehaviour(() -> !isReadOnly));
         add(deleteButton);
 
@@ -240,6 +253,7 @@ public class UploadDownloadPanel extends InputPanel {
             updateValue(null);
             LOGGER.trace("Remove file success.");
             input.success(getString("UploadPanel.message.removeSuccess"));
+            target.add(UploadDownloadPanel.this);
         } catch (Exception e) {
             LOGGER.trace("Remove file error.", e);
             input.error(getString("UploadPanel.message.removeError") + " " + e.getMessage());
