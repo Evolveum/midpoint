@@ -48,7 +48,8 @@ Maximum number of `operationExecution` items in object is by default 5, and maxi
 
 == Search errors with Audit Log Viewer
 
-Alternatively, you can also search for errors in tasks using the Audit Log Viewer:
+Alternatively, you can also search for errors in tasks using the Audit Log Viewer.
+In fact, audit log can give you more complete information about errors than the actual task errors listing described above because audit log does not trim previous records for repeated errors of the same kind. 
 
 . Get the task OID. +
 In GUI, this is available in the URL of a task details page, e.g., `87843d58-76b8-11e2-ae3e-001e8c717e5c`. +
