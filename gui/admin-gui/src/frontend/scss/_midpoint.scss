@@ -2732,7 +2732,9 @@ footer.app-footer a {
 }
 
 .midpoint-drawer {
-  z-index: 1060;
+  // Must stay below the shared modal (.modal, z-index 1050 !important) so popups
+  // opened from inside the drawer (e.g. Filter expression config) render above it.
+  z-index: 1045;
   min-width: 30vw;
 }
 
