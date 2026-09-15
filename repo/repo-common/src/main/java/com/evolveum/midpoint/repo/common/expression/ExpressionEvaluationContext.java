@@ -300,6 +300,7 @@ public class ExpressionEvaluationContext {
         clone.skipEvaluationMinus = this.skipEvaluationMinus;
         clone.skipEvaluationPlus = this.skipEvaluationPlus;
         clone.expressionProfile = this.expressionProfile;
+        clone.expressionEvaluatorProfile = this.expressionEvaluatorProfile;
         clone.valuePolicySupplier = this.valuePolicySupplier;
         clone.expressionFactory = this.expressionFactory;
         clone.defaultSource = this.defaultSource;
