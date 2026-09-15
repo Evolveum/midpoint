@@ -503,7 +503,8 @@ public class TestExpression extends AbstractModelCommonTest {
         } catch (SecurityViolationException e) {
             displayExpectedException(e);
             assertTrue("Wrong exception message: " + e.getMessage(),
-                    e.getMessage().contains("Access to expression evaluator")
+                    e.getMessage().contains("Access to evaluator")
+                            || e.getMessage().contains("Script interpreter for language")
                             || e.getMessage().contains("Access to Groovy method"));
         }
     }

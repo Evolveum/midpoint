@@ -34,10 +34,8 @@
             <selector>
                 <type>UserType</type>
                 <filter>
-                    <q:equal>
-                        <q:path>costCenter</q:path>
-                        <q:value>auto</q:value> <!-- no scripting expressions here are supported for now -->
-                    </q:equal>
+                    <!-- no scripting expressions in the filter clause are supported for now, so we cannot check them -->
+                    <q:text>costCenter = 'auto'</q:text>
                 </filter>
             </selector>
         </focus>
