@@ -1061,7 +1061,7 @@ public class ReportUtils {
             case CSV:
                 return new CsvReportDataWriter(reportService, report.getFileFormat());
             case XLSX:
-                throw new UnsupportedOperationException("XLSX output is not supported for dashboard reports");
+                return new XlsxDashboardReportDataWriter(reportService, mapOfCompiledView, report.getFileFormat());
             default:
                 throw new AssertionError(formatType);
         }

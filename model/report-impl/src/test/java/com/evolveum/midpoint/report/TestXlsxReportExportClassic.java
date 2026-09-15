@@ -12,6 +12,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Tests XLSX export for classic report tasks.
  *
- * Verifies that object collection reports are exported as valid XLSX workbooks,
+ * Verifies that object collection and dashboard reports are exported as valid XLSX workbooks,
  * that XLSX notifications use the correct content type, and that unsupported
  * distributed XLSX export is rejected without creating report data.
  *
@@ -64,10 +65,17 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
         addObject(USER_WILL, initTask, initResult);
         addObject(USER_JACK, initTask, initResult);
         repoAdd(TASK_EXPORT_CLASSIC, initResult);
-        repoAdd(TASK_DISTRIBUTED_EXPORT, initResult);
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN, initResult);
         repoAdd(REPORT_DISTRIBUTED_EXPORT, initResult);
+        repoAdd(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, initResult);
         repoAdd(OBJECT_COLLECTION_ALL_USERS, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_ROLES, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_RESOURCE, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_ASSIGNMENT_HOLDER, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_TASK, initResult);
+        repoAdd(OBJECT_COLLECTION_SHADOW_OF_RESOURCE, initResult);
+        repoAdd(OBJECT_COLLECTION_ALL_AUDIT_RECORDS, initResult);
+        repoAdd(DASHBOARD_DEFAULT_COLUMNS, initResult);
     }
 
     @Override
@@ -121,6 +129,61 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
+    public void exportsDashboardAsXlsx() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        dummyTransport.clearMessages();
+
+        modifyObjectReplaceProperty(
+                ReportType.class,
+                REPORT_DASHBOARD_WITH_DEFAULT_COLUMN.oid,
+                ItemPath.create(ReportType.F_DASHBOARD, DashboardReportEngineConfigurationType.F_STORE_EXPORTED_WIDGET_DATA),
+                task,
+                result,
+                StoreExportedWidgetDataType.WIDGET_AND_FILE);
+
+        when();
+        runExportTaskClassic(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, result);
+        waitForTaskCloseOrSuspend(TASK_EXPORT_CLASSIC.oid);
+
+        then();
+        assertTask(TASK_EXPORT_CLASSIC.oid, "after")
+                .assertSuccess()
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
+
+        PrismObject<TaskType> reportTask = getObject(TaskType.class, TASK_EXPORT_CLASSIC.oid);
+        File outputFile = findReportOutputFile(reportTask, result);
+        assertThat(outputFile).as("dashboard report output file").isNotNull();
+        assertThat(outputFile.getName()).endsWith(".xlsx");
+
+        try (var inputStream = new FileInputStream(outputFile); var workbook = new XSSFWorkbook(inputStream)) {
+            assertThat(workbook.getNumberOfSheets()).isEqualTo(1);
+            Sheet sheet = workbook.getSheetAt(0);
+            List<String> values = IntStream.rangeClosed(sheet.getFirstRowNum(), sheet.getLastRowNum())
+                    .mapToObj(sheet::getRow)
+                    .filter(java.util.Objects::nonNull)
+                    .flatMap(row -> IntStream.range(0, row.getLastCellNum())
+                            .mapToObj(row::getCell)
+                            .filter(java.util.Objects::nonNull)
+                            .map(Cell::getStringCellValue))
+                    .toList();
+            assertThat(values)
+                    .contains("Resources all", "User all", "jack", "will");
+        }
+
+        PrismObject<DashboardType> dashboard = getObject(DashboardType.class, DASHBOARD_DEFAULT_COLUMNS.oid);
+        assertThat(dashboard.asObjectable().getWidget())
+                .allSatisfy(widget -> assertThat(widget.getData().getStoredData()).isNotNull());
+
+        assertNotificationMessage(
+                REPORT_DASHBOARD_WITH_DEFAULT_COLUMN.getObjectable(),
+                MIME_APPLICATION_VND_MSEXCEL_2007);
+    }
+
+    @Test
     public void rejectsDistributedXlsxBeforeCreatingGlobalReportData() throws Exception {
         given();
 
@@ -135,6 +198,7 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
                 task,
                 result,
                 getFileFormatConfiguration());
+        repoAdd(TASK_DISTRIBUTED_EXPORT, result);
         changeTaskReport(
                 REPORT_DISTRIBUTED_EXPORT,
                 ItemPath.create(
