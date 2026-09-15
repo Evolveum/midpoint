@@ -20057,6 +20057,16 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="xlsx" type="tns:XlsxFileFormatType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Configuration for XLSX type.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>ExportConfigurationType.xlsx</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -20066,7 +20076,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Report export type.
-                csv, html.
+                csv, html, xlsx.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -20081,6 +20091,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="HTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xlsx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XLSX"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20297,6 +20314,20 @@
         <xsd:annotation>
             <xsd:documentation>
                 HTML export type for Report.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractFileFormatType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="XlsxFileFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                XLSX export type for Report.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

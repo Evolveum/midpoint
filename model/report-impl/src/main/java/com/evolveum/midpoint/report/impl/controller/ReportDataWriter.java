@@ -6,26 +6,29 @@
 
 package com.evolveum.midpoint.report.impl.controller;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 
 /**
- * Responsible for creating and manipulating text representation of an exported report.
+ * Responsible for creating and manipulating an exported report.
  *
  * Responsibilities:
  *
  * 1. Buffers semi-formatted ({@link ExportedReportHeaderRow} and {@link ExportedReportDataRow}) objects,
  * maintaining their correct order.
  *
- * 2. Produces final string form when asked to do so.
+ * 2. Produces final text or binary form when asked to do so.
  *
- * 2. Holds the file-format-specific configuration.
+ * 3. Holds the file-format-specific configuration.
  */
 public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow> {
 
@@ -70,6 +73,26 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
      * Use data in data writer.
      */
     String completeReport();
+
+    /**
+     * Writes the completed report to the provided stream. The caller owns the stream.
+     *
+     * The default implementation preserves the historical text encoding behavior, including the UTF-8 BOM.
+     * Binary writers should override this method.
+     */
+    default void writeCompletedReport(@NotNull OutputStream outputStream) throws IOException {
+        writeText(completeReport(), getEncoding(), outputStream);
+    }
+
+    static void writeText(
+            @NotNull String text,
+            @NotNull Charset encoding,
+            @NotNull OutputStream outputStream) throws IOException {
+        if (StandardCharsets.UTF_8.equals(encoding)) {
+            outputStream.write(ByteOrderMark.UTF_8.getBytes());
+        }
+        outputStream.write(text.getBytes(encoding));
+    }
 
     @Nullable
     default Function<String, String> getFunctionForWidgetStatus() {

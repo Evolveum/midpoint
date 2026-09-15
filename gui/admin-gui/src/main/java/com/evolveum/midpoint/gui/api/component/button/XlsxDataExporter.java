@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.api.component.button;
 
+import com.evolveum.midpoint.common.MimeTypeUtil;
+
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -27,7 +29,7 @@ import java.util.List;
 public class XlsxDataExporter extends AbstractDataExporter {
 
     private static final int SHEET_DEFAULT_COLUMN_WIDTH = 5000;
-    public static final String XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    public static final String XLSX_CONTENT_TYPE = MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
 
     public XlsxDataExporter() {
         super(Model.of("XLSX"), XLSX_CONTENT_TYPE, "xlsx");

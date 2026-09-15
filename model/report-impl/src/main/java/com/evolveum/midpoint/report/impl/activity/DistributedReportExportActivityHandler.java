@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.report.impl.activity;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStateType.F_REPORT_DATA_REF;
 
 import java.util.ArrayList;
@@ -104,7 +105,7 @@ public class DistributedReportExportActivityHandler
         children.add(EmbeddedActivity.create(
                 ActivityHandlerUtils.cloneWithoutIdForChildActivity(parentActivity.getDefinition()),
                 (context, result) -> new ReportDataCreationActivityRun(context),
-                this::createEmptyAggregatedDataObject,
+                this::validateAndCreateEmptyAggregatedDataObject,
                 (i) -> "data-creation",
                 ActivityStateDefinition.normal(),
                 parentActivity));
@@ -125,16 +126,9 @@ public class DistributedReportExportActivityHandler
      * sub-activity run. But its OID is used as both `parentRef` as well as a part of the name for partial report data objects,
      * binding them together.
      */
-    private void createEmptyAggregatedDataObject(
+    private void validateAndCreateEmptyAggregatedDataObject(
             EmbeddedActivity<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> activity,
             RunningTask runningTask, OperationResult result) throws CommonException {
-        ActivityState activityState =
-                DistributedReportExportActivitySupport.getWholeActivityState(
-                        activity.getPath().allExceptLast(), runningTask, result);
-        if (activityState.getWorkStateReferenceRealValue(F_REPORT_DATA_REF) != null) {
-            return;
-        }
-
         ReportType report = objectResolver.resolve(
                 activity.getWorkDefinition().getReportRef(),
                 ReportType.class,
@@ -142,6 +136,17 @@ public class DistributedReportExportActivityHandler
                 "resolve report ref",
                 runningTask,
                 result);
+        stateCheck(
+                report.getFileFormat() == null || report.getFileFormat().getType() != FileFormatTypeType.XLSX,
+                "XLSX output is not supported for distributed report export");
+
+        ActivityState activityState =
+                DistributedReportExportActivitySupport.getWholeActivityState(
+                        activity.getPath().allExceptLast(), runningTask, result);
+        if (activityState.getWorkStateReferenceRealValue(F_REPORT_DATA_REF) != null) {
+            return;
+        }
+
         ReportDataType reportData = new ReportDataType()
                 .name(SaveReportFileSupport.getNameOfExportedReportData(report, getType(report)));
         String oid = commonTaskBeans.repositoryService.addObject(reportData.asPrismObject(), null, result);
