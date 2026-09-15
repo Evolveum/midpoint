@@ -1114,7 +1114,7 @@ export default class MidPointTheme {
             });
         }
         picker.subscribe('show.td', () => {
-            var $dateContainer = $('.date-container');
+            var $dateContainer = $(picker.display.widget);
 
             var $dateContainerDecades = $('.date-container-decades');
             var $dateContainerYears = $('.date-container-years');
@@ -1127,7 +1127,7 @@ export default class MidPointTheme {
             $dateContainerDays.attr({ 'role': 'grid' });
 
             if ($dateContainer.length > 0) {
-                $dateContainer.on('keydown', function (e) {
+                $dateContainer.off('keydown.mpDateTimePicker').on('keydown.mpDateTimePicker', function (e) {
                     if (e.key === 'Escape' || e.keyCode === 27) {
                         if (picker && picker.display && picker.display.isVisible) {
                             picker.hide(); // close only this picker
@@ -1177,7 +1177,7 @@ export default class MidPointTheme {
             $switchEl.attr('role', 'button');
 
             // we add aria-live="polite" to every focused element so that it is announced
-            $actionElements.on('focus', function () {
+            $actionElements.off('focus.mpAriaLive').on('focus.mpAriaLive', function () {
                 $actionElements.removeAttr('aria-live');
                 if ($(this).closest('.calendar-header').length === 0) {
                     $(this).attr('aria-live', 'polite');
@@ -1185,7 +1185,7 @@ export default class MidPointTheme {
             });
 
             if (pickerStatus) {
-                $actionElements.on('focus', function (e) {
+                $actionElements.off('focus.mpAnnounceGridEntry').on('focus.mpAnnounceGridEntry', function (e) {
                     const $this = $(this);
                     if ($this.closest('.calendar-header').length > 0) {
                         return;
@@ -1216,13 +1216,13 @@ export default class MidPointTheme {
             prevButton.focus();
             nextButton.attr('role', 'button');
 
-            prevButton.on('click', function () {
+            prevButton.off('click.mpDateTimePicker').on('click.mpDateTimePicker', function () {
                 event.preventDefault();
                 const button = $(this);
                 button.focus();
             });
 
-            nextButton.on('click', function () {
+            nextButton.off('click.mpDateTimePicker').on('click.mpDateTimePicker', function () {
                 event.preventDefault();
                 const button = $(this);
                 button.focus();
