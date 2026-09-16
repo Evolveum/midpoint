@@ -10,6 +10,7 @@ import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,6 +39,8 @@ final class IterativeMockActivityRun
 
     private static final Trace LOGGER = TraceManager.getTrace(IterativeMockActivityRun.class);
 
+    private static final String OP_SUBMIT_ITEM = ProcessingCoordinator.class.getName() + ".submitItem";
+
     IterativeMockActivityRun(
             @NotNull ActivityRunInstantiationContext<IterativeMockWorkDefinition, IterativeMockActivityHandler> context) {
         super(context, "Iterative mock activity");
@@ -65,6 +68,8 @@ final class IterativeMockActivityRun
             if (!coordinator.submit(request, result)) {
                 break;
             }
+            // Capture the result immediately after submission to verify incremental summarization.
+            getRecorder().recordOperationResultSnapshot(result, OP_SUBMIT_ITEM);
         }
     }
 

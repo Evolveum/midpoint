@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -14,6 +16,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,6 +43,10 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
     private static final long DEFAULT_TIMEOUT = 60_000;
     private static final long DEFAULT_SLEEP_TIME = 500;
+
+    private static final String OP_SUBMIT_ITEM = ProcessingCoordinator.class.getName() + ".submitItem";
+    private static final String OP_HANDLE_ITEM =
+            "com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingGatekeeper.handle";
 
     private static final TestTask TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME = new TestTask(
             TEST_DIR,
@@ -768,6 +775,20 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
         ta.assertTaskHealthDescriptionCount(1)
                 .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
+
+        // Verify that result cleanup preserves diagnostics for failed item processing.
+        OperationResult persistedResult = OperationResult.createOperationResult(t.getResult());
+        assertThat(persistedResult.findSubresultsDeeply(OP_SUBMIT_ITEM).stream()
+                .filter(OperationResult::isError)
+                .toList())
+                .as("failed submit-item results")
+                .isNotEmpty()
+                .anySatisfy(submitResult ->
+                        assertThat(submitResult.findSubresultsDeeply(OP_HANDLE_ITEM))
+                                .as("retained item-processing diagnostics")
+                                .anySatisfy(handleResult ->
+                                        assertThat(handleResult.getMessage())
+                                                .contains("Object matches a 'fail-on' filter")));
     }
 
     /**

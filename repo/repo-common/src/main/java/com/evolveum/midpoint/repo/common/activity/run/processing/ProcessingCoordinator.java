@@ -125,6 +125,9 @@ public class ProcessingCoordinator<I> {
             throw t;
         } finally {
             result.close();
+            // Keep per-item results bounded by removing disposable details and summarizing repeated submissions.
+            result.deleteSubresultsIfPossible();
+            parentResult.summarize();
         }
     }
 

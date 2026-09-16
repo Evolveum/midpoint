@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
 import com.evolveum.midpoint.repo.common.activity.run.reports.SimpleReportReader;
@@ -98,6 +99,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestObject<TaskType> TASK_140_CUSTOM_COMPOSITE = TestObject.file(TEST_DIR, "task-140-custom-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
     private static final TestObject<TaskType> TASK_150_MOCK_ITERATIVE = TestObject.file(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
     private static final TestObject<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = TestObject.file(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
+    private static final TestObject<TaskType> TASK_157_MOCK_ITERATIVE_LARGE = TestObject.file(TEST_DIR, "task-157-mock-iterative-large.xml", "c86f607c-d459-4b97-8703-9c986304c036");
     private static final TestObject<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = TestObject.file(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
     private static final TestObject<TaskType> TASK_170_MOCK_BUCKETED = TestObject.file(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
     private static final TestObject<TaskType> TASK_180_BUCKETED_TREE = TestObject.file(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
@@ -116,6 +118,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
     private static final int ROLES = 100;
     private static final String ROLE_NAME_PATTERN = "r%02d";
+
+    private static final int LARGE_ITERATIVE_TASK_ITEMS = 50;
+    private static final String OP_SUBMIT_ITEM = ProcessingCoordinator.class.getName() + ".submitItem";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -649,6 +654,90 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertItemsProcessed(12)
                 .assertErrors(0)
                 .assertProgress(12)
+                .assertHasWallClockTime();
+    }
+
+    /**
+     * Verifies that per-item submit results are incrementally summarized instead of being persisted one per item.
+     */
+    @Test
+    public void test157RunLargeMockIterativeTask() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        recorder.reset();
+        Task task1 = taskAdd(TASK_157_MOCK_ITERATIVE_LARGE, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000);
+
+        then();
+
+        task1.refresh(result);
+        // @formatter:off
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .assertProgress(LARGE_ITERATIVE_TASK_ITEMS)
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .progress()
+                            .assertCommitted(LARGE_ITERATIVE_TASK_ITEMS, 0, 0)
+                            .assertNoUncommitted()
+                        .end()
+                        .itemProcessingStatistics()
+                            .assertTotalCounts(LARGE_ITERATIVE_TASK_ITEMS, 0, 0)
+                            .assertLastSuccessObjectName(String.valueOf(LARGE_ITERATIVE_TASK_ITEMS))
+                            .assertRuns(1)
+                        .end();
+        // @formatter:on
+
+        assertThat(recorder.getExecutions()).as("processed items")
+                .containsExactlyElementsOf(
+                        IntStream.rangeClosed(1, LARGE_ITERATIVE_TASK_ITEMS)
+                                .mapToObj(item -> "Item: " + item)
+                                .toList());
+
+        assertThat(recorder.getOperationResultSnapshots())
+                .as("submit-item results immediately after each submission")
+                .containsExactlyElementsOf(
+                        IntStream.rangeClosed(1, LARGE_ITERATIVE_TASK_ITEMS)
+                                .mapToObj(submitted ->
+                                        new MockRecorder.OperationResultSnapshot(
+                                                Math.min(submitted, 10),
+                                                Math.max(submitted - 10, 0)))
+                                .toList());
+
+        // Verify the summarized result persisted in the task after completion.
+        List<OperationResult> submitResults = task1.getResult().findSubresultsDeeply(OP_SUBMIT_ITEM);
+        List<OperationResult> concreteResults = submitResults.stream()
+                .filter(subresult -> subresult.getHiddenRecordsCount() == 0)
+                .toList();
+        List<OperationResult> summarizedResults = submitResults.stream()
+                .filter(subresult -> subresult.getHiddenRecordsCount() > 0)
+                .toList();
+
+        assertThat(concreteResults).as("concrete submit-item results").hasSize(10);
+        assertThat(summarizedResults).as("summarized submit-item results")
+                .singleElement()
+                .satisfies(summary ->
+                        assertThat(summary.getHiddenRecordsCount()).isEqualTo(LARGE_ITERATIVE_TASK_ITEMS - 10));
+        assertThat(concreteResults.size()
+                + summarizedResults.stream().mapToInt(OperationResult::getHiddenRecordsCount).sum())
+                .as("represented submit-item results")
+                .isEqualTo(LARGE_ITERATIVE_TASK_ITEMS);
+
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(LARGE_ITERATIVE_TASK_ITEMS)
+                .assertErrors(0)
+                .assertProgress(LARGE_ITERATIVE_TASK_ITEMS)
                 .assertHasWallClockTime();
     }
 
