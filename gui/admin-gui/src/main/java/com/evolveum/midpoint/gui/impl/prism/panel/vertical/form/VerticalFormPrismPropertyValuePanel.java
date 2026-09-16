@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.model.IModel;
 
@@ -35,12 +34,6 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
         Component valuePanel = getValuePanel();
         if (valuePanel instanceof InputPanel) {
             ((InputPanel) valuePanel).getFormComponents().forEach((baseFormComponent) -> {
-                baseFormComponent.add(AttributeAppender.append("class", () -> {
-                    if (baseFormComponent.hasErrorMessage()) {
-                        return INVALID_FIELD_CLASS;
-                    }
-                    return "";
-                }));
                 baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     private boolean lastValidationWasError = false;
