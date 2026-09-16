@@ -11,18 +11,23 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.base.MoreObjects;
-import org.quartz.*;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.InterruptableJob;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.springframework.security.core.Authentication;
 
-import static com.evolveum.midpoint.task.quartzimpl.run.GroupLimitsChecker.*;
+import static com.evolveum.midpoint.task.quartzimpl.run.GroupLimitsChecker.RescheduleTime;
 import static com.evolveum.midpoint.task.quartzimpl.run.StopJobException.Severity.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;

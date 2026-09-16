@@ -29,6 +29,10 @@ public class QUser extends QFocus<MUser> {
             ColumnMetadata.named("additionalNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata ADDITIONAL_NAME_NORM =
             ColumnMetadata.named("additionalNameNorm").ofType(Types.VARCHAR);
+    public static final ColumnMetadata DISPLAY_NAME_ORIG =
+            ColumnMetadata.named("displayNameOrig").ofType(Types.VARCHAR);
+    public static final ColumnMetadata DISPLAY_NAME_NORM =
+            ColumnMetadata.named("displayNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata EMPLOYEE_NUMBER =
             ColumnMetadata.named("employeeNumber").ofType(Types.VARCHAR);
     public static final ColumnMetadata FAMILY_NAME_ORIG =
@@ -55,6 +59,10 @@ public class QUser extends QFocus<MUser> {
             ColumnMetadata.named("nickNameOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata NICK_NAME_NORM =
             ColumnMetadata.named("nickNameNorm").ofType(Types.VARCHAR);
+    public static final ColumnMetadata PREFERRED_NAME_ORIG =
+            ColumnMetadata.named("preferredNameOrig").ofType(Types.VARCHAR);
+    public static final ColumnMetadata PREFERRED_NAME_NORM =
+            ColumnMetadata.named("preferredNameNorm").ofType(Types.VARCHAR);
     public static final ColumnMetadata TITLE_ORIG =
             ColumnMetadata.named("titleOrig").ofType(Types.VARCHAR);
     public static final ColumnMetadata TITLE_NORM =
@@ -67,6 +75,8 @@ public class QUser extends QFocus<MUser> {
 
     public final StringPath additionalNameOrig = createString("additionalNameOrig", ADDITIONAL_NAME_ORIG);
     public final StringPath additionalNameNorm = createString("additionalNameNorm", ADDITIONAL_NAME_NORM);
+    public final StringPath displayNameOrig = createString("displayNameOrig", DISPLAY_NAME_ORIG);
+    public final StringPath displayNameNorm = createString("displayNameNorm", DISPLAY_NAME_NORM);
     public final StringPath employeeNumber = createString("employeeNumber", EMPLOYEE_NUMBER);
     public final StringPath familyNameOrig = createString("familyNameOrig", FAMILY_NAME_ORIG);
     public final StringPath familyNameNorm = createString("familyNameNorm", FAMILY_NAME_NORM);
@@ -80,6 +90,8 @@ public class QUser extends QFocus<MUser> {
     public final StringPath honorificSuffixNorm = createString("honorificSuffixNorm", HONORIFIC_SUFFIX_NORM);
     public final StringPath nickNameOrig = createString("nickNameOrig", NICK_NAME_ORIG);
     public final StringPath nickNameNorm = createString("nickNameNorm", NICK_NAME_NORM);
+    public final StringPath preferredNameOrig = createString("preferredNameOrig", PREFERRED_NAME_ORIG);
+    public final StringPath preferredNameNorm = createString("preferredNameNorm", PREFERRED_NAME_NORM);
     public final StringPath titleOrig = createString("titleOrig", TITLE_ORIG);
     public final StringPath titleNorm = createString("titleNorm", TITLE_NORM);
     public final JsonbPath organizations =

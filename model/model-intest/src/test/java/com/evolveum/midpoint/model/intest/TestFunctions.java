@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -54,7 +54,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -84,7 +87,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
             TestObject.file(TEST_DIR, "function-library-testlib.xml", "19a38b96-8357-473c-b0a2-87e2885503bb");
 
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

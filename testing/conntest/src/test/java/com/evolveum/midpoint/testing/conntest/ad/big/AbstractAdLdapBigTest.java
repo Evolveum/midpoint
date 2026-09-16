@@ -36,7 +36,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Active Directory big test abstract superclass.

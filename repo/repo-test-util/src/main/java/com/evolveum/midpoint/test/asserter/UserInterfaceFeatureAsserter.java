@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;

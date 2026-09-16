@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl.wellknownschemas.ldap;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaDetector;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -39,8 +39,7 @@ public class GroupOfNamesLdapSchemaDetector implements WellKnownSchemaDetector {
     );
 
     @Override
-    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
-        var objectClassDef = typeDefinition.getObjectClassDefinition();
+    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectClassDefinition objectClassDef) {
         String objectClassName = objectClassDef.getTypeName().getLocalPart();
 
         if (LDAP_GROUP_OBJECT_CLASS_NAMES.stream().noneMatch(name -> name.equalsIgnoreCase(objectClassName))) {
@@ -56,7 +55,7 @@ public class GroupOfNamesLdapSchemaDetector implements WellKnownSchemaDetector {
             }
         }
 
-        Set<String> attributeNames = typeDefinition.getAttributeDefinitions().stream()
+        Set<String> attributeNames = objectClassDef.getAttributeDefinitions().stream()
                 .map(def -> def.getItemName().getLocalPart().toLowerCase())
                 .collect(Collectors.toSet());
 

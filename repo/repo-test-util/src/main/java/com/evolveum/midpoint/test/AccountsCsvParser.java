@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Parses the CSV with accounts and provides the set of attributes names and collection of accounts.
@@ -113,12 +114,23 @@ public final class AccountsCsvParser {
             RelevantColumnsIndexes relevantColumnsIndexes) {
         return records.stream()
                 .map(record -> {
-                    final Map<String, String> attributes = relevantColumnsIndexes.attributesWithIndexesSet().stream()
-                            .collect(Collectors.toMap(Map.Entry::getKey, entry -> record.get(entry.getValue())));
+                    final Map<String, String> attributes = new HashMap<>();
+                    for (Map.Entry<String, Integer> nameAndIndex : relevantColumnsIndexes.attributesWithIndexesSet()) {
+                        attributes.put(nameAndIndex.getKey(),
+                                transformNullStringToNull(record.get(nameAndIndex.getValue())));
+                    }
                     final String accountId = record.get(relevantColumnsIndexes.idColumnIndex());
                     return new Account(accountId, attributes);
                 })
                 .toList();
+    }
+
+    @Nullable
+    private static String transformNullStringToNull(String value) {
+        if("NULL".equals(value)) {
+            return null;
+        }
+        return value;
     }
 
     public record Account(String id, Map<String, String> attributes) { }

@@ -57,11 +57,6 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
         return new AttributeMappingsTableWizardPanel<>(getIdOfChoicePanel(), getHelper(), initialTab) {
 
             @Override
-            protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
-                showChoiceFragment(target, buildSimulationWizard(initialTab));
-            }
-
-            @Override
             protected void buildSimulationResultPanel(AjaxRequestTarget target, IModel<SimulationResultType> simulationResultTypeIModel) {
                 showChoiceFragment(target, buildSimulationWizard(simulationResultTypeIModel));
             }
@@ -88,6 +83,11 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
             @Override
             public void onBackPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel(MappingDirection.INBOUND));
+            }
+
+            @Override
+            protected IModel<String> getBackButtonLabel() {
+                return createStringResource("AttributeMappingWizardPanel.back");
             }
         };
     }
@@ -158,6 +158,12 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
                 showTableFragment(target, MappingDirection.INBOUND);
             }
         });
+        steps.add(new InboundMappingRangeStepPanel(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, MappingDirection.INBOUND);
+            }
+        });
         steps.add(new InboundMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -178,6 +184,12 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
         steps.add(new OutboundMappingMainConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, MappingDirection.OUTBOUND);
+            }
+        });
+        steps.add(new OutboundMappingRangeStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target, MappingDirection.OUTBOUND);

@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import java.util.Collection;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,21 +15,15 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
  * @author katka

@@ -15,11 +15,13 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventRecordPayload;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayloadMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -62,6 +64,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
             record.addReferenceValue("ref1",
                     ObjectTypeUtil.createObjectRef(UUID.randomUUID().toString(), ObjectTypes.USER)
                             .asReferenceValue());
+            record.addPayload(new AuditEventRecordPayload("payload", "text/plain", "payload-" + i));
 
             auditService.audit(record, NullTaskImpl.INSTANCE, result);
 
@@ -86,6 +89,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         then("operation is success and only 50 records are left");
         assertThatOperationResult(operationResult).isSuccess();
         assertCount(qae, recordsToLeave);
+        assertCount(QAuditPayloadMapping.get().defaultAlias(), recordsToLeave);
         long minId = selectMinMaxId(qae, qae.id.min());
         // top IDs are left, that is the newest records
         assertThat(maxId - minId).isEqualTo(recordsToLeave - 1);
@@ -106,6 +110,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         then("operation is success and nothing is deleted");
         assertThatOperationResult(operationResult).isSuccess();
         assertCount(qae, 100); // original count
+        assertCount(QAuditPayloadMapping.get().defaultAlias(), 100);
     }
 
     @Test
@@ -123,6 +128,7 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
         then("operation is success and everything is deleted");
         assertThatOperationResult(operationResult).isSuccess();
         assertCount(qae, 0);
+        assertCount(QAuditPayloadMapping.get().defaultAlias(), 0);
     }
 
     @Test
@@ -144,6 +150,8 @@ public class AuditCleanupTest extends SqaleRepoBaseTest {
                 .isGreaterThan(55); // but something should be there, this is extreme 5s leeway
         assertThat(count(qae, qae.timestamp.lt(Instant.ofEpochMilli(startTimestamp + 40_000))))
                 .isZero(); // start + 40s should be < now - 60s, it should be all gone
+        assertThat(count(QAuditPayloadMapping.get().defaultAlias()))
+                .isEqualTo(count(qae));
     }
 
     private long selectMinMaxId(QAuditEventRecord qae, NumberExpression<Long> minMaxPath) {

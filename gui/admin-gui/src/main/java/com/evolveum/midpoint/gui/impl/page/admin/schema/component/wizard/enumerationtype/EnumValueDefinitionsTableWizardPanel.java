@@ -14,14 +14,10 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 /**
  * @author lskublik

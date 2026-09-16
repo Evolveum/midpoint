@@ -53,6 +53,13 @@ public abstract class ScriptConfirmationPanel extends AbstractWizardStepPanel<Co
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        // This detach & reload fixes desync between GUI and actual state of edit
+        // correct solution would be to just reload detailsModel. However, valueModel is derived
+        // from detailsModel and reload of details model is not enough, since previous state
+        // is leaking from valueModel.
+        getValueModel().detach();
+        getDetailsModel().reloadPrismObjectModel();
+
         getScriptClassifications().forEach(
                 classification -> {
                     try {

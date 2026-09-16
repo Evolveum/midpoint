@@ -565,7 +565,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
                 newVal);
     }
 
-    private void assertConnectorConfigChanged() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void assertConnectorConfigChanged() throws CommonException {
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + ".assertConnectorConfigChanged");
         OperationResult result = task.getResult();
@@ -623,7 +623,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     }
 
     @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
-    private String addAccount(File file) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException, PolicyViolationException {
+    private String addAccount(File file) throws CommonException, IOException {
         Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
                 + ".addAccount");
         OperationResult result = task.getResult();
@@ -635,8 +635,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     }
 
     @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
-    private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException,
-            SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private PrismObject<ShadowType> getAccount(String oid) throws CommonException {
         Task task = getTestTask();
         OperationResult result = createOperationResult("getAccount");
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, task, result);

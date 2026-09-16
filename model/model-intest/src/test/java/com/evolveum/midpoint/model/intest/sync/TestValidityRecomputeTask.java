@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants.ModelDisableReason;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -488,7 +489,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
     }
 
     @SuppressWarnings("SameParameterValue")
-    private AssignmentType getJudgeAssignment(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private AssignmentType getJudgeAssignment(String userOid) throws CommonException {
         PrismObject<UserType> user = getUser(userOid);
         List<AssignmentType> assignments = user.asObjectable().getAssignment();
         assertEquals("Wrong num ass", 1, assignments.size());
@@ -1397,7 +1398,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
             assertShadow(accountShadow, "after")
                     .assertAdministrativeStatus(ActivationStatusType.ENABLED);
         } else {
-            assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+            assertDisableReasonShadow(accountShadow, ModelDisableReason.EXPLICIT.uri);
         }
     }
 
@@ -1451,7 +1452,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
         assertTrigger(accountRed, RecomputeTriggerHandler.HANDLER_URI, start, end);
         assertAdministrativeStatusDisabled(accountRed);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.DEPROVISION.uri);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
     }
@@ -1636,7 +1637,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.MAPPED.uri);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
     }
@@ -1662,7 +1663,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         String accountRedOid = getLiveLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.MAPPED.uri);
 
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
     }

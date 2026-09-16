@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY;
 import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
@@ -47,7 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
-    private static final int ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = 50;
+    private static final int DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = 50;
+    private static final int ORG_TREE_SEARCH_WIDTH_BATCH_SIZE = getOrgTreeSearchWidthBatchSize();
     private static final int ORG_TREE_SEARCH_WIDTH_BATCH_THRESHOLD = 5;
 
     @Autowired private ProvisioningService provisioning;
@@ -60,6 +62,21 @@ public class ModelObjectResolver implements ObjectResolver {
 
     private static final String OP_HANDLE_OBJECT_FOUND = ModelObjectResolver.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
+    private static int getOrgTreeSearchWidthBatchSize() {
+        int configuredValue = Integer.getInteger(
+                MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY,
+                DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE);
+        if (configuredValue < 1) {
+            Objects.requireNonNull(LOGGER).warn(
+                    "Invalid value {} for system property {}; using default {}",
+                    configuredValue,
+                    MIDPOINT_MODEL_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE_PROPERTY,
+                    DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE);
+            return DEFAULT_ORG_TREE_SEARCH_WIDTH_BATCH_SIZE;
+        }
+        return configuredValue;
+    }
+
     @Override
     public <O extends ObjectType> @NotNull O resolve(
             Referencable ref,
@@ -69,7 +86,7 @@ public class ModelObjectResolver implements ObjectResolver {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         var type = ObjectTypeUtil.getTypeClass(ref, expectedType);
         var oid = ref.getOid();
         return getObject(type, oid, options, task, result);
@@ -125,7 +142,7 @@ public class ModelObjectResolver implements ObjectResolver {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Task task,
             @NotNull OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         T objectType;
         try {
             PrismObject<T> object;
@@ -164,7 +181,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // This is maybe not strictly necessary, beause there's no processing here.
         // But we're definitely at the components boundary, so let us mark it in the operation result.
         var resultProvidingHandler = handler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND);
@@ -184,7 +201,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         switch (getObjectManager(type, options)) {
             case PROVISIONING:
                 return provisioning.searchObjects(type, query, options, task, result);
@@ -198,7 +215,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         switch (getObjectManager(type, options)) {
             case PROVISIONING:
                 return provisioning.countObjects(type, query, options, task, result);
@@ -255,8 +272,8 @@ public class ModelObjectResolver implements ObjectResolver {
                     resultObject =
                             searchOrgTreeWithFirstResolve(object, resultObject, org, resolvedOrgs, function, shortDesc, task, result);
                 }
-            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
-                    | SecurityViolationException | ExpressionEvaluationException ex) {
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException |
+                     ExpressionEvaluationException | SubscriptionComplianceException ex) {
                 // Just log the error, but do not fail on that. Failing would prohibit login
                 // and that may mean the misconfiguration could not be easily fixed.
                 LoggingUtils.logException(LOGGER, "Error resolving parent org refs in batch {} while resolving {}", ex, Arrays.toString(oids), shortDesc);

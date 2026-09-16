@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2018-04-09T17:27:41.988+02:00
 :page-wiki-metadata-modify-user: petr.gasparik
 :page-wiki-metadata-modify-date: 2020-09-02T11:50:47.537+02:00
-:page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
+:page-keywords: metarole, meta-role, metaroles, meta-roles, meta
 :page-upkeep-status: yellow
 :page-toc: top
 :page-moved-from: /midpoint/reference/roles-policies/metaroles/policy/

@@ -86,7 +86,7 @@ public interface SecurityContextManager {
             boolean privileged,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException;
+            ExpressionEvaluationException, SubscriptionComplianceException;
 
     /** Convenience method to deal with producers that can throw any {@link CommonException}. */
     default <T> T runAsChecked(
@@ -136,7 +136,7 @@ public interface SecurityContextManager {
     interface ResultAwareProducer<T> extends Serializable {
         T get(@NotNull OperationResult result)
                 throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-                ExpressionEvaluationException;
+                ExpressionEvaluationException, SubscriptionComplianceException;
     }
 
     /** A {@link ResultAwareProducer} that can throw any {@link CommonException}. */

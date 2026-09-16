@@ -101,7 +101,7 @@ public class ShadowReferenceAttribute
 
     @Override
     protected String getDebugDumpClassName() {
-        return "SA";
+        return "SRA";
     }
 
     /** Creates a value holding the shadow. Its definition must correspond to the one of the association. */

@@ -184,7 +184,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                             }
                         };
                         addRowButton.setOutputMarkupId(true);
-                        addRowButton.add(AttributeAppender.append("class", "btn btn-sm btn-default fa fa-plus"));
+                        addRowButton.add(AttributeAppender.append("class", "btn btn-sm btn-light border fa fa-plus"));
                         addRowButton.add(AttributeAppender.append("style", "color: green;"));
                         return addRowButton;
                     }

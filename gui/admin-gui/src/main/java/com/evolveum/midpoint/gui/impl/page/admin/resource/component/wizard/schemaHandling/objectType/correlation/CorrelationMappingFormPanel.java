@@ -27,13 +27,14 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.applyStaticPopupBackdrop;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restoreBackdropPopupDefaults;
 import static com.evolveum.midpoint.gui.api.util.WebPrismUtil.setReadOnlyRecursively;
 
 public class CorrelationMappingFormPanel<C extends MappingType> extends BasePanel<PrismContainerValueWrapper<C>> implements Popupable {
@@ -57,43 +58,10 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
     protected void onInitialize() {
         super.onInitialize();
 
-        applyStaticBackdrop();
+        applyStaticPopupBackdrop(getPageBase());
         initLayout();
     }
 
-    @Override
-    protected void onDetach() {
-        try {
-            restoreBackdropDefaults();
-        } finally {
-            super.onDetach();
-        }
-    }
-
-    // Ugly hack to make the backdrop static (clicking outside the popup does not close it).
-    private void applyStaticBackdrop() {
-        WebMarkupContainer overlay = (WebMarkupContainer) getPageBase().getMainPopup().get("overlay");
-        if (overlay == null) return;
-
-        // Bootstrap 5
-        overlay.add(AttributeModifier.replace("data-bs-backdrop", "static"));
-        overlay.add(AttributeModifier.replace("data-bs-keyboard", "false"));
-
-        // Bootstrap 4
-        overlay.add(AttributeModifier.replace("data-backdrop", "static"));
-        overlay.add(AttributeModifier.replace("data-keyboard", "false"));
-    }
-
-    // Remove the static backdrop so future popups use their own defaults. TBD (not safe)
-    private void restoreBackdropDefaults() {
-        WebMarkupContainer overlay = (WebMarkupContainer) getPageBase().getMainPopup().get("overlay");
-        if (overlay == null) return;
-
-        overlay.add(AttributeModifier.remove("data-bs-backdrop"));
-        overlay.add(AttributeModifier.remove("data-bs-keyboard"));
-        overlay.add(AttributeModifier.remove("data-backdrop"));
-        overlay.add(AttributeModifier.remove("data-keyboard"));
-    }
 
     protected void initLayout() {
         if (isReadOnlyMapping()) {
@@ -115,18 +83,31 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
         add(formCorrelationMappingPanel);
     }
 
+    private VerticalFormMappingPanel<?> getFormPanel() {
+        return (VerticalFormMappingPanel<?>) get(ID_FORM_PANEL);
+    }
+
+
     protected boolean isShowEmptyButtonVisible() {
         return false;
     }
 
     private void initHeaderDescriptionPart() {
-        Label textLabel = new Label(ID_TEXT, createStringResource("CorrelationMappingFormPanel.text"));
+        Label textLabel = new Label(ID_TEXT, getDescriptionTitleLabel());
         textLabel.setOutputMarkupId(true);
         add(textLabel);
 
-        Label subTextLabel = new Label(ID_SUBTEXT, createStringResource("CorrelationMappingFormPanel.subText"));
+        Label subTextLabel = new Label(ID_SUBTEXT, getSubTextLabel());
         subTextLabel.setOutputMarkupId(true);
         add(subTextLabel);
+    }
+
+    protected IModel<String> getDescriptionTitleLabel() {
+        return createStringResource("CorrelationMappingFormPanel.text");
+    }
+
+    protected IModel<String> getSubTextLabel() {
+        return createStringResource("CorrelationMappingFormPanel.subText");
     }
 
     private @NotNull Fragment initFooter() {
@@ -138,6 +119,7 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                restoreBackdropPopupDefaults(getPageBase());
                 onCancel(target);
                 hidePopup(target);
             }
@@ -156,7 +138,6 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
     }
 
     protected void onCancel(AjaxRequestTarget target) {
-        getPageBase().hideMainPopup(target);
     }
 
     private void hidePopup(AjaxRequestTarget target) {
@@ -172,8 +153,10 @@ public class CorrelationMappingFormPanel<C extends MappingType> extends BasePane
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                performCreateMapping(target);
-                hidePopup(target);
+                if(getFormPanel().isFormValid(target)){
+                    performCreateMapping(target);
+                    hidePopup(target);
+                }
             }
         };
         createMappingButton.showTitleAsLabel(true);

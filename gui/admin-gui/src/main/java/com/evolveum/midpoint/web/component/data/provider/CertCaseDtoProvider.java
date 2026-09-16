@@ -7,15 +7,17 @@
 package com.evolveum.midpoint.web.component.data.provider;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +35,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createResolveNames;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 /**

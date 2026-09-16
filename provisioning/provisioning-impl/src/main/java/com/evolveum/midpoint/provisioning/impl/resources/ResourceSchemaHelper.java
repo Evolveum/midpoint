@@ -70,7 +70,7 @@ class ResourceSchemaHelper {
     void applyConnectorSchemasToResource(
             @NotNull ResourceType resource,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         ResourceType expanded;
         if (ResourceTypeUtil.doesNeedExpansion(resource)) {
             expanded = resource.clone();
@@ -85,7 +85,7 @@ class ResourceSchemaHelper {
     void applyConnectorSchemasToExpandedResource(
             @NotNull ResourceType resource,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         applyConnectorSchemasToResource(resource, resource, result);
     }
 
@@ -100,7 +100,7 @@ class ResourceSchemaHelper {
             @NotNull ResourceType target,
             @NotNull ResourceType source,
             @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         checkMutable(target.asPrismObject());
         PrismObjectDefinition<ResourceType> newResourceDefinition = target.asPrismObject().getDefinition().clone();
         for (ConnectorSpec sourceConnectorSpec : ConnectorSpec.all(source)) {
@@ -118,6 +118,10 @@ class ResourceSchemaHelper {
     /**
      * Applies proper definition (connector schema) to the resource - to the definition and particular connector spec.
      *
+     * If the connector reference is filter-based, the resolved connector OID is also written into the (in-memory)
+     * target resource, so that the completed resource put into the resource cache carries the OID and consumers
+     * do not need to repeat the resolution.
+     *
      * @param targetConnectorSpec Connector spec that should be updated (may be null if not present)
      * @param sourceConnectorSpec Connector spec that is used as the definition source - usually the same as target,
      * or an expanded version of it.
@@ -129,9 +133,10 @@ class ResourceSchemaHelper {
             @NotNull PrismObjectDefinition<ResourceType> targetDefinition,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
+        setResolvedConnectorOid(targetConnectorSpec, sourceConnectorSpec);
         var configurationContainerDefinition = connectorWithSchema.getConfigurationContainerDefinition();
 
         var targetConfigurationContainer =
@@ -147,6 +152,19 @@ class ResourceSchemaHelper {
             // different definition for additionalConnector[2]/connectorConfiguration in the object definition.
             // The way to go is to set up definitions on the container level.
             targetDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
+        }
+    }
+
+    private void setResolvedConnectorOid(
+            @Nullable ConnectorSpec targetConnectorSpec, @NotNull ConnectorSpec sourceConnectorSpec) {
+        if (targetConnectorSpec == null) {
+            return;
+        }
+        ObjectReferenceType targetRef = targetConnectorSpec.getConnectorRef();
+        String resolvedOid = sourceConnectorSpec.getConnectorOid();
+        if (targetRef != null && targetRef.getOid() == null && resolvedOid != null
+                && !targetRef.asReferenceValue().isImmutable()) {
+            targetRef.setOid(resolvedOid);
         }
     }
 
@@ -191,7 +209,7 @@ class ResourceSchemaHelper {
                     try {
                         evaluateExpression((PrismProperty<?>)visitable, resource.asPrismObject(), task, result);
                     } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
-                            ConfigurationException | SecurityViolationException e) {
+                             ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                         throw new TunnelException(e);
                     }
                 }
@@ -224,7 +242,7 @@ class ResourceSchemaHelper {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         PrismPropertyDefinition<T> propDef = configurationProperty.getDefinition();
         String shortDesc = "connector configuration property "+configurationProperty+" in "+resource;
         List<PrismPropertyValue<T>> extraValues = new ArrayList<>();
@@ -283,7 +301,8 @@ class ResourceSchemaHelper {
             GetOperationOptions options,
             Task task,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         if (delta.isAdd()) {
             ResourceType resource = delta.getObjectToAdd().asObjectable();
@@ -301,7 +320,8 @@ class ResourceSchemaHelper {
             GetOperationOptions options,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
 
         if (delta.hasCompleteDefinition()) {
             // nothing to do, all modifications have definitions
@@ -322,7 +342,8 @@ class ResourceSchemaHelper {
             GetOperationOptions options,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
         String resourceOid = delta.getOid();
         if (resourceOid == null) {
             Validate.notNull(resourceWhenNoOid, "Resource oid not specified in the object delta, "
@@ -335,13 +356,13 @@ class ResourceSchemaHelper {
 
     private void applyDefinitionToDeltaForConnector(
             @NotNull ObjectDelta<ResourceType> delta, @NotNull ConnectorSpec connectorSpec, @NotNull OperationResult parentResult)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         OperationResult result = parentResult.subresult(OP_APPLY_DEFINITION_TO_DELTA)
                 .addArbitraryObjectAsParam("connector", connectorSpec)
                 .setMinor()
                 .build();
         try {
-            String connectorOid = getConnectorOid(delta, connectorSpec);
+            String connectorOid = getConnectorOid(delta, connectorSpec, result);
             if (connectorOid == null) {
                 result.recordFatalError("Connector OID is missing");
                 return;
@@ -371,13 +392,13 @@ class ResourceSchemaHelper {
     }
 
     private void applyDefinitionsForNewConnectors(ObjectDelta<ResourceType> delta, OperationResult result)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         List<PrismValue> newConnectors = delta.getNewValuesFor(ResourceType.F_ADDITIONAL_CONNECTOR);
         for (PrismValue newConnectorPcv : newConnectors) {
             //noinspection unchecked
             ConnectorInstanceSpecificationType newConnector =
                     ((PrismContainerValue<ConnectorInstanceSpecificationType>) newConnectorPcv).asContainerable();
-            String connectorOid = getOid(newConnector.getConnectorRef());
+            String connectorOid = getConnectorOid(newConnector, result);
             if (connectorOid == null) {
                 continue;
             }
@@ -391,6 +412,20 @@ class ResourceSchemaHelper {
                 connectorConfiguration.asPrismContainerValue().applyDefinitionLegacy(configurationContainerDef);
             }
         }
+    }
+
+    private @Nullable String getConnectorOid(ConnectorInstanceSpecificationType newConnector, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        ObjectReferenceType connectorRef = newConnector.getConnectorRef();
+        String oid = getOid(connectorRef);
+        if (oid != null) {
+            return oid;
+        }
+        if (connectorRef != null && connectorRef.getFilter() != null) {
+            return connectorManager.resolveConnectorRefFilter(
+                    connectorRef.getFilter(), "new connector '" + newConnector.getName() + "'", result);
+        }
+        return null;
     }
 
     private PrismContainerDefinition<ConnectorConfigurationType> getConfigurationContainerDefinition(
@@ -430,7 +465,8 @@ class ResourceSchemaHelper {
         }
     }
 
-    private String getConnectorOid(ObjectDelta<ResourceType> delta, ConnectorSpec connectorSpec) throws SchemaException {
+    private String getConnectorOid(ObjectDelta<ResourceType> delta, ConnectorSpec connectorSpec, OperationResult result)
+            throws SchemaException, ConfigurationException {
 
         // Note: strict=true means that we are looking for this delta defined straight for the property.
         // We do so because here we don't try to apply definitions for additional connectors that are being added.
@@ -447,8 +483,11 @@ class ResourceSchemaHelper {
             if (connectorRefNew.getValues().size() == 1) {
                 PrismReferenceValue connectorRefValue = connectorRefNew.getValues().iterator().next();
                 if (connectorRefValue.getOid() != null) {
-                    // TODO what if there is a dynamic reference?
                     return connectorRefValue.getOid();
+                }
+                if (connectorRefValue.getFilter() != null) {
+                    return connectorManager.resolveConnectorRefFilter(
+                            connectorRefValue.getFilter(), connectorSpec, result);
                 }
             }
         }
@@ -497,7 +536,7 @@ class ResourceSchemaHelper {
      * TODO is this method correct?
      */
     void updateSchemaInConnectorInstances(ResourceType resource, NativeResourceSchema nativeSchema, OperationResult result)
-            throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
+            throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             connectorManager
                     .getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)

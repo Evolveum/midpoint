@@ -30,5 +30,5 @@ public interface ValuePolicyOriginResolver {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 }

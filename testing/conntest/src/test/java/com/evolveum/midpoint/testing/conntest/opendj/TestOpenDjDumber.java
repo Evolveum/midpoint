@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.testing.conntest.opendj;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -18,10 +15,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * OpenDJ, but without permissive modify, shortcut attributes, with manual matching rules, etc.

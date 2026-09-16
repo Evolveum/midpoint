@@ -8,18 +8,25 @@ package com.evolveum.midpoint.model.impl.expr;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author semancik
@@ -41,19 +48,157 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
 
     @Test
     public void testLibHello0Simple() throws Exception {
-        PrismContainerValue<Containerable> customPcv = createCustomValue();
-
         assertExecuteScriptExpressionString(VariablesMap.create(prismContext), "Hello world!");
     }
 
     @Test
     public void testLibHello1Simple() throws Exception {
-        PrismContainerValue<Containerable> customPcv = createCustomValue();
-
         VariablesMap variables = VariablesMap.create(prismContext,
                 "foo", "Foobar", PrimitiveType.STRING);
 
         assertExecuteScriptExpressionString(variables, "Hello Foobar");
+    }
+
+    @Test
+    public void testUtilEcho() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", "Foobar", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionString(variables, "Foobar");
+    }
+
+    @Test
+    public void testUtilIsAppropriateNull() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", null, PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate", false);
+    }
+
+    @Test
+    public void testUtilIsAppropriateEmpty() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", "", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate", false);
+    }
+
+    @Test
+    public void testUtilIsAppropriateShort() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", "x", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate", false);
+    }
+
+    @Test
+    public void testUtilIsAppropriateGood() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", "This is a nice little description.", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate", true);
+    }
+
+    @Test
+    public void testUtilIsAppropriateGoodPolyString() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", createPolyStringType("This is a nice little polystring description."), PolyStringType.COMPLEX_TYPE);
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate", true);
+    }
+
+    @Test
+    public void testUtilIsAppropriateDescriptionChef() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-description", false);
+    }
+
+    @Test
+    public void testUtilIsAppropriateDescriptionChefNull() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, null, chef.getDefinition());
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-description", false);
+    }
+
+    @Test
+    public void testUtilIsAppropriateDescriptionChefGoodDescription() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        chef.asObjectable().setDescription("Chef of SCUMM Bar");
+
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-description", true);
+    }
+
+    @Test
+    public void testUtilIsAppropriateNameChef() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+
+        VariablesMap variables = createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
+
+        assertExecuteScriptExpressionBoolean(variables, "util-is-appropriate-name", true);
+    }
+
+    @Test
+    public void testAssignmentTargetName() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionStringList(
+                createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition()),
+                "assignment-targetname",
+                "F0006", "P0002", "F0001");
+    }
+
+    @Test
+    public void testAssignmentTargetDescription() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionStringList(
+                createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition()),
+                "assignment-target-description",
+                "Hosting the worst scumm of the Caribbean.", null, "The office of the most respectful Governor.");
+    }
+
+    @Test
+    public void testAssignmentTargetOrgArchetypeChefTrue() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionBoolean(
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition(),
+                        "archetype", ARCHETYPE_ORGUNIT_OID, PrimitiveType.STRING
+                ),
+                "assignment-is-any-target-org-archetype",
+                true);
+    }
+
+    @Test
+    public void testAssignmentTargetOrgArchetypeChefFalse() throws Exception {
+        PrismObject<UserType> chef = repositoryService.getObject(
+                UserType.class, CHEF_OID, null, getTestOperationResult());
+        assertExecuteScriptExpressionBoolean(
+                createVariables(
+                        ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition(),
+                        "archetype", "nonexist-oid", PrimitiveType.STRING
+                ),
+                "assignment-is-any-target-org-archetype",
+                false);
+    }
+
+    @Test
+    public void testShadowNameSubstring() throws Exception {
+        assertExecuteScriptExpressionString(
+                createFocusProjectionResourceVariables(),
+                ACCOUNT_GUYBRUSH_DUMMY_USERNAME.substring(1));
     }
 
     @Test
@@ -134,6 +279,38 @@ public class TestModelExpressionsMel extends AbstractModelExpressionsTest {
                 ),
                 "search-shadow-owner",
                 USER_GUYBRUSH_USERNAME);
+    }
+
+    @Test
+    public void testCacheInvalidation() throws Exception {
+        VariablesMap variables = VariablesMap.create(prismContext,
+                "foo", "Foobar", PrimitiveType.STRING);
+
+        assertExecuteScriptExpressionString(variables, "testLibHello1Simple", "Hello Foobar");
+
+        long baseScriptCompilations = InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT);
+
+        // Should be cached now, no recompilation
+        assertExecuteScriptExpressionString(variables, "testLibHello1Simple", "Hello Foobar");
+
+        assertEquals("Unexpected compilation count", baseScriptCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
+
+        // Modify function library.
+        // If cache invalidation works well, then the script should be recompiled
+        // and library modification should be reflected in script code.
+        addObject(FUNCTION_LIBRARY_MODIFIED.get(), ModelExecuteOptions.create().overwrite(), getTestTask(), getTestOperationResult());
+
+        try {
+            // Should be cached now, no recompilation
+            assertExecuteScriptExpressionString(variables, "testLibHello1Simple", "Hello Foobar !!!");
+
+            // +2, because both the main script and the library script are recompiled
+            assertEquals("Unexpected compilation count", baseScriptCompilations + 2, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
+        } finally {
+            // Reset library to original state.
+            addObject(FUNCTION_LIBRARY.get(), ModelExecuteOptions.create().overwrite(), getTestTask(), getTestOperationResult());
+        }
+
     }
 
 }

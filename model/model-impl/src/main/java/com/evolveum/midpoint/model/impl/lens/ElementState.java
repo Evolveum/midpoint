@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.Projector;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -18,10 +18,8 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cid.ContainerValueIdGenerator;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -896,15 +894,20 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         // TODO: object definition?
     }
 
+    /**
+     * Checks that all protected values are encrypted. Legacy clear-text password hints (stored as plain strings
+     * before 4.11) are tolerated in the objects; they get encrypted only when the hint itself is modified.
+     * The deltas are checked strictly.
+     */
     void checkEncrypted() {
         if (newObject != null) {
-            CryptoUtil.checkEncrypted(newObject);
+            CryptoUtil.checkEncrypted(newObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (oldObject != null) {
-            CryptoUtil.checkEncrypted(oldObject);
+            CryptoUtil.checkEncrypted(oldObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (currentObject != null) {
-            CryptoUtil.checkEncrypted(currentObject);
+            CryptoUtil.checkEncrypted(currentObject, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (primaryDelta != null) {
             CryptoUtil.checkEncrypted(primaryDelta);

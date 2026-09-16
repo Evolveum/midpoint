@@ -28,8 +28,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 /**
  * Created by honchar
  *
- *  todo change name? this is not "choice panel", it contains whole "form-group" with label and everything
- *  not very reusable, contains whole form-group html with label, sizing and other html stuff. Even though main "functionality"
+ *  todo change name? this is not "choice panel", it contains whole div with label and everything
+ *  not very reusable, contains whole div with label, sizing and other html stuff. Even though main "functionality"
  *  added is to create specific combobox populated with relations.
  *  better reusable alternative was written as {@link RelationDropDownChoice}
  */

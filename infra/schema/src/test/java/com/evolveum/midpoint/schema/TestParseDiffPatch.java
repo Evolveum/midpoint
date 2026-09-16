@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 
 import org.jetbrains.annotations.NotNull;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.delta.*;

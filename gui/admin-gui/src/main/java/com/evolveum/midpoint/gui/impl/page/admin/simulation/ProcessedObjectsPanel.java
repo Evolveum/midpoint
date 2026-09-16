@@ -6,16 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.page.PageSimulationResultObject;
-import com.evolveum.midpoint.schema.SelectorOptions;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -53,12 +49,10 @@ import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -74,6 +68,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.performMarkObjects;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -245,7 +242,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
                     @Override
                     protected IModel<String> createSecondaryMarksList() {
-                        return () -> createProcessedObjectDescription(model.getObject(),availableMarksModel);
+                        return () -> createProcessedObjectDescription(model.getObject(), availableMarksModel);
                     }
                 });
             }
@@ -331,7 +328,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
     public InlineMenuItem modifyMarkInlineMenuAction() {
         return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.modifyMark"), true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isHeaderMenuItem() {
@@ -341,7 +338,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<SimulationResultProcessedObjectType>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
@@ -353,9 +350,9 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                             return;
                         }
 
-                        LoadableDetachableModel<PrismObjectWrapper<? extends ObjectType>> focusModel = loadWrapper(selected.getObject().getValue());
+                        var focusModel = loadWrapper(getPageBase(), selected.getObject().getValue());
 
-                        if (focusModel == null || focusModel.getObject() == null) {
+                        if (focusModel.getObject() == null) {
                             warn(getString("ProcessedObjectsPanel.message.noObjectFound", selected.getObject().getValue().getOid()));
                             target.add(getPageBase().getFeedbackPanel());
                             return;
@@ -373,45 +370,6 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                         getPageBase().showMainPopup(popup, target);
                     }
                 };
-            }
-        };
-    }
-
-    private LoadableDetachableModel<PrismObjectWrapper<? extends ObjectType>> loadWrapper(
-            SimulationResultProcessedObjectType resultProcessedObjectType) {
-        return new LoadableDetachableModel<>() {
-            @Override
-            protected PrismObjectWrapper<? extends ObjectType> load() {
-                if (resultProcessedObjectType == null) {
-                    return null;
-                }
-
-                Task task = getPageBase().createSimpleTask("createWrapper");
-
-                Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
-                        .noFetch()
-                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
-                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
-                        .build();
-
-                try {
-                    PrismObject prismObject = WebModelServiceUtils.loadObject(
-                            ObjectTypes.getObjectTypeClass(resultProcessedObjectType.getType()), resultProcessedObjectType.getOid(), options, getPageBase(), task, task.getResult());
-
-                    if (prismObject == null) {
-                        return null;
-                    }
-
-                    PrismObjectWrapperFactory<? extends ObjectType> factory = getPageBase().findObjectWrapperFactory(prismObject.getDefinition());
-                    OperationResult result = task.getResult();
-                    WrapperContext ctx = new WrapperContext(task, result);
-                    ctx.setCreateIfEmpty(true);
-
-                    return factory.createObjectWrapper(prismObject, ItemStatus.NOT_CHANGED, ctx);
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't create object wrapper for " + resultProcessedObjectType, e);
-                }
-                return null;
             }
         };
     }
@@ -581,7 +539,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         throw new RestartResponseException(getPage());
     }
 
-    private void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
+    public void markObjects(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel, List<String> markOids,
             AjaxRequestTarget target) {
 
         List<SimulationResultProcessedObjectType> selected = getSelectedObjects(rowModel);
@@ -596,38 +554,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
         Task task = page.createSimpleTask(OPERATION_MARK_OBJECT);
         OperationResult result = task.getResult();
 
-        for (var object : selected) {
-            if (ObjectProcessingStateType.ADDED.equals(object.getState())) {
-                // skip object, since it is added
-                continue;
-            }
-
-            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
-            // but for each delta we need separate statement
-            List<PolicyStatementType> statements = new ArrayList<>();
-            for (String oid : markOids) {
-                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
-                        .type(PolicyStatementTypeType.APPLY));
-            }
-
-            try {
-                @SuppressWarnings("unchecked")
-                var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
-                        .getCompileTimeClassForObjectType(object.getType());
-                var delta = page.getPrismContext().deltaFactory().object()
-                        .createModificationAddContainer(type,
-                                object.getOid(), ObjectType.F_POLICY_STATEMENT,
-                                statements.toArray(new PolicyStatementType[0]));
-                page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
-            } catch (Exception e) {
-                result.recordPartialError(
-                        createStringResource(
-                                "ProcessedObjectsPanel.message.markObjectError", object)
-                                .getString(),
-                        e);
-                LOGGER.error("Could not mark object {} with marks {}", object, markOids, e);
-            }
-        }
+        performMarkObjects(markOids, selected, page, task, result);
 
         result.computeStatusIfUnknown();
         page.showResult(result);

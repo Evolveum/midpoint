@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LdapAuthenticationMo
 
 import jakarta.servlet.ServletRequest;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 
 /**
  * @author lskublik

@@ -2,7 +2,7 @@
 :page-nav-title: Report from Collections
 :page-display-order: 100
 :page-toc: top
-:page-keywords: [ 'report', 'collection' ,'collections' ]
+:page-keywords: report, collection, collections
 :page-upkeep-status: green
 
 == Collection Report

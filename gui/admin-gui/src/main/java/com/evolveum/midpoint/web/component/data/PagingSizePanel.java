@@ -60,7 +60,7 @@ public class PagingSizePanel extends BasePanel<Integer> {
                 onPageSizeChangePerformed(newValue, target);
             }
         });
-        size.add(AttributeAppender.append("class", () -> small ? "form-control-sm" : null));
+        size.add(AttributeAppender.append("class", () -> small ? "form-select-sm" : null));
         add(size);
     }
 

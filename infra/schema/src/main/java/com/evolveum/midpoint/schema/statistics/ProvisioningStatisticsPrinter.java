@@ -12,7 +12,9 @@ import static com.evolveum.midpoint.schema.statistics.Formatting.Alignment.RIGHT
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
 
 /**
  * Prints provisioning statistics.

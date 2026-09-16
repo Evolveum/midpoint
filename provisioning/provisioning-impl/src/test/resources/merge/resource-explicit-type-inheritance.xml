@@ -8,6 +8,7 @@
 <resource oid="eb2f35d9-8147-413c-bfe0-f0890c14e702"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
@@ -30,6 +31,11 @@
                 <ref>ri:drink</ref>
                 <tolerant>false</tolerant> <!-- Overriding the default value -->
             </attribute>
+            <defaultOperationPolicy>
+                <policyRef oid="00000000-0000-0000-0000-000000000806" relation="org:default" type="MarkType">
+                    <!-- Managed -->
+                </policyRef>
+            </defaultOperationPolicy>
         </objectType>
         <objectType>
             <kind>account</kind>
@@ -65,6 +71,11 @@
                     </access>
                 </limitations>
             </attribute>
+            <defaultOperationPolicy>
+                <policyRef oid="00000000-0000-0000-0000-000000000805" relation="org:default" type="MarkType">
+                    <!-- Unmanaged -->
+                </policyRef>
+            </defaultOperationPolicy>
         </objectType>
     </schemaHandling>
 </resource>

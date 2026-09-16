@@ -47,19 +47,28 @@ public abstract class LocalePanel extends BasePanel {
         return FLAG_CLASS_PREFIX + descriptor.getFlag();
     }
 
+    protected String getSelectedLocaleName() {
+        AvailableLocale.LocaleDescriptor descriptor = getSelectedLocaleDescriptor();
+        return descriptor != null ? descriptor.getName() : null;
+    }
+
     protected AvailableLocale.LocaleDescriptor getSelectedLocaleDescriptor() {
         Locale locale = getSession().getLocale();
         if (locale == null) {
             return null;
         }
 
-        // The second condition is a fix attempt for issue MID-2075, where firefox
-        // returns 'sk' as a locale from session, while other browsers return 'sk_SK'.
-        // This is the reason, why in firefox selected locale is ignored (the commented
-        // condition is not met) so we are adding second condition to overcome this issue.
         for (AvailableLocale.LocaleDescriptor desc : AvailableLocale.AVAILABLE_LOCALES) {
-//            if (locale.equals(desc.getLocale())
-            if (locale.equals(desc.getLocale()) || locale.getLanguage().equals(desc.getLocale().getLanguage())) {
+            if (locale.equals(desc.getLocale())) {
+                return desc;
+            }
+        }
+        // Comparing the language of the locale is a fix attempt for issue MID-2075, where firefox
+        // returns 'sk' as a locale from session, while other browsers return 'sk_SK'.
+        // This is the reason, why in firefox selected locale is ignored (the condition
+        // for comparing the locales is not met) so we are adding language comparing condition to overcome this issue.
+        for (AvailableLocale.LocaleDescriptor desc : AvailableLocale.AVAILABLE_LOCALES) {
+            if (locale.getLanguage().equals(desc.getLocale().getLanguage())) {
                 return desc;
             }
         }

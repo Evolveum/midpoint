@@ -10,50 +10,40 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 
-import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
-import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangePanel;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangeUtils;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.AbstractMappingsTable;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.MappingExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
@@ -208,6 +198,11 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
 //    }
 
     @Override
+    protected String getTableContainerAdditionalCssClasses() {
+        return super.getTableContainerAdditionalCssClasses() + " table-td-middle";
+    }
+
+    @Override
     protected UserProfileStorage.TableId getTableId() {
         return null;
     }
@@ -238,7 +233,7 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
             }
         });
 
-        columns.add(new PrismPropertyWrapperColumn<>(
+        columns.add(new MappingExpressionColumn<>(
                 mappingTypeDef,
                 MappingType.F_EXPRESSION,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
@@ -263,6 +258,15 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
                 getPageBase()));
 
         return columns;
+    }
+
+    @Override
+    protected PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
+        PrismContainerValueWrapper newValue = super.createNewValue(value, target);
+        if (newValue != null) {
+            MappingRangeUtils.initializeRange(newValue);
+        }
+        return newValue;
     }
 
     @Override
@@ -296,6 +300,19 @@ public class ListMappingPanel extends AbstractMappingsTable<ObjectTemplateType> 
                     return ItemVisibility.HIDDEN;
                 }
                 return ItemVisibility.AUTO;
+            }
+
+            @Override
+            protected List<ITab> createTabs() {
+                List<ITab> tabs = super.createTabs();
+                tabs.add(new PanelTab(createStringResource("MappingRangePanel.range")) {
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new MappingRangePanel(panelId, getModel());
+                    }
+                });
+                return tabs;
             }
         };
     }

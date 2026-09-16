@@ -9,16 +9,16 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedClockworkPolicyRule;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -40,7 +40,7 @@ class PolicyStateRecorder {
 
     <O extends ObjectType> void applyObjectState(
             @NotNull LensElementContext<O> elementContext,
-            @NotNull List<? extends EvaluatedPolicyRule> rulesToRecord)
+            @NotNull List<? extends DirectlyEvaluatedClockworkPolicyRule> rulesToRecord)
             throws SchemaException {
         // compute policySituation and triggeredPolicyRules and compare it with the expected state
         // note that we use the new state for the comparison, because if values match we do not need to do anything
@@ -72,42 +72,30 @@ class PolicyStateRecorder {
                             .asItemDelta());
         }
 
-        for (EvaluatedPolicyRule rule : rulesToRecord) {
+        for (DirectlyEvaluatedClockworkPolicyRule rule : rulesToRecord) {
             computeNewMarks(rule, evaluatedPolicyStatements);
         }
 
-        // apply collected deltas for effective marks (policyStatements + policyRules)
-        // We use "existing" values (taken from object new, see above) to avoid phantom adds and deletes.
-        var newMarkRefs = objectNew.getEffectiveMarkRef();
-        if (evaluatedPolicyStatements.isNotEmpty()) {
+        // Effective marks are fully determined by the policy rules and policy statements: anything else present
+        // in the object (e.g. a mark computed by a rule that no longer applies) is removed.
+        // We use "existing" values to avoid phantom adds and deletes. See #12154.
+        var existingMarkRefs = objectNew.getEffectiveMarkRef();
+        var marksToDelete = evaluatedPolicyStatements.collectMarksToDelete(existingMarkRefs);
+        var marksToAdd = evaluatedPolicyStatements.collectMarksToAdd(existingMarkRefs);
+        if (!marksToDelete.isEmpty() || !marksToAdd.isEmpty()) {
             elementContext.addToPendingObjectPolicyStateModifications(
                     PrismContext.get().deltaFor(ObjectType.class)
                             .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                            .deleteRealValues(
-                                    CloneUtil.cloneCollectionMembers(
-                                            evaluatedPolicyStatements.collectMarksToDelete(newMarkRefs)))
-                            .addRealValues(
-                                    CloneUtil.cloneCollectionMembers(
-                                            evaluatedPolicyStatements.collectMarksToAdd(newMarkRefs)))
+                            .deleteRealValues(CloneUtil.cloneCollectionMembers(marksToDelete))
+                            .addRealValues(CloneUtil.cloneCollectionMembers(marksToAdd))
                             .asItemDelta());
         }
-
-        // something strange here - probably something forgotten, let's clean up
-        // TODO What if there are some evaluated policy statements, but an extra effectiveMarkRef? We should clean that up as well.
-        if (evaluatedPolicyStatements.isEmpty()) {
-            elementContext.addToPendingObjectPolicyStateModifications(
-                    PrismContext.get().deltaFor(ObjectType.class)
-                            .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                            .deleteRealValues(CloneUtil.cloneCollectionMembers(newMarkRefs))
-                            .asItemDelta());
-        }
-
     }
 
     void applyAssignmentState(
             LensContext<?> context,
             EvaluatedAssignmentImpl<?> evaluatedAssignment,
-            List<? extends AssociatedPolicyRule> rulesToRecord)
+            List<? extends EvaluatedClockworkPolicyRule> rulesToRecord)
             throws SchemaException {
         LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext.isDelete()) {
@@ -169,22 +157,25 @@ class PolicyStateRecorder {
     }
 
     private ComputationResult compute(
-            @NotNull List<? extends AssociatedPolicyRule> rulesToRecord,
+            @NotNull List<? extends EvaluatedClockworkPolicyRule> rulesToRecord,
             @NotNull List<String> existingPolicySituation,
             @NotNull List<ObjectReferenceType> existingMarkOids,
             @NotNull List<EvaluatedPolicyRuleType> existingTriggeredPolicyRule) {
         ComputationResult cr = new ComputationResult();
-        for (AssociatedPolicyRule rule : rulesToRecord) {
+        for (EvaluatedClockworkPolicyRule rule : rulesToRecord) {
             cr.newPolicySituations.add(rule.getPolicySituation());
             cr.newMarkOid.addAll(rule.getPolicyMarkRef());
             PolicyActionConfigItem<RecordPolicyActionType> recordAction = rule.getEnabledAction(RecordPolicyActionType.class);
             assert recordAction != null;
             var rulesStorageStrategy = recordAction.value().getPolicyRules();
             if (rulesStorageStrategy != TriggeredPolicyRulesStorageStrategyType.NONE) {
-                PolicyRuleExternalizationOptions externalizationOptions =
-                        new PolicyRuleExternalizationOptions(rulesStorageStrategy, false);
-                rule.addToEvaluatedPolicyRuleBeans(
-                        cr.newTriggeredRules, externalizationOptions, null, rule.getNewOwner());
+                var externalizationOptions =
+                        new PolicyRuleExternalizationOptions(
+                                rulesStorageStrategy,
+                                false,
+                                rule.getRelevantTriggersFilter());
+                cr.newTriggeredRules.addAll(
+                        rule.toEvaluatedPolicyRuleBeans(externalizationOptions, null));
             }
         }
 
@@ -197,7 +188,8 @@ class PolicyStateRecorder {
         return cr;
     }
 
-    private @NotNull Collection<ObjectReferenceType> computeNewMarks(AssociatedPolicyRule rule, EvaluatedPolicyStatements evaluatedPolicyStatements) {
+    private @NotNull Collection<ObjectReferenceType> computeNewMarks(
+            EvaluatedClockworkPolicyRule rule, EvaluatedPolicyStatements evaluatedPolicyStatements) {
         Set<ObjectReferenceType> newMarkRefs = new HashSet<>();
         for (ObjectReferenceType markFromPolicy : rule.getPolicyMarkRef()) {
             if (evaluatedPolicyStatements.isExclude(markFromPolicy)) {

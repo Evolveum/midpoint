@@ -6,25 +6,35 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<TransitionPolicyConstraintType> {
+import com.evolveum.midpoint.repo.common.policy.PolicyRuleExternalizationOptions;
+
+import com.evolveum.midpoint.schema.policy.PolicyConstraintKind;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedTransitionTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
+
+import static com.evolveum.midpoint.schema.policy.PolicyConstraintKind.TRANSITION;
+
+/** For {@link PolicyConstraintKind#TRANSITION}. */
+public class EvaluatedTransitionTrigger extends EvaluatedClockworkPolicyRuleTrigger<TransitionPolicyConstraintType> {
 
     @NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers;
 
     public EvaluatedTransitionTrigger(
-            @NotNull PolicyConstraintKindType kind, @NotNull TransitionPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage,
+            @NotNull TransitionPolicyConstraintType constraint,
+            LocalizableMessage message,
+            LocalizableMessage shortMessage,
             @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers) {
-        super(kind, constraint, message, shortMessage, false);
+        super(TRANSITION, constraint, message, shortMessage, false);
         this.innerTriggers = innerTriggers;
     }
 
@@ -36,21 +46,17 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
     @Override
     public String toDiagShortcut() {
         return super.toDiagShortcut()
-            + innerTriggers.stream()
-                    .map(trigger -> trigger.toDiagShortcut())
-                    .distinct()
-                    .collect(Collectors.joining("+", "(", ")"));
+                + innerTriggers.stream()
+                .map(trigger -> trigger.toDiagShortcut())
+                .distinct()
+                .collect(Collectors.joining("+", "(", ")"));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof EvaluatedTransitionTrigger))
-            return false;
-        if (!super.equals(o))
-            return false;
-        EvaluatedTransitionTrigger that = (EvaluatedTransitionTrigger) o;
+        if (this == o) {return true;}
+        if (!(o instanceof EvaluatedTransitionTrigger that)) {return false;}
+        if (!super.equals(o)) {return false;}
         return Objects.equals(innerTriggers, that.innerTriggers);
     }
 
@@ -66,15 +72,14 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 
     @Override
     public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerBean(
-            @NotNull PolicyRuleExternalizationOptions options, @Nullable EvaluatedAssignment newOwner) {
-        EvaluatedTransitionTriggerType rv = new EvaluatedTransitionTriggerType();
-        fillCommonContent(rv);
+            @NotNull PolicyRuleExternalizationOptions options) {
+        var rv = toEvaluatedPolicyRuleTriggerBean(options, EvaluatedTransitionTriggerType::new);
         if (!isFinal()) {
             innerTriggers.stream()
-                    .filter(t -> t.isRelevantForNewOwner(newOwner))
+                    .filter(t -> options.matchesSelector(t))
                     .forEach(t ->
                             rv.getEmbedded().add(
-                                    t.toEvaluatedPolicyRuleTriggerBean(options, newOwner)));
+                                    t.toEvaluatedPolicyRuleTriggerBean(options)));
         }
         return rv;
     }

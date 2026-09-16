@@ -10,7 +10,8 @@ import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -28,7 +29,10 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusteringWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * TODO

@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -47,8 +46,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @Component
 public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {

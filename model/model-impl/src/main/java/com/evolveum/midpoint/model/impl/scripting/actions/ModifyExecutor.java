@@ -51,7 +51,8 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
@@ -79,7 +80,7 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
     private void modify(PrismObject<? extends ObjectType> object, boolean dryRun, ModelExecuteOptions options,
             ObjectDeltaType deltaBean, ExecutionContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ObjectDelta<? extends ObjectType> delta = createDelta(object.asObjectable(), deltaBean);
         result.addParam("delta", delta);
 

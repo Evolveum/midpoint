@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.expr.AssociationSynchronizationResult;
+import com.evolveum.midpoint.model.impl.expr.ComplexItemEvaluationResult;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
@@ -84,7 +84,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     /** Full processing, resulting in deltas being computed. */
     public Collection<ItemDelta<?, ?>> executeToDeltas(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         executeToTriples(result);
         return consolidateTriples(result);
     }
@@ -92,7 +92,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     /** Partial processing that stops after triples are computed, i.e. just prepares and evaluates the mappings. */
     void executeToTriples(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         prepareMappings(result);
         evaluateMappings(result);
     }
@@ -104,7 +104,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      */
     abstract void prepareMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException;
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     /**
      * Evaluate mappings collected from all the projections. There may be mappings from different projections to the same target.
@@ -112,7 +112,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      */
     private void evaluateMappings(OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, CommunicationException {
+            ConfigurationException, SecurityViolationException, CommunicationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE_MAPPINGS)
                 .build();
         try {
@@ -134,7 +134,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     private <V extends PrismValue, D extends ItemDefinition<?>> void evaluateMapping(
             ItemPath targetPath, MappingEvaluationRequest<V, D> evaluationRequest, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         LOGGER.trace("Starting evaluation of {}", evaluationRequest);
 
         var mapping = evaluationRequest.getMapping();
@@ -170,19 +170,16 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         outputTripleMap.putOrMerge(targetPath, ivwoTriple);
 
         // Let's also treat inner triples and additional data, if there are any
-        if (mapping.getOutputTriple() instanceof AssociationSynchronizationResult<V> associationSynchronizationResult) {
-            outputTripleMap.putOrMergeAll(
-                    associationSynchronizationResult.getInnerDeltaSetTriplesMap());
-            itemDefinitionMap.putAll(
-                    associationSynchronizationResult.getInnerItemDefinitionsMap());
-            evaluationRequestsMap.putAll(
-                    associationSynchronizationResult.getInnerMappingEvaluationRequestsMap());
+        if (mapping.getOutputTriple() instanceof ComplexItemEvaluationResult<V> complexItemEvaluationResult) {
+            outputTripleMap.putOrMergeAll(complexItemEvaluationResult.getInnerDeltaSetTriplesMap());
+            itemDefinitionMap.putAll(complexItemEvaluationResult.getInnerItemDefinitionsMap());
+            evaluationRequestsMap.putAll(complexItemEvaluationResult.getInnerMappingEvaluationRequestsMap());
         }
     }
 
     private Collection<ItemDelta<?, ?>> consolidateTriples(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         Consumer<IvwoConsolidatorBuilder<?, ?, ?>> customizer = builder ->
                 builder

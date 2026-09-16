@@ -59,7 +59,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     }
 
     void parseSourcesAndTarget(OperationResult result) throws SchemaException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         parseSources(result);
         parseTarget();
         assertOutputDefinition();
@@ -107,7 +107,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
 
     private void parseSources(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         if (m.defaultSource != null) {
             m.sources.add(m.defaultSource);
             m.defaultSource.recompute();
@@ -140,7 +140,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
     private <IV extends PrismValue, ID extends ItemDefinition<?>> Source<IV, ID> parseSource(
             @NotNull VariableBindingDefinitionType sourceDefinition, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ItemPath path = getSourcePath(sourceDefinition);
         @NotNull QName sourceQName = sourceDefinition.getName() != null ? sourceDefinition.getName() : ItemPath.toName(path.last());
         String variableName = sourceQName.getLocalPart();

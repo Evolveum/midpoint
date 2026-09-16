@@ -12,7 +12,10 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.apache.wicket.model.StringResourceModel;
 
@@ -30,6 +33,7 @@ import org.apache.wicket.model.StringResourceModel;
 )
 public class ResourceAccountsPanel extends ResourceObjectsPanel {
 
+    public static final String ID = "resourceAccounts";
 
     public ResourceAccountsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);

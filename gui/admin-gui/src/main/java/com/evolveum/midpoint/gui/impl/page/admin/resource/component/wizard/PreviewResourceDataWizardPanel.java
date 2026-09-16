@@ -6,8 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import java.io.Serializable;
+import java.util.function.Consumer;
+
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -16,13 +23,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.function.Consumer;
 
 /**
  * @author lskublik
@@ -129,6 +129,11 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<Res
 
     @Override
     protected boolean isBackButtonVisible() {
+        return true;
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
         return true;
     }
 

@@ -31,4 +31,8 @@ public interface Table {
     void setCurrentPage(long page);
 
     void setCurrentPageAndSort(ObjectPaging paging);
+
+    default String getLiveStatusMarkupId() {
+        return null;
+    }
 }

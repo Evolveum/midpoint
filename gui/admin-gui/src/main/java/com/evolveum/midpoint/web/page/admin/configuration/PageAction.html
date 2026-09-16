@@ -10,14 +10,14 @@
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
         <!-- todo cleanup operation panel, make component out of it -->
-        <div class="card">
+        <div class="card shadow-sm mb-3">
             <div class="card-body">
                 <div class="d-flex flex-wrap">
-                    <fieldset class="objectButtons">
+                    <fieldset class="objectButtons d-flex flex-column align-items-start">
                         <legend><wicket:message key="OperationalButtonsPanel.buttons.main"/></legend>
                         <a class="btn btn-primary btn-sm" wicket:id="start"/>
                     </fieldset>
-                    <fieldset class="objectButtons">
+                    <fieldset class="objectButtons d-flex flex-column align-items-start">
                         <legend><wicket:message key="PageAction.options"/></legend>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" wicket:id="async">
@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card shadow-sm mb-3">
             <div class="card-body p-0">
                 <textarea wicket:id="editor"></textarea>
             </div>

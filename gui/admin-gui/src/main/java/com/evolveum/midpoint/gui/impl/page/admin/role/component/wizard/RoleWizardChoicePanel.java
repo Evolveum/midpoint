@@ -6,13 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,13 +14,24 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public abstract class RoleWizardChoicePanel<T extends TileEnum>
         extends EnumWizardChoicePanel<T, AssignmentHolderDetailsModel<RoleType>> {
 
-    public RoleWizardChoicePanel(String id, AssignmentHolderDetailsModel<RoleType> roleModel, Class<T> type) {
-        super(id, roleModel, type);
+    protected RoleWizardChoicePanel(String id, AssignmentHolderDetailsModel<RoleType> roleModel, Class<T> type) {
+        this(id, roleModel, type, null);
+    }
+
+    protected RoleWizardChoicePanel(
+            String id, AssignmentHolderDetailsModel<RoleType> roleModel, Class<T> type, OperationResult lastSaveResult) {
+        super(id, roleModel, type, lastSaveResult);
     }
 
     @Override
@@ -50,7 +55,20 @@ public abstract class RoleWizardChoicePanel<T extends TileEnum>
 
     @Override
     protected IModel<String> getTextModel() {
+        if (WebComponentUtil.isOperationSubmittedForApproval(getLastSaveResult())) {
+            return getPageBase().createStringResource("ApplicationRoleWizardPreviewPanel.submittedForApproval");
+        }
         return getPageBase().createStringResource("ApplicationRoleWizardPreviewPanel.text");
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
     }
 
     @Override

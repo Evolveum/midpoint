@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,6 +31,8 @@ public class ObjectTypesSuggestionWorkDefinition extends AbstractWorkDefinition 
     private final QName objectClassName;
     @Nullable private final String statisticsObjectOid;
     private final List<DataAccessPermissionType> permissions;
+    @Nullable private final RegenerateMode regenerateMode;
+    private final List<ResourceObjectTypeDefinitionType> previousDelineations;
 
     ObjectTypesSuggestionWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) throws ConfigurationException {
         super(info);
@@ -39,6 +42,8 @@ public class ObjectTypesSuggestionWorkDefinition extends AbstractWorkDefinition 
         objectClassName = configNonNull(typedDefinition.getObjectclass(), "No object class name specified");
         statisticsObjectOid = Referencable.getOid(typedDefinition.getStatisticsRef());
         this.permissions = typedDefinition.getPermissions();
+        this.regenerateMode = typedDefinition.getRegenerateMode() != null ? RegenerateMode.valueOf(typedDefinition.getRegenerateMode()) : null;
+        this.previousDelineations = typedDefinition.getPreviousDelineation();
     }
 
     public String getResourceOid() {
@@ -55,6 +60,14 @@ public class ObjectTypesSuggestionWorkDefinition extends AbstractWorkDefinition 
 
     public List<DataAccessPermissionType> getPermissions() {
         return this.permissions;
+    }
+
+    public @Nullable RegenerateMode getRegenerateMode() {
+        return regenerateMode;
+    }
+
+    public List<ResourceObjectTypeDefinitionType> getPreviousDelineations() {
+        return previousDelineations;
     }
 
     @Override

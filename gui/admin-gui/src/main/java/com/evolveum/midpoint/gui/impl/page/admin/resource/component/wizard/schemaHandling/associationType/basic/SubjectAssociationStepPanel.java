@@ -6,6 +6,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -26,10 +31,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
-
-import java.util.*;
 
 @PanelType(name = "rw-association-subject")
 @PanelInstance(identifier = "rw-association-subject",
@@ -98,6 +99,16 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.associationType.subject.subText");
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
+    }
+
+    @Override
+    protected String getButtonsStripCssClass() {
+        return "col-10";
     }
 
     protected void performSelectedObjects() {

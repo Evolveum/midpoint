@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.wicket.model.IModel;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
@@ -86,7 +87,8 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
             String suffix = input.substring(lastIndexOfSeparator + 1);
             ItemDefinition<?> superDef = focusDef.findItemDefinition(ItemPath.create(superPath.split("/")));
             if (superDef != null && superDef instanceof PrismContainerDefinition) {
-                collectItems(((PrismContainerDefinition) superDef).getDefinitions(), suffix, toSelect, true);
+
+                collectItems(((PrismContainerDefinition) superDef).getDefinitions(), suffix, toSelect, showContainerChoices(), true);
                 return toSelect
                         .stream()
                         .map(subPath -> superPath + "/" + subPath)
@@ -94,9 +96,14 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
                         .toList();
             }
         } else {
-            collectItems(focusDef.getDefinitions(), input, toSelect, true);
+            collectItems(focusDef.getDefinitions(), input, toSelect, showContainerChoices(), true);
         }
+
         return toSelect.stream().sorted().toList();
+    }
+
+    protected boolean showContainerChoices() {
+        return false;
     }
 
     protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
@@ -135,13 +142,15 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
             Collection<? extends ItemDefinition> definitions,
             String input,
             List<String> toSelect,
-            boolean showContainers) {
+            boolean showContainers,
+            boolean showChildrenOfContainers) {
         if (definitions == null) {
             return;
         }
 
         for (ItemDefinition<?> def : definitions) {
-            if (StringUtils.isNotBlank(input) && !def.getItemName().getLocalPart().startsWith(input)) {
+            if (StringUtils.isNotBlank(input)
+                    && !Strings.CI.contains(def.getItemName().getLocalPart(), input)) {
                 continue;
             }
 
@@ -154,12 +163,14 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
             }
 
             if (def instanceof PrismContainerDefinition) {
-                if (!showContainers) {
+                if (showContainers) {
                     toSelect.add(def.getItemName().getLocalPart());
-                    continue;
+                    if (!showChildrenOfContainers) {
+                        continue;
+                    }
                 }
                 List<String> subChoices = new ArrayList<>();
-                collectItems(((PrismContainerDefinition) def).getDefinitions(), "", subChoices, false);
+                collectItems(((PrismContainerDefinition) def).getDefinitions(), "", subChoices, true, false);
                 subChoices.forEach(value -> toSelect.add(def.getItemName().getLocalPart() + "/" + value));
                 continue;
             }

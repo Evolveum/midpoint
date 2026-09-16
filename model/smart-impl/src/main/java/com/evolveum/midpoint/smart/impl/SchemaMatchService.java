@@ -9,15 +9,16 @@
 package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,25 +32,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
+import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.ServiceClientFactory;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -71,16 +64,19 @@ public class SchemaMatchService {
     private final ServiceClientFactory clientFactory;
     private final WellKnownSchemaService wellKnownSchemaService;
     private final SystemObjectCache systemObjectCache;
+    private final StatisticsService statisticsService;
 
     public SchemaMatchService(
             @Qualifier("cacheRepositoryService") RepositoryService repositoryService,
             ServiceClientFactory clientFactory,
             WellKnownSchemaService wellKnownSchemaService,
-            SystemObjectCache systemObjectCache) {
+            SystemObjectCache systemObjectCache,
+            StatisticsService statisticsService) {
         this.repositoryService = repositoryService;
         this.clientFactory = clientFactory;
         this.wellKnownSchemaService = wellKnownSchemaService;
         this.systemObjectCache = systemObjectCache;
+        this.statisticsService = statisticsService;
     }
 
     public SchemaMatchResultType loadSchemaMatch(ObjectReferenceType schemaMatchRef, OperationResult result) {
@@ -93,9 +89,9 @@ public class SchemaMatchService {
                 return null;
             }
             var schemaMatchObject = repositoryService
-                    .getObject(GenericObjectType.class, schemaMatchOid, null, result)
+                    .getObject(SmartIntegrationArtifactType.class, schemaMatchOid, null, result)
                     .asObjectable();
-            return ShadowObjectTypeUtil.getObjectTypeSchemaMatchRequired(schemaMatchObject);
+            return SmartIntegrationArtifactUtil.getObjectTypeSchemaMatchRequired(schemaMatchObject);
         } catch (Exception e) {
             LOGGER.warn("Failed to load schema match, proceeding without it: {}", e.getMessage());
             return null;
@@ -109,7 +105,7 @@ public class SchemaMatchService {
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var result = parentResult.subresult("computeSchemaMatch")
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
@@ -119,24 +115,49 @@ public class SchemaMatchService {
                     .item(ResourceType.F_CONNECTOR_REF).resolve()
                     .build();
             var ctx = TypeOperationContext.init(serviceClient, resourceOid, typeIdentification, options, null, task, result);
-            var focusTypeDefinition = ctx.getFocusTypeDefinition();
-            var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService);
-            var match = matchingOp.matchSchema(ctx.typeDefinition, focusTypeDefinition, ctx.resource);
+            var objectTypeStatistics = loadObjectTypeStats(resourceOid, typeIdentification, ctx.resource, ctx.typeDefinition, task, result);
+            return doComputeSchemaMatch(
+                    serviceClient, ctx.objectClassDefinition, ctx.getFocusTypeDefinition(), ctx.resource, useAiService,
+                    objectTypeStatistics, task, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.closeWithSummarizedSuccesses();
+        }
+    }
 
-            SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
-                    .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-
-            var detectedSchemaType = matchingOp.getDetectedSchemaType();
-            if (detectedSchemaType != null) {
-                schemaMatchResult.setWellKnownSchemaType(detectedSchemaType.name());
-                LOGGER.debug("Stored known schema type: {} for resource {}", detectedSchemaType, resourceOid);
+    /**
+     * Computes schema match at the object class level using an explicit focus type name,
+     * without requiring the object type (kind/intent) to be configured on the resource.
+     * Useful for pre-loading schema matching during object type suggestions, before types are saved.
+     */
+    public SchemaMatchResultType computeSchemaMatchByObjectClass(
+            String resourceOid,
+            QName objectClassName,
+            QName focusTypeName,
+            boolean useAiService,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        var result = parentResult.subresult("computeSchemaMatchByObjectClass")
+                .addParam("resourceOid", resourceOid)
+                .addParam("objectClassName", objectClassName)
+                .addParam("focusTypeName", focusTypeName)
+                .build();
+        try (var serviceClient = this.clientFactory.getServiceClient(result)) {
+            var options = GetOperationOptionsBuilder.create()
+                    .item(ResourceType.F_CONNECTOR_REF).resolve()
+                    .build();
+            var ctx = OperationContext.init(serviceClient, resourceOid, objectClassName, options, task, result);
+            var focusTypeDefinition = PrismContext.get().getSchemaRegistry()
+                    .findObjectDefinitionByType(focusTypeName);
+            if (focusTypeDefinition == null) {
+                throw new SchemaException("Focus type definition not found for " + focusTypeName);
             }
-
-            for (var attributeMatch : match.getAttributeMatch()) {
-                processAttributeMatch(attributeMatch, matchingOp, ctx, focusTypeDefinition)
-                        .ifPresent(schemaMatchResult.getSchemaMatchResult()::add);
-            }
-            return schemaMatchResult;
+            return doComputeSchemaMatch(
+                    serviceClient, ctx.objectClassDefinition, focusTypeDefinition, ctx.resource, useAiService, null, task, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -145,10 +166,40 @@ public class SchemaMatchService {
         }
     }
 
+    private SchemaMatchResultType doComputeSchemaMatch(
+            ServiceClient serviceClient,
+            ResourceObjectClassDefinition objectClassDef,
+            PrismObjectDefinition<?> focusTypeDefinition,
+            ResourceType resource,
+            boolean useAiService,
+            ObjectSetStatisticsType objectTypeStatistics,
+            Task task,
+            OperationResult result) {
+        var matchingOp = new SchemaMatchingOperation(serviceClient, wellKnownSchemaService, useAiService, task, result);
+        var match = matchingOp.matchSchema(objectClassDef, focusTypeDefinition, resource);
+
+        SchemaMatchResultType schemaMatchResult = new SchemaMatchResultType()
+                .timestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
+
+        var detectedSchemaType = matchingOp.getDetectedSchemaType();
+        if (detectedSchemaType != null) {
+            schemaMatchResult.setWellKnownSchemaType(detectedSchemaType.name());
+            LOGGER.debug("Stored known schema type: {} for resource {}", detectedSchemaType, resource.getOid());
+        }
+
+        for (var attributeMatch : match.getAttributeMatch()) {
+            processAttributeMatch(attributeMatch, matchingOp, objectClassDef, resource, focusTypeDefinition)
+                    .ifPresent(schemaMatchResult.getSchemaMatchResult()::add);
+        }
+        new PostSchemaMatchHeuristics(focusTypeDefinition, objectTypeStatistics).applyAll(schemaMatchResult);
+        return schemaMatchResult;
+    }
+
     private Optional<SchemaMatchOneResultType> processAttributeMatch(
             SiAttributeMatchSuggestionType attributeMatch,
             SchemaMatchingOperation matchingOp,
-            TypeOperationContext ctx,
+            ResourceObjectClassDefinition objectClassDef,
+            ResourceType resource,
             PrismObjectDefinition<?> focusTypeDefinition) {
         var shadowAttrPath = matchingOp.getApplicationItemPath(attributeMatch.getApplicationAttribute());
         if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
@@ -157,7 +208,7 @@ public class SchemaMatchService {
         }
 
         var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
-        var shadowAttrDef = ctx.typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
+        var shadowAttrDef = objectClassDef.findSimpleAttributeDefinition(shadowAttrName);
         if (shadowAttrDef == null) {
             LOGGER.warn("No shadow attribute definition found for {}. Skipping schema match record.", shadowAttrName);
             return Optional.empty();
@@ -170,12 +221,14 @@ public class SchemaMatchService {
             return Optional.empty();
         }
 
-        //TODO this is a nasty hack for MCM demo, remove later.
-        var applicationAttrDefBean = createAttributeDefinition(
-                shadowAttrPath, shadowAttrDef, ctx.getShadowDefinition());
-        if (isLdapResource(ctx.resource)) {
-            applicationAttrDefBean.setMaxOccurs(1);
-        }
+        var shadowAttrDescriptivePath = DescriptiveItemPath.empty()
+                .append(ShadowType.F_ATTRIBUTES, false)
+                .append(shadowAttrName, shadowAttrDef.isMultiValue());
+        var applicationAttrDefBean = new SiAttributeDefinitionType()
+                .name(shadowAttrDescriptivePath.asString())
+                .type(getTypeName(shadowAttrDef))
+                .minOccurs(shadowAttrDef.getMinOccurs())
+                .maxOccurs(shadowAttrDef.getMaxOccurs());
         var midPointPropertyDefBean = createAttributeDefinition(
                 focusPropPath, focusPropDef, focusTypeDefinition);
 
@@ -200,37 +253,34 @@ public class SchemaMatchService {
                 .maxOccurs(definition.getMaxOccurs());
     }
 
-    public GenericObjectType getLatestObjectTypeSchemaMatch(String resourceOid, String kind, String intent, OperationResult parentResult)
+    public SmartIntegrationArtifactType getLatestObjectTypeSchemaMatch(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_GET_LATEST_OBJECT_TYPE_SCHEMA_MATCH)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
+                .addParam("type", typeIdentification)
                 .build();
         try {
             var objects = repositoryService.searchObjects(
-                    GenericObjectType.class,
-                    PrismContext.get().queryFor(GenericObjectType.class)
-                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                            .eq(resourceOid)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                            .eq(kind)
-                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                            .eq(intent)
+                    SmartIntegrationArtifactType.class,
+                    PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                            .item(SmartIntegrationArtifactUtil.PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                            .and().item(SmartIntegrationArtifactUtil.PATH_SCOPE_KIND).eq(typeIdentification.getKind())
+                            .and().item(SmartIntegrationArtifactUtil.PATH_SCOPE_INTENT).eq(typeIdentification.getIntent())
+                            .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH.value())
                             .build(),
                     null,
                     result);
 
             var latestSchemaMatch = objects.stream()
                     .map(o -> o.asObjectable())
-                    .filter(o ->
-                            ObjectTypeUtil.getExtensionItemRealValue(
-                                    o.getExtension(), MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH) != null)
+                    .filter(o -> o.getSchemaMatch() != null)
                     .max(Comparator.comparing(
-                            o -> toMillis(ShadowObjectTypeUtil.getObjectTypeSchemaMatchRequired(o).getTimestamp())))
+                            o -> toMillis(SmartIntegrationArtifactUtil.getObjectTypeSchemaMatchRequired(o).getTimestamp())))
                     .orElse(null);
 
-            return deleteIfExpired(latestSchemaMatch, resourceOid, kind, intent, result);
+            return deleteIfExpired(latestSchemaMatch, resourceOid, typeIdentification, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -239,38 +289,27 @@ public class SchemaMatchService {
         }
     }
 
-    //TODO this is a nasty hack for MCM demo, remove later.
-    private boolean isLdapResource(ResourceType resource) {
-        var connectorRef = resource.getConnectorRef();
-        if (connectorRef == null) {
-            return false;
-        }
-        if (connectorRef.getObject() != null && connectorRef.getObject().getRealValue() instanceof ConnectorType connector) {
-            String bundle = connector.getConnectorBundle();
-            String type = connector.getConnectorType();
-            return (bundle != null && bundle.toLowerCase().contains("ldap"))
-                    || (type != null && type.toLowerCase().contains("ldap"));
-        }
-        return false;
-    }
 
     /**
-     * Saves the schema match result as a generic object. Deletes any existing schema match objects
+     * Saves the schema match result as a smart integration artifact. Deletes any existing schema match objects
      * for the same resource/kind/intent before saving the new one.
      *
      * @return OID of the newly created schema match object
      */
-    public String saveSchemaMatch(String resourceOid, String kind, String intent,
-            SchemaMatchResultType schemaMatch, OperationResult parentResult)
+    public String saveSchemaMatch(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            SchemaMatchResultType schemaMatch,
+            OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException {
         var result = parentResult.subresult(OP_SAVE_SCHEMA_MATCH)
                 .addParam("resourceOid", resourceOid)
-                .addParam("kind", kind)
-                .addParam("intent", intent)
+                .addParam("type", typeIdentification)
                 .build();
         try {
-            deleteSchemaMatchObjects(resourceOid, kind, intent, result);
-            var schemaMatchObject = ShadowObjectTypeUtil.createObjectTypeSchemaMatchObject(resourceOid, kind, intent, schemaMatch);
+            deleteSchemaMatchObjects(resourceOid, typeIdentification, result);
+            var schemaMatchObject = SmartIntegrationArtifactUtil.createSchemaMatchArtifact(
+                    resourceOid, typeIdentification, schemaMatch);
             LOGGER.debug("Adding schema match object:\n{}", schemaMatchObject.debugDump(1));
             var oid = repositoryService.addObject(schemaMatchObject.asPrismObject(), null, result);
             LOGGER.debug("Saved schema match object with OID {}", oid);
@@ -283,31 +322,27 @@ public class SchemaMatchService {
         }
     }
 
-    private void deleteSchemaMatchObjects(String resourceOid, String kind, String intent,
-            OperationResult result) throws SchemaException {
+    private void deleteSchemaMatchObjects(String resourceOid, ResourceObjectTypeIdentification type, OperationResult result)
+            throws SchemaException {
         var objects = repositoryService.searchObjects(
-                GenericObjectType.class,
-                PrismContext.get().queryFor(GenericObjectType.class)
-                        .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                        .eq(resourceOid)
-                        .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_KIND_NAME)
-                        .eq(kind)
-                        .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_INTENT_NAME)
-                        .eq(intent)
+                SmartIntegrationArtifactType.class,
+                PrismContext.get().queryFor(SmartIntegrationArtifactType.class)
+                        .item(SmartIntegrationArtifactUtil.PATH_SCOPE_RESOURCE_REF).ref(resourceOid)
+                        .and().item(SmartIntegrationArtifactUtil.PATH_SCOPE_KIND).eq(type.getKind())
+                        .and().item(SmartIntegrationArtifactUtil.PATH_SCOPE_INTENT).eq(type.getIntent())
+                        .and().item(AssignmentHolderType.F_ARCHETYPE_REF)
+                        .ref(SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH.value())
                         .build(),
                 null,
                 result);
         for (var obj : objects) {
-            if (ObjectTypeUtil.getExtensionItemRealValue(
-                    obj.asObjectable().getExtension(), MODEL_EXTENSION_OBJECT_TYPE_SCHEMA_MATCH) != null) {
-                deleteSchemaMatchObject(obj.getOid(), result);
-            }
+            deleteSchemaMatchObject(obj.getOid(), result);
         }
     }
 
     private void deleteSchemaMatchObject(String oid, OperationResult result) {
         try {
-            repositoryService.deleteObject(GenericObjectType.class, oid, result);
+            repositoryService.deleteObject(SmartIntegrationArtifactType.class, oid, result);
             LOGGER.debug("Deleted schema match object {}", oid);
         } catch (Exception e) {
             LOGGER.warn("Failed to delete schema match object {}: {}", oid, e.getMessage(), e);
@@ -335,15 +370,17 @@ public class SchemaMatchService {
      * Deletes the schema match object if it has expired based on the configured TTL.
      * Returns null if the schema match was expired and deleted, otherwise returns the original object.
      */
-    private GenericObjectType deleteIfExpired(GenericObjectType schemaMatchObject, String resourceOid,
-            String kind, String intent, OperationResult result) {
+    private SmartIntegrationArtifactType deleteIfExpired(
+            SmartIntegrationArtifactType schemaMatchObject,
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            OperationResult result) {
         if (schemaMatchObject == null) {
             return null;
         }
-        var schemaMatch = ShadowObjectTypeUtil.getObjectTypeSchemaMatchRequired(schemaMatchObject);
+        var schemaMatch = SmartIntegrationArtifactUtil.getObjectTypeSchemaMatchRequired(schemaMatchObject);
         if (isSchemaMatchExpired(schemaMatch.getTimestamp(), result)) {
-            LOGGER.info("Schema match for resource {}/{}/{} expired, deleting",
-                    resourceOid, kind, intent);
+            LOGGER.info("Schema match for resource {}/{} expired, deleting", resourceOid, typeIdentification);
             deleteSchemaMatchObject(schemaMatchObject.getOid(), result);
             return null;
         }
@@ -362,7 +399,34 @@ public class SchemaMatchService {
         return XmlTypeConverter.isBeforeNow(expirationTime);
     }
 
-    private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
+    private ObjectSetStatisticsType loadObjectTypeStats(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            ResourceType resource,
+            ResourceObjectTypeDefinition typeDefinition,
+            Task task,
+            OperationResult result) {
+        try {
+            var statsObj = statisticsService.getLatestObjectTypeStatistics(resourceOid, typeIdentification, result);
+            if (statsObj != null) {
+                return SmartIntegrationArtifactUtil.getStatisticsRequired(statsObj);
+            }
+            LOGGER.info("No object type statistics found for {}/{}/{}; computing synchronously",
+                    resourceOid, typeIdentification.getKind().value(), typeIdentification.getIntent());
+            return statisticsService.computeObjectTypeStatisticsSync(
+                    resourceOid,
+                    resource.getName() != null ? resource.getName().getOrig() : null,
+                    typeIdentification,
+                    typeDefinition,
+                    task,
+                    result);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to load object type statistics for uniqueness filter: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    static QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
         if (propertyDefinition.isEnum()) {
             return DOMUtil.XSD_STRING;
         }

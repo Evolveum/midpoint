@@ -12,7 +12,6 @@ import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.config.CorrelationModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -290,9 +289,9 @@ public class PageIdentityRecovery extends AbstractPageLogin {
         record.setOutcome(OperationResultStatus.SUCCESS);
 
         record.setChannel(SchemaConstants.CHANNEL_IDENTITY_RECOVERY_URI);
-        record.setSessionIdentifier(getSession().getId());
         HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
         if (connInfo != null) {
+            record.setSessionIdentifier(connInfo.getPublicSessionId());
             record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
             record.setHostIdentifier(connInfo.getLocalHostName());
         }

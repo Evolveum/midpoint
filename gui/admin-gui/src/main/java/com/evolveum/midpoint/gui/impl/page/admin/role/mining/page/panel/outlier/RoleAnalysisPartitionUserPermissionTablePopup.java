@@ -14,9 +14,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;

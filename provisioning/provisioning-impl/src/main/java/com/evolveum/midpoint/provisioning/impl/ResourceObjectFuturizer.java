@@ -10,7 +10,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResu
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
-import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;

@@ -55,7 +55,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     @Autowired private MidpointFunctions midpointFunctions;
 
     /**
-     * Returns a list of user's managers. Formally, for each Org O which this user has (any) relation to,
+     * Returns a list of OIDs of user's managers. Formally, for each Org O which this user has (any) relation to,
      * all managers of O are added to the result.
      *
      * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
@@ -74,6 +74,17 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         return retval;
     }
 
+    /**
+     * Returns a list of OIDs of user's managers.
+     * Formally, for each Org O which this user has (any) relation to, all managers of O are added to the result.
+     * The list excludes OID of the user itself.
+     *
+     * Some customizations are probably necessary here, e.g. filter out project managers (keep only line managers),
+     * or defining who is a manager of a user who is itself a manager in its org.unit. (A parent org unit manager,
+     * perhaps.)
+     *
+     * @return list of oids of the respective managers
+     */
     @Override
     public Collection<String> getManagersOidsExceptUser(UserType user, boolean preAuthorized) throws SchemaException,
             SecurityViolationException {
@@ -88,7 +99,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList, boolean preAuthorized)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Set<String> rv = new HashSet<>();
         for (ObjectReferenceType ref : userRefList) {
             UserType user = getObject(UserType.class, ref.getOid(), preAuthorized);
@@ -200,7 +212,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             return getObject(OrgType.class, oid, preAuthorized);
         } catch (ObjectNotFoundException|SecurityViolationException e) {
             return null;
-        } catch (CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+        } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                 SubscriptionComplianceException e) {
             throw new SystemException("Couldn't get org: " + e.getMessage(), e);        // really shouldn't occur
         }
     }
@@ -290,7 +303,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                 LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
                 // but do not rethrow, just skip this
                 continue;
-            } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+            } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                     SubscriptionComplianceException e) {
                 // This should not happen.
                 throw new SystemException(e.getMessage(), e);
             }
@@ -348,8 +362,9 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         return false;
     }
 
-    public <T extends ObjectType> T getObject(Class<T> type, String oid, boolean preAuthorized) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <T extends ObjectType> T getObject(Class<T> type, String oid, boolean preAuthorized)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         PrismObject<T> prismObject;
         if (preAuthorized) {
             prismObject = repositoryService.getObject(type, oid, null, midpointFunctions.getCurrentResult());
@@ -368,7 +383,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             try {
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
                 return modelService.searchObjects(clazz, query, options, midpointFunctions.getCurrentTask(), result);
-            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                     SubscriptionComplianceException e) {
                 throw new SystemException("Couldn't search objects: " + e.getMessage(), e);
             }
         }

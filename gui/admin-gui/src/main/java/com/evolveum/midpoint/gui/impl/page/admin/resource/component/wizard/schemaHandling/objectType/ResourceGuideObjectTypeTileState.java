@@ -6,6 +6,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType;
 
+import java.util.List;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -13,19 +20,13 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import javax.xml.namespace.QName;
 
 /**
  * Represents UI state of tiles in the Resource Object Type wizard.
@@ -36,11 +37,11 @@ public enum ResourceGuideObjectTypeTileState {
 
     NORMAL(null),
     CONFIGURED(new BadgeSpec(
-            "badge bg-light text-success border border-success",
+            "badge text-bg-success opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.configured")),
     RECOMMENDED(new BadgeSpec(
-            "badge bg-light text-primary border border-primary",
+            "badge text-bg-primary opaque",
             "",
             "ResourceObjectTypeWizardChoicePanel.recommended")),
     TEMPORARY_LOCKED(null);
@@ -70,6 +71,7 @@ public enum ResourceGuideObjectTypeTileState {
 
     public static @NotNull ResourceGuideObjectTypeTileState computeState(
             @NotNull ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType tile,
+            ResourceType resource,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
             ResourceObjectTypeWizardChoicePanel components) {
 
@@ -105,7 +107,7 @@ public enum ResourceGuideObjectTypeTileState {
                 if (mappingConfigured) {
                     yield CONFIGURED;
                 }
-                if (correlationConfigured) {
+                if (correlationConfigured && synchronizationConfigured) {
                     yield RECOMMENDED;
                 }
 
@@ -127,9 +129,9 @@ public enum ResourceGuideObjectTypeTileState {
             }
             case CAPABILITIES, POLICIES -> NORMAL;
 
-            case ACTIVATION -> isActivationEnabled(real) ? NORMAL : TEMPORARY_LOCKED;
+            case ACTIVATION -> isActivationEnabled(resource, real) ? NORMAL : TEMPORARY_LOCKED;
 
-            case CREDENTIALS -> isCredentialsEnabled(real) ? NORMAL : TEMPORARY_LOCKED;
+            case CREDENTIALS -> isCredentialsEnabled(resource, real) ? NORMAL : TEMPORARY_LOCKED;
         };
     }
 
@@ -152,6 +154,7 @@ public enum ResourceGuideObjectTypeTileState {
         }
 
         ResourceObjectFocusSpecificationType focus = real.getFocus();
+        QName focusType = focus.getType();
         ObjectReferenceType archetypeRef = focus.getArchetypeRef();
 
         Task task = pageBase.createSimpleTask("Count focus");
@@ -159,11 +162,11 @@ public enum ResourceGuideObjectTypeTileState {
         ObjectQuery query;
 
         if (archetypeRef != null) {
-            query = PrismContext.get().queryFor(FocusType.class)
+            query = PrismContext.get().queryFor(FocusType.class).type(focusType)
                     .item(FocusType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
                     .build();
         } else {
-            query = PrismContext.get().queryFor(FocusType.class)
+            query = PrismContext.get().queryFor(FocusType.class).type(focusType)
                     .build();
         }
 
@@ -175,7 +178,7 @@ public enum ResourceGuideObjectTypeTileState {
             }
 
             // TODO this is temporary solution. We will design better one when we decide how to handle initial focus object.
-            if (archetypeRef == null && focus.getType() != null && focus.getType() == UserType.COMPLEX_TYPE) {
+            if (archetypeRef == null && focusType != null && focusType.getLocalPart().equals(UserType.COMPLEX_TYPE.getLocalPart())) {
                 return counted <= 1;
             }
 
@@ -186,24 +189,12 @@ public enum ResourceGuideObjectTypeTileState {
         }
     }
 
-    private static boolean isActivationEnabled(@NotNull ResourceObjectTypeDefinitionType real) {
-        CapabilityCollectionType caps = real.getConfiguredCapabilities();
-
-        if (caps == null || caps.getActivation() == null) {
-            return true; // default enabled
-        }
-
-        return !Boolean.FALSE.equals(caps.getActivation().isEnabled());
+    private static boolean isActivationEnabled(ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
+        return ResourceTypeUtil.isActivationCapabilityEnabled(resource, real);
     }
 
-    private static boolean isCredentialsEnabled(@NotNull ResourceObjectTypeDefinitionType real) {
-        CapabilityCollectionType caps = real.getConfiguredCapabilities();
-
-        if (caps == null || caps.getCredentials() == null) {
-            return true; // default enabled
-        }
-
-        return !Boolean.FALSE.equals(caps.getCredentials().isEnabled());
+    private static boolean isCredentialsEnabled(ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
+        return ResourceTypeUtil.isCredentialsCapabilityEnabled(resource, real);
     }
 
     private static boolean isCorrelationConfigured(@NotNull ResourceObjectTypeDefinitionType real) {
@@ -240,12 +231,12 @@ public enum ResourceGuideObjectTypeTileState {
 
     public static @Nullable String getTooltipKey(
             @NotNull ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType tile,
-            @NotNull ResourceObjectTypeDefinitionType real) {
+            @NotNull ResourceType resource, @NotNull ResourceObjectTypeDefinitionType real) {
         return switch (tile) {
-            case ACTIVATION -> isActivationEnabled(real)
+            case ACTIVATION -> isActivationEnabled(resource, real)
                     ? null
                     : "ResourceObjectTypeWizardChoicePanel.activationLocked";
-            case CREDENTIALS -> isCredentialsEnabled(real)
+            case CREDENTIALS -> isCredentialsEnabled(resource, real)
                     ? null
                     : "ResourceObjectTypeWizardChoicePanel.credentialsLocked";
             default -> null;

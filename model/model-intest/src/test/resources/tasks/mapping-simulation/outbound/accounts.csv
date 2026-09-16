@@ -1,0 +1,7 @@
+id   | delineator          | correlator    | givenName | familyName | employeeNumber
+1    |                     | smith1        | John      | Smith      | NULL
+2    |                     | smith2        | Mark      | Smith      | NULL
+3    |                     | cena          | John      | Cena       | NULL
+4    |                     | snow          | John      | Snow       | 3456
+5    |                     | rambo         | John      | Rambo      | 8888
+6    |                     | connor        | John      | Connor     | 5678

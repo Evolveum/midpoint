@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -67,9 +69,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     private void initLayout(){
-        MessagePanel<?> warningMessage = new MessagePanel<>(ID_WARNING_FEEDBACK, MessagePanel.MessagePanelType.WARN, getWarningMessageModel()){};
+        IModel<String> warningModel = getWarningMessageModel();
+        MessagePanel<?> warningMessage = new MessagePanel<>(ID_WARNING_FEEDBACK, MessagePanel.MessagePanelType.WARN, warningModel){};
         warningMessage.setOutputMarkupId(true);
-        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
+        warningMessage.add(new VisibleBehaviour(() -> warningModel != null));
         add(warningMessage);
 
         DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),

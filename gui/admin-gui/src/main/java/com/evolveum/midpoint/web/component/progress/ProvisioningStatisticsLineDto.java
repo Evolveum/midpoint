@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsOperationEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
 
 public class ProvisioningStatisticsLineDto {

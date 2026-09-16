@@ -16,7 +16,6 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -192,7 +191,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                 return ChangePasswordPanel.this.arePasswordInputFieldsAssociatedWithLabels();
             }
         };
-        passwordPanel.getBaseFormComponent().add(new AttributeModifier("autofocus", ""));
         add(passwordPanel);
 
         PasswordLimitationsPanel passwordLimitationsPanel = createLimitationPanel(ID_PASSWORD_VALIDATION_PANEL, limitationsModel);
@@ -416,12 +414,10 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             passwordDelta.addEstimatedOldValue(getPrismContext().itemFactory().createPropertyValue(currentPassword));
         }
 
-        String newHintValue = getHintValue();
-        if (StringUtils.isNotEmpty(newHintValue)) {
-            ItemPath hintPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-                    CredentialsType.F_PASSWORD, PasswordType.F_HINT);
-            PropertyDelta<String> hintDelta = getPrismContext().deltaFactory().property()
-                    .createModificationReplaceProperty(hintPath, objDef, newHintValue);
+        ProtectedStringType newHintValue = getHintValue();
+        if (newHintValue != null && !newHintValue.isEmpty()) {
+            PropertyDelta<ProtectedStringType> hintDelta = getPrismContext().deltaFactory().property()
+                    .createModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_HINT, objDef, newHintValue);
 
             modifications.add(hintDelta);
         }
@@ -429,7 +425,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(getModelObject().getOid(), modifications, UserType.class));
     }
 
-    private String getHintValue() {
+    private ProtectedStringType getHintValue() {
         return getModelObject().getCredentials() != null && getModelObject().getCredentials().getPassword() != null ?
                 getModelObject().getCredentials().getPassword().getHint() : null;
     }
@@ -464,7 +460,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     .autohide(false)
                     .title(getString("ChangePasswordPanel.savePassword"))
                     .body(getString(result.getStatus()))
-                    .configureAriaAttributesAndShow(target);
+                    .show(target);
         }
     }
 

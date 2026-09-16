@@ -105,14 +105,16 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             OperationResult result,
             ConnectorOperationOptions connOptions)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         return new ResourceObjectUcfModifyOperation(ctx, repoShadow, preReadObject, identification, operations, scripts, connOptions)
                 .doExecuteModify(result);
     }
 
     private @NotNull UcfModifyReturnValue doExecuteModify(OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
-            PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         // Should include known side effects. May include also executed requested changes. See ConnectorInstance.modifyObject.
         Collection<PropertyModificationOperation<?>> knownExecutedChanges = new HashSet<>();
@@ -268,7 +270,7 @@ class ResourceObjectUcfModifyOperation extends ResourceObjectProvisioningOperati
             ResourceObjectDefinition objectDefinition,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
         var readReplaceAttributes = determineReadReplaceAttributes(ctx, operationsWave, objectDefinition);
         LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
         if (!readReplaceAttributes.isEmpty()) {

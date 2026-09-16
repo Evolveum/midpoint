@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;

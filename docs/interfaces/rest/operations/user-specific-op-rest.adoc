@@ -2,7 +2,7 @@
 :page-nav-title: User Specific Operations
 :page-display-order: 1000
 :page-toc: top
-:page-keywords: [ 'rest', 'user', 'operation' ]
+:page-keywords: rest, user, operation
 :page-upkeep-status: green
 
 == Description

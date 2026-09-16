@@ -8,11 +8,15 @@ package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -20,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -47,6 +52,21 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final File EXECUTE_CUSTOM_DELTA = new File(TEST_DIR, "execute-custom-delta.xml");
 
     private static final TestObject<TaskType> TASK_DELETE_SHADOWS_MULTINODE = TestObject.file(TEST_DIR, "task-delete-shadows-multinode.xml", "931e34be-5cf0-46c6-8cc1-90812a66d5cb");
+    private static final TestObject<RoleType> ROLE_THRESHOLD_TELEPHONE_NUMBER = TestObject.file(TEST_DIR, "role-threshold-telephone-number.xml", "1692d0e8-04e5-4aa4-a60c-3653ac77efa1");
+    private static final TestObject<TaskType> TASK_ITERATIVE_SCRIPTING_THRESHOLD = TestObject.file(TEST_DIR, "task-iterative-scripting-threshold.xml", "7636e8df-26e1-4b49-a86a-b707a97b44d9");
+    private static final TestObject<TaskType> TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE = TestObject.file(TEST_DIR, "task-iterative-scripting-threshold-tree.xml", "c3b90f6a-2b64-44b5-9f6d-d2a0c4a1e930");
+    private static final TestObject<TaskType> TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE = TestObject.file(TEST_DIR, "task-non-iterative-scripting-threshold-tree.xml", "e1c7a4d8-5a30-4f60-8c8d-b3f1a7c0e940");
+    private static final TestObject<TaskType> TASK_MIGRATE_PLAINTEXT_PASSWORD_HINTS = TestObject.file(TEST_DIR, "task-migrate-plaintext-password-hints.xml", "98efdb82-1470-4636-b1d0-121110000001");
+
+    private static final String THRESHOLD_TEST_USER_NAME_PREFIX = "test920-threshold-test-";
+    private static final String THRESHOLD_TREE_TEST_USER_NAME_PREFIX = "test930-threshold-tree-";
+    private static final String THRESHOLD_NON_ITERATIVE_TEST_USER_NAME_PREFIX = "test940-threshold-tree-";
+    private static final String PASSWORD_HINT_MIGRATION_TEST_USER_NAME = "test905-migrate-password-hint-clear";
+    private static final String PASSWORD_HINT_MIGRATION_SKIPPED_USER_NAME = "test905-migrate-password-hint-encrypted";
+    private static final String PASSWORD_HINT_MIGRATION_CLEAR_VALUE = "plain text hint";
+    private static final String PASSWORD_HINT_MIGRATION_UNRELATED_VALUE = "unchanged password value";
+    private static final String LEGACY_PASSWORD_HINT_USER_NAME_PREFIX = "legacy-password-hint-";
+    private static final int THRESHOLD_TEST_USERS = 10;
 
     @Override
     String getSuffix() {
@@ -214,6 +234,318 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     }
 
     /**
+     * Verifies that a legacy clear-text password hint is left untouched (and does not break the operation)
+     * when an unrelated modification is executed on the user.
+     */
+    @Test
+    public void test901LegacyPasswordHintUntouchedOnUnrelatedModification() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ProtectedStringType passwordValue = protector.encryptString(PASSWORD_HINT_MIGRATION_UNRELATED_VALUE);
+
+        String userOid = addPasswordHintUser(
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "unrelated-modification",
+                ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
+                passwordValue.clone(),
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("unrelated edit")
+                        .asObjectDelta(userOid),
+                null,
+                task,
+                result);
+
+        then();
+        UserType userAfter = getUser(userOid).asObjectable();
+
+        assertThat(userAfter.getDescription()).isEqualTo("unrelated edit");
+
+        ProtectedStringType hintAfter = userAfter.getCredentials().getPassword().getHint();
+
+        assertThat(hintAfter.getClearValue()).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.isEncrypted()).isFalse();
+
+        ProtectedStringType passwordValueAfter = userAfter.getCredentials().getPassword().getValue();
+
+        assertThat(passwordValueAfter.getEncryptedDataType()).isEqualTo(passwordValue.getEncryptedDataType());
+    }
+
+    /**
+     * Verifies that an explicitly modified password hint is encrypted by the normal model encryption path.
+     */
+    @Test
+    public void test902DirectPasswordHintModification() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String userOid = addPasswordHintUser(
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "direct-edit",
+                ProtectedStringType.fromClearValue("old hint"),
+                null,
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(
+                                UserType.F_CREDENTIALS,
+                                CredentialsType.F_PASSWORD,
+                                PasswordType.F_HINT)
+                        .replace(ProtectedStringType.fromClearValue("new hint"))
+                        .asObjectDelta(userOid),
+                null,
+                task,
+                result);
+
+        then();
+        ProtectedStringType hintAfter = getUser(userOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getClearValue()).isNull();
+        assertThat(hintAfter.isEncrypted()).isTrue();
+        assertThat(protector.decryptString(hintAfter)).isEqualTo("new hint");
+    }
+
+    /**
+     * Verifies that an already encrypted password hint is not modified during
+     * an unrelated user modification.
+     */
+    @Test
+    public void test903AlreadyEncryptedPasswordHintIsUnchanged() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ProtectedStringType encryptedHint = protector.encryptString(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+
+        String userOid = addPasswordHintUser(
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "already-encrypted",
+                encryptedHint.clone(),
+                null,
+                null,
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("unrelated edit")
+                        .asObjectDelta(userOid),
+                null,
+                task,
+                result);
+
+        then();
+        ProtectedStringType hintAfter = getUser(userOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getEncryptedDataType()).isEqualTo(encryptedHint.getEncryptedDataType());
+    }
+
+    /**
+     * Verifies that an operation with noCrypt works on a user with a legacy clear-text password hint
+     * and leaves the hint untouched.
+     */
+    @Test
+    public void test904NoCryptLeavesLegacyPasswordHintUntouched() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String userOid = addPasswordHintUser(
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "no-crypt",
+                ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
+                null,
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        executeChanges(
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("unrelated edit")
+                        .asObjectDelta(userOid),
+                ModelExecuteOptions.create().noCrypt(true),
+                task,
+                result);
+
+        then();
+
+        // Read directly from repository because the hint is intentionally left unencrypted.
+        ProtectedStringType hintAfter = repositoryService
+                .getObject(UserType.class, userOid, null, result)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getClearValue()).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.isEncrypted()).isFalse();
+    }
+
+    /**
+     * Verifies that a legacy clear-text password hint is left untouched by a recompute, which starts
+     * with a focus object set directly into the context, without loading it through the context loader.
+     */
+    @Test
+    public void test906LegacyPasswordHintUntouchedOnRecompute() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String userOid = addPasswordHintUser(
+                LEGACY_PASSWORD_HINT_USER_NAME_PREFIX + "recompute",
+                ProtectedStringType.fromClearValue(PASSWORD_HINT_MIGRATION_CLEAR_VALUE),
+                null,
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        when();
+        recomputeUser(userOid, task, result);
+
+        then();
+        ProtectedStringType hintAfter = getUser(userOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(hintAfter.getClearValue()).isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+        assertThat(hintAfter.isEncrypted()).isFalse();
+    }
+
+    /**
+     * Verifies that the password-hint migration encrypts only legacy clear-text hints,
+     * leaves already encrypted and unrelated protected values unchanged, and is idempotent.
+     */
+    @Test
+    public void test905MigrateLegacyPlaintextPasswordHints() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ProtectedStringType unrelatedValue =
+                protector.encryptString(PASSWORD_HINT_MIGRATION_UNRELATED_VALUE);
+
+        var userWithClearHint = new UserType()
+                .name(PASSWORD_HINT_MIGRATION_TEST_USER_NAME)
+                .credentials(new CredentialsType()
+                        .password(new PasswordType()
+                                .value(unrelatedValue.clone())
+                                .hint(ProtectedStringType.fromClearValue(
+                                        PASSWORD_HINT_MIGRATION_CLEAR_VALUE))));
+
+        String userWithClearHintOid = repositoryService.addObject(
+                userWithClearHint.asPrismObject(),
+                RepoAddOptions.createAllowUnencryptedValues(),
+                result);
+
+        ProtectedStringType encryptedHint =
+                protector.encryptString(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+
+        var userWithEncryptedHint = new UserType()
+                .name(PASSWORD_HINT_MIGRATION_SKIPPED_USER_NAME)
+                .credentials(new CredentialsType()
+                        .password(new PasswordType()
+                                .hint(encryptedHint.clone())));
+
+        String userWithEncryptedHintOid = repositoryService.addObject(
+                userWithEncryptedHint.asPrismObject(),
+                null,
+                result);
+
+        // Read the intentionally unencrypted legacy object directly from repository.
+        PrismObject<UserType> userBeforeMigration = repositoryService.getObject(
+                UserType.class,
+                userWithClearHintOid,
+                null,
+                result);
+
+        ProtectedStringType unrelatedValueBefore = userBeforeMigration
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getValue()
+                .clone();
+
+        ProtectedStringType encryptedHintBefore = getUser(userWithEncryptedHintOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint()
+                .clone();
+
+        when();
+        addObject(TASK_MIGRATE_PLAINTEXT_PASSWORD_HINTS, task, result);
+        Task taskAfterFirstRun =
+                waitForTaskFinish(TASK_MIGRATE_PLAINTEXT_PASSWORD_HINTS.oid);
+
+        then();
+        assertTask(taskAfterFirstRun, "after first run")
+                .assertSuccess()
+                .assertClosed();
+
+        var migratedUser = getUser(userWithClearHintOid).asObjectable();
+        ProtectedStringType migratedHint = migratedUser.getCredentials().getPassword().getHint();
+
+        assertThat(migratedHint.getClearValue()).isNull();
+        assertThat(migratedHint.isEncrypted()).isTrue();
+        assertThat(protector.decryptString(migratedHint))
+                .isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+
+        ProtectedStringType unrelatedValueAfter = migratedUser.getCredentials().getPassword().getValue();
+
+        assertThat(unrelatedValueAfter.getClearValue()).isNull();
+        assertThat(unrelatedValueAfter.getEncryptedDataType())
+                .isEqualTo(unrelatedValueBefore.getEncryptedDataType());
+        assertThat(protector.decryptString(unrelatedValueAfter))
+                .isEqualTo(PASSWORD_HINT_MIGRATION_UNRELATED_VALUE);
+
+        ProtectedStringType skippedHintAfterFirstRun = getUser(userWithEncryptedHintOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(skippedHintAfterFirstRun.getEncryptedDataType())
+                .isEqualTo(encryptedHintBefore.getEncryptedDataType());
+
+        when("second run");
+        Task taskAfterSecondRun = rerunTask(TASK_MIGRATE_PLAINTEXT_PASSWORD_HINTS.oid, result);
+
+        then("second run");
+        assertTask(taskAfterSecondRun, "after second run")
+                .assertSuccess()
+                .assertClosed();
+
+        ProtectedStringType migratedHintAfterSecondRun = getUser(userWithClearHintOid)
+                .asObjectable()
+                .getCredentials()
+                .getPassword()
+                .getHint();
+
+        assertThat(migratedHintAfterSecondRun.getEncryptedDataType())
+                .isEqualTo(migratedHint.getEncryptedDataType());
+        assertThat(protector.decryptString(migratedHintAfterSecondRun))
+                .isEqualTo(PASSWORD_HINT_MIGRATION_CLEAR_VALUE);
+    }
+
+    /**
      * Deletes shadows while searching for them using noFetch option. (Tests for correct options application by tasks: MID-6717).
      *
      * Also check correct task OID in audit messages: MID-6713.
@@ -268,6 +600,156 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         assertThat(record.getTaskOid()).as("task OID in audit record").isEqualTo(TASK_DELETE_SHADOWS_MULTINODE.oid);
     }
 
+    @Test
+    public void test920IterativeScriptingTaskSuspendsOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_ITERATIVE_SCRIPTING_THRESHOLD, task, result);
+
+        when();
+        waitForTaskTreeCloseCheckingSuspensionWithError(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, result, 20000);
+
+        then();
+        dumpTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, result);
+
+        assertTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD.oid, "after")
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .display()
+                        .assertSuccessCount(2, true)
+                        .assertFailureCount(1, true)
+                    .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .assertTotalCounts(2, 1, 0)
+                    .end();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(THRESHOLD_TEST_USER_NAME_PREFIX, result);
+        displayValue("threshold test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
+    /**
+     * As {@link #test920IterativeScriptingTaskSuspendsOnThresholdViolation()}, but the scripting activity
+     * is delegated to a subtask, so the parent task waits on it. The threshold violation must be treated
+     * as a halting error: not only the subtask, but also the waiting parent must end up suspended. MID-11073.
+     */
+    @Test
+    public void test930IterativeScriptingInTaskTreeSuspendsWholeTreeOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        if (findObjectByName(RoleType.class, ROLE_THRESHOLD_TELEPHONE_NUMBER.getNameOrig()) == null) {
+            addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        }
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_TREE_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE, task, result);
+
+        when();
+        waitForTaskTreeCloseOrCondition(
+                TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result, 30000, 500,
+                tasksSuspendedPredicate(2)); // parent + subtask
+
+        then();
+        dumpTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result);
+
+        ActivityPath mainPath = ActivityPath.fromId("main");
+        assertTaskTree(TASK_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, "after")
+                .assertSuspended()
+                .subtaskForPath(mainPath)
+                    .assertSuspended()
+                    .assertFatalError()
+                    .activityState(mainPath)
+                        .assertFatalError()
+                        .progress()
+                            .display()
+                            .assertSuccessCount(2, true)
+                            .assertFailureCount(1, true)
+                        .end()
+                        .itemProcessingStatistics()
+                            .display()
+                            .assertTotalCounts(2, 1, 0)
+                        .end();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(THRESHOLD_TREE_TEST_USER_NAME_PREFIX, result);
+        displayValue("threshold tree test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
+    /**
+     * As {@link #test930IterativeScriptingInTaskTreeSuspendsWholeTreeOnThresholdViolation()}, but with
+     * non-iterative scripting. There is no item processing gatekeeper there, so the threshold violation
+     * (with its activity-halt cause) propagates out of the activity run wrapped in script/expression
+     * evaluation exceptions. It must still be treated as a halting error, suspending the waiting parent
+     * along with the subtask. MID-11073.
+     */
+    @Test
+    public void test940NonIterativeScriptingInTaskTreeSuspendsWholeTreeOnThresholdViolation() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        if (findObjectByName(RoleType.class, ROLE_THRESHOLD_TELEPHONE_NUMBER.getNameOrig()) == null) {
+            addObject(ROLE_THRESHOLD_TELEPHONE_NUMBER, task, result);
+        }
+        for (int i = 1; i <= THRESHOLD_TEST_USERS; i++) {
+            addObject(
+                    new UserType()
+                            .name(THRESHOLD_NON_ITERATIVE_TEST_USER_NAME_PREFIX + String.format("%03d", i))
+                            .asPrismObject(),
+                    task,
+                    result);
+        }
+        addObject(TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE, task, result);
+
+        when();
+        waitForTaskTreeCloseOrCondition(
+                TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result, 30000, 500,
+                tasksSuspendedPredicate(2)); // parent + subtask
+
+        then();
+        dumpTaskTree(TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, result);
+
+        assertTaskTree(TASK_NON_ITERATIVE_SCRIPTING_THRESHOLD_TREE.oid, "after")
+                .assertSuspended()
+                .subtaskForPath(ActivityPath.fromId("main"))
+                    .assertSuspended()
+                    .assertFatalError();
+
+        int modified = countThresholdTestUsersWithTelephoneNumber(THRESHOLD_NON_ITERATIVE_TEST_USER_NAME_PREFIX, result);
+        displayValue("threshold non-iterative test users with telephone number", modified);
+        assertThat(modified)
+                .as("modified users")
+                .isEqualTo(2);
+    }
+
     private int countDummyAccountShadows(OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ShadowType.class)
                 .item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -276,5 +758,33 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         displayValue("objects",
                 DebugUtil.debugDump(repositoryService.searchObjects(ShadowType.class, query, null, result)));
         return repositoryService.countObjects(ShadowType.class, query, null, result);
+    }
+
+    private int countThresholdTestUsersWithTelephoneNumber(String namePrefix, OperationResult result) throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_NAME).startsWith(namePrefix)
+                .and().item(UserType.F_TELEPHONE_NUMBER).eq("1000000")
+                .build();
+        return repositoryService.countObjects(UserType.class, query, null, result);
+    }
+
+    private String addPasswordHintUser(String name, ProtectedStringType hint, ProtectedStringType passwordValue,
+            RepoAddOptions options, OperationResult result) throws Exception {
+
+        var password = new PasswordType().hint(hint);
+
+        if (passwordValue != null) {
+            password.value(passwordValue);
+        }
+
+        var user = new UserType()
+                .name(name)
+                .credentials(new CredentialsType()
+                        .password(password));
+
+        return repositoryService.addObject(
+                user.asPrismObject(),
+                options,
+                result);
     }
 }

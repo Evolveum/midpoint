@@ -15,14 +15,7 @@ import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.stereotype.Component;
 
@@ -53,7 +46,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
             PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         // TODO what if AccessCertificationObjectBasedScopeType?
         AccessCertificationAssignmentReviewScopeType assignmentScope =
@@ -85,7 +78,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType();
         assignmentCase.setAssignment(assignment.clone());
         assignmentCase.setIsInducement(isInducement);
@@ -134,7 +127,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     @SuppressWarnings("unused")
     private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object,
             AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException,
-            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, SubscriptionComplianceException {
         AccessCertificationObjectBasedScopeType objectBasedScope =
                 campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType scope ? scope : null;
         ExpressionType selectionExpression = objectBasedScope != null ? objectBasedScope.getItemSelectionExpression() : null;
@@ -194,7 +188,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     public void doRevoke(
             AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, Task task, OperationResult result)
             throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         revokeAssignmentCase(
                 MiscUtil.castSafely(aCase, AccessCertificationAssignmentCaseType.class),
                 campaign, result, task);

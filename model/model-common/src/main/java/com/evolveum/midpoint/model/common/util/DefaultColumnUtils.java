@@ -70,6 +70,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(UserType.F_NAME, true),
                         new ColumnWrapper(UserType.F_PERSONAL_NUMBER, true),
                         new ColumnWrapper(UserType.F_FULL_NAME, true),
+                        new ColumnWrapper(UserType.F_DISPLAY_NAME, true),
                         new ColumnWrapper(UserType.F_EMAIL_ADDRESS),
                         new ColumnWrapper(UserType.F_LINK_REF, "FocusType.accounts", DisplayValueType.NUMBER)))
                 .put(AbstractRoleType.class, Arrays.asList(

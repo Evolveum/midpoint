@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 
@@ -62,9 +63,19 @@ public class TestResource extends TestObject<ResourceType> {
                 .intent(intent);
     }
 
+    public @NotNull ConstructionType construction(@NotNull ResourceObjectTypeIdentification identification) {
+        return construction(identification.getKind(), identification.getIntent());
+    }
+
     public @NotNull AssignmentType assignmentTo(ShadowKindType kind, String intent) {
         return new AssignmentType()
                 .construction(
                         construction(kind, intent));
+    }
+
+    public @NotNull AssignmentType assignmentTo(@NotNull ResourceObjectTypeIdentification typeIdentification) {
+        return new AssignmentType()
+                .construction(
+                        construction(typeIdentification));
     }
 }

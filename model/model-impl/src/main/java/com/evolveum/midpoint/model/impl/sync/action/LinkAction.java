@@ -21,7 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNLINKED;
 
@@ -33,7 +33,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#link",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" })
 @ActionDefinitionClass(LinkSynchronizationActionType.class)
-class LinkAction<F extends FocusType> extends BaseClockworkAction<F> {
+class LinkAction<F extends ProjectionHolderType> extends BaseClockworkAction<F> {
 
     LinkAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);

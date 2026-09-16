@@ -13,15 +13,16 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -66,6 +67,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(label = "PageResource.tab.content.others", icon = GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN, order = 80))
 public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
 
+    public static final String ID = "resourceUncategorized";
+
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
@@ -93,8 +96,9 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
     protected TaskCreationPopup<?> createNewTaskPopup() {
         return new TaskCreationForUncategorizedObjectsPopup(getPageBase().getMainPopupBodyId()) {
             @Override
-            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate, AjaxRequestTarget target) {
-                ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target);
+            protected void createNewTaskPerformed(ResourceTaskFlavor<?> flavor, boolean simulate,
+                    AjaxRequestTarget target, boolean showConfigurationWizard) {
+                ResourceUncategorizedPanel.this.createNewTaskPerformed(flavor, simulate, target, showConfigurationWizard);
             }
         };
     }
@@ -146,21 +150,24 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         createShadowTable();
     }
 
+    /**
+     * Creates and adds a statistics button.
+     * Uses object type statistics if available, otherwise falls back to object class statistics.
+     */
     private void createStatisticsButton() {
-        //TODO add ObjectTypeStatisticsButton after merge from object-type-statistics branch
-        if(getResourceObjectTypeIdentification() != null){
-            EmptyPanel statisticsPanel = new EmptyPanel(ID_STATISTICS);
-            statisticsPanel.setOutputMarkupId(true);
-            add(statisticsPanel);
-            return;
-        }
-        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
-        ResourceType resource = objectDetailsModels.getObjectType();
+        ResourceType resource = getObjectDetailsModels().getObjectType();
+        ResourceObjectTypeIdentification objectTypeIdentification = getResourceObjectTypeIdentification();
 
-        ObjectClassStatisticsButton statisticsButton = new ObjectClassStatisticsButton(ID_STATISTICS,
-                this::getObjectClass, resource.getOid());
+        Component statisticsButton = objectTypeIdentification != null
+                ? new ObjectTypeStatisticsButton(ID_STATISTICS, () -> objectTypeIdentification, resource.getOid())
+                : new ObjectClassStatisticsButton(ID_STATISTICS, this::getObjectClass, resource.getOid());
+        statisticsButton.add(getStatisticsButtonVisibleBehaviour());
         statisticsButton.setOutputMarkupId(true);
         add(statisticsButton);
+    }
+
+    protected Behavior getStatisticsButtonVisibleBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     private void createPanelTitle() {
@@ -315,8 +322,8 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
             }
 
             @Override
-            protected void processErrorResult(OperationResult errorResult) {
-                ResourceUncategorizedPanel.this.processErrorResult(errorResult);
+            protected void processResult(OperationResult result) {
+                ResourceUncategorizedPanel.this.processResult(result);
             }
 
             @Override
@@ -328,7 +335,8 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         add(shadowTablePanel);
     }
 
-    protected void processErrorResult(OperationResult errorResult) {
+    protected void processResult(OperationResult result) {
+
     }
 
     protected boolean isHeaderVisible() {
@@ -390,7 +398,7 @@ public class ResourceUncategorizedPanel extends AbstractResourceObjectPanel {
         return null;
     }
 
-    protected boolean showPopupShadowDetailsOnClick(){
+    protected boolean showPopupShadowDetailsOnClick() {
         return false;
     }
 }

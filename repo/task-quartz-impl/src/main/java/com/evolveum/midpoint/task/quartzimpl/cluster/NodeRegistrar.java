@@ -22,6 +22,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.Freezable;
 
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerInitializer;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -41,9 +44,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.Cache;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -81,7 +81,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @DependsOn("taskManagerConfiguration")
 @Component
-public class NodeRegistrar implements Cache {
+public class NodeRegistrar implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(NodeRegistrar.class.getName() + ".content");
@@ -100,7 +100,8 @@ public class NodeRegistrar implements Cache {
     @Autowired private Protector protector;
     @Autowired private LocalExecutionManager localExecutionManager;
     @Autowired private LocalScheduler localScheduler;
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
     @Autowired private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaService schemaService;
@@ -120,7 +121,7 @@ public class NodeRegistrar implements Cache {
      * If the object in repository gets corrupted (e.g. overwritten by some other node), or deleted,
      * the we keep last 'good' information here.
      *
-     * It is always not null after task manager initialization ({@link TaskManagerQuartzImpl#init()} (that
+     * It is always not null after task manager initialization ({@link TaskManagerInitializer#init()} (that
      * calls {@link #initializeNode(OperationResult)}).
      *
      * It is always immutable, to ensure thread safety.
@@ -133,12 +134,14 @@ public class NodeRegistrar implements Cache {
     @PostConstruct
     public void initialize() {
         discoverUrlSchemeAndPort();
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     void preDestroy() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     /**
@@ -753,7 +756,12 @@ public class NodeRegistrar implements Cache {
     }
 
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         // We could do "lazy invalidation" by setting a "dirty" flag and re-reading on the next read attempt.
         // But this is perhaps simpler. The read attempt should be fast and safe. (But the invalidation should
         // be fast and safe as well... :)

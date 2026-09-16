@@ -394,7 +394,9 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         final WebMarkupContainer detailsContainer = new WebMarkupContainer(ID_DETAILS_CONTAINER, getModel());
         detailsContainer.setOutputMarkupId(true);
-        detailsContainer.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && getModelObject().isShowMore() && !subresultsModel.getObject().isEmpty()));
+        detailsContainer.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && getModelObject().isShowMore()
+                && (!subresultsModel.getObject().isEmpty() || !getModel().getObject().getContexts().isEmpty())
+        ));
         box.add(detailsContainer);
 
         final WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
@@ -430,6 +432,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         countContainer.add(count);
 
         initError(details);
+
 
         ListView<OpResult> subresults = new ListView<>("subresults", subresultsModel) {
             private static final long serialVersionUID = 1L;
@@ -546,24 +549,24 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             OpResult result = getModelObject();
 
             if (result == null || result.getStatus() == null) {
-                return "card-warning";
+                return "alert-warning";
             }
 
             switch (result.getStatus()) {
                 case IN_PROGRESS:
                 case NOT_APPLICABLE:
-                    return "card-info";
+                    return "alert-info";
                 case SUCCESS:
-                    return "card-success";
+                    return "alert-success";
                 case HANDLED_ERROR:
-                    return "card-secondary";
+                    return "alert-secondary";
                 case FATAL_ERROR:
-                    return "card-danger";
+                    return "alert-danger";
                 case UNKNOWN:
                 case PARTIAL_ERROR:
                 case WARNING:
                 default:
-                    return "card-warning";
+                    return "alert-warning";
             }
         };
     }

@@ -189,7 +189,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
     protected void exitToPreview(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
-                new RoleWizardChoicePanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
+                new RoleWizardChoicePanel<>(
+                        getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class, getLastSaveResult()) {
                     @Override
                     protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
                         switch (value) {

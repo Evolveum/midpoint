@@ -18,11 +18,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
+import javax.naming.NamingException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
+import jakarta.jms.JMSException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -484,7 +488,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     }
 
     void prepareMessage(File messageFile)
-            throws java.io.IOException, com.evolveum.midpoint.util.exception.SchemaException, TimeoutException {
+            throws java.io.IOException, com.evolveum.midpoint.util.exception.SchemaException, TimeoutException, JMSException, NamingException {
         MockAsyncUpdateSource.INSTANCE.reset();
         if (messageFile != null) {
             MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(messageFile).parseRealValue());
@@ -500,9 +504,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     }
 
     @Contract("false,_,_ -> !null")
-    private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+    private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result) throws CommonException {
         var repoShadow = findAccountShadowByUsername("banderson", resource, result);
         assertNotNull("No Anderson shadow in repo", repoShadow);
         Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()

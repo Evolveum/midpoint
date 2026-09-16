@@ -22,7 +22,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Activity run responsible for providing statistics used for object type suggestions.
@@ -72,7 +75,7 @@ public class ObjectTypesSuggestionStatisticsComputationActivityRun
     }
 
     @Override
-    protected @NotNull javax.xml.namespace.QName getObjectClassName() {
+    protected @NotNull QName getObjectClassName() {
         return getWorkDefinition().getObjectClassName();
     }
 
@@ -82,7 +85,7 @@ public class ObjectTypesSuggestionStatisticsComputationActivityRun
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
                 ObjectTypesSuggestionWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 }

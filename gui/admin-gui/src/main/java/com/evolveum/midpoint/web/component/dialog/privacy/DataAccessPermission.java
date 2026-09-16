@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.component.dialog.privacy;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.web.component.util.Describable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
 
 public enum DataAccessPermission implements Describable {
     STATISTICS_ACCESS(stringResource("DataAccessPermission.statisticalData.title"),

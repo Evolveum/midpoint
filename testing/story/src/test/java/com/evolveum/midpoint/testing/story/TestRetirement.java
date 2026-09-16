@@ -475,7 +475,7 @@ public class TestRetirement extends AbstractStoryTest {
         return user;
     }
 
-    private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws CommonException, DirectoryException {
         PrismObject<OrgType> org = getOrg(orgName);
         display("org", org);
         PrismAsserts.assertPropertyValue(org, OrgType.F_SUBTYPE, ORG_TYPE_FUNCTIONAL);

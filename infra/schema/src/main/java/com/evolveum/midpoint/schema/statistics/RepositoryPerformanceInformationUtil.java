@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryPerformanc
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Objects;
 
 /**
  *

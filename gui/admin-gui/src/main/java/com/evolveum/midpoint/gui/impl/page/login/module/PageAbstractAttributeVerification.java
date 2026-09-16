@@ -14,7 +14,10 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -132,6 +135,9 @@ public abstract class PageAbstractAttributeVerification<MA extends ModuleAuthent
         PropertyModel<String> valueModel = new PropertyModel<>(itemWrapper, "value.realValue");
         TextPanel<String> valuePanel = new TextPanel<>(ID_ATTRIBUTE_VALUE, valueModel);
         valuePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", headerLabel));
+        if (areAllItemsMandatory(itemWrapper) || itemWrapper.isMandatory()) {
+            valuePanel.getBaseFormComponent().add(AttributeAppender.append("aria-required", "true"));
+        }
         addNameAttribute(valuePanel.getBaseFormComponent(), item);
         item.add(valuePanel);
 

@@ -23,7 +23,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,14 +47,14 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
                 CorrelationSuggestionWorkStateType.F_SCHEMA_MATCH_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 
     private @Nullable String findLatestSchemaMatchObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
         var lastSchemaMatchObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestObjectTypeSchemaMatch(
-                workDef.getResourceOid(), workDef.getKind(), workDef.getIntent(), result);
+                workDef.getResourceOid(), workDef.getTypeIdentification(), result);
         return lastSchemaMatchObject != null ? lastSchemaMatchObject.getOid() : null;
     }
 
@@ -64,22 +65,28 @@ public class CorrelationSuggestionSchemaMatchingActivityRun extends LocalActivit
         var resourceOid = workDef.getResourceOid();
         var typeIdentification = workDef.getTypeIdentification();
 
+        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
+
         if (!workDef.isForceRecomputeSchemaMatch()) {
-            var foundOid = findLatestSchemaMatchObjectOid(result);
-            if (foundOid != null) {
-                LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
-                setSchemaMatchObjectOidInWorkState(foundOid, result);
-                return ActivityRunResult.success();
+            if (useAi) {
+                var foundOid = findLatestSchemaMatchObjectOid(result);
+                if (foundOid != null) {
+                    LOGGER.debug("Found existing object type schema match object with OID {}, will skip the computation", foundOid);
+                    setSchemaMatchObjectOidInWorkState(foundOid, result);
+                    return ActivityRunResult.success();
+                }
+            } else {
+                LOGGER.debug("Skipping existing schema match reuse: {} permission not granted",
+                        DataAccessPermissionType.SCHEMA_ACCESS);
             }
         } else {
             LOGGER.debug("Force recompute schema match requested, skipping existing schema match check");
         }
 
-        boolean useAi = workDef.getPermissions().contains(DataAccessPermissionType.SCHEMA_ACCESS);
         var match = SmartIntegrationBeans.get().smartIntegrationService
                 .computeSchemaMatch(resourceOid, typeIdentification, useAi, getRunningTask(), result);
         var schemaMatchOid = SmartIntegrationBeans.get().schemaMatchService
-                .saveSchemaMatch(resourceOid, workDef.getKind(), workDef.getIntent(), match, result);
+                .saveSchemaMatch(resourceOid, workDef.getTypeIdentification(), match, result);
 
         setSchemaMatchObjectOidInWorkState(schemaMatchOid, result);
 

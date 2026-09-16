@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import jakarta.annotation.PostConstruct;
@@ -27,9 +28,6 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionProfileCompiler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.Cache;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfiles;
@@ -62,7 +60,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  * @author semancik
  */
 @Component
-public class SystemObjectCache implements Cache {
+public class SystemObjectCache implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(SystemObjectCache.class.getName() + ".content");
@@ -73,7 +71,8 @@ public class SystemObjectCache implements Cache {
     @Qualifier("cacheRepositoryService")
     private RepositoryService cacheRepositoryService;
 
-    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
 
     private PrismObject<SystemConfigurationType> systemConfiguration;
     private Long systemConfigurationCheckTimestamp;
@@ -85,12 +84,14 @@ public class SystemObjectCache implements Cache {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 
     private long getSystemConfigurationExpirationMillis() {
@@ -275,10 +276,15 @@ public class SystemObjectCache implements Cache {
         }
     }
 
+    @Override
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
     // We could use SystemConfigurationChangeListener instead but in the future there could be more object types
     // managed by this class.
     @Override
-    public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public synchronized <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         // We ignore OID for now
         if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             invalidateCaches();

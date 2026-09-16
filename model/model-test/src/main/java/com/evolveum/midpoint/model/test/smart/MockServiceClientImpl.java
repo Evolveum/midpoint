@@ -8,12 +8,14 @@
 package com.evolveum.midpoint.model.test.smart;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -25,6 +27,8 @@ public class MockServiceClientImpl implements ServiceClient {
     private static final Trace LOGGER = TraceManager.getTrace(MockServiceClientImpl.class);
 
     private Object lastRequest;
+    private Method lastMethod;
+    private ClientCallContext lastCallContext;
     private final Iterator<Object> responses;
     private final Function<Object, Object> responseFunction;
 
@@ -44,9 +48,12 @@ public class MockServiceClientImpl implements ServiceClient {
     }
 
     @Override
-    public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException {
+    public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass, ClientCallContext callContext)
+            throws SchemaException {
         LOGGER.debug("Invoking {} with request:\n{}",
                 method, PrismContext.get().jsonSerializer().serializeRealValueContent(request));
+        lastMethod = method;
+        lastCallContext = callContext;
         lastRequest = request;
 
         Object response;
@@ -67,9 +74,9 @@ public class MockServiceClientImpl implements ServiceClient {
     }
 
     @Override
-    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass) {
+    public <REQ, RESP> CompletableFuture<RESP> invokeAsync(Method method, REQ request, Class<RESP> responseClass, ClientCallContext callContext) {
         try {
-            return CompletableFuture.completedFuture(invoke(method, request, responseClass));
+            return CompletableFuture.completedFuture(invoke(method, request, responseClass, callContext));
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }
@@ -77,6 +84,14 @@ public class MockServiceClientImpl implements ServiceClient {
 
     public Object getLastRequest() {
         return lastRequest;
+    }
+
+    public Method getLastMethod() {
+        return lastMethod;
+    }
+
+    public ClientCallContext getLastCallContext() {
+        return lastCallContext;
     }
 
     @Override

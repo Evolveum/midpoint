@@ -17,34 +17,41 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * A tile model that represents a row of data rendered using a list of {@link IColumn}s.
- * It extends the basic {@link Tile} functionality with column definitions and layout metadata.
+ * Tile model for {@link ColumnTileTable}.
  *
- * @author tchrapovic
+ * <p>The tile stores:
+ * <ul>
+ *   <li><b>O</b> - the primary row object represented by the tile</li>
+ *   <li><b>PV</b> - the delegated value type rendered by reusable column definitions</li>
+ * </ul>
+ *
+ * <p>The primary row object must implement {@link ColumnValueProvider}, which guarantees
+ * that column rendering can consistently obtain the delegated value used by
+ * {@link IColumn} instances.
+ *
+ * @param <O> primary row object displayed by the tile
+ * @param <PV> delegated value type rendered by columns
  */
-public class ColumnTile<T extends Serializable> extends Tile<T> {
+public class ColumnTile<O extends ColumnValueProvider<PV>, PV extends Serializable> extends Tile<O> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    /** List of columns to render in this tile. */
     @NotNull
-    private final List<IColumn<T, String>> columns;
+    private final List<IColumn<PV, String>> columns;
 
-    /** Optional CSS classes for tile layout (Bootstrap-based, etc.). */
     @Nullable
     private String tileCssClass;
 
-    /** Optional header text, if you want to override the default title. */
     @Nullable
     private String header;
 
-    public ColumnTile(T value, @NotNull List<IColumn<T, String>> columns) {
+    public ColumnTile(O value, @NotNull List<IColumn<PV, String>> columns) {
         super(null, null);
         this.columns = columns;
         setValue(value);
     }
 
-    public @NotNull List<IColumn<T, String>> getColumns() {
+    public @NotNull List<IColumn<PV, String>> getColumns() {
         return columns;
     }
 
@@ -64,12 +71,12 @@ public class ColumnTile<T extends Serializable> extends Tile<T> {
         this.header = header;
     }
 
-    public ColumnTile<T> header(String header) {
+    public ColumnTile<O, PV> header(String header) {
         setHeader(header);
         return this;
     }
 
-    public ColumnTile<T> cssClass(String cssClass) {
+    public ColumnTile<O, PV> cssClass(String cssClass) {
         setTileCssClass(cssClass);
         return this;
     }

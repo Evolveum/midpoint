@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-import static com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.*;
+import static com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
 
 /**
  * Information needed to carry out synchronization-related activities (classification, correlation,

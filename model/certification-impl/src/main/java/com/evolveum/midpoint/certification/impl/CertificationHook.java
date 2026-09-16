@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -90,7 +90,7 @@ public class CertificationHook implements ChangeHook {
     }
 
     private Collection<PolicyActionConfigItem<CertificationPolicyActionType>> getCertificationActions(
-            Collection<? extends EvaluatedPolicyRule> policyRules) {
+            Collection<? extends DirectlyEvaluatedClockworkPolicyRule> policyRules) {
         return policyRules.stream()
                 .filter(r -> r.isTriggered() && r.containsEnabledAction(CertificationPolicyActionType.class))
                 .map(r -> r.getEnabledAction(CertificationPolicyActionType.class))

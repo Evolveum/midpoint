@@ -6,7 +6,10 @@
 package com.evolveum.midpoint.web.component.dialog.synchronization;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.smart.api.synchronization.*;
+import com.evolveum.midpoint.smart.api.synchronization.DeletedTargetChoice;
+import com.evolveum.midpoint.smart.api.synchronization.DisputedTargetChoice;
+import com.evolveum.midpoint.smart.api.synchronization.TargetSynchronizationAnswers;
+import com.evolveum.midpoint.smart.api.synchronization.UnmatchedTargetChoice;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;

@@ -85,7 +85,7 @@
         <label>Nederlands</label>
     </row>
     <row id="20">
-        <key>tr</key>
+        <key>uk</key>
         <label>Yкраїнська</label>
     </row>
     <row id="21">
@@ -95,5 +95,9 @@
     <row id="22">
         <key>lv</key>
         <label>Latvių</label>
+    </row>
+    <row id="23">
+        <key>en_EU</key>
+        <label>English (Europe)</label>
     </row>
 </lookupTable>

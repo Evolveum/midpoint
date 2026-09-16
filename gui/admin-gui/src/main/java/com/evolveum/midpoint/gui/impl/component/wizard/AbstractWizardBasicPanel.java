@@ -33,6 +33,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     private static final String ID_BC_NAME = "bcName";
 
     private final AHD detailsModel;
+
     public AbstractWizardBasicPanel(String id, AHD detailsModel) {
         super(id);
         this.detailsModel = detailsModel;
@@ -117,7 +118,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     private List<Breadcrumb> getBreadcrumb() {
         PageBase page = getPageBase();
         if (page instanceof PageAssignmentHolderDetails) {
-            return ((PageAssignmentHolderDetails)page).getWizardBreadcrumbs();
+            return ((PageAssignmentHolderDetails) page).getWizardBreadcrumbs();
         }
         return List.of();
     }
@@ -126,4 +127,5 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         removeLastBreadcrumb();
         super.onExitPerformed(target);
     }
+
 }

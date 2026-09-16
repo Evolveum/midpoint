@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -18,29 +30,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.io.IOException;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevGenerateArtifactResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * @author lskublik
@@ -96,7 +96,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 String token = getTaskToken();
 
                 if (StringUtils.isEmpty(token)) {
-                    return null;
+                    return getScriptType().create(getObjectClassName());
                 }
 
                 Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
@@ -105,13 +105,13 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
                 try {
                     statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-                } catch (SchemaException | ObjectNotFoundException e) {
+                } catch (CommonException e) {
                     throw new RuntimeException(e);
                 }
                 ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();
 
-                if (artifactResultType == null) {
-                    return null;
+                if (artifactResultType == null || artifactResultType.getArtifact() == null) {
+                    return getScriptType().create(getObjectClassName());
                 }
 
                 return artifactResultType.getArtifact();
@@ -139,9 +139,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     }
 
     private void initLayout() {
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
         getSubmit().add(AttributeAppender.replace("class", "btn btn-primary"));
 
@@ -174,7 +174,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public String appendCssToWizard() {
-        return "col-10";
+        return "col-12";
     }
 
     @Override
@@ -201,9 +201,21 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
+        ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(this, getStepId());
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
         try {
             ConnDevArtifactType script = valueModel.getObject().clone();
             WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
+            ConnDevArtifactValidationResult validation = getDetailsModel().getConnectorDevelopmentOperation()
+                    .validateArtifact(script, task, task.getResult());
+            if (!validation.ok()) {
+                getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
+                        validation, script.getFilename(), getPageBase()));
+                target.add(getFeedback());
+                ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
+                        this, getStepId(), validation, script.getFilename(), target);
+                return false;
+            }
             saveScript(script, task, task.getResult());
             getDetailsModel().reloadPrismObjectByOid();
             if (task.getResult() == null || task.getResult().isError()) {
@@ -217,6 +229,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
+
+        onAfterSave(target);
         if (result != null && !result.isError()) {
             isReloaded = false;
             super.onNextPerformed(target);
@@ -226,8 +240,20 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return false;
     }
 
+    protected void onAfterSave(AjaxRequestTarget target) {
+    }
+
     protected final LoadableModel<ConnDevArtifactType> getValueModel() {
         return valueModel;
+    }
+
+    /**
+     * Forces {@link #valueModel} to reload from disk on next access, e.g. after
+     * {@link RepairObjectClassButton} saved a fixed script directly (bypassing this step's own
+     * submit) - mirrors what {@link #onRefreshPerformed} already does for its own "Regenerate" flow.
+     */
+    public void detachLoadedScript() {
+        valueModel.detach();
     }
 
     @Override
@@ -242,12 +268,19 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
         };
         testResource.showTitleAsLabel(true);
-        testResource.add(AttributeAppender.append("class", "ml-auto"));
+        testResource.add(AttributeAppender.append("class", "ms-auto"));
         customButtons.add(testResource);
+
+        customButtons.add(new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,
+                () -> valueModel.getObject() != null ? List.of(valueModel.getObject()) : List.of()));
     }
 
     private void onRefreshPerformed(AjaxRequestTarget target) {
         if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
+            ConnDevArtifactType currentArtifact = valueModel.getObject();
+            String currentScript = currentArtifact != null ? currentArtifact.getContent() : null;
+            List<String> errorMessages = ConnectorDevelopmentWizardUtil.collectErrorMessages(
+                    parentWizardModel.getOperationResultsForFixStep(getStepId()));
             List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
             int activeStepIndex = parentWizardModel.getActiveStepIndex();
             String idOfFound = null;
@@ -259,7 +292,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 WizardStep step = steps.get(i);
                 if (step instanceof WaitingScriptConnectorStepPanel waitingPanel) {
                     idOfFound = step.getStepId();
-                    waitingPanel.resetScript(getPageBase());
+                    waitingPanel.resetScript(getPageBase(), currentScript, errorMessages);
                     if (i == 0) {
                         setActiveStepById(target, parentWizardModel, idOfFound);
                     }
@@ -284,5 +317,9 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     @Override
     public boolean isCompleted() {
         return ConnectorDevelopmentWizardUtil.existScript(getDetailsModel(), getScriptType(), getObjectClassName());
+    }
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }

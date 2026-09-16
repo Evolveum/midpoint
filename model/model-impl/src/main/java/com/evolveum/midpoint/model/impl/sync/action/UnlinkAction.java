@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * @author semancik
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" })
 @ActionDefinitionClass(UnlinkSynchronizationActionType.class)
-public class UnlinkAction<F extends FocusType> extends BaseClockworkAction<F> {
+public class UnlinkAction<F extends ProjectionHolderType> extends BaseClockworkAction<F> {
 
     UnlinkAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);

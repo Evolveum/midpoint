@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -101,7 +100,7 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
     }
 
     public String getCardCssClass() {
-        return "card m-0 p-0";
+        return "card shadow-sm m-0 p-0";
     }
 
     public String getBodyTitle() {

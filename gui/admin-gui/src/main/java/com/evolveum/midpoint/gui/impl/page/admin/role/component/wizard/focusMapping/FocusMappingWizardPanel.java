@@ -10,12 +10,15 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.*;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;

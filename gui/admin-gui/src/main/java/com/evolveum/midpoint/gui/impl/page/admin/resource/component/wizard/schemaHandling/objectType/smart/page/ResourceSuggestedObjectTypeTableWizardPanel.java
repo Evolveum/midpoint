@@ -15,19 +15,27 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartSuggestButtonWithConfirmation;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
+import com.evolveum.midpoint.smart.api.info.AiInfo;
+import com.evolveum.midpoint.smart.api.info.HealthStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsPopupPanel;
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
-import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
+import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -51,7 +59,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.processSuggestedContainerValue;
 
 @PanelType(name = "rw-suggested-object-type")
@@ -144,7 +152,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
 
-                statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
+                statusInfo = loadLatestObjectClassObjectTypeSuggestion(getPageBase(),
                         resource.getOid(),
                         selectedObjectClassName,
                         task,
@@ -246,21 +254,126 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
     @Override
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
-        AjaxIconButton refreshButton = SmartSuggestButtonWithConfirmation.create(buttons.newChildId(),
-                createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.refreshSuggestionButton.title"),
-                () -> "fa fa-arrows-rotate",
-                ConfirmationOption.delineationPermissionsOptions(),
-                () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {},
-                        this::refreshSuggestionPerform),
-                getPageBase());
-
+        SplitButtonWithDropdownMenu refreshButton = createRefreshSplitButton(buttons.newChildId());
         refreshButton.setOutputMarkupId(true);
-        refreshButton.showTitleAsLabel(true);
+        refreshButton.setRenderBodyOnly(true);
         buttons.add(refreshButton);
     }
 
+    private SplitButtonWithDropdownMenu createRefreshSplitButton(String id) {
+        List<InlineMenuItem> dropdownItems = List.of(
+                createRefreshMenuItem(
+                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newDataSplit"),
+                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newDataSplit.help"),
+                        RegenerateMode.NEW_DATA_SPLIT),
+                createRefreshMenuItem(
+                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newFilter"),
+                        createStringResource("ResourceSuggestedObjectTypeTableWizardPanel.regenerate.newFilter.help"),
+                        RegenerateMode.NEW_FILTER));
+
+        DropdownButtonDto dropdownModel = new DropdownButtonDto(
+                null,
+                "fa fa-arrows-rotate",
+                getString("ResourceSuggestedObjectTypeTableWizardPanel.refreshSuggestionButton.title"),
+                dropdownItems);
+
+        return new SplitButtonWithDropdownMenu(id, () -> dropdownModel) {
+            @Override
+            protected void performPrimaryButtonAction(AjaxRequestTarget target) {
+                showRegenerateConfirmationDialog(target, null);
+            }
+        };
+    }
+
+    private InlineMenuItem createRefreshMenuItem(IModel<String> label, @Nullable IModel<String> help, RegenerateMode mode) {
+        return new InlineMenuItem(label) {
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new InlineMenuItemAction() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        showRegenerateConfirmationDialog(target, mode);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<String> getTooltip() {
+                return help;
+            }
+        };
+    }
+
+    /**
+     * Shows the confirmation dialog for regenerate action with data access permissions,
+     * then calls refreshSuggestionPerform with the user-selected permissions.
+     */
+    private void showRegenerateConfirmationDialog(AjaxRequestTarget target, @Nullable RegenerateMode regenerateMode) {
+        SuggestionOption suggestionOption = SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions());
+
+        ConfirmationWithOptionsDto<DataAccessPermission> confirmationDto =
+                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
+                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
+                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
+                        .confirmationOptionsTitle(createStringResource(
+                                "SmartSuggestConfirmationPanel.request.component.title"))
+                        .infoEntries(createAiInfoModel())
+                        .errorMessage(() ->
+                                suggestionOption.requiresAiService()
+                                        ? getAiUnavailableMessage(
+                                        createAiInfoModel(),
+                                        "SmartSuggestConfirmationPanel.serviceUnreachable.error")
+                                        : null)
+                        .warningMessage(() ->
+                                suggestionOption.requiresAiService()
+                                        ? null
+                                        : getAiUnavailableMessage(
+                                        createAiInfoModel(),
+                                        "SmartSuggestConfirmationPanel.serviceUnreachable.warning"))
+                        .confirmationOptions(suggestionOption.confirmationOptions())
+                        .requireAiService(suggestionOption.requiresAiService())
+                        .build();
+
+        ConfirmationWithOptionsPopupPanel<DataAccessPermission> dialog =
+                new ConfirmationWithOptionsPopupPanel<>(getPageBase().getMainPopupBodyId(), Model.of(confirmationDto)) {
+            @Override
+            public void confirmationPerformed(AjaxRequestTarget target,
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                refreshSuggestionPerform(target, confirmedOptions, regenerateMode);
+            }
+        };
+
+        getPageBase().showMainPopup(dialog, target);
+    }
+
+    private IModel<AiInfo> createAiInfoModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected AiInfo load() {
+                try {
+                    return getPageBase().getSmartIntegrationService()
+                            .getAiInfo()
+                            .orElse(null);
+                } catch (SystemException e) {
+                    return null;
+                }
+            }
+        };
+    }
+
+    private String getAiUnavailableMessage(
+            IModel<AiInfo> aiInfoModel,
+            String resourceKey) {
+        AiInfo aiInfo = aiInfoModel.getObject();
+        if (aiInfo != null && HealthStatus.OK.equals(aiInfo.status())) {
+            return null;
+        }
+        return createStringResource(resourceKey).getString();
+    }
+
     public abstract void refreshSuggestionPerform(AjaxRequestTarget target,
-            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions);
+            IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+            RegenerateMode regenerateMode);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {
@@ -289,7 +402,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<P extends Cont
 
     @Override
     protected String getExitButtonCssClass() {
-        return "btn-link mr-auto";
+        return "btn-link me-auto";
     }
 
     @Override

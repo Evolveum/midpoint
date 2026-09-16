@@ -149,7 +149,7 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
     private void evaluateExpression(
             ExpressionType expressionBean, VariablesMap VariablesMap, String shortDesc, SendingContext ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = transportSupport.prismContext().definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_STRING);

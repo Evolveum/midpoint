@@ -6,31 +6,30 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.objectclass;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.EnumerationValueTypeDefinitionType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * @author lskublik
@@ -103,9 +102,9 @@ public class ObjectClassBasicConnectorStepPanel
 
     @Override
     protected void initLayout() {
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
         WebMarkupContainer parent = new WebMarkupContainer(ID_PARENT);
@@ -150,7 +149,7 @@ public class ObjectClassBasicConnectorStepPanel
 
     @Override
     public String appendCssToWizard() {
-        return "col-10";
+        return "col-12 col-xl-10 col-xxl-8";
     }
 
     @Override
@@ -171,5 +170,10 @@ public class ObjectClassBasicConnectorStepPanel
     @Override
     protected boolean isExitButtonVisible() {
         return false;
+    }
+
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }

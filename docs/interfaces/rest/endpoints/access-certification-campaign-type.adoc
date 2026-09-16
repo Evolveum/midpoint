@@ -2,7 +2,7 @@
 :page-nav-title: Access Certification Campaign
 :page-display-order: 900
 :page-toc: top
-:page-keywords: [ 'rest', 'certification', 'campaign' ,'endpoint' ]
+:page-keywords: rest, certification, campaign, endpoint
 :page-upkeep-status: green
 
 == Description

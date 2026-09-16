@@ -1,0 +1,87 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<functionLibrary
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:p="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        oid="42c6fef1-370c-466b-a52e-747b52aacf0d">
+    <name>functionLibrary</name>
+
+    <function>
+        <name>hello0</name>
+        <returnType>xsd:string</returnType>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                'Hello world!'
+            </code>
+        </script>
+    </function>
+
+    <function>
+        <name>hello1</name>
+        <parameter>
+            <name>who</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                'Hello ' + who + ' !!!'
+            </code>
+        </script>
+    </function>
+
+    <function>
+        <name>custom</name>
+        <parameter>
+            <name>customValue</name>
+            <type>p:CustomType</type>
+        </parameter>
+        <parameter>
+            <name>extra</name>
+            <type>xsd:string</type>
+        </parameter>
+        <returnType>xsd:string</returnType>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                import com.evolveum.midpoint.prism.path.ItemPath
+
+                log.info('customValue = {} ({})', customValue, customValue?.getClass())
+                log.info('extra = {}', extra)
+                customValue?.findProperty(ItemPath.create('stringValue'))?.getRealValue() + '-' +
+                customValue?.findProperty(ItemPath.create('intValue'))?.getRealValue() + '-' +
+                extra
+            </code>
+        </script>
+    </function>
+
+    <function>
+        <name>untyped</name>
+        <parameter>
+            <name>container</name>
+            <!-- Although it is possible to provide a PrismContainer here, it is more advisable
+                 to send a list of PrismContainerValues. (Just BTW, we can use a specific type then!) -->
+            <type>xsd:anyType</type>
+        </parameter>
+        <parameter>
+            <name>containerValue</name>
+            <type>xsd:anyType</type> <!-- Expects PrismContainerValue. Let us assume it is of any type. -->
+        </parameter>
+        <returnType>xsd:anyType</returnType> <!-- Returns PrismContainerValue -->
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                log.info('container = {} ({})', container, container?.class)
+                log.info('containerValue = {} ({})', containerValue, containerValue?.class)
+                container?.get(0)
+            </code>
+        </script>
+    </function>
+</functionLibrary>

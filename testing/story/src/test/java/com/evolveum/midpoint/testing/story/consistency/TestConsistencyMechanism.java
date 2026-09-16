@@ -2804,9 +2804,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     /** Prepares OpenDJ resource for tests that we want to run standalone. (Contains the required core of test001.) */
     @SuppressWarnings("unused") // enabled on demand
-    private void prepareOpenDjResource(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, CommunicationException {
+    private void prepareOpenDjResource(Task task, OperationResult result) throws CommonException {
         assertSuccess(
                 modelService.testResource(RESOURCE_OPENDJ_OID, task, result));
         fetchResourceObject(result);
@@ -3161,10 +3159,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 credentialsPropertyValue);
     }
 
-    private UserType testAddUserToRepo(String fileName)
-            throws IOException, ObjectNotFoundException, SchemaException, EncryptionException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private UserType testAddUserToRepo(String fileName) throws IOException, CommonException {
 
         checkRepoOpenDjResource();
         assertNoRepoThreadLocalCache();

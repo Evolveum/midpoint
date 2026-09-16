@@ -6,18 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,9 +16,20 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lskublik
@@ -131,7 +131,24 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
 
     @Override
     protected boolean isBackButtonVisible() {
-        return isSuggestionApplied();
+        return true;
+    }
+
+    @Override
+    protected boolean isSubmitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected void onBackPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
+    }
+
+    @Override
+    protected void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+        WebPrismUtil.removeEmptyAddedValue(getValueModel().getObject());
+        removeLastBreadcrumb();
+        super.onExitPerformedAfterValidate(target);
     }
 
     @Override
@@ -142,6 +159,11 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
     @Override
     protected boolean isExitButtonVisible() {
         return false;
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "";
     }
 
     protected String getPanelType() {

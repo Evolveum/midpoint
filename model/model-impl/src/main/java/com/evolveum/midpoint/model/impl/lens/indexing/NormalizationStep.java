@@ -87,7 +87,7 @@ abstract class NormalizationStep<B extends AbstractNormalizationStepType> {
 
     abstract @NotNull String execute(@NotNull String input, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException;
 
     static class NoOp extends NormalizationStep<NoOpNormalizationStepType> {
 
@@ -176,7 +176,7 @@ abstract class NormalizationStep<B extends AbstractNormalizationStepType> {
         @NotNull
         String execute(@NotNull String input, Task task, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             VariablesMap variablesMap = new VariablesMap();
             variablesMap.put(ExpressionConstants.VAR_INPUT, new TypedValue<>(input, String.class));
             PrismPropertyDefinition<String> outputDefinition =

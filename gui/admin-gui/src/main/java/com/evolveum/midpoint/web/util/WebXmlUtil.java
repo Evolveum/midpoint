@@ -10,9 +10,6 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-
-import javax.xml.XMLConstants;
 import java.util.ArrayList;
 import java.util.List;
 

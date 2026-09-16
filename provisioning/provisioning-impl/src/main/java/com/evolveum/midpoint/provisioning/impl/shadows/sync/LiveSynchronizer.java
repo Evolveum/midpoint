@@ -67,7 +67,7 @@ public class LiveSynchronizer {
             Task task,
             OperationResult gResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
-            ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         LiveSyncCtx ctx = new LiveSyncCtx(coordinates, task, options, tokenStorage, context, gResult);
 
@@ -197,7 +197,7 @@ public class LiveSynchronizer {
      */
     private void fetchAndRememberCurrentToken(LiveSyncCtx ctx, OperationResult result) throws ObjectNotFoundException,
             CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException {
+            ObjectAlreadyExistsException, SubscriptionComplianceException {
         LiveSyncToken currentToken = resourceObjectConverter.fetchCurrentToken(ctx.context, result);
         if (currentToken == null) {
             LOGGER.warn("No current token provided by resource: {}. Live sync will not proceed: {}", ctx.context, ctx.task);
@@ -229,7 +229,7 @@ public class LiveSynchronizer {
                 @NotNull ProvisioningOperationContext operationContext,
                 OperationResult result)
                 throws ObjectNotFoundException, SchemaException, ConfigurationException,
-                ExpressionEvaluationException {
+                ExpressionEvaluationException, SubscriptionComplianceException {
             this.syncResult = new SynchronizationOperationResult();
             this.context = ctxFactory.createForBulkOperation(coordinates, operationContext, task, result);
             this.task = task;

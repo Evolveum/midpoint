@@ -241,7 +241,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
     }
 
-    private void displayRoles(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void displayRoles(Task task, OperationResult result) throws CommonException {
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
         display("Role pirate after modify", rolePirate);
         IntegrationTestTools.displayXml("Role pirate after modify", rolePirate);

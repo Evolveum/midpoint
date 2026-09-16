@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeObjectTypeSuggestionNew;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeWholeTaskObject;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runSuggestionAction;
@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.dialog.SuggestionOption;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -44,7 +46,10 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
 import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
 import com.evolveum.midpoint.web.component.input.ButtonWithConfirmationOptionsDialog;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DataAccessPermissionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
@@ -101,12 +106,12 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 AjaxIconButton generateButton = SmartSuggestButtonWithConfirmation.create(buttons.newChildId(),
                         createStringResource("ResourceObjectClassTableWizardPanel.saveButton"),
                         () -> GuiStyleConstants.CLASS_MAGIC_WAND,
-                        ConfirmationOption.delineationPermissionsOptions(),
+                        SuggestionOption.aiOnly(ConfirmationOption.delineationPermissionsOptions()),
                         () -> new ButtonWithConfirmationOptionsDialog.ButtonHandlers<>(target -> {
                         },
                                 (target, confirmedOptions) -> {
                                     final QName objectClassName = selectedModel.getObject().getRealValue().getName();
-                                    processSuggestionActivity(target, objectClassName, false, confirmedOptions);
+                                    processSuggestionActivity(target, objectClassName, false, null, confirmedOptions);
                                 }),
                         getPageBase());
 
@@ -143,7 +148,7 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 getPageBase(), resourceOid, objectClassName, task, result);
 
         return isSuccessfulSuggestion(suggestions);
@@ -152,18 +157,31 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
     /**
      * Processes the suggestion activity for the given object class name.
      */
-    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName, boolean resetSuggestion,
+    private void processSuggestionActivity(AjaxRequestTarget target, QName objectClassName,
+            boolean isRegenerate,
+            @Nullable RegenerateMode regenerateMode,
             IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
         String resourceOid = getAssignmentHolderModel().getObjectType().getOid();
         Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
         OperationResult result = task.getResult();
 
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 getPageBase(), resourceOid, objectClassName, task, result);
+
+        if (suggestions != null && suggestions.isSuspended()) {
+            showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+        }
 
         boolean hasValidSuggestions = isSuccessfulSuggestion(suggestions);
 
-        if (hasValidSuggestions && resetSuggestion) {
+        List<ResourceObjectTypeDefinitionType> previousObjectTypes = List.of();
+        if (hasValidSuggestions && isRegenerate
+                && regenerateMode != null
+                && suggestions.getResult() != null) {
+            previousObjectTypes = suggestions.getResult().getObjectType();
+        }
+
+        if (hasValidSuggestions && isRegenerate) {
             removeWholeTaskObject(getPageBase(), task, result, suggestions.getToken());
             hasValidSuggestions = false;
         }
@@ -188,7 +206,8 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
         }
 
         boolean executed = runSuggestionAction(
-                getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task, permissions);
+                getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task, permissions,
+                regenerateMode, previousObjectTypes);
 
         result.computeStatusIfUnknown();
 
@@ -277,11 +296,13 @@ public class SmartObjectTypeSuggestionWizardPanel extends AbstractWizardPanel<Re
                 });
             }
 
+            //TODO support dialog
             @Override
             public void refreshSuggestionPerform(AjaxRequestTarget target,
-                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions) {
+                    IModel<List<ConfirmationOption<DataAccessPermission>>> confirmedOptions,
+                    RegenerateMode regenerateMode) {
                 removeLastBreadcrumb();
-                processSuggestionActivity(target, objectClassName, true, confirmedOptions);
+                processSuggestionActivity(target, objectClassName, true, regenerateMode, confirmedOptions);
             }
 
             @Override

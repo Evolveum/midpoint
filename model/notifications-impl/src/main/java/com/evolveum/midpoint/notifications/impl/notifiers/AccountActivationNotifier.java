@@ -19,9 +19,11 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,8 +91,15 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
 
         var event = ctx.event();
         StringBuilder body = new StringBuilder();
-        String message = "Your accounts was successfully created. To activate your accounts, please click on the link below.";
-        body.append(message).append("\n\n").append(createConfirmationLink(getUser(event), configuration, result)).append("\n\n");
+        String link = createConfirmationLink(getUser(event), configuration, result);
+        if (link != null) {
+            body.append("Your accounts was successfully created. To activate your accounts, please click on the link below.");
+            body.append("\n\n").append(link).append("\n\n");
+        } else {
+            getLogger().warn("Account activation link could not be created for {}, sending notification without it", getUser(event));
+            body.append("Your accounts was successfully created, but they are not activated yet. "
+                    + "Please contact system administrator to activate them.\n\n");
+        }
 
         FocusType owner = (FocusType) event.getRequesteeObject();
         String userOrOwner = owner instanceof UserType ? "User" : "Owner";
@@ -110,8 +119,8 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
                 PrismObject<ResourceType> resource;
                 try {
                     resource = modelService.getObject(ResourceType.class, resourceOid, null, ctx.task(), result);
-                } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
-                        | ExpressionEvaluationException | SchemaException e) {
+                } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException |
+                         ExpressionEvaluationException | SchemaException | SubscriptionComplianceException e) {
                     getLogger().error("Couldn't get Resource with oid " + resourceOid, e);
                     throw new SystemException("Couldn't get resource " + resourceOid, e);
                 }
@@ -123,7 +132,7 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
             }
             for (Object att : shadow.getAttributes().asPrismContainerValue().getItems()) {
                 if (att instanceof ShadowSimpleAttribute<?> attribute) {
-                    body.append(" - ").append(attribute.getDisplayName()).append(": ");
+                    body.append(" - ").append(getAttributeLabel(attribute)).append(": ");
                     if (attribute.isSingleValue()) {
                         body.append(attribute.getRealValue()).append("\n");
                     } else {
@@ -144,15 +153,18 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
         return body.toString();
     }
 
+    private String getAttributeLabel(ShadowSimpleAttribute<?> attribute) {
+        String displayName = attribute.getDisplayName();
+        return StringUtils.isNotBlank(displayName) ? displayName : attribute.getElementName().getLocalPart();
+    }
+
     private String getRequestorDisplayName(ObjectType requester) {
         String name = requester.getName().getOrig();
         if (requester.asPrismObject().getDisplayName() != null) {
             name = requester.asPrismObject().getDisplayName();
         }
-        if (requester instanceof UserType) {
-            if (((UserType) requester).getFullName() != null) {
-                name = ((UserType) requester).getFullName().getOrig();
-            }
+        if (requester instanceof UserType requesterUser) {
+            name = PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser));
         }
         return name;
     }

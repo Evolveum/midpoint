@@ -10,7 +10,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -30,8 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 /**

@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
 import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -21,10 +23,6 @@ import com.evolveum.midpoint.gui.impl.validator.RelationValidator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 @Component
 public class RelationPanelFactory extends AbstractInputGuiComponentFactory<QName> {
@@ -43,8 +41,12 @@ public class RelationPanelFactory extends AbstractInputGuiComponentFactory<QName
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        ItemPath relationRefPath = ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_RELATIONS, RelationsDefinitionType.F_RELATION, RelationDefinitionType.F_REF);
-        return relationRefPath.equivalent(wrapper.getPath().removeIds());
+        ItemPath relationRefPath = ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT,
+                RoleManagementConfigurationType.F_RELATIONS, RelationsDefinitionType.F_RELATION, RelationDefinitionType.F_REF);
+        ItemPath orderConstrainsRelationPath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_ORDER_CONSTRAINT,
+                OrderConstraintsType.F_RELATION);
+        return relationRefPath.equivalent(wrapper.getPath().removeIds())
+                || orderConstrainsRelationPath.equivalent(wrapper.getPath().removeIds());
     }
 
     @Override

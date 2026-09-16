@@ -5,6 +5,8 @@
 :page-wiki-metadata-create-date: 2015-07-08T10:45:27.661+02:00
 :page-wiki-metadata-modify-user: vix
 :page-wiki-metadata-modify-date: 2020-01-29T15:59:46.285+01:00
+:page-description: This article describes how midPoint's schema-driven UI controls form fields and how you can customize the forms behavior and visibility.
+:page-keywords: schema-driven UI, resource schema handling, object template, form field customization, form validation, authorizations
 :page-toc: top
 
 == MidPoint is Schema-Driven

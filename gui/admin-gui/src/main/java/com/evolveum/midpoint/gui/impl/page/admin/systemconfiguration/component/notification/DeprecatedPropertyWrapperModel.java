@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 
 /**
  * Created by Viliam Repan (lazyman).

@@ -2,6 +2,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.chang
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationItemDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationItemLineDto;
@@ -39,6 +41,7 @@ public class SimulationChangeSummaryDto implements Serializable {
     }
 
     private final SimulationItemState state;
+    private final ItemPath targetItem;
     private ChangeViewType viewType = ChangeViewType.EMPTY;
 
     private String primaryChangeLabel;
@@ -52,21 +55,24 @@ public class SimulationChangeSummaryDto implements Serializable {
     private String message;
     private boolean expandable;
 
-    public SimulationChangeSummaryDto(@NotNull VisualizationDto dto) {
+    public SimulationChangeSummaryDto(@NotNull VisualizationDto dto, ItemName targetItem) {
         this.objectName = dto.getName();
         this.state = resolveState(dto);
+        this.targetItem = targetItem;
 
-        List<VisualizationItemDto> items = dto.getItems();
-        if (items == null || items.isEmpty()) {
+        List<VisualizationItemDto> filteredItems = new ArrayList<>();
+        filterItems(dto, filteredItems);
+
+        if (filteredItems.isEmpty()) {
             determineViewType();
             this.expandable = false;
             return;
         }
 
-        VisualizationItemDto firstItem = items.get(0);
+        VisualizationItemDto firstItem = filteredItems.get(0);
         this.primaryChangeLabel = firstItem.getName();
 
-        for (VisualizationItemDto item : items) {
+        for (VisualizationItemDto item : filteredItems) {
             List<VisualizationItemLineDto> lines = item.getLines();
             if (lines.isEmpty()) {
                 continue;
@@ -108,6 +114,25 @@ public class SimulationChangeSummaryDto implements Serializable {
 
         determineViewType();
         this.expandable = removedValues.size() + addedValues.size() + unchangedValues.size() > 3;
+    }
+
+    /**
+     * Recursively collect visualization items which matches the target path.
+     */
+    private void filterItems(@NotNull VisualizationDto dto, @NotNull List<VisualizationItemDto> itemsCollector) {
+        List<VisualizationItemDto> items = dto.getItems();
+        if (items != null) {
+            items.forEach(item -> {
+                if (item.getItemRelativePath().endsWith(this.targetItem)) {
+                    itemsCollector.add(item);
+                }
+            });
+        }
+
+        // Recursively process sub visualizations (e.g. attributes container in shadows)
+        for (VisualizationDto partial : dto.getPartialVisualizations()) {
+            filterItems(partial, itemsCollector);
+        }
     }
 
     private SimulationItemState resolveState(@NotNull VisualizationDto dto) {

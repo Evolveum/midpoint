@@ -29,7 +29,6 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;

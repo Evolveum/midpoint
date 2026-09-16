@@ -13,7 +13,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionsType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;

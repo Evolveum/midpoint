@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.task.api;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;

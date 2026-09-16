@@ -20,7 +20,10 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -40,7 +43,7 @@ import java.util.*;
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getAuxiliaryObjectClassNames;
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.getObjectClassName;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNLINKED;
 
 /**
  * EXPERIMENTAL
@@ -515,7 +518,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
     }
 
     private void checkSchemaHandlingDefaults(ResourceValidationContext ctx, SchemaHandlingType schemaHandling) {
-        int defAccount = 0, defEntitlement = 0, defGeneric = 0;
+        int defAccount = 0, defEntitlement = 0, defGeneric = 0, defWork = 0;
         int totalAccount = 0;
         for (ResourceObjectTypeDefinitionType def : schemaHandling.getObjectType()) {
             if (Boolean.TRUE.equals(def.isDefault())) {
@@ -529,6 +532,9 @@ public class ResourceValidatorImpl implements ResourceValidator {
                     case GENERIC:
                         defGeneric++;
                         break;
+                    case WORK:
+                        defWork++;
+                        break;
                     default:
                         throw new IllegalStateException();
                 }
@@ -540,6 +546,7 @@ public class ResourceValidatorImpl implements ResourceValidator {
         checkMultipleDefaultDefinitions(ctx, ShadowKindType.ACCOUNT, defAccount);
         checkMultipleDefaultDefinitions(ctx, ShadowKindType.ENTITLEMENT, defEntitlement);
         checkMultipleDefaultDefinitions(ctx, ShadowKindType.GENERIC, defGeneric);
+        checkMultipleDefaultDefinitions(ctx, ShadowKindType.WORK, defWork);
         if (totalAccount > 0 && defAccount == 0) {
             ctx.validationResult.add(Issue.Severity.INFO,
                     CAT_SCHEMA_HANDLING, C_NO_DEFAULT_ACCOUNT_SCHEMA_HANDLING_DEFAULT_DEFINITION,

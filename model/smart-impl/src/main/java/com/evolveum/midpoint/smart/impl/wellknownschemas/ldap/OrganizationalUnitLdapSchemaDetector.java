@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl.wellknownschemas.ldap;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaDetector;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -34,8 +34,7 @@ public class OrganizationalUnitLdapSchemaDetector implements WellKnownSchemaDete
     );
 
     @Override
-    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectTypeDefinition typeDefinition) {
-        var objectClassDef = typeDefinition.getObjectClassDefinition();
+    public Optional<WellKnownSchemaType> detectSchemaType(ResourceType resource, ResourceObjectClassDefinition objectClassDef) {
         String objectClassName = objectClassDef.getTypeName().getLocalPart();
 
         if (!"organizationalUnit".equalsIgnoreCase(objectClassName)) {
@@ -51,7 +50,7 @@ public class OrganizationalUnitLdapSchemaDetector implements WellKnownSchemaDete
             }
         }
 
-        Set<String> attributeNames = typeDefinition.getAttributeDefinitions().stream()
+        Set<String> attributeNames = objectClassDef.getAttributeDefinitions().stream()
                 .map(def -> def.getItemName().getLocalPart().toLowerCase())
                 .collect(Collectors.toSet());
 

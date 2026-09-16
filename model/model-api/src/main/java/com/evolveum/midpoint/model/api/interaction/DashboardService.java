@@ -10,7 +10,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 /**
  * @author skublik
@@ -22,7 +24,7 @@ public interface DashboardService {
             throws CommonException;
 
     ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException;
 
     CollectionRefSpecificationType getCollectionRefSpecificationType(DashboardWidgetType widget, Task task, OperationResult result);
 

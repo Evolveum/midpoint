@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate oid="22222222-2222-2222-2222-222222222222"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:t10834="http://midpoint.evolveum.com/xml/ns/test/mql-ticket-10834">
+    <name>object-template-user-org-mql-ticket-10834</name>
+
+    <mapping>
+        <name>Assign organization member</name>
+        <trace>true</trace>
+        <strength>strong</strength>
+        <source>
+            <path>$focus/extension/t10834:idWorkplace</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:text>
+                        identifier = $idWorkplace
+                    </q:text>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <privileges>
+                        <runPrivileged>true</runPrivileged>
+                    </privileges>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                            import com.evolveum.midpoint.schema.constants.SchemaConstants
+
+                            HR_ORG_ARCHETYPE_OID = "bcbcbcbc-901e-454b-ba1b-58d67232dc4a"
+
+                            if (input.targetRef == null)
+                                return false
+
+                            if (input.targetRef?.type != OrgType.COMPLEX_TYPE)
+                                return false
+
+                            if (input.targetRef?.relation != SchemaConstants.ORG_DEFAULT)
+                                return false
+
+                            org = midpoint.resolveReferenceIfExists(input.targetRef)
+
+                            if (basic.isEmpty(org))
+                                return false
+
+                            archetypes = midpoint.getArchetypeOids(org)
+                            if (archetypes?.contains(HR_ORG_ARCHETYPE_OID))
+                                return true
+
+                            return false
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <c:condition>
+            <variable>
+                <name>idWorkplace</name>
+                <path>$focus/extension/t10834:idWorkplace</path>
+            </variable>
+            <c:script>
+                <c:code>
+                    !basic.isEmpty(idWorkplace)
+                </c:code>
+            </c:script>
+        </c:condition>
+    </mapping>
+
+    <mapping>
+        <name>Assign organization manager</name>
+        <trace>true</trace>
+        <strength>strong</strength>
+        <source>
+            <path>$focus/personalNumber</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:text>
+                        extension/adminPersonalNumber = $personalNumber
+                    </q:text>
+                </filter>
+                <assignmentProperties>
+                    <relation>org:manager</relation>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <privileges>
+                        <runPrivileged>true</runPrivileged>
+                    </privileges>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+                            import com.evolveum.midpoint.schema.constants.SchemaConstants
+
+                            HR_ORG_ARCHETYPE_OID="bcbcbcbc-901e-454b-ba1b-58d67232dc4a"
+
+                            if (input.targetRef == null)
+                                return false
+
+                            if (input.targetRef?.type != OrgType.COMPLEX_TYPE)
+                                return false
+
+                            if (input.targetRef?.relation != SchemaConstants.ORG_MANAGER)
+                                return false
+
+                            org = midpoint.resolveReferenceIfExists(input.targetRef)
+
+                            if (basic.isEmpty(org))
+                                return false
+
+                            archetypes = midpoint.getArchetypeOids(org)
+                            if (archetypes?.contains(HR_ORG_ARCHETYPE_OID))
+                                return true
+
+                            return false
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+        <c:condition>
+            <variable>
+                <name>personalNumber</name>
+                <path>$focus/personalNumber</path>
+            </variable>
+            <c:script>
+                <c:code>
+                    !basic.isEmpty(personalNumber)
+                </c:code>
+            </c:script>
+        </c:condition>
+    </mapping>
+</objectTemplate>

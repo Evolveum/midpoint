@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.workflow.EvidenceUploadStateAware;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -42,7 +43,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Created by honchar
  */
-public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType> {
+public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType>
+        implements EvidenceUploadStateAware {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -50,6 +52,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
     private final WorkItemDetailsPanel workItemDetails = null;
+    private boolean evidenceUploadInvalid;
 
     public CaseWorkItemListWithDetailsPanel(String id) {
         super(id, CaseWorkItemType.class);
@@ -95,6 +98,11 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             }
 
             @Override
+            protected boolean isCompletionEnabled() {
+                return !evidenceUploadInvalid;
+            }
+
+            @Override
             protected void afterActionFinished(AjaxRequestTarget target) {
                 Breadcrumb previousBreadcrumb = getPageBase().getPreviousBreadcrumb();
                 if (previousBreadcrumb != null && previousBreadcrumb.getPageClass().isAssignableFrom(PageCaseWorkItem.class)) {
@@ -113,6 +121,24 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
+
+    @Override
+    public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+        evidenceUploadInvalid = false;
+        super.itemDetailsPerformed(target, rowModel);
+    }
+
+    @Override
+    public void itemDetailsPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<CaseWorkItemType>> listItems) {
+        evidenceUploadInvalid = false;
+        super.itemDetailsPerformed(target, listItems);
+    }
+
+    @Override
+    public void evidenceUploadStateChanged(AjaxRequestTarget target, boolean invalid) {
+        evidenceUploadInvalid = invalid;
+        target.add(getDetailsPanelContainer().get(ID_CASE_WORK_ITEM_ACTIONS_PANEL));
+    }
 
     @Override
     protected boolean isCreateNewObjectVisible() {

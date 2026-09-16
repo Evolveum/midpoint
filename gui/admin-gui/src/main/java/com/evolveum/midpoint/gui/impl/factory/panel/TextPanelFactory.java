@@ -13,17 +13,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.LocaleAutoCompleteRenderer;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteTextRenderer;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.convert.IConverter;
@@ -60,7 +62,14 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
     protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
         String lookupTableOid = panelCtx.getPredefinedValuesOid();
         if (lookupTableOid != null) {
-            return new LookupAutocompletePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTableOid);
+            AbstractAutoCompleteTextRenderer renderer;
+            if (isLanguageConnectedLookupTable(lookupTableOid)) {
+                renderer = new LocaleAutoCompleteRenderer(getLookupTable(panelCtx.getPageBase(), lookupTableOid));
+            } else {
+                renderer = new StringAutoCompleteRenderer();
+            }
+            return new LookupAutocompletePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(),
+                    panelCtx.hasValueEnumerationRef(), lookupTableOid, renderer);
         }
 
         Collection<? extends DisplayableValue<T>> allowedValues = panelCtx.getAllowedValues();
@@ -109,7 +118,12 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
                 panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
     }
 
-    protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
-        return WebComponentUtil.prepareAutoCompleteList(lookupTable, input);
+    private boolean isLanguageConnectedLookupTable(String lookupTableOid) {
+        return SystemObjectsType.LOOKUP_LOCALES.value().equals(lookupTableOid) ||
+                SystemObjectsType.LOOKUP_LANGUAGES.value().equals(lookupTableOid);
+    }
+
+    private LookupTableType getLookupTable(PageAdminLTE pageBase, String lookupTableOid) {
+        return WebComponentUtil.loadLookupTable(lookupTableOid, pageBase);
     }
 }

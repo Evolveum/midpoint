@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="3cfd094d-dabb-4a44-a52e-a4e519cb2a94">
+    <name>group-role</name>
+    <documentation>
+        Role with this archetype gets a group on the `membership` resource (named after the role).
+        A user assigned such a role gets an account there, with the membership of the respective group.
+    </documentation>
+    <inducement>
+        <construction>
+            <resourceRef oid="b41f7dcc-a413-4b43-a54e-7ee1fbf85722"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="b41f7dcc-a413-4b43-a54e-7ee1fbf85722"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
+</archetype>

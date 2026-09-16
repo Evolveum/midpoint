@@ -6,11 +6,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceConfigurationDiscoveryUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -43,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class ResourceConfigurationPanel extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceConfigurationPanel.class);
+    private static final String OPERATION_DISCOVER_CONFIGURATION = ResourceConfigurationPanel.class.getName() + ".discoverConfiguration";
 
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_NO_CONNECTOR = "noConnectorLabel";
@@ -58,21 +65,38 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
 
         Label label = new Label(ID_NO_CONNECTOR, createStringResource("ResourceConfigurationPanel.no.connector.selected"));
         label.setOutputMarkupId(true);
-        label.add(new VisibleBehaviour(() -> tabs.isEmpty()));
+        label.add(new VisibleBehaviour(() -> tabs != null && tabs.isEmpty()));
         add(label);
 
         TabbedPanel<ITab> tabbedPanel = WebComponentUtil.createTabPanel(ID_CONFIGURATION, getPageBase(), tabs, null);
-        tabbedPanel.add(new VisibleBehaviour(() -> !tabs.isEmpty()));
+        tabbedPanel.add(new VisibleBehaviour(() -> !(tabs != null && tabs.isEmpty())));
         add(tabbedPanel);
 
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        PageBase pageBase = getPageBase();
+        OperationResult result = new OperationResult(OPERATION_DISCOVER_CONFIGURATION);
+
+        try {
+            ResourceConfigurationDiscoveryUtil.discoverAndApply(
+                    pageBase,
+                    getObjectWrapper(),
+                    result);
+        } catch (CommonException e) {
+            result.recordFatalError("Couldn't get discovered configuration.", e);
+        }
+
+        super.onBeforeRender();
     }
 
     private List<ITab> createConfigurationTabs() {
         List<ITab> tabs = new ArrayList<>();
         PrismContainerWrapper<Containerable> configuration
                 = PrismContainerWrapperModel.fromContainerWrapper(
-                        getObjectWrapperModel(),
-                        ItemPath.create("connectorConfiguration")).getObject();
+                getObjectWrapperModel(),
+                ItemPath.create("connectorConfiguration")).getObject();
         if (configuration == null) {
             return new ArrayList<>();
         }
@@ -91,7 +115,7 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
     private ITab createContainerTab(PrismContainerWrapper<?> wrapper) {
         String tabName = wrapper.getDisplayName();
         return new AbstractTab(new Model<>(tabName)) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
@@ -106,8 +130,8 @@ public class ResourceConfigurationPanel extends AbstractObjectMainPanel<Resource
         List<ITab> tabs = tabbedPanel.getTabs().getObject();
         tabs.clear();
 
-        tabs.addAll(createConfigurationTabs());
-        if (tabs.size() == 0) {
+        tabs.addAll(Objects.requireNonNull(createConfigurationTabs()));
+        if (tabs.isEmpty()) {
             return;
         }
         int i = tabbedPanel.getSelectedTab();

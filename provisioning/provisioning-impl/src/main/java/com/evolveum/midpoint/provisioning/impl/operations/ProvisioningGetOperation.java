@@ -63,7 +63,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
 
     public @NotNull T execute(@NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException, SecurityViolationException {
+            ObjectNotFoundException, SecurityViolationException, SubscriptionComplianceException {
 
         if (ResourceType.class.isAssignableFrom(type)) {
             //noinspection unchecked
@@ -95,7 +95,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
     }
 
     private @NotNull ResourceType getResourceNonRaw(@NotNull OperationResult result)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+            throws ConfigurationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, SubscriptionComplianceException {
         try {
             return beans.resourceManager.getCompletedResource(oid, rootOptions, task, result);
         } catch (CommonException ex) {
@@ -113,7 +113,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
 
     private @NotNull ShadowType getShadowNonRaw(@NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SchemaException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         try {
             return beans.shadowsFacade
                     .getShadow(oid, null, null, options, context, task, result)

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 
@@ -24,7 +25,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Exception from naming rules */
+/**
+ * Config item that covers both global policy rules ({@link GlobalPolicyRuleType}) and regular ones ({@link PolicyRuleType}).
+ *
+ * Note that the former extend the latter. However, for config items we use a different structure:
+ * both {@link PolicyRuleConfigItem} and {@link GlobalPolicyRuleConfigItem} extend this class.
+ * It is more natural, because each policy rule is definitely global or is not.
+ *
+ * So, this presents an exception from naming rules for config items vs beans.
+ */
 public abstract class AbstractPolicyRuleConfigItem<R extends PolicyRuleType> extends ConfigurationItem<R> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // invoked dynamically
@@ -59,6 +68,8 @@ public abstract class AbstractPolicyRuleConfigItem<R extends PolicyRuleType> ext
         addActions(rv, actionsPcv, PolicyActionsType.F_RECORD);
         addActions(rv, actionsPcv, PolicyActionsType.F_SCRIPT_EXECUTION);
         addActions(rv, actionsPcv, PolicyActionsType.F_SUSPEND_TASK);
+        addActions(rv, actionsPcv, PolicyActionsType.F_RESTART_ACTIVITY);
+        addActions(rv, actionsPcv, PolicyActionsType.F_SKIP_ACTIVITY);
         return rv;
     }
 

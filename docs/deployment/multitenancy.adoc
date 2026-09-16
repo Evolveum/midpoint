@@ -10,7 +10,7 @@ doc-type: intro
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-10-08T10:36:09.083+02:00
 :page-toc: top
-:page-keywords: [ 'multi-tenant', 'multitenant', 'multi-tenancy', 'multitenancy' ]
+:page-keywords: multi-tenant, multitenant, multi-tenancy, multitenancy
 :page-upkeep-status: yellow
 
 

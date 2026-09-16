@@ -1,0 +1,147 @@
+= Delayed delete
+:page-nav-title: Delayed delete
+:page-wiki-name: Delayed delete
+:page-keywords: activation, delayed delete, disable instead of delete
+:page-upkeep-status: green
+:page-toc: top
+
+Delayed delete is a predefined activation mapping that postpones the deletion of a projection (usually an account) for a configured period after the projection has been disabled because of deprovisioning.
+Hence, its prerequisite is xref:/midpoint/reference/concepts/activation/disable-instead-of-delete/[] (or an equivalent feature) which midPoint uses to disable the account instead of deleting it.
+
+The goal of this article is to provide deeper technical details regarding delayed delete for engineers and administrators to understand how the feature works and to be able to troubleshoot it.
+
+== Process description
+
+These are the steps that midPoint takes internally when a projection is disabled for (or, in other words, because of) deprovisioning and delayed delete is configured:
+
+. The projection is disabled rather than deleted immediately (ensured by the xref:/midpoint/reference/concepts/activation/disable-instead-of-delete/["disable instead of delete"] mechanism).
+. MidPoint records the shadow's disable timestamp and reason (deprovisioning) automatically.
+. MidPoint creates a recompute trigger for the shadow at the calculated deadline. +
+The deadline is computed as: +
+`disableTimestamp + deleteAfter` +
+where `disableTimestamp` is recorded automatically and `deleteAfter` is configured in the delayed-delete mapping.
+. When the trigger fires, the recompute handler re-runs activation evaluation for that projection.
+Note that the recomputation can also occur through other means, such as reconciliation or recomputation task.
+The trigger is there only to ensure a recomputation does eventually occur.
+. During the recomputation, the delayed-delete evaluator checks whether the delay has elapsed and whether the projection still exists and is disabled for deprovisioning.
+If these conditions are met, the evaluator returns the value `false` for `existence`, which causes the projection to be deleted.
+
+== Configuration
+
+=== Basic configuration
+
+The configuration consists of the following elements that work together:
+
+* `disableInsteadOfDelete` puts the projection into a disabled state instead of deleting it immediately, and automatically sets `activation/disableTimestamp` and `activation/disableReason`.
+* `delayedDelete` defines how long midPoint keeps the disabled projection before deletion.
+
+The delayed-delete decision is evaluated only while the projection remains disabled for deprovisioning.
+
+A typical configuration looks like the following.
+In this example, the projection is to be deleted 5 days after it has been disabled:
+
+[source,xml]
+----
+<activation>
+    <disableInsteadOfDelete>
+        <lifecycleState>active</lifecycleState>
+    </disableInsteadOfDelete>
+    <delayedDelete>
+        <deleteAfter>P5D</deleteAfter>
+    </delayedDelete>
+</activation>
+----
+
+
+=== Advanced configuration example
+
+To illustrate the behavior of delayed delete in more details, consider the following example.
+The configuration is equivalent to the previous example, but it uses a more general time-based mapping configuration.
+The mappings target the `existence` property which tells midPoint whether the account should exist (value of `true`) or it should be deleted (value of `false`).
+
+See xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/#existence-mapping[Existence Mapping] for a detailed explanation.
+
+[source,xml]
+----
+<resource>
+	<schemaHandling>
+		<objectType>
+			...
+			<activation>
+                <existence>
+                    <outbound>
+                        <name>Default existence</name>
+						<description>
+							Default existence mapping provides a value in case the second mapping is not active.
+                            It keeps the projection in existence as long as the focus (user) exists.
+						</description>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                    <outbound>
+                        <name>Delayed delete</name>
+						<description>
+							This mapping will be used only 5 days after the account is disabled.
+							Its result is the constant "false" which causes the account to stop existing.
+						</description>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P5D</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$shadow/activation/administrativeStatus</path>
+                        </source>
+                        <source>
+                            <path>$shadow/activation/disableReason</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    administrativeStatus == ActivationStatusType.DISABLED
+                                        &amp;&amp; disableReason == 'http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision'
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+			</activation>
+			...
+		</objectType>
+	</schemaHandling>
+</resource>
+----
+
+See also xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/#mapping-time-constraints[Mapping Time Constraints (for resources)] and xref:/midpoint/reference/expressions/mappings/#time-constraints[Mapping Time Constraints (in general)] for more information on time-based mappings.
+
+== Troubleshooting
+
+=== Projection is not deleted
+
+*Problem*
+
+Delayed delete does not delete the projection even if it has been configured.
+
+*Cause*
+
+The most common causes are:
+
+* The projection was not disabled for the deprovisioning reason expected by the evaluator (i.e., `\http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision`).
+* The shadow does not yet have a valid `activation/disableTimestamp`.
+* The recompute trigger was not created or has not been processed yet.
+* The projection is already gone or excluded from normal activation processing.
+
+*Solution*:
+
+* Check that the projection has been disabled for the expected deprovisioning reason, i.e., `activation/administrativeStatus` is `DISABLED` and `activation/disableReason` is `\http://midpoint.evolveum.com/xml/ns/public/model/disableReason#deprovision` on the respective shadow.
+* Check `activation/disableTimestamp` to confirm that the reference time (when the shadow was disabled) exists and is in the expected range.
+* Inspect whether the shadow carries a recompute trigger and whether the trigger timestamp matches the expected deadline.
+* Review the model and task logs for recompute activity around the deadline.
+Make sure a recomputation occurred after the deadline.

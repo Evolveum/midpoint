@@ -21,6 +21,12 @@
     <connectorConfiguration>
         <conf:sources>
             <amqp091>
+                <!--
+                    This test uses a test-only Artemis-backed source implementation.
+                    The production Amqp091AsyncUpdateSource remains unchanged and continues to use
+                    RabbitMQ's AMQP 0-9-1 client API.
+                -->
+                <className>com.evolveum.midpoint.provisioning.impl.async.update.TestAsyncUpdateCachingAmqp$ArtemisAsyncUpdateTestSource</className>
                 <uri>amqp://localhost:5672/</uri>
                 <username>guest</username>
                 <password>guest</password>

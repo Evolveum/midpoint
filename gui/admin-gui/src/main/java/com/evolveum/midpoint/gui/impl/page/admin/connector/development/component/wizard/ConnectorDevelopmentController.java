@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWi
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.AbstractWizardPartItem;
 
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.MultiWaitingConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.BasicInformationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic.DocumentationConnectorStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection.ConnectionConnectorStepPanel;
@@ -48,17 +49,30 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         INIT_OBJECT_CLASS,
         OBJECT_CLASS_SCHEMA,
         OBJECT_CLASS_SEARCH_ALL,
+        OBJECT_CLASS_SEARCH_BY_ID,
+        OBJECT_CLASS_SEARCH_FILTER,
         OBJECT_CLASS_CREATE,
         OBJECT_CLASS_UPDATE,
         OBJECT_CLASS_DELETE,
         RELATIONSHIPS,
         INIT_RELATIONSHIP,
         RELATIONSHIP,
+        EXPORT_CONNECTOR,
+        UPLOAD_CONNECTOR,
         NEXT
     }
 
     public ConnectorDevelopmentController(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
+    }
+
+    @Override
+    public boolean isCollapsedItemsVisible() {
+        // on multi-waiting steps the problems panel is shown from the beginning, even when there are no problems yet
+        if (getActiveStep() instanceof MultiWaitingConnectorStepPanel) {
+            return true;
+        }
+        return super.isCollapsedItemsVisible();
     }
 
     public void initNewObjectClass(AjaxRequestTarget target) {
@@ -67,6 +81,14 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
     public void initNewRelationship(AjaxRequestTarget target) {
         setPartItem(new InitRelationshipConnectorDevPartItem(getHelper()), target);
+    }
+
+    public void exportConnector(AjaxRequestTarget target) {
+        setPartItem(new ExportConnectorDevPartItem(getHelper()), target);
+    }
+
+    public void uploadConnector(AjaxRequestTarget target) {
+        setPartItem(new UploadConnectorDevPartItem(getHelper()), target);
     }
 
     public void editBasicInformation(AjaxRequestTarget target) {
@@ -87,6 +109,14 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
     public void editSearchAll(String objectClassName, AjaxRequestTarget target) {
         setPartItem(new SearchAllConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editSearchById(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new SearchByIdConnectorDevPartItem(getHelper()), objectClassName, target);
+    }
+
+    public void editSearchFilter(String objectClassName, AjaxRequestTarget target) {
+        setPartItem(new SearchFilterConnectorDevPartItem(getHelper()), objectClassName, target);
     }
 
     public void editCreateOp(String objectClassName, AjaxRequestTarget target) {
@@ -180,6 +210,8 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
 
                     if (isPartInProgress(new SchemaConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new SearchAllConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new SearchByIdConnectorDevPartItem(getHelper()), list, objectClassName)
+                            || isPartInProgress(new SearchFilterConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new CreateConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new UpdateConnectorDevPartItem(getHelper()), list, objectClassName)
                             || isPartInProgress(new DeleteConnectorDevPartItem(getHelper()), list, objectClassName)) {
@@ -245,6 +277,8 @@ public class ConnectorDevelopmentController extends AbstractWizardController<Con
         if (oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.INIT_OBJECT_CLASS
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SCHEMA
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_ALL
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_BY_ID
+                || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_SEARCH_FILTER
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_CREATE
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_UPDATE
                 || oldActivePartItem.getIdentifierForWizardStatus() == ConnectorDevelopmentStatusType.OBJECT_CLASS_DELETE) {

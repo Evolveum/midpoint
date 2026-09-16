@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.model.common.expression.script.mel;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
@@ -17,6 +18,9 @@ import com.evolveum.midpoint.model.common.expression.script.mel.extension.MidPoi
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.api.CacheInvalidationDispatcher;
+import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
+import com.evolveum.midpoint.repo.api.CacheInvalidationListener;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -26,10 +30,16 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import dev.cel.common.*;
-import dev.cel.common.types.*;
+import dev.cel.common.types.CelType;
+import dev.cel.common.types.CelTypeProvider;
+import dev.cel.common.types.ListType;
+import dev.cel.common.types.SimpleType;
+import dev.cel.common.values.NullValue;
 import dev.cel.compiler.CelCompiler;
 import dev.cel.compiler.CelCompilerBuilder;
 import dev.cel.compiler.CelCompilerFactory;
@@ -38,6 +48,7 @@ import dev.cel.runtime.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -49,8 +60,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  * MidPoint Expression Language (MEL) is based on Common Expression Language (CEL),
  * extended with midPoint-specific functionality.
  */
-public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree, CelScriptCacheKey> {
-
+public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntime, CelAbstractSyntaxTree, CelScriptCacheKey>
+        implements CacheInvalidationListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(MelScriptEvaluator.class);
 
@@ -58,12 +69,12 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
     public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
 
     private final BasicExpressionFunctions basicExpressionFunctions;
-    private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current()
             .enableRegexPartialMatch(true)
-            .enableOptionalSyntax(true)
             .enableShortCircuiting(true)
+            .enableEasyNull(true)
             .build();
+    private final MelRuntimeEquality runtimeEquality = new MelRuntimeEquality(celOptions);
 
     private CelTypeProvider typeProvider = null;
 
@@ -75,13 +86,17 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
             Protector protector,
             LocalizationService localizationService,
             BasicExpressionFunctions basicExpressionFunctions,
-            MidpointFunctions midpointExpressionFunctions) {
+            MidpointFunctions midpointExpressionFunctions,
+            CacheInvalidationDispatcher cacheInvalidationDispatcher) {
         super(prismContext, protector, localizationService);
         this.basicExpressionFunctions = basicExpressionFunctions;
-        this.midpointExpressionFunctions = midpointExpressionFunctions;
         midPointCelExtensionManager = new MidPointCelExtensionManager(protector,
-                basicExpressionFunctions, midpointExpressionFunctions, celOptions);
+                basicExpressionFunctions, midpointExpressionFunctions, celOptions, runtimeEquality);
         functionLibraryProcessor = new FunctionLibraryProcessor();
+
+        if (cacheInvalidationDispatcher != null) {
+            cacheInvalidationDispatcher.registerListener(this);
+        }
 
         // No compiler/interpreter initialization here. Compilers/interpreters are initialized on demand.
     }
@@ -134,15 +149,13 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
 
     @Override
     protected CelScriptCacheKey getScriptCachingKey(String codeString, ScriptExpressionEvaluationContext context)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         Map<String,CelType> celTypeMap = new HashMap<>();
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
         for (var varEntry : variables.entrySet()) {
             celTypeMap.put(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
-        }
-        if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
-            celTypeMap.put(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
         }
 
         CelType resultType = determineResultType(context);
@@ -150,8 +163,24 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         return new CelScriptCacheKey(codeString, celTypeMap, resultType);
     }
 
+    @Override
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.setOf(FunctionLibraryType.class);
+    }
 
-    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+    @Override
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
+        if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
+            // Currently we don't try to select libraries to be cleared.
+            // We just purge everything when any library changes.
+            // Libraries should not change often, therefore this should not be a big deal.
+            clearScriptCache();
+        }
+    }
+
+    private CelCompiler createCompiler(ScriptExpressionEvaluationContext context) throws SecurityViolationException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException, SubscriptionComplianceException {
         CelCompilerBuilder builder = CelCompilerFactory.standardCelCompilerBuilder();
         builder.setOptions(celOptions);
         builder.setStandardMacros(CelStandardMacro.STANDARD_MACROS);
@@ -163,11 +192,18 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         return builder.build();
     }
 
-    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private void addCompilerVariables(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         Map<String, TypedValue<?>> variables = prepareScriptVariablesTypedValueMap(context);
         for (var varEntry : variables.entrySet()) {
             builder.addVar(varEntry.getKey(), CelTypeMapper.toCelNullableType(varEntry.getValue()));
         }
+        // Variable nil mimics nil/null literal.
+        // Stock null in CEL does not work well, as it has a special static type (SimpleType.NULL_TYPE).
+        // This means that conditionals (e.g. cond ? 's' : null) fail to compile, due to type mismatch in the branches.
+        // Defining nil as nullable dynamic type works around the problem.
+        builder.addVar(ExpressionConstants.VAR_NIL, CelTypeMapper.NIL_TYPE);
         if (!variables.containsKey(ExpressionConstants.VAR_NOW)) {
             builder.addVar(ExpressionConstants.VAR_NOW, SimpleType.TIMESTAMP);
         }
@@ -247,6 +283,7 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         CelRuntimeBuilder builder = CelRuntimeFactory.standardCelRuntimeBuilder();
         builder.setOptions(celOptions);
         builder.addLibraries(midPointCelExtensionManager.getRuntimeLibraries(context.getExpressionProfile()));
+        builder.setRuntimeEquality(runtimeEquality);
         addFunctionLibraryImplementations(builder, context);
         return builder.build();
     }
@@ -261,9 +298,13 @@ public class MelScriptEvaluator extends AbstractCachingScriptEvaluator<CelRuntim
         }
     }
 
-    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+    private Map<String, ?> prepareVariablesValueMap(ScriptExpressionEvaluationContext context)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, CelTypeMapper::convertVariableValue);
+        // Variable nil mimics nil/null literal.
+        scriptVariableMap.put(ExpressionConstants.VAR_NIL, NullValue.NULL_VALUE);
         if (!scriptVariableMap.containsKey(ExpressionConstants.VAR_NOW)) {
             scriptVariableMap.put(ExpressionConstants.VAR_NOW, CelTypeMapper.toInstant(basicExpressionFunctions.currentDateTime()));
         }

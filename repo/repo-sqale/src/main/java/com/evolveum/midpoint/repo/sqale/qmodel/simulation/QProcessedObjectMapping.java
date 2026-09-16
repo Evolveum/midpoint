@@ -19,7 +19,6 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
-import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.querydsl.core.types.dsl.EnumPath;

@@ -50,11 +50,11 @@
         <!--    <artifactId>repo-api</artifactId>-->
         <!--    <version>${project.version}</version>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
-        <!--    <artifactId>audit-api</artifactId>-->
-        <!--    <version>${project.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
@@ -65,11 +65,11 @@
             <artifactId>repo-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
-        <!--    <artifactId>security-enforcer-api</artifactId>-->
-        <!--    <version>${project.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.midpoint.infra</groupId>-->
         <!--    <artifactId>common</artifactId>-->
@@ -117,10 +117,10 @@
         <!--    <groupId>org.apache.commons</groupId>-->
         <!--    <artifactId>commons-text</artifactId>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>commons-io</groupId>-->
-        <!--    <artifactId>commons-io</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>org.apache.commons</groupId>-->
         <!--    <artifactId>commons-collections4</artifactId>-->
@@ -139,6 +139,10 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
@@ -225,6 +229,13 @@
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-common</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -317,7 +328,15 @@
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

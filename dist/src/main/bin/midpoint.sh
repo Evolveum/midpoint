@@ -202,18 +202,21 @@ fi
 if [ "${MP_ENTRY_POINT:-}" != "" ]; then # /opt/midpoint-dirs-docker-entrypoint
   if [ -e "${MP_ENTRY_POINT}" ]; then
     echo "Processing ${MP_ENTRY_POINT} directory..."
-    for i in $(find "${MP_ENTRY_POINT}" -mindepth 1 -maxdepth 1 -type d); do
+    while IFS= read -r -d '' i; do
       l_name="$(basename "${i}")"
       [ ! -e "${MIDPOINT_HOME}/${l_name}" ] && mkdir -p "${MIDPOINT_HOME}/${l_name}"
-      for s in $(find "${i}" -mindepth 1 -maxdepth 1 -type f -follow -exec basename \{\} \;); do
-        if [ ! -e "${MIDPOINT_HOME}/${l_name}/${s}" -a ! -e "${MIDPOINT_HOME}/${l_name}/${s}.done" ]; then
-          echo "COPY ${i}/${s} => ${MIDPOINT_HOME}/${l_name}/${s}"
-          cp "${i}/${s}" "${MIDPOINT_HOME}/${l_name}/${s}"
+      while IFS= read -r -d '' s; do
+        s_rel="${s#"${i}/"}"
+        s_dir="$(dirname "${s_rel}")"
+        [ "${s_dir}" != "." -a ! -e "${MIDPOINT_HOME}/${l_name}/${s_dir}" ] && mkdir -p "${MIDPOINT_HOME}/${l_name}/${s_dir}"
+        if [ ! -e "${MIDPOINT_HOME}/${l_name}/${s_rel}" -a ! -e "${MIDPOINT_HOME}/${l_name}/${s_rel}.done" ]; then
+          echo "COPY ${s} => ${MIDPOINT_HOME}/${l_name}/${s_rel}"
+          cp "${s}" "${MIDPOINT_HOME}/${l_name}/${s_rel}"
         else
-          echo "SKIP: ${i}/${s}"
+          echo "SKIP: ${s}"
         fi
-      done
-    done
+      done < <(find "${i}" -mindepth 1 -type f -print0)
+    done < <(find "${MP_ENTRY_POINT}" -mindepth 1 -maxdepth 1 -type d -print0)
     echo "- - - - - - - - - - - - - - - - - - - - -"
     unset l_name
   fi

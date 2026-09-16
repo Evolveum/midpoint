@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * @author semancik
@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#synchronize" })
 @ActionDefinitionClass(SynchronizeSynchronizationActionType.class)
-class SynchronizeAction<F extends FocusType> extends BaseClockworkAction<F> {
+class SynchronizeAction<F extends ProjectionHolderType> extends BaseClockworkAction<F> {
 
     SynchronizeAction(@NotNull ActionInstantiationContext<F> ctx) {
         super(ctx);

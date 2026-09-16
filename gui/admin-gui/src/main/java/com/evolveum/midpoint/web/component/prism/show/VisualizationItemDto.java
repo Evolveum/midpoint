@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.util.LocalizationMessageComparator;
 
@@ -153,6 +154,15 @@ public class VisualizationItemDto implements Serializable {
 
     public boolean isDescriptive() {
         return visualizationItem.isDescriptive();
+    }
+
+    /**
+     * Returns path to this item relative to the visualization root path.
+     *
+     * @return the path relative to the visualization root.
+     */
+    public ItemPath getItemRelativePath() {
+        return this.visualizationItem.getSourceRelPath();
     }
 
     @Override

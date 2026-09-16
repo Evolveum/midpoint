@@ -585,12 +585,9 @@
             <right>expression</right>
             <valueExpression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        if (input ==~ /.*S.*/) {
-                            return input
-                        } else {
-                            return null
-                        }
+                        input.reMatches('.*S.*') ? input : null
                     </code>
                 </script>
             </valueExpression>
@@ -601,12 +598,9 @@
             <right>expression</right>
             <valueExpression>
                 <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                     <code>
-                        if (input ==~ /.* .*/) {
-                            return input
-                        } else {
-                            return null
-                        }
+                        input.reMatches('.* .*') ? input : null
                     </code>
                 </script>
             </valueExpression>
@@ -631,6 +625,10 @@
             <left>take</left>
         </default>
     </mergeConfiguration>
+    <expressions>
+        <!-- We are not ready for this yet.
+        <defaultScriptLanguage>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</defaultScriptLanguage> -->
+    </expressions>
     <audit>
         <eventRecording>
             <recordResourceStageChanges>false</recordResourceStageChanges>
@@ -640,6 +638,7 @@
                     <documentation>
                         Causes some TestAudit tests skip and/or modify audit record.
                     </documentation>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                     <code>
                         def deltas = auditRecord.deltas
                         def delta = deltas != null &amp;&amp; deltas.size() == 1 ? deltas[0] : null
@@ -664,9 +663,7 @@
             <property>
                 <name>foo</name>
                 <expression>
-                    <script>
-                        <code>return "test"</code>
-                    </script>
+                    <value>test</value>
                 </expression>
             </property>
             <property>

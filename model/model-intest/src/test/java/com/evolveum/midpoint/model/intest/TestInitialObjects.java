@@ -18,7 +18,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;

@@ -6,18 +6,30 @@
 
 package com.evolveum.midpoint.web.application;
 
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import java.util.concurrent.Future;
 
+import com.evolveum.midpoint.web.security.MidPointApplication;
+
 /**
- * Created by Viliam Repan (lazyman).
+ * Class that represents asynchronous process in GUI.
+ *
+ * @author Viliam Repan (lazyman)
+ * @see AsyncWebProcessManager
+ * @see AsyncWebProcessModel
  */
 public class AsyncWebProcess<T> {
 
-    private String id;
-    private MidPointApplication application;
+    /**
+     * Process identifier
+     */
+    private final String id;
 
+    private final MidPointApplication application;
+
+    /**
+     * Input data used for this process.
+     * It is not used by the process manager, but it can be used by the process itself.
+     */
     private T data;
 
     private Future future;

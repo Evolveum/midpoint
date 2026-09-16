@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.model.intest.password;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestPasswordDefault extends AbstractPasswordTest {
@@ -109,6 +111,28 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
         PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
         assertIncompleteShadowPassword(shadow);
+    }
+
+    /**
+     * No authentication sequence for the account activation channel is configured in this test, so no activation
+     * link can be created - a link without a nonce must never be produced.
+     *
+     * Issue: 5490
+     */
+    @Test
+    public void test980NoAccountActivationLinkWithoutSequence() throws Exception {
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+
+        when();
+        String link = libraryMidpointFunctions.createAccountActivationLink(userJack.asObjectable());
+
+        then();
+        assertThat(link)
+                .as("account activation link")
+                .isNull();
+        assertThat(getUser(USER_JACK_OID).asObjectable().getCredentials().getNonce())
+                .as("nonce in user")
+                .isNull();
     }
 
     @Override

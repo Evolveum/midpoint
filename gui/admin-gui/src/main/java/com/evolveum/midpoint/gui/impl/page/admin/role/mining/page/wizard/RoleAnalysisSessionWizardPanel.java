@@ -11,7 +11,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -195,7 +197,8 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
-                RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
+                var helper = RoleAnalysisSessionWizardPanel.this.getHelper();
+                RoleAnalysisSessionType session = helper.getDetailsModel().getObjectType();
 
                 RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
                 if (analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)) {

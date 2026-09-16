@@ -67,7 +67,7 @@ public class CaseManagerImpl implements CaseManager {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         try {
             workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
         } catch (ObjectAlreadyExistsException e) {
@@ -81,14 +81,14 @@ public class CaseManagerImpl implements CaseManager {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         workItemManager.claimWorkItem(workItemId, task, result);
     }
 
     @Override
     public void releaseWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult result)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         workItemManager.releaseWorkItem(workItemId, task, result);
     }
 
@@ -98,7 +98,7 @@ public class CaseManagerImpl implements CaseManager {
             @NotNull WorkItemDelegationRequestType delegationRequest,
             @NotNull Task task,
             @NotNull OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         workItemManager.delegateWorkItem(
                 workItemId,
                 delegationRequest,
@@ -113,7 +113,7 @@ public class CaseManagerImpl implements CaseManager {
     @Override
     public void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(OPERATION_CANCEL_CASE);
         result.addParam("caseOid", caseOid);
         try {
@@ -129,7 +129,7 @@ public class CaseManagerImpl implements CaseManager {
     @Override
     public void deleteCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(OPERATION_DELETE_CASE);
         result.addParam("caseOid", caseOid);
         try {

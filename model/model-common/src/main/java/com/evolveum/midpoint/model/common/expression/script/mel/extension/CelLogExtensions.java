@@ -145,7 +145,7 @@ public class CelLogExtensions extends AbstractMidPointCelExtensions {
     }
 
     private Object[] processParams(Object param) {
-        if (CelTypeMapper.isCellNull(param)) {
+        if (CelTypeMapper.isCelNull(param)) {
             return new Object[]{};
         }
         if (param instanceof List<?> params) {

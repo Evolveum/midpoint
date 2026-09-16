@@ -12,6 +12,7 @@
             <class name="com.evolveum.midpoint.notifications.impl.TestTextFormatter"/>
             <class name="com.evolveum.midpoint.notifications.impl.TestTransportUtils"/>
             <class name="com.evolveum.midpoint.notifications.impl.NotificationsTest"/>
+            <class name="com.evolveum.midpoint.transport.impl.MailMessageTransportAddressParsingTest"/>
         </classes>
     </test>
 </suite>

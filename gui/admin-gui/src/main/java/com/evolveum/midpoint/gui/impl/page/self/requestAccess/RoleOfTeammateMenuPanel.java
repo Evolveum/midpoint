@@ -143,9 +143,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
             @Override
             public void onClick(AjaxRequestTarget target) {
                 target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
-                target.appendJavaScript("MidPointTheme.restoreFocus();");
                 onManualSelectionPerformed(target);
-
             }
         };
         manual.add(new AttributeModifier("data-component-id", manual::getPageRelativePath));

@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ObjectTypeAttributeMappingWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.association.AssociationAttributeMappingWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;

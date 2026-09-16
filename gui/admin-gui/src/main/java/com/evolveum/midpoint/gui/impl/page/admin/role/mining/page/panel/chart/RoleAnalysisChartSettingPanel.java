@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -20,8 +19,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTablePanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-
-import org.jetbrains.annotations.Nullable;
 
 public class RoleAnalysisChartSettingPanel extends DetailsTablePanel implements Popupable {
 

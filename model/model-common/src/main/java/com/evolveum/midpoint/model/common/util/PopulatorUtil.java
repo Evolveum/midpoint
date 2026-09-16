@@ -26,12 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -57,7 +52,7 @@ public class PopulatorUtil {
             ExpressionEvaluationContext context,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         if (targetContainerDefinition == null) {
             return null;
@@ -82,7 +77,7 @@ public class PopulatorUtil {
             ExpressionEvaluationContext context,
             PrismContainerDefinition<C> targetContainerDefinition,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionType expressionType = populateItem.getExpression();
         if (expressionType == null) {
             LOGGER.warn("No expression in populateObject in assignment expression in {}, "

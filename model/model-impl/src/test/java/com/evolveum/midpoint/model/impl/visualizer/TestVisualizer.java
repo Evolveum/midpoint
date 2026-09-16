@@ -12,14 +12,25 @@ import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
+import static org.testng.AssertJUnit.assertNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.visualizer.output.NameImpl;
+import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
+import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -40,7 +51,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -462,5 +472,80 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         // THEN
         then();
         displayDumpable("visualization", visualization);
+    }
+
+    @Test
+    public void test400FallbackDescriptionHandlerWithDynamicContainer() {
+        given();
+        QName typeName = new QName("http://example.com/xml/ns/test-extension", "TestContainerType");
+        PrismContainerValueImpl<?> value = new PrismContainerValueImpl<>(
+                null, null, null, null, new ComplexTypeDefinitionImpl(typeName));
+
+        assertNull(value.getCompileTimeClass());
+
+        when();
+        VisualizationImpl visualization = applyFallbackDescriptionHandler(value);
+
+        then();
+        assertEquals(
+                "Wrong fallback display name",
+                "TestContainerType",
+                getContainerNameFallback(visualization));
+    }
+
+    @Test
+    public void test410FallbackDescriptionHandlerPrefersCompileTimeClassOverTypeName() {
+        given();
+        ComplexTypeDefinitionImpl typeDefinition = new ComplexTypeDefinitionImpl(
+                new QName("http://example.com/xml/ns/test-extension", "OtherContainerType"));
+        typeDefinition.setCompileTimeClass(ActivationType.class);
+
+        PrismContainerValueImpl<?> value = new PrismContainerValueImpl<>(
+                null, null, null, null, typeDefinition);
+
+        when();
+        VisualizationImpl visualization = applyFallbackDescriptionHandler(value);
+
+        then();
+        assertEquals(
+                "Wrong fallback display name",
+                "ActivationType",
+                getContainerNameFallback(visualization));
+    }
+
+    @Test
+    public void test420FallbackDescriptionHandlerWithNoCompileTimeClassOrTypeName() {
+        given();
+        PrismContainerValueImpl<?> value = new PrismContainerValueImpl<>();
+
+        assertNull(value.getCompileTimeClass());
+        assertNull(value.getTypeName());
+
+        when();
+        VisualizationImpl visualization = applyFallbackDescriptionHandler(value);
+
+        then();
+        assertNull(getContainerNameFallback(visualization));
+    }
+
+    private VisualizationImpl applyFallbackDescriptionHandler(PrismContainerValue<?> value) {
+        Task task = getTestTask();
+
+        VisualizationImpl visualization = new VisualizationImpl(null);
+        visualization.setName(new NameImpl("testContainer"));
+        visualization.setSourceValue(value);
+
+        new FallbackDescriptionHandler().apply(visualization, null, task, task.getResult());
+
+        return visualization;
+    }
+
+    private String getContainerNameFallback(VisualizationImpl visualization) {
+        LocalizableMessage containerName =
+                (LocalizableMessage) ((SingleLocalizableMessage)
+                        visualization.getName().getOverview())
+                        .getArgs()[1];
+
+        return containerName.getFallbackMessage();
     }
 }

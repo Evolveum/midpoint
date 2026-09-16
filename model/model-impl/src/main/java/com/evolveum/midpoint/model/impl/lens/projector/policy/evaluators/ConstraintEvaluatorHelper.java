@@ -94,7 +94,7 @@ public class ConstraintEvaluatorHelper {
             ExpressionType expressionBean, VariablesMap variablesMap,
             String contextDescription, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return LensExpressionUtil.evaluateBoolean(
                 expressionBean, variablesMap, ctx.elementContext, contextDescription, ctx.task, result);
     }
@@ -103,7 +103,7 @@ public class ConstraintEvaluatorHelper {
             ExpressionType expressionBean, VariablesMap variablesMap,
             String contextDescription, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return LensExpressionUtil.evaluateLocalizableMessageType(
                 expressionBean, variablesMap, ctx.elementContext, contextDescription, ctx.task, result);
     }
@@ -114,7 +114,7 @@ public class ConstraintEvaluatorHelper {
             JAXBElement<? extends AbstractPolicyConstraintType> constraintElement,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return LensExpressionUtil.interpretLocalizableMessageTemplate(
                 template, createVariablesMap(rctx, constraintElement), rctx.elementContext, rctx.task, result);
     }
@@ -125,7 +125,7 @@ public class ConstraintEvaluatorHelper {
             LocalizableMessage builtInMessage,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AbstractPolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getPresentation() != null && constraint.getPresentation().getMessage() != null) {
             SingleLocalizableMessageType messageType =
@@ -147,7 +147,7 @@ public class ConstraintEvaluatorHelper {
             LocalizableMessage builtInMessage,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         AbstractPolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getPresentation() != null && constraint.getPresentation().getShortMessage() != null) {
             SingleLocalizableMessageType messageType =

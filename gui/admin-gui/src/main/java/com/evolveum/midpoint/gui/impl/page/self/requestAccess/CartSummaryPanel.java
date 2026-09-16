@@ -17,6 +17,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -301,6 +302,12 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+            }
+
+            @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 submitPerformed(target, customValidityModel);
             }
@@ -519,17 +526,21 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             public void populateItem(Item<ICellPopulator<ShoppingCartItem>> item, String id, IModel<ShoppingCartItem> model) {
                 Fragment fragment = new Fragment(id, ID_TABLE_BUTTON_COLUMN, CartSummaryPanel.this);
 
+                String stableEditButtonId = "cartItemEdit-" + getTargetOid(model.getObject());
+
                 AjaxLink<?> editLink = new AjaxLink<>(ID_EDIT) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", stableEditButtonId));
                         editItemPerformed(target, model);
                     }
                 };
                 editLink.setOutputMarkupId(true);
                 editLink.add(AttributeAppender.append("aria-label",
                         createStringResource("CartSummaryPanel.editButton", getShoppingCartItemName(model.getObject()))));
+                editLink.add(AttributeAppender.append("data-component-id", stableEditButtonId));
                 fragment.add(editLink);
 
                 AjaxLink<?> removeLink = new AjaxLink<>(ID_REMOVE) {
@@ -553,6 +564,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         return columns;
     }
 
+    private String getTargetOid(ShoppingCartItem item) {
+        AssignmentType assignment = item.getAssignment();
+        return assignment != null && assignment.getTargetRef() != null ? assignment.getTargetRef().getOid() : "";
+    }
+
     private void editItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         PageBase page = getPageBase();
 
@@ -562,13 +578,14 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 super.savePerformed(target, model);
-
                 getPageBase().hideMainPopup(target);
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
 
             @Override
             protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 getPageBase().hideMainPopup(target);
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
 
             @Override
@@ -578,8 +595,6 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         };
 
         page.showMainPopup(panel, target);
-        page.getMainPopup().getDialogComponent().add(AttributeAppender.replace("class", "modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"));
-        page.getMainPopup().getDialogComponent().add(AttributeAppender.replace("style", ""));
     }
 
     private void removeItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {

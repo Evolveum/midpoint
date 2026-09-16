@@ -10,12 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.CloneStrategy;
-
-import com.evolveum.midpoint.prism.PrismContainerValue;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -30,11 +26,14 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
+import com.evolveum.midpoint.prism.CloneStrategy;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -85,12 +84,22 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                             PrismContainerWrapper<ConnDevHttpEndpointType> endpointsContainer = objectClassContainer
                                     .get().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
                             // Filter endpoints which contain any of the supported intents for the script.
-                            return endpointsContainer.getValues().stream()
+                            List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> candidates = endpointsContainer.getValues().stream()
                                     .filter(value ->
                                             getEndpointIntents().stream().anyMatch(
                                                 i -> value.getRealValue().getSuggestedUse().contains(i))
                                     )
                                     .toList();
+
+                            // Pre-select the candidate matching the endpoint already confirmed for this
+                            // operation, so a previously saved selection shows up as selected again.
+                            getConfirmedEndpointName().ifPresent(confirmedName ->
+                                    candidates.stream()
+                                            .filter(candidate -> StringUtils.equals(candidate.getRealValue().getName(), confirmedName))
+                                            .findFirst()
+                                            .ifPresent(candidate -> candidate.setSelected(true)));
+
+                            return candidates;
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
@@ -103,12 +112,26 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
         };
     }
 
+    private Optional<String> getConfirmedEndpointName() {
+        try {
+            PrismContainerWrapper<ConnDevHttpEndpointType> container =
+                    objectClassModel.getObject().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
+            return container.getValues().stream()
+                    .map(PrismContainerValueWrapper::getRealValue)
+                    .filter(value -> getEndpointIntents().stream().anyMatch(i -> value.getSuggestedUse().contains(i)))
+                    .map(ConnDevHttpEndpointType::getName)
+                    .findFirst();
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected abstract Collection<ConnDevHttpEndpointIntentType> getEndpointIntents();
 
     private void initLayout() {
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
         IModel<String> radioGroupModel = new IModel<>() {
@@ -159,6 +182,15 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
                 Label uri = new Label(ID_URI, () -> listItem.getModelObject().getRealValue().getUri());
                 uri.setOutputMarkupId(true);
                 listItem.add(uri);
+
+                listItem.add(AttributeAppender.append("style", "cursor: pointer;"));
+                listItem.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        radioGroupModel.setObject(listItem.getModelObject().getRealValue().getName());
+                        target.add(radioGroup);
+                    }
+                });
             }
         };
         panel.setOutputMarkupId(true);
@@ -174,7 +206,7 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
 
     @Override
     public String appendCssToWizard() {
-        return "col-10";
+        return "col-12 col-xl-10 col-xxl-8";
     }
 
     @Override
@@ -193,46 +225,60 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
             PrismContainerWrapper<ConnDevHttpEndpointType> container =
                     objectClassModel.getObject().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
 
-            List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToAdd = valuesModel.getObject()
-                    .stream().filter(PrismContainerValueWrapper::isSelected)
-                    .map(value -> {
+            List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToRemove = container.getValues().stream()
+                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getEndpointIntents()))
+                    .toList();
+
+            if (!valuesToRemove.isEmpty()) {
+                valuesToRemove.forEach(
+                        value -> {
+                            try {
+                                container.remove(value, getDetailsModel().getPageAssignmentHolder());
+                            } catch (SchemaException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+
+                // Persist the removal on its own: adding the new value in the same delta as removing
+                // the old one risks the new value being assigned the CID that only becomes free once
+                // the removal is applied, colliding with it ("Attempt to add a container value with
+                // an id that already exists").
+                OperationResult removeResult = getHelper().onSaveObjectPerformed(target);
+                if (removeResult != null && removeResult.isError()) {
+                    target.add(getFeedback());
+                    return false;
+                }
+            }
+
+            PrismContainerWrapper<ConnDevHttpEndpointType> finalContainer =
+                    objectClassModel.getObject().findContainer(ConnDevObjectClassInfoType.F_ENDPOINT);
+            valuesModel.getObject().stream()
+                    .filter(PrismContainerValueWrapper::isSelected)
+                    .findFirst()
+                    .ifPresent(value -> {
                         try {
                             PrismContainerValue<ConnDevHttpEndpointType> clone =
                                     value.getRealValue().asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
                             clone.removeItem(ConnDevHttpEndpointType.F_SUGGESTED_USE);
-                            //clone.asContainerable().suggestedUse(getEndpointIntents());
+                            clone.asContainerable().getSuggestedUse().addAll(getEndpointIntents());
 
-                            return (PrismContainerValueWrapper<ConnDevHttpEndpointType>) WebPrismUtil.createNewValueWrapper(
-                                    container,
+                            // Attach the clone to the real container (not just its GUI wrapper list) so
+                            // it is part of the delta computed by onSaveObjectPerformed() below -
+                            // otherwise the selection only exists in the wrapper and is lost on reload.
+                            clone.setId(null);
+                            clone.setParent(finalContainer.getItem());
+                            finalContainer.getItem().add(clone);
+
+                            PrismContainerValueWrapper<ConnDevHttpEndpointType> newValueWrapper = WebPrismUtil.createNewValueWrapper(
+                                    finalContainer,
                                     clone,
                                     getPageBase(),
                                     getDetailsModel().createWrapperContext());
-                        } catch (SchemaException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .toList();
-
-            List<PrismContainerValueWrapper<ConnDevHttpEndpointType>> valuesToRemove = container.getValues().stream()
-                    .filter(value -> value.getRealValue().getSuggestedUse().contains(getEndpointIntents()))
-                    .toList();
-            valuesToRemove.forEach(
-                    value -> {
-                        try {
-                            container.remove(value, getDetailsModel().getPageAssignmentHolder());
+                            finalContainer.getValues().add(newValueWrapper);
                         } catch (SchemaException e) {
                             throw new RuntimeException(e);
                         }
                     });
-
-            valuesToAdd.forEach(value -> {
-//                try {
-//                    container.getItem().add(value.getRealValue().asPrismContainerValue());
-                    container.getValues().add(value);
-//                } catch (SchemaException e) {
-//                    throw new RuntimeException(e);
-//                }
-            });
 
         } catch (SchemaException e) {
             throw new RuntimeException(e);
@@ -268,4 +314,9 @@ public abstract class EndpointsConnectorStepPanel extends AbstractWizardStepPane
     }
 
     protected abstract ItemPath getScriptItemName();
+
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
+    }
 }

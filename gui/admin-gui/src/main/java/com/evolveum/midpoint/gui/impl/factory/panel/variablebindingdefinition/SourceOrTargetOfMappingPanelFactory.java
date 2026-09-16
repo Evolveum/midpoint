@@ -7,14 +7,14 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.variablebindingdefinition;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -30,10 +30,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
-import org.wicketstuff.select2.ChoiceProvider;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 @Component
 public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefinitionTypePanelFactory implements Serializable {
@@ -147,8 +148,14 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
         return true;
     }
 
-    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
-        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel);
+    protected List<String> getAvailableVariables(String input,
+            IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageAdminLTE pageBase) {
+        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel){
+            @Override
+            protected boolean showContainerChoices() {
+                return true;
+            }
+        };
         return provider.collectAvailableDefinitions(input);
     }
 

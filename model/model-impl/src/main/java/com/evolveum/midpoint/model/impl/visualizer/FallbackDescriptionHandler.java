@@ -32,6 +32,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import javax.xml.namespace.QName;
 
 @Component
 @Order(Ordered.LOWEST_PRECEDENCE)
@@ -118,7 +119,17 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
             //nothing to do here, the type couldn't be found among object types
         }
 
-        return value.getCompileTimeClass().getSimpleName();
+        Class<?> compileTimeClass = value.getCompileTimeClass();
+        if (compileTimeClass != null) {
+            return compileTimeClass.getSimpleName();
+        }
+
+        QName typeName = value.getTypeName();
+        if (typeName != null) {
+            return typeName.getLocalPart();
+        }
+
+        return null;
     }
 
     private LocalizableMessage getVisualizationDisplayName(Visualization visualization) {

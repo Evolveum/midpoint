@@ -204,8 +204,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         try {
             config = pageBase.getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
             return null;
         }

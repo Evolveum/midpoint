@@ -360,17 +360,13 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    private void assertImportedUserByOid(String userOid, String... resourceOids)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertImportedUserByOid(String userOid, String... resourceOids) throws CommonException {
         PrismObject<UserType> user = getUser(userOid);
         assertNotNull("No user " + userOid, user);
         assertImportedUser(user, resourceOids);
     }
 
-    private void assertImportedUserByUsername(String username, String... resourceOids)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertImportedUserByUsername(String username, String... resourceOids) throws CommonException {
         PrismObject<UserType> user = findUserByUsername(username);
         assertNotNull("No user " + username, user);
         assertImportedUser(user, resourceOids);

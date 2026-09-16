@@ -113,7 +113,7 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
                     }
 
                     private void addVirtualMappings(
-                            List<PrismContainerValueWrapper<MappingType>> target,
+                            List<PrismContainerValueWrapper<MappingType>> result,
                             ItemName sourceItem,
                             MappingDirection direction) {
 
@@ -126,7 +126,13 @@ public class CorrelationExistingMappingTable<P extends Containerable> extends Ba
 
                         PrismContainerWrapper<MappingType> container = model.getObject();
                         if (container != null && container.getValues() != null) {
-                            target.addAll(container.getValues());
+                            List<PrismContainerValueWrapper<MappingType>> values = container.getValues();
+                            values.forEach(value -> {
+                                MappingType mapping = value.getRealValue();
+                                if (mapping != null && mapping.getTarget() != null) {
+                                    result.add(value);
+                                }
+                            });
                         }
                     }
                 };

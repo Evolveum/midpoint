@@ -85,6 +85,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "029-archetype-application.xml",
             SystemObjectsType.ARCHETYPE_APPLICATION.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_MANUAL_CASE = TestObject.classPath(
+            ARCHETYPES, "023-archetype-manual-provisioning-case.xml",
+            SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
+
     //Certification tasks
     TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(
             ARCHETYPES, "520-archetype-task-certification.xml",
@@ -109,6 +113,23 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_REITERATE_CAMPAIGN = TestObject.classPath(
             ARCHETYPES, "538-archetype-task-certification-reiterate-campaign.xml",
             SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value());
+
+    // Smart integration archetypes
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-focus-object-type-statistics.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_FOCUS_OBJECT_TYPE_STATISTICS.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-resource-object-class-statistics.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_CLASS_STATISTICS.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-resource-object-type-statistics.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_RESOURCE_OBJECT_TYPE_STATISTICS.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH = TestObject.classPath(
+            ARCHETYPES, "100-archetype-smart-integration-schema-match.xml",
+            SystemObjectsType.ARCHETYPE_SMART_INTEGRATION_SCHEMA_MATCH.value());
 
     TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
             MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
@@ -193,6 +214,10 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_ITEM_VALUE_CHANGE_NOT_APPLIED = TestObject.classPath(
             MARKS, "746-mark-item-value-change-not-applied.xml",
             SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value());
+
+    TestObject<MarkType> MARK_ITEM_VALUE_FAILED = TestObject.classPath(
+            MARKS, "747-mark-item-value-failed.xml",
+            SystemObjectsType.MARK_ITEM_VALUE_FAILED.value());
 
     TestObject<MarkType> MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED = TestObject.classPath(
             MARKS, "738-mark-projection-resource-object-affected.xml",
@@ -400,6 +425,7 @@ public interface CommonInitialObjects {
                     MARK_ITEM_VALUE_REMOVED,
                     MARK_ITEM_VALUE_NOT_CHANGED,
                     MARK_ITEM_VALUE_CHANGE_NOT_APPLIED,
+                    MARK_ITEM_VALUE_FAILED,
                     MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED,
                     MARK_PROTECTED,
                     MARK_DECOMMISSION_LATER,

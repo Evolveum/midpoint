@@ -256,9 +256,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertPercentCompleteAll(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
     }
 
-    private void checkAllCases(Collection<AccessCertificationCaseType> caseList)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    private void checkAllCases(Collection<AccessCertificationCaseType> caseList) throws CommonException {
         assertEquals("Wrong number of certification cases", 5, caseList.size());
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         checkCaseSanity(caseList, USER_JACK_OID, roleATest2aOid, jack);

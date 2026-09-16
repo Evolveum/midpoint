@@ -6,8 +6,8 @@
 
 package com.evolveum.midpoint.certification.test;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,13 +34,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-certification-test-main.xml" })
@@ -173,9 +168,7 @@ public class TestCertificationNotifications extends AbstractCertificationTest {
     }
 
     private void recordNotDecidedDecision(Collection<AccessCertificationCaseType> certCases, String reviewerOid,
-            Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            Task task, OperationResult result) throws CommonException {
         final Map<Long, List<AccessCertificationWorkItemType>> workItemsToDecide =
                 mapActiveStageWorkItemsWithoutOutcomeToCaseIds(certCases, reviewerOid);
         for (Map.Entry<Long, List<AccessCertificationWorkItemType>> entry : workItemsToDecide.entrySet()) {

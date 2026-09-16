@@ -14,7 +14,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -31,7 +34,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 
@@ -89,7 +93,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     private void executeLocalChanges(CaseType subcase, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
             CommunicationException, PolicyViolationException, ObjectAlreadyExistsException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         CaseType rootCase =
                 repositoryService
                         .getObject(CaseType.class, subcase.getParentRef().getOid(), null, result)
@@ -112,7 +116,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     private void executeAllChanges(CaseType rootCase, RunningTask task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
         LensContext<?> modelContext = lensContextHelper.collectApprovedDeltasToModelContext(rootCase, subcases, task, result);
         executeModelContext(modelContext, rootCase, task, result);
@@ -121,7 +125,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 
     private void executeModelContext(LensContext<?> modelContext, CaseType aCase, RunningTask task, OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (!modelContext.hasAnyPrimaryChange()) {
             LOGGER.trace("No primary changes -- nothing to do here");
             return;

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.notifications.impl.handlers;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,13 +20,14 @@ import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.helpers.*;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+
+import static com.evolveum.midpoint.schema.config.ConfigurationItem.configItem;
 
 /**
  * Handles now-aggregated event type (consisting of pointers to categories, operations, statuses, chained handlers,
@@ -111,7 +114,7 @@ public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerT
             throws SchemaException {
         for (BaseEventHandlerType notifier : notifiers) {
             boolean shouldContinue = eventHandlerRegistry.forwardToHandler(
-                    EventHandlerConfigItem.of(notifier, approximateOrigin),
+                    configItem(notifier, approximateOrigin, BaseEventHandlerConfigItem.class),
                     ctx, result);
             if (!shouldContinue) {
                 return false;

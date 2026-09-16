@@ -14,7 +14,8 @@ import java.time.ZonedDateTime;
 
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
-import static com.evolveum.midpoint.test.AttrName.*;
+import static com.evolveum.midpoint.test.AttrName.icfsName;
+import static com.evolveum.midpoint.test.AttrName.ri;
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 /**

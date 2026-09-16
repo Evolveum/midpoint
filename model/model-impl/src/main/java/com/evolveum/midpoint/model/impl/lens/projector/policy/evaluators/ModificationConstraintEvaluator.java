@@ -56,7 +56,7 @@ public abstract class ModificationConstraintEvaluator<C extends ModificationPoli
     // TODO retrieve localization messages from return (it should be Object then, not Boolean)
     boolean expressionPasses(JAXBElement<C> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return constraintElement.getValue().getExpression() == null
                 || expressionEvaluatesToTrue(constraintElement, ctx, result);
     }
@@ -64,7 +64,7 @@ public abstract class ModificationConstraintEvaluator<C extends ModificationPoli
     private boolean expressionEvaluatesToTrue(JAXBElement<C> constraintElement, PolicyRuleEvaluationContext<?> ctx,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         C constraint = constraintElement.getValue();
         VariablesMap variables = evaluatorHelper.createVariablesMap(ctx, constraintElement);
         String contextDescription = "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")";

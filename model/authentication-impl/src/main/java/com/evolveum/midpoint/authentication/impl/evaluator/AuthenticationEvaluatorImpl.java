@@ -34,6 +34,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Objects;
+
 public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticationContext, A extends Authentication>
         implements AuthenticationEvaluator<T, A> {
 
@@ -46,10 +48,16 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         this.focusProfileService = focusProfileService;
     }
 
-
     @NotNull
     protected <C extends AbstractAuthenticationContext> MidPointPrincipal getAndCheckPrincipal(
             ConnectionEnvironment connEnv, C authCtx, boolean supportActivationCheck) {
+        Object existing = AuthUtil.getMidpointAuthentication().getPrincipal();
+        if (supportsPrincipalReuse()
+                && existing instanceof MidPointPrincipal mp && Objects.equals(mp.getUsername(), authCtx.getUsername())) {
+            // reuse, skip DB load, otherwise we'll end up with multiple principal instances around authentication code
+            return mp;
+        }
+
         ObjectQuery query = authCtx.createFocusQuery();
         String username = authCtx.getUsername();
         if (query == null) {
@@ -94,6 +102,17 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
         return principal;
     }
 
+    /**
+     * Whether the principal instance already present in {@link MidpointAuthentication} may be reused instead of
+     * loading a fresh copy from the repository. Reusing keeps in-memory mutations (failed attempts, lockout state)
+     * consistent across modules. Evaluators that check credentials generated during the very same authentication
+     * sequence (e.g. mail nonce) must override this to {@code false}, otherwise they would work with a stale focus
+     * that does not yet contain the freshly generated credential.
+     */
+    protected boolean supportsPrincipalReuse() {
+        return true;
+    }
+
     private ProfileCompilerOptions createOptionForGettingPrincipal() {
         return ProfileCompilerOptions.createNotCompileGuiAdminConfiguration()
                 .collectAuthorization(true)
@@ -113,7 +132,6 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
     protected void recordModuleAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
         authenticationRecorder.recordModuleAuthenticationAttemptSuccess(principal, connEnv);
     }
-
 
     protected void recordModuleAuthenticationFailure(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
             CredentialPolicyType credentialsPolicy, String reason) {
@@ -135,6 +153,4 @@ public abstract class AuthenticationEvaluatorImpl<T extends AbstractAuthenticati
     protected void auditAuthenticationSuccess(ObjectType object, ConnectionEnvironment connEnv) {
         auditRecorder.auditLoginSuccess(object, connEnv);
     }
-
-
 }

@@ -20,7 +20,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.markup.html.list.LoopItem;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.AbstractRepeater;
 import org.apache.wicket.model.IModel;
 

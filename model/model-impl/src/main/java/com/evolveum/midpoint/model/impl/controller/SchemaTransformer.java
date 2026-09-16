@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataPolicyProcessor;
 import com.evolveum.midpoint.model.impl.controller.transformer.DefinitionAccessProcessor;
@@ -133,7 +134,8 @@ public class SchemaTransformer {
         try {
             return applySchemasAndSecurityToObject(object, options, task, result);
         } catch (IllegalArgumentException | IllegalStateException | SchemaException | ConfigurationException |
-                ObjectNotFoundException | ExpressionEvaluationException | CommunicationException e) {
+                 ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
+                 SubscriptionComplianceException e) {
             LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             result.recordFatalError(e);
             result.close();
@@ -176,7 +178,7 @@ public class SchemaTransformer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         Collection<PrismObject<? extends ObjectType>> roots = ObjectTypeUtil.getRootsForContainerables(values);
 
@@ -206,7 +208,7 @@ public class SchemaTransformer {
             Task task,
             OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (PrismObject<? extends ObjectType> object : objects) {
             assert !object.isImmutable();
             OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT);
@@ -241,7 +243,7 @@ public class SchemaTransformer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
         LOGGER.trace("applySchemasAndSecurityToObject({}) starting", object);
 
         authorizeRawOption(object, options, task, result);
@@ -295,7 +297,7 @@ public class SchemaTransformer {
             Task task,
             OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
         if (options.isRaw()) {
             securityEnforcer.authorize(
                     ModelAuthorizationAction.RAW_OPERATION.getUrl(),
@@ -307,7 +309,7 @@ public class SchemaTransformer {
 
     private <T extends ObjectType> void validateObject(PrismObject<T> object, ParsedGetOperationOptions options) {
         if (InternalsConfig.readEncryptionChecks) {
-            CryptoUtil.checkEncrypted(object);
+            CryptoUtil.checkEncrypted(object, ModelImplUtils.LEGACY_CLEAR_TEXT_PATHS);
         }
         if (InternalsConfig.consistencyChecks) {
             boolean tolerateRaw;
@@ -357,7 +359,7 @@ public class SchemaTransformer {
 
     void applySecurityToLensContext(@NotNull LensContext<? extends ObjectType> context, Task task, OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
         LOGGER.trace("applySecurityToLensContext({}) starting", context);
         OperationResult result = parentResult.createMinorSubresult(OP_APPLY_SECURITY_TO_LENS_CONTEXT);
         try {
@@ -373,7 +375,7 @@ public class SchemaTransformer {
     private <O extends ObjectType> void applySecurityToLensContextUnchecked(
             LensContext<O> context, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
 
         ParsedGetOperationOptions getOptions = ParsedGetOperationOptions.of(
                 ModelExecuteOptions.toGetOperationOptions(context.getOptions()));
@@ -408,7 +410,7 @@ public class SchemaTransformer {
             LensFocusContext<O> focusContext, PrismEntityOpConstraints.ForValueContent readConstraints,
             ParsedGetOperationOptions getOptions, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
         LensFocusContext<O> focusContextClone = focusContext.clone(focusContext.getLensContext());
 
         if (applySecurityToElementContext(focusContextClone, readConstraints, getOptions, task, result)) {
@@ -424,7 +426,7 @@ public class SchemaTransformer {
             Collection<LensProjectionContext> projections, ParsedGetOperationOptions getOptions, Task task,
             OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
         List<LensProjectionContext> securedProjections = new ArrayList<>();
         for (LensProjectionContext projCtx : projections) {
             if (projCtx.getObjectAny() != null) {
@@ -444,7 +446,7 @@ public class SchemaTransformer {
             LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints,
             ParsedGetOperationOptions getOptions, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException {
+            ExpressionEvaluationException, CommunicationException, SubscriptionComplianceException {
 
         PrismObject<O> object = elementContext.getObjectAny();
         authorizeRawOption(object, getOptions, task, result);
@@ -464,7 +466,7 @@ public class SchemaTransformer {
     private <O extends ObjectType> PrismEntityOpConstraints.ForValueContent getLensReadConstraints(
             PrismObject<O> object, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-                    ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return securityEnforcer.compileOperationConstraints(
                 securityEnforcer.getMidPointPrincipal(),
                 object.getValue(),

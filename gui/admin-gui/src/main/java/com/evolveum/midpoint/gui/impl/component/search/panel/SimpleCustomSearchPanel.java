@@ -44,6 +44,9 @@ public abstract class SimpleCustomSearchPanel extends BasePanel<String> {
 
         TextField<String> searchInput = new TextField<>(ID_TEXT_FIELD, getModel());
         searchInput.setOutputMarkupId(true);
+        searchInput.add(AttributeModifier.append(
+                "onkeydown",
+                "if (event.key === 'Enter') { event.preventDefault(); return false; }"));
 
         searchInput.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override

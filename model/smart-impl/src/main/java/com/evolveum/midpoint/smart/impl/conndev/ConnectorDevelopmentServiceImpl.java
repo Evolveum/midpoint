@@ -8,15 +8,20 @@ package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.reports.ReportSupportUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
@@ -24,17 +29,25 @@ import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.smart.impl.StatusInfoImpl;
 import com.evolveum.midpoint.smart.impl.conndev.activity.ConnDevBeans;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
+import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -48,6 +61,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
     @Autowired private ModelService modelService;
+    @Autowired private ClusterExecutionHelper clusterExecutionHelper;
+    @Autowired private SecurityEnforcer securityEnforcer;
 
     private static ConnectorDevelopmentServiceImpl instance;
 
@@ -74,22 +89,43 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         public String submitCreateConnector(Task task, OperationResult result) {
-            return submitTask("Creating editable connector for " + stateObject.getOid(),
+            return submitTask("Creating editable connector for " + connectorNameForTasks(),
                     new WorkDefinitionsType().createConnector(new ConnDevCreateConnectorWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                             .baseTemplateUrl(connectorTemplateFor(stateObject.getConnector().getIntegrationType()))
                     ), task, result);
         }
 
+        public String submitExportConnector(Task task, OperationResult result) {
+            return submitTask("Exporting connector for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().exportConnector(new ConnDevExportConnectorWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
+        public String submitUploadConnector(Task task, OperationResult result) {
+            return submitTask("Uploading connector for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().uploadConnector(new ConnDevUploadConnectorWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         public String submitDiscoverBasicInformation(Task task, OperationResult result) {
-            return submitTask("Discover Basic Information for " + stateObject.getOid(),
+            return submitTask("Discover Basic Information for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverGlobalInformation(new ConnDevDiscoverGlobalInformationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
         }
 
+        public String submitDiscoverConnectivityEndpoint(Task task, OperationResult result) {
+            return submitTask("Discover Connectivity Endpoint for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().discoverConnectivityEndpoint(new ConnDevDiscoverConnectivityEndpointWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
         public String submitDiscoverDocumentation(Task task, OperationResult result) {
-            return submitTask("Discovering documentation for " + stateObject.getOid(),
+            return submitTask("Discovering documentation for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverDocumentation(new ConnDevDiscoverDocumentationWorkDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
@@ -105,7 +141,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
 
         @Override
         public String submitDiscoverObjectClasses(Task task, OperationResult result) {
-            return submitTask("Discovering object classes for for " + stateObject.getOid(),
+            return submitTask("Discovering object classes for for " + connectorNameForTasks(),
                     new WorkDefinitionsType().discoverObjectClassInformation(new ConnDevDiscoverObjectClassInformationDefinitionType()
                             .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
                     ), task, result);
@@ -134,8 +170,8 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         @Deprecated
         @Override
         public String submitDiscoverObjectClassDetails(String objectClass, Task task, OperationResult result) {
-            submitDiscoverObjectClassAttributes(objectClass, task, result);
-            return submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            submitDiscoverObjectClassEndpoints(objectClass, task, result);
+            return submitDiscoverObjectClassAttributes(objectClass, task, result);
         }
 
         @Override
@@ -154,19 +190,36 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public String submitGenerateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
-            return submitGenerateArtifact(artifact, noop -> {},task, result);
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, boolean retry, Task task, OperationResult result) {
+            return submitGenerateArtifact(artifact, noop -> {}, retry, task, result);
         }
 
 
         @Override
-        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, Task task, OperationResult result) {
+        public String submitGenerateArtifact(ConnDevArtifactType artifact, Consumer<ConnDevGenerateArtifactDefinitionType> customizer, boolean retry, Task task, OperationResult result) {
             var definition =  new ConnDevGenerateArtifactDefinitionType()
                     .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    .skipCache(retry)
                     .artifact(artifact.clone());
             customizer.accept(definition);
-            return submitTask("Generating script " + artifact.getFilename(),
+            return submitTask("Generating script " + artifact.getFilename() + " for " + connectorNameForTasks(),
                     new WorkDefinitionsType().generateConnectorArtifact(definition), task, result);
+        }
+
+        @Override
+        public String submitFixObjectClass(
+                String objectClass, List<String> midpointErrors, List<ConnDevArtifactType> currentScripts,
+                boolean retry, Task task, OperationResult result) {
+            var definition = new ConnDevFixObjectClassDefinitionType()
+                    .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    .skipCache(retry)
+                    .objectClass(objectClass);
+            midpointErrors.forEach(definition::midpointError);
+            if (currentScripts != null) {
+                currentScripts.forEach(script -> definition.artifact(script.clone()));
+            }
+            return submitTask("Fixing object class '" + objectClass + "' for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().fixObjectClass(definition), task, result);
         }
 
         @Override
@@ -224,25 +277,44 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
             }
         }
 
+        @Override
+        public void disableArtifact(String filename, Task task, OperationResult result) throws IOException, CommonException {
+            ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .disableArtifact(filename);
+        }
+
+        @Override
+        public ConnDevArtifactValidationResult validateArtifact(ConnDevArtifactType artifact, Task task, OperationResult result) {
+            return ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
+                    .validateArtifact(artifact);
+        }
+
         public void comfirmApplicationInformation(Task task, OperationResult result) {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result).suggestConnectorCoordinates();
         }
 
         @Override
         public List<ConnDevHttpEndpointType> suggestedEndpointsFor(String user, ConnectorDevelopmentArtifacts.KnownArtifactType knownArtifactType) {
-            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
-                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
-
             var use = switch (knownArtifactType.scriptIntent) {
                 case ALL -> ConnDevHttpEndpointIntentType.GET_ALL;
-                default -> throw new IllegalArgumentException();
+                default -> throw new IllegalArgumentException(
+                        "Unsupported artifact type for endpoint suggestion: " + knownArtifactType);
             };
+
+            var obj = stateObject.getApplication().getDetectedSchema().getObjectClass().stream()
+                    .filter(o -> o.getName().equals(user)).findFirst().orElse(null);
+            if (obj == null) {
+                return List.of();
+            }
 
             return obj.getEndpoint().stream().filter(e -> e.getSuggestedUse().contains(use)).toList();
         }
 
         @Override
-        public void resetResourceSchema(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        public void resetResourceSchema(Task task, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+                SubscriptionComplianceException {
             if (stateObject.getTesting() != null && stateObject.getTesting().getTestingResource() != null) {
                 var resource = stateObject.getTesting().getTestingResource();
                 ResourceUtils.deleteSchema(resource.getOid(), modelService, task, result);
@@ -250,14 +322,31 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
         }
 
         @Override
-        public void authenticationSelectionUpdated(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        public void authenticationSelectionUpdated(Task task, OperationResult result)
+                throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+                ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException,
+                SubscriptionComplianceException {
             ConnectorDevelopmentBackend.backendFor(stateObject, task, result)
                     .updateConfigurationOverride();
+        }
+
+        @Override
+        public String submitRefreshSchema(Task task, OperationResult result) {
+            return submitTask("Refreshing schema for " + connectorNameForTasks(),
+                    new WorkDefinitionsType().refreshSchema(new ConnDevRefreshSchemaWorkDefinitionType()
+                            .connectorDevelopmentRef(stateObject.getOid(), ConnectorDevelopmentType.COMPLEX_TYPE)
+                    ), task, result);
+        }
+
+        private String connectorNameForTasks() {
+            return stateObject.getName().getOrig();
         }
     }
 
     private String submitTask(String name, WorkDefinitionsType work, Task task, OperationResult result) {
         try {
+            securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
+
             var oid = modelInteractionService.submit(
                     new ActivityDefinitionType()
                             .work(work),
@@ -267,13 +356,17 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                     task, result);
             return oid;
         } catch (Exception e) {
-            throw new SystemException(e);
+            throw new SystemException("Couldn't submit task '" + name + "'", e);
         }
     }
 
     private String connectorTemplateFor(ConnDevIntegrationType integrationType) {
-        // FIXME: Dispatch to IntegrationType specific handler
-        return ConnDevBeans.get().getFrameworkUrl(new OperationResult("Empty"));
+        var beans = ConnDevBeans.get();
+        var result = new OperationResult("Empty");
+        return switch (integrationType) {
+            case REST, SCIM -> beans.getFrameworkUrl(result);
+            case SQL -> beans.getSqlFrameworkUrl(result);
+        };
     }
 
     private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {
@@ -283,80 +376,162 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 .build();
     }
 
-    private @NotNull TaskType getTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private @NotNull TaskType getTask(String oid, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL, task, result);
         return taskManager
                 .getObject(TaskType.class, oid, taskRetrievalOptions(), result)
                 .asObjectable();
     }
 
     @Override
-    public StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevCreateConnectorResultType> getCreateConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevCreateConnectorResultType.class);
     }
 
     @Override
-    public StatusInfoImpl<ConnDevDiscoverGlobalInformationResultType> getDiscoverBasicInformationStatus(String token, Task testTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfoImpl<ConnDevDiscoverGlobalInformationResultType> getDiscoverBasicInformationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverGlobalInformationResultType.class
                 );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverDocumentationResultType> getDiscoverDocumentationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverDocumentationResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevProcessDocumentationResultType> getProcessDocumentationStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevProcessDocumentationResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevGenerateArtifactResultType> getGenerateArtifactStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevGenerateArtifactResultType> getGenerateArtifactStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevGenerateArtifactResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevFixObjectClassResultType> getFixObjectClassStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token,result),
+                getTask(token, task, result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevFixObjectClassResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverObjectClassInformationResultType> getDiscoverObjectClassInformationStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassInformationResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverObjectClassAttributesResultType> getDiscoverObjectClassAttributesStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassAttributesResultType.class
         );
     }
 
     @Override
-    public StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public StatusInfo<ConnDevDiscoverObjectClassEndpointsResultType> getDiscoverObjectClassEndpointsStatus(String token, Task task, OperationResult result) throws CommonException {
         return new StatusInfoImpl<>(
-                getTask(token, result),
+                getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverObjectClassEndpointsResultType.class
         );
+    }
+
+    @Override
+    public StatusInfo<ConnDevRefreshSchemaResultType> getRefreshSchemaStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
+                ConnDevRefreshSchemaWorkStateType.F_RESULT,
+                ConnDevRefreshSchemaResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevDiscoverConnectivityEndpointResultType> getDiscoverConnectivityEndpointStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
+                ConnDevCreateConnectorWorkStateType.F_RESULT,
+                ConnDevDiscoverConnectivityEndpointResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevExportConnectorResultType> getExportConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
+                ConnDevExportConnectorWorkStateType.F_RESULT,
+                ConnDevExportConnectorResultType.class
+        );
+    }
+
+    @Override
+    public StatusInfo<ConnDevExportConnectorResultType> getUploadConnectorStatus(String token, Task task, OperationResult result) throws CommonException {
+        return new StatusInfoImpl<>(
+                getTask(token, task, result),
+                ConnDevUploadConnectorWorkStateType.F_RESULT,
+                ConnDevExportConnectorResultType.class
+        );
+    }
+
+    @Override
+    public InputStream getExportedConnectorFileStream(String fileName, String nodeOid, Task task, OperationResult result)
+            throws CommonException, IOException {
+        var localFile = new File(ReportSupportUtil.getExportDir(), fileName);
+        if (localFile.exists()) {
+            return FileUtils.openInputStream(localFile);
+        }
+
+        Holder<InputStream> inputStreamHolder = new Holder<>();
+        clusterExecutionHelper.executeWithFallback(nodeOid,
+                (client, node, result1) -> {
+                    client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
+                    client.query(ModelPublicConstants.CLUSTER_REPORT_FILE_FILENAME_PARAMETER, fileName);
+                    client.accept(MediaType.APPLICATION_OCTET_STREAM);
+                    var response = client.get();
+                    var statusInfo = response.getStatusInfo();
+                    if (statusInfo.getFamily() == Response.Status.Family.SUCCESSFUL) {
+                        Object entity = response.getEntity();
+                        if (entity == null || entity instanceof InputStream) {
+                            inputStreamHolder.setValue((InputStream) entity);
+                            // do NOT close the response; input stream will be closed later by the caller(s)
+                        } else {
+                            response.close();
+                        }
+                    } else {
+                        result1.recordFatalError("Could not retrieve exported connector file '" + fileName + "': Got "
+                                + statusInfo.getStatusCode() + ": " + statusInfo.getReasonPhrase());
+                        response.close();
+                    }
+                }, new ClusterExecutionOptions().tryNodesInTransition().skipDefaultAccept(), "get exported connector file", result);
+
+        return inputStreamHolder.getValue();
     }
 }

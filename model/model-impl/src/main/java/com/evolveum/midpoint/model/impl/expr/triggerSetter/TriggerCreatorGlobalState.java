@@ -12,6 +12,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -20,10 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.Cache;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidationDetails;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
  * Global state for optimizing trigger creators for the given midPoint node.
  */
 @Component
-public class TriggerCreatorGlobalState implements Cache {
+public class TriggerCreatorGlobalState implements CacheInvalidationListener, CacheDiagnostics {
 
     private static final Trace LOGGER = TraceManager.getTrace(TriggerCreatorGlobalState.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(TriggerCreatorGlobalState.class.getName() + ".content");
@@ -42,8 +42,8 @@ public class TriggerCreatorGlobalState implements Cache {
 
     private static final long EXPIRATION_INTERVAL = 10000L;
 
-    @Autowired private CacheRegistry cacheRegistry;
-    @Autowired private PrismContext prismContext;
+    @Autowired private CacheDiagnosticsService cacheDiagnosticsService;
+    @Autowired private CacheInvalidationDispatcher cacheInvalidationDispatcher;
 
     private final Map<TriggerHolderSpecification, CreatedTrigger> state = new ConcurrentHashMap<>();
 
@@ -56,13 +56,18 @@ public class TriggerCreatorGlobalState implements Cache {
     }
 
     @Override
-    public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public Collection<CacheInvalidationEventSpecification> getEventSpecifications() {
+        return CacheInvalidationEventSpecification.ALL_AVAILABLE_EVENTS; // TODO narrow the scope
+    }
+
+    @Override
+    public synchronized <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (oid != null) {
             // We are interested in object deletion events; just to take care of situations when an object is deleted and
             // a new object (of the same name) is created immediately.
-            boolean cleanupSpecificEntries = context != null &&
-                    context.getDetails() instanceof RepositoryCacheInvalidationDetails &&
-                    ((RepositoryCacheInvalidationDetails) context.getDetails()).getObject() instanceof DeleteObjectResult;
+            boolean cleanupSpecificEntries = context != null
+                    && context.getDetails() instanceof RepositoryCacheInvalidationDetails details
+                    && details.getResult() instanceof DeleteObjectResult;
 
             // We want to remove expired entries in regular intervals. Invalidation event arrival is quite good approximation.
             // However, there's EXPIRATION_INTERVAL present to avoid going through the entries at each invalidation event.
@@ -117,11 +122,13 @@ public class TriggerCreatorGlobalState implements Cache {
 
     @PostConstruct
     public void register() {
-        cacheRegistry.registerCache(this);
+        cacheDiagnosticsService.registerCache(this);
+        cacheInvalidationDispatcher.registerListener(this);
     }
 
     @PreDestroy
     public void unregister() {
-        cacheRegistry.unregisterCache(this);
+        cacheDiagnosticsService.unregisterCache(this);
+        cacheInvalidationDispatcher.unregisterListener(this);
     }
 }

@@ -67,5 +67,11 @@
             <lockoutDuration>PT15M</lockoutDuration>
             <valuePolicyRef oid="00000000-0000-0000-0000-000000000003"/>
         </password>
+        <otp>
+            <minOccurs>0</minOccurs>
+            <lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
+            <lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
+            <lockoutDuration>PT15M</lockoutDuration>
+        </otp>
     </credentials>
 </securityPolicy>

@@ -9,14 +9,19 @@ package com.evolveum.midpoint.gui.impl.component.wizard.collapse;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class OperationResultCollapsedItem extends CollapsedItem {
+public class OperationResultCollapsedItem extends CollapsedItem<WizardModelWithParentSteps> {
 
     private Map<String, OperationResultWrapper> results = new HashMap<>();
 
@@ -35,8 +40,19 @@ public class OperationResultCollapsedItem extends CollapsedItem {
     }
 
     public void addOperationResult(String panelId, String fixPanelId, OperationResult result) {
+        addOperationResult(panelId, fixPanelId, result, null);
+    }
+
+    public void addOperationResult(String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        addOperationResult(panelId, fixPanelId, result, fixAction, null, null);
+    }
+
+    /** @see OperationResultWrapper#OperationResultWrapper(OperationResult, String, SerializableConsumer, String, String) */
+    public void addOperationResult(
+            String panelId, String fixPanelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction,
+            String fixButtonLabelKey, String fixButtonIcon) {
         removeOperationResult(panelId);
-        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId);
+        OperationResultWrapper resultWrapper = new OperationResultWrapper(result, fixPanelId, fixAction, fixButtonLabelKey, fixButtonIcon);
         results.put(panelId, resultWrapper);
     }
 
@@ -44,6 +60,22 @@ public class OperationResultCollapsedItem extends CollapsedItem {
         if (results.containsKey(panelId)) {
             results.remove(panelId);
         }
+    }
+
+    /** Removes every entry whose panelId starts with {@code prefix} (e.g. {@code "<stepId>."}). */
+    public void removeOperationResultsByPrefix(String prefix) {
+        results.keySet().removeIf(panelId -> panelId.startsWith(prefix));
+    }
+
+    /**
+     * Removes every entry whose fixPanelId is one of {@code fixPanelIds} - e.g. every script step of
+     * one object class, once a bulk fix of that object class has consumed the errors they reported.
+     */
+    public void removeOperationResultsForFixSteps(Collection<String> fixPanelIds) {
+        if (fixPanelIds == null || fixPanelIds.isEmpty()) {
+            return;
+        }
+        results.values().removeIf(wrapper -> fixPanelIds.contains(wrapper.getFixPanelId()));
     }
 
     @Override

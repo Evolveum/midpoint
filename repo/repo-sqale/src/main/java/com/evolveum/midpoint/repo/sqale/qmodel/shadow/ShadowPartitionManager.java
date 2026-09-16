@@ -13,14 +13,15 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeAdminGuiConfigurationType;
-
 import com.google.common.base.Preconditions;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ShadowPartitionManager implements PartitionManager<MShadow> {

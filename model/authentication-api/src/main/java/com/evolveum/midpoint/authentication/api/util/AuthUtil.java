@@ -12,7 +12,6 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.AuthenticationSequenceTypeUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.NotLoggedInException;
@@ -283,7 +282,7 @@ public class AuthUtil {
         }
         return focus.getBehavior().getAuthentication()
                 .stream()
-                .filter(authData -> sequenceId.equals(authData.getSequenceIdentifier()))
+                .filter(authData -> Objects.equals(sequenceId, authData.getSequenceIdentifier()))
                 .findFirst()
                 .orElse(null);
     }
@@ -294,7 +293,7 @@ public class AuthUtil {
         }
         AuthenticationBehavioralDataType authenticationData = focus.getBehavior().getAuthentication()
                 .stream()
-                .filter(authData -> sequenceId.equals(authData.getSequenceIdentifier()))
+                .filter(authData -> Objects.equals(sequenceId, authData.getSequenceIdentifier()))
                 .findFirst()
                 .orElse(null);
 

@@ -6,24 +6,29 @@
 
 package com.evolveum.midpoint.web.application;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.Callable;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * Created by Viliam Repan (lazyman).
+ * Interface that helps with management of asynchrlnous processes in GUI.
+ *
+ * @author Viliam Repan (lazyman)
  */
 public interface AsyncWebProcessManager {
 
+    /**
+     * Create process instance reference.
+     *
+     * @param data Optional input data.
+     */
     <T> AsyncWebProcess<T> createProcess(T data);
 
-    <T> AsyncWebProcess<T> createProcess();
-
-    AsyncWebProcess getProcess(@NotNull String processId);
+    <T> AsyncWebProcess<T> getProcess(@NotNull String processId);
 
     boolean removeProcess(@NotNull String processId);
 
     void submit(@NotNull String processId, Runnable runnable);
 
-    void submit(@NotNull String processId, @NotNull Callable callable);
+    void submit(@NotNull String processId, @NotNull Callable<?> callable);
 }

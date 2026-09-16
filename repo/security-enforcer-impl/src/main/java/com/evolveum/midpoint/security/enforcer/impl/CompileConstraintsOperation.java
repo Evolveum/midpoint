@@ -49,7 +49,7 @@ class CompileConstraintsOperation<O extends ObjectType> extends EnforcerOperatio
 
     @NotNull ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException{
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         argCheck(object != null, "Cannot compile security constraints of null object");
         traceCompileObjectSecurityConstraintStarted(object);
         var objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
@@ -74,7 +74,7 @@ class CompileConstraintsOperation<O extends ObjectType> extends EnforcerOperatio
             @NotNull String[] actionUrls,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         traceCompileValueOperationConstraintsStarted(value, actionUrls);
         var constraints =
                 phase != null ?

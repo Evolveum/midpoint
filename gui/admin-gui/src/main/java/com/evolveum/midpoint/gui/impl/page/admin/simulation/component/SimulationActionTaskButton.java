@@ -6,6 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.component;
 
+import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
+
+import java.io.Serial;
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -18,22 +31,11 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.SplitButtonWithDropdownMenu;
-import com.evolveum.midpoint.web.component.menu.cog.*;
-
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItemWithCount;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serial;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.cases.api.util.QueryUtils.createQueryForObjectTypeSimulationTasks;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
 
 /**
  * Button panel for managing simulation tasks on a resource object type.
@@ -106,13 +108,22 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
                         getExecutionMode()
                 );
 
-                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params){
+                SimulationActionFlow<T> flow = new SimulationActionFlow<>(params) {
                     @Override
                     public void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
                         SimulationActionTaskButton.this.onShowResultProcess(target, task, pageBase);
                     }
+
+                    @Override
+                    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+                        StringResourceModel titleModel = SimulationActionTaskButton.this.getTitleModel(pageBase);
+                        if (titleModel != null) {
+                            return titleModel;
+                        }
+                        return super.getTitleModel(pageBase);
+                    }
                 };
-                if(isSamplingEnabled()){
+                if (isSamplingEnabled()) {
                     flow.enableSampling();
                 }
                 flow.start(target);
@@ -132,6 +143,9 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         return simulationButton;
     }
 
+    protected StringResourceModel getTitleModel(@NotNull PageBase pageBase) {
+        return null;
+    }
 
     protected void onShowResultProcess(AjaxRequestTarget target, TaskType task, PageBase pageBase) {
         ObjectReferenceType simulationResultReference = getSimulationResultReference(task);
@@ -142,7 +156,7 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
         }
     }
 
-    protected boolean isSamplingEnabled(){
+    protected boolean isSamplingEnabled() {
         return false;
     }
 
@@ -217,6 +231,6 @@ public abstract class SimulationActionTaskButton<T> extends BasePanel<ResourceOb
     }
 
     protected String getAdditionalSplitComponentCssClass() {
-        return null;
+        return "";
     }
 }

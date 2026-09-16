@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
@@ -230,7 +231,7 @@ public class ResourceTypeUtil {
     }
 
     // FIXME typeDefBean must be fully expanded!
-    private static ActivationStatusCapabilityType getEffectiveActivationStatusCapability(
+    public static ActivationStatusCapabilityType getEffectiveActivationStatusCapability(
             ResourceType resource, ResourceObjectTypeDefinitionType typeDefinitionBean) {
         ActivationCapabilityType act = getEnabledCapability(resource, typeDefinitionBean, ActivationCapabilityType.class);
         if (act == null || act.getStatus() == null || Boolean.FALSE.equals(act.getStatus().isEnabled())) {

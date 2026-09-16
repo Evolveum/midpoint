@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil.createSituationMappingBadge;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType.MARK_SHADOW_CORRELATION_OWNER_FOUND;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -15,15 +14,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.changes.model.SimulationChangeSummaryDto;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.changes.SimulationChangesPanel;
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -41,17 +33,27 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.ProcessedObjectsProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.changes.SimulationChangesPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.panel.mapping.changes.model.SimulationChangeSummaryDto;
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.impl.DisplayableValueImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -68,12 +70,17 @@ public abstract class MappingProcessedObjectPanel
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private final IModel<List<MarkType>> availableMarksModel;
-    String defaultMarkOidForSearch = MARK_SHADOW_CORRELATION_OWNER_FOUND.value();
+    private static final Trace LOGGER = TraceManager.getTrace(MappingProcessedObjectPanel.class);
 
-    public MappingProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel) {
+    private final IModel<List<MarkType>> availableMarksModel;
+    private final IModel<ItemName> targetItem;
+    String defaultMarkOidForSearch = null;
+
+    public MappingProcessedObjectPanel(String id, IModel<List<MarkType>> availableMarksModel,
+            IModel<ItemName> targetItem) {
         super(id, SimulationResultProcessedObjectType.class);
         this.availableMarksModel = availableMarksModel;
+        this.targetItem = targetItem;
     }
 
     @Override
@@ -86,7 +93,7 @@ public abstract class MappingProcessedObjectPanel
         return super.getAdditionalBoxCssClasses() + " table-td-middle";
     }
 
-    protected String getDefaultMarkOidForSearch() {
+    protected @Nullable String getDefaultMarkOidForSearch() {
         return null;
     }
 
@@ -103,7 +110,7 @@ public abstract class MappingProcessedObjectPanel
     @SuppressWarnings("unchecked")
     protected <T extends Serializable> Search<T> loadSearch(PageStorage storage) {
         Search<T> search = null;
-        if (storage != null && defaultMarkOidForSearch != null && defaultMarkOidForSearch.equals(getDefaultMarkOidForSearch())) {
+        if (storage != null && Objects.equals(defaultMarkOidForSearch, getDefaultMarkOidForSearch())) {
             search = storage.getSearch();
         }
 
@@ -112,6 +119,12 @@ public abstract class MappingProcessedObjectPanel
         }
         return search;
     }
+
+    @Override
+    protected String getStorageKey() {
+        return UserProfileStorage.TableId.PAGE_SIMULATION_RESULT_MAPPING_PROCESSED_OBJECTS.name();
+    }
+
 
     private List<DisplayableValue<String>> createSearchValuesForAvailableMarks() {
         return availableMarksModel.getObject().stream()
@@ -209,12 +222,9 @@ public abstract class MappingProcessedObjectPanel
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 String resultOid = getSimulationResultOid();
-                //TODO  Inbound mapping simulation has no focus record id, in case of outbound mapping simulation it is always set.
                 return getPrismContext().queryFor(SimulationResultProcessedObjectType.class)
                         .ownedBy(SimulationResultType.class, SimulationResultType.F_PROCESSED_OBJECT)
                         .id(resultOid)
-                        .and()
-                        .item(SimulationResultProcessedObjectType.F_FOCUS_RECORD_ID).isNull()
                         .build();
             }
 
@@ -251,7 +261,6 @@ public abstract class MappingProcessedObjectPanel
                 BadgeListPanel statusPanel =
                         new BadgeListPanel(componentId, () -> Collections.singletonList(badge));
                 statusPanel.add(AttributeModifier.append("class", "font-weight-semibold"));
-                statusPanel.add(AttributeModifier.append("style", "font-size:12px"));
                 cellItem.add(statusPanel);
             }
 
@@ -285,7 +294,7 @@ public abstract class MappingProcessedObjectPanel
                         }
 
                         for (VisualizationDto visualization : visualizations) {
-                            rv.add(new SimulationChangeSummaryDto(visualization));
+                            rv.add(new SimulationChangeSummaryDto(visualization, targetItem.getObject()));
                         }
 
                         return rv;

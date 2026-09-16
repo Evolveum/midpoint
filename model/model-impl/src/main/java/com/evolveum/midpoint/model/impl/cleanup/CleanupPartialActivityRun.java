@@ -13,14 +13,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.*;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus.PERMANENT_ERROR;
 
 /**
  * Activity execution for an elementary cleanup part.

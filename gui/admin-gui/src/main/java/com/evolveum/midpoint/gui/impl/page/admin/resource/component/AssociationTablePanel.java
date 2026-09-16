@@ -52,13 +52,12 @@ import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemBuilder;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AssociationTablePanel
         extends MultiSelectContainerActionTileTablePanel<
@@ -153,7 +152,7 @@ public abstract class AssociationTablePanel
     @Override
     protected MultivalueContainerListDataProvider<ShadowAssociationTypeDefinitionType> createDataProvider() {
         var dto = getSuggestionsModelDto();
-        return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
+        return new StatusAwareDataProvider<>(this, Model.of(), dto, AssociationsSuggestionType.class, false);
     }
 
     @Override
@@ -220,6 +219,22 @@ public abstract class AssociationTablePanel
             }
 
             @Override
+            public @NotNull List<InlineMenuItem> getInlineMenuItems() {
+                List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems();
+                inlineMenuItems.add(createDeleteItemMenu());
+                return inlineMenuItems;
+            }
+
+            private InlineMenuItem createDeleteItemMenu() {
+                return InlineMenuItemBuilder.create()
+                        .icon("fa fa-trash text-danger")
+                        .additionalCssClass("text-danger")
+                        .label(createStringResource("pageAdminFocus.button.delete"))
+                        .action(createDeleteColumnAction())
+                        .buildInlineMenu();
+            }
+
+            @Override
             public String getAdditionalBoxCssClasses() {
                 return "table-td-middle m-0";
             }
@@ -264,7 +279,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-3 text-left";
+                        return "col-3 text-start";
                     }
                 });
 
@@ -325,7 +340,7 @@ public abstract class AssociationTablePanel
 
                     @Override
                     public String getCssClass() {
-                        return "col-2 text-right text-nowrap";
+                        return "col-2 text-end text-nowrap";
                     }
                 });
 
@@ -335,7 +350,6 @@ public abstract class AssociationTablePanel
             @Override
             protected Component createHeader(String headerId) {
                 Fragment f = createHeaderFragment(headerId);
-                f.add(AttributeModifier.replace("class", "card-header"));
                 return f;
             }
 
@@ -441,13 +455,12 @@ public abstract class AssociationTablePanel
             @Override
             public void onClick(@NotNull AjaxRequestTarget target) {
                 performAcceptOperationAction(target, object);
-                refreshAndDetach(target);
             }
         };
 
         accept.setOutputMarkupId(true);
         accept.showTitleAsLabel(true);
-        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary mr-2"));
+        accept.add(AttributeModifier.append("class", "btn btn-sm btn-outline-primary me-2"));
         return accept;
     }
 
@@ -492,7 +505,7 @@ public abstract class AssociationTablePanel
         };
 
         tag.setOutputMarkupId(true);
-        tag.add(AttributeModifier.replace("class", "badge badge-blue badge-opaque d-inline-flex flex-nowrap")); //system-badge
+        tag.add(AttributeModifier.replace("class", "badge text-bg-blue opaque d-inline-flex flex-nowrap")); //system-badge
         return tag;
     }
 
@@ -546,7 +559,7 @@ public abstract class AssociationTablePanel
 
         button.setOutputMarkupId(true);
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.replace("class", "ml-2 px-2 btn " + cssClass));
+        button.add(AttributeModifier.replace("class", "ms-2 px-2 btn " + cssClass));
         button.add(new VisibleBehaviour(() -> getSwitchToggleModel().getObject().equals(Boolean.TRUE) && !displayNoValuePanel()
                 && getStatusAwareDataProvider().getPageSuggestionCount() > 1));
         return button;

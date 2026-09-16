@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.function.Supplier;
 
 import static com.evolveum.midpoint.repo.common.expression.ExpressionUtil.resolveReference;
@@ -112,7 +110,7 @@ class PathExpressionResolver {
      * Main entry point.
      */
     TypedValue<?> resolve(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         TypedValue<?> root;
         String topVarDesc;
         if (variableName != null) {
@@ -196,7 +194,7 @@ class PathExpressionResolver {
     private TypedValue<?> determineTypedValue(PrismContainer<?> rootContainer, boolean objectAlreadyFetched,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Object value;
         PartiallyResolvedItem<PrismValue, ItemDefinition<?>> partiallyResolvedItem = rootContainer.findPartial(relativePath);
         if (partiallyResolvedItem == null) {

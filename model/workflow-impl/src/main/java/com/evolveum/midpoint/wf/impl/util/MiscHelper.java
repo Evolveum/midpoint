@@ -53,7 +53,7 @@ public class MiscHelper {
     }
 
     public LensContext<?> getModelContext(CaseType aCase, Task task, OperationResult result) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LensContextType modelContextBean = aCase.getModelContext();
         if (modelContextBean != null) {
             return LensContext.fromLensContextBean(modelContextBean, task, result);

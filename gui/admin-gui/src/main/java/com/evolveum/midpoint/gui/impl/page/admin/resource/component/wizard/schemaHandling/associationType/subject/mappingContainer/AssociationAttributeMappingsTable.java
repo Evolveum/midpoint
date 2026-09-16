@@ -17,10 +17,9 @@ import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoiceColumnPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.SmartMappingTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.table.SmartMappingTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -38,18 +37,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createNewVirtualMappingValue;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUtils.createVirtualMappingContainerModel;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundAttributeMappingsTable.getMappingUsedIconColumn;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsType.F_MAPPING;
 
@@ -63,7 +61,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
             @NotNull IModel<MappingDirection> mappingDirection,
             @NotNull IModel<Boolean> suggestionToggleModel,
             @NotNull IModel<PrismContainerValueWrapper<C>> refAttributeDefValue,
-            @Nullable String resourceOid) {
+            @NotNull String resourceOid) {
         super(id, mappingDirection, suggestionToggleModel, refAttributeDefValue, resourceOid);
     }
 
@@ -164,7 +162,8 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     }
 
     @Override
-    protected @Nullable PrismContainerValueWrapper<MappingType> createNewValue(
+    @Nullable
+    public PrismContainerValueWrapper<MappingType> createNewValue(
             PrismContainerValue<MappingType> oldMappingValue,
             AjaxRequestTarget target) {
 
@@ -204,7 +203,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                         ? AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF
                         : AssociationConstructionExpressionEvaluatorType.F_ATTRIBUTE;
 
-        PrismContainerValueWrapper<MappingType> newVirtualMappingValue = createNewVirtualMappingValue(
+        createNewVirtualMappingValue(
                 oldMappingValue,
                 getValueModel(),
                 associationType,
@@ -290,11 +289,13 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     protected abstract boolean isAttributeVisible();
 
     @Override
-    protected ISortableDataProvider<PrismContainerValueWrapper<MappingType>, String> createDataProvider() {
-        return new MultivalueContainerListDataProvider<>(
-                this,
-                Model.of(), //TODO search
-                new PropertyModel<>(getContainerModel(), "values"));
+    protected boolean isGroupedSuggestion() {
+        return false;
+    }
+
+    @Override
+    protected boolean isAssociationMappingTable() {
+        return true;
     }
 
     protected abstract boolean isInboundRelated();
@@ -311,6 +312,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     protected boolean isAttributeRefMapping(@NotNull PrismContainerValue<MappingType> row) {
         return !row.getPath().containsNameExactly(AssociationConstructionExpressionEvaluatorType.F_OBJECT_REF);
     }
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected @NotNull List<IColumn<PrismContainerValueWrapper<MappingType>, String>> getColumns() {
@@ -336,7 +338,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -352,7 +354,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
             @Override
             public String getCssClass() {
-                return "px-0 tile-column-icon";
+                return "col-auto px-0 tile-column-icon";
             }
         });
 
@@ -363,7 +365,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col header-border-right";
+                return "col header-border-end";
             }
 
             @Override
@@ -385,7 +387,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
 
         });
@@ -397,7 +399,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-2 header-border-right";
+                return "col-2 header-border-end";
             }
         });
 
@@ -504,7 +506,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
 
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         } else {
@@ -515,7 +517,7 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
                     getPageBase()) {
                 @Override
                 public String getCssClass() {
-                    return "col-2 header-border-right";
+                    return "col-2 header-border-end";
                 }
             });
         }
@@ -539,11 +541,6 @@ public abstract class AssociationAttributeMappingsTable<C extends Containerable>
     @Override
     protected boolean isSimulationSupported() {
         return false;
-    }
-
-    @Override
-    protected String getNewObjectButtonCssClass() {
-        return "btn btn-outline-primary";
     }
 
 }

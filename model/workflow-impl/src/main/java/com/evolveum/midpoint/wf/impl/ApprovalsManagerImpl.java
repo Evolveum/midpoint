@@ -18,7 +18,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
 import com.evolveum.midpoint.wf.api.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaExecutionInformation");
         try {
             return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(caseOid, task, result);
@@ -63,7 +64,7 @@ public class ApprovalsManagerImpl implements ApprovalsManager {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaPreview");
         try {
             return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, task, result);

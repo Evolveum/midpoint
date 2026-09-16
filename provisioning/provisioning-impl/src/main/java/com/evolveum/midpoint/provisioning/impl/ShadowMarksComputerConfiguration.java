@@ -43,7 +43,7 @@ public class ShadowMarksComputerConfiguration {
 
     public static ShadowMarksComputerConfiguration create(ProvisioningContext ctx, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         FilterExpressionEvaluator evaluator = (rawFilter, lResult) -> {
             var systemConfiguration = CommonBeans.get().systemObjectCache.getSystemConfiguration(lResult);
             var variables = new VariablesMap();

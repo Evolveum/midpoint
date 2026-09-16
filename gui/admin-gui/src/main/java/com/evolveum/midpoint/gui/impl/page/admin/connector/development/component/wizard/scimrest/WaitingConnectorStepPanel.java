@@ -6,40 +6,40 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lskublik
@@ -57,6 +57,15 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     private LoadableModel<SmartGeneratingDto> statusModel;
     private LoadableModel<String> tokenModel;
     private boolean isReloaded = false;
+    private String restartedTaskToken;
+
+    /**
+     * Object class name {@link #tokenModel}/{@link #statusModel} were last computed for.
+     * Step panel instances are reused by the wizard across different object classes, so
+     * a stale cached token/status has to be invalidated whenever the object class we are
+     * now tracking has changed.
+     */
+    private String tokenModelObjectClassName;
 
     public WaitingConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
         super(helper);
@@ -70,6 +79,29 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         return isReloaded;
     }
 
+    /**
+     * Invalidates {@link #tokenModel} and {@link #statusModel} if the object class they were
+     * computed for no longer matches the current one (i.e. this reused panel instance has
+     * moved on to a different object class).
+     */
+    private void ensureFreshForCurrentObjectClass() {
+        String currentObjectClassName;
+        try {
+            currentObjectClassName = getObjectClassName();
+        } catch (Exception e) {
+            currentObjectClassName = null;
+        }
+        if (tokenModel != null && tokenModel.isLoaded() && !StringUtils.equals(tokenModelObjectClassName, currentObjectClassName)) {
+            tokenModel.reset();
+            if (statusModel != null) {
+                statusModel.reset();
+            }
+            isReloaded = false;
+            restartedTaskToken = null;
+        }
+        tokenModelObjectClassName = currentObjectClassName;
+    }
+
     @Override
     public void init(WizardModel wizard) {
         super.init(wizard);
@@ -78,7 +110,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
             @Override
             protected String load() {
                 if (isReloaded) {
-                    return null;
+                    return restartedTaskToken;
                 }
 
                 try {
@@ -124,6 +156,24 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         initLayout();
     }
 
+    protected void resetToken() {
+        tokenModel.reset();
+    }
+
+    /**
+     * Resets the panel so that a new background task is submitted instead of reusing
+     * the result of the previous one.
+     */
+    public void restartTask() {
+        restartedTaskToken = null;
+        resetToken();
+        if (getStatusModel() != null) {
+            getStatusModel().detach();
+        }
+        markAsReloaded();
+        addOrReplace(createWaitingPanel());
+    }
+
     private void createStatusModel() {
         statusModel = new LoadableModel<>() {
             @Override
@@ -133,7 +183,10 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                 OperationResult result = task.getResult();
 
                 if (StringUtils.isEmpty(tokenModel.getObject())) {
-                    tokenModel.setObject(getNewTaskToken(task, result));
+                    tokenModel.setObject(getNewTaskToken(task, result, isReloaded));
+                    if (isReloaded) {
+                        restartedTaskToken = tokenModel.getObject();
+                    }
                 }
                 Optional.ofNullable(getKeyForStoringToken()).ifPresent(key -> getHelper().putVariable(key, tokenModel.getObject()));
 
@@ -145,7 +198,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
                             Task task = app.createSimpleTask(OP_DETERMINE_STATUS);
                             OperationResult result = task.getResult();
                             return obtainResult(tokenModel.getObject(), task, result);
-                        } catch (SchemaException|ObjectNotFoundException e) {
+                        } catch (CommonException e) {
                             throw new RuntimeException(e);
                         }
                     }
@@ -178,14 +231,15 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         return null;
     };
 
-    protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    protected abstract StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException;
 
-    protected abstract String getNewTaskToken(Task task, OperationResult result);
+    protected abstract String getNewTaskToken(Task task, OperationResult result, boolean regenerate);
 
     private void initLayout() {
         getTextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
         getSubtextLabel().add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-3 gap-2 wizard-actions-strip col-12"));
+        getButtonContainer().add(AttributeAppender.append("class", isOnlyChildCentered() ? " only-child-centered" : ""));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
         SmartGeneratingPanel waitingPanel = createWaitingPanel();
@@ -242,6 +296,11 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         };
     }
 
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
+    }
+
     protected @NotNull Model<String> getIconModel() {
         return Model.of("fa fa-search");
     }
@@ -264,6 +323,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
     @Override
     public IModel<Boolean> isStepVisible() {
         return () -> {
+            ensureFreshForCurrentObjectClass();
             if (statusModel == null || !statusModel.isLoaded()) {
                 return !isCompleted();
             }
@@ -284,6 +344,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
         getDetailsModel().reloadPrismObjectModel(
                 WebModelServiceUtils.loadObject(ConnectorDevelopmentType.class, oid, getPageBase(), task, task.getResult()));
         isReloaded = false;
+        restartedTaskToken = null;
         return super.onNextPerformed(target);
     }
 
@@ -307,6 +368,7 @@ public abstract class WaitingConnectorStepPanel extends AbstractWizardStepPanel<
 
     @Override
     public boolean isCompleted() {
+        ensureFreshForCurrentObjectClass();
         String token = tokenModel.getObject();
         if (StringUtils.isEmpty(token)) {
             return false;

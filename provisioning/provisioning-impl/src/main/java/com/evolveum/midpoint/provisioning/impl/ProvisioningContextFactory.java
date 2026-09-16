@@ -75,7 +75,8 @@ public class ProvisioningContextFactory {
             @NotNull ResourceShadowCoordinates coords,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         ResourceType resource = getResource(coords.getResourceOid(), task, result);
         return new ProvisioningContext(
                 task,
@@ -102,7 +103,8 @@ public class ProvisioningContextFactory {
             @NotNull ProvisioningOperationContext context,
             @NotNull Task task,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         ResourceType resource = getResource(coords.getResourceOid(), task, result);
         ScopedDefinition scopedDefinition = createScopedDefinitionForBulkOperation(coords, resource);
@@ -192,7 +194,7 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         return createForShadow(shadow.asObjectable(), task, result);
     }
 
@@ -206,7 +208,7 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceType resource = getResource(shadow, task, result);
         return new ProvisioningContext(
                 task,
@@ -245,7 +247,7 @@ public class ProvisioningContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceType resource = getResource(shadow, task, result);
         return new ProvisioningContext(
                 task,
@@ -298,14 +300,16 @@ public class ProvisioningContextFactory {
     }
 
     public @NotNull ResourceType getResource(ShadowType shadow, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
+            SubscriptionComplianceException {
         return getResource(
                 ShadowUtil.getResourceOidRequired(shadow),
                 task, result);
     }
 
     public @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
+            SubscriptionComplianceException {
         return resourceManager.getCompletedResource(resourceOid, GetOperationOptions.createReadOnly(), task, result);
     }
 

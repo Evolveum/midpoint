@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.impl.component.input.range.MappingRangePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -49,8 +51,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<AssignmentType> {
 
+    @Serial private static final long serialVersionUID = 1L;
+
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsDetailsPanel.class);
-    private boolean isEntitledAssignment;
+    private final boolean isEntitledAssignment;
 
     public AssignmentsDetailsPanel(String id, IModel<PrismContainerValueWrapper<AssignmentType>> model, boolean isEntitledAssignment) {
         super(id, model, !isEntitledAssignment);
@@ -92,11 +96,15 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
         tabs.add(createActivationTab());
         tabs.add(createConditionTab());
+        if (isInducement()) {
+            tabs.add(createOrderConstraintTab());
+        }
         return tabs;
     }
 
     private PanelTab createFocusMappingsTab() {
         return new PanelTab(createStringResource("AssignmentType.focusMappings")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -104,6 +112,8 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                         panelId,
                         PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_FOCUS_MAPPINGS),
                         null){
+                    @Serial private static final long serialVersionUID = 1L;
+
                     @Override
                     public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<MappingType>> rowModel, List<PrismContainerValueWrapper<MappingType>> listItems) {
                         showDetailsPanel(target, rowModel, listItems);
@@ -112,9 +122,25 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
                     @Override
                     protected WebMarkupContainer getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<MappingType>> item) {
                         return new MultivalueContainerDetailsPanel<>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+                            @Serial private static final long serialVersionUID = 1L;
+
                             @Override
                             protected DisplayNamePanel<MappingType> createDisplayNamePanel(String displayNamePanelId) {
                                 return new DisplayNamePanel<>(displayNamePanelId, Model.of(item.getModelObject().getRealValue()));
+                            }
+
+                            @Override
+                            protected @NotNull List<ITab> createTabs() {
+                                List<ITab> mappingTabs = super.createTabs();
+                                mappingTabs.add(new PanelTab(createStringResource("MappingRangePanel.range")) {
+                                    @Serial private static final long serialVersionUID = 1L;
+
+                                    @Override
+                                    public WebMarkupContainer createPanel(String panelId) {
+                                        return new MappingRangePanel(panelId, getModel());
+                                    }
+                                });
+                                return mappingTabs;
                             }
                         };
                     }
@@ -125,15 +151,32 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private PanelTab getConstructionAssociationPanel() {
         return new PanelTab(createStringResource("AssignmentPanel.inducedEntitlements")) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONSTRUCTION);
+                IModel<PrismContainerWrapper<ConstructionType>> constructionModel =
+                        PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONSTRUCTION);
                 ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(panelId, constructionModel);
                 constructionDetailsPanel.setOutputMarkupId(true);
                 return constructionDetailsPanel;
             }
         };
     }
+
+    private PanelTab createOrderConstraintTab() {
+        return new PanelTab(createStringResource("AssignmentType.orderConstraint")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                IModel<PrismContainerWrapper<OrderConstraintsType>> orderConstraintModel =
+                        PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_ORDER_CONSTRAINT);
+                return new SingleContainerPanel<>(panelId, orderConstraintModel, OrderConstraintsType.COMPLEX_TYPE);
+            }
+        };
+    }
+
     @Override
     protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) {
         return getContainerVisibility(itemWrapper);
@@ -148,8 +191,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
     protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
         IModel<AssignmentType> displayNameModel = getDisplayModel(getModelObject().getRealValue());
         return new DisplayNamePanel<>(displayNamePanelId, displayNameModel) {
-
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected QName getRelation() {
@@ -254,6 +296,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private PanelTab createTabs(String titleKey, ItemPath path, QName type) {
         return new PanelTab(createStringResource(titleKey)) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -266,6 +309,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
         List<PanelTab> constructionTabs = new ArrayList<>();
 
         constructionTabs.add(new PanelTab(createStringResource("AssignmentType.construction")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -275,6 +319,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
         if (isInducement()) {
             constructionTabs.add(new PanelTab(createStringResource("AssignmentDetailsPanel.construction.attribute")) {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
@@ -283,6 +328,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
             });
 
             constructionTabs.add(new PanelTab(createStringResource("AssignmentDetailsPanel.construction.association")) {
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
@@ -300,10 +346,13 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private PanelTab createActivationTab() {
         return new PanelTab(createStringResource("AssignmentType.activation")) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new SingleContainerPanel<>(panelId,
                         PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_ACTIVATION), ActivationType.COMPLEX_TYPE) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
@@ -333,10 +382,12 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
 
     private PanelTab createConditionTab() {
         return new PanelTab(createStringResource("AssignmentType.condition")) {
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new SingleContainerPanel<>(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONDITION), MappingType.COMPLEX_TYPE) {
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {

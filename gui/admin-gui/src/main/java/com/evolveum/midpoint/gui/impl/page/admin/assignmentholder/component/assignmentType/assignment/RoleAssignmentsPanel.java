@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -46,5 +47,9 @@ public class RoleAssignmentsPanel<AH extends AssignmentHolderType> extends Abstr
     @Override
     protected QName getAssignmentType() {
         return RoleType.COMPLEX_TYPE;
+    }
+
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addAssignmentPanelRule(panelType, limit, RoleType.COMPLEX_TYPE);
     }
 }

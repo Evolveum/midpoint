@@ -27,7 +27,9 @@ import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.util.Resource;
 
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;

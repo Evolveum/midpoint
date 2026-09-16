@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.util.SmartMetadataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -19,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Manages a collection of attribute mapping candidates, handling duplicate detection
  * and quality-based selection.
+ *
  * Multiple suggestions per target are allowed if they differ in source or script.
  * System-provided mappings (heuristics) are preferred over AI when quality is equal.
  */
@@ -29,28 +33,33 @@ class AttributeMappingCandidateSet {
     private final List<Candidate> candidates = new ArrayList<>();
 
     /** Target paths that already have mappings or are accepted as suggestions; proposals for these are skipped. */
-    private final List<ItemPath> excludedMappingPaths;
+    private final PathSet excludedTargetPaths;
 
-    AttributeMappingCandidateSet(Collection<ItemPath> excludedMappingPaths) {
-        this.excludedMappingPaths = excludedMappingPaths == null ? List.of() : List.copyOf(excludedMappingPaths);
+    AttributeMappingCandidateSet(PathSet excludedTargetPaths) {
+        this.excludedTargetPaths = excludedTargetPaths;
     }
 
     /**
      * Proposes a new mapping candidate.
+     *
      * Deduplication logic:
+     *
      * - Among suggestions: Based on triple (source, target, script) where script is null for AS-IS mappings
      * - Against existing mappings: Based on target path only
+     *
      * Filtering logic:
+     *
      * - New data scenario (quality = null): Keep ALL mappings
      * - Existing data scenario (quality != null): Keep all above threshold (0.4)
+     *
      * When duplicates exist, the better quality candidate is kept.
      * System-provided mappings are preferred over AI when quality is equal.
      */
-    void propose(AttributeMappingsSuggestionType suggestion) {
+    synchronized void propose(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
 
         // Deduplicate against existing mappings by target path only
-        if (excludedMappingPaths.stream().anyMatch(mappingContext.targetPath()::equivalent)) {
+        if (excludedTargetPaths.contains(mappingContext.targetPath())) {
             return;
         }
 
@@ -83,12 +92,19 @@ class AttributeMappingCandidateSet {
         candidates.add(new Candidate(mappingContext, suggestion));
     }
 
-    // FIXME: Gartner hack to suggest uid-into-name mapping, even though data doesn't match
-    void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
+    /**
+     * Propose a "system" mapping.
+     *
+     * System mappings should be curated domain knowledge, not AI guesses, so they should always be suggested when
+     * schema is detected. For this reason, they are not filtered on the quality based on the resource/midpoint data.
+     *
+     * @param suggestion The suggestion provided by the "system" (us).
+     */
+    synchronized void proposeSystemMapping(AttributeMappingsSuggestionType suggestion) {
         var mappingContext = MappingContext.extract(suggestion);
 
         // Deduplicate against existing mappings by target path only
-        if (excludedMappingPaths.stream().anyMatch(mappingContext.targetPath()::equivalent)) {
+        if (excludedTargetPaths.contains(mappingContext.targetPath())) {
             return;
         }
 
@@ -101,7 +117,7 @@ class AttributeMappingCandidateSet {
      * Results are grouped by target path, then sorted by quality (descending) within each group,
      * with system-provided preferred over AI when quality is equal.
      */
-    List<AttributeMappingsSuggestionType> best() {
+    synchronized List<AttributeMappingsSuggestionType> best() {
         return candidates.stream()
                 .sorted(this::compareByTargetThenQuality)
                 .map(Candidate::suggestion)
@@ -145,7 +161,8 @@ class AttributeMappingCandidateSet {
     private record MappingContext(ItemPath targetPath, ItemPath sourcePath, @Nullable String script) {
 
         boolean isDuplicateOf(MappingContext other) {
-            return this.targetPath.equivalent(other.targetPath) && this.sourcePath.equivalent(other.sourcePath)
+            return this.targetPath.equivalent(other.targetPath)
+                    && this.sourcePath.equivalent(other.sourcePath)
                     && (this.script != null && this.script.equals(other.script) || this.script == null && other.script == null);
         }
 

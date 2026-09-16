@@ -16,7 +16,6 @@ import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
 

@@ -73,15 +73,15 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         propertiesLabel.setOutputMarkupId(true);
         add(propertiesLabel);
 
-        PrismContainerValueWrapper<C> model = getModel().getObject();
-        if (!isShowEmptyButtonVisible()) {
-            model.setShowEmpty(true);
+        PrismContainerValueWrapper<C> modelObject = getModel().getObject();
+        if (modelObject != null && !isShowEmptyButtonVisible()) {
+            modelObject.setShowEmpty(true);
         }
 
         IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
 
         WebMarkupContainer formContainer = new WebMarkupContainer(ID_FORM_CONTAINER);
-        formContainer.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
+        formContainer.add(new VisibleBehaviour(() -> isNoContainerFormVisible(nonContainerWrappers)));
         formContainer.add(AttributeAppender.append("class", getCssClassForFormContainer()));
         propertiesLabel.setOutputMarkupId(true);
         propertiesLabel.add(formContainer);
@@ -117,6 +117,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         removeButton.add(AttributeAppender.append("title", getString("VerticalFormDefaultContainerablePanel.removeValue")));
         removeButton.setOutputMarkupId(true);
         formContainer.add(removeButton);
+    }
+
+    protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+        return isShowMoreButtonVisible(nonContainerWrappers);
     }
 
     protected String getCssClassForFormContainer() {
@@ -235,7 +239,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     protected Component createShowEmptyButton(String id) {
         AjaxIconButton button = new AjaxIconButton(
                 ID_SHOW_EMPTY_BUTTON,
-                () -> "fas fa-eye mr-2 mt-1",
+                () -> "fas fa-eye me-2 mt-1",
                 () -> createShowEmptyButtonLabel().getObject()) {
 
             @Override
@@ -280,6 +284,16 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                     return getCssClassForFormSubContainer();
                 }
                 return super.getCssClassForFormContainer();
+            }
+
+            @Override
+            protected boolean isShowMoreButtonVisible(IModel nonContainerWrappers, boolean defaultVisible) {
+                return VerticalFormDefaultContainerablePanel.this.isShowMoreButtonVisible(nonContainerWrappers);
+            }
+
+            @Override
+            protected boolean isNoContainerFormVisible(IModel nonContainerWrappers, boolean defaultVisible) {
+                return VerticalFormDefaultContainerablePanel.this.isNoContainerFormVisible(nonContainerWrappers);
             }
 
             @Override

@@ -4,6 +4,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils;
@@ -11,6 +12,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SerializableBiFunction;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
@@ -23,6 +25,8 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+
+import static com.evolveum.midpoint.util.DOMUtil.LOGGER;
 
 /**
  * Centralized utility for building {@link SuggestionsModelDto} for various Smart Integration suggestion types.
@@ -147,7 +151,7 @@ public final class StatusAwareDataFactory {
 
         final Map<PrismContainerValueWrapper<MappingType>, StatusInfo<MappingsSuggestionType>> suggestionsIndex = new HashMap<>();
 
-        IModel<List<PrismContainerValueWrapper<MappingType>>> valuesModel = new LoadableModel<>() {
+        LoadableModel<List<PrismContainerValueWrapper<MappingType>>> valuesModel = new LoadableModel<>(false) {
             @Override
             protected @NotNull List<PrismContainerValueWrapper<MappingType>> load() {
                 suggestionsIndex.clear();
@@ -158,6 +162,8 @@ public final class StatusAwareDataFactory {
 
                 // Only load Smart suggestions for inbound mappings
                 if (Boolean.TRUE.equals(switchSuggestionModel.getObject())) {
+                    LOGGER.debug("Loading mapping suggestions for resource {}, object type {}, direction {}",
+                            resourceOid, parentWrapper.getRealValue(), mappingDirection);
                     loadSuggestions(suggestions);
                 }
 
@@ -172,7 +178,11 @@ public final class StatusAwareDataFactory {
                     }
                 }
 
-                return new ArrayList<>(initialSort(suggestions, accepted, mappingDirection)) {{
+                partialSort(mappingDirection, suggestions);
+                partialSort(mappingDirection, accepted);
+                partialSort(mappingDirection, normal);
+
+                return new ArrayList<>(initialSort(suggestions, accepted)) {{
                     addAll(normal);
                 }};
             }
@@ -203,32 +213,45 @@ public final class StatusAwareDataFactory {
              */
             private @NotNull List<PrismContainerValueWrapper<MappingType>> initialSort(
                     List<PrismContainerValueWrapper<MappingType>> suggestions,
-                    List<PrismContainerValueWrapper<MappingType>> accepted, @NotNull MappingDirection mappingDirection) {
-
+                    List<PrismContainerValueWrapper<MappingType>> accepted) {
                 List<PrismContainerValueWrapper<MappingType>> related = new ArrayList<>();
                 related.addAll(suggestions);
                 related.addAll(accepted);
+                return related;
+            }
 
-                if(mappingDirection == MappingDirection.OUTBOUND) {
+            private void partialSort(@NotNull MappingDirection mappingDirection, List<PrismContainerValueWrapper<MappingType>> related) {
+                if (mappingDirection == MappingDirection.OUTBOUND) {
                     Comparator<PrismContainerValueWrapper<MappingType>> byName =
                             Comparator.comparing(
-                                    v -> Optional.of(getNameValue(v)).orElse(""),
+                                    v -> Optional.of(getRefPath(v)).orElse(""),
                                     String.CASE_INSENSITIVE_ORDER);
                     related.sort(byName);
-                }else {
+                } else {
                     Comparator<PrismContainerValueWrapper<MappingType>> byTargetName =
                             Comparator.comparing(
                                     v -> Optional.ofNullable(getTargetValue(v)).orElse(""),
                                     String.CASE_INSENSITIVE_ORDER);
                     related.sort(byTargetName);
                 }
-                return related;
             }
 
-            private @NotNull String getNameValue(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
-                MappingType mapping = mappingWrapper.getRealValue();
-                String name = mapping != null ? mapping.getName() : null;
-                return name != null ? name : "";
+            private String getRefPath(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {
+                try {
+                    PrismPropertyWrapper<ItemPathType> refProperty =
+                            mappingWrapper.findProperty(AbstractAttributeMappingsDefinitionType.F_REF);
+
+                    if (refProperty == null || refProperty.getValue() == null) {
+                        return "";
+                    }
+
+                    ItemPathType realValue = refProperty.getValue().getRealValue();
+                    return realValue != null ? realValue.toString() : "";
+
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't get ref attribute path: {}", e.getMessage(), e);
+                    return "";
+                }
             }
 
             private String getTargetValue(@NotNull PrismContainerValueWrapper<MappingType> mappingWrapper) {

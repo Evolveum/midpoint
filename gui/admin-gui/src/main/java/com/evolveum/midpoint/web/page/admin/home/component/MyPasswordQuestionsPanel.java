@@ -16,7 +16,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 
 public class MyPasswordQuestionsPanel extends InputPanel {

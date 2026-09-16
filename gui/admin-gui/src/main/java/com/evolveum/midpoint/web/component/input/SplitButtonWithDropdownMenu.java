@@ -6,14 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
-import java.io.Serial;
+import static com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel.createMenuLinkPanel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.io.Serial;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -28,7 +23,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel.createMenuLinkPanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * Split button with a primary action (left) and a dropdown (right).
@@ -163,6 +163,6 @@ public abstract class SplitButtonWithDropdownMenu extends BasePanel<DropdownButt
 
     /** Additional CSS class for the main container (override if needed). */
     protected String getAdditionalComponentCssClass() {
-        return null;
+        return "btn-group-sm";
     }
 }

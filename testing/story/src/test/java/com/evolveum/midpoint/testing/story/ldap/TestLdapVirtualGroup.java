@@ -444,8 +444,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     }
 
     private void assertLdapUserObject(PrismObject<UserType> user, ShadowKindType kind, String intent)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, DirectoryException, ExpressionEvaluationException {
+            throws CommonException, DirectoryException {
         String userName = user.getName().toString();
         displayValue("assert user", userName);
 
@@ -463,9 +462,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         display("LDAP entry kind " + kind + " inten " + intent + " ldapObj", objEntry);
     }
 
-    private void assertLdapObject(PrismObject<RoleType> role, ShadowKindType kind, String intent)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, DirectoryException, ExpressionEvaluationException {
+    private void assertLdapObject(PrismObject<RoleType> role, ShadowKindType kind, String intent) throws CommonException, DirectoryException {
         String roleName = role.getName().toString();
         displayValue("assert role", roleName);
 
@@ -487,9 +484,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     }
 
     private void assertShadowAttribute(PrismObject focus,
-            ShadowKindType kind, String intent, String attribute, String... values)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ShadowKindType kind, String intent, String attribute, String... values) throws CommonException {
         String focusName = focus.getName().toString();
         displayValue("assert focus " + focus.getCompileTimeClass(), focusName);
 
@@ -520,9 +515,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
     }
 
     protected <F extends com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType> PrismObject<F> getObjectByName(
-            Class clazz, String name)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            Class clazz, String name) throws CommonException {
         PrismObject<F> object = (PrismObject<F>) findObjectByName(clazz, name);
         assertNotNull("The object " + name + " of type " + clazz + " is missing!", object);
         display(clazz + " " + name, object);

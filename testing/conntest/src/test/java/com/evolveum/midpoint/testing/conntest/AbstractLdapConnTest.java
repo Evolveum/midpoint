@@ -611,7 +611,8 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         showToken();
     }
 
-    private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void singleInfernoSearch(ObjectQuery query, int expectedNumberOfResults, Integer offset, Integer maxSize, String sortAttrName,
+            Task task, OperationResult result) throws CommonException {
         ObjectPaging paging = prismContext.queryFactory().createPaging(offset, maxSize);
         paging.setOrdering(getAttributePath(sortAttrName), OrderDirection.ASCENDING);
         query.setPaging(paging);

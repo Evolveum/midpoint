@@ -13,11 +13,19 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.page.error.PageError404;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.util.MappingUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -55,9 +64,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedIconColumn;
@@ -65,6 +71,8 @@ import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -92,6 +100,42 @@ public class SimulationsGuiUtil {
         }));
 
         return label;
+    }
+
+    /**
+     * Note: only simulation event marks (eventMarkRef) are handled here.
+     * Policy statement marks (e.g. Protected) are stored on the live object via policyStatement/markRef
+     * and are not part of the simulation result snapshot.
+     */
+    public static List<Badge> createEventMarkBadges(
+            @NotNull List<ObjectReferenceType> eventMarkRefs, @NotNull PageBase page) {
+        return eventMarkRefs.stream()
+                .map(ref -> createEventMarkBadge(ref, page))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private static @Nullable Badge createEventMarkBadge(
+            @NotNull ObjectReferenceType ref, @NotNull PageBase page) {
+        String oid = ref.getOid();
+        if (oid == null) {
+            return null;
+        }
+        if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_FAILED.value())) {
+            return new Badge(MappingUtil.MappingStatus.FAILED.cssClass(), page.getString(MappingUtil.MappingStatus.FAILED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_ADDED.value())) {
+            return new Badge(MappingUtil.MappingStatus.ADDED.cssClass(), page.getString(MappingUtil.MappingStatus.ADDED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_REMOVED.value())) {
+            return new Badge(MappingUtil.MappingStatus.REMOVED.cssClass(), page.getString(MappingUtil.MappingStatus.REMOVED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_MODIFIED.value())) {
+            return new Badge(MappingUtil.MappingStatus.MODIFIED.cssClass(), page.getString(MappingUtil.MappingStatus.MODIFIED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_NOT_CHANGED.value())) {
+            return new Badge(MappingUtil.MappingStatus.NOT_CHANGED.cssClass(), page.getString(MappingUtil.MappingStatus.NOT_CHANGED.translationKey()));
+        } else if (oid.equals(SystemObjectsType.MARK_ITEM_VALUE_CHANGE_NOT_APPLIED.value())) {
+            return new Badge(MappingUtil.MappingStatus.CHANGE_NOT_APPLIED.cssClass(), page.getString(MappingUtil.MappingStatus.CHANGE_NOT_APPLIED.translationKey()));
+        }
+        String name = WebModelServiceUtils.resolveReferenceName(ref, page);
+        return new Badge(Badge.State.SECONDARY.getCss(), name);
     }
 
     public static String getObjectProcessingStateBadgeCss(ObjectProcessingStateType state) {
@@ -122,7 +166,7 @@ public class SimulationsGuiUtil {
         ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
         String key = LocalizationUtil.createKeyForEnum(ot);
 
-        return LocalizationUtil.translate(key);
+        return translate(key);
     }
 
     public static IColumn<SelectableBean<SimulationResultProcessedObjectType>, String> createProcessedObjectIconColumn(
@@ -203,8 +247,11 @@ public class SimulationsGuiUtil {
         if (obj instanceof ShadowType) {
             try {
                 displayName = getProcessedShadowName((ShadowType) obj, page);
+            } catch (IllegalStateException ex) {
+                displayName = translate("ProcessedObjectsPanel.unknown.or.unavailable");
+                LOGGER.debug("Couldn't create processed shadow displayName; shadow data is probably incomplete or unavailable", ex);
             } catch (SystemException ex) {
-                LOGGER.debug("Couldn't create processed shadow name", ex);
+                LOGGER.debug("Couldn't create processed shadow displayName", ex);
             }
         } else {
             displayName = WebComponentUtil.getDisplayName(obj.asPrismObject());
@@ -442,7 +489,6 @@ public class SimulationsGuiUtil {
             protected SimulationResultProcessedObjectType load() {
                 Task task = pageBase.getPageTask();
 
-
                 if (simulationResultProcessedObjectId == null) {
                     throw new RestartResponseException(PageError404.class);
                 }
@@ -464,5 +510,87 @@ public class SimulationsGuiUtil {
                 return result.get(0);
             }
         };
+    }
+
+    public static @NotNull LoadableDetachableModel<PrismObjectWrapper<? extends ObjectType>> loadWrapper(
+            PageBase pageBase,
+            SimulationResultProcessedObjectType resultProcessedObjectType) {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObjectWrapper<? extends ObjectType> load() {
+                if (resultProcessedObjectType == null) {
+                    return null;
+                }
+
+                Task task = pageBase.createSimpleTask("createWrapper");
+
+                Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
+                        .noFetch()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
+                        .build();
+
+                try {
+                    PrismObject<ObjectType> prismObject = WebModelServiceUtils.loadObject(
+                            ObjectTypes.getObjectTypeClass(resultProcessedObjectType.getType()),
+                            resultProcessedObjectType.getOid(),
+                            options, pageBase, task, task.getResult());
+
+                    if (prismObject == null) {
+                        return null;
+                    }
+
+                    PrismObjectWrapperFactory<ObjectType> factory = pageBase.findObjectWrapperFactory(
+                            prismObject.getDefinition());
+                    OperationResult result = task.getResult();
+                    WrapperContext ctx = new WrapperContext(task, result);
+                    ctx.setCreateIfEmpty(true);
+
+                    return factory.createObjectWrapper(prismObject, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create object wrapper for " + resultProcessedObjectType, e);
+                }
+                return null;
+            }
+        };
+    }
+
+    public static void performMarkObjects(List<String> markOids,
+            @NotNull List<SimulationResultProcessedObjectType> selected,
+            PageBase page,
+            Task task,
+            OperationResult result) {
+        for (var object : selected) {
+            if (ObjectProcessingStateType.ADDED.equals(object.getState())) {
+                // skip object, since it is added
+                continue;
+            }
+
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            List<PolicyStatementType> statements = new ArrayList<>();
+            for (String oid : markOids) {
+                statements.add(new PolicyStatementType().markRef(oid, MarkType.COMPLEX_TYPE)
+                        .type(PolicyStatementTypeType.APPLY));
+            }
+
+            try {
+                @SuppressWarnings("unchecked")
+                var type = (Class<? extends ObjectType>) page.getPrismContext().getSchemaRegistry()
+                        .getCompileTimeClassForObjectType(object.getType());
+                var delta = page.getPrismContext().deltaFactory().object()
+                        .createModificationAddContainer(type,
+                                object.getOid(), ObjectType.F_POLICY_STATEMENT,
+                                statements.toArray(new PolicyStatementType[0]));
+                page.getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (Exception e) {
+                result.recordPartialError(
+                        page.createStringResource(
+                                        "ProcessedObjectsPanel.message.markObjectError", object)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark object {} with marks {}", object, markOids, e);
+            }
+        }
     }
 }

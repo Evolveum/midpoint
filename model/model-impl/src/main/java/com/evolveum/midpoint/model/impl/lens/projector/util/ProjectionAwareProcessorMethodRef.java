@@ -29,6 +29,6 @@ public interface ProjectionAwareProcessorMethodRef<X extends ObjectType> {
     void run(LensContext<X> lensContext, LensProjectionContext projectionContext, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 
 }

@@ -25,7 +25,9 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ResourceObjectOperations;
-import com.evolveum.midpoint.provisioning.ucf.api.*;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.ReferenceModificationOperation;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -351,7 +353,7 @@ class EntitlementConverter {
     @NotNull EntitlementObjectsOperations transformToObjectOpsOnSubjectDelete(
             @NotNull RepoShadow subjectRepoShadow, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
 

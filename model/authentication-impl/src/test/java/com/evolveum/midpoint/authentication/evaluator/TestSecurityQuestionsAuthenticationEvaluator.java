@@ -101,10 +101,14 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     }
 
     @Override
-    public void modifyUserCredential(Task task, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-        modifyObjectReplaceContainer(UserType.class, USER_GUYBRUSH_OID, SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER, task, result, getSecurityQuestionAnswer());
+    public void modifyUserCredential(Task task, OperationResult result) throws CommonException {
+        modifyObjectReplaceContainer(
+                UserType.class,
+                USER_GUYBRUSH_OID,
+                SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER,
+                task,
+                result,
+                getSecurityQuestionAnswer());
 
     }
 

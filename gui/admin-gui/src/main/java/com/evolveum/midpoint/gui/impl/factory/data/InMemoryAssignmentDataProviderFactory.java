@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.gui.api.factory.ContainerValueDataProviderFactory;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.AssignmentListProvider;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InMemoryAssignmentDataProviderType;
 

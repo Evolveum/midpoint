@@ -2,7 +2,7 @@
 :page-nav-title: Report Functions Library
 :page-display-order: 700
 :page-toc: top
-:page-keywords: [ 'report', 'functions' ,'scripts', library ]
+:page-keywords: report, functions, scripts, library
 :page-upkeep-status: green
 
 

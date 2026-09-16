@@ -77,7 +77,8 @@ public class GenerateConnectorArtifactActivityHandler
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
             backend.ensureDocumentationIsProcessed();
             var resultObj = new ConnDevGenerateArtifactResultType();
-            ConnDevArtifactType script = backend.generateArtifact(getWorkDefinition().typedDefinition);
+            var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+            ConnDevArtifactType script = backend.generateArtifact(getWorkDefinition().typedDefinition, skipCache);
             if (script != null) {
                 if (script.getContent() != null) {
                     // Mark as AI

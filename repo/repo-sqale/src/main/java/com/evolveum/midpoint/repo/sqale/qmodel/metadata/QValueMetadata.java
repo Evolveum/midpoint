@@ -6,10 +6,7 @@
 
 package com.evolveum.midpoint.repo.sqale.qmodel.metadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.QOwnedBy;
-import com.evolveum.midpoint.repo.sqale.qmodel.assignment.MAssignment;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QUri;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
@@ -18,8 +15,6 @@ import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
-import com.querydsl.sql.ForeignKey;
-import com.querydsl.sql.PrimaryKey;
 
 import java.sql.Types;
 import java.time.Instant;

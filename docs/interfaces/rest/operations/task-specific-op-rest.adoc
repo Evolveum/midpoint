@@ -2,7 +2,7 @@
 :page-nav-title: Task Specific Operations
 :page-display-order: 900
 :page-toc: top
-:page-keywords: [ 'rest', 'task', 'suspend', 'resume', 'run', 'operation' ]
+:page-keywords: rest, task, suspend, resume, run, operation
 :page-upkeep-status: green
 
 == Description

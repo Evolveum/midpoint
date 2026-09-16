@@ -10,8 +10,6 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.traces.OpNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

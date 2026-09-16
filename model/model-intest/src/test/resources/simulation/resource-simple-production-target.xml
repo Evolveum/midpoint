@@ -50,7 +50,13 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/ri:type not exists</q:text>
+                </filter>
+            </delineation>
+
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
@@ -90,6 +96,52 @@
                     <outbound/>
                 </password>
             </credentials>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>generate-password</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/ri:type = "generate-password"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:type</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>generate-password</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <credentials>
+                <password>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <generate/> <!-- Doesn't make much sense; just to test MID-11161 -->
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
 </resource>

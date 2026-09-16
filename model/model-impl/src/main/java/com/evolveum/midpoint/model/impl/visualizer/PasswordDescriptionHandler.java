@@ -23,7 +23,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 
 /**
  * Created by Viliam Repan (lazyman).

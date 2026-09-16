@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -14,6 +16,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
@@ -30,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * - `test1xx` tests for halting activities when they exceed given execution time
  * - `test2xx` tests for halting activities when they exceed given number of errors (important because of irregular distribution)
  * - `test3xx` tests for skipping activities when they exceed given execution time
+ * - `test5xx` tests for logical (and/or/not) constraints
  */
 @ContextConfiguration(locations = "classpath:ctx-repo-common-test-main.xml")
 @DirtiesContext
@@ -40,6 +44,10 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
 
     private static final long DEFAULT_TIMEOUT = 60_000;
     private static final long DEFAULT_SLEEP_TIME = 500;
+
+    private static final String OP_SUBMIT_ITEM = ProcessingCoordinator.class.getName() + ".submitItem";
+    private static final String OP_HANDLE_ITEM =
+            "com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingGatekeeper.handle";
 
     private static final TestTask TASK_100_SIMPLE_SUSPEND_ON_EXECUTION_TIME = new TestTask(
             TEST_DIR,
@@ -195,6 +203,11 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
             TEST_DIR,
             "task-470-multinode-child-restart-on-root-execution-time-with-subtasks.xml",
             "dc89a2c8-7d9b-46be-90a7-9be690ec2faf",
+            DEFAULT_TIMEOUT);
+    private static final TestTask TASK_500_SIMPLE_SUSPEND_ON_EXECUTION_TIME_IN_AND = new TestTask(
+            TEST_DIR,
+            "task-500-simple-suspend-on-execution-time-in-and.xml",
+            "16ccce54-5cdf-4883-8e18-8d1f8a8bf1ac",
             DEFAULT_TIMEOUT);
 
     /** Good objects on which we test "fail on error" policies. These complete without failures. */
@@ -768,6 +781,20 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
         TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
         ta.assertTaskHealthDescriptionCount(1)
                 .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Stop after 5 errors");
+
+        // Verify that result cleanup preserves diagnostics for failed item processing.
+        OperationResult persistedResult = OperationResult.createOperationResult(t.getResult());
+        assertThat(persistedResult.findSubresultsDeeply(OP_SUBMIT_ITEM).stream()
+                .filter(OperationResult::isError)
+                .toList())
+                .as("failed submit-item results")
+                .isNotEmpty()
+                .anySatisfy(submitResult ->
+                        assertThat(submitResult.findSubresultsDeeply(OP_HANDLE_ITEM))
+                                .as("retained item-processing diagnostics")
+                                .anySatisfy(handleResult ->
+                                        assertThat(handleResult.getMessage())
+                                                .contains("Object matches a 'fail-on' filter")));
     }
 
     /**
@@ -1803,6 +1830,53 @@ public class TestActivityPolicies extends AbstractRepoCommonTest {
                 .end();
         // @formatter:on
         // TODO more asserts
+    }
+
+    /**
+     * As {@link #test100SimpleSuspendOnExecutionTime()}, but the `executionTime` constraint is wrapped
+     * in an explicit `and` element. Logical constraints combine multiple constraints into one, so the behavior
+     * must be the same as with the bare constraint.
+     *
+     * This is a regression test: {@link com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyConstraintsEvaluator}
+     * used to silently ignore `and`/`or`/`not` elements, leaving the whole policy inert.
+     */
+    @Test
+    public void test500SimpleSuspendOnExecutionTimeInAnd() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var testTask = TASK_500_SIMPLE_SUSPEND_ON_EXECUTION_TIME_IN_AND;
+        testTask.init(this, task, result);
+
+        when("task is run until it's stopped");
+        testTask.rerunErrorsOk(result);
+
+        then("the task is suspended after exceeding execution time");
+        // @formatter:off
+        testTask.assertAfter()
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertFatalError()
+                    .assertInProgressLocal()
+                    .assertNoCounters()
+                    .policies()
+                        .assertPolicyCount(1)
+                        .policy("Execution time")
+                            .assertTriggerCount(1)
+                        .end()
+                    .end()
+                    .itemProcessingStatistics()
+                        .assertRunTimeBetween(2000L, 5000L) // limit is 2 seconds, 10 seconds planned
+                    .end();
+        // @formatter:on
+
+        TaskType t = getTask(TASK_500_SIMPLE_SUSPEND_ON_EXECUTION_TIME_IN_AND.oid).asObjectable();
+        TaskInformationAsserter<Void> ta = TaskInformationAsserter.forInformation(t);
+        ta.assertTaskHealthDescriptionCount(1)
+                .assertTaskHealthDescriptionDefaultMessages("Policy violation, rule: Execution time at most 2 seconds");
     }
 
     private void waitIfRestarting(TestTask testTask) throws InterruptedException, CommonException {

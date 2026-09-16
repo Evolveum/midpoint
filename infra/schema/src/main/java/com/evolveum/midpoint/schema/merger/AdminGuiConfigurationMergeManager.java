@@ -236,7 +236,12 @@ public class AdminGuiConfigurationMergeManager {
     }
 
     private PreviewContainerPanelConfigurationType mergePreviewPanels(PreviewContainerPanelConfigurationType mergedPanel, PreviewContainerPanelConfigurationType configuredPanel) {
-        List<GuiActionType> mergedActions = mergeContainers(configuredPanel.getAction(), mergedPanel.getAction(), this::actionMatches, this::mergeGuiAction);
+        List<GuiActionType> mergedActions = mergeContainers(
+                configuredPanel.getAction(),
+                mergedPanel.getAction(),
+                this::actionMatches,
+                this::mergeGuiAction
+        );
         PreviewContainerPanelConfigurationType afterMerge = mergePanels(mergedPanel, configuredPanel);
         afterMerge.getAction().clear();
         mergedActions.forEach(action -> afterMerge.getAction().add(action.clone()));
@@ -358,15 +363,24 @@ public class AdminGuiConfigurationMergeManager {
     }
 
     private List<VirtualContainersSpecificationType> mergeVirtualContainers(List<VirtualContainersSpecificationType> currentVirtualContainers, List<VirtualContainersSpecificationType> superObjectDetails) {
-        return mergeContainers(currentVirtualContainers, superObjectDetails,
-                this::createVirtualContainersPredicate, this::mergeVirtualContainer);
+        return mergeContainers(
+                currentVirtualContainers,
+                superObjectDetails,
+                this::createVirtualContainersPredicate,
+                this::mergeVirtualContainer
+        );
     }
 
     private Predicate<VirtualContainersSpecificationType> createVirtualContainersPredicate(VirtualContainersSpecificationType superContainer) {
         return c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier()) || pathsMatch(superContainer.getPath(), c.getPath());
     }
 
-    public <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
+    public <C extends Containerable> List<C> mergeContainers(
+            List<C> currentContainers,
+            List<C> superContainers,
+            Function<C, Predicate<C>> predicate,
+            BiFunction<C, C, C> mergeFunction
+    ) {
         if (currentContainers.isEmpty()) {
             if (superContainers.isEmpty()) {
                 return Collections.emptyList();

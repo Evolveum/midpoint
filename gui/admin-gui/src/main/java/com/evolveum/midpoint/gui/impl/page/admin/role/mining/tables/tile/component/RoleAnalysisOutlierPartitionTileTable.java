@@ -200,7 +200,7 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<RoleAnalysi
 
             @Override
             protected String getTileContainerCssClass() {
-                return "row justify-content-left ";
+                return "row justify-content-start ";
             }
 
             @Override

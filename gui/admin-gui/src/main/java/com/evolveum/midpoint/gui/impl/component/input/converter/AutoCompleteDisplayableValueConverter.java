@@ -6,12 +6,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.input.converter;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DisplayableValue;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.ConversionException;

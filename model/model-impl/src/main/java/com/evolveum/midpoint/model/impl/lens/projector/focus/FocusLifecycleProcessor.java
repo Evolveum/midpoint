@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -15,10 +16,16 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -34,12 +41,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -58,7 +59,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
     public <F extends AssignmentHolderType> void process(LensContext<F> context, XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, SecurityViolationException {
+            CommunicationException, SecurityViolationException, SubscriptionComplianceException {
 
         LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -98,7 +99,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
             String targetLifecycleState,
             Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ExpressionType conditionExpressionType = transitionType.getCondition();
         if (conditionExpressionType == null) {
             return false;

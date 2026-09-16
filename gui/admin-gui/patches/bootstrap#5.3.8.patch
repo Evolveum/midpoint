@@ -1,0 +1,23 @@
+diff --git bootstrap/scss/_containers.scss bootstrap/scss/_containers.scss
+index 6c8f6a1..e3b4d92 100644
+--- bootstrap/scss/_containers.scss
++++ bootstrap/scss/_containers.scss
+@@ -17,17 +17,13 @@
+     }
+
+     @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+-      %responsive-container-#{$breakpoint} {
+-        max-width: $container-max-width;
+-      }
+-
+       // Extend each breakpoint which is smaller or equal to the current breakpoint
+       $extend-breakpoint: true;
+
+       @each $name, $width in $grid-breakpoints {
+         @if ($extend-breakpoint) {
+           .container#{breakpoint-infix($name, $grid-breakpoints)} {
+-            @extend %responsive-container-#{$breakpoint};
++            max-width: $container-max-width;
+           }
+
+           // Once the current breakpoint is reached, stop extending

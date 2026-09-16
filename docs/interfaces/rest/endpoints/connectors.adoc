@@ -2,7 +2,7 @@
 :page-nav-title: Connector
 :page-display-order: 1500
 :page-toc: top
-:page-keywords: [ 'rest', 'connector' ,'endpoint' ]
+:page-keywords: rest, connector, endpoint
 :page-upkeep-status: green
 
 == Description

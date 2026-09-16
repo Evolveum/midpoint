@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.intest.simulation;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -23,11 +21,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.testng.annotations.BeforeMethod;
-
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
@@ -73,8 +67,8 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
     private static final String ATTR_TELEPHONE_NUMBER = "telephoneNumber";
     private static final String ATTR_MAIL = "mail";
 
-    static final ItemName ATTR_RI_TELEPHONE_NUMBER = new ItemName(NS_RI, ATTR_TELEPHONE_NUMBER);
-    static final ItemName ATTR_RI_MAIL = new ItemName(NS_RI, ATTR_MAIL);
+    static final ItemName ATTR_RI_TELEPHONE_NUMBER = ItemName.from(NS_RI, ATTR_TELEPHONE_NUMBER);
+    static final ItemName ATTR_RI_MAIL = ItemName.from(NS_RI, ATTR_MAIL);
 
 //    private static final ItemName ATTR_TYPE_ITEM_NAME = new ItemName(NS_RI, ATTR_TYPE_NAME);
 
@@ -86,16 +80,22 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             controller -> {
                 controller.addAttrDef(
                         controller.getDummyResource().getAccountObjectClass(),
+                        ATTR_TYPE, String.class, false, false);
+                controller.addAttrDef(
+                        controller.getDummyResource().getAccountObjectClass(),
                         ATTR_TELEPHONE_NUMBER, String.class, false, false);
                 controller.addAttrDef(
                         controller.getDummyResource().getAccountObjectClass(),
                         ATTR_MAIL, String.class, false, false);
             });
+    static final String INTENT_GENERATE_PASSWORD = "generate-password";
+
     static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_TARGET = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-development-target.xml",
             "572200ee-7499-47ec-9fdf-a575c96a5291",
             "simple-development-target");
+
     static final DummyTestResource RESOURCE_SIMPLE_PRODUCTION_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-production-source.xml",
@@ -110,8 +110,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "simple-development-source",
             controller -> addSourceAttributes(controller));
 
-    private static void addSourceAttributes(DummyResourceContoller controller)
-            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    private static void addSourceAttributes(DummyResourceContoller controller) {
         controller.addAttrDef(
                 controller.getDummyResource().getAccountObjectClass(),
                 ATTR_TYPE, String.class, false, false);

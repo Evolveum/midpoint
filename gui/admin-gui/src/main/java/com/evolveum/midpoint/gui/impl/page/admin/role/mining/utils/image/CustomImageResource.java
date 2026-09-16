@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.image;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.schema.util.cid;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.prism.impl.lazy.LazyPrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;

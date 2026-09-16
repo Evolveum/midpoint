@@ -9,14 +9,11 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;

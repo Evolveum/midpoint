@@ -12,8 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +32,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModelBasic;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
+import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -322,6 +321,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                             case GROUP_OTHERS -> groupOthersPerformed(target, tile);
                         }
                     }
+
+                    @Override
+                    protected IModel<String> getSrOnlyMessageModel() {
+                        if (getModelObject().getValue().type != TileType.GROUP_OTHERS) {
+                            return super.getSrOnlyMessageModel();
+                        }
+
+                        return PersonOfInterestPanel.this.createStringResource("PersonOfInterestPanel.groupOthers.description");
+                    }
                 };
                 item.add(tp);
             }
@@ -386,7 +394,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 // model of multiselect was already updated, just "refresh" next button
-                target.add(PersonOfInterestPanel.this.getNext());
+                target.add(PersonOfInterestPanel.this.getCustomButtonsContainer());
             }
         });
         fragment.add(multiselect);
@@ -493,13 +501,21 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         tiles.getObject().forEach(t -> t.setSelected(false));
 
-        if (!groupOthers.isSelected()) {
+        boolean opensGroupOthersScreen = !groupOthers.isSelected();
+        if (opensGroupOthersScreen) {
             selectionState.setObject(SelectionState.USERS);
         }
 
         groupOthers.toggle();
 
         target.add(this);
+        if (opensGroupOthersScreen) {
+            announceStepStatus(target);
+        }
+    }
+
+    private void announceStepStatus(AjaxRequestTarget target) {
+        ((WizardPanel) getWizard().getPanel()).announceStepStatus(target);
     }
 
     private GroupSelectionType getSelectedGroupSelection() {
@@ -649,6 +665,16 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
+    }
+
+    @Override
+    protected String getButtonsStripCssClass() {
+        return "col-xl-6 col-lg-8 col-md-8 col-sm-8 col-12";
+    }
+
+    @Override
     public boolean onBackPerformed(AjaxRequestTarget target) {
         if (selectionState.getObject() == SelectionState.TILES) {
             boolean executeDefaultBehaviour = super.onBackPerformed(target);
@@ -663,6 +689,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         selectionState.setObject(SelectionState.TILES);
         target.add(this);
+        announceStepStatus(target);
 
         return false;
     }

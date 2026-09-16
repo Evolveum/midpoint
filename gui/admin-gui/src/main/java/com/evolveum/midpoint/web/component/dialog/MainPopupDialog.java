@@ -33,6 +33,7 @@ public class MainPopupDialog extends ModalDialog {
     private static final String ID_TITLE_ICON = "titleIcon";
     private static final String ID_FOOTER = "footer";
     private static final String ID_DIALOG = "dialog";
+    private static final String ID_OVERLAY = "overlay";
 
     private IModel<String> title;
     private IModel<String> titleIconClass;
@@ -45,17 +46,23 @@ public class MainPopupDialog extends ModalDialog {
 
     private void initLayout() {
         WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
+        titleIcon.setOutputMarkupId(true);
         titleIcon.add(new VisibleBehaviour(this::isTitleIconVisible));
         titleIcon.add(AttributeModifier.append("class", () -> titleIconClass != null ? titleIconClass.getObject() : null));
         getDialogComponent().add(titleIcon);
 
-        Label titleLabel = new Label(ID_TITLE, () -> title != null ? title.getObject() : null);
-        titleLabel.add(new VisibleBehaviour(this::isTitleVisible));
+        Label titleLabel = createDefaultTitleComponent();
         getDialogComponent().add(titleLabel);
 
         WebMarkupContainer footer = new WebMarkupContainer(ID_FOOTER);
         footer.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         getDialogComponent().add(footer);
+
+        Component overlay = getOverlayComponent();
+        overlay.add(AttributeModifier.replace("aria-labelledby", () -> {
+            Component titleComponent = getDialogComponent().get(ID_TITLE);
+            return isTitleVisible() && titleComponent != null ? titleComponent.getMarkupId() : null;
+        }));
     }
 
     private boolean isTitleVisible() {
@@ -77,25 +84,22 @@ public class MainPopupDialog extends ModalDialog {
     public ModalDialog open(AjaxRequestTarget target) {
         ModalDialog dialog = super.open(target);
 
-        String overlayId = get("overlay").getMarkupId();
+        String overlayId = getOverlayComponentMarkupId();
         target.appendJavaScript(String.format("window.MidPointTheme.showModalWithRestoreFocus('%s')", overlayId));
         return dialog;
     }
 
     @Override
     public ModalDialog close(AjaxRequestTarget target) {
-        appendJS(target, "hide");
+        String overlayId = getOverlayComponentMarkupId();
+        target.appendJavaScript(String.format("window.MidPointTheme.hideModal('%s')", overlayId));
 
         // overlay is handled (hidden) via javascript
         return this;
     }
 
-    private void appendJS(AjaxRequestTarget target, String operation) {
-        target.appendJavaScript("$(document).ready(function () { $('#" + get("overlay").getMarkupId() + "').modal('" + operation + "'); });");
-    }
-
     public WebMarkupContainer getDialogComponent() {
-        return (WebMarkupContainer) get("overlay").get(ID_DIALOG);
+        return (WebMarkupContainer) getOverlayComponent().get(ID_DIALOG);
     }
 
     public Component getContentComponent() {
@@ -105,7 +109,7 @@ public class MainPopupDialog extends ModalDialog {
     public String generateWidthHeightParameter(String width, String widthUnit, String height, String heightUnit) {
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isNotEmpty(width)) {
-            sb.append("min-width: " + width);
+            sb.append("min-width: ").append(width);
             sb.append(StringUtils.isEmpty(widthUnit) ? "px" : widthUnit);
             sb.append("; ");
         }
@@ -125,6 +129,10 @@ public class MainPopupDialog extends ModalDialog {
             throw new IllegalArgumentException("Footer component id has to be " + ID_FOOTER + ", but real value is " + footer.getId());
         }
 
+        if (footer instanceof WebMarkupContainer footerContainer && footerContainer.streamChildren().findAny().isEmpty()) {
+            footer.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        }
+
         getDialogComponent().addOrReplace(footer);
     }
 
@@ -133,11 +141,14 @@ public class MainPopupDialog extends ModalDialog {
             throw new IllegalArgumentException("Title component id has to be " + ID_TITLE + ", but real value is " + titleComponent.getId());
         }
 
+        titleComponent.setOutputMarkupId(true);
         getDialogComponent().addOrReplace(titleComponent);
     }
 
-    public Component createDefaultTitleComponent() {
-        Label titleLabel = new Label("title", () -> title != null ? title.getObject() : null);
+    public Label createDefaultTitleComponent() {
+        Label titleLabel = new Label(ID_TITLE, () -> title != null ? title.getObject() : null);
+        titleLabel.setOutputMarkupId(true);
+        titleLabel.setOutputMarkupPlaceholderTag(true);
         titleLabel.add(new VisibleBehaviour(this::isTitleVisible));
         return titleLabel;
     }
@@ -145,5 +156,18 @@ public class MainPopupDialog extends ModalDialog {
     @Override
     protected WebMarkupContainer newDialog(String dialogId) {
         return new MidpointForm<>(dialogId);
+    }
+
+    public void refreshHeader(@NotNull AjaxRequestTarget target) {
+        target.add(getDialogComponent().get(ID_TITLE));
+        target.add(getDialogComponent().get(ID_TITLE_ICON));
+    }
+
+    private Component getOverlayComponent() {
+        return get(ID_OVERLAY);
+    }
+
+    private String getOverlayComponentMarkupId() {
+        return getOverlayComponent() != null ? getOverlayComponent().getMarkupId() : "";
     }
 }

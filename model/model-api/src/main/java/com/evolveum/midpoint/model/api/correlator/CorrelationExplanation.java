@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -15,7 +15,10 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;

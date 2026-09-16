@@ -9,17 +9,21 @@ package com.evolveum.midpoint.model.impl.correlator.tasks;
 
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
+import com.evolveum.midpoint.model.impl.correlator.tasks.CorrelationDefinitionProviderForSimulationFactory.SimulatedCorrelatorsSpec;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegistry;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
 /**
  * Activity handler for correlation simulation activity.
@@ -34,18 +38,21 @@ public class CorrelationSimulationActivityHandler
         implements ActivityHandler<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> {
 
     private final ActivityHandlerRegistry activityHandlerRegistry;
-    private final CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory;
+    private final CorrelationDefinitionProviderFactory<SimulatedCorrelatorsSpec> correlationDefinitionProviderFactory;
     private final CorrelationService correlationService;
     private final ProvisioningService provisioningService;
+    private final RepositoryService repositoryService;
 
     public CorrelationSimulationActivityHandler(ActivityHandlerRegistry activityHandlerRegistry,
-            CorrelationDefinitionProviderFactory correlationDefinitionProviderFactory,
+            CorrelationDefinitionProviderFactory<SimulatedCorrelatorsSpec> correlationDefinitionProviderFactory,
             CorrelationService correlationService,
-            ProvisioningService provisioningService) {
+            ProvisioningService provisioningService,
+            @Qualifier("cacheRepositoryService") RepositoryService repositoryService) {
         this.activityHandlerRegistry = activityHandlerRegistry;
         this.correlationDefinitionProviderFactory = correlationDefinitionProviderFactory;
         this.correlationService = correlationService;
         this.provisioningService = provisioningService;
+        this.repositoryService = repositoryService;
     }
 
     @PostConstruct
@@ -59,7 +66,8 @@ public class CorrelationSimulationActivityHandler
     public CorrelationSimulationActivityRun createActivityRun(
             @NotNull ActivityRunInstantiationContext<CorrelationWorkDefinition, CorrelationSimulationActivityHandler> ctx,
             @NotNull OperationResult result) {
-        return new CorrelationSimulationActivityRun(ctx, this.correlationService, this.provisioningService, PrismContext.get());
+        return new CorrelationSimulationActivityRun(ctx, this.correlationService, this.provisioningService,
+                this.repositoryService, PrismContext.get());
     }
 
     private CorrelationWorkDefinition workDefFactory(WorkDefinitionFactory.WorkDefinitionInfo info) {

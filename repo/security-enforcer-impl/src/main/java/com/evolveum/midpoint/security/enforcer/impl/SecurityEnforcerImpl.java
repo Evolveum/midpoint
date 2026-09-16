@@ -137,7 +137,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return new EnforcerDecisionOperation(operationUrl, params, principal, options, beans, task)
                 .decideAccess(phase, result);
     }
@@ -169,7 +169,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull PrismObject<O> object, boolean fullInformationAvailable, @NotNull Options options,
             @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return new CompileConstraintsOperation<O>(
                 getMidPointPrincipal(),
                 options,
@@ -190,7 +190,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return new CompileConstraintsOperation<>(
                 principal, enforcerOptions, beans, compileConstraintsOptions, task)
                 .compileValueOperationConstraints(value, phase, actionUrls, result);
@@ -210,7 +210,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         FilterGizmo<ObjectFilter> gizmo = new FilterGizmoObjectFilterImpl();
         ObjectFilter securityFilter = computeSecurityFilterInternal(
                 principal, operationUrls, searchByOperationUrls, phase, filterType, forObject(), origFilter,
@@ -240,7 +240,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             FilterGizmo<F> gizmo,
             Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return computeSecurityFilterInternal(
                 principal, operationUrls, searchByOperationUrls, phase, filterType, forTarget(object), origFilter,
                 limitAuthorizationAction, paramOrderConstraints, gizmo, "security filter computation",
@@ -263,7 +263,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return new EnforcerFilterOperation<>(
                 operationUrls, searchByOperationUrls, filterType, selectorExtractor, origFilter, limitAuthorizationAction,
                 paramOrderConstraints, gizmo, desc, principal, options, beans, task)
@@ -301,7 +301,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             MidPointPrincipal midPointPrincipal, String operationUrl, PrismObject<O> object,
             PrismObject<R> target, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         EnforcerOperation ctx = new EnforcerOperation(midPointPrincipal, Options.create(), beans, task);
         ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
@@ -326,7 +326,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     public <F extends FocusType> MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal,
             String attorneyAuthorizationAction, PrismObject<F> donor, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (attorneyPrincipal.getAttorney() != null) {
             throw new UnsupportedOperationException("Transitive attorney is not supported yet");
         }

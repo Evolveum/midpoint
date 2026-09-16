@@ -6,13 +6,7 @@
 
 package com.evolveum.midpoint.authentication.impl.filter;
 
-import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
-
-import com.evolveum.midpoint.util.exception.*;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -22,7 +16,6 @@ import java.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.authentication.impl.FocusAuthenticationResultRecorder;
 
@@ -33,7 +26,6 @@ import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.filter.GenericFilterBean;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -135,7 +127,7 @@ public class SequenceAuditFilter extends GenericFilterBean {
     }
 
     private ConnectionEnvironment createConnectionEnvironment(HttpServletRequest request, MidpointAuthentication mpAuthentication) {
-        String sessionId = request != null ? request.getRequestedSessionId() : null;
+        String sessionId = SecurityUtil.getOrCreateAuditSessionId(request);
         if (mpAuthentication.getSessionId() != null) {
             sessionId = mpAuthentication.getSessionId();
         }

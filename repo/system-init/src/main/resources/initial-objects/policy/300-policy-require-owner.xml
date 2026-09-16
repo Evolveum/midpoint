@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2025 Evolveum and contributors
+  ~ Copyright (c) 2025-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -14,6 +14,10 @@
         Objects with no owner are marked with "Unowned" mark.
         (ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)
     </documentation>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="4f3084ae-4308-11f1-a19e-a357d787ee05" type="ArchetypeType"/>
+    </assignment>
     <inducement>
         <identifier>policy-require-owner</identifier>
         <documentation>(ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)</documentation>

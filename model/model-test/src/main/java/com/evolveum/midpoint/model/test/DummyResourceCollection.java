@@ -99,7 +99,8 @@ public class DummyResourceCollection {
     private void initMidPointResource(
             File resourceFile, TestObject<ResourceType> testObject, String resourceOid, DummyResourceContoller controller,
             Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         // deduplicate, clean up this code (eventually)
         if (resourceFile != null) {
             LOGGER.info("Importing file {}", resourceFile);

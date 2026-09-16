@@ -9,7 +9,9 @@ package com.evolveum.midpoint.model.api.util;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -44,7 +46,7 @@ public class AssignmentPathUtil {
     // works with externalized assignment path (AssignmentPathType)
     public static ExtensionType collectExtensions(AssignmentPathType path, int startAt, ModelService modelService, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ExtensionType rv = new ExtensionType(modelService.getPrismContext());
         PrismContainerValue<?> pcv = rv.asPrismContainerValue();
         PrismObject<? extends ObjectType> lastTarget = null;           // used for caching
@@ -66,7 +68,7 @@ public class AssignmentPathUtil {
     private static PrismObject<? extends ObjectType> getAssignmentTarget(AssignmentPathSegmentType segment,
             ModelService modelService, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (segment.getTargetRef() == null || segment.getTargetRef().getOid() == null) {
             return null;
         }
@@ -76,7 +78,7 @@ public class AssignmentPathUtil {
     private static AssignmentType getAssignment(AssignmentPathSegmentType segment,
             PrismObject<? extends ObjectType> candidate, ModelService modelService, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (segment.getSourceRef() == null || segment.getSourceRef().getOid() == null || segment.getAssignmentId() == null) {
             return null;
         }
@@ -96,7 +98,7 @@ public class AssignmentPathUtil {
     private static PrismObject<? extends ObjectType> getObject(ObjectReferenceType reference,
             ModelService modelService,
             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String oid = reference.getOid();
         QName typeName = reference.getType() != null ? reference.getType() : ObjectType.COMPLEX_TYPE;
         Class<? extends ObjectType> typeClass = ObjectTypes.getObjectTypeClass(typeName);

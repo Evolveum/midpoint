@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -15,11 +17,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
@@ -62,5 +61,10 @@ public class ConfigurationStepPanel extends AbstractConfigurationStepPanel {
         }
 
         return PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), path);
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return true;
     }
 }

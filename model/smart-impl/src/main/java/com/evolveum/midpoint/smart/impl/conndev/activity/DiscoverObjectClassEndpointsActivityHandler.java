@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.exception.CommonException;
 
-import java.util.Set;
+
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,20 +85,15 @@ public class DiscoverObjectClassEndpointsActivityHandler
             String connectorDevelopmentOid = getWorkDefinition().connectorDevelopmentOid;
 
             LOGGER.info("Discovering endpoints for object class '{}' in task {}", objectClass, getRunningTask().getName());
+            var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
+            backend.ensureDocumentationIsProcessed();
+            backend.ensureObjectClass(objectClass);
 
-            try {
-                var backend = ConnectorDevelopmentBackend.backendFor(connectorDevelopmentOid, getRunningTask(), result);
-                backend.ensureDocumentationIsProcessed();
-                backend.ensureObjectClass(objectClass);
-
-                var endpoints = backend.discoverObjectClassEndpoints(objectClass);
-                backend.updateApplicationObjectClassEndpoints(objectClass, endpoints);
-            } catch (CommonException | RuntimeException e) {
-                suspendSiblings(connectorDevelopmentOid, Set.of(WorkDefinitionsType.F_DISCOVER_OBJECT_CLASS_ATTRIBUTES), this, result);
-                throw e;
-            }
-
+            var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+            var endpoints = backend.discoverObjectClassEndpoints(objectClass, skipCache);
+            backend.updateApplicationObjectClassEndpoints(objectClass, endpoints);
             LOGGER.info("Successfully discovered endpoints for object class '{}'", objectClass);
+
             return ActivityRunResult.success();
         }
     }

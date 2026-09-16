@@ -35,6 +35,13 @@ public class MenuDividerPanel extends Panel {
                 .buildInlineMenu();
     }
 
+    public static  @NotNull InlineMenuItem createSectionDividerNoHeader() {
+        return InlineMenuItemBuilder.create()
+                .divider(true)
+                .headerMenuItem(false)
+                .buildInlineMenu();
+    }
+
     /**
      * Returns a visibility checker that checks if any of the provided checkers returns true.
      * If no checkers are provided, it returns a checker that always returns true.

@@ -18,12 +18,7 @@ import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -52,7 +47,8 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 
     @Override
     public <FO extends FocusType, O extends ObjectType> List<PrismObject<FO>> resolveOwner(PrismObject<O> object)
-            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         if (object == null) {
             return null;
         }

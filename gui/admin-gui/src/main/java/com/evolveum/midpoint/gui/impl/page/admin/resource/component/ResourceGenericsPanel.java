@@ -31,6 +31,8 @@ import org.apache.wicket.model.StringResourceModel;
                 order = 70))
 public class ResourceGenericsPanel extends ResourceObjectsPanel {
 
+    public static final String ID = "resourceGenerics";
+
     public ResourceGenericsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }

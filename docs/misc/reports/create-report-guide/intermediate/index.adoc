@@ -1,7 +1,7 @@
 = Report With Basic Parameter Customization
 
 :page-upkeep-status: green
-:page-keywords: [ 'report', 'create', 'reporting' ]
+:page-keywords: report, create, reporting
 
 == Report With Basic Parameter Customization
 

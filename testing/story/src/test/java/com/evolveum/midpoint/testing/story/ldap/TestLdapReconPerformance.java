@@ -345,8 +345,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     protected void assertLdapConnectorInstances()
-            throws NumberFormatException, SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws NumberFormatException, CommonException {
         assertLdapConnectorInstances(2, 4);
     }
 

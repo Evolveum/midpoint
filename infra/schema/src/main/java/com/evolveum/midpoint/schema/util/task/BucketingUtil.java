@@ -132,6 +132,10 @@ public class BucketingUtil {
         return getBucketsProcessingRole(state) == BucketsProcessingRoleType.STANDALONE;
     }
 
+    public static boolean isWorker(@Nullable ActivityStateType state) {
+        return getBucketsProcessingRole(state) == BucketsProcessingRoleType.WORKER;
+    }
+
     public static @NotNull List<WorkBucketType> getBuckets(@NotNull TaskActivityStateType taskState,
             @NotNull ActivityPath activityPath) {
         return getBuckets(

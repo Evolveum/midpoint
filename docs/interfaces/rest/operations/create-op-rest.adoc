@@ -2,7 +2,7 @@
 :page-nav-title: Create
 :page-display-order: 300
 :page-toc: top
-:page-keywords: [ 'rest', 'create', 'operation' ]
+:page-keywords: rest, create, operation
 :page-upkeep-status: green
 
 == Create With Rest

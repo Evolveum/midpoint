@@ -136,7 +136,8 @@ public class AccCertUpdateHelper {
             ops = modelService.executeChanges(
                     singleton(objectDelta),
                     ModelExecuteOptions.create().raw().preAuthorized(), task, result);
-        } catch (ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
+        } catch (ExpressionEvaluationException | CommunicationException | ConfigurationException | PolicyViolationException |
+                 SecurityViolationException | SubscriptionComplianceException e) {
             throw new SystemException("Unexpected exception when adding object: " + e.getMessage(), e);
         }
         ObjectDeltaOperation<?> odo = ops.iterator().next();
@@ -164,7 +165,8 @@ public class AccCertUpdateHelper {
         try {
             ModelExecuteOptions options = ModelExecuteOptions.create().raw().preAuthorized();
             modelService.executeChanges(Collections.singletonList(objectDelta), options, task, result);
-        } catch (SecurityViolationException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException e) {
+        } catch (SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException |
+                 PolicyViolationException | SubscriptionComplianceException e) {
             throw new SystemException("Unexpected exception when modifying " + objectClass.getSimpleName() + " " + oid + ": " + e.getMessage(), e);
         }
     }

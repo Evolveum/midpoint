@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 
 import javax.xml.namespace.QName;

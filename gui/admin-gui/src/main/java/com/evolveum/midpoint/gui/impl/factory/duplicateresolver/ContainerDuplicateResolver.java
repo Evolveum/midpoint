@@ -9,11 +9,12 @@ package com.evolveum.midpoint.gui.impl.factory.duplicateresolver;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author lskublik

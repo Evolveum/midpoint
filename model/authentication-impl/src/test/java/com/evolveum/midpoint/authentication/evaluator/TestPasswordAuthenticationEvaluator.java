@@ -90,10 +90,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
 
     @Override
     public void modifyUserCredential(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException {
-
+            throws CommonException {
         modifyUserReplace(USER_GUYBRUSH_OID, SchemaConstants.PATH_PASSWORD_VALUE, task, result, getGuybrushPassword());
     }
 

@@ -6,48 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
-import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionFlow;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationParams;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationWithOptionsDto;
-import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.collectAdditionalMappingsIfSuggestion;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.extractEfficiencyFromSuggestedCorrelationItemWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.removeCorrelationTypeSuggestionNew;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
+import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
+import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
+import static com.evolveum.midpoint.web.component.menu.cog.MenuDividerPanel.createSectionDivider;
+
+import java.io.Serial;
+import java.time.Duration;
+import java.util.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -65,17 +35,50 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serial;
-import java.time.Duration;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationWrapperUtils.extractCorrelationItemListWrapper;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationsGuiUtil.loadSimulationResult;
-import static com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.ResourceSimulationTaskWizardPanel.getSimulationResultReference;
-import static com.evolveum.midpoint.gui.impl.util.StatusInfoTableUtil.*;
-import static com.evolveum.midpoint.web.component.dialog.ConfirmationOption.correlationPermissionsOptions;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.LabelWithBadgePanel;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataFactory;
+import com.evolveum.midpoint.gui.impl.component.data.provider.suggestion.StatusAwareDataProvider;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectContainerActionTileTablePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTile;
+import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationActionFlow;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.component.SimulationParams;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationOption;
+import com.evolveum.midpoint.web.component.dialog.privacy.DataAccessPermission;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceTaskFlavors;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 /**
  * Multi-select tile table for correlation items.
@@ -106,19 +109,6 @@ public abstract class SmartCorrelationTable
     }
 
     @Override
-    protected IModel<ConfirmationWithOptionsDto<DataAccessPermission>> buildSmartPermissionRecordDto() {
-        final ConfirmationWithOptionsDto<DataAccessPermission> confirmationWithOptionsDto =
-                ConfirmationWithOptionsDto.<DataAccessPermission>builder()
-                        .confirmationTitle(createStringResource("SmartSuggestConfirmationPanel.title"))
-                        .confirmationSubtitle(createStringResource("SmartSuggestConfirmationPanel.subtitle"))
-                        .confirmationOptionsTitle(createStringResource("SmartSuggestConfirmationPanel.request.component.title"))
-                        .confirmationInfoMessage(createStringResource("SmartSuggestConfirmationPanel.infoMessage"))
-                        .confirmationOptions(correlationPermissionsOptions())
-                        .build();
-        return () -> confirmationWithOptionsDto;
-    }
-
-    @Override
     protected Component getComponentToFocusAfterAiToggle() {
         return this.getParent();
     }
@@ -144,6 +134,11 @@ public abstract class SmartCorrelationTable
                                 CompositeCorrelatorType.F_ITEMS));
             }
         };
+    }
+
+    @Override
+    protected String getTileCssStyle() {
+        return "";
     }
 
     @Override
@@ -196,7 +191,7 @@ public abstract class SmartCorrelationTable
                 if (getProvider() instanceof MultivalueContainerListDataProvider provider) {
                     provider.getModel().detach();
                 }
-                refreshAndDetach(target);
+                SmartCorrelationTable.this.refreshAndDetach(target);
             }
         };
     }
@@ -221,7 +216,7 @@ public abstract class SmartCorrelationTable
                     resourceObjectTypeWrapper,
                     getResourceOid());
 
-            return new StatusAwareDataProvider<>(this, Model.of(), dto, false);
+            return new StatusAwareDataProvider<>(this, Model.of(), dto, CorrelationSuggestionsType.class, false);
         }
 
         return new MultivalueContainerListDataProvider(this, getSearchModel(),
@@ -247,8 +242,7 @@ public abstract class SmartCorrelationTable
                 StatusInfo<CorrelationSuggestionsType> suggestionTypeStatusInfo = getStatusInfo(wrapper);
 
                 if (suggestionTypeStatusInfo != null) {
-                    ItemsSubCorrelatorType realValue = wrapper.getRealValue();
-                    buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, realValue);
+                    buildSuggestionNameColumnComponent(cellItem, componentId, suggestionTypeStatusInfo, wrapper);
                     return;
                 }
 
@@ -334,9 +328,10 @@ public abstract class SmartCorrelationTable
             @NotNull Item<ICellPopulator<PrismContainerValueWrapper<ItemsSubCorrelatorType>>> cellItem,
             String componentId,
             @NotNull StatusInfo<CorrelationSuggestionsType> statusInfo,
-            ItemsSubCorrelatorType realValue) {
+            PrismContainerValueWrapper<ItemsSubCorrelatorType> wrapper) {
 
         OperationResultStatusType status = statusInfo.getStatus();
+        ItemsSubCorrelatorType realValue = wrapper.getRealValue();
         LoadableModel<String> displayNameModel = new LoadableModel<>() {
             @Override
             protected String load() {
@@ -344,18 +339,20 @@ public abstract class SmartCorrelationTable
                     return realValue != null ? realValue.getName() : " - ";
                 }
 
-                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo).textKey;
+                String textKey = SmartIntegrationUtils.SuggestionUiStyle.from(statusInfo, wrapper).textKey;
                 return createStringResource(textKey).getString();
             }
         };
 
-        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel, status);
+        String badgeTooltip = createStringResource("SmartIntegration.badge.tooltip.ai").getObject();
+        LabelWithBadgePanel labelWithBadgePanel = buildSuggestionNameLabel(componentId, statusInfo, displayNameModel,
+                createStringResource("SmartIntegration.suggestion.text"), badgeTooltip, status);
         cellItem.add(labelWithBadgePanel);
     }
 
     @Override
     protected String getDiscardButtonCssClass() {
-        return "col p-2 btn btn-default rounded";
+        return "col p-2 btn btn-light border rounded";
     }
 
     @Override
@@ -387,20 +384,23 @@ public abstract class SmartCorrelationTable
     public @NotNull List<InlineMenuItem> getInlineMenuItems(PrismContainerValueWrapper<ItemsSubCorrelatorType> tileModel) {
         List<InlineMenuItem> inlineMenuItems = super.getInlineMenuItems(tileModel);
         inlineMenuItems.add(createViewRuleInlineMenu(tileModel));
-        inlineMenuItems.add(createSuggestionOperationInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
+        inlineMenuItems.add(createSuggestionStopGeneratingInlineMenu(getPageBase(), this::getStatusInfo, this::refreshAndDetach));
         inlineMenuItems.add(createSuggestionDetailsInlineMenu(getPageBase(), this::getStatusInfo));
         return inlineMenuItems;
     }
 
     @Override
     public List<InlineMenuItem> getDefaultMenuActions(PrismContainerValueWrapper<ItemsSubCorrelatorType> model) {
-        List<InlineMenuItem> defaultMenuActions = super.getDefaultMenuActions(model);
-        Containerable realValue = findAssociatedParentContainerWrapper().getRealValue();
 
+        List<InlineMenuItem> defaultMenuActions = new ArrayList<>();
+
+        Containerable realValue = findAssociatedParentContainerWrapper().getRealValue();
         if (realValue instanceof ResourceObjectTypeDefinitionType resourceObjectTypeDef) {
             defaultMenuActions.add(createSimulationInlineMenu(model, resourceObjectTypeDef));
+            defaultMenuActions.add(createSectionDivider());
         }
 
+        defaultMenuActions.addAll(super.getDefaultMenuActions(model));
         return defaultMenuActions;
     }
 
@@ -410,6 +410,11 @@ public abstract class SmartCorrelationTable
         return new InlineMenuItem(
                 createStringResource("SmartCorrelationTilePanel.simulate")) {
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public @Nullable CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa-solid fa-flask");
+            }
 
             @Override
             public @NotNull InlineMenuItemAction initAction() {
@@ -608,7 +613,7 @@ public abstract class SmartCorrelationTable
             }
         });
         if (refresh) {
-            refreshAndDetach(target);
+            SmartCorrelationTable.this.refreshAndDetach(target);
         }
     }
 
@@ -703,7 +708,10 @@ public abstract class SmartCorrelationTable
         return !(parentWrapper.getRealValue() instanceof AssociationSynchronizationExpressionEvaluatorType);
     }
 
-
+    @Override
+    protected String getTileCssClasses() {
+        return "col-12 py-1";
+    }
 }
 
 

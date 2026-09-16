@@ -84,8 +84,8 @@ public class ExportMiningConsumerWorker extends AbstractWriterConsumerWorker<Exp
 
     private static final String ARCHETYPE_REF_ATTRIBUTE_NAME = "archetypeRef";
     private static final List<String> DEFAULT_EXCLUDED_ATTRIBUTES = List.of("description", "documentation", "emailAddress",
-            "telephoneNumber", "name", "fullName", "givenName", "familyName", "additionalName", "nickName", "personalNumber",
-            "identifier", "jpegPhoto");
+            "telephoneNumber", "name", "fullName", "preferredName", "displayName", "givenName", "familyName",
+            "additionalName", "nickName", "personalNumber", "identifier", "jpegPhoto");
 
     public ExportMiningConsumerWorker(NinjaContext context, ExportMiningOptions options, BlockingQueue<FocusType> queue,
             OperationStatus operation) {

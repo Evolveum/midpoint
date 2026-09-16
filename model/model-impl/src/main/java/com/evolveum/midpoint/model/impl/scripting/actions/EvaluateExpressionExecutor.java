@@ -50,7 +50,8 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            CommunicationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         ExpressionType expressionBean = expressionHelper.getActionArgument(
                 ExpressionType.class, action,
@@ -70,7 +71,7 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
     <I> Object doSingleExecution(ExpressionEvaluationParameters parameters, TypedValue<I> inputTypedValue,
             VariablesMap externalVariables, ExecutionContext context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         VariablesMap variables = createVariables(externalVariables);
 

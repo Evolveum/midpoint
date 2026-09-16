@@ -21,8 +21,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-import java.util.Collections;
-
 public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismPropertyWrapper<T>, PrismPropertyValueWrapper<T>> {
 
 

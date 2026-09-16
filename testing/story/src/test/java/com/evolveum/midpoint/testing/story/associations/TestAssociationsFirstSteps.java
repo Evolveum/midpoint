@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObject;

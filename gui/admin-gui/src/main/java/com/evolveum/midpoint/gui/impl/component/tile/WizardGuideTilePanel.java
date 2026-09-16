@@ -74,7 +74,7 @@ public class WizardGuideTilePanel<T extends Tile<O>, O extends Serializable> ext
     @Override
     protected void appendTileDefaultCssClass() {
         add(AttributeAppender.append("class",
-                "tile-panel tile-panel-tooltip d-flex flex-column align-items-center rounded p-3"));
+                "guide-panel tile-panel tile-panel-tooltip d-flex flex-column align-items-center rounded p-3"));
     }
 
     @Override

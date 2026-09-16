@@ -45,10 +45,7 @@ public class DeleteObjectClassConnectorStepPanel extends AbstractObjectClassConn
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new DeleteEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingDeleteConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new DeleteScriptConnectorStepPanel(getHelper(), getObjectClassModel()));
+        return wizardStrategy().deleteObjectClassSteps(getHelper(), getObjectClassModel());
     }
 
     @Override

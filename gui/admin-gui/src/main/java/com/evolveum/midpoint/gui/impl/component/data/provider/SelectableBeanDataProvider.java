@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -69,6 +71,12 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
     private OperationResult result;
 
+    // Short-lived count cache for repeated Wicket size/page-count calls in one render.
+    // Cleared on detach and provider state changes; independent of row/object caching.
+    private CountCacheKey cachedCountKey;
+    private Integer cachedCount;
+    private boolean cachedCountAvailable;
+
     public Set<T> getSelected() {
         return selected;
     }
@@ -127,7 +135,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
         } catch (Exception ex) {
             setupUserFriendlyMessage(result, ex);
-            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
+            result.recordFatalError(createListObjectsErrorMessage(ex), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
             return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
@@ -177,6 +185,14 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
     protected SelectableBean<T> createDataObjectWrapperForError() {
         return new SelectableBeanImpl<>();
+    }
+
+    private String createListObjectsErrorMessage(Exception ex) {
+        String message = getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString();
+        if (StringUtils.isBlank(ex.getMessage())) {
+            return message;
+        }
+        return message + ": " + ex.getMessage();
     }
 
     protected abstract List<T> searchObjects(Class<T> type,
@@ -251,11 +267,20 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             return Integer.MAX_VALUE;
         }
         int count = 0;
-        Task task = getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
-        OperationResult result = task.getResult();
+        Task task = createCountTask();
+        OperationResult result = createCountResult(task);
         try {
             Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge( getSearchOptions(), null);
-            Integer counted = countObjects(getType(), getQuery(), currentOptions, task, result);
+            Class<T> type = getType();
+            ObjectQuery query = getQuery();
+            CountCacheKey countKey = new CountCacheKey(type, query, currentOptions);
+            Integer counted;
+            if (isCountCached(countKey)) {
+                counted = cachedCount;
+            } else {
+                counted = countObjects(type, query, currentOptions, task, result);
+                cacheCount(countKey, counted);
+            }
             count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
             setupUserFriendlyMessage(result, ex);
@@ -275,10 +300,34 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         return count;
     }
 
+    private boolean isCountCached(CountCacheKey countKey) {
+        return cachedCountAvailable && Objects.equals(cachedCountKey, countKey);
+    }
+
+    private void cacheCount(CountCacheKey countKey, Integer count) {
+        cachedCountKey = countKey;
+        cachedCount = count;
+        cachedCountAvailable = true;
+    }
+
+    private void clearCountCache() {
+        cachedCountKey = null;
+        cachedCount = null;
+        cachedCountAvailable = false;
+    }
+
     protected abstract Integer countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> currentOptions,
             Task task, OperationResult result)
             throws CommonException;
+
+    protected Task createCountTask() {
+        return getPageBase().createSimpleTask(OPERATION_COUNT_OBJECTS);
+    }
+
+    protected OperationResult createCountResult(Task task) {
+        return task.getResult();
+    }
 
     public boolean isUseObjectCounting() {
         CompiledObjectCollectionView guiObjectListViewType = getCompiledObjectCollectionView();
@@ -290,6 +339,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
 
 
     public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        clearCountCache();
         this.options = options;
     }
 
@@ -306,6 +356,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     }
 
     public void setForPreview(boolean forPreview) {
+        clearCountCache();
         isForPreview = forPreview;
     }
 
@@ -318,7 +369,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     }
 
     @Nullable
-    public OperationResult getErrorResult() {
+    public OperationResult getResult() {
         return result;
     }
 
@@ -326,5 +377,32 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     public void detach() {
         super.detach();
         result = null;
+        clearCountCache();
+    }
+
+    @Override
+    public void clearCache() {
+        super.clearCache();
+        clearCountCache();
+    }
+
+    @Override
+    public void setCompiledObjectCollectionView(CompiledObjectCollectionView objectCollectionView) {
+        clearCountCache();
+        super.setCompiledObjectCollectionView(objectCollectionView);
+    }
+
+    private record CountCacheKey(Class<?> type, ObjectQuery query,
+                                 Collection<SelectorOptions<GetOperationOptions>> options) implements Serializable {
+
+            private CountCacheKey(
+                    Class<?> type,
+                    ObjectQuery query,
+                    Collection<SelectorOptions<GetOperationOptions>> options) {
+                this.type = type;
+                this.query = query != null ? query.clone() : null;
+                this.options = options != null ? List.copyOf(options) : null;
+            }
+
     }
 }

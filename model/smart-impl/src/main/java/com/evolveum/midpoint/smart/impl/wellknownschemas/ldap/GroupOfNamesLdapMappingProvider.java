@@ -13,7 +13,10 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -38,20 +41,23 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("description"), RoleType.F_DESCRIPTION);
+        matches.put(SystemMappingSuggestion.riAttr("description"), RoleType.F_DESCRIPTION);
         return matches;
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestInboundMappings() {
+    public List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER));
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", RoleType.F_NAME, MappingStrengthType.STRONG));
+        String prefixScript = resourceName != null
+                ? "'" + resourceName.replace("'", "\\'") + "' + ':' + input"
+                : "'RESOURCE_NAME:' + input";
         mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                 "cn",
                 RoleType.F_NAME,
-                "resource.name + '-' + input",
-                "Inbound: group name with resource prefix (<resource>-<cn>)",
+                prefixScript,
+                "Inbound: group name with resource prefix (<resource>:<cn>)",
                 MappingStrengthType.STRONG));
         return mappings;
     }
@@ -64,11 +70,16 @@ public class GroupOfNamesLdapMappingProvider implements WellKnownSchemaProvider 
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "dn",
                     AbstractRoleType.F_IDENTIFIER,
-                    "basic.composeDnWithSuffix('cn', identifier, '%s')".formatted(ouSuffix),
-                    "Compose DN: cn=<identifier>,%s".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', identifier + iterationToken, '%s'])".formatted(ouSuffix),
+                    "Compose DN: cn=<identifier + iterationToken>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "cn",
+                    AbstractRoleType.F_IDENTIFIER,
+                    "identifier + iterationToken",
+                    "CN: identifier + iterationToken",
+                    MappingStrengthType.WEAK));
         }
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", AbstractRoleType.F_IDENTIFIER, MappingStrengthType.WEAK));
         return mappings;
     }
 

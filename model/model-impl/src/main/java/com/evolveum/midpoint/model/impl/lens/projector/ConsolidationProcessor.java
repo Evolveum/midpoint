@@ -66,7 +66,7 @@ public class ConsolidationProcessor {
     @SuppressWarnings("checkstyle:SimplifyBooleanExpression")
     void consolidateValues(LensProjectionContext projCtx, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
             //todo filter changes which were already in account sync delta
 
         OperationResult result = parentResult.subresult(OP_CONSOLIDATE_VALUES)
@@ -114,7 +114,7 @@ public class ConsolidationProcessor {
 
     private void loadFullShadowIfNeeded(LensProjectionContext projCtx, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // Do not automatically load the full projection now. Even if we have weak mapping.
         // That may be a waste of resources if the weak mapping results in no change anyway.
         // Let's be very very lazy about fetching the account from the resource.

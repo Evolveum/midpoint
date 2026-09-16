@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.connection;
 
 import java.time.Duration;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.TimerProgressPanel;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.exception.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -21,13 +18,13 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.TimerProgressPanel;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 public class ResourceTestPanel extends BasePanel<String> {
 
@@ -44,6 +41,7 @@ public class ResourceTestPanel extends BasePanel<String> {
     private final XMLGregorianCalendar startTimestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
     private State state = State.RUNNING;
     private AbstractAjaxTimerBehavior timerBehavior;
+    private OperationResult lastFailedResult;
 
     private enum State {
         RUNNING,
@@ -85,16 +83,17 @@ public class ResourceTestPanel extends BasePanel<String> {
         return new AbstractAjaxTimerBehavior(getRefreshInterval()) {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
+                onTestingStarted(target);
+
                 try {
                     boolean failed;
                     Task task = getPageBase().createSimpleTask("testResource");
+                    customizeTask(task);
                     OperationResult result = task.getResult();
                     try {
                         getPageBase().getModelService().testResource(getModelObject(), task, result);
                     } catch (Throwable t) {
-                        state = State.FAILED;
-                        stop(target);
-                        return;
+                        result.recordFatalError(t);
                     }
 
                     result.computeStatus();
@@ -111,10 +110,12 @@ public class ResourceTestPanel extends BasePanel<String> {
                             stop(target);
                         }
                     } else {
+                        lastFailedResult = result;
                         getPageBase().showResult(result);
                         target.add(getFeedbackPanel());
                         state = State.FAILED;
                         stop(target);
+                        onFailureActionPerform(target);
                     }
 
                 } finally {
@@ -122,6 +123,10 @@ public class ResourceTestPanel extends BasePanel<String> {
                 }
             }
         };
+    }
+
+    protected void customizeTask(Task task) {
+        // NOOP: for overriding
     }
 
     private void initCorePart(@NotNull WebMarkupContainer bodyContainer) {
@@ -154,6 +159,13 @@ public class ResourceTestPanel extends BasePanel<String> {
     protected void onFinishActionPerform(AjaxRequestTarget target) {
     }
 
+    protected void onFailureActionPerform(AjaxRequestTarget target) {
+    }
+
+    public OperationResult getLastFailedResult() {
+        return lastFailedResult;
+    }
+
     protected IModel<String> getIconCssModel() {
         return () -> {
             switch (state){
@@ -164,7 +176,7 @@ public class ResourceTestPanel extends BasePanel<String> {
                     return "fa fa-times-circle text-danger";
                 }
                 default -> {
-                    return "fa fa-tower-broadcast text-primary";
+                    return "fa fa-tower-broadcast text-primary spinner-fade-fast";
                 }
             }
         };
@@ -192,5 +204,8 @@ public class ResourceTestPanel extends BasePanel<String> {
     public void refresh() {
         state = State.RUNNING;
         timerBehavior.restart(null);
+    }
+
+    protected void onTestingStarted(AjaxRequestTarget target) {
     }
 }

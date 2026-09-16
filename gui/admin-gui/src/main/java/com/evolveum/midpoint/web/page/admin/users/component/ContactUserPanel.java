@@ -22,7 +22,7 @@ public class ContactUserPanel extends SimplePanel<ContactUserDto> {
         super(id, model);
 
         //move to html later
-        add(AttributeModifier.append("class", "media"));
+        add(AttributeModifier.append("class", "d-flex"));
     }
 
     @Override

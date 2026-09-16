@@ -14,6 +14,10 @@
     <executionState>runnable</executionState>
     <executionEnvironment>
         <cachingProfile>profile1</cachingProfile>
+        <conflictResolution>
+            <action>none</action>
+            <maxAttempts>1</maxAttempts>
+        </conflictResolution>
     </executionEnvironment>
     <activity>
         <work>

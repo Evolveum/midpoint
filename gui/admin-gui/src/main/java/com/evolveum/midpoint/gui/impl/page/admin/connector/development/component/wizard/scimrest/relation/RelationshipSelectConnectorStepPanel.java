@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -107,9 +108,9 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
     }
 
     private void initLayout() {
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
         IModel<String> radioGroupModel = new IModel<>() {
@@ -165,6 +166,15 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
                 Label objectAttribute = new Label(ID_OBJECT_ATTRIBUTE, () -> listItem.getModelObject().getRealValue().getObjectAttribute());
                 objectAttribute.setOutputMarkupId(true);
                 listItem.add(objectAttribute);
+
+                listItem.add(AttributeAppender.append("style", "cursor: pointer;"));
+                listItem.add(new AjaxEventBehavior("click") {
+                    @Override
+                    protected void onEvent(AjaxRequestTarget target) {
+                        radioGroupModel.setObject(listItem.getModelObject().getRealValue().getName());
+                        target.add(radioGroup);
+                    }
+                });
             }
         };
         panel.setOutputMarkupId(true);
@@ -204,7 +214,7 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
 
     @Override
     public String appendCssToWizard() {
-        return "col-10";
+        return "col-12 col-xl-10 col-xxl-8";
     }
 
     @Override
@@ -284,5 +294,10 @@ public class RelationshipSelectConnectorStepPanel extends AbstractWizardStepPane
         }
 
         return valueModel.getObject().getStatus() != ValueStatus.ADDED;
+    }
+
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }

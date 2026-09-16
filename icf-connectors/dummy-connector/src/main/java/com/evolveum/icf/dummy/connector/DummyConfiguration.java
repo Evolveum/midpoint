@@ -149,7 +149,9 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_UID_MODE",
-            helpMessageKey = "UI_UID_MODE_HELP")
+            helpMessageKey = "UI_UID_MODE_HELP",
+            allowedValues = {UidMode.V_NAME, UidMode.V_UUID, UidMode.V_EXTERNAL},
+            allowedValuesOpenness = ValueListOpenness.CLOSED)
     public String getUidMode() {
         return uidMode.getStringValue();
     }
@@ -159,9 +161,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_ENFORCE_UNIQUE_NAME",
-            helpMessageKey = "UI_ENFORCE_UNIQUE_NAME",
-            allowedValues = {UidMode.V_NAME, UidMode.V_UUID, UidMode.V_EXTERNAL},
-            allowedValuesOpenness = ValueListOpenness.CLOSED)
+            helpMessageKey = "UI_ENFORCE_UNIQUE_NAME")
     public boolean isEnforceUniqueName() {
         return enforceUniqueName;
     }

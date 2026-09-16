@@ -93,7 +93,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @SuppressWarnings("RedundantThrows") // Due to MiscUtil.throwAsSame hack
     Throwable logOrRethrowActionException(Throwable e, PrismValue value, ExecutionContext context)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (context.isContinueOnAnyError()) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute action '{}' on {}: {}", e,
                     getName(), value, e.getMessage());
@@ -108,7 +108,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
                     || e instanceof CommunicationException
                     || e instanceof ConfigurationException
                     || e instanceof ExpressionEvaluationException
-                    || e instanceof UnsupportedOperationException) {
+                    || e instanceof UnsupportedOperationException
+                    || e instanceof SubscriptionComplianceException) {
                 MiscUtil.throwAsSame(e, getExceptionMessage(e, value));
                 throw new NotHereAssertionError();
             } else if (e instanceof RuntimeException) {
@@ -130,7 +131,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     public interface ItemProcessor {
         void process(PrismValue value, PipelineItem item, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-                PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+                PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+                SubscriptionComplianceException;
     }
 
     @FunctionalInterface
@@ -142,7 +144,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             PipelineData input, ExecutionContext context, OperationResult globalResult,
             ItemProcessor itemProcessor, ConsoleFailureMessageWriter writer)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         for (PipelineItem item : input.getData()) {
             PrismValue value = item.getValue();
@@ -202,7 +205,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Override
     public void checkExecutionAllowed(ExecutionContext context, OperationResult result)
             throws SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         var expressionProfile = context.getExpressionProfile();
         var scriptingProfile = expressionProfile.getScriptingProfile();

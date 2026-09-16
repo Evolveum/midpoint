@@ -24,16 +24,16 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.transport.impl.TransportUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 
 @ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
 public class TestTransportUtils extends AbstractSpringTest {
@@ -199,5 +199,52 @@ public class TestTransportUtils extends AbstractSpringTest {
         assertThat(allowRecipient).withFailMessage("allowRecipient").hasSize(2);
         assertTrue("jack@evodevel.sk should be allowed, but isn't.", allowRecipient.contains("jack@evodevel.sk"));
         assertTrue("janko@evolveum.eu should be allowed, but isn't.", allowRecipient.contains("janko@evolveum.eu"));
+    }
+
+    @Test
+    public void test030EmptyRecipientFilterExpressionIsNotAFilteringOption() {
+        given();
+        GeneralTransportConfigurationType config = new GeneralTransportConfigurationType();
+        config.setRecipientFilterExpression(new ExpressionType());
+
+        expect();
+        assertThat(TransportUtil.optionsForFilteringRecipient(config)).isZero();
+    }
+
+    // TODO remove with old transports
+    @Test
+    public void test031EmptyRecipientFilterExpressionIsNotAFilteringOptionDeprecated() {
+        given();
+        NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
+        config.setRecipientFilterExpression(new ExpressionType());
+
+        expect();
+        assertThat(TransportUtil.optionsForFilteringRecipient(config)).isZero();
+    }
+
+    @Test
+    public void test032ValueRecipientFilterExpressionIsAFilteringOption() {
+        given();
+        GeneralTransportConfigurationType config = new GeneralTransportConfigurationType();
+        config.setRecipientFilterExpression(createValueExpression());
+
+        expect();
+        assertThat(TransportUtil.optionsForFilteringRecipient(config)).isOne();
+    }
+
+    // TODO remove with old transports
+    @Test
+    public void test033ValueRecipientFilterExpressionIsAFilteringOptionDeprecated() {
+        given();
+        NotificationTransportConfigurationType config = new NotificationTransportConfigurationType();
+        config.setRecipientFilterExpression(createValueExpression());
+
+        expect();
+        assertThat(TransportUtil.optionsForFilteringRecipient(config)).isOne();
+    }
+
+    private static ExpressionType createValueExpression() {
+        return new ExpressionType()
+                .expressionEvaluator(new ObjectFactory().createValue("true"));
     }
 }

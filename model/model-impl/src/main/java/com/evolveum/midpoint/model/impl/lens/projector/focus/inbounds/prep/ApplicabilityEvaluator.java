@@ -14,21 +14,20 @@ import java.util.List;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.error.ConfigErrorReporter;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultInboundMappingEvaluationPhasesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.schema.error.ConfigErrorReporter.lazy;
-import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingUseType.*;
 
 /**
  * Determines applicability of a mapping in given evaluation phase.

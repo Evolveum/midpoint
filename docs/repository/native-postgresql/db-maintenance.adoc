@@ -1,3 +1,7 @@
+---
+midpoint-feature: identity-repository-postgresql
+doc-type: guide
+---
 = DB maintenance
 :page-toc: top
 :page-display-order: 3

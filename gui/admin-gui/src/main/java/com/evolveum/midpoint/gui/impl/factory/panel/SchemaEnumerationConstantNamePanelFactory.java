@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.validator.SchemaEnumerationConstantNameValidator;
 
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.validator.SchemaEnumerationValueValidator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.EnumerationValueTypeDefinitionType;

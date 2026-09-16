@@ -20,7 +20,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ExternalDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.wicket.Application;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.cycle.RequestCycle;

@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.*;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 
 import com.querydsl.core.Tuple;
@@ -23,10 +24,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QFocusMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.QUserMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolderMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
-import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.org.QOrgMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplate;
 import com.evolveum.midpoint.repo.sqale.qmodel.other.QObjectTemplateMapping;
@@ -45,6 +42,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -147,14 +145,14 @@ public class QObjectReferenceMapping<OS extends ObjectType, OQ extends QObject<O
     initForProjection(@NotNull SqaleRepoContext repositoryContext) {
         if (needsInitialization(instanceProjection, repositoryContext)) {
             instanceProjection = new QObjectReferenceFullObjectMapping<>(
-                    FocusType.class,
-                    FocusType.F_LINK_REF,
+                    ProjectionHolderType.class,
+                    ProjectionHolderType.F_LINK_REF,
                     "m_ref_projection", "refpj", repositoryContext,
                     QShadowMapping::getShadowMapping,
-                    QFocusMapping::getFocusMapping,
+                    QProjectionHolderMapping::getProjectionHolderMapping,
                     (q, oq) -> q.ownerOid.eq(oq.oid),
-                    FocusType.class,
-                    FocusType.F_LINK_REF);
+                    ProjectionHolderType.class,
+                    ProjectionHolderType.F_LINK_REF);
         }
         return getForProjection();
     }

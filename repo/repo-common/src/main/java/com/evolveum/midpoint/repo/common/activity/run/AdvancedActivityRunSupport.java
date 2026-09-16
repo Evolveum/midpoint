@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.activity.run;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,10 +27,6 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.SimulationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfigurationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationDefinitionType;
@@ -50,7 +48,7 @@ public interface AdvancedActivityRunSupport {
     @NotNull SearchSpecification<?> createSearchSpecificationFromResourceObjectSetSpec(
             @NotNull ResourceObjectSetSpecificationImpl resourceObjectSetSpecification, @NotNull RunningTask task,
             OperationResult result)
-            throws SchemaException, ActivityRunException;
+            throws SchemaException, ActivityRunException, SubscriptionComplianceException;
 
     /** Assuming that query has expressions. */
     ObjectQuery evaluateQueryExpressions(

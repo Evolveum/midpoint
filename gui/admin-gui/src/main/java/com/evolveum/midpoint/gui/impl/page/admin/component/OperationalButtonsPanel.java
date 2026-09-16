@@ -156,7 +156,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         };
         edit.add(new VisibleBehaviour(this::isEditRawButtonVisible));
         edit.showTitleAsLabel(true);
-        edit.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        edit.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         repeatingView.add(edit);
     }
 
@@ -186,7 +186,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
     }
 
     protected String getBackCssClass() {
-        return "btn btn-default btn-sm";
+        return "btn btn-light border btn-sm";
     }
 
     protected void createDeleteButton(@NotNull RepeatingView repeatingView) {

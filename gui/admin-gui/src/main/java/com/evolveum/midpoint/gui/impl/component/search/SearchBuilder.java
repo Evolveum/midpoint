@@ -16,9 +16,6 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
@@ -293,7 +290,7 @@ public class SearchBuilder<C extends Serializable> {
 
         // isViewForDashboard == true && collectionView == null can happen when
         // we're opening popup (different list of objects) and don't want to use collection ref
-        // from underyling page
+        // from underlying page
         if (isViewForDashboard && collectionView != null) {
             basicSearchWrapper.getItemsList().add(new ObjectCollectionSearchItemWrapper(collectionView));
         }
@@ -319,13 +316,10 @@ public class SearchBuilder<C extends Serializable> {
             viewListItem.setVisible(true);
             basicSearchWrapper.getItemsList().add(viewListItem);
         }
-
     }
 
     private void sortItems(BasicQueryWrapper basicSearchWrapper) {
-        basicSearchWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
-                StringUtils.isEmpty(i1.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i1.getName().getObject()).getString(),
-                StringUtils.isEmpty(i2.getName().getObject()) ? "" : PageBase.createStringResourceStatic(i2.getName().getObject()).getString()));
+        basicSearchWrapper.getItemsList().sort(new SearchItemWrapperComparator<>());
 
         basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
     }

@@ -14,9 +14,10 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.*;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionWizardPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -77,7 +78,8 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
         getPageBase().getPageParameters().remove(WizardModelBasic.PARAM_STEP);
         showChoiceFragment(
                 target,
-                new RoleWizardChoicePanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {
+                new RoleWizardChoicePanel<>(
+                        getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class, getLastSaveResult()) {
                     @Override
                     protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
                         switch (value) {

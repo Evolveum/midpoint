@@ -6,31 +6,29 @@
 
 package com.evolveum.midpoint.web.application;
 
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
 
+    /**
+     * Identifier of {@link AsyncWebProcess}.
+     */
+    private final String id;
+
     private transient AsyncWebProcess<T> process;
-    private String id;
-    private Task task;
 
     public AsyncWebProcessModel() {
-        this(true, null);
+        this(null);
     }
 
     public AsyncWebProcessModel(T data) {
-        this(true, data);
-    }
-
-    public AsyncWebProcessModel(boolean createProcessEagerly, T data) {
-        if (createProcessEagerly) {
-            createProcess(data);
-        }
+        process = createProcess(data);
+        id = process.getId();
     }
 
     public String getId() {
@@ -43,7 +41,8 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
             return process;
         }
 
-        return createProcess(null);
+        process = loadProcess();
+        return process;
     }
 
     public T getProcessData() {
@@ -51,34 +50,17 @@ public class AsyncWebProcessModel<T> implements IModel<AsyncWebProcess<T>> {
     }
 
     @Override
-    public void setObject(AsyncWebProcess<T> object) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void detach() {
         process = null;
     }
 
-    private AsyncWebProcess createProcess(T data) {
+    private AsyncWebProcess<T> createProcess(T data) {
         AsyncWebProcessManager manager = MidPointApplication.get().getAsyncWebProcessManager();
-        if (id != null) {
-            process = manager.getProcess(id);
-
-            return process;
-        }
-
-        process = manager.createProcess(data);
-        id = process.getId();
-
-        return process;
+        return manager.createProcess(data);
     }
 
-    public void setTask(Task task) {
-        this.task = task;
-    }
-
-    public Task getTask() {
-        return task;
+    private AsyncWebProcess<T> loadProcess() {
+        AsyncWebProcessManager manager = MidPointApplication.get().getAsyncWebProcessManager();
+        return manager.getProcess(id);
     }
 }

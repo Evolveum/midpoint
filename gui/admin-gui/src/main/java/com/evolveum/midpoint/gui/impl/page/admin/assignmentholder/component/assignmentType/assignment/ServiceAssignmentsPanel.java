@@ -13,6 +13,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -35,5 +36,9 @@ public class ServiceAssignmentsPanel<AH extends AssignmentHolderType> extends Ab
     @Override
     protected QName getAssignmentType() {
         return ServiceType.COMPLEX_TYPE;
+    }
+
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addAssignmentPanelRule(panelType, limit, ServiceType.COMPLEX_TYPE);
     }
 }

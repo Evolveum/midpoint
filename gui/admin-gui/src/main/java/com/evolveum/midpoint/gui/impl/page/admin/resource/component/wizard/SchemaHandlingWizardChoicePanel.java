@@ -1,5 +1,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -10,13 +17,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.ResourceWizardStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class SchemaHandlingWizardChoicePanel
         extends ResourceWizardChoicePanel<SchemaHandlingWizardChoicePanel.PreviewTileType> {
@@ -122,6 +122,15 @@ public abstract class SchemaHandlingWizardChoicePanel
         return getPageBase().createStringResource("ResourceWizardPreviewPanel.text", getResourceName());
     }
 
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
+    }
     // keep your existing abstract handler
     protected abstract void onTileClickPerformed(@NotNull PreviewTileType value, AjaxRequestTarget target);
 }

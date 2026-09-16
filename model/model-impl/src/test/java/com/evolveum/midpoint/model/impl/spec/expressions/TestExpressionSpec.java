@@ -237,8 +237,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
 
     private <V extends PrismValue, D extends ItemDefinition<?>> PrismValueDeltaSetTriple<V> evaluateExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            OperationResult result) throws CommonException {
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, null,
                 expressionContext.getContextDescription(), expressionContext.getTask(), result);
         LOGGER.debug("Starting evaluation of expression: {}", expression);
@@ -247,7 +246,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
 
     private <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
             ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws CommonException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
         return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
@@ -255,8 +254,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
 
     private <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
             ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            OperationResult result) throws CommonException {
         return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
     }
 

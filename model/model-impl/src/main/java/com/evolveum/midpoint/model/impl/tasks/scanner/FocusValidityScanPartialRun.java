@@ -30,7 +30,7 @@ import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityPolicyConstraintType;

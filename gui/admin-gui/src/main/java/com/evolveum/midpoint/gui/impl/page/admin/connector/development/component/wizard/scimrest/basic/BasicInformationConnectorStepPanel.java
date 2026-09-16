@@ -6,25 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
-
-import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
-
-import com.evolveum.midpoint.prism.Containerable;
+import java.util.List;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardParentStep;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -33,8 +32,6 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-
-import java.util.List;
 
 /**
  * @author lskublik
@@ -75,9 +72,9 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
     @Override
     protected void initLayout() {
 //        getTopLevelContainer().add(AttributeAppender.replace("class", "d-flex flex-column col-9 mt-2"));
-        getTextLabel().add(AttributeAppender.replace("class", "mb-3 h4 w-100"));
-        getSubtextLabel().add(AttributeAppender.replace("class", "text-secondary pb-3 lh-2 border-bottom mb-3 w-100"));
-        getButtonContainer().add(AttributeAppender.replace("class", "d-flex gap-3 justify-content-between mt-3 w-100"));
+        getTextLabel().add(AttributeAppender.replace("class", "mb-2 col-12 gen-step-title"));
+        getSubtextLabel().add(AttributeAppender.replace("class", "border-bottom pb-4 d-inline-block w-100"));
+        getButtonContainer().add(AttributeAppender.replace("class", "d-flex align-items-center flex-nowrap flex-row mt-4 gap-2 wizard-actions-strip col-12"));
         getFeedback().add(AttributeAppender.replace("class", "col-12 feedbackContainer"));
 
                 ItemPanelSettings settings = new ItemPanelSettingsBuilder()
@@ -184,5 +181,15 @@ public class BasicInformationConnectorStepPanel extends AbstractFormWizardStepPa
                 new DocumentationConnectorStepPanel(getHelper()),
                 new ConnectorIdentificationConnectorStepPanel(getHelper()),
                 new WaitingConnectorCreatingConnectorStepPanel(getHelper()));
+    }
+
+    @Override
+    protected IModel<String> getNextLabelModel() {
+        return null;
+    }
+
+    @Override
+    protected String getSubTextContainerCssClass() {
+        return "text-secondary col-12 pb-4";
     }
 }

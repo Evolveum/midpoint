@@ -8,10 +8,18 @@ package com.evolveum.midpoint.security.enforcer.impl.prism;
 
 import static com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCoverage.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameKeyedMap;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.security.enforcer.impl.TieredSelectorWithItems;
 
@@ -104,7 +112,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
     static @Nullable PrismValueCoverageInformation forAuthorization(
             @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         Collection<TieredSelectorWithItems> tieredSelectors = TieredSelectorWithItems.forAutzAndValue(value, evaluation);
         if (!tieredSelectors.isEmpty()) {
@@ -126,7 +134,8 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             @NotNull PrismValue rootValue,
             @NotNull TieredSelectorWithItems tieredSelector,
             @NotNull AuthorizationEvaluation evaluation) throws ConfigurationException, SchemaException,
-            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException {
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
+            SubscriptionComplianceException {
 
         ValueSelector valueSelector = tieredSelector.getSelector();
         assert valueSelector.getParentClause() == null;
@@ -157,7 +166,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             PrismValue rootValue,
             AuthorizationEvaluation evaluation)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!(parentValue instanceof PrismContainerValue<?> pcv)) {
             return PrismValueCoverageInformation.noCoverage(false);
         }

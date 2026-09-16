@@ -10,31 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.tile.AssociationTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.AssociationsListView;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
-
 import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AssociationChoicePanel
         extends AbstractWizardBasicPanel<ResourceDetailsModel> {
@@ -138,5 +129,15 @@ public abstract class AssociationChoicePanel
     protected void onDetach() {
         super.onDetach();
         tilesModel.detach();
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
+
+    @Override
+    protected boolean isOnlyChildCentered() {
+        return true;
     }
 }

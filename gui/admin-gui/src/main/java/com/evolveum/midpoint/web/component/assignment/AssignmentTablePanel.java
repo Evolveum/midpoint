@@ -93,7 +93,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn btn-default";
+                return "btn btn-light border";
             }
 
             @Override

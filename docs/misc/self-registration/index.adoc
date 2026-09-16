@@ -35,11 +35,13 @@ After this, self registration process is enabled globally (in the multi-tenant e
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      ...
                      oid="00000000-0000-0000-0000-000000000001">
-   <name>SystemConfiguration</name>
+    <name>SystemConfiguration</name>
     ....
-   <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b" type="c:SecurityPolicyType"/>
+    <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b" type="c:SecurityPolicyType"/>
     ....
-   <publicHttpUrlPattern>http://localhost:8080/midpoint</publicHttpUrlPattern>
+    <infrastructure>
+        <publicHttpUrlPattern>http://localhost:8080/midpoint</publicHttpUrlPattern>
+    </infrastructure>
     ....
 </systemConfiguration>
 ----

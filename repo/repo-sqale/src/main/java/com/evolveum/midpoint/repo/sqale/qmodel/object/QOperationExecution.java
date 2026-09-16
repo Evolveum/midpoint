@@ -11,10 +11,12 @@ import java.time.Instant;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerWithFullObject;
 
-import com.querydsl.core.types.dsl.*;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.EnumPath;
+import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;

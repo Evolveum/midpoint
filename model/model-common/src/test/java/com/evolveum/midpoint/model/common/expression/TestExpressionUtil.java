@@ -19,6 +19,8 @@ import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -42,19 +44,11 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -170,21 +164,21 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     private <T> T resolvePath(String path, final String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VariablesMap variables = createVariables();
         return resolvePath(path, variables, exprShortDesc);
     }
 
     private <T> T resolvePathOdo(String path, final String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         VariablesMap variables = createVariablesOdo();
         return resolvePath(path, variables, exprShortDesc);
     }
 
     private <T> T resolvePath(String path, VariablesMap variables, String exprShortDesc)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = createOperationResult();
         ItemPath itemPath = toItemPath(path);
 

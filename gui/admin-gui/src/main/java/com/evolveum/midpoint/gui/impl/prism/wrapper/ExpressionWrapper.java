@@ -24,8 +24,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.Collection;
-
 /**
  * Created by honchar
  */

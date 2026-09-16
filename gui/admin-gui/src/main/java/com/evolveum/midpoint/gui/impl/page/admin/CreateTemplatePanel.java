@@ -69,7 +69,7 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
     protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
         List<ObjectReferenceType> archetypeRef = ObjectCollectionViewUtil.getArchetypeReferencesList(collectionViews);
         try {
-            DetailsPageUtil.initNewObjectWithReference(getPageBase(),
+            DetailsPageUtil.initNewObjectWithReferenceAndRedirect(getPageBase(),
                     getType(),
                     archetypeRef);
         } catch (SchemaException ex) {

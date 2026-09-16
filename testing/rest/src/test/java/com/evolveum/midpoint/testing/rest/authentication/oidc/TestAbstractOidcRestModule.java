@@ -30,7 +30,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -240,7 +243,7 @@ public abstract class TestAbstractOidcRestModule extends TestAbstractAuthenticat
             }
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             Certificate certificate = cf.generateCertificate(new ByteArrayInputStream(certBytes));
-            keystore.setCertificateEntry("cert", certificate);
+            keystore.setCertificateEntry("certs", certificate);
 
             File file = new File(pathToKeystore);
             file.deleteOnExit();

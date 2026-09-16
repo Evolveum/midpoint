@@ -10,7 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 

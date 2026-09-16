@@ -11,7 +11,10 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -97,12 +100,7 @@ public class GdprAssignmentPanel extends AbstractAssignmentPanel<UserType> {
 //    }
 
     protected ObjectQuery getCustomizeQuery() {
-        return getPrismContext().queryFor(AssignmentType.class)
-                .block()
-                .item(AssignmentType.F_TARGET_REF)
-                .refRelation(SchemaConstants.ORG_CONSENT)
-                .endBlock()
-                .build();
+        return AssignmentPanelQueries.gdprAssignments();
     }
 
     @Override

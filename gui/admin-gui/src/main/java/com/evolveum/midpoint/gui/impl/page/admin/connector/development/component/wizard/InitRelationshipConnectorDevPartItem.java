@@ -23,7 +23,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevRelationInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 
 import org.apache.commons.lang3.Strings;
 

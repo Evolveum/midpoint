@@ -64,13 +64,7 @@ Therefore is full-strength JCE extension was installed it is recommended to chan
 
 To add a new encryption key follow this procedure:
 
-First stop web container.
-E.g. to stop tomcat in Linux:
-
-[source,bash]
-----
-/etc/init.d/tomcat stop
-----
+First stop the midPoint server.
 
 [NOTE]
 .Generating a new key
@@ -106,12 +100,8 @@ Also make sure a strong algorithm is specified:
 
 ----
 
-Start web container again:
+Start the midPoint server again.
 
-[source,bash]
-----
-/etc/init.d/tomcat start
-----
 
 NOTE: When changing the encryption key, you may need to reencrypt the protected data already stored in the database with the new key. To do so, please follow the procedure xref:./migrating-encryption-keys.adoc[migrating encryption keys] after the new encryption key is added.
 

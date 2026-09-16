@@ -8,18 +8,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.AbstractAssignmentTypePanel;
-import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,7 +25,9 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchI
 import com.evolveum.midpoint.web.session.SessionStorage;
 
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -55,6 +54,10 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
     public AbstractAssignmentPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
         super(id, null, config, model.getObject().getTypeClass(), model.getObject().getOid());
         setModel(PrismContainerWrapperModel.fromContainerWrapper(model, AssignmentHolderType.F_ASSIGNMENT, (Supplier<PageBase> & Serializable) () -> getPageBase()));
+    }
+
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addAssignmentPanelRule(panelType, limit, null);
     }
 
     @Override
@@ -91,33 +94,7 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
 
     @Override
     protected ObjectQuery getCustomizeQuery() {
-        Collection<QName> delegationRelations = getPageBase().getRelationRegistry()
-                .getAllRelationsFor(RelationKindType.DELEGATION);
-
-        //do not show archetype assignments
-        ObjectReferenceType archetypeRef = new ObjectReferenceType();
-        archetypeRef.setType(ArchetypeType.COMPLEX_TYPE);
-        archetypeRef.setRelation(new QName(PrismConstants.NS_QUERY, "any"));
-        RefFilter archetypeFilter = (RefFilter) getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .item(AssignmentType.F_TARGET_REF)
-                .ref(archetypeRef.asReferenceValue())
-                .buildFilter();
-        archetypeFilter.setOidNullAsAny(true);
-
-        ObjectFilter relationFilter = getPageBase().getPrismContext().queryFor(AssignmentType.class)
-                .not()
-                .item(AssignmentType.F_TARGET_REF)
-                .refRelation(delegationRelations.toArray(new QName[0]))
-                .buildFilter();
-
-        ObjectQuery query = getPrismContext().queryFactory().createQuery(relationFilter);
-        query.addFilter(getPrismContext().queryFactory().createNot(archetypeFilter));
-
-        RefFilter targetRefFilter = getTargetTypeFilter();
-        if (targetRefFilter != null) {
-            query.addFilter(targetRefFilter);
-        }
-        return query;
+        return AssignmentPanelQueries.defaultAssignments(getAssignmentType());
     }
 
     @NotNull

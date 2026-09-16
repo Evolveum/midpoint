@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public enum CollectionPanelType {
     ROLE_MEMBER_GOVERNANCE(true, "roleGovernance", true, FocusType.COMPLEX_TYPE),
@@ -48,6 +51,15 @@ public enum CollectionPanelType {
 
     public boolean isMemberPanel() {
         return memberPanel;
+    }
+
+    public boolean isGovernance() {
+        return this == ROLE_MEMBER_GOVERNANCE
+                || this == SERVICE_MEMBER_GOVERNANCE
+                || this == POLICY_MEMBER_GOVERNANCE
+                || this == ARCHETYPE_MEMBER_GOVERNANCE
+                || this == ORG_MEMBER_GOVERNANCE
+                || this == CARDS_GOVERNANCE;
     }
 
     public static CollectionPanelType getPanelType(String panelInstance) {

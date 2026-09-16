@@ -3,7 +3,7 @@ midpoint-feature: object-governance
 doc-type: [ 'intro', 'config' ]
 ---
 = Object Governance
-:page-keywords: [ 'governance', 'relationship', 'relationship type', 'ownership' ]
+:page-keywords: governance, relationship, relationship type, ownership
 :page-upkeep-status: orange
 :page-moved-from: /midpoint/reference/roles-policies/object-governance/
 

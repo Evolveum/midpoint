@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import com.evolveum.midpoint.cases.api.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,7 +30,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.api.CaseService;
-import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.CaseRelatedUtils;

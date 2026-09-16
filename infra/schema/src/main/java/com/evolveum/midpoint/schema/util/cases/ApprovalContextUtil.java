@@ -19,7 +19,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;

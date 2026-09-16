@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<objectTemplate oid="82ccd985-52a3-4bd0-b4f4-d067b2ef38c8"
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>User Template MID-11867</name>
+
+    <!-- testing "null" expression evaluator combined with "all" range: clears all values of the target item -->
+
+    <item>
+        <ref>organization</ref>
+        <mapping>
+            <strength>strong</strength>
+            <expression>
+                <null/>
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+        </mapping>
+    </item>
+</objectTemplate>

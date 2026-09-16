@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.*;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.wizard.SimulationWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -52,11 +52,6 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
             protected void redirectToSimulationTasksWizard(AjaxRequestTarget target) {
                 SimulationWizardPanel<?> simulationWizardPanel = buildSimulationTaskWizard();
                 showChoiceFragment(target, simulationWizardPanel);
-            }
-
-            @Override
-            protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
-                CorrelationWizardPanel.this.navigateToSynchronizationPanel(target);
             }
 
             @Override
@@ -156,6 +151,4 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
         return false;
     }
 
-    protected void navigateToSynchronizationPanel(AjaxRequestTarget target) {
-    }
 }

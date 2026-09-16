@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -37,6 +41,8 @@ import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.activity.ActivityUtil;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.OriginProvider;
@@ -44,11 +50,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and "kept" assignments.
@@ -59,7 +68,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentTripleEvaluator.class);
 
-    private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
+    private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName() + ".evaluateAssignment";
 
     private final LensContext<AH> context;
     private final LensFocusContext<AH> focusContext;
@@ -105,11 +114,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     @NotNull DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException,
-            CommunicationException {
+            CommunicationException, SubscriptionComplianceException {
 
         LOGGER.trace("Assignment current delta (i.e. from current to new object):\n{}", currentAssignmentDelta.debugDumpLazily());
 
-        Collection<AssignmentConfigItem> virtualAssignments = getVirtualAssignments(); // [EP:APSO] DONE
+        Collection<VirtualAssignment> virtualAssignments = getVirtualAssignments(); // [EP:APSO] DONE
 
         SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
         assignmentCollection.collectAndFreeze( // [EP:APSO] DONE
@@ -144,10 +153,25 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return evaluatedAssignmentTriple;
     }
 
+    /**
+     * Virtual assignment may or may not be defined in relation to an activity.
+     *
+     * @see AssignmentOrigin#activityPath
+     */
+    public record VirtualAssignment(@NotNull AssignmentConfigItem assignmentConfigItem, @Nullable ActivityPath activityPath) {
+
+        public static Collection<VirtualAssignment> wrap(Collection<AssignmentConfigItem> configItems) {
+            return configItems.stream()
+                    .map(ci -> new VirtualAssignment(ci, null))
+                    .toList();
+        }
+    }
+
+
     // [EP:APSO] DONE
-    private @NotNull Collection<AssignmentConfigItem> getVirtualAssignments()
+    private @NotNull Collection<VirtualAssignment> getVirtualAssignments()
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Collection<AssignmentConfigItem> forcedAssignments = // [EP:APSO] DONE
                 focusContext.isDelete() ?
                         List.of() :
@@ -167,9 +191,29 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         .toList();
         LOGGER.trace("Task assignment: {}", taskAssignments);
 
-        List<AssignmentConfigItem> virtualAssignments = new ArrayList<>(forcedAssignments);
-        virtualAssignments.addAll(taskAssignments);
+        Collection<VirtualAssignment> taskActivityAssignments = createActivityAssignments(task);
+        LOGGER.trace("Task activity assignments: {}", taskActivityAssignments);
+
+        List<VirtualAssignment> virtualAssignments = new ArrayList<>(VirtualAssignment.wrap(forcedAssignments));
+        virtualAssignments.addAll(VirtualAssignment.wrap(taskAssignments));
+        virtualAssignments.addAll(taskActivityAssignments);
+
         return virtualAssignments;
+    }
+
+    /**
+     * Collects all virtual assignments from current activity up to root activity.
+     */
+    private Collection<VirtualAssignment> createActivityAssignments(Task fromTask) {
+        ExecutionSupport support = fromTask.getExecutionSupport();
+        if (!(support instanceof AbstractActivityRun<?, ?, ?> activityRun)) {
+            return List.of();
+        }
+
+        var rootTask = activityRun.getRunningTask().getRootTask().getRawTaskObjectClonedIfNecessary().asObjectable();
+        return ActivityUtil.getAllVirtualAssignments(activityRun.getActivity(), rootTask).stream()
+                .map(a -> new VirtualAssignment(a.assignmentConfigItem(), a.activityPath()))
+                .toList();
     }
 
     // [EP:APSO] DONE
@@ -189,7 +233,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private void processAssignment(SmartAssignmentElement assignmentElement)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         // Whether the assignment was changed (either as a whole, or only in its content).
         boolean assignmentChanged;
@@ -198,7 +242,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         boolean forceRecon;
 
         // Deltas that modify the content of the assignment.
-        Collection<? extends ItemDelta<?,?>> innerAssignmentDeltas;
+        Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas;
 
         // Human-readable description of the assignment "placement" (not quite concise name).
         String assignmentPlacementDesc;
@@ -248,7 +292,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private void processAssignmentOnFocusDelete(SmartAssignmentElement assignmentElement, boolean forceRecon,
             String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         LOGGER.trace("Processing focus delete for: {}", printLazily(assignmentElement));
         evaluateAsDeleted(assignmentElement, forceRecon, assignmentPlacementDesc);
     }
@@ -264,7 +308,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private void processAssignmentReplace(
             SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         LOGGER.trace("Processing replace of all assignments for: {}", printLazily(assignmentElement));
         boolean existed = assignmentElement.isCurrent();
         boolean willExist = assignmentElement.isNew();
@@ -293,7 +337,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             String assignmentPlacementDesc,
             Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         boolean added = assignmentElement.getOrigin().isInDeltaAdd();
         boolean deleted = assignmentElement.getOrigin().isInDeltaDelete();
         if (added && !deleted) {
@@ -327,7 +371,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private void processInternallyChangedAssignment(SmartAssignmentElement assignmentElement, String assignmentPlacementDesc,
             Collection<? extends ItemDelta<?, ?>> innerAssignmentDeltas, boolean added, boolean deleted)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         PrismContainerValue<AssignmentType> assignmentValueBefore = assignmentElement.getAssignmentCVal();
         PrismContainerValue<AssignmentType> assignmentValueAfter = innerAssignmentDeltas.isEmpty() ?
@@ -386,7 +430,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     /** Evaluate the whole assignment as being added. */
     private void evaluateAsAdded(SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
                 createAssignmentIdiAdd(assignmentElement), PlusMinusZero.PLUS, false,
                 assignmentPlacementDesc, assignmentElement);
@@ -399,7 +443,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     /** Evaluate the whole assignment as being deleted. */
     private void evaluateAsDeleted(SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
                 createAssignmentIdiDelete(assignmentElement), PlusMinusZero.MINUS, true,
                 assignmentPlacementDesc, assignmentElement);
@@ -422,7 +466,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      */
     private void evaluateAsUnchanged(SmartAssignmentElement assignmentElement, boolean forceRecon, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(
                 createAssignmentIdiNoChange(assignmentElement), PlusMinusZero.ZERO, false,
                 assignmentPlacementDesc, assignmentElement);
@@ -457,7 +501,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      */
     private void processReallyUnchangedAssignment(SmartAssignmentElement assignmentElement, String assignmentPlacementDesc)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         LOGGER.trace("Processing unchanged assignment (origin: {}): {}",
                 assignmentElement.getOrigin(), printLazily(assignmentElement));
@@ -503,7 +547,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
             SmartAssignmentElement element) throws SchemaException {
         PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
                 (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
                         getDeltaItemFragment(value)
@@ -531,7 +575,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
             SmartAssignmentElement element) throws SchemaException {
         PrismContainerValue<AssignmentType> value = element.getAssignmentCVal();
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({ "unchecked", "raw" })
         ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta =
                 (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
                         getDeltaItemFragment(value)
@@ -559,7 +603,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     }
 
     /** Returns deltas related to given assignment element. */
-    private @NotNull Collection<? extends ItemDelta<?,?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
+    private @NotNull Collection<? extends ItemDelta<?, ?>> getInnerAssignmentDeltas(LensFocusContext<AH> focusContext,
             SmartAssignmentElement assignmentElement) {
         ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta(); // TODO is this correct?
         if (focusDelta == null) {
@@ -610,13 +654,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      * Returns null in exceptional situations.
      */
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             PlusMinusZero primaryAssignmentMode,
             boolean evaluateOld,
             String assignmentPlacementDesc,
             SmartAssignmentElement smartAssignment)
             throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         OperationResult subResult = result.createMinorSubresult(OP_EVALUATE_ASSIGNMENT);
         PrismContainerValue<AssignmentType> assignment = assignmentIdi.getSingleValue(evaluateOld);
         subResult.addParam("assignment", assignment != null ? FocusTypeUtil.dumpAssignment(assignment.asContainerable()) : null);
@@ -706,7 +750,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             //noinspection unchecked
             return (ContainerDelta<AssignmentType>) PrismContext.get().deltaFor(currentObjectable.getClass())
                     .item(AssignmentHolderType.F_ASSIGNMENT)
-                        .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
+                    .deleteRealValues(cloneCollectionMembers(currentObjectable.getAssignment()))
                     .asItemDelta();
         } else {
             return createEmptyAssignmentDelta(focusContext);

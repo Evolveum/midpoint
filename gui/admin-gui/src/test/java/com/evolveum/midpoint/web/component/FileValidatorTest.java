@@ -6,66 +6,182 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_MSWORD_2007;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_PDF;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_TEXT;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_JPEG;
+import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_IMAGE_PNG;
+import static com.evolveum.midpoint.web.component.FileTestConstants.UNKNOWN_BINARY;
+import static com.evolveum.midpoint.web.component.FileTestConstants.XML_START_ARRAY;
+import static com.evolveum.midpoint.web.component.FileTestConstants.docxBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.jpegBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.legacyXlsBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.minimalPdfBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.odtBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.pngBytes;
+import static com.evolveum.midpoint.web.component.FileTestConstants.xlsxBytes;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.expectThrows;
 
-import jakarta.activation.MimeType;
-import org.springframework.test.context.ActiveProfiles;
-import org.testng.annotations.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.List;
 
-import static com.evolveum.midpoint.common.MimeTypeUtil.*;
+import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import com.evolveum.midpoint.web.component.input.validator.FileUploadContentValidationException;
+import com.evolveum.midpoint.web.component.input.validator.FileUploadContentValidationException.Reason;
+import com.evolveum.midpoint.web.component.input.validator.FileValidatorUtil;
 
 /**
- * @author matisovaa
- *
+ * Tests upload content validation based on magic bytes, declared MIME type,
+ * and configured allowed MIME types.
  */
-@ActiveProfiles("test")
 public class FileValidatorTest {
 
-    private static final byte[] JPG_ARRAY = new byte[] { -1, -40, -1, -32, 0, 16, 74, 70, 73, 70, 0, 1, 1, 1, 0, 72, 0, 72, 0, 0, -1, -30, 12, 88, 73, 67, 67, 95, 80, 82, 79, 70, 73 };
-    private static final InputStream JPG_STREAM1 = new ByteArrayInputStream(JPG_ARRAY);
-    private static final InputStream JPG_STREAM2 = new ByteArrayInputStream(JPG_ARRAY);
-    private static final InputStream PNG_STREAM = new ByteArrayInputStream(new byte[] { -119, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 7, 65, 0, 0, 1, 2, 8, 2, 0, 0, 0, 7, 21, 56, -25, 0, 0 });
-    private static final InputStream XML_STREAM = new ByteArrayInputStream(new byte[] { 60, 114, 111, 108, 101, 32, 120, 109, 108, 110, 115, 61, 34, 104, 116, 116, 112, 58, 47, 47, 109, 105, 100, 112, 111, 105 });
-    private static final List<MimeType> MIME_TYPE_LIST = FileValidatorUtil.getMimeTypes(FileValidatorUtil.ALLOWED_UPLOAD_IMAGE_CONTENT_TYPES);
-
     @Test
-    public void test4299ContentTypeFileValidator_validJPEG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidContentType(MIME_IMAGE_JPEG, MIME_TYPE_LIST));
+    public void testValidJpegDeclaredAsJpeg() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_JPEG, List.of(MIME_IMAGE_JPEG));
     }
 
     @Test
-    public void test4299ContentTypeFileValidator_validPNG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidContentType(MIME_IMAGE_PNG, MIME_TYPE_LIST));
+    public void testValidPngDeclaredAsPng() throws Exception {
+        FileValidatorUtil.validateUploadContent(pngBytes(), MIME_IMAGE_PNG, List.of(MIME_IMAGE_PNG));
     }
 
     @Test
-    public void test4299ContentTypeFileValidator_invalid() throws Exception {
-        assertFalse(FileValidatorUtil.isValidContentType(MIME_APPLICATION_XML, MIME_TYPE_LIST));
+    public void testDeclaredMimeTypeDoesNotMatchDetectedMagicBytes() {
+        assertRejected(Reason.CONTENT_TYPE_MISMATCH, () ->
+                FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_PNG, List.of(MIME_IMAGE_JPEG)));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_validJPEG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_JPEG, JPG_STREAM1));
+    public void testDetectedTypeIsNotAllowed() {
+        assertRejected(Reason.NOT_ALLOWED, () ->
+                FileValidatorUtil.validateUploadContent(pngBytes(), MIME_IMAGE_PNG, List.of(MIME_IMAGE_JPEG)));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_validPNG() throws Exception {
-        assertTrue(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_PNG, PNG_STREAM));
+    public void testValidPdfDeclaredAsPdf() throws Exception {
+        FileValidatorUtil.validateUploadContent(minimalPdfBytes(), MIME_APPLICATION_PDF, List.of(MIME_APPLICATION_PDF));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_invalidXML() throws Exception {
-        assertFalse(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_JPEG, XML_STREAM));
+    public void testValidDocxDeclaredAsDocx() throws Exception {
+        FileValidatorUtil.validateUploadContent(docxBytes(), MIME_APPLICATION_MSWORD_2007, List.of(MIME_APPLICATION_MSWORD_2007));
     }
 
     @Test
-    public void test4299MagicNumberFileValidator_invalidJPNG() throws Exception {
-        assertFalse(FileValidatorUtil.isValidMagicNumber(MIME_IMAGE_PNG, JPG_STREAM2));
+    public void testValidXlsxDeclaredAsXlsx() throws Exception {
+        FileValidatorUtil.validateUploadContent(xlsxBytes(), MIME_APPLICATION_VND_MSEXCEL_2007, List.of(MIME_APPLICATION_VND_MSEXCEL_2007));
+    }
+
+    @Test
+    public void testValidLegacyXlsDeclaredAsXls() throws Exception {
+        FileValidatorUtil.validateUploadContent(legacyXlsBytes(), MIME_APPLICATION_VND_MSEXCEL, List.of(MIME_APPLICATION_VND_MSEXCEL));
+    }
+
+    @Test
+    public void testValidOdtDeclaredAsOdt() throws Exception {
+        FileValidatorUtil.validateUploadContent(odtBytes(), MIME_APPLICATION_VND_TEXT, List.of(MIME_APPLICATION_VND_TEXT));
+    }
+
+    @Test
+    public void testDocxDeclaredAsXlsxIsRejectedAsMismatch() {
+        assertRejected(Reason.CONTENT_TYPE_MISMATCH, () ->
+                FileValidatorUtil.validateUploadContent(
+                        docxBytes(),
+                        MIME_APPLICATION_VND_MSEXCEL_2007,
+                        List.of(MIME_APPLICATION_MSWORD_2007, MIME_APPLICATION_VND_MSEXCEL_2007)));
+    }
+
+    @Test
+    public void testDocxIsNotAllowedWhenOnlyImagesAreConfigured() {
+        assertRejected(Reason.NOT_ALLOWED, () ->
+                FileValidatorUtil.validateUploadContent(docxBytes(), MIME_APPLICATION_MSWORD_2007, List.of("image/*")));
+    }
+
+    @Test
+    public void testPdfRejectedByImageWildcardAllowedType() {
+        assertRejected(Reason.NOT_ALLOWED, () ->
+                FileValidatorUtil.validateUploadContent(minimalPdfBytes(), MIME_APPLICATION_PDF, List.of("image/*")));
+    }
+
+    @Test
+    public void testPdfDeclaredAsJpegIsRejectedAsMismatch() {
+        assertRejected(Reason.CONTENT_TYPE_MISMATCH, () ->
+                FileValidatorUtil.validateUploadContent(minimalPdfBytes(), MIME_IMAGE_JPEG, List.of(MIME_APPLICATION_PDF)));
+    }
+
+    @Test
+    public void testWildcardImageAllowsJpegAndPng() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_JPEG, List.of("image/*"));
+        FileValidatorUtil.validateUploadContent(pngBytes(), MIME_IMAGE_PNG, List.of("image/*"));
+    }
+
+    @Test
+    public void testMalformedDeclaredMimeTypeIsRejected() {
+        assertRejected(Reason.MALFORMED_MIME_TYPE, () ->
+                FileValidatorUtil.validateUploadContent(jpegBytes(), "image", List.of(MIME_IMAGE_JPEG)));
+    }
+
+    @Test
+    public void testMalformedConfiguredAllowedMimeTypeIsRejected() {
+        assertRejected(Reason.MALFORMED_MIME_TYPE, () ->
+                FileValidatorUtil.validateUploadContent(jpegBytes(), MIME_IMAGE_JPEG, List.of("image")));
+    }
+
+    @Test
+    public void testXmlDeclaredContentDoesNotMatchDetectedType() {
+        assertRejected(() ->
+                FileValidatorUtil.validateUploadContent(XML_START_ARRAY, "text/xml", List.of("text/xml")));
+    }
+
+    @Test
+    public void testNullDeclaredMimeTypeIsAcceptedWhenDetectedTypeIsAllowed() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), null, List.of(MIME_IMAGE_JPEG));
+    }
+
+    @Test
+    public void testBlankDeclaredMimeTypeIsAcceptedWhenDetectedTypeIsAllowed() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), " ", List.of(MIME_IMAGE_JPEG));
+    }
+
+    @Test
+    public void testDeclaredMimeTypeParametersAreIgnored() throws Exception {
+        FileValidatorUtil.validateUploadContent(jpegBytes(), "IMAGE/JPEG; charset=binary", List.of(MIME_IMAGE_JPEG));
+    }
+
+    @Test
+    public void testEmptyAllowedTypesRejectsDetectedContent() {
+        assertRejected(Reason.NOT_ALLOWED, () ->
+                FileValidatorUtil.validateUploadContent(
+                        jpegBytes(),
+                        MIME_IMAGE_JPEG,
+                        List.of()));
+    }
+
+    @Test
+    public void testUnknownBinaryContentIsRejectedAsUnrecognized() {
+        assertRejected(Reason.UNRECOGNIZED_CONTENT, () ->
+                FileValidatorUtil.validateUploadContent(
+                        UNKNOWN_BINARY,
+                        MIME_APPLICATION_PDF,
+                        List.of(MIME_APPLICATION_PDF)));
+    }
+
+    private void assertRejected(ThrowingRunnable runnable) {
+        expectThrows(FileUploadContentValidationException.class, runnable::run);
+    }
+
+    private void assertRejected(Reason expectedReason, ThrowingRunnable runnable) {
+        FileUploadContentValidationException ex =
+                expectThrows(FileUploadContentValidationException.class, runnable::run);
+        assertEquals(ex.getReason(), expectedReason);
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
     }
 }

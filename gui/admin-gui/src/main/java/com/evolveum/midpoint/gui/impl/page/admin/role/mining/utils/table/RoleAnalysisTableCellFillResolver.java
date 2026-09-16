@@ -11,7 +11,8 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.util.*;
 
 import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;

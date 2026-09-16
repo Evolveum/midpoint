@@ -10,13 +10,10 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
 

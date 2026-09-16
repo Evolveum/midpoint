@@ -37,8 +37,8 @@ import java.util.List;
 public class VisualizationUtil {
 
     public static Visualization visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
-                                                          PrismContext prismContext, ModelInteractionService modelInteractionService,
-                                                          ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            PrismContext prismContext, ModelInteractionService modelInteractionService,
+            ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         List<Visualization> visualizations = new ArrayList<>();
         if (deltas != null) {
             if (deltas.getFocusPrimaryDelta() != null) {
@@ -54,8 +54,8 @@ public class VisualizationUtil {
     }
 
     public static Visualization visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,
-                                                         PrismContext prismContext, ModelInteractionService modelInteractionService,
-                                                         ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+            PrismContext prismContext, ModelInteractionService modelInteractionService,
+            ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         List<Visualization> visualizations = new ArrayList<>();
         if (objectDeltaType != null) {
             ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
@@ -66,19 +66,19 @@ public class VisualizationUtil {
 
     public static String createChangeTypeCssClassForOutlineCard(ChangeType change) {
         if (change == null) {
-            return "card-outline-left-secondary";
+            return "card-outline-start-secondary";
         }
 
         switch (change) {
             case ADD:
-                return "card-outline-left-success";
+                return "card-outline-start-success";
             case MODIFY:
-                return "card-outline-left-info";
+                return "card-outline-start-info";
             case DELETE:
-                return "card-outline-left-danger";
+                return "card-outline-start-danger";
         }
 
-        return "card-outline-left-secondary";
+        return "card-outline-start-secondary";
     }
 
     public static ValueMetadataWrapperImpl createValueMetadataWrapper(PrismValue value, PageBase page) {

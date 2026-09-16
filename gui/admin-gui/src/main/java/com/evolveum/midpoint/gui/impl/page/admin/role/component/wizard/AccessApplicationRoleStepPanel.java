@@ -6,6 +6,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
+import java.util.*;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -32,16 +42,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 @PanelType(name = "brw-access")
 @PanelInstance(identifier = "brw-access",
@@ -242,6 +242,11 @@ public class AccessApplicationRoleStepPanel
 
     protected String getIcon() {
         return "fa fa-list";
+    }
+
+    @Override
+    protected String getButtonsStripCssClass() {
+        return "col-12";
     }
 
     @Override

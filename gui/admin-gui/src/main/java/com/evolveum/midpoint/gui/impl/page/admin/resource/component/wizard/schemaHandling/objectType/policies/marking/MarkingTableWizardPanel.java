@@ -6,6 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.marking;
 
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -13,13 +19,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Abstr
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowMarkingConfigurationType;
 
 /**
  * @author lskublik
@@ -95,5 +98,15 @@ public abstract class MarkingTableWizardPanel extends AbstractResourceWizardBasi
 
     protected String getPanelType() {
         return PANEL_TYPE;
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-md-8 col-lg-7 col-sm-8";
     }
 }

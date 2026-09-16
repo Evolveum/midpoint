@@ -113,7 +113,11 @@ class ScheduleNowHelper {
                     TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
                     TaskSchedulingStateType.WAITING, result);
 
-            if (synchronizeTask) {
+            if (synchronizeTask && task.isRecurring()) {
+                // Re-creates the schedule-based trigger that is not present while the task is waiting (MID-10496).
+                // Must not be done for single-run tasks: their standard trigger is a fire-now one, i.e. a duplicate
+                // of the "now" trigger added below, and the two can fire concurrently in the JDBC job store,
+                // corrupting the activity state (MID-11928).
                 task.synchronizeWithQuartz(result);
             }
 

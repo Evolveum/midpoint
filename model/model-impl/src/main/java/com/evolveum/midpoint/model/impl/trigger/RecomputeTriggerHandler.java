@@ -26,12 +26,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
- * @author Radovan Semancik
+ * Executes generic recompute triggers that were scheduled e.g. by mappings or activation logic.
  *
+ * This handler is used for delayed-delete scheduling and other features that need to revisit an object later.
+ * When a trigger fires, the handler requests a recompute of the affected object through the model controller.
+ *
+ * @author Radovan Semancik
  */
 @Component
 public class RecomputeTriggerHandler implements SingleTriggerHandler {
 
+    /**
+     * URI of the recompute trigger handler used by midPoint's generic trigger mechanism.
+     */
     public static final String HANDLER_URI = ModelPublicConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
 
     private static final Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
@@ -44,6 +51,9 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
         triggerHandlerRegistry.register(HANDLER_URI, this);
     }
 
+    /**
+     * Handles a fired recompute trigger by executing a recompute of the affected object.
+     */
     @Override
     public <O extends ObjectType> void handle(@NotNull PrismObject<O> object, @NotNull TriggerType trigger,
             @NotNull RunningTask task, @NotNull OperationResult result) {
@@ -60,6 +70,9 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
 
     }
 
+    /**
+     * Recompute triggers are safe to replay because the recompute operation is idempotent.
+     */
     @Override
     public boolean isIdempotent() {
         return true;

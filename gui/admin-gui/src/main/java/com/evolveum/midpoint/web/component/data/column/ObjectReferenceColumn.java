@@ -59,6 +59,11 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
                 protected boolean showDisplayNameAndName() {
                     return ObjectReferenceColumn.this.showDisplayNameAndName();
                 }
+
+                @Override
+                protected String getPendingObjectPreviewCaseOid() {
+                    return ObjectReferenceColumn.this.getPendingObjectPreviewCaseOid(ref, rowModel);
+                }
             });
         }
         item.add(view);
@@ -80,7 +85,11 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
             List<ObjectReferenceType> referenceTypes = extractedRefs.getObject();
 
             return referenceTypes.stream()
-                    .map(r -> WebComponentUtil.getOrigStringFromPoly(r.getTargetName()))
+                    .map(r -> {
+                        String refName = WebComponentUtil.getOrigStringFromPoly(r.getTargetName());
+                        String refOid = r.getOid();
+                        return refName != null ? refName : refOid;
+                    })
                     .collect(Collectors.joining(" -> "));
         };
     }
@@ -89,5 +98,9 @@ public abstract class ObjectReferenceColumn<T> extends PropertyColumn<T, String>
 
     protected boolean showDisplayNameAndName() {
         return false;
+    }
+
+    protected String getPendingObjectPreviewCaseOid(ObjectReferenceType ref, IModel<T> rowModel) {
+        return null;
     }
 }

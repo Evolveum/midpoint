@@ -14,7 +14,10 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningTargetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncProvisioningTargetsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PredefinedOperationRequestTransformationType;
 
 /**
  * TODO

@@ -146,6 +146,6 @@ public class DetailsTablePanel extends BasePanel<List<DetailsTableItem>> {
     ;
 
     protected String initDefaultCssClass() {
-        return "card";
+        return "card shadow-sm mb-3";
     }
 }

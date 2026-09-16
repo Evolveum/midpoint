@@ -91,7 +91,8 @@ class ShadowRefreshOperation {
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForRepoShadow(repoShadow, task);
         ctx.applyCurrentDefinition(repoShadow.getBean()); // TODO is this necessary?
         return executeFullInternal(ctx, repoShadow, options, context, result);
@@ -104,7 +105,7 @@ class ShadowRefreshOperation {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         ProvisioningContext ctx = ShadowsLocalBeans.get().ctxFactory.createForShadow(rawRepoShadow.getBean(), task, result);
         var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         executeFullInternal(ctx, repoShadow, options, context, result);
@@ -116,7 +117,7 @@ class ShadowRefreshOperation {
             ProvisioningOperationOptions options,
             ProvisioningOperationContext context,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, SubscriptionComplianceException {
         ctx.setOperationContext(context);
         ctx.assertDefinition();
 
@@ -137,7 +138,7 @@ class ShadowRefreshOperation {
 
     private void executeFull(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.trace("Fully refreshing {}", shadow);
 
         try {
@@ -177,7 +178,7 @@ class ShadowRefreshOperation {
     }
 
     private void processPendingOperations(OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         boolean isDead = shadow.isDead();
         if (!isDead && !shadow.hasPendingOperations()) {
@@ -210,7 +211,7 @@ class ShadowRefreshOperation {
      * status in case that it has changed.
      */
     private void refreshShadowAsyncStatus(PendingOperations sortedOperations, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         var gracePeriod = ctx.getGracePeriod();
         var notificationDeltas = new ArrayList<ObjectDelta<ShadowType>>();
@@ -403,7 +404,7 @@ class ShadowRefreshOperation {
             @NotNull PendingOperation pendingOperation, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException, EncryptionException {
+            ExpressionEvaluationException, EncryptionException, SubscriptionComplianceException {
 
         // TODO scripts, options
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);

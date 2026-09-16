@@ -174,8 +174,7 @@ public class PageOutliers extends PageAdmin {
                         PrismObject<UserType> userObject;
                         try {
                             userObject = modelService.getObject(UserType.class, userOid, options, task, result);
-                        } catch (ExpressionEvaluationException | SecurityViolationException | CommunicationException |
-                                ConfigurationException | ObjectNotFoundException | SchemaException e) {
+                        } catch (CommonException e) {
                             throw new SystemException("Cannot create wrapper for " + userOid, e);
 
                         }
@@ -191,7 +190,7 @@ public class PageOutliers extends PageAdmin {
             @Contract(pure = true)
             @Override
             protected @NotNull String getInlineMenuItemCssClass(IModel<SelectableBean<RoleAnalysisOutlierType>> rowModel) {
-                return "btn btn-default btn-sm";
+                return "btn btn-light border btn-sm";
             }
 
             @Override

@@ -1,0 +1,381 @@
+/*
+ * Copyright (c) 2022 Evolveum and contributors
+ *
+ * Licensed under the EUPL-1.2 or later.
+ */
+
+@use "sass:math";
+@use "sass:map";
+@use "sass:color";
+
+:root {
+  @each $color, $value in $theme-bg-subtle {
+    --bs-#{$color}-bg-subtle: #{map-get($theme-bg-subtle, $color)};
+  }
+  @each $color, $value in $theme-border-subtle {
+    --bs-#{$color}-border-subtle: #{map-get($theme-border-subtle, $color)};
+  }
+  @each $color, $value in $theme-text-emphasis {
+    --bs-#{$color}-text-emphasis: #{map-get($theme-text-emphasis, $color)};
+    }
+  @each $color, $value in $theme-colors {
+    --mp-bg-active-#{$color}: #{mix(#fff, $value, 90%)};
+  }
+}
+
+//BS5 color variables as classes for use
+@each $color, $value in $theme-colors {
+  .bg-#{$color}-subtle {
+    background: var(--bs-#{$color}-bg-subtle);
+  }
+  .text-#{$color}-emphasis {
+    color: var(--bs-#{$color}-text-emphasis);
+  }
+  .border-#{$color}-subtle {
+    border: 1px solid var(--bs-#{$color}-border-subtle);
+  }
+}
+
+// simple width, mainly usable for table columns. Bootstrap has only w-* for 25%, 50%, 75%, 100%
+@each $breakpoint in map-keys($grid-breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+  @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+
+    @if $grid-columns > 0 {
+      @for $i from 1 through $grid-columns {
+        .mp-w#{$infix}-#{$i} {
+          width: math.div(100%, $grid-columns) * $i;
+        }
+      }
+    }
+  }
+}
+
+// spacing utility used to space child elements, e.g. button bar without the need to add margin to each element individually
+@each $breakpoint in map-keys($grid-breakpoints) {
+  @include media-breakpoint-up($breakpoint) {
+    $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+    // Negative margins (e.g., where `.mb-n1` is negative version of `.mb-1`)
+    @each $size, $length in $spacers {
+      .space#{$infix}-#{$size} > * + *,
+      .space-x#{$infix}-#{$size} > * + * {
+        margin-left: $length !important;
+        margin-right: $length !important;
+      }
+
+      .space#{$infix}-#{$size} > * + *,
+      .space-y#{$infix}-#{$size} > * + * {
+        margin-top: $length !important;
+        margin-bottom: $length !important;
+      }
+
+      .gap#{$infix}-#{$size} {
+        gap: $length !important;
+      }
+    }
+  }
+}
+
+.rounded-xl {
+  border-radius: .5rem !important;
+}
+
+.trend {
+  width: fit-content;
+  font-weight: normal;
+}
+
+.trend-success {
+  background: rgba($green, .2);
+  color: $green;
+}
+
+.trend-danger {
+  background-color:rgba($red, .2);
+  color: $red;
+}
+
+.gap-2h {
+    gap: 0.75rem!important;
+}
+
+//Extra smooth transition function with importance flag
+@mixin smooth-transition($duration, $important: "") {
+  $important-flag: if($important == "important", ' !important', '');
+
+  transition: all ease $duration#{$important-flag};
+  -webkit-transition: all ease $duration#{$important-flag};
+}
+
+.fp-center {
+  min-height:100%!important;
+  width: 100%;
+  min-height: 100% !important;
+  height: auto !important;
+  position: absolute;
+}
+
+.lh-n {
+  line-height: normal!important;
+}
+
+//Button style extensions
+div[role="button"].btn,
+ .btn {
+  //Custom links styles (tertiary style)
+  &.btn.link-danger {
+    color:$danger;
+      &:hover {
+        color: mix(#000, $danger, 15%);
+      }
+  }
+  &.btn.link-default {
+    color:tint-color($text-color, 35%);
+    &:hover {
+      color:$text-color;
+    }
+  }
+}
+
+//Card shadow only class
+.card-shadow {
+  box-shadow:0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+//Button pill - neutralized
+div[role="button"].btn, .btn {
+  //Custom links styles (tertiary style)
+  &.btn-pill {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 50rem !important;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+
+    & > .pill-label {
+      color: var(--bs-body-color);
+    }
+
+    &:hover {
+      background-color: var(--bs-secondary-bg);
+
+      & > * {
+        color: var(--bs-body-color);
+      }
+    }
+    &.active {
+      border-color: var(--bs-primary);
+      background-color: rgba(var(--bs-primary-rgb), .10);
+
+      & > * {
+        color: var(--bs-primary);
+      }
+    }
+  }
+}
+
+.txt-toned {
+  color:$text-toned-color;
+}
+
+.txt-default {
+  color:$text-color;
+}
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-contrast($value);
+  .bg-toned-#{$color} {
+      background-color: mix(#ffffff, $value, 90%);
+  }
+  .text-toned-#{$color} {
+      color: mix(#ffffff, $value, 90%);
+  }
+}
+
+//Bootstrap badge extension for transparent variant
+.badge {
+--bs-badge-font-weight: 600;
+  &.opaque {
+    @each $color, $value in $theme-colors {
+      &.text-bg-#{$color} {
+        color: var(--bs-#{$color}-text-emphasis) !important;
+        background-color: var(--bs-#{$color}-bg-subtle) !important;
+        border: 1px solid var(--bs-#{$color}-border-subtle) !important;
+      }
+    }
+  }
+}
+
+//Font-awesome extension for width management
+.fa {
+  &.fa-fw-xs {
+    width: 0.875em;}
+  &.fa-fw-sm {
+    width: 1em;}
+}
+
+//AI gradient style extension
+:root {
+  --mp-ai-gradient-0: linear-gradient(0deg, #{$indigo} 10%, #{$blue} 110%);
+  --mp-ai-gradient: linear-gradient(12deg, #{$indigo} 20%, #{$blue} 105%);
+
+  --mp-ai-gradient-hover: #{linear-gradient(12deg, mix(black, $indigo, 10%) 20%, mix(black, $blue, 10%) 105%)};
+
+  --mp-ai-gradient-text-emphasis: linear-gradient(12deg, #{$ai-text-emphasis} 20%, #{$blue-text-emphasis} 105%);
+  --mp-ai-gradient-bg-subtle: linear-gradient(12deg, #{$ai-bg-subtle} 20%, #{$blue-bg-subtle} 105%);
+  --mp-ai-gradient-border-subtle: linear-gradient(12deg, #{$ai-border-subtle} 20%, #{$blue-border-subtle} 105%);
+}
+
+.btn {
+  &.btn-ai-gradient {
+    --bs-btn-hover: var(--mp-ai-gradient-hover);
+
+    background: var(--mp-ai-gradient) padding-box, var(--mp-ai-gradient) border-box;
+    border: 1px solid transparent;
+    color: white;
+
+    &:hover {
+      background: var(--bs-btn-hover);
+      border: 1px solid transparent;
+      color: white;
+    }
+  }
+
+  &.btn-outline-ai-gradient {
+    --bs-btn-hover: var(--mp-ai-gradient);
+    --mp-ai-gradient-bg-calibration: white;
+
+    border: 1px solid transparent;
+    background: linear-gradient(var(--mp-ai-gradient-bg-calibration), var(--mp-ai-gradient-bg-calibration)) padding-box, var(--mp-ai-gradient) border-box;
+
+    & > i:first-of-type {
+      background: var(--mp-ai-gradient) text;
+      color: transparent;
+    }
+
+    &:hover {
+      background: var(--bs-btn-hover);
+      border: 1px solid transparent;
+      color: white;
+
+      & > i:first-of-type {
+        background: unset;
+        color: inherit;
+      }
+    }
+  }
+}
+
+.border-ai-gradient {
+  background: linear-gradient(white, white) padding-box, var(--mp-ai-gradient-0) border-box;
+  border: 1px solid transparent !important;
+
+  &.border-large-left::before {
+    background: var(--mp-ai-gradient-0) border-box;
+  }
+}
+
+.text-ai-gradient, fa.text-ai-gradient::before {
+  background: var(--mp-ai-gradient) text;
+  color: transparent;
+}
+  /* (Backup) Advanced version of ai border gradient
+  background-image: var(--mp-ai-gradient)
+  position: relative;
+  border: none !important;
+  z-index: 1;
+
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 8px;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    z-index: -1;
+    background: white;
+    border-radius: calc(0.25rem - 1px);
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+  }*/
+
+  .badge {
+    &.text-bg-ai-gradient {
+      color: white;
+      background: var(--mp-ai-gradient) padding-box, var(--mp-ai-gradient) border-box;
+
+      &.opaque {
+        background: var(--mp-ai-gradient-text-emphasis) text, var(--mp-ai-gradient-bg-subtle) padding-box, var(--mp-ai-gradient-border-subtle) border-box;
+        border: 1px solid transparent;
+        color: transparent;
+      }
+    }
+  }
+
+//Bootstrap alert extension for transparent variant + AI gradient
+//NOTE: For BS5 upgrade purposes, main tags needs to be transferred to main class
+.alert {
+  &.alert-opaque {
+    @each $color, $value in $theme-colors {
+      &.alert-#{$color} {
+        --bs-alert-#{$color}-text-emphasis: var(--bs-#{$color}-text-emphasis);
+        --bs-alert-#{$color}-bg-subtle: var(--bs-#{$color}-bg-subtle);
+        --bs-alert-#{$color}-border-subtle: var(--bs-#{$color}-border-subtle);
+
+        color: var(--bs-alert-#{$color}-text-emphasis);
+        background-color: var(--bs-alert-#{$color}-bg-subtle);
+        border: 1px solid var(--bs-alert-#{$color}-border-subtle);
+
+        .alert-icon {
+          --mp-alert-icon-#{$color}: var(--#{$color});
+          color: var(--mp-alert-icon-#{$color});
+        }
+      }
+    }
+    &.alert-ai-gradient {
+      background: var(--mp-ai-gradient-text-emphasis) text, var(--mp-ai-gradient-bg-subtle) padding-box, var(--mp-ai-gradient-border-subtle) border-box;
+      border: 1px solid transparent;
+      color: transparent;
+
+      .alert-icon {
+        --mp-alert-icon-ai-gradient: var(--mp-ai-gradient);
+
+        background: var(--mp-alert-icon-ai-gradient) text;
+        color: transparent;
+      }
+    }
+  }
+}
+
+.z-n1 {
+  z-index: -1 !important;
+}
+
+.z-0 {
+  z-index: 0 !important;
+}
+
+.z-1 {
+  z-index: 1 !important;
+}
+
+.z-2 {
+  z-index: 2 !important;
+}
+
+.z-3 {
+  z-index: 3 !important;
+}
+
+@each $color, $value in $theme-colors {
+  .mp-bg-hoverable-#{$color} {
+    &:hover {
+      background: $table-hover-bg;
+    }
+    &:active {
+      background: var(--mp-bg-active-#{$color});
+    }
+  }
+}

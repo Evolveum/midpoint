@@ -22,6 +22,7 @@
         <piracy:badLuck>0</piracy:badLuck>
     </extension>
     <fullName>Jack Sparrow</fullName>
+    <displayName>Jack Sparrow</displayName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <additionalName>Jackie</additionalName>

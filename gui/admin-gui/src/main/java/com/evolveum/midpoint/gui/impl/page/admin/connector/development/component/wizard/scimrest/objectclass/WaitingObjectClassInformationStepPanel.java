@@ -22,8 +22,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -46,12 +45,12 @@ public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStep
     }
 
     @Override
-    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException {
         return getDetailsModel().getServiceLocator().getConnectorService().getDiscoverObjectClassInformationStatus(token, task, result);
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitDiscoverObjectClasses(task, result);
     }
 
@@ -82,15 +81,11 @@ public class WaitingObjectClassInformationStepPanel extends WaitingConnectorStep
 
     @Override
     public boolean isCompleted() {
-        if (ConnectorDevelopmentWizardUtil.existPropertyValue(
+        return ConnectorDevelopmentWizardUtil.existContainerValue(
                 getDetailsModel().getObjectWrapper(),
                 ItemPath.create(ConnectorDevelopmentType.F_APPLICATION,
                         ConnDevApplicationInfoType.F_DETECTED_SCHEMA,
-                        ConnDevSchemaType.F_OBJECT_CLASS))) {
-            return true;
-        }
-
-        return super.isCompleted();
+                        ConnDevSchemaType.F_OBJECT_CLASS));
     }
 
     @Override

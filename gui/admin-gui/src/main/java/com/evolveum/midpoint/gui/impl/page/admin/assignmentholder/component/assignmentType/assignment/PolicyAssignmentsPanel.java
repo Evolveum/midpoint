@@ -9,10 +9,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.WidgetFocusTrimContribution;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyType;
 
 import org.apache.wicket.model.IModel;
 
@@ -32,5 +36,9 @@ public class PolicyAssignmentsPanel<AH extends AssignmentHolderType> extends Abs
     @Override
     protected QName getAssignmentType() {
         return PolicyType.COMPLEX_TYPE;
+    }
+
+    public static void contributeFocusTrimPlan(WidgetFocusTrimContribution contribution, String panelType, int limit) {
+        contribution.addAssignmentPanelRule(panelType, limit, PolicyType.COMPLEX_TYPE);
     }
 }

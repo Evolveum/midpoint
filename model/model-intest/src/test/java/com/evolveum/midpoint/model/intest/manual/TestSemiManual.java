@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.intest.manual;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
 
 import static org.testng.AssertJUnit.*;
@@ -16,7 +14,6 @@ import java.io.File;
 import java.util.Collection;
 
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -317,6 +314,53 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
     @Test
     public void test719CleanUp() throws Exception {
         cleanupUser(USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
+    }
+
+    // ---------------------------------------------------------------------
+    // Bug #12083 reproduction (modernItsm only).
+    //
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test900ItsmCloseTicketWithoutOutcome() throws Exception {
+        if (!modernItsm) {
+            display("Skipping test900 - only meaningful with modernItsm=true");
+            return;
+        }
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        assertNotNull("No case OID captured by test820AssignAccountJack", jackLastCaseOid);
+        assertNotNull("No account shadow OID captured by test820AssignAccountJack", accountJackOid);
+
+        // WHEN: the operator resolves the ticket in the remote ITSM (itsm-new) so that its
+        // state becomes "closed", but the outcome is deliberately left unset.
+        closeTicketWithoutOutcome(jackLastCaseOid);
+
+        // Run the shadow-refresh task named in the bug report.
+        restartTask(TASK_SHADOW_REFRESH_OID);
+        waitForTaskFinish(TASK_SHADOW_REFRESH_OID);
+
+        // THEN
+        display("Shadow refresh task finished (ticket closed without outcome)", result);
+    }
+
+    @Test
+    public void test910ItsmAssertPendingOperationCompleted() throws Exception {
+        if (!modernItsm) {
+            display("Skipping test910 - only meaningful with modernItsm=true");
+            return;
+        }
+        OperationResult result = getTestOperationResult();
+        // Raw repository read (no refresh) so we do not re-trigger getCase/importSingleShadow here.
+        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        display("Repo shadow", shadowRepo);
+
+        // BUG #12083: the case is closed, so the account's pending operation should be
+        // COMPLETED/SUCCESS.
+        assertSinglePendingOperation(shadowRepo,
+                PendingOperationExecutionStatusType.COMPLETED,
+                OperationResultStatusType.SUCCESS);
     }
 
     @Override

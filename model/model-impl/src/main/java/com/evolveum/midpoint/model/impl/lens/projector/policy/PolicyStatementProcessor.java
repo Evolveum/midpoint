@@ -67,14 +67,8 @@ public class PolicyStatementProcessor implements ProjectorProcessor {
         }
         checkConsistency(addedStatements, zeroStatements, result);
 
+        // Deleted statements are not evaluated; marks that are no longer backed by a statement or a rule are removed.
         EvaluatedPolicyStatements evaluatedPolicyStatements = new EvaluatedPolicyStatements();
-
-        for (var deleted : deletedStatements) {
-            if (APPLY.equals(deleted.getType())) {
-                evaluatedPolicyStatements.addMarkRefToDelete(deleted.getMarkRef().clone());
-            }
-        }
-
         evaluatePolicyStatements(addedStatements, evaluatedPolicyStatements);
         evaluatePolicyStatements(zeroStatements, evaluatedPolicyStatements);
 

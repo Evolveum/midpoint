@@ -8,31 +8,35 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="alert alert-info d-flex flex-row mb-3 w-100 px-2">
-            <span>
-                <i class="fa fa fa-info-circle fa-sm p-2"/>
+    <div class="col-12" wicket:id="moreClassesHint">
+        <div class="d-flex flex-row flex-wrap alert alert-info alert-opaque px-3">
+            <span class="d-flex py-2 pe-2 align-items-start alert-icon">
+                <i class="fa fa fa-info-circle"></i>
             </span>
-        <div class="font-weight-bold pr-1">
-            <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.title"/>
-        </div>
-        <div>
-            <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.description"/>
+            <div class="d-flex flex-column justify-content-center align-items-start">
+                <div class="fw-bold">
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.title"/>
+                </div>
+                <div>
+                    <wicket:message key="ObjectClassSelectConnectorStepPanel.ai.found.description"/>.
+                </div>
+            </div>
         </div>
     </div>
     <div wicket:id="feedbackContainer" class="col-12 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="d-flex flex-row col-12 px-0 pb-2">
-        <div class="mr-auto">
+    <div class="d-flex flex-row col-12 pb-2">
+        <div class="me-auto">
             <wicket:message key="ObjectClassSelectConnectorStepPanel.title"/>
         </div>
-        <a class="ml-auto btn btn-default rounded-0" wicket:id="moreObjectClassesButton"/>
+        <a class="ms-auto btn btn-light border rounded-0" wicket:id="moreObjectClassesButton"/>
     </div>
     <div class="d-flex flex-wrap w-100" wicket:id="radioGroup">
         <div class="flex-fill p-1" wicket:id="panel">
-            <div class="d-flex flex-row card mb-0 p-2 h-100">
-                <div class="d-flex flex-column justify-content-center h-100 m-auto pr-3">
-                    <input wicket:id="radio" type="radio"/>
+            <div class="d-flex flex-row card shadow-sm p-2 h-100">
+                <div class="d-flex flex-column justify-content-center h-100 m-auto pe-3">
+                    <input wicket:id="radio" type="radio" onclick="event.stopPropagation()"/>
                 </div>
                 <div class="w-100 d-flex flex-column">
                     <div class="d-lex flex-row">

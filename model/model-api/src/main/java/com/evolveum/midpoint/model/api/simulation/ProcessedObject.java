@@ -59,7 +59,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      *
      * @see SimulationResultProcessedObjectType#getType()
      */
-    @NotNull Class<O> getType();
+    @NotNull Class<? extends O> getType();
 
     /**
      * Name of the object being processed. May not be known; typically for shadows to-be-created.
@@ -186,7 +186,7 @@ public interface ProcessedObject<O extends ObjectType> extends DebugDumpable, Se
      */
     void applyDefinitions(@NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException;
+            ObjectNotFoundException, SubscriptionComplianceException;
 
     @SuppressWarnings("unused") // used by scripts
     default boolean isAddition() {

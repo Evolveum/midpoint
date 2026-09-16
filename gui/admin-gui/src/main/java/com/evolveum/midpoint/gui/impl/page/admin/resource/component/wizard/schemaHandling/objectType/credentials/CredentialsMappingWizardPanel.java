@@ -6,6 +6,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.credentials;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
@@ -16,10 +20,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -93,5 +93,15 @@ public abstract class CredentialsMappingWizardPanel extends AbstractSpecificMapp
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("PageResource.wizard.step.credentials.subText");
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
+    }
+
+    @Override
+    protected String getButtonContainerAdditionalCssClass() {
+        return "col-11";
     }
 }

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +45,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -376,11 +370,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         return ORG_GOVERNOR_OFFICE_OID;
     }
 
-    protected void assertMonkeyIslandOrgSanity() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertMonkeyIslandOrgSanity() throws CommonException {
         assertMonkeyIslandOrgSanity(0);
     }
 
-    protected void assertMonkeyIslandOrgSanity(int expectedFictional) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertMonkeyIslandOrgSanity(int expectedFictional) throws CommonException {
         Task task = taskManager.createTaskInstance(AbstractInitializedModelIntegrationTest.class.getName() + ".assertMonkeyIslandOrgSanity");
         OperationResult result = task.getResult();
 

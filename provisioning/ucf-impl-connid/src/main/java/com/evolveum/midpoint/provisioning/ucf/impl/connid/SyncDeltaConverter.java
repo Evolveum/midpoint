@@ -17,8 +17,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.SyncDelta;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;

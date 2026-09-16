@@ -34,6 +34,8 @@ import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -43,6 +45,7 @@ import java.util.function.Function;
  * (This class is in `model.test` package. Would the {@link ProcessedObject} class move e.g. to `schema` module, this asserter
  * can be moved to a lower layer as well.)
  */
+@SuppressWarnings("UnusedReturnValue")
 public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractAsserter<RA> {
 
     private final ProcessedObject<O> processedObject;
@@ -74,9 +77,19 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
         return this;
     }
 
+    /** Convenience / easy to understand variant. */
+    public final ProcessedObjectAsserter<O, RA> assertNoEventMarks() {
+        return assertEventMarks();
+    }
+
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventMarks(TestObject<MarkType>... expected) {
         assertEventMarks(expected, processedObject.getMatchingEventMarksOids());
+        return this;
+    }
+
+    public final ProcessedObjectAsserter<O, RA> assertEventMarksOids(String... expected) {
+        assertEventMarks(List.of(expected), processedObject.getMatchingEventMarksOids());
         return this;
     }
 

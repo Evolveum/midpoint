@@ -593,6 +593,7 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2576,6 +2577,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WORKFLOW_OPERATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="connectorOperation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execution of connector operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONNECTOR_OPERATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

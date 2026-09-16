@@ -9,7 +9,6 @@ package com.evolveum.midpoint.authentication.impl.filter.oidc;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import com.evolveum.midpoint.authentication.impl.filter.RemoteAuthenticationFilter;
-import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 
@@ -20,7 +19,10 @@ import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.*;
+import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationExchange;
@@ -28,7 +30,6 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponse;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -40,7 +41,6 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
 
 @Order
 public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilter implements RemoteAuthenticationFilter {
@@ -105,7 +105,7 @@ public class OidcLoginAuthenticationFilter extends OAuth2LoginAuthenticationFilt
                             "Client Registration not found with Id: " + registrationId, null);
                     throw new OAuth2AuthenticationException(oauth2Error, "web.security.provider.invalid");
                 } else {
-                    String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+                    String redirectUri = UriComponentsBuilder.fromUriString(UrlUtils.buildFullRequestUrl(request))
                             .replaceQuery(null).build().toUriString();
                     OAuth2AuthorizationResponse authorizationResponse = convert(params, redirectUri);
                     OAuth2LoginAuthenticationToken authenticationRequest = new OAuth2LoginAuthenticationToken(clientRegistration,

@@ -36,7 +36,11 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_VALUE_POLICY = "valuePolicy";
 
     public GenerateExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public GenerateExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
         GenerateExpressionWrapper wrapper = getEvaluatorValue();
         if (wrapper == null || wrapper.isEmpty()) {
             updateEvaluatorValue((GenerateExpressionEvaluatorModeType) null);
@@ -101,8 +105,8 @@ public class GenerateExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("GenerateExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("GenerateExpressionPanel.label");
     }
 
     //don't remove it, used by class and method name

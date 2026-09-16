@@ -55,7 +55,7 @@ public class FilterExpressionEvaluator<V extends PrismValue, D extends ItemDefin
     protected @NotNull List<V> transformSingleValue(
             @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         return new FilterExpressionEvaluation<>(this, vtCtx)
                 .evaluate(result);

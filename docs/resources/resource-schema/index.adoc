@@ -30,7 +30,7 @@ Dynamic resource schema can vary for each _instance_ of resource, e.g. two LDAP 
 Resource schema is defined using the XSD language as most other schemas in midPoint.
 
 We will refer to parts of the dynamic resource schema using a slightly different terminology than we use for static schemas.
-While the static XSD types in midPoint use `Type` suffix in their XSD names, dynamic resource schema is using a `ObjectClass` suffix for the XSD types.
+While the static XSD types in midPoint use `Type` suffix in their XSD names, dynamic resource schema is using a `MergedObjectClassBuilder` suffix for the XSD types.
 This naming distinction avoid confusion between the static parts of midPoint and the dynamic resource schema.
 
 Resource schema works together with another dynamic schema: Connector Schema.

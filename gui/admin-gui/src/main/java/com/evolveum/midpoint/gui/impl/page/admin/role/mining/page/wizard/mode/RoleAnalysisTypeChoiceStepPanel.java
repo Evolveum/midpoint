@@ -6,6 +6,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.visit.ClassVisitFilter;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
@@ -20,16 +29,6 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.visit.ClassVisitFilter;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.List;
 
 @PanelType(name = "ra-type")
 @PanelInstance(identifier = "ra-type",
@@ -124,5 +123,10 @@ public class RoleAnalysisTypeChoiceStepPanel extends EnumWizardChoicePanel<RoleA
     @Override
     protected IModel<String> getSubTextModel() {
         return createStringResource("PageRoleAnalysisSession.wizard.step.choice.subText");
+    }
+
+    @Override
+    protected String getExitButtonCssClass() {
+        return "btn btn-link";
     }
 }

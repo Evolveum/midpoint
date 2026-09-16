@@ -14,11 +14,15 @@ import java.io.Serializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowLikeValue;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;

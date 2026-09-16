@@ -63,7 +63,8 @@ public class ProcessDocumentationActivityHandler
             var task = getRunningTask();
 
             var backend = ConnectorDevelopmentBackend.backendFor(getWorkDefinition().connectorDevelopmentOid, task, result);
-            backend.processDocumentation();
+            var skipCache = Boolean.TRUE.equals(getWorkDefinition().typedDefinition.getSkipCache());
+            backend.processDocumentation(skipCache);
 
             var ret = new ConnDevProcessDocumentationResultType();
 

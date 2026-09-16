@@ -11,9 +11,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpSession;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ISessionListener;
 import org.apache.wicket.Session;
@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
@@ -57,7 +58,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
     @Override
     public void onUnbound(String sessionId) {
-        LOGGER.trace("Cleaning up processes for session id {}", sessionId);
+        LOGGER.trace("Cleaning up processes for session id {}***", MiscUtil.sanitizeSessionId(sessionId));
 
         Set<Key> keys = new HashSet<>(processes.keySet());
         for (Key key : keys) {
@@ -75,14 +76,10 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         AsyncWebProcess<T> process = new AsyncWebProcess<>(key.processId, application);
         process.setData(data);
+
         processes.put(key, process);
 
         return process;
-    }
-
-    @Override
-    public <T> AsyncWebProcess<T> createProcess() {
-        return createProcess(null);
     }
 
     @Override
@@ -174,8 +171,8 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (o == null || getClass() != o.getClass()) { return false; }
+            if (this == o) {return true;}
+            if (o == null || getClass() != o.getClass()) {return false;}
 
             Key key = (Key) o;
 
@@ -192,7 +189,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         @Override
         public String toString() {
-            return StringUtils.join(new Object[] { sessionId, processId }, "/");
+            return StringUtils.join(new Object[] { MiscUtil.sanitizeSessionId(sessionId), processId }, "***/");
         }
     }
 }

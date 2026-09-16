@@ -595,7 +595,7 @@ public class ObjectOperationPolicyHelper {
         public void applyTo(@NotNull ObjectType object) {
             object.getEffectiveMarkRef().clear();
             object.getEffectiveMarkRef().addAll(currentModeEffectiveMarkRefs);
-            object.setEffectiveOperationPolicy(effectiveOperationPolicy);
+            setEffectiveOperationPolicy(object, effectiveOperationPolicy);
             if (object instanceof ShadowType shadow && isProtected) {
                 shadow.setProtectedObject(true);
             }

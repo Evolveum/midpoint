@@ -7,10 +7,8 @@
 package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
 import com.evolveum.midpoint.schema.query.TypedQuery;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
@@ -25,7 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

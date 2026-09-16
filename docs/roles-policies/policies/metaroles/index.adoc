@@ -9,7 +9,7 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2019-07-09T08:27:27.521+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2019-07-09T08:34:41.528+02:00
-:page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
+:page-keywords: metarole, meta-role, metaroles, meta-roles, meta
 :page-upkeep-status: orange
 :page-toc: top
 :page-moved-from: /midpoint/reference/roles-policies/metaroles/

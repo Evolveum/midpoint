@@ -9,11 +9,11 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AssignmentHolderWrapper;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 /**

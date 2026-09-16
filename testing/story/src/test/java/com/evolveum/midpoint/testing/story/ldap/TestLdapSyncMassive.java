@@ -278,10 +278,7 @@ public class TestLdapSyncMassive extends AbstractLdapTest {
         assertLdapConnectorInstances(1, NUMBER_OF_TEST_THREADS + 1);
     }
 
-    private void reconcile(PrismObject<UserType> user)
-            throws SchemaException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            PolicyViolationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+    private void reconcile(PrismObject<UserType> user) throws CommonException{
         user.getName();
         Task task = createTask("user." + user.getName());
         OperationResult result = task.getResult();

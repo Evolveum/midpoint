@@ -8,6 +8,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
@@ -188,4 +189,27 @@
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
     </schemaHandling>
+    <capabilities>
+        <configured>
+            <cap:references>
+                <cap:type>
+                    <cap:name>ri:simulatedGroupMembership</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:AccountObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>icfs:name</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:simulatedGroupMembership</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:GroupObjectClass</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:members</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                </cap:type>
+            </cap:references>
+        </configured>
+    </capabilities>
 </resource>

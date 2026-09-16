@@ -141,38 +141,5 @@
                 </inbound>
             </attribute>
         </complexAttributeType>
-        <complexAttributeType>
-            <name>email</name>
-            <delineation>
-                <objectClass>ri:email</objectClass>
-            </delineation>
-            <focus>
-                <type>EmailAddressType</type>
-            </focus>
-            <attribute>
-                <ref>ri:type</ref>
-                <inbound>
-                    <target>
-                        <path>type</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:primary</ref>
-                <inbound>
-                    <target>
-                        <path>primary</path>
-                    </target>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:value</ref>
-                <inbound>
-                    <target>
-                        <path>value</path>
-                    </target>
-                </inbound>
-            </attribute>
-        </complexAttributeType>
     </schemaHandling>
 </resource>

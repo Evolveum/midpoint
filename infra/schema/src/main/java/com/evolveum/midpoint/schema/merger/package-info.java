@@ -5,5 +5,3 @@
  */
 
 package com.evolveum.midpoint.schema.merger;
-
-import com.evolveum.midpoint.prism.impl.GenericItemMerger;

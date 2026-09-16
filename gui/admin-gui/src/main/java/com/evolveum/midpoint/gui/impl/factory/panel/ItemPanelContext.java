@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -18,7 +19,6 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
@@ -57,8 +57,8 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         return itemWrapper.getObject();
     }
 
-    public PageBase getPageBase() {
-        return (PageBase) parentComponent.getPage();
+    public PageAdminLTE getPageBase() {
+        return (PageAdminLTE) parentComponent.getPage();
     }
 
     public String getComponentId() {

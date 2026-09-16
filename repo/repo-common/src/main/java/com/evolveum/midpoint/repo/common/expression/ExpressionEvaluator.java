@@ -35,7 +35,7 @@ public interface ExpressionEvaluator<V extends PrismValue> {
      */
     PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException;
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException;
 
     /**
      * Fully qualified name of the element defining the expression (e.g. c:path).

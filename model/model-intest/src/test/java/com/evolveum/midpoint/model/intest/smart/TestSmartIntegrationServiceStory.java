@@ -170,6 +170,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
         QName personOcName = DummyHrScenario.Person.OBJECT_CLASS_NAME.xsd();
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(RESOURCE_DUMMY_HR.oid, personOcName,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.STATISTICS_ACCESS),
+                null, null,
                 task, result);
 
         when("waiting for the operation to finish successfully");
@@ -214,6 +215,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
         QName ocName = DummyHrScenario.Department.OBJECT_CLASS_NAME.xsd();
         var token = smartIntegrationService.submitSuggestObjectTypesOperation(RESOURCE_DUMMY_HR.oid, ocName,
                 List.of(DataAccessPermissionType.SCHEMA_ACCESS, DataAccessPermissionType.STATISTICS_ACCESS),
+                null, null,
                 task, result);
 
         when("waiting for the operation to finish successfully");

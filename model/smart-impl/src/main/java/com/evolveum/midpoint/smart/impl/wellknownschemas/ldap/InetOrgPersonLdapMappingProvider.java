@@ -14,7 +14,9 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -41,25 +43,26 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("uid"), UserType.F_NAME);
-        matches.put(ItemPath.create("cn"), UserType.F_FULL_NAME);
-        matches.put(ItemPath.create("givenName"), UserType.F_GIVEN_NAME);
-        matches.put(ItemPath.create("sn"), UserType.F_FAMILY_NAME);
-        matches.put(ItemPath.create("description"), UserType.F_DESCRIPTION);
-        matches.put(ItemPath.create("employeeNumber"), UserType.F_PERSONAL_NUMBER);
-        matches.put(ItemPath.create("jpegPhoto"), UserType.F_JPEG_PHOTO);
-        matches.put(ItemPath.create("mail"), UserType.F_EMAIL_ADDRESS);
-        matches.put(ItemPath.create("l"), UserType.F_LOCALITY);
-        matches.put(ItemPath.create("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
-        matches.put(ItemPath.create("ou"), UserType.F_ORGANIZATIONAL_UNIT);
-        matches.put(ItemPath.create("o"), UserType.F_ORGANIZATION);
-        matches.put(ItemPath.create("preferredLanguage"), UserType.F_PREFERRED_LANGUAGE);
-        matches.put(ItemPath.create("title"), UserType.F_TITLE);
+        matches.put(SystemMappingSuggestion.riAttr("uid"), UserType.F_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("cn"), UserType.F_FULL_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("displayName"), UserType.F_DISPLAY_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("givenName"), UserType.F_GIVEN_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("sn"), UserType.F_FAMILY_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("description"), UserType.F_DESCRIPTION);
+        matches.put(SystemMappingSuggestion.riAttr("employeeNumber"), UserType.F_PERSONAL_NUMBER);
+        matches.put(SystemMappingSuggestion.riAttr("jpegPhoto"), UserType.F_JPEG_PHOTO);
+        matches.put(SystemMappingSuggestion.riAttr("mail"), UserType.F_EMAIL_ADDRESS);
+        matches.put(SystemMappingSuggestion.riAttr("l"), UserType.F_LOCALITY);
+        matches.put(SystemMappingSuggestion.riAttr("telephoneNumber"), UserType.F_TELEPHONE_NUMBER);
+        matches.put(SystemMappingSuggestion.riAttr("ou"), UserType.F_ORGANIZATIONAL_UNIT);
+        matches.put(SystemMappingSuggestion.riAttr("o"), UserType.F_ORGANIZATION);
+        matches.put(SystemMappingSuggestion.riAttr("preferredLanguage"), UserType.F_PREFERRED_LANGUAGE);
+        matches.put(SystemMappingSuggestion.riAttr("title"), UserType.F_TITLE);
         return matches;
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestInboundMappings() {
+    public List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME));
         return mappings;
@@ -80,7 +83,9 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
 
         mappings.add(SystemMappingSuggestion.createAsIsSuggestion("uid", UserType.F_NAME,
                 "uid".equals(rdn) ? MappingStrengthType.WEAK : MappingStrengthType.STRONG));
-        mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME,
+        mappings.add(SystemMappingSuggestion.createScriptSuggestion("cn", UserType.F_FULL_NAME,
+                "fullName + iterationToken",
+                "CN: fullName + iterationToken",
                 "cn".equals(rdn) ? MappingStrengthType.WEAK : MappingStrengthType.STRONG));
 
         return mappings;
@@ -88,8 +93,10 @@ public class InetOrgPersonLdapMappingProvider implements WellKnownSchemaProvider
 
     private SystemMappingSuggestion createDnScriptSuggestion(
             String rdnAttr, String sourceVar, ItemPath sourcePath, String ouSuffix) {
-        String script = "basic.composeDnWithSuffix('%s', %s, '%s')".formatted(rdnAttr, sourceVar, ouSuffix);
-        String description = "Compose DN: %s=<%s>,%s".formatted(rdnAttr, sourceVar, ouSuffix);
+        boolean useIterationToken = UserType.F_FULL_NAME.equivalent(sourcePath);
+        String valueExpression = useIterationToken ? sourceVar + " + iterationToken" : sourceVar;
+        String script = "ldap.composeDnWithSuffix(['%s', %s, '%s'])".formatted(rdnAttr, valueExpression, ouSuffix);
+        String description = "Compose DN: %s=<%s>,%s".formatted(rdnAttr, valueExpression, ouSuffix);
         return SystemMappingSuggestion.createScriptSuggestion("dn", sourcePath, script, description,
                 MappingStrengthType.STRONG);
     }

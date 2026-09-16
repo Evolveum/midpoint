@@ -11,6 +11,7 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.activity.ActivityListener;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
@@ -69,6 +70,7 @@ public class CommonTaskBeans {
     @Autowired public BucketContentFactoryGenerator contentFactoryCreator;
     @Autowired public ExpressionFactory expressionFactory;
     @Autowired public RepositoryItemSourceFactory repositoryItemSourceFactory;
+    @Autowired public ObjectResolver objectResolver;
 
     @Autowired(required = false) public List<ActivityListener> activityListeners;
 

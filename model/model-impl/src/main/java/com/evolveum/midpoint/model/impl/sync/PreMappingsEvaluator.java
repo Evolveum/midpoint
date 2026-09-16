@@ -24,7 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -36,15 +36,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class PreMappingsEvaluator {
 
-    static <F extends FocusType> void computePreFocus(
+    static <F extends ProjectionHolderType> void computePreFocus(
             @NotNull SingleShadowInboundsProcessingContext<F> ctx, @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SingleShadowInboundsProcessing.evaluate(ctx, result);
     }
 
     @VisibleForTesting
-    public static <C extends FocusType> @NotNull C computePreFocus(
+    public static <C extends ProjectionHolderType> @NotNull C computePreFocus(
             @NotNull ShadowType shadowedResourceObject,
             @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
             @NotNull ResourceType resource,
@@ -52,7 +52,7 @@ public class PreMappingsEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var preFocus = PrismContext.get().createObjectable(focusClass);
         computePreFocus(shadowedResourceObject, objectTypeDefinition, objectTypeDefinition, resource, preFocus, task, result);
         return preFocus;
@@ -67,7 +67,7 @@ public class PreMappingsEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SingleShadowInboundsProcessing.evaluate(
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         AbstractShadow.of(shadowedResourceObject),
@@ -101,7 +101,7 @@ public class PreMappingsEvaluator {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         SingleShadowInboundsProcessing.evaluate(
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,

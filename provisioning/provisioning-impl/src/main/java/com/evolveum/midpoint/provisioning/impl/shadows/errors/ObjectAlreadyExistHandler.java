@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
@@ -66,7 +67,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             OperationResult result)
             throws SchemaException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ProvisioningContext ctx = operation.getCtx();
 
@@ -85,7 +86,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ProvisioningContext ctx = operation.getCtx();
 
@@ -103,7 +104,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     private void discoverConflictingShadow(
             ProvisioningContext ctx, AbstractShadow targetObjectState, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
@@ -129,7 +130,9 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
                     oldShadow == null ? "  null" : oldShadow.debugDumpLazily(1),
                     conflictingShadow == null ? "  null" : conflictingShadow.debugDumpLazily(1));
 
-            if (conflictingShadow != null) {
+            if (conflictingShadow != null && Objects.equals(conflictingShadow.getOid(), targetObjectState.getOid())) {
+                LOGGER.debug("DISCOVERY: conflicting shadow is the same as currently being modified, ignoring");
+            } else if (conflictingShadow != null) {
                 var adoptedConflictingShadow = ctx.adoptRawRepoShadow(conflictingShadow);
                 ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
                 change.setResource(ctx.getResource().asPrismObject());
@@ -184,8 +187,8 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
      * But a side-effect of this search is that the shadow for the conflicting account is created in the repo.
      */
     private List<PrismObject<ShadowType>> findConflictingShadowsOnResource(ObjectQuery query, Task task, OperationResult parentResult)
-        throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
-                SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         // noDiscovery option to avoid calling notifyChange from ShadowManager (in case that new resource object is discovered)
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
         return provisioningService.searchObjects(ShadowType.class, query, options, task, parentResult);

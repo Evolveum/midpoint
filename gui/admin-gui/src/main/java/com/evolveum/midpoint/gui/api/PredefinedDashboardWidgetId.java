@@ -6,10 +6,6 @@
 
 package com.evolveum.midpoint.gui.api;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.QNameUtil;
-
 /**
  * @author semancik
  */

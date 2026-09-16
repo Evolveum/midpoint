@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -26,7 +25,10 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 @PanelType(name = "dataProtectionAssignments", experimental = true)
 @PanelInstance(identifier = "dataProtectionAssignments",
@@ -46,11 +48,7 @@ public class GenericAbstractRoleAssignmentPanel<F extends FocusType> extends Abs
         if (!isRepositorySearchEnabled()) {
             return null;
         }
-        // This should do customPostSearch on repository level.
-        return QueryBuilder.queryFor(AssignmentType.class)
-                .ref(AssignmentType.F_TARGET_REF, OrgType.COMPLEX_TYPE, null)
-                .item(ObjectType.F_SUBTYPE).contains("access")
-                .build();
+        return AssignmentPanelQueries.accessOrganizations();
     }
 
     @Override

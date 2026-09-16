@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
@@ -80,7 +79,6 @@ public class TaskBeans {
     @Autowired public MidpointConfiguration midpointConfiguration;
     @Autowired public SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired public CacheConfigurationManager cacheConfigurationManager;
-    @Autowired public CacheRegistry cacheRegistry;
     @Autowired
     @Qualifier("securityContextManager")
     public SecurityContextManager securityContextManager;

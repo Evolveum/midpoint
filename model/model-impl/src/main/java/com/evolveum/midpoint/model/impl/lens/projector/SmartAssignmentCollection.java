@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.AssignmentIdStore;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator.VirtualAssignment;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,11 +21,11 @@ import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.internals.TestingPaths;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,7 +78,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
             PrismObject<F> objectCurrent, PrismObject<F> objectOld,
             @NotNull OriginProvider<? super AssignmentType> deltaItemOriginProvider,
             ContainerDelta<AssignmentType> currentAssignmentDelta,
-            Collection<AssignmentConfigItem> virtualAssignments) throws SchemaException {
+            Collection<VirtualAssignment> virtualAssignments) throws SchemaException {
 
         PrismContainer<AssignmentType> assignmentContainerOld = getAssignmentContainer(objectOld);
         PrismContainer<AssignmentType> assignmentContainerCurrent = getAssignmentContainer(objectCurrent);
@@ -155,20 +156,26 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
             for (PrismContainerValue<AssignmentType> assignmentCVal : assignmentContainer.getValues()) {
                 // [EP:APSO] DONE
                 collectAssignment(
-                        assignmentCVal, mode, false, null, false,
+                        assignmentCVal, mode, false, null, null, false,
                         originProvider.origin(assignmentCVal.asContainerable()));
             }
         }
     }
 
-    private void collectVirtualAssignments(Collection<AssignmentConfigItem> virtualAssignments)
+    private void collectVirtualAssignments(Collection<VirtualAssignment> virtualAssignments)
             throws SchemaException {
-        for (ConfigurationItem<AssignmentType> assignment : emptyIfNull(virtualAssignments)) {
+        for (var virtualAssignment : emptyIfNull(virtualAssignments)) {
             // [EP:APSO] DONE, virtual assignments are already correct (ensured by the caller)
+            AssignmentConfigItem assignmentConfigItem = virtualAssignment.assignmentConfigItem();
             //noinspection unchecked
             collectAssignment(
-                    assignment.value().asPrismContainerValue(),
-                    Mode.CURRENT, true, null, false, assignment.origin());
+                    assignmentConfigItem.value().asPrismContainerValue(),
+                    Mode.CURRENT,
+                    true,
+                    virtualAssignment.activityPath(),
+                    null,
+                    false,
+                    assignmentConfigItem.origin());
         }
     }
 
@@ -188,7 +195,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
             boolean doNotCreateNew = deltaSet == AddDeleteReplace.DELETE;
             // [EP:APSO] DONE, delta item origin provider is correct
             collectAssignment(
-                    assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, deltaSet, doNotCreateNew,
+                    assignmentCVal, Mode.IN_ADD_OR_DELETE_DELTA, false, null, deltaSet, doNotCreateNew,
                     deltaItemOriginProvider.origin(assignmentCVal.asContainerable()));
         }
     }
@@ -203,7 +210,11 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
      */
     private void collectAssignment(
             PrismContainerValue<AssignmentType> assignmentCVal,
-            Mode mode, boolean virtual, AddDeleteReplace deltaSet, boolean doNotCreateNew,
+            Mode mode,
+            boolean virtual,
+            @Nullable ActivityPath activityPath,
+            AddDeleteReplace deltaSet,
+            boolean doNotCreateNew,
             @NotNull ConfigurationItemOrigin origin) throws SchemaException {
 
         @NotNull SmartAssignmentElement element;
@@ -229,7 +240,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
                 // Deleting non-existing assignment.
                 return;
             } else {
-                element = put(assignmentCVal, virtual, origin); // [EP:APSO] DONE, see signature
+                element = put(assignmentCVal, virtual, activityPath, origin); // [EP:APSO] DONE, see signature
             }
         }
 
@@ -238,8 +249,11 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
 
     // [EP:APSO] DONE 1/1
     private SmartAssignmentElement put(
-            PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual, @NotNull ConfigurationItemOrigin origin) {
-        SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal, virtual, origin);
+            PrismContainerValue<AssignmentType> assignmentCVal,
+            boolean virtual,
+            @Nullable ActivityPath activityPath,
+            @NotNull ConfigurationItemOrigin origin) {
+        SmartAssignmentElement element = new SmartAssignmentElement(assignmentCVal, virtual, activityPath, origin);
         aMap.put(element.getKey(), element);
         if (assignmentCVal.getId() != null) {
             idMap.put(assignmentCVal.getId(), element);

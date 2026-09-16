@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.InfraItemName;
-import com.evolveum.midpoint.security.enforcer.api.PrismEntityOpConstraints;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -167,7 +165,7 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
         public void applyAuthorization(
                 @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
             var authorization = evaluation.getAuthorization();
             if (authorization.matchesPhase(phase)) {
                 PrismValueCoverageInformation coverageIncrement =

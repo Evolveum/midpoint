@@ -345,7 +345,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                 // TODO the recipient object from ref may lack telephoneNumber, email, of has old data.
                 //  This happens when actor is logged in (e.g. administrator) and changed some of this info
                 //  and did not re-login.
-                Objectable object = recipientRef.asReferenceValue().getOriginObject();
+                Objectable object = recipientRef.asReferenceValue().getObjectable();
                 if (object instanceof FocusType) {
                     return getRecipientAddressFromFocus(transport, (FocusType) object, ctx, result);
                 }
@@ -441,7 +441,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     private MessageTemplateContentType findLocalizedContent(
             @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
-        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getOriginObject();
+        FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getObjectable();
         String recipientLocale = FocusTypeUtil.languageOrLocale(recipientFocus);
         if (recipientLocale != null) {
             // TODO: Currently supports only equal strings - add matching of en-US to en if en-US is not available, etc.
@@ -458,7 +458,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         ObjectReferenceType recipientRef = recipient.getRecipientRef();
         if (recipientRef != null) {
             return FocusTypeUtil.languageOrLocale(
-                    (FocusType) recipientRef.asReferenceValue().getOriginObject());
+                    (FocusType) recipientRef.asReferenceValue().getObjectable());
         }
         return null;
     }
@@ -473,8 +473,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
      * . quick
      * . safe - it should not make any assumptions about event content that would cause it to throw an exception
      * . filter out events that obviously do not match the notifier - e.g. simpleUserNotifier should ensure that
-     * the focus type is really UserType; this allows nested filters to assume existence of
-     * e.g. requestee.fullName element.
+     * the focus type is really UserType; this allows nested filters to assume existence of user-specific properties.
      */
     protected boolean quickCheckApplicability(
             ConfigurationItem<? extends N> notifierConfig,
@@ -559,7 +558,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             if (defaultRecipient != null) {
                 RecipientExpressionResultType recipient = new RecipientExpressionResultType();
                 ObjectReferenceType ref = new ObjectReferenceType();
-                ref.asReferenceValue().setOriginObject(defaultRecipient);
+                ref.asReferenceValue().setObject(defaultRecipient.asPrismObject());
                 recipient.setRecipientRef(ref);
                 recipients.add(recipient);
             }
@@ -679,8 +678,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
         ObjectType requester = requesterRef.resolveObjectType(result, false);
         String name = PolyString.getOrig(requester.getName());
-        if (requester instanceof UserType) {
-            return name + " (" + PolyString.getOrig(((UserType) requester).getFullName()) + ")";
+        if (requester instanceof UserType requesterUser) {
+            return name + " (" + PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser)) + ")";
         } else {
             return name;
         }
@@ -691,9 +690,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             body.append("Requester: ");
             try {
                 ObjectType requester = event.getRequester().resolveObjectType(result, false);
-                if (requester instanceof UserType) {
-                    UserType requesterUser = (UserType) requester;
-                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
+                if (requester instanceof UserType requesterUser) {
+                    String displayName = PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser));
+                    body.append(displayName).append(" (").append(requester.getName()).append(")");
                 } else {
                     body.append(ObjectTypeUtil.toShortString(requester));
                 }

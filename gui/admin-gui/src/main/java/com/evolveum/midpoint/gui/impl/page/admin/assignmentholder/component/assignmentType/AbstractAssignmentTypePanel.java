@@ -6,13 +6,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -457,14 +462,14 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.EVO_ASSIGNMENT_ICON),
                 createStringResource("MainObjectListPanel.newObject")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 newAssignmentClickPerformed(target);
             }
         };
-        newObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        newObjectButton.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         bar.add(newObjectButton);
 
         newObjectButton.add(new VisibleEnableBehaviour() {
@@ -685,13 +690,31 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     protected List<PrismContainerValueWrapper<AssignmentType>> prefilterUsingQuery(
             List<PrismContainerValueWrapper<AssignmentType>> list, ObjectQuery query) {
-        return list.stream().filter(valueWrapper -> {
-            try {
-                return ObjectQuery.match(valueWrapper.getRealValue(), query.getFilter(), getPageBase().getMatchingRuleRegistry());
-            } catch (SchemaException e) {
-                throw new TunnelException(e.getMessage());
-            }
-        }).collect(Collectors.toList());
+        return list.stream().filter(valueWrapper -> matchesQuery(getPageBase(), valueWrapper.getRealValue(), query.getFilter()))
+                .collect(Collectors.toList());
+    }
+
+    public static List<AssignmentType> prefilterAssignmentsUsingQuery(
+            PageBase pageBase,
+            List<AssignmentType> list,
+            ObjectQuery query) {
+        if (CollectionUtils.isEmpty(list)) {
+            return List.of();
+        }
+        return list.stream()
+                .filter(assignment -> matchesQuery(pageBase, assignment, query.getFilter()))
+                .collect(Collectors.toList());
+    }
+
+    public static boolean matchesQuery(PageBase pageBase, Containerable candidate, ObjectFilter filter) {
+        if (filter == null) {
+            return true;
+        }
+        try {
+            return ObjectQuery.match(candidate, filter, pageBase.getMatchingRuleRegistry());
+        } catch (SchemaException e) {
+            throw new TunnelException(e.getMessage());
+        }
     }
 
     @Override

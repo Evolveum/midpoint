@@ -48,7 +48,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.*;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfAttributeNameToConnId;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.ucfObjectClassNameToConnId;
 
 /**
  * Converts UCF {@link Operation} objects into ConnId deltas:

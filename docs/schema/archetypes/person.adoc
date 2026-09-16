@@ -19,7 +19,7 @@ This archetype includes a reference to *Person Object Template*, which is also a
 *System configuration* includes an xref:/midpoint/reference/admin-gui/collections-views/[object collection view] for users with this archetype.
 
 .Example of using the Person archetype
-image::person-example.png[Example of using the Person archetype]
+image::PersonArchetype.png[Example of using the Person archetype]
 
 == Configuration
 

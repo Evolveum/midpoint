@@ -11,11 +11,14 @@ import static org.springframework.http.ResponseEntity.status;
 import static com.evolveum.midpoint.security.api.RestAuthorizationAction.*;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.*;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -37,10 +40,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DefinitionProcessingOption;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -253,11 +252,11 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "options", required = false) List<String> options,
             @RequestParam(value = "include", required = false) List<String> include,
             @RequestParam(value = "exclude", required = false) List<String> exclude,
-            @RequestParam(value = "resolveNames", required = false) List<String> resolveNames) {
+            @RequestParam(value = "resolveNames", required = false) List<String> resolveNames,
+            @Experimental @RequestParam(value = "tracingProfile", required = false) String tracingProfileName) {
         logger.debug("model rest service for get operation start");
 
         Task task = initRequest();
-        OperationResult result = createSubresult(task, "getObject");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         Collection<SelectorOptions<GetOperationOptions>> getOptions =
@@ -265,7 +264,11 @@ public class ModelRestController extends AbstractRestController {
                         resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 
         ResponseEntity<?> response;
+        OperationResult result = null;
+        String opName = "getObject";
+
         try {
+            result = createSubresult(task, opName, tracingProfileName);
             PrismObject<? extends ObjectType> object;
             if (NodeType.class.equals(clazz) && CURRENT.equals(id)) {
                 object = getCurrentNodeObject(getOptions, task, result);
@@ -278,17 +281,20 @@ public class ModelRestController extends AbstractRestController {
 
             response = createResponse(HttpStatus.OK, object, result);
         } catch (Exception ex) {
+            if (result == null) {
+                result = createSubresult(task, opName); // fallback that always succeeds
+            }
             response = handleException(result, ex);
         }
 
-        result.computeStatus();
+        result.close();
         finishRequest(task, result);
         return response;
     }
 
     private PrismObject<? extends ObjectType> getCurrentNodeObject(Collection<SelectorOptions<GetOperationOptions>> getOptions,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String nodeId = taskManager.getNodeId();
         ObjectQuery query = prismContext.queryFor(NodeType.class)
                 .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
@@ -475,6 +481,76 @@ public class ModelRestController extends AbstractRestController {
         return response;
     }
 
+    @RestHandlerMethod(authorization = MODIFY_OBJECT)
+    @PutMapping("/upsert/{type}")
+    public <T extends ObjectType> ResponseEntity<?> upsertPrismObject(
+            @PathVariable("type") String type,
+            @RequestParam(value = "options", required = false) List<String> options,
+            @RequestBody @NotNull PrismObject<T> object
+    ) {
+        var task = initRequest();
+        var result = createSubresult(task, "upsertObject");
+
+        try {
+            @SuppressWarnings("unchecked")
+            Class<T> clazz = (Class<T>) ObjectTypes.getClassFromRestType(type);
+
+            String clientOid = object.getOid();
+            ObjectDelta<T> delta;
+            boolean isAddOperation = false;
+
+            if (clientOid == null || clientOid.trim().isEmpty()) {
+                delta = DeltaFactory.Object.createAddDelta(object);
+                isAddOperation = true;
+            } else {
+                try {
+                    PrismObject<T> foundObject = modelService.getObject(clazz, clientOid, null, task, result);
+                    delta = foundObject.diff(object);
+                    delta.setOid(clientOid);
+                    delta.setObjectTypeClass(clazz);
+                } catch (ObjectNotFoundException e) {
+                    delta = DeltaFactory.Object.createAddDelta(object);
+                    isAddOperation = true;
+                }
+            }
+
+            if (delta.isEmpty()) {
+                return createResponse(HttpStatus.OK, object.asObjectable(), result);
+            }
+
+            var deltaOperations = modelService.executeChanges(
+                    Collections.singletonList(delta),
+                    null,
+                    task,
+                    result
+            );
+
+            String finalOid = clientOid;
+
+            if (isAddOperation && deltaOperations != null && !deltaOperations.isEmpty()) {
+                ObjectDeltaOperation<? extends ObjectType> operationResult =
+                        deltaOperations.iterator().next();
+
+                finalOid = operationResult.getOid();
+            }
+
+            PrismObject<T> updatedObject =
+                    modelService.getObject(clazz, finalOid, null, task, result);
+
+            return createResponse(
+                    isAddOperation ? HttpStatus.CREATED : HttpStatus.OK,
+                    updatedObject,
+                    result
+            );
+
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException |
+                 SubscriptionComplianceException e
+        ) {
+            return handleException(result, e);
+        }
+    }
+
     @RestHandlerMethod(authorization = DELETE_OBJECT)
     @DeleteMapping("/{type}/{id}")
     public ResponseEntity<?> deleteObject(
@@ -638,14 +714,17 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "exclude", required = false) List<String> exclude,
             @RequestParam(value = "resolveNames", required = false) List<String> resolveNames,
             @RequestParam(value = "returnTotalCount", required = false) Boolean returnTotalCount,
+            @Experimental @RequestParam(value = "tracingProfile", required = false) String tracingProfileName,
             @RequestBody QueryType queryType) {
 
         Task task = initRequest();
-        OperationResult result = task.getResult().createSubresult("searchObjects");
+        OperationResult result = null;
+        String opName = "searchObjects";
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
+            result = createSubresult(task, opName, tracingProfileName);
             ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
             Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
                     exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
@@ -670,10 +749,13 @@ public class ModelRestController extends AbstractRestController {
 
             response = createResponse(HttpStatus.OK, listType, result, true, headers);
         } catch (Exception ex) {
+            if (result == null) {
+                result = createSubresult(task, opName); // fallback that always succeeds
+            }
             response = handleException(result, ex);
         }
 
-        result.computeStatus();
+        result.close();
         finishRequest(task, result);
         return response;
     }

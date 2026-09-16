@@ -7,8 +7,10 @@
 package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.AccessDecision;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
@@ -53,6 +55,26 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             AccessDecision.DENY); // actually does not matter
 
     /**
+     * Profile for safe scripting: allows only MEL script evaluator.
+     * This profile is used when evaluating AI-generated or untrusted mapping scripts.
+     */
+    private static final ExpressionProfile SAFE_SCRIPTING_ONLY = new ExpressionProfile(
+            SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
+            new ExpressionEvaluatorsProfile(
+                    AccessDecision.DENY,
+                    List.of(new ExpressionEvaluatorProfile(
+                            SchemaConstantsGenerated.C_SCRIPT,
+                            AccessDecision.DENY,
+                            List.of(new ScriptLanguageExpressionProfile(
+                                    "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel",
+                                    AccessDecision.ALLOW,
+                                    true,
+                                    null))))),
+            BulkActionsProfile.none(),
+            FunctionLibrariesProfile.none(),
+            AccessDecision.DENY);
+
+    /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
      *
      * @see ExpressionProfileType#getIdentifier()
@@ -93,6 +115,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
     public static @NotNull ExpressionProfile legacyUnprivilegedBulkActions() {
         return LEGACY_UNPRIVILEGED_BULK_ACTIONS;
+    }
+
+    public static @NotNull ExpressionProfile safeScriptingOnly() {
+        return SAFE_SCRIPTING_ONLY;
     }
 
     public @NotNull String getIdentifier() {

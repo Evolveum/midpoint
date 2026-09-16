@@ -13,6 +13,10 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * A {@link ModificationPrecondition} that aborts an update operation if the actual version of the object being modified
+ * is different from the expected one ({@link #expectedVersion}).
+ */
 public class VersionPrecondition<T extends ObjectType> implements ModificationPrecondition<T>, Serializable {
 
     @NotNull private final String expectedVersion;

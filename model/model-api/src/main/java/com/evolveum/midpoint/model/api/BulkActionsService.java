@@ -37,5 +37,5 @@ public interface BulkActionsService {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, ObjectAlreadyExistsException;
+            CommunicationException, ConfigurationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException;
 }

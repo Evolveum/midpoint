@@ -5,7 +5,7 @@ doc-type: intro
 = Multi-tab browser support
 :page-since: "4.11"
 :page-toc: top
-:page-upkeep-status: red
+:page-upkeep-status: green
 
 == Introduction
 

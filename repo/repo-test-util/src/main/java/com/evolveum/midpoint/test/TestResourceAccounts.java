@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,15 +30,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -176,10 +169,7 @@ public class TestResourceAccounts {
          * @param userProperty The property from the user, used to correlate with account.
          * @return The shadows of accounts, which where successfully matched with users on given items.
          */
-        Collection<PrismObject<ShadowType>> onAttributes(ItemName accountAttribute, ItemPath userProperty)
-                throws SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
-                ObjectAlreadyExistsException;
+        Collection<PrismObject<ShadowType>> onAttributes(ItemName accountAttribute, ItemPath userProperty) throws CommonException;
     }
 
     private interface DeltaProvider<T extends ObjectType> {

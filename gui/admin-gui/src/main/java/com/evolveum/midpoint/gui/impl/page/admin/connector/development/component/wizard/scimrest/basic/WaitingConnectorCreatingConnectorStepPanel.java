@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -60,12 +59,12 @@ public class WaitingConnectorCreatingConnectorStepPanel extends WaitingConnector
     }
 
     @Override
-    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected StatusInfo<?> obtainResult(String token, Task task, OperationResult result) throws CommonException {
         return getDetailsModel().getServiceLocator().getConnectorService().getCreateConnectorStatus(token, task, result);
     }
 
     @Override
-    protected String getNewTaskToken(Task task, OperationResult result) {
+    protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
         return getDetailsModel().getConnectorDevelopmentOperation().submitCreateConnector(task, result);
     }
 

@@ -6,11 +6,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
-import java.io.Serial;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import java.io.Serial;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -28,12 +26,13 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 
 public class RoleAnalysisSessionMaintenanceWizardPanel
         extends AbstractWizardStepPanel<TaskDetailsModel> {
@@ -47,7 +46,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String ID_REBUILD_PROCESSING = "rebuild-processing";
     private static final String ID_DELETE_PROCESSING = "delete-processing";
 
-    private static final String DEFAULT_BUTTON_CSS = "text-left btn btn-default ";
+    private static final String DEFAULT_BUTTON_CSS = "text-start btn btn-light border ";
     private static final String COLORED_BUTTON_CSS = "colored-form-primary ";
 
     boolean isRebuild = true;
@@ -87,7 +86,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             @Contract(pure = true)
             @Override
             public @NotNull String getDescriptionCssClass() {
-                return "text-gray";
+                return "text-secondary";
             }
 
             @Override
@@ -102,6 +101,11 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
                 iconWithLabel.setOutputMarkupId(true);
                 iconWithLabel.add(AttributeModifier.replace(CLASS_CSS, "d-flex align-items-center gap-2 h5"));
                 return iconWithLabel;
+            }
+
+            @Override
+            public String getContainerCssClass() {
+                return super.getContainerCssClass() + " align-content-center";
             }
 
             @Contract(pure = true)
@@ -153,7 +157,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
         Label description = new Label(ID_DESCRIPTION_PROCESSING,
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.data.processing.help"));
         description.setOutputMarkupId(true);
-        description.add(AttributeModifier.append(CLASS_CSS, "text-gray"));
+        description.add(AttributeModifier.append(CLASS_CSS, "text-secondary"));
         processingContainer.add(description);
 
         initDeleteButton(processingContainer);

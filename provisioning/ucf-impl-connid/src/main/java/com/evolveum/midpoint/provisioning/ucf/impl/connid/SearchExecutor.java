@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -211,13 +212,14 @@ class SearchExecutor {
             SecurityViolationException {
 
         // Connector operation cannot create result for itself, so we need to create result for it
-        OperationResult result = parentResult.createSubresult(ConnectorInstanceConnIdImpl.FACADE_OP_SEARCH);
-        result.addArbitraryObjectAsParam("objectClass", icfObjectClass);
+        OperationResultBuilder resultBuilder = parentResult.subresult(ConnectorInstanceConnIdImpl.FACADE_OP_SEARCH)
+                .addArbitraryObjectAsParam("objectClass", icfObjectClass);
+        connectorInstance.startTracingIfConfigured(operationContext.ucfExecutionContext(), parentResult, resultBuilder);
+        var result = resultBuilder.build();
 
         SearchResult connIdSearchResult;
         InternalMonitor.recordConnectorOperation("search");
         ConnIdOperation operation = recordIcfOperationStart();
-
         try {
             LOGGER.trace("Executing ConnId search operation: {}", operation);
             connIdSearchResult = connectorInstance.getConnIdConnectorFacadeRequired()

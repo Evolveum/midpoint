@@ -9,7 +9,7 @@
 <wicket:panel>
 
     <div class="d-flex gap-3 p-3">
-        <div wicket:id="rulePanelContainer" class="card mt-3 col p-0">
+        <div wicket:id="rulePanelContainer" class="card shadow-sm mb-3 mt-3 col p-0">
             <div class="card-header d-flex align-items-center">
                 <span wicket:id="ruleHeaderTitle"></span>
             </div>
@@ -28,10 +28,10 @@
             </div>
         </div>
 
-        <div wicket:id="candidatePanelContainer" class="card mt-3 col p-0">
+        <div wicket:id="candidatePanelContainer" class="card shadow-sm mb-3 mt-3 col p-0">
             <div class="card-header d-flex align-items-center">
                 <span wicket:id="candidateHeaderTitle"></span>
-                <button wicket:id="candidateHeaderButton" class="ml-auto btn btn-sm btn-default"></button>
+                <button wicket:id="candidateHeaderButton" class="ms-auto btn btn-sm btn-light border"></button>
             </div>
 
             <div class="d-flex flex-column m-3 gap-2" style="max-height: 350px; overflow-y: auto; overflow-x: hidden;">
@@ -39,7 +39,7 @@
                     <div class="list-group-item d-flex justify-content-between align-items-center" wicket:id="candidateRow">
 
                         <div>
-                            <div class="font-weight-semibold" wicket:id="candidateName"></div>
+                            <div class="fw-semibold" wicket:id="candidateName"></div>
                             <div class="text-muted small" wicket:id="candidateIdentifier"></div>
                         </div>
 

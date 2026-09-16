@@ -122,14 +122,11 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         return rerunTaskErrorsOk(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
     }
 
-    protected void loginAdministrator() throws SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    protected void loginAdministrator() throws CommonException {
         login(userAdministrator);
     }
 
-    protected void setRecordResourceStageEnabled(boolean enable, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+    protected void setRecordResourceStageEnabled(boolean enable, Task task, OperationResult result) throws CommonException {
 
         ItemPath path = ItemPath.create(
                 SystemConfigurationType.F_AUDIT,

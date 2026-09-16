@@ -90,9 +90,8 @@ public class ConfigurationItem<T extends Serializable & Cloneable>
         return value != null ? configItem(value, origin, clazz) : null;
     }
 
-    /** Use {@link #configItem(Serializable, ConfigurationItemOrigin, Class)} instead. */
-    @Deprecated
-    public static @NotNull <T extends Serializable & Cloneable> ConfigurationItem<T> of(
+    /** Intentionally private. Use {@link #configItem(Serializable, ConfigurationItemOrigin, Class)} instead. */
+    private static @NotNull <T extends Serializable & Cloneable> ConfigurationItem<T> of(
             @NotNull T value, @NotNull ConfigurationItemOrigin origin) {
         return new ConfigurationItem<>(value, origin, null);
     }

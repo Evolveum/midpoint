@@ -13,7 +13,9 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -38,13 +40,13 @@ public class OrganizationalUnitActiveDirectoryMappingProvider implements WellKno
     @Override
     public Map<ItemPath, ItemPath> suggestSchemaMatches() {
         Map<ItemPath, ItemPath> matches = new HashMap<>();
-        matches.put(ItemPath.create("ou"), OrgType.F_NAME);
-        matches.put(ItemPath.create("adminDescription"), OrgType.F_DESCRIPTION);
+        matches.put(SystemMappingSuggestion.riAttr("ou"), OrgType.F_NAME);
+        matches.put(SystemMappingSuggestion.riAttr("adminDescription"), OrgType.F_DESCRIPTION);
         return matches;
     }
 
     @Override
-    public List<SystemMappingSuggestion> suggestInboundMappings() {
+    public List<SystemMappingSuggestion> suggestInboundMappings(@Nullable String resourceName) {
         List<SystemMappingSuggestion> mappings = new ArrayList<>();
         return mappings;
     }
@@ -56,7 +58,7 @@ public class OrganizationalUnitActiveDirectoryMappingProvider implements WellKno
         String suffix = extractOuSuffixFromSamples(sampleShadows);
 
         if (suffix != null) {
-            String script = "basic.composeDnWithSuffix('ou', name, '%s')".formatted(suffix);
+            String script = "ldap.composeDnWithSuffix(['ou', name, '%s'])".formatted(suffix);
             String description = "Compose DN: ou=<name>,%s".formatted(suffix);
             mappings.add(SystemMappingSuggestion.createScriptSuggestion("distinguishedName", OrgType.F_NAME, script, description, MappingStrengthType.STRONG));
             mappings.add(SystemMappingSuggestion.createAsIsSuggestion("ou", OrgType.F_NAME, MappingStrengthType.WEAK));

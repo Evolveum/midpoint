@@ -103,7 +103,7 @@ public class RoleAnalysisSessionOperationButtonPanel extends InlineOperationalBu
         };
         editConfigurationButton.titleAsLabel(true);
         editConfigurationButton.setOutputMarkupId(true);
-        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-default"));
+        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-light border"));
         repeatingView.add(editConfigurationButton);
     }
 

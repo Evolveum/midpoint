@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;

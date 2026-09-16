@@ -7,9 +7,10 @@
 import MidPointTheme from './midpoint-theme';
 import MidPointAceEditor from "./ace-editor";
 import MidPointHoneypot from "./honeypot";
-import Popper from '@popperjs/core';
+import { initBootstrapPlugins } from './vendor-boostrap5-toogle';
+
+initBootstrapPlugins();
 
 window.MidPointTheme = new MidPointTheme();
 window.MidPointAceEditor = new MidPointAceEditor();
 window.MidPointHoneypot = new MidPointHoneypot();
-window.Popper = Popper;
