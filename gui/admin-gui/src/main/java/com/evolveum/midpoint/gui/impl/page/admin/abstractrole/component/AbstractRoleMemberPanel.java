@@ -169,7 +169,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         AUTHORIZATIONS.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
         AUTHORIZATIONS.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
         AUTHORIZATIONS.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
-        AUTHORIZATIONS.put(PolicyType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
+        AUTHORIZATIONS.put(PolicyType.COMPLEX_TYPE, GuiAuthorizationConstants.POLICY_MEMBERS_AUTHORIZATIONS);
     }
 
     public AbstractRoleMemberPanel(String id, FocusDetailsModels<R> model, ContainerPanelConfigurationType config) {
