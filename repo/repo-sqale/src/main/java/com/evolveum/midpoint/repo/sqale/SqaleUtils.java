@@ -8,8 +8,13 @@ package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.exception.ProgramLimitException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -27,6 +32,36 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SqaleUtils {
+
+    /**
+     * Custom PostgreSQL SQLState codes that are not natively defined in
+     * {@link org.postgresql.util.PSQLState}.
+     *
+     * <p>PostgreSQL uses a five-character error code system (SQLSTATE) to communicate specific
+     * server errors to applications. While the driver maps a curated subset of these codes,
+     * this enum expands coverage for handling internal system limitations and limits.</p>
+     *
+     * @see <a href="https://postgresql.org">PostgreSQL Error Codes Appendix</a>
+     */
+    public enum ExtendedPSQLState {
+
+        /**
+         * Program Limit Exceeded (54000).
+         *
+         * <p>Indicates that a hard internal limit built into the PostgreSQL engine has been breached.</p>
+         */
+        PROGRAM_LIMIT_EXCEEDED("54000");
+
+        private final String state;
+
+        ExtendedPSQLState(String state) {
+            this.state = state;
+        }
+
+        public String getState() {
+            return this.state;
+        }
+    }
 
     public enum VersionedComponent {
 
@@ -164,6 +199,25 @@ public class SqaleUtils {
                         "Conflicting object already exists, constraint violation message: "
                                 + psqlException.getMessage(), exception);
             }
+        }
+
+        if (ExtendedPSQLState.PROGRAM_LIMIT_EXCEEDED.getState().equals(state)) {
+            var intexSizePattern = Pattern.compile(
+                    "index row size \\d+ exceeds maximum \\d+ for index \"([^\"]+)\""
+            );
+
+            String indexName = Optional.ofNullable(message)
+                    .filter(StringUtils::isNotBlank)
+                    .map(intexSizePattern::matcher)
+                    .filter(Matcher::find)
+                    .map(matcher -> matcher.group(1))
+                    .orElse(null);
+
+            throw new ProgramLimitException(
+                    "Operation is too large to complete. Please try with less data%s."
+                            .formatted(StringUtils.isNotBlank(indexName) ? " for " + indexName : ""),
+                    exception
+            );
         }
     }
 
