@@ -5,10 +5,10 @@ For more information about behavior capabilities, see xref:../capabilities[].
 
 == Last login timestamp
 
-Behavior for last login timestamp currently contains only one setting - attribute fetch strategy.
+Behavior for last login timestamp (`lastLoginTimestamp`) currently contains only one setting - attribute fetch strategy.
 See xref:attributes/fetch-strategy[] for more information.
 
-[INFO]
+[NOTE]
 ====
-If you want to map the `Last login timestamp` to a standard property of the focus object, see xref:mapping-shadow-items.adoc[]
+If you want to map `lastLoginTimestamp` to a standard property of the focus object, see xref:/midpoint/reference/resources/resource-configuration/schema-handling/mapping-shadow-items/[].
 ====
