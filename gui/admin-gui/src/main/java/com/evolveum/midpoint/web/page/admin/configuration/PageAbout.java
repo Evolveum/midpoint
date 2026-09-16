@@ -322,17 +322,11 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private String escapeJVMArgument(String argument) {
-        boolean matches = StartupConfiguration.SENSITIVE_CONFIGURATION_VARIABLES.stream().anyMatch(p -> argument.startsWith("-D" + p));
-        if (!matches || StartupConfiguration.isPrintSensitiveValues()) {
+        if (StartupConfiguration.isPrintSensitiveValues()) {
             return argument;
         }
 
-        int index = argument.indexOf("=");
-        if (index < 0) {
-            return argument;
-        }
-
-        return argument.substring(0, index) + "=" + StartupConfiguration.SENSITIVE_VALUE_OUTPUT;
+        return StartupConfiguration.maskSensitiveArgument(argument);
     }
 
     private void addLabel(String id, String propertyName) {
