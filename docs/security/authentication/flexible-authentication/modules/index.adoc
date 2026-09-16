@@ -1,5 +1,4 @@
 = Modules
-:page-nav-title: Credential Management
 :page-upkeep-status: yellow
 
 ++++

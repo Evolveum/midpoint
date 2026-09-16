@@ -19,8 +19,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
-
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -854,7 +852,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
     private void messResource(int threadIndex, int i)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException {
+            ObjectAlreadyExistsException, ExpressionEvaluationException, SubscriptionComplianceException {
         Task task = createPlainTask("mess-" + threadIndex + "-" + i);
         OperationResult result = task.getResult();
         List<ItemDelta<?, ?>> deltas = deltaFor(ResourceType.class)

@@ -8,12 +8,7 @@ package com.evolveum.icf.dummy.resource;
 
 import com.evolveum.icf.dummy.resource.LinkClassDefinition.ParticipantIndex;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 import java.util.Set;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * Describes the participation of an object class in a link class: the class definition itself

@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.repo.cache;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
@@ -457,7 +458,6 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         testUsingUnsafeOptions(b -> b.retrieve(new RelationalValueSearchQuery(null)));
         testUsingUnsafeOptions(b -> b.distinct());
         testUsingUnsafeOptions(b -> b.attachDiagData());
-        testUsingUnsafeOptions(b -> b.definitionProcessing(DefinitionProcessingOption.FULL));
         testUsingUnsafeOptions(b -> b.iterationMethod(IterationMethodType.FETCH_ALL));
     }
 

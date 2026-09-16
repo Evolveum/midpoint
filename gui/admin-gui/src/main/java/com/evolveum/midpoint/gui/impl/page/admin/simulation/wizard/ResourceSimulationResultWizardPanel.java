@@ -130,7 +130,7 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
     protected void addCustomButtons(@NotNull RepeatingView buttons) {
 
         if (isCorrelationSimulation(getPageBase(), simulationResultModel)) {
-            AjaxIconButton export = new AjaxIconButton(buttons.newChildId(), () -> "fa fa-download mr-2",
+            AjaxIconButton export = new AjaxIconButton(buttons.newChildId(), () -> "fa fa-download me-2",
                     () -> getString("PageSimulationResult.export")) {
                 @Override
                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -138,13 +138,13 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
                 }
             };
             export.showTitleAsLabel(true);
-            export.add(AttributeAppender.append("class", "btn btn-default ml-auto"));
+            export.add(AttributeAppender.append("class", "btn btn-light border ms-auto"));
             export.setOutputMarkupId(true);
             buttons.add(export);
             return;
         }
 
-        AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass mr-2",
+        AjaxIconButton button = new AjaxIconButton(buttons.newChildId(), () -> "fa-solid fa-magnifying-glass me-2",
                 () -> getString("PageSimulationResult.viewProcessedObjects")) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -157,7 +157,7 @@ public abstract class ResourceSimulationResultWizardPanel extends AbstractWizard
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeAppender.append("class", "btn btn-primary ml-auto"));
+        button.add(AttributeAppender.append("class", "btn btn-primary ms-auto"));
         button.setOutputMarkupId(true);
         buttons.add(button);
     }

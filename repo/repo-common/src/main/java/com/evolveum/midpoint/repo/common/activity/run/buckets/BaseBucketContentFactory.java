@@ -8,7 +8,7 @@ package com.evolveum.midpoint.repo.common.activity.run.buckets;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.BucketContentFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
 import org.jetbrains.annotations.NotNull;
 
 /**

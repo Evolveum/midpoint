@@ -85,7 +85,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
     public void populateFromCurrentFocusTemplate(
             @NotNull ItemPath dataPath, ItemDefinition<?> dataDefinition, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         populateFromCurrentFocusTemplate(
                 ModelExpressionThreadLocalHolder.getLensContext(), dataPath,  dataDefinition, objectResolver, contextDesc, task, result);
     }
@@ -93,7 +93,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
     public void populateFromCurrentFocusTemplate(
             ModelContext<?> lensContext, @NotNull ItemPath dataPath, ItemDefinition<?> dataDefinition, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (lensContext != null) {
             ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
             if (focusTemplate != null) {
@@ -127,7 +127,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
             ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         LOGGER.trace("Obtaining metadata handling instructions from {}", rootTemplate);
 

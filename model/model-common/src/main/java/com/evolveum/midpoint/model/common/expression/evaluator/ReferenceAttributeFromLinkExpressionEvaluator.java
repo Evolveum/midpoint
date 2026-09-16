@@ -79,7 +79,7 @@ public class ReferenceAttributeFromLinkExpressionEvaluator
     public PrismValueDeltaSetTriple<ShadowReferenceAttributeValue> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
@@ -224,7 +224,7 @@ public class ReferenceAttributeFromLinkExpressionEvaluator
     private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg, List<String> candidateShadowsOidList,
             Collection<SelectorOptions<GetOperationOptions>> options, String desc, ExpressionEvaluationContext context,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
             OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, context.getTask(), result);

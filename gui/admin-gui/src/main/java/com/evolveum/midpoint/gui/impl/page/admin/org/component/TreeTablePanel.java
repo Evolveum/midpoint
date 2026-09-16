@@ -447,8 +447,7 @@ public class TreeTablePanel extends BasePanel<String> {
                             ModelAuthorizationAction.MODIFY.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
                             null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
-                | CommunicationException | ConfigurationException | SecurityViolationException ex) {
+        } catch (CommonException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }
         return allowModify;

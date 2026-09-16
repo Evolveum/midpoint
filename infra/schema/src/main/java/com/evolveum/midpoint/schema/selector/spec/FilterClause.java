@@ -91,7 +91,7 @@ public class FilterClause extends SelectorClause {
             @NotNull PrismValue value,
             @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!(value instanceof PrismContainerValue<?> pcv)) {
             // This is because of filter limitations;
             // TODO we should support application of filters to reference values (and probably property values as well)
@@ -116,14 +116,14 @@ public class FilterClause extends SelectorClause {
 
     private ObjectFilter getEvaluatedFilter(@NotNull SelectorProcessingContext ctx)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return ctx.filterEvaluator != null ? ctx.filterEvaluator.evaluate(filter) : filter;
     }
 
     @Override
     public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         ObjectFilter conjunct = getEvaluatedFilter(ctx);
         if (conjunct != null) {
             ObjectQueryUtil.assertNotRaw(

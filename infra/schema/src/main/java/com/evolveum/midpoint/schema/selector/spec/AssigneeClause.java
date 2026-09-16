@@ -46,7 +46,7 @@ public class AssigneeClause extends SelectorClause {
     @Override
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var realValue = value.getRealValueIfExists();
         if (realValue == null) {
             traceNotApplicable(ctx, "has no real value");
@@ -72,7 +72,7 @@ public class AssigneeClause extends SelectorClause {
 
     private boolean assigneesMatch(@NotNull Object realValue, @NotNull List<? extends PrismValue> assignees,
             @NotNull MatchingContext ctx) throws SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (!assignees.isEmpty()) {
             var childCtx = ctx.next(getDelegatorSelectionMode(realValue), "a", "assignee", true);
             for (PrismValue assignee : assignees) {

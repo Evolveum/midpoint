@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -73,9 +72,6 @@ public interface AccessRequestMixin {
     }
 
     default String getDefaultUserDisplayName(PrismObject<UserType> o) {
-        String name = WebComponentUtil.getOrigStringFromPoly(o.getName());
-        String fullName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getFullName());
-
-        return StringUtils.isNotEmpty(fullName) ? fullName + " (" + name + ")" : name;
+        return WebComponentUtil.getDisplayNameAndName(o);
     }
 }

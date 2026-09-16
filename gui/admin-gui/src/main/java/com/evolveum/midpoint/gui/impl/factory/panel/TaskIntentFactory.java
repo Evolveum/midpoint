@@ -8,10 +8,14 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import jakarta.annotation.PostConstruct;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;

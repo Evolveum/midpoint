@@ -18,7 +18,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.test.TestObject;
@@ -179,6 +181,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_ROLE_OWNER_ASSIGN = TestObject.file(TEST_DIR, "role-role-owner-assign.xml", "91b9e546-ded6-11e5-9e87-171d047c57d1");
     protected static final TestObject<RoleType> ROLE_LIMITED_ROLE_SEARCH = TestObject.file(TEST_DIR, "role-limited-role-search.xml", "e23d96ec-7a73-4815-9abd-f49fc4726111");
     protected static final TestObject<RoleType> ROLE_INTERFERING_AUTHORIZATIONS = TestObject.file(TEST_DIR, "role-interfering-authorizations.xml", "3130b6be-46c3-421f-9642-c7aa0d72e0a9");
+    protected static final TestObject<RoleType> ROLE_LIMITED_ORG_ITEM_READ = TestObject.file(TEST_DIR, "role-limited-org-item-read.xml", "524a7859-103c-48a7-947d-3895c35c8e3b");
 
     protected static final TestObject<RoleType> ROLE_RISK_LOW = TestObject.file(TEST_DIR, "role-risk-low.xml", "730a4aea-5f62-46a3-a871-57137c7abaf2");
     protected static final TestObject<RoleType> SERVICE_RISK_LOW = TestObject.file(TEST_DIR, "service-risk-low.xml", "9499c0e2-f920-4a17-81e6-2a5dee7b6574");
@@ -215,7 +218,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 84;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 85;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -329,6 +332,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_ROLE_OWNER_ASSIGN, initResult);
         repoAdd(ROLE_LIMITED_ROLE_SEARCH, initResult);
         repoAdd(ROLE_INTERFERING_AUTHORIZATIONS, initResult);
+        repoAdd(ROLE_LIMITED_ORG_ITEM_READ, initResult);
 
         repoAdd(ROLE_RISK_LOW, initResult);
         repoAdd(SERVICE_RISK_LOW, initResult);
@@ -547,11 +551,11 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         }
     }
 
-    protected void cleanupUnassign(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+    protected void cleanupUnassign(String userOid, String roleOid) throws CommonException {
         unassignRole(userOid, roleOid);
     }
 
-    protected void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws CommonException, IOException {
         try {
             addObject(userLargoFile, task, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -570,7 +574,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         }
     }
 
-    protected <O extends ObjectType> void cleanupDelete(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, ObjectAlreadyExistsException {
+    protected <O extends ObjectType> void cleanupDelete(Class<O> type, String oid, Task task, OperationResult result) throws CommonException {
         try {
             deleteObject(type, oid, task, result);
         } catch (ObjectNotFoundException e) {
@@ -579,7 +583,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         }
     }
 
-    private void cleanupDeleteUserByUsername(String username, Task task, OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+    private void cleanupDeleteUserByUsername(String username, Task task, OperationResult result) throws CommonException {
         try {
             PrismObject<UserType> user = findUserByUsername(username);
             if (user == null) {
@@ -668,20 +672,20 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         assertAddDenyRaw();
     }
 
-    protected void assertAddDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+    protected void assertAddDenyRaw() throws CommonException, IOException {
         assertAddDeny(USER_DRAKE_FILE, executeOptions().raw());
     }
 
-    protected void assertAddAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected void assertAddAllow() throws CommonException, IOException {
         assertAddAllow(USER_HERMAN_FILE);
         assertImportStreamAllow(USER_RAPP_FILE);
     }
 
-    protected void assertAddAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected void assertAddAllowRaw() throws CommonException, IOException {
         assertAddAllow(USER_DRAKE_FILE, executeOptions().raw());
     }
 
-    protected void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         // self-modify, common property
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PolyString.fromOrig("Captain"));
         // TODO: self-modify password
@@ -735,11 +739,11 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
                 task, task.getResult());
     }
 
-    protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, executeOptions().raw(), PolyString.fromOrig("CSc"));
     }
 
-    protected void assertModifyAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected void assertModifyAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         // self-modify, common property
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PolyString.fromOrig("Captain"));
         // TODO: self-modify password
@@ -747,50 +751,50 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         // TODO: modify other objects
     }
 
-    protected void assertModifyAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected void assertModifyAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, executeOptions().raw(), PolyString.fromOrig("CSc"));
     }
 
-    protected void assertDeleteDeny() throws ObjectAlreadyExistsException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected void assertDeleteDeny() throws CommonException {
         assertDeleteDeny(UserType.class, USER_LARGO_OID);
         assertDeleteDeny(UserType.class, USER_LECHUCK.oid, executeOptions().raw());
     }
 
-    protected void assertDeleteAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected void assertDeleteAllow() throws CommonException {
         assertDeleteAllow(UserType.class, USER_LARGO_OID);
         assertDeleteAllow(UserType.class, USER_LECHUCK.oid, executeOptions().raw());
     }
 
-    protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
         var object = getObjectViaRepo(type, oid).asObjectable();
         assertModifyDenyOptions(type, oid, getStorageMetadataPath(object, MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
         assertModifyDenyOptions(type, oid, getStorageMetadataPath(object, MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
     }
 
-    protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(newPassword);
         assertModifyDeny(type, oid, PASSWORD_PATH, passwordPs);
     }
 
-    protected <O extends ObjectType> void assertPasswordChangeAllow(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertPasswordChangeAllow(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(newPassword);
         assertModifyAllow(type, oid, PASSWORD_PATH, passwordPs);
     }
 
-    protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         assertModifyDenyOptions(type, oid, propertyName, executeOptions().raw(), newRealValue);
     }
 
-    protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
         partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
         assertModifyDenyOptions(type, oid, propertyName, executeOptions().partialProcessing(partialProcessing), newRealValue);
     }
 
-    protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         assertModifyDenyOptions(type, oid, itemPath, null, newRealValue);
     }
 
@@ -798,7 +802,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected <O extends ObjectType> void assertModifyDenyOptions(
             Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         ItemDefinition itemDef =
                 MiscUtil.requireNonNull(
                         prismContext.getSchemaRegistry()
@@ -814,7 +818,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected <O extends ObjectType> void assertModifyDenyOptions(
             Class<O> type, String oid, ItemDelta<?, ?> itemDelta, ModelExecuteOptions options)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SubscriptionComplianceException {
         Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertModifyDeny");
         OperationResult result = task.getResult();
         ObjectDelta<O> objectDelta =
@@ -833,17 +837,17 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         }
     }
 
-    protected <O extends ObjectType> void assertModifyAllow(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertModifyAllow(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         assertModifyAllowOptions(type, oid, itemPath, null, newRealValue);
     }
 
-    protected <O extends ObjectType> void assertModifyAllowPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertModifyAllowPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
         partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
         assertModifyAllowOptions(type, oid, propertyName, executeOptions().partialProcessing(partialProcessing), newRealValue);
     }
 
-    protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertModifyAllow");
         OperationResult result = task.getResult();
         ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
@@ -919,7 +923,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(
             String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
         var options = SecurityEnforcer.Options.create();
@@ -935,7 +939,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected <O extends ObjectType, T extends ObjectType> void assertIsNotAuthorized(
             String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O, T> params)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Task task = taskManager.createTaskInstance(AbstractInitializedSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
         var options = SecurityEnforcer.Options.create();
@@ -1057,7 +1061,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         assertAssignmentsWithTargets(userJack, expectedJackAssignments);
     }
 
-    protected void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    protected void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws CommonException {
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
         displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);

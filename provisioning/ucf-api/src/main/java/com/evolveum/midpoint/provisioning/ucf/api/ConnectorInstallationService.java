@@ -13,9 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 public interface ConnectorInstallationService {
 

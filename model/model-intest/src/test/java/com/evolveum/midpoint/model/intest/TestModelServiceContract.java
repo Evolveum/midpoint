@@ -611,12 +611,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertProcessedObjects(simResult, "after")
                 .display()
                 .by().objectType(UserType.class).state(ObjectProcessingStateType.UNMODIFIED).find(
-                        a -> a.assertEventMarks())
+                        a -> a.assertEventMarks(MARK_ITEM_VALUE_FAILED))
                 .by().objectType(ShadowType.class).state(ObjectProcessingStateType.UNMODIFIED).find(
                         a -> a.assertEventMarks())
                 .assertSize(2)
                 .end();
-        // NOTE: currently no error is indicated there (unlike in audit)
 
         assertStandardSimulationReports(simResult, 2, 2, 2, result);
     }

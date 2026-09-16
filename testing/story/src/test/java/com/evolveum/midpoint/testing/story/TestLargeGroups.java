@@ -119,8 +119,7 @@ public class TestLargeGroups extends AbstractStoryTest {
     }
 
     private void assert100LargeGroupSearch(
-            ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS) throws CommonException {
 
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();

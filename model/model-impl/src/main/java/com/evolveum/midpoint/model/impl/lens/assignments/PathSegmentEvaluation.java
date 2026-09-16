@@ -73,7 +73,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
      * Execution of the evaluation. Can be called only once for this object.
      */
     void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            SecurityViolationException, ConfigurationException, CommunicationException, SubscriptionComplianceException {
         try {
             checkIfAlreadyEvaluated();
             checkSchema();
@@ -106,7 +106,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
     }
 
     private void evaluateSegmentPayloadAndTargets() throws CommunicationException, ConfigurationException, SchemaException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         new PayloadEvaluation<>(segment, ctx).evaluate();
 
@@ -144,7 +144,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
     }
 
     private void computeConditionState() throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         segment.setAssignmentConditionState(determineAssignmentConditionState());
         segment.setOverallConditionState(
                 ConditionState.merge(segment.pathToSourceConditionState, segment.getAssignmentConditionState()));
@@ -252,7 +252,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
 
     private @NotNull ConditionState determineAssignmentConditionState()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         MappingType conditionBean = segment.assignment.getCondition();
         if (conditionBean == null) {
             return ConditionState.allTrue();

@@ -11,10 +11,11 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.objectReferenceListToPrismReferenceValues;
+
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -215,12 +216,12 @@ class LinkTargetFinder implements AutoCloseable {
     }
 
     private void applyMatchingRuleAssignment(Set<PrismReferenceValue> links) {
-        EvaluatedAssignmentImpl<?> evaluatedAssignment = actx.rule.getEvaluatedAssignment();
-        if (evaluatedAssignment == null) {
-            throw new IllegalStateException("'matchesRuleAssignment' filter is selected but there's no evaluated assignment"
-                    + " known for policy rule {}" + actx.rule);
+        EvaluatedAssignmentImpl<?> originatingAssignment = actx.rule.getOriginatingAssignment();
+        if (originatingAssignment == null) {
+            throw new IllegalStateException("'matchesRuleAssignment' filter is selected but there's no originating "
+                    + "evaluated assignment known for policy rule {}" + actx.rule);
         }
-        Set<String> oids = evaluatedAssignment.getRoles().stream()
+        Set<String> oids = originatingAssignment.getRoles().stream()
                 .filter(EvaluatedAssignmentTargetImpl::appliesToFocus)
                 .map(EvaluatedAssignmentTargetImpl::getOid)
                 .collect(Collectors.toSet());
@@ -241,7 +242,7 @@ class LinkTargetFinder implements AutoCloseable {
 
     @NotNull
     private Set<PrismReferenceValue> getLinksInChangeSituation(LinkTargetObjectSelectorType selector) {
-        return switch (defaultIfNull(selector.getChangeSituation(), LinkChangeSituationType.ALWAYS)) {
+        return switch (getIfNull(selector.getChangeSituation(), LinkChangeSituationType.ALWAYS)) {
             case ALWAYS -> SetUtils.union(getLinkedOld(), getLinkedNew());
             case ADDED -> SetUtils.difference(getLinkedNew(), getLinkedOld());
             case REMOVED -> SetUtils.difference(getLinkedOld(), getLinkedNew());

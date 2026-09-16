@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -46,15 +47,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
         containerPath = "empty")
 public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<ConnectorDevelopmentDetailsModel> implements WizardListener {
 
-    private static final String PANEL_TYPE = "cdw-resource-test";
+    public static final String PANEL_TYPE = "cdw-resource-test";
 
     private static final String ID_PANEL = "panel";
 
     private LoadableModel<String> resourceOidModel;
     private boolean nextButtonVisible = false;
+    private final String fixConnectionPanelType;
 
     public ResourceTestConnectorStepPanel(WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper) {
+        this(helper, FixConnectionConnectorStepPanel.PANEL_TYPE);
+    }
+
+    public ResourceTestConnectorStepPanel(
+            WizardPanelHelper<? extends Containerable, ConnectorDevelopmentDetailsModel> helper,
+            String fixConnectionPanelType) {
         super(helper);
+        this.fixConnectionPanelType = fixConnectionPanelType;
     }
 
     @Override
@@ -99,10 +108,21 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
                 nextButtonVisible = false;
                 target.add(getButtonContainer());
             }
+
             @Override
             protected void onFinishActionPerform(AjaxRequestTarget target) {
                 nextButtonVisible = true;
                 target.add(getButtonContainer());
+            }
+
+            @Override
+            protected void onFailureActionPerform(AjaxRequestTarget target) {
+                if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
+                    wizardModel.addOperationResult(PANEL_TYPE, fixConnectionPanelType, getLastFailedResult());
+                    wizardModel.setActiveStepById(fixConnectionPanelType);
+                    wizardModel.fireActiveStepChanged(wizardModel.getActiveStep());
+                    target.add(wizardModel.getPanel());
+                }
             }
 
             @Override

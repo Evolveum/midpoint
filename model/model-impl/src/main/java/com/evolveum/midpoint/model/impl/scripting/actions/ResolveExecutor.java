@@ -53,7 +53,8 @@ public class ResolveExecutor extends BaseActionExecutor {
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         Collection<SelectorOptions<GetOperationOptions>> options;
         if (action instanceof ResolveReferenceActionExpressionType) {
@@ -80,7 +81,8 @@ public class ResolveExecutor extends BaseActionExecutor {
             ExecutionContext context, Collection<SelectorOptions<GetOperationOptions>> options, PipelineData output,
             PipelineItem item, PrismValue value, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         if (value instanceof PrismReferenceValue prismReferenceValue) {
             String oid = prismReferenceValue.getOid();
             QName targetTypeQName = prismReferenceValue.getTargetType();

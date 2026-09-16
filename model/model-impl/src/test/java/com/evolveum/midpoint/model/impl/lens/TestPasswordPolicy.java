@@ -288,13 +288,13 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     private void assertPasswordValid(String passwd, ValuePolicyType pp)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         assertPasswordValid(passwd, pp, null);
     }
 
     private void assertPasswordValid(String passwd, ValuePolicyType pp, PrismObject<UserType> object)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         valuePolicyProcessor.validateValue(passwd, pp, createUserOriginResolver(object), "assertPassword", task, result);

@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.evaluator.AuthenticationEvaluator;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.impl.evaluator.PreAuthenticatedEvaluatorImpl;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.authentication.api.evaluator.context.PasswordAuthenticationContext;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;

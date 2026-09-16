@@ -50,7 +50,7 @@ public class WaitingSearchByIdConnectorStepPanel extends WaitingObjectClassScrip
         var realValue = getObjectClassModel().getObject().getRealValue();
 
         return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateSearchByIdScript(
-                realValue.getName(), realValue.getEndpoint(), regenerate, task, result);
+                realValue.getName(), realValue.getEndpoint(), regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

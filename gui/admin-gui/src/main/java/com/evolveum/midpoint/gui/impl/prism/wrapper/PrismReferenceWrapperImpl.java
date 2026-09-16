@@ -6,19 +6,19 @@
 
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
-import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -40,7 +40,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
 
     private ObjectFilter filter;
 
-    private BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> filterFunction;
+    private BiFunction<PrismReferenceWrapper, PageAdminLTE, ObjectFilter> filterFunction;
     private Set<SearchItemType> predefinedSearchItems = new HashSet<>();
 //    private Set<SerializableSupplier<FilterableSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
     private boolean onlyForDeltaComputation;
@@ -94,7 +94,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public ObjectFilter getFilter(PageBase pageBase) {
+    public ObjectFilter getFilter(PageAdminLTE pageBase) {
         if (filterFunction != null) {
             return filterFunction.apply(PrismReferenceWrapperImpl.this, pageBase);
         }
@@ -107,7 +107,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public void setFilter(BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> filterFunction) {
+    public void setFilter(BiFunction<PrismReferenceWrapper, PageAdminLTE, ObjectFilter> filterFunction) {
         this.filterFunction = filterFunction;
     }
 

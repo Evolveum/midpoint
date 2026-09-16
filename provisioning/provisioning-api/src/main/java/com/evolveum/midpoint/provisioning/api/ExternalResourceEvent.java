@@ -94,6 +94,7 @@ public class ExternalResourceEvent implements ProvisioningEvent, Serializable, D
         if (objectDelta == null) {
             sb.append(" null");
         } else {
+            sb.append("\n");
             sb.append(objectDelta.debugDump(indent+2));
         }
         sb.append("\n");
@@ -103,6 +104,7 @@ public class ExternalResourceEvent implements ProvisioningEvent, Serializable, D
         if (oldRepoShadow == null) {
             sb.append(" null");
         } else {
+            sb.append("\n");
             sb.append(oldRepoShadow.debugDump(indent+2));
         }
 

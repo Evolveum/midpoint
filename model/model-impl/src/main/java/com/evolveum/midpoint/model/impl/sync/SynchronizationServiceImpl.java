@@ -149,19 +149,20 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      * TODO: Consider situations when one account belongs to two different users. It should correspond to
      *  the {@link SynchronizationSituationType#DISPUTED} situation.
      */
-    private <F extends FocusType> @Nullable F findLinkedOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+    private <F extends ProjectionHolderType> @Nullable F findLinkedOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
             throws SchemaException {
 
         ShadowType shadow = syncCtx.getShadowedResourceObject();
 
         var owners = repositoryService.searchObjects(
-                FocusType.class,
-                prismContext.queryFor(FocusType.class)
-                        .item(FocusType.F_LINK_REF)
+                ProjectionHolderType.class,
+                prismContext.queryFor(ProjectionHolderType.class)
+                        .item(ProjectionHolderType.F_LINK_REF)
                         .ref(shadow.getOid(), null, PrismConstants.Q_ANY)
                         .build(),
                 readOnly(),
                 result);
+        LOGGER.trace("Owners found by search operation: {}", owners);
 
         if (owners.isEmpty()) {
             return null;
@@ -171,7 +172,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.warn("Found {} owners for {}, returning first owner: {}", owners.size(), shadow, owners);
         }
 
-        FocusType owner = asObjectable(owners.get(0));
+        ProjectionHolderType owner = asObjectable(owners.get(0));
 
         Class<F> expectedClass = syncCtx.getFocusClass();
         if (expectedClass.isAssignableFrom(owner.getClass())) {
@@ -258,7 +259,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void setupLinkedOwnerAndSituation(
+    private <F extends ProjectionHolderType> void setupLinkedOwnerAndSituation(
             SynchronizationContext.Complete<F> syncCtx,
             ResourceObjectShadowChangeDescription change,
             OperationResult parentResult) throws SchemaException {
@@ -292,7 +293,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void determineSituationWithoutCorrelators(SynchronizationContext<F> syncCtx,
+    private <F extends ProjectionHolderType> void determineSituationWithoutCorrelators(SynchronizationContext<F> syncCtx,
             ResourceObjectShadowChangeDescription change, OperationResult result) throws ConfigurationException {
 
         assert syncCtx.getLinkedOwner() != null;
@@ -306,7 +307,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void checkLinkedAndCorrelatedOwnersMatch(SynchronizationContext<F> syncCtx,
+    private <F extends ProjectionHolderType> void checkLinkedAndCorrelatedOwnersMatch(SynchronizationContext<F> syncCtx,
             OperationResult result) throws ConfigurationException {
         F linkedOwner = syncCtx.getLinkedOwner();
         F correlatedOwner = syncCtx.getCorrelatedOwner(); // may be null; or may be provided by sync sorter
@@ -339,7 +340,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *
      * We need to update the correlator state.
      */
-    private <F extends FocusType> void determineSituationWithCorrelators(
+    private <F extends ProjectionHolderType> void determineSituationWithCorrelators(
             SynchronizationContext.Complete<F> syncCtx, ResourceObjectShadowChangeDescription change, OperationResult result)
             throws CommonException {
 
@@ -388,7 +389,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void setObjectTemplateForCorrelation(
+    private <F extends ProjectionHolderType> void setObjectTemplateForCorrelation(
             SynchronizationContext.Complete<F> syncCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         syncCtx.setObjectTemplateForCorrelation(
@@ -411,7 +412,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         }
     }
 
-    private <F extends FocusType> void logSituation(SynchronizationContext<F> syncCtx, ResourceObjectShadowChangeDescription change) {
+    private <F extends ProjectionHolderType> void logSituation(SynchronizationContext<F> syncCtx, ResourceObjectShadowChangeDescription change) {
         String syncSituationValue = syncCtx.getSituation() != null ? syncCtx.getSituation().value() : null;
         if (isLogDebug(change)) {
             LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}",

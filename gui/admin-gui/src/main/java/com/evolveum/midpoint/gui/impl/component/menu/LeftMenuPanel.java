@@ -14,7 +14,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.services.*;
+import com.evolveum.midpoint.web.page.admin.services.PageDefaultApplicationService;
+import com.evolveum.midpoint.web.page.admin.services.PageDefaultApplicationServices;
+import com.evolveum.midpoint.web.page.admin.services.PageIntegrationApplicationService;
+import com.evolveum.midpoint.web.page.admin.services.PageIntegrationApplicationServices;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -196,7 +199,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         };
         logo.add(new VisibleEnableBehaviour(() -> !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
-        logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getBackgroundCss()));
         add(logo);
 
         IModel<IconType> logoModel = new IModel<>() {
@@ -223,7 +226,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getBackgroundCss()));
         customLogo.add(AttributeAppender.append("class", () -> {
             IconType icon = logoModel.getObject();
             return StringUtils.isNotEmpty(icon.getImageUrl()) ? logoModel.getObject().getCssClass() : null;

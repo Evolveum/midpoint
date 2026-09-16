@@ -9,10 +9,6 @@ package com.evolveum.midpoint.test.asserter;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 public class AssignmentHolderAsserter<AH extends AssignmentHolderType, RA> extends PrismObjectAsserter<AH,RA> {
 

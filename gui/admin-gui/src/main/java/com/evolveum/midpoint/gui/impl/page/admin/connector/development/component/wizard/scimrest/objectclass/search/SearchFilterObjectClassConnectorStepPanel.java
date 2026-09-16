@@ -46,11 +46,7 @@ public class SearchFilterObjectClassConnectorStepPanel extends AbstractObjectCla
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new SearchFilterEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingSearchFilterConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterScriptConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new SearchFilterObjectsConnectorStepPanel(getHelper(), getObjectClassModel()));
+        return wizardStrategy().searchFilterObjectClassSteps(getHelper(), getObjectClassModel());
     }
 
     @Override

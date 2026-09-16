@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<role oid="0c1c5d2a-2b0f-4a2a-9e5f-1b6c2f8e4a11"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>rest-log</name>
+    <description>
+        Reading of the log file, without any "all" authorization. This is what a read-only administrator
+        needs in order to read the log via REST.
+    </description>
+    <authorization>
+        <description>REST-level authorizations for the log operations.</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getLog</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getLogSize</action>
+    </authorization>
+    <authorization>
+        <description>
+            Model-level authorization to read the log. Together with the REST authorizations above this is
+            sufficient; no "all" authorization is needed.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readLog</action>
+    </authorization>
+</role>

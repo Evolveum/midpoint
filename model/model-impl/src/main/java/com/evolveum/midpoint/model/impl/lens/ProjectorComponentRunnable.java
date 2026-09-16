@@ -19,6 +19,6 @@ public interface ProjectorComponentRunnable {
 
     void run(OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-            ConflictDetectedException;
+            ConflictDetectedException, SubscriptionComplianceException;
 
 }

@@ -14,7 +14,9 @@ import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaProvider
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -68,12 +70,22 @@ public class UserActiveDirectoryMappingProvider implements WellKnownSchemaProvid
             mappings.add(SystemMappingSuggestion.createScriptSuggestion(
                     "distinguishedName",
                     UserType.F_FULL_NAME,
-                    "basic.composeDnWithSuffix('cn', fullName, '%s')".formatted(ouSuffix),
-                    "Compose DN: cn=<fullName>,%s".formatted(ouSuffix),
+                    "ldap.composeDnWithSuffix(['cn', fullName + iterationToken, '%s'])".formatted(ouSuffix),
+                    "Compose DN: cn=<fullName + iterationToken>,%s".formatted(ouSuffix),
                     MappingStrengthType.STRONG));
-            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME, MappingStrengthType.WEAK));
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "cn",
+                    UserType.F_FULL_NAME,
+                    "fullName + iterationToken",
+                    "CN: fullName + iterationToken",
+                    MappingStrengthType.WEAK));
         } else {
-            mappings.add(SystemMappingSuggestion.createAsIsSuggestion("cn", UserType.F_FULL_NAME));
+            mappings.add(SystemMappingSuggestion.createScriptSuggestion(
+                    "cn",
+                    UserType.F_FULL_NAME,
+                    "fullName + iterationToken",
+                    "CN: fullName + iterationToken",
+                    MappingStrengthType.STRONG));
         }
         String upnSuffix = extractUpnSuffixFromSamples(sampleShadows);
         if (upnSuffix != null) {

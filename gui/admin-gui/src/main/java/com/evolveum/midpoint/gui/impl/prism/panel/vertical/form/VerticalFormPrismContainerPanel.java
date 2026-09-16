@@ -6,9 +6,12 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -21,6 +24,8 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+
+import java.util.List;
 
 /**
  * @author katka
@@ -105,7 +110,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
     }
 
     protected String getCssForHeader() {
-        return "bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+        return "bg-white border-bottom-0 p-2 ps-3 pe-3 mb-0 btn w-100";
     }
 
     protected IModel<String> getTitleModel() {
@@ -135,6 +140,18 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             }
 
             @Override
+            protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+                boolean showMoreButtonVisible = super.isShowMoreButtonVisible(nonContainerWrappers);
+                return VerticalFormPrismContainerPanel.this.isShowMoreButtonVisible(nonContainerWrappers, showMoreButtonVisible);
+            }
+
+            @Override
+            protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+                boolean noContainerFormVisible = super.isNoContainerFormVisible(nonContainerWrappers);
+                return VerticalFormPrismContainerPanel.this.isNoContainerFormVisible(nonContainerWrappers, noContainerFormVisible);
+            }
+
+            @Override
             protected void removeValue(PrismContainerValueWrapper<C> value, AjaxRequestTarget target) throws SchemaException {
                 VerticalFormPrismContainerPanel.this.removeValue(value, target);
             }
@@ -148,6 +165,14 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
         panel.add(AttributeAppender.append("class", getClassForPrismContainerValuePanel()));
         item.add(panel);
         return panel;
+    }
+
+    protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers, boolean defaultVisible) {
+        return defaultVisible;
+    }
+
+    protected boolean isNoContainerFormVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers, boolean defaultVisible) {
+        return defaultVisible;
     }
 
     protected String getCssClassForFormContainer() {

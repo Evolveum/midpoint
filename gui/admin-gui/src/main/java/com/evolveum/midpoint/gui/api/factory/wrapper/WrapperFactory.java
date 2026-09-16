@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 

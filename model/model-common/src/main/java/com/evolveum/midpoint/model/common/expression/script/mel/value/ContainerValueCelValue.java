@@ -6,7 +6,10 @@
 package com.evolveum.midpoint.model.common.expression.script.mel.value;
 
 import com.evolveum.midpoint.model.common.expression.script.mel.DynType;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 import dev.cel.common.types.CelType;
 
@@ -23,6 +26,11 @@ public class ContainerValueCelValue<C extends Containerable> extends AbstractCon
     }
 
     public static <C extends Containerable> ContainerValueCelValue<C> create(PrismContainerValue<C> containerValue) {
+        // Ugly, improve later
+        if (containerValue.canRepresent(AssignmentType.class)) {
+            //noinspection unchecked
+            return (ContainerValueCelValue<C>) new AssignmentValueCelValue((PrismContainerValue<AssignmentType>)containerValue);
+        }
         return new ContainerValueCelValue<>(containerValue);
     }
 

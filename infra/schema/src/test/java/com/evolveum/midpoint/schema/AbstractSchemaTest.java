@@ -21,11 +21,9 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -48,7 +46,6 @@ public abstract class AbstractSchemaTest extends AbstractUnitTest {
     public static final long ROLE_CONSTRUCTION_INDUCEMENT_ID = 1001L;
     public static final String ROLE_CONSTRUCTION_RESOURCE_OID = "10000000-0000-0000-0000-000000000004";
 
-    public static final String NS_MODEL_EXT = "http://midpoint.evolveum.com/xml/ns/public/model/extension-3";
     public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/test/extension";
     public static final ItemName EXT_STRING_TYPE = new ItemName(NS_EXT, "stringType");
     public static final ItemName EXT_DIFFERENT_STRING_TYPE = new ItemName(NS_EXT, "differentStringType");

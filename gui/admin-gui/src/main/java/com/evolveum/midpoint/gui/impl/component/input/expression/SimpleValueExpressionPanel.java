@@ -19,13 +19,11 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,6 +31,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -48,15 +48,19 @@ public class SimpleValueExpressionPanel extends EvaluatorExpressionPanel {
     private static final String ID_REMOVE_BUTTON = "remove";
 
     public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
         if (getEvaluatorValues().isEmpty()) {
             updateEvaluatorValue(List.of());
         }
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("AssociationExpressionValuePanel.literalValue");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("AssociationExpressionValuePanel.literalValue");
     }
 
     public static String getInfoDescription(ExpressionType expression, PageBase pageBase) {

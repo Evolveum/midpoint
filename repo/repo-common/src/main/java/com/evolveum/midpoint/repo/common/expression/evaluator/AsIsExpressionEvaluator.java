@@ -35,7 +35,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException {
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 

@@ -61,7 +61,7 @@ public class WorkItemManager {
     public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
             WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SchemaException, ObjectAlreadyExistsException {
+            ConfigurationException, SchemaException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         OperationResultBuilder builder = parentResult.subresult(OPERATION_COMPLETE_WORK_ITEM)
                 .addArbitraryObjectAsParam("workItemId", workItemId)
@@ -113,13 +113,14 @@ public class WorkItemManager {
      */
     void completeWorkItems(CompleteWorkItemsRequest request, Task task, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SchemaException, ObjectAlreadyExistsException {
+            ConfigurationException, SchemaException, ObjectAlreadyExistsException, SubscriptionComplianceException {
         OperationResultBuilder builder = parentResult.subresult(OPERATION_COMPLETE_WORK_ITEMS);
         boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
         OperationResult result = builder.build();
         try {
             caseEngine.executeRequest(request, task, result);
-        } catch (SecurityViolationException | RuntimeException | CommunicationException | ConfigurationException | SchemaException | ObjectAlreadyExistsException e) {
+        } catch (SecurityViolationException | RuntimeException | CommunicationException | ConfigurationException |
+                 SchemaException | ObjectAlreadyExistsException | SubscriptionComplianceException e) {
             result.recordFatalError("Couldn't complete work items: " + e.getMessage(), e);
             throw e;
         } finally {
@@ -131,7 +132,7 @@ public class WorkItemManager {
     // We can eventually provide bulk version of this method as well.
     void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResultBuilder builder = parentResult.subresult(OPERATION_CLAIM_WORK_ITEM)
                 .addArbitraryObjectAsParam("workItemId", workItemId);
         boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
@@ -141,7 +142,9 @@ public class WorkItemManager {
             ClaimWorkItemsRequest request = new ClaimWorkItemsRequest(workItemId.caseOid);
             request.getClaims().add(new ClaimWorkItemsRequest.SingleClaim(workItemId.id));
             caseEngine.executeRequest(request, task, result);
-        } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
+        } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
+                ObjectAlreadyExistsException | ExpressionEvaluationException | ConfigurationException | CommunicationException |
+                 SubscriptionComplianceException e) {
             result.recordFatalError("Couldn't claim the work item " + workItemId + ": " + e.getMessage(), e);
             throw e;
         } finally {
@@ -153,7 +156,7 @@ public class WorkItemManager {
     // We can eventually provide bulk version of this method as well.
     void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResultBuilder builder = parentResult.subresult(OPERATION_RELEASE_WORK_ITEM)
                 .addArbitraryObjectAsParam("workItemId", workItemId);
         boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
@@ -163,7 +166,9 @@ public class WorkItemManager {
             ReleaseWorkItemsRequest request = new ReleaseWorkItemsRequest(workItemId.caseOid);
             request.getReleases().add(new ReleaseWorkItemsRequest.SingleRelease(workItemId.id));
             caseEngine.executeRequest(request, task, result);
-        } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
+        } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
+                ObjectAlreadyExistsException | ExpressionEvaluationException | ConfigurationException | CommunicationException |
+                 SubscriptionComplianceException e) {
             result.recordFatalError("Couldn't release work item " + workItemId + ": " + e.getMessage(), e);
             throw e;
         } finally {
@@ -187,7 +192,7 @@ public class WorkItemManager {
             XMLGregorianCalendar now,
             Task task,
             OperationResult parentResult)
-            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         List<ObjectReferenceType> delegates = delegationRequest.getDelegate();
         WorkItemDelegationMethodType method = delegationRequest.getMethod();
         String comment = delegationRequest.getComment();
@@ -208,7 +213,8 @@ public class WorkItemManager {
             request.getDelegations().add(
                     new DelegateWorkItemsRequest.SingleDelegation(workItemId.id, delegationRequest, escalation, newDuration));
             caseEngine.executeRequest(request, task, result);
-        } catch (SecurityViolationException | RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException e) {
+        } catch (SecurityViolationException | RuntimeException | ObjectNotFoundException | SchemaException |
+                 CommunicationException | ConfigurationException | SubscriptionComplianceException e) {
             result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
             throw e;
         } catch (ObjectAlreadyExistsException e) {

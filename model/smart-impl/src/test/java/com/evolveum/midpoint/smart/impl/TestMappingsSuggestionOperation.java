@@ -7,12 +7,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
-import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.mappings.CategoricalAttributeRegistry;
+import com.evolveum.midpoint.smart.impl.shadowsampling.ObjectsSamplerProvider;
 import com.evolveum.midpoint.smart.impl.wellknownschemas.WellKnownSchemaService;
 import com.evolveum.midpoint.smart.impl.scoring.MappingScriptValidator;
 import com.evolveum.midpoint.smart.impl.scoring.MappingsQualityAssessor;
@@ -32,12 +31,11 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
-import static com.evolveum.midpoint.smart.impl.DescriptiveItemPath.asStringSimple;
-import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.*;
+import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.EMAIL;
+import static com.evolveum.midpoint.smart.impl.DummyScenario.Account.AttributeNames.PERSONAL_NUMBER;
 import static com.evolveum.midpoint.smart.impl.DummyScenario.on;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,6 +63,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     @Autowired private WellKnownSchemaService wellKnownSchemaService;
     @Autowired private HeuristicRuleMatcher heuristicRuleMatcher;
     @Autowired private CorrelationService correlationService;
+    @Autowired private ObjectsSamplerProvider samplerProvider;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -128,29 +127,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 null, task, result);
     }
 
-    private ServiceClient createClient(List<ItemPath> focusPaths, List<ItemPath> shadowPaths, String... scripts) {
-        SiMatchSchemaResponseType matchResponse = new SiMatchSchemaResponseType();
-        for (int i = 0; i < focusPaths.size(); i++) {
-            matchResponse.attributeMatch(
-                    new SiAttributeMatchSuggestionType()
-                            .applicationAttribute(asStringSimple(shadowPaths.get(i)))
-                            .midPointAttribute(asStringSimple(focusPaths.get(i)))
-            );
-        }
-
-        // Build responses: first schema match, then one suggest-mapping response per provided script
-        if (scripts == null || scripts.length == 0) {
-            return new MockServiceClientImpl(matchResponse);
-        } else {
-            List<Object> responses = new ArrayList<>();
-            responses.add(matchResponse);
-            for (String script : scripts) {
-                responses.add(new SiSuggestMappingResponseType().transformationScript(script));
-            }
-            return new MockServiceClientImpl(responses);
-        }
-    }
-
     private void modifyUserReplace(String oid, ItemPath path, Object... newValues) throws Exception {
         executeChanges(
                 deltaFor(UserType.class)
@@ -163,25 +139,6 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
     private void modifyShadowReplace(String shadowName, AttrName attr, Object... values) throws Exception {
         dummyScenario.account.getByNameRequired(shadowName)
                 .replaceAttributeValues(attr.local(), values);
-    }
-
-    private ShadowObjectClassStatisticsType computeStatistics(
-            DummyTestResource resource,
-            ResourceObjectTypeIdentification typeIdentification,
-            Task task,
-            OperationResult result) throws CommonException {
-        var res = Resource.of(resource.get());
-        var typeDefinition = res.getCompleteSchemaRequired().getObjectTypeDefinitionRequired(typeIdentification);
-        var computer = new ObjectTypeStatisticsComputer(typeDefinition);
-        var shadows = provisioningService.searchShadows(
-                res.queryFor(typeIdentification).build(),
-                null,
-                task, result);
-        for (var shadow : shadows) {
-            computer.process(shadow.getBean());
-        }
-        computer.postProcessStatistics();
-        return computer.getStatistics();
     }
 
     @Test
@@ -211,9 +168,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         // Personal number is identical on both sides
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                null // No script, triggers "asIs"
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -223,7 +178,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -243,6 +199,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should be asIs (null)")
                 .isNull();
+        assertThat(mapping.getDefinition().getInbound().get(0).getTarget().getSet().getPredefined())
+                .isEqualTo(ValueSetDefinitionPredefinedType.ALL);
     }
 
     @Test
@@ -256,11 +214,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String script = "input.replaceAll('-', '')";
+        String script = "input.replace('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                script
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), script)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -270,7 +226,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -287,6 +244,14 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getInbound().get(0).getExpression())
                 .as("Should contain a script expression returned by the service")
                 .isNotNull();
+
+        var callContext = ((MockServiceClientImpl) mockClient).getLastCallContext();
+
+        assertThat(((MockServiceClientImpl) mockClient).getLastMethod()).isEqualTo(ServiceClient.Method.SUGGEST_MAPPING);
+        assertThat(callContext.task()).isSameAs(task);
+        assertThat(result.getSubresults()).as("callContext result should be a subresult of the main result")
+                .anySatisfy(sub -> assertThat(sub).isSameAs(callContext.result()));
+        assertThat(callContext.resource()).isSameAs(ctx.resource);
     }
 
     @Test
@@ -303,10 +268,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         // Intentionally invalid Groovy (method name misspelled) to trigger evaluation failure
         String invalidScript = "input.repalceAll('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                invalidScript,
-                invalidScript
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), invalidScript, invalidScript)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -316,7 +278,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -346,12 +309,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         // Intentionally invalid Groovy (method name misspelled) to trigger evaluation failure
         String invalidScript = "input.repalceAll('-', '')";
-        String validScript = "input.replaceAll('-', '')";
+        String validScript = "input.replace('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                invalidScript,
-                validScript
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), invalidScript, validScript)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -361,7 +321,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -398,11 +359,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String script = "input.replaceAll('-', '')";
+        String script = "input.replace('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                script
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), script)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -412,7 +371,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -437,8 +397,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_EMAIL_ADDRESS)),
-                List.of(EMAIL.path())
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path())
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -448,7 +407,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -466,6 +426,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         assertThat(mapping.getDefinition().getOutbound().getExpression())
                 .as("Outbound asIs should have null expression")
                 .isNull();
+        assertThat(mapping.getDefinition().getOutbound().getTarget().getSet().getPredefined())
+                .isEqualTo(ValueSetDefinitionPredefinedType.ALL);
     }
 
     @Test
@@ -485,11 +447,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String script = "personalNumber.replaceAll('-', '')";
+        String script = "personalNumber.replace('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                script
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), script)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -499,7 +459,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -537,10 +498,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         String invalidScript = "input.repalceAll('-', '')"; // misspelled
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                invalidScript,
-                invalidScript
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), invalidScript, invalidScript)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -550,7 +508,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -584,13 +543,10 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String invalidScript = "input.replaceAll('-', '')";
-        String validScript = "personalNumber.replaceAll('-', '')";
+        String invalidScript = "input.replace('-', '')";
+        String validScript = "personalNumber.replace('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                invalidScript,
-                validScript
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), invalidScript, validScript)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -600,7 +556,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -636,11 +593,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         // Provide a script that removes dashes, but since data doesn't match, quality will be very low
-        String script = "personalNumber.replaceAll('-', '')";
+        String script = "personalNumber.replace('-', '')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                script
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), script)
         );
 
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
@@ -650,7 +605,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -675,7 +631,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         // Empty match response
-        var mockClient = createClient(List.of(), List.of());
+        var mockClient = createClient();
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
 
@@ -683,7 +639,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -714,9 +671,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER), ItemPath.create(UserType.F_EMAIL_ADDRESS)),
-                List.of(PERSONAL_NUMBER.path(), EMAIL.path()),
-                "input", "input"
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), "input"),
+                new MockMapping(ItemPath.create(UserType.F_EMAIL_ADDRESS), EMAIL.path(), "input")
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -725,7 +681,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -750,9 +707,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         String identity = "input";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                identity
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), identity)
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -761,7 +716,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -793,8 +749,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -803,7 +758,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -840,8 +796,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -850,7 +805,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -884,8 +840,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -894,7 +849,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -928,8 +884,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -938,7 +893,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -949,7 +905,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         var match = smartIntegrationService.computeSchemaMatch(RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, true, task, result);
         MappingsSuggestionType suggestion = op.suggestMappings(result, match, null);
-        assertThat(suggestion.getAttributeMappings()).hasSize(1);
+        assertThat(suggestion.getAttributeMappings()).hasSize(2);
         AttributeMappingsSuggestionType mapping = suggestion.getAttributeMappings().get(0);
         assertThat(mapping.getDefinition().getOutbound().getExpression())
                 .as("Outbound target data missing should result in asIs mapping")
@@ -975,8 +931,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -985,7 +940,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1025,8 +981,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1035,7 +990,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1075,8 +1031,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1085,7 +1040,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1126,9 +1082,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         String script = "input.substring(3)";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                script
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), script)
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1137,7 +1091,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1178,9 +1133,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         String perfectScript = "input.substring(3)";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                perfectScript
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), perfectScript)
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1189,7 +1142,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1229,8 +1183,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1239,7 +1192,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1279,8 +1233,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1289,7 +1242,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1327,8 +1281,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1337,7 +1290,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1376,11 +1330,9 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
 
         refreshShadows();
 
-        String badScript = "input.replaceAll('x', 'y')";
+        String badScript = "input.replace('x', 'y')";
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path()),
-                badScript
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path(), badScript)
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1389,7 +1341,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1425,8 +1378,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1435,7 +1387,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1475,8 +1428,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1485,7 +1437,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1525,8 +1478,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1535,7 +1487,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1575,8 +1528,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1585,7 +1537,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1625,8 +1578,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1635,7 +1587,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1675,8 +1628,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1685,7 +1637,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1725,8 +1678,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1735,7 +1687,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1775,8 +1728,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1785,7 +1737,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),
@@ -1825,8 +1778,7 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
         refreshShadows();
 
         var mockClient = createClient(
-                List.of(ItemPath.create(UserType.F_PERSONAL_NUMBER)),
-                List.of(PERSONAL_NUMBER.path())
+                new MockMapping(ItemPath.create(UserType.F_PERSONAL_NUMBER), PERSONAL_NUMBER.path())
         );
         TestServiceClientFactory.mockServiceClient(clientFactoryMock, mockClient);
         var ctx = TypeOperationContext.init(mockClient, RESOURCE_DUMMY.oid, ACCOUNT_DEFAULT, null, task, result);
@@ -1835,7 +1787,8 @@ public class TestMappingsSuggestionOperation extends AbstractSmartIntegrationTes
                 ctx,
                 new MappingsQualityAssessor(new MappingScriptValidator(expressionFactory)),
                 new MappingScriptValidator(expressionFactory),
-                new ShadowsWithOwnersCorrelatingProvider(correlationService),
+                new ShadowsWithOwnersCorrelatingProvider(correlationService, samplerProvider),
+                samplerProvider,
                 wellKnownSchemaService,
                 heuristicRuleMatcher,
                 new CategoricalAttributeRegistry(),

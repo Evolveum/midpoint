@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.repo.sqale.mapping;
 
-import com.evolveum.midpoint.repo.sqale.qmodel.shadow.MShadow;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.schema.result.OperationResult;
 

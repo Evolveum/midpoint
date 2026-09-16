@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -637,9 +636,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance, Connector
             if (supportsReturnDefaultAttributes()) {
                 optionsBuilder.setReturnDefaultAttributes(true);
             } else {
-                // Add all the attributes that are defined as "returned by default" by the schema
+                // Add all the attributes that are defined as "returned by default" by the schema, excluding simulated (virtual) items.
                 for (var itemDef : resourceObjectDefinition.getAttributeDefinitions()) {
-                    if (itemDef.isReturnedByDefault()) {
+                    if (itemDef.isReturnedByDefault() && !itemDef.isSimulated()) {
                         icfAttrsToGet.add(
                                 ucfAttributeNameToConnId(itemDef));
                     }

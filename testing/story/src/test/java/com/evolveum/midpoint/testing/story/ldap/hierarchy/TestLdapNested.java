@@ -63,7 +63,7 @@ public class TestLdapNested extends AbstractLdapHierarchyTest {
 
     @Override
     protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+            throws CommonException, DirectoryException {
         PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
         if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
             Entry groupEntry = openDJController.searchSingle("cn=" + orgName);

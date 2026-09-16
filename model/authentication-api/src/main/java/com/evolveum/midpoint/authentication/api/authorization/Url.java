@@ -24,9 +24,9 @@ public @interface Url {
 
     /**
      * Url that will be matched in {@link com.evolveum.midpoint.authentication.impl.authorization.MidPointGuiAuthorizationEvaluator}
-     * using {@link org.springframework.security.web.util.matcher.AntPathRequestMatcher}.
+     * using Spring Security request matcher path syntax.
      * <p/>
-     * If empty then {@link Url#mountUrl()} + "/**" will be used for URL ant pattern matching in security configuration.
+     * If empty then {@link Url#mountUrl()} + "/**" will be used for URL pattern matching in security configuration.
      *
      * @see {@link DescriptorLoader}
      */

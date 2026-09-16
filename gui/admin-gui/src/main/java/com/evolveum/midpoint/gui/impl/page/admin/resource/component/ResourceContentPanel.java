@@ -308,7 +308,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
 
-        repoSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-default" + (isRepoSearch ? " active" : "")));
+        repoSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-light border" + (isRepoSearch ? " active" : "")));
         resourceChoiceContainer.add(repoSearch);
 
         AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
@@ -322,7 +322,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
 
         };
-        resourceSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-default" + (isRepoSearch ? "" : " active")));
+        resourceSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-light border" + (isRepoSearch ? "" : " active")));
         resourceChoiceContainer.add(resourceSearch);
 
     }
@@ -788,7 +788,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 getPageBase().showMainPopup(confirmationPanel, target);
             }
         };
-        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        reclassify.add(AttributeAppender.append("class", "btn btn-primary btn-sm me-2"));
         reclassify.setOutputMarkupId(true);
         reclassify.showTitleAsLabel(true);
         reclassify.add(new VisibleBehaviour(() -> getObjectClass() != null && isReclassifyButtonVisible()));

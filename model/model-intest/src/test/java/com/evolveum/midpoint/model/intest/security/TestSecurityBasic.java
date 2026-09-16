@@ -555,6 +555,47 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
     }
 
     @Test
+    public void test206ApplyReadSecurityToPreauthorizedTransientUserAsReadonly() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY.oid);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then();
+        PrismObject<UserType> transientUser = createTransientUserWithNonexistentOid();
+        PrismObject<UserType> filteredUser = applyReadSecurityToPreauthorizedObject(transientUser);
+
+        display("Filtered transient user", filteredUser);
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_NAME, PolyString.fromOrig("pending-transient-user"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_GIVEN_NAME, PolyString.fromOrig("Pending"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_FAMILY_NAME, PolyString.fromOrig("Transient"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_DESCRIPTION, "Transient pending user");
+        assertGlobalStateUntouched();
+    }
+
+    @Test
+    public void test206aApplyReadSecurityToPreauthorizedTransientUserBasicItemsOnly() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS.oid);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then();
+        PrismObject<UserType> filteredUser = applyReadSecurityToPreauthorizedObject(createTransientUserWithNonexistentOid());
+
+        display("Filtered transient user", filteredUser);
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_NAME, PolyString.fromOrig("pending-transient-user"));
+        PrismAsserts.assertPropertyValue(filteredUser, UserType.F_DESCRIPTION, "Transient pending user");
+        PrismAsserts.assertNoItem(filteredUser, UserType.F_GIVEN_NAME);
+        PrismAsserts.assertNoItem(filteredUser, UserType.F_FAMILY_NAME);
+        assertGlobalStateUntouched();
+    }
+
+    @Test
     public void test207AutzJackObjectFilterCaribbeanRole() throws Exception {
         given();
         cleanupAutzTest(USER_JACK_OID);
@@ -852,7 +893,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertGlobalStateUntouched();
     }
 
-    private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    private void assertJackEditSchemaReadAllModifySome(PrismObject<UserType> userJack) throws CommonException {
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
         displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
@@ -3953,6 +3994,70 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertSearch(RoleType.class, query, 0);
     }
 
+    /**
+     * Searching for abstract roles with a query containing `TYPE` discriminators, while the OrgType read
+     * authorization is item-limited. The `TYPE(OrgType)` clause must not require full-object read access
+     * on OrgType: the same objects are legally obtainable by type-specific searches, and returned objects
+     * are pruned to readable items anyway. This mirrors the Request Access "roles of teammate" query:
+     *
+     * ----
+     * AND(
+     *     IN OID: <targets of teammate's assignments>;
+     *     OR(
+     *         TYPE(RoleType, EQUAL: requestable, true);
+     *         TYPE(OrgType, null)))
+     * ----
+     *
+     * Issue 11221
+     *
+     * See also {@link #test500SearchForAbstractRolesWithLimitedAuthorizations()}
+     */
+    @Test
+    public void test520SearchWithTypeFilterAndItemLimitedOrgAuthorization() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ORG_ITEM_READ.oid);
+        login(USER_JACK_USERNAME);
+
+        when("searching with type-specific queries (baseline, works regardless of issue 11221)");
+
+        assertSearch(RoleType.class,
+                queryFor(RoleType.class).id(ROLE_BUSINESS_1.oid).build(),
+                ROLE_BUSINESS_1.oid);
+        assertSearch(OrgType.class,
+                queryFor(OrgType.class).id(ORG_REQUESTABLE.oid).build(),
+                ORG_REQUESTABLE.oid);
+
+        when("searching for AbstractRoleType with TYPE discriminators and OID list (Request Access style)");
+
+        var query = queryFor(AbstractRoleType.class)
+                .id(ROLE_BUSINESS_1.oid, ORG_REQUESTABLE.oid)
+                .and()
+                .block()
+                .type(RoleType.COMPLEX_TYPE)
+                .item(AbstractRoleType.F_REQUESTABLE).eq(true)
+                .or()
+                .type(OrgType.COMPLEX_TYPE)
+                .endBlock()
+                .build();
+
+        then("both objects are found, even though OrgType read is item-limited");
+
+        assertSearch(AbstractRoleType.class, query, ROLE_BUSINESS_1.oid, ORG_REQUESTABLE.oid);
+
+        when("searching with a filter on an OrgType item that is not readable");
+
+        var costCenterQuery = queryFor(AbstractRoleType.class)
+                .type(OrgType.COMPLEX_TYPE)
+                .item(OrgType.F_COST_CENTER).eq("whatever")
+                .build();
+
+        then("the search is denied, as filtering by unreadable items must remain forbidden");
+
+        assertSearch(AbstractRoleType.class, costCenterQuery, 0);
+        assertSearch(OrgType.class, costCenterQuery, 0);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,
@@ -3964,7 +4069,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 (task, result) -> addTask(oid, name, ownerOid, handlerUri, task, result));
     }
 
-    private void addTask(String oid, String name, String ownerOid, String handlerUri, Task execTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void addTask(String oid, String name, String ownerOid, String handlerUri, Task execTask, OperationResult result) throws CommonException {
         PrismObject<TaskType> task = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class).instantiate();
         task.setOid(oid);
         TaskType taskType = task.asObjectable();
@@ -3976,6 +4081,26 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         }
         taskType.setHandlerUri(handlerUri);
         modelService.executeChanges(MiscSchemaUtil.createCollection(task.createAddDelta()), null, execTask, result);
+    }
+
+    private PrismObject<UserType> createTransientUserWithNonexistentOid() {
+        return new UserType()
+                .oid("00000000-0000-0000-0000-0123456789ab")
+                .name("pending-transient-user")
+                .givenName("Pending")
+                .familyName("Transient")
+                .description("Transient pending user")
+                .asPrismObject();
+    }
+
+    private <O extends ObjectType> PrismObject<O> applyReadSecurityToPreauthorizedObject(PrismObject<O> object)
+            throws CommonException {
+        Task task = createPlainTask("applyReadSecurityToPreauthorizedObject");
+        OperationResult result = task.getResult();
+        PrismObject<O> filteredObject = modelInteractionService.applyReadSecurityToPreauthorizedObject(object, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        return filteredObject;
     }
 
     private ItemPath ext(Object segment) {

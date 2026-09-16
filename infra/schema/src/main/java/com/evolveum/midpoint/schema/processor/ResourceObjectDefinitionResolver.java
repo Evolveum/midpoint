@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.processor.ResourceSchemaUtil.*;
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaUtil.addAuxiliaryObjectClasses;
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaUtil.checkObjectClassCompatibility;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.Collection;

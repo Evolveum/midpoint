@@ -11,16 +11,16 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -62,12 +62,9 @@ public final class ObjectTypeStatisticsActions {
 
         try {
             if (!forceRegeneration) {
-                GenericObjectType latestStatistics =
+                var latestStatistics =
                         smartIntegrationService.getLatestObjectTypeStatistics(
-                                resourceOid,
-                                objectTypeIdentification.getKind().value(),
-                                objectTypeIdentification.getIntent(),
-                                task.getResult());
+                                resourceOid, objectTypeIdentification, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, resourceOid,
@@ -93,13 +90,13 @@ public final class ObjectTypeStatisticsActions {
     private static void showStatisticsPopup(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
-            @NotNull GenericObjectType statisticsObject,
+            @NotNull SmartIntegrationArtifactType statisticsObject,
             @NotNull String resourceOid,
             @NotNull ResourceObjectTypeIdentification objectTypeIdentification,
             ItemPathType preSelectedRefAttribute) throws SchemaException {
 
-        ShadowObjectClassStatisticsType statistics =
-                ShadowObjectTypeUtil.getObjectTypeStatisticsRequired(statisticsObject);
+        ObjectSetStatisticsType statistics =
+                SmartIntegrationArtifactUtil.getStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),
@@ -164,11 +161,8 @@ public final class ObjectTypeStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_STATISTICS);
 
         try {
-            ShadowKindType kind = objectTypeIdentification.getKind();
-            String intent = objectTypeIdentification.getIntent();
-
-            GenericObjectType latestStatistics =
-                    smartIntegrationService.getLatestObjectTypeStatistics(resourceOid, kind.value(), intent, task.getResult());
+            var latestStatistics =
+                    smartIntegrationService.getLatestObjectTypeStatistics(resourceOid, objectTypeIdentification, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

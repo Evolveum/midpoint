@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.authentication.impl.module.authentication.token;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -22,6 +25,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class CorrelationVerificationToken extends AbstractAuthenticationToken {
@@ -31,7 +35,7 @@ public class CorrelationVerificationToken extends AbstractAuthenticationToken {
     private int currentCorrelatorIndex;
 
     public CorrelationVerificationToken(Map<ItemPath, String> attributes, String correlatorName, int currentCorrelatorIndex) {
-        super(null);
+        super(Collections.emptyList());
         this.attributes = attributes;
         this.correlatorName = correlatorName;
         this.currentCorrelatorIndex = currentCorrelatorIndex;

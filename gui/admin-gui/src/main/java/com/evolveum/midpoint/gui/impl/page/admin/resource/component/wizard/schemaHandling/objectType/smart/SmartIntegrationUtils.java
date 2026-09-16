@@ -6,32 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareObjectDto;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
-import com.evolveum.midpoint.smart.api.RegenerateMode;
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.session.SuggestionsStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion;
+import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
@@ -40,15 +28,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadAssociationSuggestions;
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-import static com.evolveum.midpoint.schema.util.SmartMetadataUtil.isMarkedAsSystemProvided;
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CompareObjectDto;
+import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.api.RegenerateMode;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.session.SuggestionsStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Utility methods for smart integration features in resource object type handling.
@@ -102,37 +105,46 @@ public class SmartIntegrationUtils {
      * Anyway, if we want to e.g. count objects on this resource, it must be at least minimally functional.
      */
     public static @NotNull Set<QName> getStandaloneStructuralObjectClassesNames(
-            @NotNull String resourceOid, @NotNull PageBase pageBase, Task task, OperationResult result) {
+            String resourceOid, PageBase pageBase, Task task, OperationResult result) {
         NativeResourceSchema schema;
         try {
             var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
             schema = Resource.of(resource).getNativeResourceSchemaRequired();
-        } catch (Exception e) {
+        } catch (CommonException e) {
             result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
             LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
             return Set.of();
         }
         return schema.getObjectClassDefinitions().stream()
                 .filter(def -> !def.isEmbedded() && !def.isAuxiliary())
-                .map(def -> new QName(NS_RI, def.getName())) // def.getQName is buggy now
+                .map(def -> ResourceSchema.nativeToMidPointClassName(def.getName()))
                 .collect(Collectors.toSet());
     }
 
     /**
-     * Executes an object type suggestion operation if no suggestion is currently available.
-     * If suggestions exist, no background task is started.
-     * Returns {@code true} if the task was executed, {@code false} otherwise.
+     * Returns the connector-provided (native) descriptions of object classes for the given resource, keyed by the
+     * object class name. Object classes for which the connector did not provide any description are not present
+     * in the returned map.
      */
-    public static boolean runSuggestionAction(
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid,
-            @NotNull QName objectClassName,
-            @NotNull AjaxRequestTarget target,
-            @NotNull String operationName,
-            @NotNull Task task,
-            @NotNull List<DataAccessPermissionType> permissions) {
-        return runSuggestionAction(pageBase, resourceOid, objectClassName, target, operationName, task, permissions,
-                null, null);
+    public static @NotNull Map<QName, String> getObjectClassDescriptions(
+            String resourceOid, PageBase pageBase, Task task, OperationResult result) {
+        NativeResourceSchema schema;
+        try {
+            var resource = pageBase.getModelService().getObject(ResourceType.class, resourceOid, null, task, result);
+            schema = Resource.of(resource).getNativeResourceSchemaRequired();
+        } catch (CommonException e) {
+            result.recordPartialError("Couldn't get native resource schema for resource " + resourceOid, e);
+            LOGGER.warn("Couldn't get native resource schema for resource {}", resourceOid, e);
+            return Map.of();
+        }
+        Map<QName, String> descriptions = new HashMap<>();
+        for (var def : schema.getObjectClassDefinitions()) {
+            String description = def.getDescription();
+            if (StringUtils.isNotBlank(description)) {
+                descriptions.put(ResourceSchema.nativeToMidPointClassName(def.getName()), description);
+            }
+        }
+        return descriptions;
     }
 
     /**
@@ -150,7 +162,7 @@ public class SmartIntegrationUtils {
             @Nullable RegenerateMode regenerateMode,
             @Nullable List<ResourceObjectTypeDefinitionType> previousObjectTypes) {
         OperationResult opResult = task.getResult();
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadLatestObjectClassObjectTypeSuggestion(
                 pageBase, resourceOid, objectClassName, task, opResult);
 
         if (opResult.isError() || opResult.isFatalError()) {
@@ -225,42 +237,48 @@ public class SmartIntegrationUtils {
 
     }
 
-    public static @NotNull IModel<Badge> getAiBadgeModel() {
-        return getAiCustomTextBadgeModel("AI");
-    }
-
-    public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text) {
+    public static @NotNull IModel<Badge> getAiCustomTextBadgeModel(String text, String tooltip) {
         Badge aiBadge = new Badge(
-                "badge badge-light-purple d-flex align-items-center",
+                "badge text-bg-light-purple d-flex align-items-center",
                 "fa fa-wand-magic-sparkles text-purple",
                 text,
                 "text-purple",
-                "This value was generated by AI");
+                tooltip);
         return Model.of(aiBadge);
     }
 
-    public static @NotNull IModel<Badge> getAiEfficiencyBadgeModel(String text) {
+    public static @NotNull IModel<Badge> getSystemCustomTextBadgeModel(String text, String tooltip) {
+        Badge systemBadge = new Badge(
+                "badge badge-light-primary d-flex align-items-center",
+                "fa fa-gear text-primary",
+                text,
+                "text-primary",
+                tooltip);
+        return Model.of(systemBadge);
+    }
+
+    public static @NotNull IModel<Badge> getAiEfficiencyBadgeModel(String text, String tooltip) {
         Badge aiBadge = new Badge(
-                "badge badge-purple d-flex align-items-center",
+                "badge text-bg-purple d-flex align-items-center",
                 "fa fa fas fa-bolt",
                 text,
                 "text-white",
-                "This value was generated by AI");
+                tooltip);
         return Model.of(aiBadge);
     }
 
     public enum SuggestionUiStyle {
-        FATAL("bg-light-danger", "info-badge danger", "border border-danger",
+        FATAL("table-danger", "info-badge danger", "border border-danger",
                 "SuggestionUiStyle.fatal"),
-        IN_PROGRESS("bg-light-info", "info-badge text-info", "border border-info",
+        IN_PROGRESS("table-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
-        UNKNOWN("bg-light-info", "info-badge text-info", "border border-info",
+        UNKNOWN("table-info", "info-badge text-info", "border border-info",
                 "SuggestionUiStyle.inProgress"),
-        NOT_APPLICABLE("bg-light-secondary", "info-badge secondary", "border border-secondary",
+        NOT_APPLICABLE("table-secondary", "info-badge secondary", "border border-secondary",
                 "SuggestionUiStyle.notApplicable"),
-        DEFAULT_AI("bg-light-purple", "info-badge purple", "border border-ai left-border-2px",
+        DEFAULT_AI("table-ai", "info-badge purple", "border border-ai border-start-2",
                 "SuggestionUiStyle.default"),
-        DEFAULT_SYSTEM("bg-light-primary", "info-badge primary", "border border-system left-border-2px",
+        DEFAULT_SYSTEM("table-primary", "info-badge primary", "border border-system border-start-2",
                 "SuggestionUiStyle.default");
 
         public final String tileClass;
@@ -299,20 +317,25 @@ public class SmartIntegrationUtils {
                 return from;
             }
 
-            PrismContainerValueWrapper<AttributeMappingsSuggestionType> parentContainerValue = value
+            // Check for mapping suggestions
+            PrismContainerValueWrapper<AttributeMappingsSuggestionType> mappingParent = value
                     .getParentContainerValue(AttributeMappingsSuggestionType.class);
 
-            // should not happen
-            if (parentContainerValue == null) {
-                return DEFAULT_AI;
+            if (mappingParent != null) {
+                boolean markedAsSystemProvided = isMarkedAsSystemProvided(mappingParent.getOldValue());
+                return markedAsSystemProvided ? DEFAULT_SYSTEM : DEFAULT_AI;
             }
 
-            boolean markedAsSystemProvided = isMarkedAsSystemProvided(parentContainerValue.getOldValue());
-            if (markedAsSystemProvided) {
-                return DEFAULT_SYSTEM;
-            } else {
-                return DEFAULT_AI;
+            // Check for correlation suggestions
+            PrismContainerValueWrapper<CorrelationSuggestionType> correlationParent = value
+                    .getParentContainerValue(CorrelationSuggestionType.class);
+
+            if (correlationParent != null) {
+                boolean markedAsSystemProvided = isMarkedAsSystemProvided(correlationParent.getOldValue());
+                return markedAsSystemProvided ? DEFAULT_SYSTEM : DEFAULT_AI;
             }
+
+            return DEFAULT_AI;
         }
 
         public static SuggestionUiStyle from(OperationResultStatusType s) {
@@ -652,7 +675,7 @@ public class SmartIntegrationUtils {
      */
     //TODO look at getCorrelationStrategyLabel
     public static @NotNull String computeCorrelationStrategyMethod(@NotNull CorrelationItemType correlationItemType) {
-        String strategy = "(Exact)";
+        String strategy = "EXACT";
 
         ItemSearchDefinitionType search = correlationItemType.getSearch();
         if (search != null) {
@@ -662,50 +685,13 @@ public class SmartIntegrationUtils {
                 TrigramSimilaritySearchDefinitionType sim = fuzzy.getSimilarity();
 
                 if (lev != null && lev.getThreshold() != null) {
-                    strategy = "(Levenshtein)";
+                    strategy = "LEVENSHTEIN";
                 } else if (sim != null && sim.getThreshold() != null) {
-                    strategy = "(Trigram)";
+                    strategy = "TRIGRAM";
                 }
             }
         }
         return strategy;
-    }
-
-    public static void showStatisticsPanel(
-            @NotNull AjaxRequestTarget target,
-            @NotNull ResourceObjectTypeDefinitionType objectTypeDefinition,
-            @NotNull PageBase pageBase,
-            @NotNull String resourceOid) {
-        ResourceObjectTypeDelineationType delineation = objectTypeDefinition.getDelineation();
-        if (delineation == null || delineation.getObjectClass() == null) {
-            return;
-        }
-
-        QName objectClass = delineation.getObjectClass();
-
-        SmartIntegrationService smartIntegrationService = pageBase.getSmartIntegrationService();
-        Task pageTask = pageBase.getPageTask();
-
-        ShadowObjectClassStatisticsType statisticsRequired;
-        try {
-            GenericObjectType latestStatistics = smartIntegrationService
-                    .getLatestObjectClassStatistics(resourceOid, objectClass, pageTask.getResult());
-            if (latestStatistics == null) {
-                pageBase.warn(pageBase.getString("SmartIntegrationUtils.noStatistics.available.for.on",
-                        objectClass, resourceOid));
-                target.add(pageBase.getFeedbackPanel());
-                return;
-            }
-            statisticsRequired = ShadowObjectClassUtil.getStatisticsRequired(latestStatistics);
-        } catch (SchemaException e) {
-            throw new RuntimeException("Couldn't get statistics for "
-                    + objectClass + " on resource " + resourceOid, e);
-        }
-
-        SmartStatisticsPanel statisticsPanel = new SmartStatisticsPanel(
-                pageBase.getMainPopupBodyId(), () -> statisticsRequired, resourceOid, objectClass);
-
-        pageBase.showMainPopup(statisticsPanel, target);
     }
 
     /**

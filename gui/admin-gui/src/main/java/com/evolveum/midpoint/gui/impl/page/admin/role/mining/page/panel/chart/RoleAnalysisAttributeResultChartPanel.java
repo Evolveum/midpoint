@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
@@ -16,14 +13,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Role
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisAttributeResultChartModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisSimpleModel;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 

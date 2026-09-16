@@ -15,7 +15,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliation;
 import com.evolveum.midpoint.repo.common.activity.run.distribution.WorkersReconciliationOptions;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.OtherActivityState;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;

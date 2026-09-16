@@ -11,18 +11,22 @@
     <form wicket:id="mainForm" class="form-horizontal">
         <div wicket:id="operationsPanel">
             <fieldset wicket:id="main">
-                <a class="btn btn-sm btn-default" wicket:id="backButton"/>
-                <a class="btn btn-sm btn-primary" wicket:id="saveButton"/>
+                <div class="d-flex flex-wrap gap-1">
+                    <a class="btn btn-sm btn-light border" wicket:id="backButton"/>
+                    <a class="btn btn-sm btn-primary" wicket:id="saveButton"/>
+                </div>
             </fieldset>
-            <fieldset class="flex-wrap gap-3" wicket:id="options">
-                <div wicket:id="encrypt"/>
-                <div wicket:id="validateSchema"/>
-                <div wicket:id="saveAsRaw"/>
-                <div wicket:id="reevaluateSearchFilters"/>
-                <div wicket:id="switchToPlainText"/>
+            <fieldset wicket:id="options">
+                <div class="d-flex flex-wrap gap-3">
+                    <div wicket:id="encrypt"/>
+                    <div wicket:id="validateSchema"/>
+                    <div wicket:id="saveAsRaw"/>
+                    <div wicket:id="reevaluateSearchFilters"/>
+                    <div wicket:id="switchToPlainText"/>
+                </div>
             </fieldset>
         </div>
-        <div class="card">
+        <div class="card shadow-sm mb-3">
             <div class="card-header">
                 <div wicket:id="viewButtonPanel"/>
             </div>

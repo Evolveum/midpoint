@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -169,7 +170,6 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
-            //noinspection resource
             var serviceClient = new MockServiceClientImpl(
                     new SiSuggestObjectTypesResponseType()
                             .objectType(new SiSuggestedObjectTypeType()
@@ -399,8 +399,13 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     @Test
     public void test310SuggestMappingsWithFailure() throws CommonException {
         skipIfRealService();
-        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, new MockServiceClientImpl(
-                new SiMatchSchemaResponseType()
+        // Routes by request type (instead of a fixed response queue) so the test is robust to the
+        // actual number and order of service calls (e.g. schema match reuse, categorical path, retries).
+        // The first 'suggest mapping' (script) request fails; every other call succeeds.
+        final AtomicInteger suggestMappingCalls = new AtomicInteger();
+        var mockClient = new MockServiceClientImpl(request -> {
+            if (request instanceof SiMatchSchemaRequestType) {
+                return new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(asStringSimple(ICFS_NAME_PATH))
                                 .midPointAttribute(asStringSimple(UserType.F_NAME)))
@@ -412,10 +417,18 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                                 .midPointAttribute(asStringSimple(UserType.F_DESCRIPTION)))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(asStringSimple(DummyBasicScenario.Account.AttributeNames.PHONE.path()))
-                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER))),
-                new RuntimeException("LLM went crazy here"),
-                new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')"))
-        );
+                                .midPointAttribute(asStringSimple(UserType.F_TELEPHONE_NUMBER)));
+            } else if (request instanceof SiSuggestMappingRequestType) {
+                if (suggestMappingCalls.getAndIncrement() == 0) {
+                    throw new RuntimeException("LLM went crazy here");
+                }
+                return new SiSuggestMappingResponseType().transformationScript("input.replace('-', '')");
+            } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
+                return new SiSuggestMappingResponseType().transformationScript(null);
+            }
+            return null;
+        });
+        TestServiceClientFactory.mockServiceClient(this.clientFactoryMock, mockClient);
 
         var task = getTestTask();
         var result = task.getResult();
@@ -469,9 +482,14 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                 } else if (request instanceof SiSuggestCategoricalMappingRequestType) {
                     return new SiSuggestMappingResponseType()
                             .transformationScript(
-                                    "// Map status to lockoutStatus\n"
-                                            + "input == null ? null"
-                                            + " : input.equalsIgnoreCase(\"inactive\") ? \"locked\" : \"normal\"");
+                                    """
+                                        // Map status to lockoutStatus
+                                        isNull(input)
+                                            ? 'normal'
+                                            : input.lc() == 'inactive'
+                                                ? 'locked'
+                                                : 'normal'
+                                    """);
                 }
                 return null;
             });

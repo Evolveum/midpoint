@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 

@@ -7,10 +7,9 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.converter.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
@@ -19,14 +18,19 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -201,7 +205,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
     }
 
     private IModel<List<DisplayableValue<ItemPathType>>> getChoices(
-            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapper, PageBase pageBase) {
+            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapper, PageAdminLTE pageBase) {
         return new LoadableDetachableModel<>() {
             @Override
             protected List<DisplayableValue<ItemPathType>> load() {
@@ -248,7 +252,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
     }
 
     private List<DisplayableValue<ItemPathType>> getAllAttributes(
-            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapperModel, PageBase pageBase) {
+            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapperModel, PageAdminLTE pageBase) {
 
         List<DisplayableValue<ItemPathType>> allAttributes = new ArrayList<>();
 

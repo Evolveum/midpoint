@@ -6,6 +6,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.setEffectiveOperationPolicy;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.io.Serial;
@@ -340,7 +341,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                             asContainerable().getActivation()));
             // TODO review this
             if (associationObjectExtraItems != null) {
-                shadow.getBean().setEffectiveOperationPolicy(
+                setEffectiveOperationPolicy(shadow.getBean(),
                         CloneUtil.cloneCloneable(associationObjectExtraItems.getEffectiveOperationPolicy()));
             }
             // The content description is null, so it is not treated as "identifiers only".

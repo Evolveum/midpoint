@@ -9,7 +9,6 @@ package com.evolveum.midpoint.report;
 import java.io.File;
 import java.util.Objects;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 

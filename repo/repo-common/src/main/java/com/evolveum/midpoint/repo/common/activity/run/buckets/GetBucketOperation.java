@@ -6,7 +6,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.buckets;
 
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static java.util.Objects.requireNonNullElseGet;
 

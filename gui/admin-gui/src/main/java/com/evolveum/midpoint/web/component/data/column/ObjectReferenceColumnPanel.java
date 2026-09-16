@@ -98,13 +98,27 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                String caseOid = ObjectReferenceColumnPanel.this.getPendingObjectPreviewCaseOid();
+                if (StringUtils.isNotBlank(caseOid)) {
+                    DetailsPageUtil.dispatchToPendingObjectPreview(
+                            ObjectReferenceColumnPanel.this.getModelObject(), caseOid, ObjectReferenceColumnPanel.this);
+                    return;
+                }
                 DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(),
                         ObjectReferenceColumnPanel.this, false);
             }
 
             @Override
-            protected @NotNull String getNavigationUrl() {
+            protected String getNavigationUrl() {
+                if (!ObjectReferenceColumnPanel.this.isLinkEnabled()) {
+                    return null;
+                }
+
                 ObjectReferenceType rowValue = getModelObject();
+                String caseOid = ObjectReferenceColumnPanel.this.getPendingObjectPreviewCaseOid();
+                if (StringUtils.isNotBlank(caseOid)) {
+                    return DetailsPageUtil.getPendingObjectPreviewLinkNavigationUrl(rowValue, caseOid);
+                }
                 String url = DetailsPageUtil.getObjectDetailsLinkNavigationUrl(rowValue);
                 if (url == null) {
                     var obj = target.getObject() != null ? target.getObject().asObjectable() : null;
@@ -139,7 +153,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             PrismObject<? extends ObjectType> object = ref.getObject();
 
-            if (object == null) {
+            if (object == null && !isPendingObjectPreviewRequested()) {
                 object = target.getObject();
             }
             if (object != null) {
@@ -171,7 +185,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
             PrismObject<? extends ObjectType> object = ref.getObject();
 
-            if (object == null) {
+            if (object == null && !isPendingObjectPreviewRequested()) {
                 object = target.getObject();
             }
 
@@ -187,15 +201,38 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     }
 
     protected boolean isLinkEnabled() {
+        String caseOid = getPendingObjectPreviewCaseOid();
+        if (StringUtils.isNotBlank(caseOid)) {
+            ObjectReferenceType ref = getModelObject();
+            return ref != null
+                    && ref.getType() != null
+                    && DetailsPageUtil.getPendingObjectPreviewLinkNavigationUrl(ref, caseOid) != null;
+        }
+
         PrismObject<? extends ObjectType> object = getReferencePrismObject();
         // Do not generate link if the object has not been created yet.
         // Check the version to see if it has not been created.
         return object != null && object.getOid() != null && object.getVersion() != null;
     }
 
+    /**
+     * Returns the source case OID for pending-object preview navigation.
+     * A {@code null} value keeps ordinary object-reference navigation.
+     */
+    protected String getPendingObjectPreviewCaseOid() {
+        return null;
+    }
+
     private String getLinkDescriptiveTitle() {
+        if (isPendingObjectPreviewRequested()) {
+            return null;
+        }
         PrismObject<? extends ObjectType> object = getReferencePrismObject();
         return object != null ? object.asObjectable().getDescription() : null;
+    }
+
+    private boolean isPendingObjectPreviewRequested() {
+        return StringUtils.isNotBlank(getPendingObjectPreviewCaseOid());
     }
 
     private PrismObject<? extends ObjectType> getReferencePrismObject() {

@@ -81,7 +81,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
     public @NotNull SearchResultList<PrismObject<T>> executeSearch(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (filter instanceof NoneFilter) {
             SearchResultList<PrismObject<T>> objListType = SearchResultList.empty();
@@ -102,7 +102,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
     public SearchResultMetadata executeIterativeSearch(@NotNull ResultHandler<T> handler, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (filter instanceof NoneFilter) {
             return createNoneFilterMetadata();
@@ -127,7 +127,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
     public Integer executeCount(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (filter instanceof NoneFilter) {
             return createNoneFilterCount();

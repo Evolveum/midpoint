@@ -5,17 +5,22 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.VirtualActivityState;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.smart.api.ClientCallContext;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +63,7 @@ class OperationContext {
     static OperationContext init(
             ServiceClient serviceClient, String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return init(serviceClient, resourceOid, objectClassName, null, task, result);
     }
 
@@ -66,7 +71,7 @@ class OperationContext {
             ServiceClient serviceClient, String resourceOid, QName objectClassName,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var resource = SmartIntegrationBeans.get().modelService
                 .getObject(ResourceType.class, resourceOid, options, task, result)
                 .asObjectable();
@@ -83,6 +88,10 @@ class OperationContext {
 
     boolean canRun() {
         return !(task instanceof RunningTask runningTask) || runningTask.canRun();
+    }
+
+    ClientCallContext callContext(OperationResult result) {
+        return ClientCallContext.of(task, result, resource);
     }
 
     /** Creates new {@link StateHolder} for the virtual child activity that is an externally-visible part of this operation. */
@@ -175,8 +184,8 @@ class OperationContext {
                     activityState.markComplete(
                             OperationResultStatus.SUCCESS, SmartIntegrationBeans.get().clock.currentTimeMillis());
                 } else {
-                    // Unlike traditional iterative activities, an error means that the activity is not complete.
-                    // We may revise this policy later.
+                    activityState.markComplete(
+                            activityState.getResultStatus(), SmartIntegrationBeans.get().clock.currentTimeMillis());
                 }
                 activityState.flushPendingTaskModificationsChecked(result);
             } catch (ActivityRunException e) {

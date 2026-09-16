@@ -12,7 +12,10 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWO
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -308,6 +311,8 @@ class ShadowDeltaComputerAbsolute {
             } else if (oldProperty == null || !oldProperty.isIncomplete()) {
                 // We need to replace the property in repo with zero-values, incomplete one.
                 // Unfortunately, this cannot be done by a simple delta. We have to replace the whole password container.
+                // See #10161/#10201.
+                //
                 // BEWARE: Make sure we don't update other parts of this container elsewhere; deltas would get overlapping.
                 var passwordClone = resourceObject.getBean().getCredentials().getPassword().clone();
                 passwordClone.asPrismContainerValue().removeProperty(PasswordType.F_VALUE);

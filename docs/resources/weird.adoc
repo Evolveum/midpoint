@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2014-11-18T22:51:10.015+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2014-11-20T12:56:42.775+01:00
-:page-keywords: [ 'modification priority', 'read-replace' ]
+:page-keywords: modification priority, read-replace
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: yellow
 :page-toc: top

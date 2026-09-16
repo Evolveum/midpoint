@@ -21,7 +21,8 @@ public class ModelContextUtil {
         if (lensContextType != null) {
             try {
                 return modelInteractionService.unwrapModelContext(lensContextType, opTask, result);
-            } catch (SchemaException | CommunicationException | ConfigurationException |ExpressionEvaluationException e) {   // todo treat appropriately
+            } catch (SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException |
+                     SubscriptionComplianceException e) {   // todo treat appropriately
                 throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
             }
         } else {

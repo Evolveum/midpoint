@@ -34,6 +34,6 @@ public interface UpdatablePrismEntityOpConstraints extends PrismEntityOpConstrai
 
         void applyAuthorization(@NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException;
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException;
     }
 }

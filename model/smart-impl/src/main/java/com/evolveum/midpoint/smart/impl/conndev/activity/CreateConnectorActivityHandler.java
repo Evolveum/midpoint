@@ -1,29 +1,20 @@
 package com.evolveum.midpoint.smart.impl.conndev.activity;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.definition.AffectedObjectsInformation;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.smart.impl.conndev.ConnectorDevelopmentBackend;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -115,8 +106,7 @@ public class CreateConnectorActivityHandler
                 editable.asEditable().updateProperty(
                         "Messages.properties", "manifest.connector.display", backend.connectorDisplayName());
             } catch (IOException e) {
-                // FIXME: Add proper exception
-                throw new SystemException(e);
+                throw new SystemException("Couldn't set the connector display name in Messages.properties", e);
             }
 
             editable.asEditable().renameBundle(connDef.getGroupId(), connDef.getArtifactId(), connDef.getVersion());
@@ -124,6 +114,11 @@ public class CreateConnectorActivityHandler
             // Install template
             var lookups = editable.install(result);
 
+            if (lookups.isEmpty()) {
+                throw new SystemException(
+                        "Connector installation produced no connector definition for '" + targetDir
+                                + "'; the generated connector is either already installed or is not a valid ConnId bundle");
+            }
             var lookup = lookups.get(0);
 
             var query = PrismContext.get().queryFor(ConnectorType.class)
@@ -134,6 +129,11 @@ public class CreateConnectorActivityHandler
 
 
             var connectors = beans.modelService.searchObjects(ConnectorType.class, query, null, task, result);
+            if (connectors.isEmpty()) {
+                throw new SystemException(
+                        "Installed connector was not found in the repository for bundle '" + lookup.getConnectorBundle()
+                                + "', type '" + lookup.getConnectorType() + "', version '" + lookup.getConnectorVersion() + "'");
+            }
             var connector = connectors.get(0);
 
             var state = getActivityState();

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.repo.common.expression.evaluator.NullExpressionEvaluatorFactory;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 import org.xml.sax.SAXException;
@@ -78,6 +79,10 @@ public class ExpressionTestUtil {
         // value
         expressionFactory.registerEvaluatorFactory(
                 new LiteralExpressionEvaluatorFactory(protector));
+
+        // null
+        expressionFactory.registerEvaluatorFactory(
+                new NullExpressionEvaluatorFactory(protector));
 
         // const
         ConstantsManager constManager = new ConstantsManager(createConfiguration());

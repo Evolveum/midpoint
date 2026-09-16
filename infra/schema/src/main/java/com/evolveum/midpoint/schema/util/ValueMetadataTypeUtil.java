@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.path.InfraItemName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;

@@ -37,8 +37,8 @@ public class ChangeExecutor {
 
     public <O extends ObjectType> void executeChanges(LensContext<O> context, Task task,
             OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException {
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, PolicyViolationException, ConflictDetectedException, SubscriptionComplianceException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
         try {
@@ -56,7 +56,7 @@ public class ChangeExecutor {
     private <O extends ObjectType> void executeFocusChanges(LensContext<O> context, Task task, OperationResult result)
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectAlreadyExistsException, ConflictDetectedException {
+            ObjectAlreadyExistsException, ConflictDetectedException, SubscriptionComplianceException {
         context.checkAbortRequested();
 
         LensFocusContext<O> focusContext = context.getFocusContext();

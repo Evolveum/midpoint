@@ -7,10 +7,8 @@
 package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionPrivilegesSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

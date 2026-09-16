@@ -121,8 +121,7 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                getHelper().onExitPerformed(target);
-            }
+                BasicResourceWizardPanel.this.onExitPerformed(target);            }
 
             @Override
             protected boolean isExitButtonVisible() {
@@ -135,7 +134,8 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
             }
         });
 
-        PrismObject<ConnectorType> connector = WebModelServiceUtils.loadObject(getAssignmentHolderModel().getObjectType().getConnectorRef(), getPageBase());
+        PrismObject<ConnectorType> connector = WebModelServiceUtils.loadObject(
+                getAssignmentHolderModel().getObjectType().getConnectorRef(), getPageBase());
 
         CapabilityCollectionType capabilities
                 = ProvisioningObjectsUtil.getNativeCapabilities(getAssignmentHolderModel().getObjectType(), getPageBase());
@@ -143,8 +143,16 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
         if (connector != null && SchemaConstants.ICF_FRAMEWORK_URI.equals(connector.asObjectable().getFramework())) {
 
             if (capabilities.getDiscoverConfiguration() != null) {
-                steps.add(new PartialConfigurationStepPanel(getAssignmentHolderModel()));
+                steps.add(new PartialConfigurationStepPanel(getAssignmentHolderModel()) {
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        BasicResourceWizardPanel.this.onExitPerformed(target);                    }
+                });
                 steps.add(new DiscoveryStepPanel(getAssignmentHolderModel()) {
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        BasicResourceWizardPanel.this.onExitPerformed(target);                    }
+
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
                         target.add(getFeedback());
@@ -154,6 +162,10 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
             } else {
                 steps.add(new ConfigurationStepPanel(getAssignmentHolderModel(), true) {
                     @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        BasicResourceWizardPanel.this.onExitPerformed(target);                    }
+
+                    @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
                         target.add(getFeedback());
                         BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
@@ -162,6 +174,10 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
             }
         } else {
             steps.add(new ConfigurationStepPanel(getAssignmentHolderModel(), false) {
+                @Override
+                public void onExitPerformed(AjaxRequestTarget target) {
+                    BasicResourceWizardPanel.this.onExitPerformed(target);                }
+
                 @Override
                 protected void onSubmitPerformed(AjaxRequestTarget target) {
                     target.add(getFeedback());
@@ -173,6 +189,11 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
         if (capabilities.getSchema() != null) {
             steps.add(new SelectObjectClassesStepPanel(getAssignmentHolderModel()) {
                 @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    BasicResourceWizardPanel.this.onExitPerformed(target);
+                }
+
+                @Override
                 protected void onSubmitPerformed(AjaxRequestTarget target) {
                     target.add(getFeedback());
                     super.onSubmitPerformed(target);
@@ -182,6 +203,11 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
         }
 
         return steps;
+    }
+
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
     }
 
     protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {

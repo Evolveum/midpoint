@@ -6,7 +6,7 @@
 
 package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
-import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 

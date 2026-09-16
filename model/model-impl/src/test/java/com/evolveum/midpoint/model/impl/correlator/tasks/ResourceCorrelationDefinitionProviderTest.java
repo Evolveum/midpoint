@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = "classpath:ctx-model-test-main.xml")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInternalModelTest {
     private static final File RESOURCES_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR,
             "correlator/correlation/merge");
@@ -47,8 +49,9 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
 
         when("Resolver resolves correlation definition from given resource");
         final ResourceCorrelationDefinitionProvider correlationProvider = new ResourceCorrelationDefinitionProvider(
-                resource, resourceWithObjectTypeId);
-        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get();
+                resource);
+        final CorrelationDefinitionType resolvedCorrelationDefinition =
+                correlationProvider.definitionFor(resourceWithObjectTypeId);
 
         then("Resolved definition should match the definition in resource.");
         assertEquals(resolvedCorrelationDefinition, objectType.getCorrelation());
@@ -65,8 +68,9 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
 
         when("Resolver resolves correlation definition from given resource");
         final ResourceCorrelationDefinitionProvider correlationProvider = new ResourceCorrelationDefinitionProvider(
-                resource, resourceWithObjectTypeId);
-        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get();
+                resource);
+        final CorrelationDefinitionType resolvedCorrelationDefinition =
+                correlationProvider.definitionFor(resourceWithObjectTypeId);
 
         then("Resolved definition should match the definition in resource.");
         final CorrelationDefinitionType mergedCorrelations = expectedCorrelationDefinition(resource, objectType);
@@ -84,8 +88,9 @@ public class ResourceCorrelationDefinitionProviderTest extends AbstractEmptyInte
 
         when("Resolver resolves correlation definition from given resource");
         final ResourceCorrelationDefinitionProvider correlationProvider = new ResourceCorrelationDefinitionProvider(
-                resource, resourceWithObjectTypeId);
-        final CorrelationDefinitionType resolvedCorrelationDefinition = correlationProvider.get();
+                resource);
+        final CorrelationDefinitionType resolvedCorrelationDefinition =
+                correlationProvider.definitionFor(resourceWithObjectTypeId);
 
         then("Resolved definition should match the definition in resource.");
         final CorrelationDefinitionType mergedCorrelations = expectedCorrelationDefinition(resource, objectType);

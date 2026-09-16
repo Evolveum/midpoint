@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+  Alternative logging configuration for debugging focus/activity policy rule processing
+  and enforcement (e.g. flaky TestFocusPolicyCombinations runs on CI).
+
+  Model "core" processing (projector, provisioning, repo, ...) is kept at INFO to keep the
+  log small; only the policy rule legs run at TRACE:
+
+    collection    - PolicyRulesCollector "Collecting activity policy rule ..."
+                    ActivityPolicyRulesCollector "Found N activity policy rules ..."
+    evaluation    - FocusPolicyRulesEvaluator / constraint evaluators (projector.policy)
+                    ActivityPolicyRulesProcessor "Starting/Completed evaluation of rule ..."
+    counters      - PolicyRuleCounterUpdater "Incrementing counter for rule ..."
+                    CountersIncrementOperation "Counter deltas: ..."
+    enforcement   - PolicyRuleEnforcer "enforceThresholds: rule ... count=N, overThreshold=..., enabledActions=..."
+                    (one line per rule per item), "Going to abort/suspend ... because of policy violation"
+    abort/restart - ItemProcessingGatekeeper, AbstractCompositeActivityRun,
+                    ActivityBasedTaskRun (RESTART_REQUESTED, delays, execution attempts)
+
+  Per-item operation identity (was it focus ADD or MODIFY?) is visible cheaply via the audit
+  log (one line per operation) and Clockwork/ChangeExecutor/sync at DEBUG.
+
+  Usage on CI: pass to the forked test JVM (same place as the jdbc/repository properties):
+
+      -Dlogback.configurationFile=logback-test-policy.xml
+
+  (The file is on the test classpath; an absolute path works as well.) The explicit property
+  takes precedence over the default classpath logback-test.xml. Output goes to
+  ./target/test.log (i.e. model/model-intest/target/test.log) - archive that file.
+
+  TODO to be deleted after feature #11051 is finished (and related jenkins job is deleted as well)
+-->
+
+<configuration>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
+        <layout>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </layout>
+    </appender>
+    <turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
+
+    <!-- noise suppression, same as logback-test.xml -->
+    <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+    <logger name="PROFILING" level="OFF"/>
+
+    <!-- test infrastructure: test method markers, task/asserter dumps -->
+    <logger name="com.evolveum.midpoint.model.intest" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.test" level="TRACE"/>
+
+    <!-- one line per executed operation, incl. delta type (ADD vs MODIFY) - cheap discriminator -->
+    <logger name="com.evolveum.midpoint.audit.log" level="TRACE"/>
+
+    <!-- just enough model core to follow each item: clockwork click states, executed deltas,
+         sync situation/reaction; everything else in the model stays at INFO -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG"/>
+    <logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG"/>
+    <logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG"/>
+
+    <!-- ===== the policy legs - full detail ===== -->
+
+    <!-- clockwork side: PolicyRulesCollector, FocusPolicyRulesEvaluator + constraint
+         evaluators, PolicyRuleProcessor (counter updates), PolicyRuleEnforcer -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.policy" level="TRACE"/>
+    <!-- explicit, so the per-item "enforceThresholds: rule ..." diagnostics (count, overThreshold,
+         enabledActions) survive even if the package level above is ever lowered -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer" level="TRACE"/>
+    <!-- enabled-actions computation ("Computing enabled actions for ...", per-action accept/skip);
+         lives outside the projector.policy package, hence the explicit logger -->
+    <logger name="com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl" level="TRACE"/>
+
+    <!-- activity side: ActivityPolicyRulesCollector/Processor, PolicyRuleCounterUpdater,
+         PreexistingValues, evaluators -->
+    <logger name="com.evolveum.midpoint.repo.common.activity.policy" level="TRACE"/>
+
+    <!-- run machinery: ItemProcessingGatekeeper (threshold exception detection),
+         CountersIncrementOperation (run.state.counters), LocalActivityRun,
+         AbstractCompositeActivityRun (abort propagation), ActivityBasedTaskRun (restart) -->
+    <logger name="com.evolveum.midpoint.repo.common.activity" level="DEBUG"/>
+    <logger name="com.evolveum.midpoint.repo.common.activity.run" level="TRACE"/>
+
+    <!-- task scheduling: to see the rescheduled run after RESTART_REQUESTED (incl. delay) -->
+    <logger name="com.evolveum.midpoint.task" level="DEBUG"/>
+
+    <!-- policy rule notification emission -->
+    <logger name="com.evolveum.midpoint.notifications" level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="X"/>
+        <appender-ref ref="TracingAppender"/>
+    </root>
+</configuration>

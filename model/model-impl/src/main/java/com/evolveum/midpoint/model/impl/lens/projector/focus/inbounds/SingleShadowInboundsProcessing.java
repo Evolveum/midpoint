@@ -14,14 +14,19 @@ import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.*;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedInboundsContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedInboundsSource;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.LimitedInboundsTarget;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.SingleShadowInboundsPreparation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +69,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
 
     public static <C extends Containerable> C evaluate(SingleShadowInboundsProcessingContext<C> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
                 .build();
@@ -90,7 +95,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
     public static SingleShadowInboundsProcessing<?> evaluateToTripleMap(
             SingleShadowInboundsProcessingContext<?> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .addArbitraryObjectAsParam("shadow", ctx.getShadowLikeValue())
                 .build();
@@ -124,7 +129,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
      */
     void prepareMappings(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         try {
             var preFocusPcv = ctx.getPreFocusAsPcv();

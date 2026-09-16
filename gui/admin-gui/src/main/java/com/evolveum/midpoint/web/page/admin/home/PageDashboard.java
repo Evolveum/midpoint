@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import java.util.List;
-import javax.xml.namespace.QName;
-
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;

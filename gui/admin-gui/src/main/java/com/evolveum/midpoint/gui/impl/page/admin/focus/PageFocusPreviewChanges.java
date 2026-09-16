@@ -7,11 +7,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.focus;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -30,6 +27,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.component.preview.PreviewChangesTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.component.preview.PreviewChangesTabPanel.PreviewData;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -40,11 +38,9 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
 
 @PageDescriptor(
         urls = {
@@ -65,7 +61,13 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageFocusPreviewChanges.class);
 
-    private Map<PrismObject<O>, ModelContext<O>> modelContextMap;
+    private List<PreviewData> previewData;
+    /*
+     * Live model contexts may contain non-serializable model execution state
+     * (e.g. LensContext -> MagicAssignment/Holder). Keep them only as transient
+     * input until serializable preview data is created.
+     */
+    private transient Map<PrismObject<O>, ModelContext<O>> modelContextMap;
 
     private PageBase previousPage;
 
@@ -78,9 +80,28 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
         this.previousPage = previousPage;
     }
 
+    /**
+     * Extracts the data needed by the preview page from live model contexts.
+     *
+     * The returned data is safe to keep in Wicket page state; the original model contexts are not.
+     */
+    private List<PreviewData> createPreviewData(Map<PrismObject<O>, ModelContext<O>> modelContextMap) {
+        List<PreviewData> previewData = new ArrayList<>();
+        modelContextMap.forEach((object, modelContext) ->
+                previewData.add(
+                        PreviewChangesTabPanel.createPreviewData(
+                                getTabPanelTitleModel(object).getObject(), modelContext, this)));
+        return previewData;
+    }
+
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        // Wicket page state must contain only the serializable preview representation.
+        if (previewData == null) {
+            previewData = createPreviewData(modelContextMap);
+            modelContextMap = null;
+        }
         initLayout();
     }
 
@@ -129,24 +150,17 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
     }
 
     private boolean isWithProductionConfiguration() {
-        for (ModelContext<O> modelContext : modelContextMap.values()) {
-            if (modelContext != null && TaskExecutionMode.SIMULATED_PRODUCTION.equals(modelContext.getTaskExecutionMode())) {
+        for (PreviewData previewChange : previewData) {
+            if (previewChange.withProductionConfiguration()) {
                 return true;
             }
         }
         return false;
     }
 
-    //TODO relocate the logic from the loop to some util method, code repeats in PreviewChangesTabPanel
     private boolean violationsEmpty() {
-        for (ModelContext<O> modelContext : modelContextMap.values()) {
-            PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
-                    ? modelContext.getPolicyRuleEnforcerPreviewOutput()
-                    : null;
-            List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
-                    ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
-                    : Collections.emptyList();
-            if (!EvaluatedTriggerGroupDto.isEmpty(triggerGroups)) {
+        for (PreviewData previewChange : previewData) {
+            if (!previewChange.violationsEmpty()) {
                 return false;
             }
         }
@@ -155,15 +169,15 @@ public class PageFocusPreviewChanges<O extends ObjectType> extends PageBase {
 
     private List<ITab> createTabs() {
         List<ITab> tabs = new ArrayList<>();
-        modelContextMap.forEach((object, modelContext) -> {
+        previewData.forEach(previewChange -> {
 
-            tabs.add(new PanelTab(getTabPanelTitleModel(object)) {
+            tabs.add(new PanelTab(Model.of(previewChange.title())) {
 
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    return new PreviewChangesTabPanel(panelId, Model.of(modelContext));
+                    return new PreviewChangesTabPanel(panelId, previewChange);
                 }
             });
         });

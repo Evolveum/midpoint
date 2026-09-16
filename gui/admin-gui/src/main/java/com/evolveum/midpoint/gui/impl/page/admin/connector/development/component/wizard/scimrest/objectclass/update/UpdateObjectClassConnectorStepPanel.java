@@ -45,10 +45,7 @@ public class UpdateObjectClassConnectorStepPanel extends AbstractObjectClassConn
 
     @Override
     public List<WizardStep> createChildrenSteps() {
-        return List.of(
-                new UpdateEndpointsConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new WaitingUpdateConnectorStepPanel(getHelper(), getObjectClassModel()),
-                new UpdateScriptConnectorStepPanel(getHelper(), getObjectClassModel()));
+        return wizardStrategy().updateObjectClassSteps(getHelper(), getObjectClassModel());
     }
 
     @Override

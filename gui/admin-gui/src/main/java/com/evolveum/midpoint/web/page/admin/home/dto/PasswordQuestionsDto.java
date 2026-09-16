@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionDefinitionType;
 
 public class PasswordQuestionsDto implements Serializable{
 

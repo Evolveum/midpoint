@@ -69,10 +69,11 @@
                 <outbound>
                     <strength>weak</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </source>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>
                                 name + iterationToken
                             </code>
@@ -83,7 +84,7 @@
                     <!-- This avoids "kickback" of a name from account to a user. -->
                     <strength>weak</strength>
                     <target>
-                        <path>$user/name</path>
+                        <path>$focus/name</path>
                     </target>
                 </inbound>
             </attribute>
@@ -98,13 +99,13 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </source>
                 </outbound>
                 <inbound>
                     <strength>weak</strength>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -116,7 +117,7 @@
                     <strength>strong</strength>
                     <source>
                         <path>
-                            $user/locality
+                            $focus/locality
                         </path>
                     </source>
                 </outbound>
@@ -124,6 +125,7 @@
                     <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'Came from ' + input</code>
                         </script>
                     </expression>
@@ -138,6 +140,7 @@
                 <inbound>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>'The crew of ' + input</code>
                         </script>
                     </expression>
@@ -159,6 +162,7 @@
                     <channel>http://pirates.net/avast</channel>
                     <expression>
                         <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                             <code>9999 + 1</code>
                         </script>
                     </expression>
@@ -172,7 +176,7 @@
                     <source>
                         <path>
                             declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-                            $user/extension/piracy:weapon
+                            $focus/extension/piracy:weapon
                         </path>
                     </source>
                 </outbound>
@@ -221,7 +225,7 @@
                         <value>very FISHY</value>
                     </expression>
                     <target>
-                        <path>$user/fullName</path>
+                        <path>$focus/fullName</path>
                     </target>
                 </inbound>
             </attribute>
@@ -374,7 +378,7 @@
                     <q:path>name</q:path>
                     <expression>
                         <path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            $account/attributes/icfs:name</path>
+                            $projection/attributes/icfs:name</path>
                     </expression>
                 </q:equal>
             </correlation>

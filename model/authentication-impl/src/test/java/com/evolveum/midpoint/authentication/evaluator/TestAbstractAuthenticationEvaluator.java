@@ -41,6 +41,7 @@ import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAut
 import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
@@ -109,6 +110,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     @Autowired private Clock clock;
     @Autowired private FocusAuthenticationResultRecorder authenticationRecorder;
 
+    @Autowired private LocalizationService localizationService;
+
     private MessageSourceAccessor messages;
 
     private SequenceAuditFilter auditFilter;
@@ -135,8 +138,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract ItemName getCredentialType();
 
     public abstract void modifyUserCredential(Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+            throws CommonException;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -176,7 +178,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         ((CredentialsAuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
 
             @Override
-            public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public <F extends FocusType, O extends ObjectType> Collection<PrismObject<F>> resolveOwner(PrismObject<O> object)
+                    throws CommunicationException, ConfigurationException, SecurityViolationException,
+                    ExpressionEvaluationException, SubscriptionComplianceException {
                 return focusProfileService.resolveOwner(object);
             }
 
@@ -1135,8 +1139,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("authentication: principal mismatch", expectedUsername, ((MidPointPrincipal) authentication.getPrincipal()).getUsername());
     }
 
+    protected String getBadPasswordKey() {
+        return "web.security.provider.invalid.credentials";
+    }
+
     private void assertBadPasswordException(BadCredentialsException e) {
-        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage(getBadPasswordKey()), getTranslatedMessage(e));
     }
 
     private void assertEmptyPasswordException(BadCredentialsException e) {
@@ -1238,8 +1246,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void loginJackGoodPasswordExpectSuccess()
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -1262,13 +1269,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
-    private void loginJackGoodPasswordExpectDenied() throws ObjectNotFoundException,
-            SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void loginJackGoodPasswordExpectDenied() throws CommonException {
         loginJackGoodPasswordExpectDenied(1);
     }
 
-    private void loginJackGoodPasswordExpectDenied(int expectedFailInBehavior) throws ObjectNotFoundException,
-            SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void loginJackGoodPasswordExpectDenied(int expectedFailInBehavior) throws CommonException {
         displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 

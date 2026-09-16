@@ -12,6 +12,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -32,7 +33,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argNonNull;
  * <p>
  * The values are *never* `unknown`.
  */
-public class ResourceObjectTypeIdentification implements Serializable {
+public class ResourceObjectTypeIdentification implements Serializable, ShortDumpable {
 
     public static final ResourceObjectTypeIdentification ACCOUNT_DEFAULT =
             ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
@@ -122,6 +123,11 @@ public class ResourceObjectTypeIdentification implements Serializable {
 
     @Override
     public String toString() {
-        return kind + "/" + intent;
+        return kind.value() + "/" + intent;
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(this);
     }
 }

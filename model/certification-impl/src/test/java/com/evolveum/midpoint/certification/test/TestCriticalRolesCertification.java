@@ -14,7 +14,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,8 +21,10 @@ import org.testng.annotations.Test;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
@@ -1207,11 +1208,19 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 */
 
 
-    //TODO temporarily disabled, change in behavior. now also empty stage is generated and not skipped by default
-    @Test(enabled = false) // MID-10294
-    public void test510OpenNextStage() throws Exception {           // next stage is 2 (because the first one has no work items)
+    /**
+     * Verifies opening the next certification stage after reiteration.
+     *
+     * In the second iteration, stage 1 has no new review work because all relevant cases already have
+     * an ACCEPT completion result for this stage. The task-based stage management therefore opens the
+     * empty stage explicitly instead of skipping it. The test closes this stage and then opens stage 2,
+     * verifying that historical stage results are respected, only the case requiring a new review gets
+     * a work item, and the campaign statistics remain consistent.
+     */
+    @Test
+    public void test510OpenNextStage() throws Exception {
         // GIVEN
-//        clock.resetOverride();
+        clock.resetOverride();
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
@@ -1232,28 +1241,62 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        display("campaign in stage 2", campaign);
-        assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 5); // stage 1 in iteration 2 was skipped
+        display("campaign in empty stage 1", campaign);
+        assertSanityAfterStageOpen(campaign, certificationDefinition, 1, 2, 5);
 
         List<AccessCertificationCaseType> caseList = new ArrayList<>(queryHelper.searchCases(campaignOid, null, result));
+        caseList.removeIf(c -> norm(c.getIteration()) != 2);
+        assertEquals("Wrong number of certification cases", 3, caseList.size());
+        assertCaseReviewers(findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID), null, 0, emptyList());
+        assertCaseReviewers(findCase(caseList, USER_JACK_OID, ROLE_CEO_OID), null, 0, emptyList());
+        assertCaseReviewers(findCase(caseList, USER_JACK_OID, ROLE_CTO_OID), null, 0, emptyList());
+        // All cases already have a stage 1 ACCEPT completion result, so no iteration-2 stage 1 work items are created.
+        // With no cases or work items in the current stage and iteration, all three percentages are defined as 100%.
+        assertPercentCompleteCurrent(campaign, 100, 100, 100);
+
+        XMLGregorianCalendar closeStartTime = clock.currentTimeXMLGregorianCalendar();
+        certificationService.closeCurrentStage(campaignOid, task, result);
+
+        List<PrismObject<TaskType>> closeTasks = getCloseStageTask(campaignOid, closeStartTime, result);
+        assertEquals("unexpected number of related tasks", 1, closeTasks.size());
+        waitForTaskFinish(closeTasks.get(0).getOid());
+
+        campaign = getCampaignWithCases(campaignOid);
+        display("campaign after empty stage 1 close", campaign);
+        assertSanityAfterStageClose(campaign, certificationDefinition, 1, 2, 5);
+
+        XMLGregorianCalendar secondStageStartTime = clock.currentTimeXMLGregorianCalendar();
+        certificationService.openNextStage(campaignOid, task, result);
+
+        tasks = getNextStageTasks(campaignOid, secondStageStartTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
+
+        campaign = getCampaignWithCases(campaignOid);
+        display("campaign in stage 2", campaign);
+        assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 6);
+
+        caseList = new ArrayList<>(queryHelper.searchCases(campaignOid, null, result));
         caseList.removeIf(c -> norm(c.getIteration()) != 2);
         assertEquals("Wrong number of certification cases", 3, caseList.size());
         AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
         AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertCaseReviewers(administratorCeoCase, null, 0, emptyList());
+        // These two cases already have an ACCEPT completion result for stage 2, so the stage-2 opener skips them.
+        // Their stored currentStageOutcome remains the ACCEPT written when iteration-2 stage 1 was closed.
+        assertCaseReviewers(administratorCeoCase, ACCEPT, 0, emptyList());
         assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, singletonList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, null, 0, emptyList());
+        assertCaseReviewers(jackCtoCase, ACCEPT, 0, emptyList());
 
-        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, null, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, ACCEPT, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
-        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, null, NO_RESPONSE, null);
+        assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, NO_RESPONSE, null);
 
-        // current iteration = 2, stage = 2 (stage 1 was skipped because all cases already have outcome for stage 1)
+        // current iteration = 2, stage = 2 (the explicitly opened empty stage 1 was closed)
         // there is 1 case in this iteration/stage: jack->CEO and 1 work item
-        // - it is not complete within iteration/stage neither decided
-        // - 0% of work items are decided
+        // - it is neither complete nor decided within the current iteration and stage
+        // - 0% of work items are complete
         assertPercentCompleteCurrent(campaign, 0, 0, 0);
 
 /*
@@ -1268,15 +1311,17 @@ administrator->CEO          none (A) -> A       elaine: A -> A            | A   
 jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A           eventually NR (iter 1)
 
-Case                                            Stage2 Iteration2
-=============================================================
-administrator->CEO                              "A" from iter 1
-jack->CEO                                       elaine
-jack->CTO                                       "A" from iter 1
+Case                        Stage1 Iteration2    Stage2 Iteration2
+=================================================================
+administrator->CEO          none (A) -> A       "A" from iter 1
+jack->CEO                   none (A) -> A       elaine
+jack->CTO                   none (A) -> A       "A" from iter 1
 
         Out of them, completed (for stage 2) are: elaine->CEO, guybrush->COO, administrator->COO, administrator->CEO, jack->CTO -> so 83%
-        Decided are: only two (guybrush -> COO, admin -> COO) ... because other ones are no-response because of later stages in iteration 1
-        Work items: created 5+1 (but 1 is overridden), completed 4 i.e. 80%
+        Decided are: only two (guybrush -> COO, admin -> COO); the others have NO_RESPONSE or NOT_DECIDED overall outcomes
+        because of later-stage results from iteration 1.
+        Work items: 5 from iteration 1 plus 1 from iteration 2; the older item for the same reviewer and stage is ignored
+        as redundant, leaving 5 effective work items, 4 of which are complete, i.e. 80%.
  */
         assertPercentCompleteCurrentStage(campaign, 83, 33, 80);
 
@@ -1290,8 +1335,8 @@ jack->CTO                                       "A" from iter 1
         // - 6 cases
         //    - among them only 1 (guybrush->COO) is complete (17%)
         //    - 2 cases are decided (33%)
-        // - work items are all from iteration 1 plus the one created now (but we do not count the original one in iteration 1
-        // that is overridden by it), so: 1/1 + 4/5 + 2/8 + 2/3 + 0/1 - 0/1 = 9/17 = 53%
+        // - work items are all from iteration 1 plus the one created now, the older work item for the same reviewer and
+        // stage is ignored as redundant, so: 1/1 + 4/5 + 2/8 + 2/3 + 0/1 - 0/1 = 9/17 = 53%
         assertPercentCompleteAll(campaign, 17, 33, 53);
 
         assertCasesCount(campaignOid, 6);

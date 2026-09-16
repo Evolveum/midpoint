@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.activity;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -16,13 +17,16 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.ReportOutputCreatedListener;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -216,9 +220,19 @@ class SaveReportFileSupport {
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
         try {
+            byte[] content = contextOfFile.getBytes(encoding);
+            byte[] bytesToWrite = content;
+
+            if (encoding.equals(StandardCharsets.UTF_8)) {
+                byte[] bom = ByteOrderMark.UTF_8.getBytes();
+                bytesToWrite = new byte[bom.length + content.length];
+                System.arraycopy(bom, 0, bytesToWrite, 0, bom.length);
+                System.arraycopy(content, 0, bytesToWrite, bom.length, content.length);
+            }
+
             FileUtils.writeByteArrayToFile(
                     new File(aggregatedFilePath),
-                    contextOfFile.getBytes(encoding));
+                    bytesToWrite);
         } catch (IOException e) {
             throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
         }
@@ -273,7 +287,7 @@ class SaveReportFileSupport {
             @Nullable ObjectReferenceType emptyExportedDataObjectRef,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), timestampSuffix, randomStringSuffix);
 
@@ -301,7 +315,7 @@ class SaveReportFileSupport {
 
     private String putReportDataObjectToRepository(ReportDataType reportDataObject, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SubscriptionComplianceException {
         ModelService model = reportService.getModelService();
         String oid = reportDataObject.getOid();
         if (oid != null) {
@@ -337,7 +351,7 @@ class SaveReportFileSupport {
      */
     private ObjectReferenceType getCurrentNodeRef(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         String nodeId = runningTask.getNode();
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(
                 NodeType.class,

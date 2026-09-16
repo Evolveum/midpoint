@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.schema.validator.processor;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -17,7 +15,6 @@ import com.evolveum.midpoint.schema.validator.UpgradePriority;
 import com.evolveum.midpoint.schema.validator.UpgradeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.Saml2AuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
 import javax.xml.namespace.QName;

@@ -36,7 +36,7 @@ class ResourceObjectCompleter {
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (resourceObject.isError()) {
             // The idea is that we do not want to process objects which are not guaranteed to be "complete".

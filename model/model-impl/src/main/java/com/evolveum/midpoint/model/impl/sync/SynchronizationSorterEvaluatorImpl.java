@@ -71,7 +71,7 @@ public class SynchronizationSorterEvaluatorImpl implements SynchronizationSorter
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ExpressionType expression = ResourceTypeUtil.getSynchronizationSorterExpression(resource);
         if (expression == null) {

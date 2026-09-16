@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sqale.SqaleRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditDeltaMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditPayloadMapping;
 import com.evolveum.midpoint.repo.sqale.audit.qmodel.QAuditRefValueMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
@@ -117,14 +118,14 @@ public class SqaleAuditServiceFactory implements AuditServiceFactory {
             SchemaService schemaService) {
         QueryModelMappingRegistry mappingRegistry = new QueryModelMappingRegistry();
         SqaleRepoContext repositoryContext =
-                new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry,
-                        SqaleUtils.SCHEMA_AUDIT_CHANGE_NUMBER, SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER);
+                new SqaleRepoContext(config, dataSource, schemaService, mappingRegistry, SqaleUtils.VersionedComponent.AUDIT);
         repositoryContext.setQuerydslSqlListener(new SqlLogger(config.getSqlDurationWarningMs()));
 
         // Registered mapping needs repository context which needs registry - now we have both:
         mappingRegistry
                 .register(AuditEventRecordType.COMPLEX_TYPE,
                         QAuditEventRecordMapping.init(repositoryContext))
+                .register(QAuditPayloadMapping.init(repositoryContext))
                 .register(QAuditRefValueMapping.init(repositoryContext))
                 .register(QAuditDeltaMapping.init(repositoryContext))
                 .seal();

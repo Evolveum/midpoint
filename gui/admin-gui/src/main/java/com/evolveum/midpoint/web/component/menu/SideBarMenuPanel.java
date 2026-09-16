@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -132,6 +133,12 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         }
 
         if (principalObj instanceof MidPointPrincipal principal) {
+            if (principal.getFocus() != null) {
+                String displayName = WebComponentUtil.getOrigStringFromPoly(ObjectTypeUtil.getDisplayName(principal.getFocus()));
+                if (StringUtils.isNotBlank(displayName)) {
+                    return displayName;
+                }
+            }
             return WebComponentUtil.getOrigStringFromPoly(principal.getName());
         }
 

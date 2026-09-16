@@ -33,7 +33,8 @@ import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationU
 import com.evolveum.midpoint.schema.util.Resource;
 
 import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.asserter.*;
+import com.evolveum.midpoint.test.asserter.RoleAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

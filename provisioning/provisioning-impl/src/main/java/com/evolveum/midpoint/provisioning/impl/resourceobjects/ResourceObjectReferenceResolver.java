@@ -85,7 +85,7 @@ class ResourceObjectReferenceResolver {
             @NotNull String desc,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         ctx.assertWildcard();
 

@@ -12,9 +12,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -73,19 +75,9 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
 
     @Override
     public IModel<Boolean> isStepVisible() {
-        return () -> {
-            if (getValueModel() == null || !getValueModel().isLoaded()) {
-                return false;
-            }
-
-            if (getValueModel().getObject() == null) {
-                getValueModel().detach();
-                return false;
-            }
-
-            ConnDevArtifactType result = getValueModel().getObject();
-            return StringUtils.isNotBlank(result.getContent());
-        };
+        return () -> ConnectorDevelopmentWizardUtil.existContainerValue(
+                getDetailsModel().getObjectWrapper(),
+                ItemPath.create(ConnectorDevelopmentType.F_CONNECTOR, ConnDevConnectorType.F_AUTH));
     }
 
     @Override

@@ -6,13 +6,17 @@
 
 package com.evolveum.midpoint.task.api;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -32,10 +36,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.ACTIVITY_TREE_STATE_OVERVIEW_PATH;
 
 /**
  * Task instance - a logical unit of work.
@@ -484,7 +484,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      * Returns specified item (property, reference or container) from the extension. Cloned if running task.
      * Null if extension or item does not exist.
      */
-    <IV extends PrismValue,ID extends ItemDefinition<?>> Item<IV,ID> getExtensionItemOrClone(ItemName itemName);
+    <IV extends PrismValue, ID extends ItemDefinition<?>> Item<IV, ID> getExtensionItemOrClone(ItemName itemName);
     //endregion
 
     //region Task extension "set" operations + also arbitrary "set" operations
@@ -658,7 +658,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      *
      * BEWARE: this method can take quite a long time to execute, if invoked in a cycle.
      */
-    @SuppressWarnings("unused") // may be used e.g. from scripts
+    @SuppressWarnings("unused")
+    // may be used e.g. from scripts
     void setLegacyProgressImmediate(Long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
@@ -970,6 +971,9 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     /** Returns an immutable collection of caching profiles. (From execution environment.) */
     @NotNull Collection<String> getCachingProfiles();
+
+    /** Returns conflict resolution configuration from the execution environment, or null if not set. */
+    @Nullable ConflictResolutionType getConflictResolution();
 
     /** Sets the execution environment configuration. */
     void setExecutionEnvironment(TaskExecutionEnvironmentType value);

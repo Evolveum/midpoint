@@ -1,0 +1,216 @@
+= Configure Logging HowTo
+:toc:
+:icons: font
+:experimental:
+:page-description: This HowTo guide walks through a minimal working example of midPoint logging configuration.
+:page-keywords: logging, logback, configuration, troubleshooting, diagnostics
+
+This HowTo guide walks through a minimal working example of midPoint logging configuration.
+
+== Introduction
+
+MidPoint uses link:https://logback.qos.ch/[Logback] as its logging framework, configured through the `logging` element of the `systemConfiguration` object.
+Logging output drives most diagnostic work in midPoint — tracing a misbehaving mapping, investigating a failed provisioning operation, or capturing an audit trail for compliance.
+
+The framework is built around two cooperating concepts:
+
+* *Loggers* emit log events at a xref:/midpoint/reference/diag/logging/log-levels/[configured level] (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`). Loggers are named hierarchically: a logger inherits its configuration from its parent unless explicitly overridden. The top of the hierarchy is the *root logger*.
+* *Appenders* deliver log events to a destination — a file, the console, syslog, or any Logback-compatible target. Loggers reference appenders by name.
+
+This guide walks through a minimal working example: raising the log level of one midPoint subsystem to `DEBUG` so its activity is captured in the main log file. A later section covers richer patterns — dedicated appenders, audit logging, profiling, and external destinations.
+
+== Prerequisites
+
+* A running midPoint instance (4.4 or later).
+* Administrative privileges sufficient to modify xref:/midpoint/reference/concepts/system-configuration-object/[`systemConfiguration`].
+* Read access to the midPoint log directory on the server (typically `${midpoint.home}/log/`).
+
+== Configuration overview
+
+A midPoint logging configuration consists of:
+
+* A **root logger** with a default level and a default appender.
+* Zero or more **class loggers** that override the level for a specific Java package or class.
+* Zero or more **appenders** that define where log events go and how they are formatted and rotated.
+
+[%autowidth]
+|===
+| Approach | Best suited for
+
+| GUI
+| Ad-hoc troubleshooting, raising a level for a single component during an active investigation.
+
+| XML
+| Reproducible deployments, custom appenders, audit/profiling configuration, GitOps-managed environments.
+|===
+
+[NOTE]
+====
+Logging changes take effect as soon as the system configuration is saved — no midPoint restart is required.
+====
+
+[[change-log-level]]
+== Raise the log level for a component
+
+This example raises the log level for the provisioning subsystem to `DEBUG`, which captures detailed information about resource operations in the main log file.
+
+=== Option A — GUI
+
+. Navigate to [.nowrap]#icon:cog[] btn:[System]# > [.nowrap]#icon:file-alt[] btn:[Logging]#.
+. Under [.nowrap]#icon:circle[] btn:[Class loggers]#, click [.nowrap]#icon:plus[] btn:[New]# to add a new entry and set:
++
+[%autowidth]
+|===
+| Attribute | Value
+
+| Package | `com.evolveum.midpoint.provisioning`
+| Level   | `DEBUG`
+|===
+
+. [.nowrap]#icon:save[] btn:[Save]# the system configuration.
+
+=== Option B — XML
+
+. Navigate to [.nowrap]#icon:cog[] btn:[System]# > [.nowrap]#icon:file-alt[] btn:[Logging]#.
+. Click [.nowrap]#icon:edit[] btn:[Edit Raw]# to open the raw XML editor.
+. Add (or extend) the `logging` element inside `systemConfiguration`:
+
++
+[source,xml]
+----
+<logging>
+    <rootLoggerAppender>FILE</rootLoggerAppender>
+    <rootLoggerLevel>INFO</rootLoggerLevel>
+    <classLogger>
+        <level>DEBUG</level>
+        <package>com.evolveum.midpoint.provisioning</package>
+    </classLogger>
+</logging>
+----
+
+[TIP]
+====
+Class loggers act on a Java package prefix. Setting a level on `com.evolveum.midpoint.provisioning` applies to every class beneath it.
+To narrow the scope, use a more specific path — for example, `com.evolveum.midpoint.provisioning.impl.ShadowManager` targets a single class.
+====
+
+[[verification]]
+== Verification
+
+. Trigger an operation involving the provisioning subsystem (for example, recompute a user that has at least one resource assignment, or run a reconciliation task).
+. Inspect the main log file, by default at `${midpoint.home}/log/midpoint.log`:
++
+[source,bash]
+----
+tail -f /opt/midpoint/var/log/midpoint.log
+----
+
++
+The log now contains lines prefixed with `DEBUG` from classes under `com.evolveum.midpoint.provisioning`, for example:
+
++
+[source,log]
+----
+2026-05-23 22:47:24,740 [MODEL] [http-nio-8080-exec-9] ERROR (com.evolveum.midpoint.model.common.expression.script.ScriptExpression): Expression error: Groovy Evaluation Failed: No such property: student_department for class: com.evolveum.midpoint.prism.impl.PrismContainerValueImpl
+...
+2026-05-23 23:58:59,068 [REPOSITORY] [midPointScheduler_Worker-8] ERROR (com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult):
+Exception in root activity in 'Reload objects on resource:...(Employees)' task.java.lang.UnsupportedOperationException: Unsupported filter type: ExistsFilterImpl
+...
+2026-05-24 21:42:26,512 [PROVISIONING] [main] DEBUG (com.evolveum.midpoint.provisioning.impl.ShadowManager): Looking for shadow ...
+2026-05-24 21:42:26,518 [PROVISIONING] [main] DEBUG (com.evolveum.midpoint.provisioning.impl.ResourceObjectConverter): Fetching resource object ...
+----
+
+. When the investigation is finished, <<change-log-level,revert the level back>> to `INFO`, or remove the class logger entry.
+
++
+[NOTE]
+====
+`DEBUG` and especially `TRACE` levels produce large volumes of output and have a measurable performance impact.
+They are diagnostic tools, not production defaults. Always scope them to a specific package and revert once troubleshooting concludes.
+====
+
+== Limitations and considerations
+
+* *Disk usage* - A `DEBUG`-level logger on a busy subsystem can produce gigabytes of log data per day.
+Pair it with a <<custom-appenders,rolling appender>> or a strict retention policy.
+* *Performance impact* - `TRACE` enables fine-grained instrumentation that can noticeably slow operations, particularly when applied to the model or repository subsystems.
+* *Sensitive data exposure* - Higher log levels may include attribute values, including identifiers and other personal data.
+Treat the log directory accordingly and consider whether logs need to be sanitized before sharing.
+* *Log level resolution* - A class logger overrides the root level only for its own package subtree.
+Output that does not appear in the log may simply be filtered out by an ancestor configuration; trace the hierarchy before concluding that the logger is broken.
+
+== Configuration extensions
+
+The single-class-logger example <<change-log-level,configured above>> is the minimum viable configuration.
+The same mechanism supports considerably richer setups.
+
+[[custom-appenders]]
+=== Custom appenders
+
+Each xref:/midpoint/reference/diag/logging/configuration/#appender-configuration[appender] defines an output destination.
+The most common type is a _rolling file appender_, which writes to a file and rotates it by size, date, or both:
+
+[source,xml]
+----
+<appender xsi:type="c:FileAppenderConfigurationType"
+          name="PROVISIONING_FILE"
+          pattern="%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n">
+    <fileName>${midpoint.home}/log/provisioning.log</fileName>
+    <filePattern>${midpoint.home}/log/provisioning-%d{yyyy-MM-dd}.%i.log.gz</filePattern>
+    <maxHistory>10</maxHistory>
+    <maxFileSize>100MB</maxFileSize>
+    <append>true</append>
+</appender>
+----
+
+A class logger can then route its output to that appender instead of the root appender, keeping noisy debug outputs out of the main log file:
+
+[source,xml]
+----
+<classLogger>
+    <level>DEBUG</level>
+    <package>com.evolveum.midpoint.provisioning</package>
+    <appender>PROVISIONING_FILE</appender>
+</classLogger>
+----
+
+=== Audit logging
+
+Audit events are a first-class concern in midPoint.
+They record who did what, when, and against which object, and have their own dedicated appender configuration.
+
+Routing the audit channel to a separate file (or a separate syslog facility) keeps the audit trail isolated from operational logs and simplifies retention and compliance handling:
+
+[source,xml]
+----
+<auditing>
+    <enabled>true</enabled>
+    <appender>AUDIT_FILE</appender>
+</auditing>
+----
+
+=== Profiling
+
+The profiling logger captures structured performance data about midPoint operations — execution times, repository call counts, mapping invocations.
+
+It is invaluable when chasing a slow operation but it is also expensive.
+Enabled it only for the duration of an investigation.
+Ideally, direct it to a dedicated appender so the data is easy to isolate and analyze.
+
+=== External destinations
+
+Beyond file appenders, midPoint supports `SyslogAppenderConfigurationType` for sending events to a syslog daemon.
+This is the standard way to forward midPoint logs into a centralized log aggregator (rsyslog, Graylog, Splunk via syslog input, or any SIEM that accepts RFC 5424).
+
+=== Subsystem context
+
+MidPoint annotates log events with a `subsystem` MDC value (visible in the `[PROVISIONING]`, `[MODEL]`, `[REPOSITORY]` tags in the <<verification,sample output above>>).
+This makes it straightforward to grep, filter, or build dashboards that segregate output by midPoint component without parsing the logger name.
+
+== See also
+
+* xref:/midpoint/reference/diag/logging/[Logging — reference]
+* xref:/midpoint/reference/diag/logging/configuration/[]
+* xref:/midpoint/reference/security/audit/[]
+* xref:/midpoint/reference/diag/troubleshooting/[]
+* link:https://logback.qos.ch/manual/[Logback manual] — upstream documentation for advanced appender configuration.

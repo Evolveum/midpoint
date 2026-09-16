@@ -21,6 +21,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -73,25 +74,17 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                     return MessagePanel.MessagePanelType.INFO;
                 }
 
-                switch (result.getLevel()) {
-                    case FeedbackMessage.INFO:
-                    case FeedbackMessage.DEBUG:
-                        return MessagePanel.MessagePanelType.INFO;
-                    case FeedbackMessage.SUCCESS:
-                        return MessagePanel.MessagePanelType.SUCCESS;
-                    case FeedbackMessage.ERROR:
-                    case FeedbackMessage.FATAL:
-                        return MessagePanel.MessagePanelType.ERROR;
-                    case FeedbackMessage.UNDEFINED:
-                    case FeedbackMessage.WARNING:
-                    default:
-                        return MessagePanel.MessagePanelType.WARN;
-                }
+                return switch (result.getLevel()) {
+                    case FeedbackMessage.INFO, FeedbackMessage.DEBUG -> MessagePanel.MessagePanelType.INFO;
+                    case FeedbackMessage.SUCCESS -> MessagePanel.MessagePanelType.SUCCESS;
+                    case FeedbackMessage.ERROR, FeedbackMessage.FATAL -> MessagePanel.MessagePanelType.ERROR;
+                    default -> MessagePanel.MessagePanelType.WARN;
+                };
             };
 
             MessagePanel messagePanel = new MessagePanel("message", type, (IModel<Serializable>) () -> item.getModelObject().getMessage()) {
 
-                private static final long serialVersionUID = 1L;
+                @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public void close(AjaxRequestTarget target) {
@@ -99,7 +92,9 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                     message.markRendered();
                 }
             };
+
             messagePanel.setOutputMarkupId(true);
+            messagePanel.setEscapeModelStrings(getEscapeModelStrings());
             item.add(messagePanel);
         }
     }

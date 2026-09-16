@@ -25,6 +25,10 @@
                 <type>value</type>
                 <decision>allow</decision>
             </evaluator>
+            <evaluator>
+                <type>null</type>
+                <decision>allow</decision>
+            </evaluator>
             <!-- Const is safe. But we need something to prohibit here.
             <evaluator>
                 <type>const</type>

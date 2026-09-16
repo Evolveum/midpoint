@@ -23,11 +23,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -118,7 +120,7 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<P exten
         var task = pageBase.createSimpleTask(OP_DETERMINE_STATUS);
         var resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
 
-        return SmartIntegrationStatusInfoUtils.loadObjectClassObjectTypeSuggestions(
+        return SmartIntegrationStatusInfoUtils.loadLatestObjectClassObjectTypeSuggestion(
                 pageBase,
                 resourceOid,
                 objectClassName,

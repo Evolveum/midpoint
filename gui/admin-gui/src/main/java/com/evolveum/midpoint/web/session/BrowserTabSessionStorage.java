@@ -14,7 +14,6 @@ import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -164,6 +163,9 @@ public class BrowserTabSessionStorage implements Serializable, DebugDumpable {
 
             case GENERIC:
                 return SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + searchMode;
+
+            case WORK:
+                return SessionStorage.KEY_RESOURCE_WORK_CONTENT + searchMode;
             default:
                 return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
 
@@ -256,6 +258,8 @@ public class BrowserTabSessionStorage implements Serializable, DebugDumpable {
         pageStorageMap.remove(SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         pageStorageMap.remove(SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         pageStorageMap.remove(SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_WORK_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        pageStorageMap.remove(SessionStorage.KEY_RESOURCE_WORK_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         pageStorageMap.remove(SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
     }
 

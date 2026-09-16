@@ -8,14 +8,12 @@ package com.evolveum.midpoint.gui.impl.component.form;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
-import com.evolveum.midpoint.gui.impl.factory.wrapper.ItemWrapperFactoryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import jp.try0.wicket.honeypot.behavior.HoneypotBehavior;
 import jp.try0.wicket.honeypot.behavior.HoneypotBehaviorConfig;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.markup.html.form.Form;
@@ -32,6 +30,7 @@ public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
     private static final Trace LOGGER = TraceManager.getTrace(HoneypotBehaviour.class);
 
     private static final String HONEYPOT_FIELD_NAME = "hpField-";
+    private static final String HONEYPOT_FIELD_NAME_JS = "hpb-id";
 
     public HoneypotBehaviour() {
         super("submit");
@@ -62,7 +61,7 @@ public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
                 boolean findSomeParameter = false;
 
                 for (String parameterName : postParams.getParameterNames()) {
-                    if (parameterName.startsWith(HONEYPOT_FIELD_NAME)) {
+                    if (parameterName.startsWith(HONEYPOT_FIELD_NAME) || parameterName.startsWith(HONEYPOT_FIELD_NAME_JS)) {
                         LOGGER.debug("Validating parameter with name " + parameterName);
                         findSomeParameter = true;
                         StringValue paramValue = postParams.getParameterValue(parameterName);

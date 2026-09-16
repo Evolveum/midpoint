@@ -70,7 +70,7 @@ public class TestLdapFlat extends AbstractLdapHierarchyTest {
     @Override
     protected void recomputeIfNeeded(String changedOrgOid)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         reconcileAllUsers();
     }
 }

@@ -5,29 +5,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.FocusStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValuePatternCountType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.applyStaticPopupBackdrop;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restoreBackdropPopupDefaults;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -58,24 +46,36 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.applyStaticPopupBackdrop;
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.restoreBackdropPopupDefaults;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.tabs.IconPanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.FocusStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectClassStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.button.ObjectTypeStatisticsButton;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.TabSeparatedTabbedPanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValuePatternCountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Popup panel that displays computed statistics for a resource object class, object type and focus type
  * (depending on the context of invocation). It includes a list of attributes with their respective statistics,
  * and for each selected attribute, it shows the most common values and value patterns.
  **/
-public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsType> implements Popupable {
+public class SmartStatisticsPanel extends BasePanel<ObjectSetStatisticsType> implements Popupable {
 
     private static final String ID_SEARCH_CONTAINER = "searchContainer";
     private static final String ID_SEARCH_INPUT = "searchInput";
@@ -133,7 +133,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     public SmartStatisticsPanel(
             String id,
-            IModel<ShadowObjectClassStatisticsType> model,
+            IModel<ObjectSetStatisticsType> model,
             String resourceOid,
             QName objectClassName) {
         super(id, model);
@@ -146,7 +146,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     public SmartStatisticsPanel(
             String id,
-            IModel<ShadowObjectClassStatisticsType> model,
+            IModel<ObjectSetStatisticsType> model,
             String resourceOid,
             ResourceObjectTypeIdentification objectTypeIdentification) {
         super(id, model);
@@ -159,7 +159,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     public SmartStatisticsPanel(
             String id,
-            IModel<ShadowObjectClassStatisticsType> model,
+            IModel<ObjectSetStatisticsType> model,
             String resourceOid,
             ResourceObjectTypeIdentification objectTypeIdentification,
             QName focusType) {
@@ -209,7 +209,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         renderListViewRows(getModelObject());
     }
 
-    protected List<ListViewRow> renderListViewRows(@NotNull ShadowObjectClassStatisticsType statistics) {
+    protected List<ListViewRow> renderListViewRows(@NotNull ObjectSetStatisticsType statistics) {
         Stream<ListViewRow> rows = statistics.getAttribute().stream()
                 .map(item -> toAttributeRow(item, statistics));
 
@@ -268,7 +268,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     private @NotNull ListViewRow toAttributeRow(
             @NotNull ShadowAttributeStatisticsType item,
-            @NotNull ShadowObjectClassStatisticsType statistics) {
+            @NotNull ObjectSetStatisticsType statistics) {
         String refStr = item.getRef().getItemPath().lastName().toString();
         int count = statistics.getSize() - item.getMissingValueCount();
 
@@ -281,7 +281,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             ShadowAttributeStatisticsType item) implements Serializable {
     }
 
-    private @NotNull WebMarkupContainer buildLeftPanel(ShadowObjectClassStatisticsType statistics) {
+    private @NotNull WebMarkupContainer buildLeftPanel(ObjectSetStatisticsType statistics) {
         WebMarkupContainer left = new WebMarkupContainer(ID_LEFT_PANEL);
         left.setOutputMarkupId(true);
 
@@ -371,7 +371,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
         return get(ID_LEFT_PANEL).get(ID_SHOW_ALL_BUTTON);
     }
 
-    private @NotNull WebMarkupContainer buildChips(@NotNull ShadowObjectClassStatisticsType statistics) {
+    private @NotNull WebMarkupContainer buildChips(@NotNull ObjectSetStatisticsType statistics) {
         WebMarkupContainer chips = new WebMarkupContainer(ID_CHIPS_CONTAINER);
         chips.setOutputMarkupId(true);
 
@@ -396,7 +396,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
     }
 
     private @NotNull WebMarkupContainer buildListView(
-            ShadowObjectClassStatisticsType statistics,
+            ObjectSetStatisticsType statistics,
             @NotNull IModel<ShadowAttributeStatisticsType> selectedAttribute) {
 
         WebMarkupContainer container = new WebMarkupContainer(ID_LIST_VIEW_CONTAINER);
@@ -412,9 +412,11 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
                         item.add(new Label(ID_TEXT, row.text));
                         item.add(new Label(ID_SUBTEXT, row.subText));
 
-                        if (row.item.equals(selectedAttribute.getObject())) {
-                            item.add(AttributeModifier.append(CLASS_CSS, "cursor-pointer border-primary"));
-                        }
+                        item.add(AttributeModifier.append(
+                                CLASS_CSS,
+                                row.item.equals(selectedAttribute.getObject())
+                                        ? "cursor-pointer border-primary"
+                                        : "border-light-subtle"));
 
                         item.add(new AjaxEventBehavior("click") {
                             @Override
@@ -492,7 +494,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected WebMarkupContainer newTabsContainer(String id) {
                 WebMarkupContainer components = super.newTabsContainer(id);
-                components.add(AttributeModifier.append(CLASS_CSS, "border-left border-right rounded-top bg-light"));
+                components.add(AttributeModifier.append(CLASS_CSS, "rounded-top bg-light"));
                 return components;
             }
 
@@ -635,12 +637,12 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     protected String getBadgeTypeCss(@NotNull String type) {
         if (type.equals("prefix") || type.equals("firstToken")) {
-            return "badge badge-info px-2 py-1";
+            return "badge text-bg-info px-2 py-1";
         } else if (type.equals("suffix") || type.equals("lastToken")) {
-            return "badge badge-success px-2 py-1";
+            return "badge text-bg-success px-2 py-1";
         }
 
-        return "badge badge-secondary px-2 py-1";
+        return "badge text-bg-secondary px-2 py-1";
     }
 
     private <R> @NotNull AbstractColumn<R, String> percentageColumn(
@@ -728,7 +730,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, valueCount);
-                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-4 m-0 lh-1"));
+                label.add(AttributeModifier.append(CLASS_CSS, "d-flex ps-4 m-0 lh-1"));
                 label.add(AttributeModifier.append(STYLE_CSS, "font-size:20px"));
 
                 return label;
@@ -965,7 +967,7 @@ public class SmartStatisticsPanel extends BasePanel<ShadowObjectClassStatisticsT
 
     @Nullable
     private ShadowAttributeStatisticsType findAttributeByPath(
-            @NotNull ShadowObjectClassStatisticsType statistics,
+            @NotNull ObjectSetStatisticsType statistics,
             @NotNull ItemPathType path) {
 
         return statistics.getAttribute().stream()

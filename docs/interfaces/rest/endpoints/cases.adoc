@@ -2,7 +2,7 @@
 :page-nav-title: Case
 :page-display-order: 1300
 :page-toc: top
-:page-keywords: [ 'rest', 'case' ,'endpoint' ]
+:page-keywords: rest, case, endpoint
 :page-upkeep-status: green
 
 == Description

@@ -213,8 +213,7 @@ public class ObjectClassesConnectorStepPanel extends AbstractWizardStepPanel<Con
     private List<DisplayType> createTags(PrismContainerValueWrapper<ConnDevObjectClassInfoType> value) {
         Map<String, List<ItemName>> itemNames = new LinkedHashMap<>();
         itemNames.put("ObjectClassesConnectorStepPanel.schema",
-                List.of(
-                        ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT, ConnDevObjectClassInfoType.F_CONNID_SCHEMA_SCRIPT));
+                List.of(ConnDevObjectClassInfoType.F_NATIVE_SCHEMA_SCRIPT));
         itemNames.put("ObjectClassesConnectorStepPanel.search",
                 List.of(
                         ConnDevObjectClassInfoType.F_SEARCH_ALL_OPERATION,

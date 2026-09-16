@@ -71,7 +71,7 @@ class ProjectionFullLoadOperation {
 
     public void loadFullShadow(OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         if (shouldSkipLoading()) {
             return;
@@ -161,7 +161,7 @@ class ProjectionFullLoadOperation {
     private void refreshContextAfterShadowNotFound(Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         new MissingShadowContextRefresher<>(context, projCtx, options, task)
                 .refresh(result);
     }

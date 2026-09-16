@@ -62,7 +62,7 @@ public class AuditController implements ModelAuditService {
     @Override
     public void audit(AuditEventRecord record, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         authorize(ModelAuthorizationAction.AUDIT_RECORD, task, result);
         auditHelper.audit(record, null, task, result);
     }
@@ -73,7 +73,7 @@ public class AuditController implements ModelAuditService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
         return auditService.searchObjects(query, options, parentResult);
     }
@@ -85,7 +85,7 @@ public class AuditController implements ModelAuditService {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
         auditService.searchObjectsIterative(query, handler, options, parentResult);
     }
@@ -97,7 +97,7 @@ public class AuditController implements ModelAuditService {
             Task task,
             @NotNull OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ObjectNotFoundException {
+            CommunicationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         authorize(ModelAuthorizationAction.AUDIT_READ, task, parentResult);
         return auditService.countObjects(query, options, parentResult);
     }
@@ -105,7 +105,7 @@ public class AuditController implements ModelAuditService {
     @Override
     public void cleanupAudit(CleanupPolicyType policy, Task task, OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         authorize(ModelAuthorizationAction.AUDIT_MANAGE, task, parentResult);
         auditService.cleanupAudit(policy, parentResult);
     }
@@ -285,7 +285,7 @@ public class AuditController implements ModelAuditService {
 
     private void authorize(ModelAuthorizationAction action, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         securityEnforcer.authorize(
                 action.getUrl(), AuthorizationPhaseType.REQUEST,
                 AuthorizationParameters.EMPTY, task, result);

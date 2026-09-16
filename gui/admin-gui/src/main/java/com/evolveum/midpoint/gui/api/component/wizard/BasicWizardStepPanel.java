@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.component.wizard;
 
 import java.io.Serial;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -23,6 +24,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -143,6 +145,8 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         exitContainer.add(exit);
 
         WebMarkupContainer customButtonsContainer = new WebMarkupContainer(ID_CUSTOM_BUTTONS_CONTAINER);
+        customButtonsContainer.setOutputMarkupPlaceholderTag(true);
+        customButtonsContainer.setOutputMarkupId(true);
         buttonsStrip.add(customButtonsContainer);
 
         RepeatingView customButtons = new RepeatingView(ID_CUSTOM_BUTTONS);
@@ -283,6 +287,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return (AjaxSubmitButton) get(createComponentPath(ID_BUTTONS_STRIP, ID_CUSTOM_BUTTONS_CONTAINER, ID_SUBMIT));
     }
 
+    protected Component getCustomButtonsContainer() {
+        return get(createComponentPath(ID_BUTTONS_STRIP, ID_CUSTOM_BUTTONS_CONTAINER));
+    }
+
     protected IModel<String> getTextModel() {
         return Model.of();
     }
@@ -306,9 +314,19 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 .setDefaultValue("");
     }
 
+    /**
+     * Context aware list of documentation tabs for this step, one tab per help source. When it returns a
+     * non-empty list, the drawer shows tabs and chapter navigation.
+     *
+     * @return
+     */
+    public List<HelpTab> getHelpTabs() {
+        return null;
+    }
+
     public boolean onNextPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
-        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+        WebComponentUtil.getPageBase(model.getPanel()).hideDrawer(target);
 
         if (model.hasNext()) {
             model.next();
@@ -321,7 +339,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        getPageBase().closeRightSidebar(target);
+        getPageBase().hideDrawer(target);
 
         onExitPerformed(target);
     }
@@ -329,7 +347,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     public boolean onBackPerformed(AjaxRequestTarget target) {
         WizardModel model = getWizard();
 
-        WebComponentUtil.getPageBase(model.getPanel()).closeRightSidebar(target);
+        WebComponentUtil.getPageBase(model.getPanel()).hideDrawer(target);
 
         if (model.hasPrevious()) {
             model.previous();
@@ -374,5 +392,14 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
     protected boolean isOnlyChildCentered() {
         return false;
+    }
+
+    public String getStepStatusMessage() {
+        String message = super.getStepStatusMessage();
+        String heading = getTextModel().getObject();
+        if (StringUtils.isNotEmpty(heading)) {
+            message += " " + heading;
+        }
+        return message;
     }
 }

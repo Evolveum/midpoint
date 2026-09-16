@@ -355,8 +355,7 @@ public class PageNodes extends PageAdmin {
                 result.recordStatus(OperationResultStatus.SUCCESS,
                         createStringResource("pageTasks.message.startSchedulersPerformed.success").getString());
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException
-                | RuntimeException | CommunicationException | ConfigurationException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError(createStringResource("pageTasks.message.startSchedulersPerformed.fatalError").getString(), e);
         }
 
@@ -379,8 +378,7 @@ public class PageNodes extends PageAdmin {
                 result.recordStatus(OperationResultStatus.SUCCESS,
                         createStringResource("pageTasks.message.stopSchedulersPerformed.success").getString());
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException
-                | RuntimeException | CommunicationException | ConfigurationException e) {
+        } catch (RuntimeException | CommonException e) {
             result.recordFatalError(createStringResource("pageTasks.message.stopSchedulersPerformed.fatalError").getString(), e);
         }
         showResult(result);
@@ -408,8 +406,7 @@ public class PageNodes extends PageAdmin {
                             createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.warning").getString());
                 }
             }
-        } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException
-                | RuntimeException | CommunicationException | ConfigurationException e) {
+        } catch (RuntimeException | CommonException e) {
             result.recordFatalError(
                     createStringResource("pageTasks.message.stopSchedulersAndTasksPerformed.fatalError").getString(), e);
         }

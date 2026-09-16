@@ -23,14 +23,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.test.util.TestReportUtil;
 
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -157,7 +158,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, createReportFilePrefix());
     }
 
-    @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private ClusterwideCacheInvalidationDispatcher cacheDispatcher;
 
     private static void checkConfigurationConsistence() {
         if (OTHER_PARAMETERS.disableDefaultMultivalueProvenance && SOURCES_CONFIGURATION.defaultRange) {

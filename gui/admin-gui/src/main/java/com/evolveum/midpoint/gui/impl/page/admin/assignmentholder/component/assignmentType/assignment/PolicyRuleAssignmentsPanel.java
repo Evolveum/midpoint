@@ -31,7 +31,6 @@ import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @PanelType(name = "policyRuleAssignments")

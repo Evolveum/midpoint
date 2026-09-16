@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardWithNavigationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentController;
@@ -32,10 +31,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_URL,
-                        label = "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.label",
-                        description = "PageAdminConnectorDevelopments.auth.connectorDevelopmentsAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_DEVELOPMENT_URL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONNECTOR_WIZARD_URL,
                         label = "PageAdminConnectorDevelopments.auth.connectorGenerator.label",
                         description = "PageAdminConnectorDevelopments.auth.connectorGenerator.description")
         })
@@ -108,5 +104,10 @@ public class PageConnectorDevelopment extends PageAssignmentHolderDetails<Connec
     @Override
     protected boolean canShowWizard() {
         return true;
+    }
+
+    @Override
+    protected boolean isShowToastForSuccessSave() {
+        return false;
     }
 }

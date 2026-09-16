@@ -204,7 +204,7 @@ class MappedSourceItems<T extends Containerable> {
 
     void createMappings(MappingEvaluationRequestsMap evaluationRequestsBeingCollected, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (var mappedItem : mappedSourceItems) {
             mappedItem.createMappings(evaluationRequestsBeingCollected, result);
         }

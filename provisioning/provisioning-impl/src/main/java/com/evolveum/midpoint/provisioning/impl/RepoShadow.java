@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
+import com.evolveum.midpoint.schema.processor.ShadowDefinitionApplicator;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

@@ -24,6 +24,7 @@ import dev.cel.compiler.CelCompilerLibrary;
 import dev.cel.extensions.CelExtensionLibrary;
 import dev.cel.extensions.CelExtensions;
 import dev.cel.runtime.CelRuntimeLibrary;
+import dev.cel.runtime.RuntimeEquality;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,14 +38,21 @@ public class MidPointCelExtensionManager {
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final MidpointFunctions midpointExpressionFunctions;
     private final CelOptions celOptions;
+    private final RuntimeEquality runtimeEquality;
 
     private final Map<String,CelExtensionLibrary.FeatureSet> libraryMap = new HashMap<>();
 
-    public MidPointCelExtensionManager(Protector protector, BasicExpressionFunctions basicExpressionFunctions, MidpointFunctions midpointExpressionFunctions, CelOptions celOptions) {
+    public MidPointCelExtensionManager(
+            Protector protector,
+            BasicExpressionFunctions basicExpressionFunctions,
+            MidpointFunctions midpointExpressionFunctions,
+            CelOptions celOptions,
+            RuntimeEquality runtimeEquality) {
         this.protector = protector;
         this.basicExpressionFunctions = basicExpressionFunctions;
         this.midpointExpressionFunctions = midpointExpressionFunctions;
         this.celOptions = celOptions;
+        this.runtimeEquality = runtimeEquality;
         initializeExtensions();
     }
 
@@ -61,12 +69,12 @@ public class MidPointCelExtensionManager {
         registerLibrary("lists", CelExtensions.lists());
         registerLibrary("regex", CelExtensions.regex());
         registerLibrary("comprehensions", CelExtensions.comprehensions());
-        registerLibrary("optional", CelExtensions.optional());
+//        registerLibrary("optional", CelExtensions.optional());
 
-        registerLibrary(CelMelExtensions.library(celOptions, protector, basicExpressionFunctions));
+        registerLibrary(CelMelExtensions.library(celOptions, protector, basicExpressionFunctions, runtimeEquality));
         registerLibrary(CelFormatExtensions.library(basicExpressionFunctions));
         registerLibrary(CelLdapExtensions.library(basicExpressionFunctions));
-        registerLibrary(CelObjectExtensions.library());
+        registerLibrary(CelObjectExtensions.library(midpointExpressionFunctions));
         registerLibrary(CelLogExtensions.library());
         registerLibrary(CelSecretExtensions.library(protector, basicExpressionFunctions));
         registerLibrary(CelMidPointExtensions.library(midpointExpressionFunctions));

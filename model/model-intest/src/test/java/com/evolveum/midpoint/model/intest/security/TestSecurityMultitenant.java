@@ -12,6 +12,8 @@ import java.io.IOException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.test.TestObject;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,14 +24,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
@@ -502,14 +496,14 @@ public class TestSecurityMultitenant extends AbstractInitializedSecurityTest {
         assertGlobalStateUntouched();
     }
 
-    private void assertAddDummyResourceAllow(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void assertAddDummyResourceAllow(File file) throws CommonException, IOException {
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(file);
         resource.asObjectable()
             .connectorRef(dummyConnector.getOid(), ConnectorType.COMPLEX_TYPE);
         assertAddAllow(resource, null);
     }
 
-    private void assertAddDummyResourceDeny(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    private void assertAddDummyResourceDeny(File file) throws CommonException, IOException {
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(file);
         resource.asObjectable()
             .connectorRef(dummyConnector.getOid(), ConnectorType.COMPLEX_TYPE);

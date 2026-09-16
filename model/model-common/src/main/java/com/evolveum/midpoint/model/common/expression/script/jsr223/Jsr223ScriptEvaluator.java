@@ -77,7 +77,7 @@ public class Jsr223ScriptEvaluator extends AbstractCachingScriptEvaluator<Script
 
     private Bindings convertToBindings(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         Bindings bindings = scriptEngine.createBindings();
         bindings.putAll(prepareUnifiedScriptVariablesValueMap(context));
         return bindings;

@@ -6,8 +6,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import java.util.Collection;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;

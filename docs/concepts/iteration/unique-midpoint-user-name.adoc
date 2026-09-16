@@ -53,11 +53,16 @@ When enabled the midPoint will do the following when a new user is created or ex
 There are two iteration variables that can be used in mappings:
 
 * Variable `iteration`: Numeric variable contains the number of current iteration.
-It starts with `0` and increments on every iteration.
+It increments on every iteration.
+The default starting value is `0` when `maxIterations` is configured and `1` otherwise (unless `start` is explicitly set).
+This ensures backward compatibility for deployments that previously had `maxIterations` defined (and may now define `end`), so that new records continue to be iterated starting from `0` consistently with existing records.
+When configuring iteration without `maxIterations`, the numbering starts naturally from `1`.
+Variable `attempt` is an alias for `iteration`.
 
 * Variable `iterationToken`: String variable that contains the portion of the identifier that is changed in each iteration.
-It can be derived from the iteration number using a special expression.
-A default value is supplied if no expression is used.
+It can be derived from the iteration number using a token expression.
+If no token expression is specified, the default expression is `iteration`.
+By default (with `useTokenOnlyOnConflict` set to `true`), the token expression is not evaluated for the first (non-conflicting) attempt.
 See the example below.
 
 [%autowidth]
@@ -80,6 +85,16 @@ See the example below.
 
 
 |===
+
+[NOTE]
+====
+The default token expression is `iteration`.
+With the default `useTokenOnlyOnConflict` value of `true`, the token expression is not evaluated for the first (non-conflicting) attempt, therefore `iterationToken` is empty on that attempt.
+On subsequent conflict attempts the token expression is evaluated and the result is the string value of the `iteration` (or `attempt`) variable.
+
+The default `start` value is `0` when `maxIterations` is configured and `1` otherwise.
+The default of `0` when `maxIterations` is present preserves backward compatibility for existing deployments where users had `maxIterations` defined (and now might define `end`), ensuring that new records continue to be iterated from `0`.
+====
 
 The iteration variables can be used in Object Template mappings.
 In this example, the mapping will be applied only for employees (employeeType == "EMPLOYEE"):
@@ -139,14 +154,11 @@ In the following example, iterator is increasing sequentially and zero-padded:
 . . .
     <iterationSpecification>
         <maxIterations>999</maxIterations>
+        <useTokenOnlyOnConflict>true</useTokenOnlyOnConflict>
         <tokenExpression>
             <script>
                 <code>
-                if (iteration == 0) {
-                    return "";
-                } else {
                     return sprintf("%03d", iteration);
-                }
                 </code>
             </script>
         </tokenExpression>

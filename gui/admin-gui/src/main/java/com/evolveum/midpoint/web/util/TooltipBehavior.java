@@ -23,9 +23,17 @@ public class TooltipBehavior extends Behavior {
     public void onConfigure(final Component component) {
         component.setOutputMarkupId(true);
 
-        component.add(AttributeModifier.replace("data-toggle", "tooltip"));
-        component.add(new AttributeModifier("data-placement", getDataPlacement()) {
+        component.add(AttributeModifier.replace("data-bs-toggle", "tooltip"));
+        addTooltipAttribute(component, "data-bs-placement", getDataPlacement());
 
+        String dataBoundary = getDataBoundary();
+        if (StringUtils.isNotEmpty(dataBoundary)) {
+            addTooltipAttribute(component, "data-bs-boundary", dataBoundary);
+        }
+    }
+
+    private void addTooltipAttribute(Component component, String attributeName, String value) {
+        component.add(new AttributeModifier(attributeName, value) {
             @Override
             protected String newValue(String currentValue, String replacementValue) {
                 if (StringUtils.isEmpty(currentValue)) {
@@ -38,5 +46,9 @@ public class TooltipBehavior extends Behavior {
 
     public String getDataPlacement() {
         return "right";
+    }
+
+    public String getDataBoundary() {
+        return null;
     }
 }

@@ -7,9 +7,9 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
 import static com.evolveum.midpoint.schema.util.SimulationMetricPartitionTypeUtil.ALL_DIMENSIONS;
-import static com.evolveum.midpoint.util.DebugUtil.*;
+import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricAggregationFunctionType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricAggregationFunctionType.SELECTION_TOTAL_VALUE;
 
 import java.util.*;
 

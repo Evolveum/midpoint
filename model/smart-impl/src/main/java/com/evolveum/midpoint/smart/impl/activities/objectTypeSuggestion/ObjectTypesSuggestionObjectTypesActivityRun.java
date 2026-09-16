@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationCo
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassUtil;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -78,8 +78,9 @@ class ObjectTypesSuggestionObjectTypesActivityRun
                     resourceOid, objectClassName, statisticsOid);
 
             var statistics = trimStatisticsForSuggestions(
-                    ShadowObjectClassUtil.getStatisticsRequired(
-                            getBeans().repositoryService.getObject(GenericObjectType.class, statisticsOid, null, result)));
+                    SmartIntegrationArtifactUtil.getStatisticsRequired(
+                            getBeans().repositoryService.getObject(
+                                    SmartIntegrationArtifactType.class, statisticsOid, null, result)));
             suggestedTypes = SmartIntegrationBeans.get().smartIntegrationService.suggestObjectTypes(
                     resourceOid, objectClassName, statistics,
                     getWorkDefinition().getRegenerateMode(),
@@ -102,7 +103,7 @@ class ObjectTypesSuggestionObjectTypesActivityRun
      * Trims the loaded statistics in-place, applying top-N limits and min-repeat filtering
      * before passing statistics to the AI suggestion service.
      */
-    private static ShadowObjectClassStatisticsType trimStatisticsForSuggestions(ShadowObjectClassStatisticsType stats) {
+    private static ObjectSetStatisticsType trimStatisticsForSuggestions(ObjectSetStatisticsType stats) {
         for (ShadowAttributeStatisticsType attr : stats.getAttribute()) {
             trimValueCounts(attr);
             trimPatternCounts(attr);

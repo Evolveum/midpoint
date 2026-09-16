@@ -35,7 +35,7 @@ public class LocaleTextPanel extends LocalePanel {
         image.setOutputMarkupId(true);
         add(image);
 
-        Label text = new Label(ID_TEXT, () -> getSelectedLocaleDescriptor().getName());
+        Label text = new Label(ID_TEXT, () -> getSelectedLocaleName());
         add(text);
 
         LocalesDropDownMenu localesMenu = new LocalesDropDownMenu(ID_LOCALES_MENU) {

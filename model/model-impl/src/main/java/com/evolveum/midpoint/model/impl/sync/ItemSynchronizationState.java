@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.AbstractCorrelationResult;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 public record ItemSynchronizationState<C extends Containerable> (
         @NotNull ItemSynchronizationSituationType situation,

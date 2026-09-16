@@ -60,7 +60,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             @NotNull CorrelationContext correlationContext,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new CorrelationOperation<>(correlationContext)
                 .execute(result);
     }
@@ -71,7 +71,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new ExplanationOperation<>(correlationContext, candidateOwner)
                 .execute(result);
     }
@@ -82,7 +82,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
             @NotNull FocusType candidateOwner,
             @NotNull OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
         return new CheckCandidateOperation<>(correlationContext, candidateOwner)
                 .execute(result);
     }
@@ -127,7 +127,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         /** Returns `null` if we cannot use the definitions here. */
         @Nullable ObjectQuery createQuery(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             if (areItemsApplicable(correlationItems)) {
                 return correlationItems.createIdentityQuery(
                         correlationContext.getFocusContainerableType(),
@@ -155,7 +155,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
         @Override
         public @NotNull Confidence getConfidence(Containerable candidate, Task task, OperationResult result)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
             PathKeyedMap<Double> itemConfidencesMap = new PathKeyedMap<>();
             double overallConfidence = 1.0;
             for (CorrelationItem item : correlationItems.getItems()) {
@@ -176,14 +176,14 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         CorrelationResult execute(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             Collection<C> candidates = findCandidates(result);
             return createResult(candidates, this, task, result);
         }
 
         private @NotNull Collection<C> findCandidates(OperationResult result)
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             ObjectQuery query = createQuery(result);
             Collection<C> allCandidates = query != null ? executeQuery(query, result) : List.of();
@@ -258,7 +258,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         Confidence execute(@NotNull OperationResult result)
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             boolean matches = checkCandidateOwner(candidateOwner, result);
 
@@ -275,7 +275,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
 
         private boolean checkCandidateOwner(F candidateOwner, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
             ObjectQuery query = createQuery(result);
             return query != null && candidateOwnerMatches(query, candidateOwner);
         }
@@ -305,7 +305,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
          */
         ItemsCorrelationExplanation execute(@NotNull OperationResult result)
                 throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-                SecurityViolationException, ObjectNotFoundException {
+                SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
             Confidence confidence = checkCandidateOwnerInternal(correlationContext, candidateOwner, result);
             return new ItemsCorrelationExplanation(

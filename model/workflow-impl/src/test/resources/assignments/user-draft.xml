@@ -8,4 +8,5 @@
     <name>draft</name>
     <lifecycleState>draft</lifecycleState>
     <fullName>Draft</fullName>
+    <displayName>Draft</displayName>
 </user>

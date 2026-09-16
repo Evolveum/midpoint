@@ -24,7 +24,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.factory.CustomEventFactory;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.EventHandlerConfigItem;
+import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
@@ -64,7 +64,8 @@ public class NotifyExecutor extends BaseActionExecutor {
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         String subtype = expressionHelper.getActionArgument(String.class, action,
                 NotifyActionExpressionType.F_SUBTYPE, PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, globalResult);
@@ -77,8 +78,8 @@ public class NotifyExecutor extends BaseActionExecutor {
         boolean forWholeInput = expressionHelper.getActionArgument(Boolean.class, action,
                 NotifyActionExpressionType.F_FOR_WHOLE_INPUT, PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
 
-        EventHandlerConfigItem handlerConfigItem = handler != null ?
-                EventHandlerConfigItem.of(handler, ConfigurationItemOrigin.undeterminedSafe()) : null;
+        BaseEventHandlerConfigItem handlerConfigItem = handler != null ?
+                BaseEventHandlerConfigItem.of(handler, ConfigurationItemOrigin.undeterminedSafe()) : null;
 
         requireNonNull(notificationManager, "Notification manager is unavailable");
         requireNonNull(customEventFactory, "Custom event factory is unavailable");

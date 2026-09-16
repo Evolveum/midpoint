@@ -9,7 +9,9 @@ package com.evolveum.midpoint.security.enforcer.impl.prism;
 import static com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCoverage.PARTIAL;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 

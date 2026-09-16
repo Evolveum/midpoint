@@ -99,12 +99,12 @@ public class ConflictItemPanel extends CardOutlineLeftPanel<Conflict> {
             Conflict c = getModelObject();
             switch (c.getState()) {
                 case SKIPPED:
-                    return "card-outline-left-secondary";
+                    return "card-outline-start-secondary";
                 case SOLVED:
-                    return "card-outline-left-success";
+                    return "card-outline-start-success";
             }
 
-            return c.isWarning() ? "card-outline-left-warning" : "card-outline-left-danger";
+            return c.isWarning() ? "card-outline-start-warning" : "card-outline-start-danger";
         };
     }
 

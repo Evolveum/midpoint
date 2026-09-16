@@ -136,7 +136,7 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
 
         for (PrismContainerValueWrapper<MappingType> wrapper : all) {
             String key;
-            if (getSuggestionInfo(wrapper) != null) {
+            if (isSuggestion(wrapper)) {
                 key = resolveGroupingKey(wrapper);
                 grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(wrapper);
             } else {
@@ -163,6 +163,13 @@ public class GroupedMappingDataProvider extends BaseSortableDataProvider<Mapping
 
         dtoCache.keySet().retainAll(seenKeys);
         return result;
+    }
+
+    private boolean isSuggestion(@NotNull PrismContainerValueWrapper<MappingType> wrapper) {
+        if (delegate instanceof StatusAwareDataProvider<MappingType> provider) {
+            return provider.isSuggestion(wrapper);
+        }
+        return false;
     }
 
     protected String getGroupName() {

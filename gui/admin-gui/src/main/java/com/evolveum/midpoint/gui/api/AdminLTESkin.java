@@ -22,7 +22,7 @@ public class AdminLTESkin {
     static {
         Map<String, String> map = new HashMap<>();
         map.put("skin-blue", "blue");
-        map.put("skin-blue-light", "lightblue");
+        map.put("skin-blue-light", "primary");
         map.put("skin-yellow", "yellow");
         map.put("skin-yellow-light", "yellow");
         map.put("skin-green", "green");
@@ -37,7 +37,7 @@ public class AdminLTESkin {
         ORIGINAL_SKINS = Collections.unmodifiableMap(map);
     }
 
-    public static final AdminLTESkin SKIN_DEFAULT = new AdminLTESkin("lightblue", "skin-blue-light");
+    public static final AdminLTESkin SKIN_DEFAULT = new AdminLTESkin("primary", "skin-blue-light");
 
     private String cssColorClass;
 
@@ -50,10 +50,6 @@ public class AdminLTESkin {
 
     public String getOriginalSkinName() {
         return "skin-" + originalSkinName;
-    }
-
-    public String getNavbarCss() {
-        return "navbar-" + cssColorClass;
     }
 
     public String getSidebarCss(boolean dark) {

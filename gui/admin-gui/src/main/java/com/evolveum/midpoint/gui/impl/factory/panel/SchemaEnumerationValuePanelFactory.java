@@ -8,19 +8,14 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.factory.panel.qname.QNameTextPanelFactory;
-import com.evolveum.midpoint.gui.impl.validator.SchemaDefinitionNameValidator;
 import com.evolveum.midpoint.gui.impl.validator.SchemaEnumerationValueValidator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.EnumerationValueTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.List;
 

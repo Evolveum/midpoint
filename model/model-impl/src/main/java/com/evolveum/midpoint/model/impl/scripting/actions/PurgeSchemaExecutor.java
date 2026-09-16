@@ -42,7 +42,8 @@ public class PurgeSchemaExecutor extends AbstractObjectBasedActionExecutor<Resou
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         PipelineData output = PipelineData.createEmpty();
 
@@ -60,7 +61,8 @@ public class PurgeSchemaExecutor extends AbstractObjectBasedActionExecutor<Resou
             PrismObject<? extends ResourceType> resource, PipelineItem item, PipelineData output,
             ExecutionContext context, OperationResult result)
             throws ExpressionEvaluationException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+            PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+            SubscriptionComplianceException {
 
         ResourceUtils.deleteSchema(resource, modelService, context.getTask(), result);
         context.println("Purged schema information from " + resource);

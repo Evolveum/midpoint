@@ -9,6 +9,16 @@ package com.evolveum.midpoint.rest.impl;
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
+
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
+import com.evolveum.midpoint.task.api.Tracer;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -30,7 +40,6 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -58,9 +67,10 @@ public class AbstractRestController {
     private final String opNamePrefix = getClass().getName() + ".";
 
     @Autowired protected AuditService auditService;
-    @Autowired protected SecurityHelper securityHelper;
+    @Autowired protected SecurityEnforcer securityEnforcer;
     @Autowired protected TaskManager taskManager;
     @Autowired protected PrismContext prismContext;
+    @Autowired protected Tracer tracer;
     @Autowired private SystemObjectCache systemObjectCache;
 
     protected Task initRequest() {
@@ -82,7 +92,35 @@ public class AbstractRestController {
     }
 
     protected OperationResult createSubresult(Task task, String operation) {
-        return task.getResult().createSubresult(opNamePrefix + operation);
+        return createSubresultInternal(task, operation, null);
+    }
+
+    private OperationResult createSubresultInternal(Task task, String operation, @Nullable CompiledTracingProfile profile) {
+        return task.getResult().subresult(opNamePrefix + operation)
+                .tracingProfile(profile)
+                .build(); // we need to set tracing profile before the result is initialized, otherwise e.g. logging is ignored
+    }
+
+    protected OperationResult createSubresult(Task task, String operation, @Nullable String tracingProfileName)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
+        // We need to compile tracing profile before creating the subresult.
+        @Nullable var compiledTracingProfile = getCompiledTracingProfile(task, tracingProfileName);
+        return createSubresultInternal(task, operation, compiledTracingProfile);
+    }
+
+    private @Nullable CompiledTracingProfile getCompiledTracingProfile(Task task, @Nullable String tracingProfileName)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SubscriptionComplianceException {
+        if (tracingProfileName != null) {
+            var result = task.getResult();
+            securityEnforcer.authorize(ModelAuthorizationAction.RECORD_TRACE.getUrl(), task, result);
+            var tracingProfile = new TracingProfileType()
+                    .ref(tracingProfileName);
+            return tracer.compileProfile(tracingProfile, result);
+        } else {
+            return null;
+        }
     }
 
     protected ResponseEntity<?> createResponse(HttpStatus statusCode, OperationResult result) {
@@ -211,6 +249,9 @@ public class AbstractRestController {
     }
 
     protected void finishRequest(Task task, OperationResult result) {
+        if (result.isTraced()) {
+            tracer.storeTrace(task, result, null);
+        }
         try {
             auditLogout(task, result);
         } finally {

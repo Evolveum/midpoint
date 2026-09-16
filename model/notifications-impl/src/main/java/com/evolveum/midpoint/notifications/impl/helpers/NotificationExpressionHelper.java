@@ -12,7 +12,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
@@ -79,7 +82,7 @@ public class NotificationExpressionHelper {
             VariablesMap variablesMap, String shortDesc,
             EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -126,7 +129,7 @@ public class NotificationExpressionHelper {
             @NotNull ConfigurationItemOrigin origin,
             VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef =
@@ -167,7 +170,7 @@ public class NotificationExpressionHelper {
             @NotNull ConfigurationItemOrigin origin,
             VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         PrismPropertyDefinition<RecipientExpressionResultType> resultDef =
                 prismContext.definitionFactory().newPropertyDefinition(
@@ -238,7 +241,7 @@ public class NotificationExpressionHelper {
             @NotNull ExpressionType expressionBean,
             @NotNull ConfigurationItemOrigin origin,
             VariablesMap variablesMap, String shortDesc, EventProcessingContext<?> ctx, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         var task = ctx.task();
         QName resultName = new QName(SchemaConstants.NS_C, "result");

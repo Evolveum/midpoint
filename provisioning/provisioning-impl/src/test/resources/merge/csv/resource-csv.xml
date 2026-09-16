@@ -1,0 +1,23 @@
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="f8ca4f55-2361-42b6-8f39-23a1e37af336">
+    <name>resource-g</name>
+    <lifecycleState>active</lifecycleState>
+    <super>
+        <resourceRef oid="ab76a143-f425-4d9d-bb3b-6076fe8e4452" type="ResourceType" />
+    </super>
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties
+                xmlns:cfg="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <cfg:multivalueDelimiter>,</cfg:multivalueDelimiter>
+            <cfg:fieldDelimiter>;</cfg:fieldDelimiter>
+            <cfg:filePath>target/csv-users.csv</cfg:filePath>
+            <cfg:objectClassDefinition>target/csv-properties.prop</cfg:objectClassDefinition>
+            <cfg:nameAttribute>name</cfg:nameAttribute>
+            <cfg:uniqueAttribute>name</cfg:uniqueAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+</resource>

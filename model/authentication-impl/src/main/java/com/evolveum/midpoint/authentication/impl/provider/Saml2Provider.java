@@ -24,7 +24,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.saml2.provider.service.authentication.DefaultSaml2AuthenticatedPrincipal;
-import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml5AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.authentication.Saml2Authentication;
 import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticationToken;
 import org.springframework.util.CollectionUtils;
@@ -40,8 +40,8 @@ public class Saml2Provider extends RemoteModuleProvider {
 
     private static final Trace LOGGER = TraceManager.getTrace(Saml2Provider.class);
 
-    private final OpenSaml4AuthenticationProvider openSamlProvider = new OpenSaml4AuthenticationProvider();
-    private final Converter<OpenSaml4AuthenticationProvider.ResponseToken, Saml2Authentication> defaultConverter = OpenSaml4AuthenticationProvider.createDefaultResponseAuthenticationConverter();
+    private final OpenSaml5AuthenticationProvider openSamlProvider = new OpenSaml5AuthenticationProvider();
+    private final Converter<OpenSaml5AuthenticationProvider.ResponseToken, Saml2Authentication> defaultConverter = OpenSaml5AuthenticationProvider.createDefaultResponseAuthenticationConverter();
 
     public Saml2Provider() {
         initSamlProvider();

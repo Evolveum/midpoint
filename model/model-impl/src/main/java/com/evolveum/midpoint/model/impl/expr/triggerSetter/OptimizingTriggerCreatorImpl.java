@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -30,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
@@ -119,52 +119,63 @@ public class OptimizingTriggerCreatorImpl implements OptimizingTriggerCreator {
                     key, triggerFoundOnCurrentNode);
         }
 
-        // Let's check right in the object
-        ObjectType existingObject = getObject(key);
-        if (existingObject == null) {
+        // Let's check right in the object. The check and the eventual trigger creation must be a single atomic
+        // operation: two tasks processing the same object concurrently could otherwise both pass the check and
+        // both add a trigger (MID-10299). Hence modifyObjectDynamically: the supplier is executed on the current
+        // object state within the modification transaction (and re-executed on a conflict).
+        String oid = resolveOid(key);
+        if (oid == null) {
             return false; // should not occur
         }
 
-        var suitableTriggers = existingObject.getTrigger().stream()
-                .filter(t -> RecomputeTriggerHandler.HANDLER_URI.equals(t.getHandlerUri()))
-                .filter(t -> now < toMillis(t.getTimestamp()) - safetyMargin)
-                .toList();
-        if (!suitableTriggers.isEmpty()) {
-            LOGGER.trace("Found {} suitable trigger(s) on {}: {}, no need to create another one",
-                    suitableTriggers.size(), key, suitableTriggers);
+        CreatedTrigger triggerCreated = createTriggerIfNotPresent(key.getType(), oid, now);
+        if (triggerCreated == null) {
             return false;
         }
-
-        CreatedTrigger triggerCreated = createTrigger(existingObject, key, now + fireAfter);
         if (useGlobalState) {
             globalState.recordCreatedTrigger(key, triggerCreated);
         }
         return true;
     }
 
-    private CreatedTrigger createTrigger(ObjectType existingObject, TriggerHolderSpecification key, long triggerTimestamp)
+    private <T extends ObjectType> @Nullable CreatedTrigger createTriggerIfNotPresent(Class<T> type, String oid, long now)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         RepositoryService repositoryService = midpointFunctions.getRepositoryService();
-        TriggerType trigger = new TriggerType()
-                .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
-                .timestamp(XmlTypeConverter.createXMLGregorianCalendar(triggerTimestamp));
-        List<ItemDelta<?, ?>> itemDeltas = PrismContext.get().deltaFor(key.getType())
-                .item(ObjectType.F_TRIGGER).add(trigger)
-                .asItemDeltas();
-        repositoryService.modifyObject(existingObject.getClass(), existingObject.getOid(), itemDeltas, getCurrentResult());
-        return new CreatedTrigger(existingObject.getOid(), triggerTimestamp);
+        long triggerTimestamp = now + fireAfter;
+        AtomicBoolean created = new AtomicBoolean();
+        repositoryService.modifyObjectDynamically(
+                type, oid, null,
+                object -> {
+                    var suitableTriggers = object.getTrigger().stream()
+                            .filter(t -> RecomputeTriggerHandler.HANDLER_URI.equals(t.getHandlerUri()))
+                            .filter(t -> now < toMillis(t.getTimestamp()) - safetyMargin)
+                            .toList();
+                    if (!suitableTriggers.isEmpty()) {
+                        LOGGER.trace("Found {} suitable trigger(s) on {}: {}, no need to create another one",
+                                suitableTriggers.size(), oid, suitableTriggers);
+                        created.set(false);
+                        return List.of();
+                    }
+                    created.set(true);
+                    TriggerType trigger = new TriggerType()
+                            .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                            .timestamp(XmlTypeConverter.createXMLGregorianCalendar(triggerTimestamp));
+                    return PrismContext.get().deltaFor(type)
+                            .item(ObjectType.F_TRIGGER).add(trigger)
+                            .asItemDeltas();
+                },
+                null, getCurrentResult());
+        return created.get() ? new CreatedTrigger(oid, triggerTimestamp) : null;
     }
 
-    private @Nullable ObjectType getObject(TriggerHolderSpecification key) throws SchemaException, ObjectNotFoundException {
-        RepositoryService repositoryService = midpointFunctions.getRepositoryService();
-        PrismContext prismContext = midpointFunctions.getPrismContext();
-
+    private @Nullable String resolveOid(TriggerHolderSpecification key) throws SchemaException {
         String oid = key.getOid();
         if (oid != null) {
-            return repositoryService
-                    .getObject(key.getType(), oid, readOnly(), getCurrentResult())
-                    .asObjectable();
+            return oid;
         }
+
+        RepositoryService repositoryService = midpointFunctions.getRepositoryService();
+        PrismContext prismContext = midpointFunctions.getPrismContext();
 
         ObjectQuery query = key.createQuery(prismContext);
         if (query == null) {
@@ -178,7 +189,7 @@ public class OptimizingTriggerCreatorImpl implements OptimizingTriggerCreator {
         } else if (objects.size() > 1) {
             LOGGER.warn("More than one object found for {}; trigger will be considered only for the first one: {}", key, objects);
         }
-        return objects.get(0).asObjectable();
+        return objects.get(0).getOid();
     }
 
     private @NotNull OperationResult getCurrentResult() {

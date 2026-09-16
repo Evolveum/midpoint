@@ -58,14 +58,14 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
             ConnectorOperationOptions connOptions,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         return new ResourceObjectDeleteOperation(ctx, shadow, scripts, connOptions)
                 .doExecute(result);
     }
 
     private @NotNull ResourceObjectDeleteResult doExecute(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.trace("Deleting resource object {}", shadow);
 
         ctx.checkExecutionFullyPersistent();
@@ -125,7 +125,8 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
         } catch (SchemaException | Error e) {
             throw e; // These we want to propagate.
         } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
-                ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException e) {
+                 ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException |
+                 SubscriptionComplianceException e) {
             // Now just log the errors, but do NOT re-throw the exception (except for some exceptions).
             // We want the original delete to take place, throwing an exception would spoil that.
             LOGGER.error(e.getMessage(), e);

@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAttributeMappingsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeInboundMappingsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.Nullable;

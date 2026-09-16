@@ -25,7 +25,10 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 import static com.evolveum.midpoint.util.QNameUtil.unqualify;
 import static java.util.Collections.singleton;

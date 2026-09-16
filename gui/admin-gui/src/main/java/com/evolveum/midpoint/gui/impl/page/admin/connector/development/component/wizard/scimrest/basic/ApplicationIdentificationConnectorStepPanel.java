@@ -6,16 +6,21 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.scimrest.basic;
 
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
@@ -23,7 +28,9 @@ import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPane
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -181,10 +188,12 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
+        boolean applicationInfoChanged = isApplicationInfoChanged();
         try {
             PrismPropertyValueWrapper<Object> value = PrismPropertyWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(), ConnectorDevelopmentType.F_NAME)
                     .getObject().getValue();
-            if (value.getRealValue() == null) {
+            if (value.getRealValue() == null
+                    || getDetailsModel().getObjectWrapper().getStatus() == ItemStatus.ADDED) {
                 value.setRealValue(
                         PrismPropertyWrapperModel.fromContainerWrapper((IModel<PrismContainerWrapper<ConnDevApplicationInfoType>>) getContainerFormModel(), ConnDevApplicationInfoType.F_APPLICATION_NAME)
                                 .getObject().getValue().getRealValue()
@@ -196,11 +205,56 @@ public class ApplicationIdentificationConnectorStepPanel extends AbstractFormWiz
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
         if (result != null && !result.isError()) {
+            if (applicationInfoChanged) {
+                restartDocumentationDiscovery();
+            }
             super.onNextPerformed(target);
         } else {
             target.add(getFeedback());
         }
         return false;
+    }
+
+    /**
+     * Returns true if the user changed the application information used by the documentation
+     * discovery (name, version, integration type), so the already discovered documentation
+     * may belong to a different application. Changes of other items (e.g. description)
+     * don't influence the discovery.
+     */
+    private boolean isApplicationInfoChanged() {
+        if (getDetailsModel().getObjectWrapper().getStatus() == ItemStatus.ADDED) {
+            // Initial creation, there is no previous discovery to restart.
+            return false;
+        }
+        List<ItemName> discoveryRelevantItems = List.of(
+                ConnDevApplicationInfoType.F_APPLICATION_NAME,
+                ConnDevApplicationInfoType.F_VERSION,
+                ConnDevApplicationInfoType.F_INTEGRATION_TYPE);
+        try {
+            PrismContainerWrapper<ConnDevApplicationInfoType> container =
+                    ((IModel<PrismContainerWrapper<ConnDevApplicationInfoType>>) getContainerFormModel()).getObject();
+            var deltas = container.getDelta();
+            return deltas != null && deltas.stream().anyMatch(
+                    delta -> discoveryRelevantItems.stream().anyMatch(
+                            item -> QNameUtil.match(item, delta.getElementName())));
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Resets the documentation waiting step, so the documentation discovery is executed
+     * again instead of reusing the result of the previous discovery task.
+     */
+    private void restartDocumentationDiscovery() {
+        if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
+            for (WizardStep step : parentWizardModel.getActiveChildrenSteps()) {
+                if (step instanceof WaitingForDocumentationConnectorStepPanel waitingPanel) {
+                    waitingPanel.restartTask();
+                    return;
+                }
+            }
+        }
     }
 
     @Override

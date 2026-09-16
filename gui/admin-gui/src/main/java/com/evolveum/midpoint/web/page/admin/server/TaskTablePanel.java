@@ -124,7 +124,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 synchronizeTasksPerformed(target);
             }
         };
-        synchronize.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        synchronize.add(AttributeAppender.append("class", "btn btn-light border btn-sm"));
         return synchronize;
     }
 
@@ -150,7 +150,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 referenceList.addAll(getNewObjectReferencesList(collectionView, relation));
             }
             TaskOperationUtils.addArchetypeReferencesList(referenceList);
-            DetailsPageUtil.initNewObjectWithReference(getPageBase(),
+            DetailsPageUtil.initNewObjectWithReferenceAndRedirect(getPageBase(),
                     relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
                             relation.getObjectTypes().get(0) : WebComponentUtil.classToQName(getPrismContext(), getType()),
                     referenceList);

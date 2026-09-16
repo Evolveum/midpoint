@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import jakarta.servlet.ServletRequest;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

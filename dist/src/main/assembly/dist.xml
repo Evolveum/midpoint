@@ -54,7 +54,14 @@
                 <exclude>pom.xml</exclude>
                 <exclude>*~</exclude>
                 <exclude>**/*~</exclude>
+                <!-- Only README pointing to system-init module is there, initial objects
+                     are assembled directly from system-init resources below. -->
+                <exclude>initial-objects/</exclude>
             </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>../repo/system-init/src/main/resources/initial-objects</directory>
+            <outputDirectory>doc/config/initial-objects</outputDirectory>
         </fileSet>
         <fileSet>
             <directory>target/schemadist</directory>

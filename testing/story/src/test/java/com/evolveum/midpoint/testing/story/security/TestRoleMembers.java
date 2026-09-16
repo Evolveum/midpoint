@@ -154,9 +154,7 @@ public class TestRoleMembers extends AbstractStoryTest {
 
     }
 
-    private ModelContext<UserType> previewUser(String userOid)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private ModelContext<UserType> previewUser(String userOid) throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);

@@ -665,9 +665,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
     @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     private PrismPropertyAsserter<Object, ShadowAttributesAsserter<Void>> assertMembers(String groupName, Task task,
-            OperationResult result, String... expectedUsers)
-            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+            OperationResult result, String... expectedUsers) throws CommonException {
 
         PrismObject<ShadowType> shadowInRepo = findShadowByName(
                 ShadowKindType.ENTITLEMENT, "group", groupName, RESOURCE_GROUPER.get(), result);

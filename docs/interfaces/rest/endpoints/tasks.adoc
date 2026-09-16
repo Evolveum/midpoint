@@ -2,7 +2,7 @@
 :page-nav-title: Task
 :page-display-order: 600
 :page-toc: top
-:page-keywords: [ 'rest', 'task', 'endpoint' ]
+:page-keywords: rest, task, endpoint
 :page-upkeep-status: green
 
 == Description

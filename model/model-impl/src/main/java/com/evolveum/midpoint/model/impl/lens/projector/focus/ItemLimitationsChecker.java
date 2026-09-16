@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
-
 /**
  * Checks item limitations.
  *

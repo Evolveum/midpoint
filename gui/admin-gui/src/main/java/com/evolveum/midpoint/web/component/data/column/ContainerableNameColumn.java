@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serial;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -89,7 +90,8 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
         if (selectableBean instanceof SelectableBean) {
             OperationResult result = ((SelectableBean<?>) selectableBean).getResult();
             OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return getPageBase().getString(props.getStatusLabelKey());
+            String status = getPageBase().getString(props.getStatusLabelKey());
+            return StringUtils.isBlank(result.getMessage()) ? status : status + ": " + result.getMessage();
         }
         return "";
     }

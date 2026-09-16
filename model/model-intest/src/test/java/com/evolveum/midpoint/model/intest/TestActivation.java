@@ -95,6 +95,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
             c -> c.extendSchemaPirate());
     private static final DummyTestResource RESOURCE_DUMMY_FIXED_EXISTENCE = new DummyTestResource(TEST_DIR,
             "resource-dummy-fixed-existence.xml", "8ba303ee-3f07-4163-aa46-508cbc496ff4", "fixed-existence");
+    private static final DummyTestResource RESOURCE_DUMMY_EXISTENCE_INPUT = new DummyTestResource(TEST_DIR,
+            "resource-dummy-existence-input.xml", "8ba303ee-3f07-4163-aa46-508cbc496ff5", "existence-input");
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -133,7 +135,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 RESOURCE_DUMMY_KHAKI,
                 RESOURCE_DUMMY_PRECREATE,
                 RESOURCE_DUMMY_FULL_VALIDITY,
-                RESOURCE_DUMMY_FIXED_EXISTENCE);
+                RESOURCE_DUMMY_FIXED_EXISTENCE,
+                RESOURCE_DUMMY_EXISTENCE_INPUT);
 
         resourceDummyKhaki = modelService
                 .getObject(ResourceType.class, RESOURCE_DUMMY_KHAKI.oid, null, initTask, initResult)
@@ -589,7 +592,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         String accountOid = getLiveLinkRefOid(userJack, RESOURCE_DUMMY_OID);
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        assertDisableReasonShadow(accountShadow, ModelDisableReason.MAPPED.uri);
     }
 
     @Test
@@ -645,7 +648,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, startTime, endTime);
-        assertDisableReasonShadow(accountShadow, MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(accountShadow, ModelDisableReason.EXPLICIT.uri);
 
         assertAdministrativeStatusEnabled(userJack);
         assertDummyDisabled("jack");
@@ -678,7 +681,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
         assertAdministrativeStatusDisabled(accountShadow);
         assertDisableTimestampShadow(accountShadow, null, startTime);
-        assertDisableReasonShadow(accountShadow, MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(accountShadow, ModelDisableReason.EXPLICIT.uri);
 
         assertAdministrativeStatusEnabled(userJack);
         assertDummyDisabled("jack");
@@ -804,7 +807,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatusDisabled(account);
         assertDisableTimestampShadow(account, startTime, endTime);
-        assertDisableReasonShadow(account, MODEL_DISABLE_REASON_EXPLICIT);
+        assertDisableReasonShadow(account, ModelDisableReason.EXPLICIT.uri);
     }
 
     /**
@@ -899,7 +902,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableTimestampShadow(accountRed, startTime, endTime);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.MAPPED.uri);
     }
 
     @Test
@@ -991,7 +994,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME,
                 getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
         assertAdministrativeStatusDisabled(accountRed);
-        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
+        assertDisableReasonShadow(accountRed, ModelDisableReason.DEPROVISION.uri);
 
         // Red resource has disabled-instead-of-delete, therefore the account should exists and be disabled
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -1319,7 +1322,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType());
         assertAdministrativeStatus(account, accountStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
         if (!accountStatus) {
-            assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+            assertDisableReasonShadow(account, ModelDisableReason.EXPLICIT.uri);
         }
 
         assertAccountShadowModel(accountYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME,
@@ -1330,7 +1333,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                     DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Bla bla bla administrator -- administrator");
         } else {
             assertAdministrativeStatus(accountYellow, ActivationStatusType.DISABLED);
-            assertDisableReasonShadow(accountYellow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+            assertDisableReasonShadow(accountYellow, ModelDisableReason.EXPLICIT.uri);
             assertNoDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
         }
 
@@ -3113,6 +3116,36 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNoObject(UserType.class, user.getOid());
         assertDummyAccountByUsername(RESOURCE_DUMMY_FIXED_EXISTENCE.name, userName)
                 .assertFullName(fullName);
+    }
+
+    /** Existence mapping should expose "input" as the same legality value as "legal". MID-10905. */
+    @Test
+    public void test830ExistenceInput() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        var userName = getTestNameShort();
+        var fullName = "Mr. " + userName;
+
+        given("a user with a single account exists");
+        var user = new UserType()
+                .name(userName)
+                .fullName(fullName)
+                .assignment(
+                        RESOURCE_DUMMY_EXISTENCE_INPUT.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
+        addObject(user, task, result);
+
+        then("the existence mapping used input=true to create the account");
+        assertSuccess(result);
+        assertDummyAccountByUsername(RESOURCE_DUMMY_EXISTENCE_INPUT.name, userName)
+                .assertFullName(fullName);
+
+        when("the account is unassigned");
+        unassignAccountFromUser(user.getOid(), RESOURCE_DUMMY_EXISTENCE_INPUT.oid, INTENT_DEFAULT, task, result);
+
+        then("the existence mapping used input=false to delete the account");
+        assertSuccess(result);
+        assertNoDummyAccount(RESOURCE_DUMMY_EXISTENCE_INPUT.name, userName);
     }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {

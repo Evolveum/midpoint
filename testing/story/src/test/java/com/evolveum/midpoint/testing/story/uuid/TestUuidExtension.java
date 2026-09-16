@@ -153,7 +153,7 @@ public class TestUuidExtension extends AbstractUuidTest {
         // TODO
     }
 
-    private void assertLdapEmployee(PrismObject<UserType> user, String name, String firstName, String lastName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertLdapEmployee(PrismObject<UserType> user, String name, String firstName, String lastName) throws CommonException {
         assertLiveLinks(user, 1);
         assertAssignments(user, RoleType.class, 1);
         assertAssignedRole(user, ROLE_EMPLOYEE_OID);

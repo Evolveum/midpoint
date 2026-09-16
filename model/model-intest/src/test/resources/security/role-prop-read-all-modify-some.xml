@@ -17,6 +17,7 @@
         <name>AUTZreadAllModify2</name>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
         <item>c:fullName</item>
+        <item>c:displayName</item>
         <item>c:description</item>
         <item>extension/ship</item>
         <item>extension/weapon</item>

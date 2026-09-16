@@ -187,6 +187,6 @@ public class ColumnTilePanel<
     }
 
     protected @NotNull String getDefaultPanelCss() {
-        return "card col-12 py-1 px-3 m-0";
+        return "card shadow-sm col-12 py-1 px-3 m-0";
     }
 }

@@ -61,9 +61,7 @@ public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
 
     @Override
     protected List<ConnectorDevelopmentArtifacts.KnownArtifactType> getScriptClassifications() {
-        return List.of(
-                ConnectorDevelopmentArtifacts.KnownArtifactType.CONNID_SCHEMA_DEFINITION,
-                ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION);
+        return List.of(ConnectorDevelopmentArtifacts.KnownArtifactType.NATIVE_SCHEMA_DEFINITION);
     }
 
     @Override

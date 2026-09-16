@@ -17,11 +17,13 @@ import java.util.List;
 import java.util.Set;
 
 import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 
 import jakarta.annotation.PostConstruct;
 
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +50,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CacheInvalidationEventSpecification;
-import com.evolveum.midpoint.repo.api.CacheListener;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -75,7 +73,7 @@ import com.google.common.collect.ImmutableSet;
  */
 @Service(value = "guiProfiledPrincipalManager")
 public class GuiProfiledPrincipalManagerImpl
-        implements CacheListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
+        implements CacheInvalidationListener, GuiProfiledPrincipalManager, UserDetailsService, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
@@ -91,7 +89,6 @@ public class GuiProfiledPrincipalManagerImpl
             .add(CacheInvalidationEventSpecification.of(SystemConfigurationType.class, ImmutableSet.of(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION), MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(SchemaType.class, ImmutableSet.of(SchemaType.F_DEFINITION), CacheInvalidationEventSpecification.ALL_CHANGES))
             .build();
-
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -109,7 +106,7 @@ public class GuiProfiledPrincipalManagerImpl
     private SecurityContextManager securityContextManager;
 
     @Autowired
-    private CacheDispatcher cacheDispatcher;
+    private CacheInvalidationDispatcher cacheDispatcher;
 
     // registry is not available e.g. during tests
     @Autowired(required = false)
@@ -122,7 +119,12 @@ public class GuiProfiledPrincipalManagerImpl
     @PostConstruct
     public void initialize() {
         LOGGER.info("Registering as cache listener");
-        cacheDispatcher.registerCacheListener(this);
+        cacheDispatcher.registerListener(this);
+    }
+
+    @PreDestroy
+    public void unregister() {
+        cacheDispatcher.unregisterListener(this);
     }
 
     @Override
@@ -441,8 +443,7 @@ public class GuiProfiledPrincipalManagerImpl
     }
 
     @Override
-    public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
-            CacheInvalidationContext context) {
+    public <O extends ObjectType> void invalidate(Class<O> type, String oid, CacheInvalidationContext context) {
         if (sessionRegistry == null) {
             // In tests sessionRegistry is null.
             return;

@@ -9,6 +9,7 @@
     <name>role-add-10</name>
     <inducement>
         <policyRule>
+            <name>add-10</name>
             <policyConstraints>
                 <modification>
                     <operation>add</operation>

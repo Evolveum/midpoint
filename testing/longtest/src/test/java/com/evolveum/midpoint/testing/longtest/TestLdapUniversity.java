@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.apache.commons.io.IOUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -143,7 +145,7 @@ public class TestLdapUniversity extends AbstractLongTest {
 
     }
 
-    private void assertUser(String name) throws com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
+    private void assertUser(String name) throws CommonException {
         UserType user = findUserByUsername(name).asObjectable();
         display("user " + name, user.asPrismObject());
     }

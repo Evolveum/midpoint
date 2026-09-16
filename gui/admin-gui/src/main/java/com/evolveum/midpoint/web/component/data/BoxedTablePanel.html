@@ -7,6 +7,7 @@
 
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <span wicket:id="liveStatus" role="status" aria-live="polite" aria-atomic="true" class="visually-hidden"></span>
     <div class="card-header" wicket:id="header"/>
     <div wicket:id="searchResultInfo" class="text-muted p-3"></div>
     <div wicket:id="tableContainer" class="card-body p-0 table-responsive">
@@ -20,10 +21,10 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div class="d-flex" wicket:id="buttonToolbar"/>
         <div class="d-flex align-items-center flex-wrap gap-2" wicket:id="footerContainer">
-            <form class="mr-3" wicket:id="form">
+            <form class="me-3" wicket:id="form">
                 <div wicket:id="pageSize"/>
             </form>
-            <div class="mr-3">
+            <div class="me-3">
                 <span class="align-middle" wicket:id="count"/>
             </div>
             <div wicket:id="paging"/>

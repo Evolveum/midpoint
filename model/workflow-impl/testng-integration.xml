@@ -25,6 +25,7 @@
             <class name="com.evolveum.midpoint.wf.impl.objects.TestObjectLifecycleApprovalPlain"/>
             <class name="com.evolveum.midpoint.wf.impl.objects.TestObjectLifecycleApprovalGlobal"/>
             <class name="com.evolveum.midpoint.wf.impl.objects.TestObjectLifecycleAdvanced"/>
+            <class name="com.evolveum.midpoint.wf.impl.objects.TestObjectLifecycleApprovalSkipped"/>
         </classes>
     </test>
     <test name="Other" preserve-order="true" parallel="none" verbose="10" enabled="true">

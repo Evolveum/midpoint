@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 public class VisualizationImpl implements Visualization, DebugDumpable {
 
@@ -210,7 +210,9 @@ public class VisualizationImpl implements Visualization, DebugDumpable {
     }
 
     public boolean isFocusObject() {
-        return sourceDefinition != null && sourceDefinition.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
+        return sourceDefinition != null
+                && sourceDefinition.getCompileTimeClass() != null
+                && ProjectionHolderType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
     }
 
     public boolean isEmpty() {

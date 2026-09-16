@@ -8,7 +8,7 @@
 
 package com.evolveum.midpoint.smart.impl.activities.mappingSuggestion;
 
-import static com.evolveum.midpoint.schema.util.ShadowObjectTypeUtil.createObjectTypeStatisticsObject;
+import static com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil.createObjectTypeStatisticsArtifact;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,10 @@ import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.impl.activities.ObjectTypeStatisticsComputer;
 import com.evolveum.midpoint.smart.impl.activities.Util;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -115,7 +118,7 @@ public class MappingsSuggestionStatisticsComputationActivityRun
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
         var def = getWorkDefinition();
         var lastStatisticsObject = smartIntegrationService
-                .getLatestObjectTypeStatistics(def.getResourceOid(), def.getKind(), def.getIntent(), result);
+                .getLatestObjectTypeStatistics(def.getResourceOid(), def.getTypeIdentification(), result);
         return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 
@@ -156,17 +159,22 @@ public class MappingsSuggestionStatisticsComputationActivityRun
                 .coverage(1.0f)
                 .timestamp(clock.currentTimeXMLGregorianCalendar());
 
+        if (statistics.getSize() == 0) {
+            LOGGER.debug("No objects found, skipping object type statistics object creation");
+            return;
+        }
+
         var def = getWorkDefinition();
-        var statisticsObject = createObjectTypeStatisticsObject(
+        var statisticsObject = createObjectTypeStatisticsArtifact(
                 resource.getOid(),
                 resource.getName().getOrig(),
-                def.getKind(),
-                def.getIntent(),
+                def.getTypeIdentification(),
                 statistics);
 
         LOGGER.debug("Adding object type statistics object:\n{}", statisticsObject.debugDump(1));
 
         var oid = repositoryService.addObject(statisticsObject.asPrismObject(), null, result);
+
         storeStatisticsObjectOid(oid, result);
     }
 
@@ -175,7 +183,7 @@ public class MappingsSuggestionStatisticsComputationActivityRun
         var parentState = Util.getParentState(this, result);
         parentState.setWorkStateItemRealValues(
                 MappingsSuggestionWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         parentState.flushPendingTaskModificationsChecked(result);
     }
 }

@@ -53,7 +53,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
 
     boolean computeFilter()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         if (objectSelectors.isEmpty()) {
             autzFilter = FilterCreationUtil.createAll();
@@ -71,7 +71,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
 
     private void processSelector(int i, ValueSelector selector)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
 
         String selectorDesc = TracingUtil.getHumanReadableDesc(selector);
         SelectorWithItems baseSelector =

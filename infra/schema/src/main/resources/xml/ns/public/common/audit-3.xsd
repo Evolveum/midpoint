@@ -419,12 +419,22 @@
             <xsd:element name="customColumnProperty" type="tns:AuditEventRecordCustomColumnPropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Field of custom column for audit resord table.
+                        Field of custom column for audit record table.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:experimental>true</a:experimental>
                         <a:displayName>AuditEventRecordType.customColumnProperty</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="payload" type="tns:AuditEventRecordPayloadType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Generic payload attached to an audit record.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.payload</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -482,6 +492,19 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuditEventRecordPayloadType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic payload attached to an audit record.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="content" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AuditEventRecordPropertyType">
@@ -657,6 +680,13 @@
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="INFORMATION_DISCLOSURE"/>
                         <a:since>4.8</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="externalServiceCall">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXTERNAL_SERVICE_CALL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -21,8 +21,8 @@
         <item>givenName</item>
         <item>familyName</item>
         <item>fullName</item>
-        <item>employeeType</item>
         <item>employeeNumber</item>
+        <item>personalNumber</item>
     </authorization>
     <authorization>
         <name>roles-read</name>
@@ -38,7 +38,6 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>roleType</item>
     </authorization>
     <authorization>
         <name>orgs-read</name>
@@ -54,7 +53,6 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>orgType</item>
     </authorization>
     <authorization>
         <name>services-read</name>
@@ -70,7 +68,6 @@
         <item>identifier</item>
         <item>description</item>
         <item>riskLevel</item>
-        <item>serviceType</item>
     </authorization>
     <authorization>
         <description>

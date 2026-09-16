@@ -12,7 +12,9 @@ import com.evolveum.midpoint.schema.traces.OpNode;
 import com.evolveum.midpoint.schema.traces.OpResultInfo;
 import com.evolveum.midpoint.schema.traces.TraceInfo;
 import com.evolveum.midpoint.schema.traces.TraceUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;

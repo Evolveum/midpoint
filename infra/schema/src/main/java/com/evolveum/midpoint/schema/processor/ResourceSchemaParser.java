@@ -255,7 +255,8 @@ class ResourceSchemaParser {
         LOGGER.trace("Created {} refined object class definitions from beans; now remaining ones", classDefinitionCIs.size());
 
         for (var nativeObjectClassDefinition : nativeSchema.getObjectClassDefinitions()) {
-            if (resourceSchema.findObjectClassDefinition(nativeObjectClassDefinition.getQName()) == null) {
+            QName midPointObjectClassName = ResourceSchema.nativeToMidPointClassName(nativeObjectClassDefinition.getName());
+            if (resourceSchema.findObjectClassDefinition(midPointObjectClassName) == null) {
                 resourceSchema.add(
                         ResourceObjectClassDefinitionImpl.create(
                                 basicResourceInformation, nativeObjectClassDefinition, null));

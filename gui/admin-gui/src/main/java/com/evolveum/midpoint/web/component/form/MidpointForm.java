@@ -11,7 +11,6 @@ import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.Response;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
@@ -41,7 +40,7 @@ public class MidpointForm<T> extends Form<T> {
 
     @Override
     protected void onRender() {
-        setFileCountMax(MultipartFormConfiguration.getMaxMultipartsLimit());
+        setFileCountMax(MultipartFormConfiguration.getMaxMultipartLimit());
         super.onRender();
     }
 

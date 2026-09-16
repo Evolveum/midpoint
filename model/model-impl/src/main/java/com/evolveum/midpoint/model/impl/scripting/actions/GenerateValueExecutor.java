@@ -52,7 +52,8 @@ public class GenerateValueExecutor extends AbstractObjectBasedActionExecutor<Obj
     public PipelineData execute(
             ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult globalResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PolicyViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         PolicyItemsDefinitionType itemsDefinition;
         PolicyItemsDefinitionType configured = expressionHelper.getActionArgument(PolicyItemsDefinitionType.class, action,

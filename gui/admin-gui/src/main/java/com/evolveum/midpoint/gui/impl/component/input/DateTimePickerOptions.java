@@ -27,7 +27,9 @@ import java.text.SimpleDateFormat;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Options that will be used for date time picker in js.
@@ -214,8 +216,7 @@ public class DateTimePickerOptions implements Serializable {
             if (formats != null && StringUtils.isNotEmpty(formats.getLongDateTimeFormat())) {
                 pattern = WebComponentUtil.getLocalizedDatePattern(formats.getLongDateTimeFormat());
             } else {
-                pattern = ((SimpleDateFormat) SimpleDateFormat.getDateTimeInstance(
-                        SimpleDateFormat.LONG, SimpleDateFormat.SHORT, locale)).toPattern();
+                pattern = WebComponentUtil.getLocalizedDatePattern("LS");   // Long date and Short time formats are default
             }
 
             return replaceSpecificCharacters(pattern);

@@ -30,12 +30,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.connector.development.Connector
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
@@ -97,7 +96,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 String token = getTaskToken();
 
                 if (StringUtils.isEmpty(token)) {
-                    return null;
+                    return getScriptType().create(getObjectClassName());
                 }
 
                 Task task = getDetailsModel().getPageAssignmentHolder().createSimpleTask(OP_LOAD_SCRIPT);
@@ -106,13 +105,13 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 StatusInfo<ConnDevGenerateArtifactResultType> statusInfo;
                 try {
                     statusInfo = getDetailsModel().getServiceLocator().getConnectorService().getGenerateArtifactStatus(token, task, result);
-                } catch (SchemaException | ObjectNotFoundException e) {
+                } catch (CommonException e) {
                     throw new RuntimeException(e);
                 }
                 ConnDevGenerateArtifactResultType artifactResultType = statusInfo.getResult();
 
-                if (artifactResultType == null) {
-                    return null;
+                if (artifactResultType == null || artifactResultType.getArtifact() == null) {
+                    return getScriptType().create(getObjectClassName());
                 }
 
                 return artifactResultType.getArtifact();
@@ -175,7 +174,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
     @Override
     public String appendCssToWizard() {
-        return "col-12 col-xl-10 col-xxl-8";
+        return "col-12";
     }
 
     @Override
@@ -202,9 +201,21 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask(OP_SAVE_SCRIPT);
+        ConnectorDevelopmentWizardUtil.clearScriptValidationErrors(this, getStepId());
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
         try {
             ConnDevArtifactType script = valueModel.getObject().clone();
             WebPrismUtil.cleanupEmptyContainerValue(script.asPrismContainerValue());
+            ConnDevArtifactValidationResult validation = getDetailsModel().getConnectorDevelopmentOperation()
+                    .validateArtifact(script, task, task.getResult());
+            if (!validation.ok()) {
+                getPageBase().error(ConnectorDevelopmentWizardUtil.scriptValidationErrorMessage(
+                        validation, script.getFilename(), getPageBase()));
+                target.add(getFeedback());
+                ConnectorDevelopmentWizardUtil.reportScriptValidationErrors(
+                        this, getStepId(), validation, script.getFilename(), target);
+                return false;
+            }
             saveScript(script, task, task.getResult());
             getDetailsModel().reloadPrismObjectByOid();
             if (task.getResult() == null || task.getResult().isError()) {
@@ -218,6 +229,8 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
         getDetailsModel().getConnectorDevelopmentOperation();
+
+        onAfterSave(target);
         if (result != null && !result.isError()) {
             isReloaded = false;
             super.onNextPerformed(target);
@@ -227,8 +240,20 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
         return false;
     }
 
+    protected void onAfterSave(AjaxRequestTarget target) {
+    }
+
     protected final LoadableModel<ConnDevArtifactType> getValueModel() {
         return valueModel;
+    }
+
+    /**
+     * Forces {@link #valueModel} to reload from disk on next access, e.g. after
+     * {@link RepairObjectClassButton} saved a fixed script directly (bypassing this step's own
+     * submit) - mirrors what {@link #onRefreshPerformed} already does for its own "Regenerate" flow.
+     */
+    public void detachLoadedScript() {
+        valueModel.detach();
     }
 
     @Override
@@ -243,12 +268,19 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
             }
         };
         testResource.showTitleAsLabel(true);
-        testResource.add(AttributeAppender.append("class", "ml-auto"));
+        testResource.add(AttributeAppender.append("class", "ms-auto"));
         customButtons.add(testResource);
+
+        customButtons.add(new RepairObjectClassButton(customButtons.newChildId(), this, this::getObjectClassName,
+                () -> valueModel.getObject() != null ? List.of(valueModel.getObject()) : List.of()));
     }
 
     private void onRefreshPerformed(AjaxRequestTarget target) {
         if (getWizard() instanceof WizardModelWithParentSteps parentWizardModel) {
+            ConnDevArtifactType currentArtifact = valueModel.getObject();
+            String currentScript = currentArtifact != null ? currentArtifact.getContent() : null;
+            List<String> errorMessages = ConnectorDevelopmentWizardUtil.collectErrorMessages(
+                    parentWizardModel.getOperationResultsForFixStep(getStepId()));
             List<WizardStep> steps = parentWizardModel.getActiveChildrenSteps();
             int activeStepIndex = parentWizardModel.getActiveStepIndex();
             String idOfFound = null;
@@ -260,7 +292,7 @@ public abstract class ScriptConnectorStepPanel extends AbstractWizardStepPanel<C
                 WizardStep step = steps.get(i);
                 if (step instanceof WaitingScriptConnectorStepPanel waitingPanel) {
                     idOfFound = step.getStepId();
-                    waitingPanel.resetScript(getPageBase());
+                    waitingPanel.resetScript(getPageBase(), currentScript, errorMessages);
                     if (i == 0) {
                         setActiveStepById(target, parentWizardModel, idOfFound);
                     }

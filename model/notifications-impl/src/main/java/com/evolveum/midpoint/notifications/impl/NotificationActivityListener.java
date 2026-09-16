@@ -6,10 +6,6 @@
 
 package com.evolveum.midpoint.notifications.impl;
 
-import com.evolveum.midpoint.notifications.impl.events.ActivityPolicyRuleEventImpl;
-
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,9 +13,11 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.ActivityEvent;
 import com.evolveum.midpoint.notifications.impl.events.ActivityEventImpl;
+import com.evolveum.midpoint.notifications.impl.events.ActivityPolicyRuleEventImpl;
 import com.evolveum.midpoint.notifications.impl.events.ActivityRealizationCompleteEventImpl;
 import com.evolveum.midpoint.repo.common.activity.ActivityListener;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.policy.EvaluatedPolicyRule;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -42,7 +40,7 @@ public class NotificationActivityListener implements ActivityListener {
     @Override
     public void onActivityPolicyRuleTriggered(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
-            @NotNull EvaluatedActivityPolicyRule policyRule,
+            @NotNull EvaluatedPolicyRule policyRule,
             @NotNull Task task,
             @NotNull OperationResult result) {
 

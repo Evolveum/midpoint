@@ -5,7 +5,7 @@
 :page-wiki-metadata-create-date: 2012-08-08T10:47:25.250+02:00
 :page-wiki-metadata-modify-user: honchar
 :page-wiki-metadata-modify-date: 2020-10-07T12:34:27.674+02:00
-:page-keywords: [ 'logging', 'log', 'troubleshooting' ]
+:page-keywords: logging, log, troubleshooting
 :page-upkeep-status: yellow
 
 Although we have quite nice error message dialog in midPoint, there are some occasions when this is not enough to diagnose the problem.

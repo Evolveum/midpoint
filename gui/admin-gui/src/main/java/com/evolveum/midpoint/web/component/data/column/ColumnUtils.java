@@ -23,7 +23,7 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
-import com.evolveum.midpoint.gui.impl.component.data.column.*;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
@@ -56,7 +56,6 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -71,6 +70,7 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -87,6 +87,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -321,6 +322,8 @@ public class ColumnUtils {
                         SelectableBeanImpl.F_VALUE + ".familyName", false, true),
                 new ColumnTypeDto<>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".fullName", false, true),
+                new ColumnTypeDto<>("UserType.displayName", UserType.F_DISPLAY_NAME.getLocalPart(),
+                        SelectableBeanImpl.F_VALUE + ".displayName", false, true),
                 new ColumnTypeDto<>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 
@@ -649,15 +652,15 @@ public class ColumnUtils {
                         IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                     CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                     CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                    AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-                    if (object != null) {
-                        ObjectReferenceType ort = new ObjectReferenceType();
-                        ort.asReferenceValue().setObject(object.asPrismObject());
-                        ort.setOid(object.getOid());
-                        ort.setType(WebComponentUtil.classToQName(object.getClass()));
-                        return () -> Collections.singletonList(ort);
-                    }
-                    return () -> Collections.singletonList(caseType.getObjectRef());
+                    return () -> Collections.singletonList(getCaseObjectRef(caseType).ref());
+                }
+
+                @Override
+                protected String getPendingObjectPreviewCaseOid(
+                        ObjectReferenceType ref, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    return getCaseObjectRef(caseType).sourceCaseOid();
                 }
 
                 @Override
@@ -1350,7 +1353,14 @@ public class ColumnUtils {
             public IModel<List<ObjectReferenceType>> extractDataModel(
                     IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseModelObject = rowModel.getObject().getValue();
-                return () -> Collections.singletonList(caseModelObject.getObjectRef());
+                return () -> Collections.singletonList(getCaseObjectRef(caseModelObject).ref());
+            }
+
+            @Override
+            protected String getPendingObjectPreviewCaseOid(
+                    ObjectReferenceType ref, IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseModelObject = rowModel.getObject().getValue();
+                return getCaseObjectRef(caseModelObject).sourceCaseOid();
             }
 
             @Override
@@ -1481,6 +1491,45 @@ public class ColumnUtils {
         }
 
         return columns;
+    }
+
+    @VisibleForTesting
+    record CaseObjectRef(ObjectReferenceType ref, String sourceCaseOid) {
+    }
+
+    @VisibleForTesting
+    static CaseObjectRef getCaseObjectRef(CaseType caseType) {
+        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
+        if (object != null && !ApprovalUtils.isExplicitlyApprovedOutcome(caseType.getOutcome())) {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.asReferenceValue().setObject(object.asPrismObject());
+            ref.setOid(object.getOid());
+            ref.setType(WebComponentUtil.classToQName(object.getClass()));
+            return new CaseObjectRef(ref, caseType.getOid());
+        }
+
+        ObjectReferenceType ref = caseType != null ? caseType.getObjectRef() : null;
+        String sourceCaseOid = supportsCaseBasedPreview(caseType, ref)
+                ? caseType.getOid()
+                : null;
+
+        return new CaseObjectRef(ref, sourceCaseOid);
+    }
+
+    /**
+     * Returns whether the case reference contains enough context to open a pending-object preview.
+     *
+     * The embedded object is required because the preview loader does not resolve it from child cases.
+     */
+    private static boolean supportsCaseBasedPreview(
+            CaseType caseType, ObjectReferenceType objectRef) {
+        return caseType != null
+                && StringUtils.isNotBlank(caseType.getOid())
+                && ObjectTypeUtil.hasArchetypeRef(
+                caseType, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+                && objectRef != null
+                && objectRef.getType() != null
+                && objectRef.asReferenceValue().getObject() != null;
     }
 
     private static String createCaseClosedTimestampLabel(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {

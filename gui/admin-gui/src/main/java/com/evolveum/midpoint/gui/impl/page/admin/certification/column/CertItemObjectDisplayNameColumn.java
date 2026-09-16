@@ -58,8 +58,16 @@ public class CertItemObjectDisplayNameColumn extends AbstractCertificationItemCo
 
             private String getObjectDisplayName(IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
                 AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
-                PrismObject<?> resolvedObject = WebModelServiceUtils.loadObject(certCase.getObjectRef(), null, context.getPageBase());
-                return  WebComponentUtil.getDisplayName(resolvedObject, true);
+                if (certCase == null || certCase.getObjectRef() == null) {
+                    return "";
+                }
+                // Use pre-loaded object from reference if available (set by beforeTransformation optimization)
+                PrismObject<?> resolvedObject = certCase.getObjectRef().getObject();
+                if (resolvedObject == null) {
+                    // Fallback to loading object (for non-optimized paths)
+                    resolvedObject = WebModelServiceUtils.loadObject(certCase.getObjectRef(), null, context.getPageBase());
+                }
+                return WebComponentUtil.getDisplayName(resolvedObject, true);
             }
         };
     }

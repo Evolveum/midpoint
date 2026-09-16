@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.common.tasks;
 import static com.evolveum.midpoint.repo.common.tasks.handlers.CommonMockActivityHelper.EXECUTION_COUNT_NAME;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTaskExecutionStateType.NOT_RUNNING;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
@@ -23,12 +24,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.AbstractRepoCommonTest;
 import com.evolveum.midpoint.repo.common.activity.handlers.NoOpActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ProcessingCoordinator;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
 import com.evolveum.midpoint.repo.common.activity.run.reports.SimpleReportReader;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
 import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformationUtil;
-import com.evolveum.midpoint.schema.util.task.*;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionBean;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
@@ -57,6 +62,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.tasks.handlers.MockRecorder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
@@ -96,6 +102,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestObject<TaskType> TASK_140_CUSTOM_COMPOSITE = TestObject.file(TEST_DIR, "task-140-custom-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
     private static final TestObject<TaskType> TASK_150_MOCK_ITERATIVE = TestObject.file(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
     private static final TestObject<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = TestObject.file(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
+    private static final TestObject<TaskType> TASK_157_MOCK_ITERATIVE_LARGE = TestObject.file(TEST_DIR, "task-157-mock-iterative-large.xml", "c86f607c-d459-4b97-8703-9c986304c036");
     private static final TestObject<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = TestObject.file(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
     private static final TestObject<TaskType> TASK_170_MOCK_BUCKETED = TestObject.file(TEST_DIR, "task-170-mock-bucketed.xml", "04e257d1-bb25-4675-8e00-f248f164fbc3");
     private static final TestObject<TaskType> TASK_180_BUCKETED_TREE = TestObject.file(TEST_DIR, "task-180-bucketed-tree.xml", "ac3220c5-6ded-4b94-894e-9ed39c05db66");
@@ -106,6 +113,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestObject<TaskType> TASK_220_MOCK_COMPOSITE_WITH_SUBTASKS = TestObject.file(TEST_DIR, "task-220-mock-composite-with-subtasks.xml", "");
     private static final TestObject<TaskType> TASK_300_WORKERS_SIMPLE = TestObject.file(TEST_DIR, "task-300-workers-simple.xml", "5cfa521a-a174-4254-a5cb-199189fe42d5");
     private static final TestObject<TaskType> TASK_310_WORKERS_SCAVENGING = TestObject.file(TEST_DIR, "task-310-workers-scavenging.xml", "1e956013-5997-47bd-8885-4da2340dddfc");
+    private static final TestObject<TaskType> TASK_320_WORKER_ROOT_SUSPEND = TestObject.file(TEST_DIR, "task-320-worker-root-suspend.xml", "159d3598-849d-47d3-9848-64eacb4eed1f");
     private static final TestObject<TaskType> TASK_400_LONG_RUNNING = TestObject.file(TEST_DIR, "task-400-long-running.xml", "f179b67d-a4b2-4bd0-af8a-7f814d9f069c");
 
     @Autowired private MockRecorder recorder;
@@ -113,6 +121,9 @@ public class TestActivities extends AbstractRepoCommonTest {
 
     private static final int ROLES = 100;
     private static final String ROLE_NAME_PATTERN = "r%02d";
+
+    private static final int LARGE_ITERATIVE_TASK_ITEMS = 50;
+    private static final String OP_SUBMIT_ITEM = ProcessingCoordinator.class.getName() + ".submitItem";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -646,6 +657,90 @@ public class TestActivities extends AbstractRepoCommonTest {
                 .assertItemsProcessed(12)
                 .assertErrors(0)
                 .assertProgress(12)
+                .assertHasWallClockTime();
+    }
+
+    /**
+     * Verifies that per-item submit results are incrementally summarized instead of being persisted one per item.
+     */
+    @Test
+    public void test157RunLargeMockIterativeTask() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        recorder.reset();
+        Task task1 = taskAdd(TASK_157_MOCK_ITERATIVE_LARGE, result);
+
+        when();
+
+        waitForTaskClose(task1.getOid(), result, 10000);
+
+        then();
+
+        task1.refresh(result);
+        // @formatter:off
+        assertTask(task1, "after")
+                .display()
+                .assertSuccess()
+                .assertClosed()
+                .assertProgress(LARGE_ITERATIVE_TASK_ITEMS)
+                .activityState()
+                    .assertTreeRealizationComplete()
+                    .rootActivity()
+                        .assertComplete()
+                        .assertSuccess()
+                        .progress()
+                            .assertCommitted(LARGE_ITERATIVE_TASK_ITEMS, 0, 0)
+                            .assertNoUncommitted()
+                        .end()
+                        .itemProcessingStatistics()
+                            .assertTotalCounts(LARGE_ITERATIVE_TASK_ITEMS, 0, 0)
+                            .assertLastSuccessObjectName(String.valueOf(LARGE_ITERATIVE_TASK_ITEMS))
+                            .assertRuns(1)
+                        .end();
+        // @formatter:on
+
+        assertThat(recorder.getExecutions()).as("processed items")
+                .containsExactlyElementsOf(
+                        IntStream.rangeClosed(1, LARGE_ITERATIVE_TASK_ITEMS)
+                                .mapToObj(item -> "Item: " + item)
+                                .toList());
+
+        assertThat(recorder.getOperationResultSnapshots())
+                .as("submit-item results immediately after each submission")
+                .containsExactlyElementsOf(
+                        IntStream.rangeClosed(1, LARGE_ITERATIVE_TASK_ITEMS)
+                                .mapToObj(submitted ->
+                                        new MockRecorder.OperationResultSnapshot(
+                                                Math.min(submitted, 10),
+                                                Math.max(submitted - 10, 0)))
+                                .toList());
+
+        // Verify the summarized result persisted in the task after completion.
+        List<OperationResult> submitResults = task1.getResult().findSubresultsDeeply(OP_SUBMIT_ITEM);
+        List<OperationResult> concreteResults = submitResults.stream()
+                .filter(subresult -> subresult.getHiddenRecordsCount() == 0)
+                .toList();
+        List<OperationResult> summarizedResults = submitResults.stream()
+                .filter(subresult -> subresult.getHiddenRecordsCount() > 0)
+                .toList();
+
+        assertThat(concreteResults).as("concrete submit-item results").hasSize(10);
+        assertThat(summarizedResults).as("summarized submit-item results")
+                .singleElement()
+                .satisfies(summary ->
+                        assertThat(summary.getHiddenRecordsCount()).isEqualTo(LARGE_ITERATIVE_TASK_ITEMS - 10));
+        assertThat(concreteResults.size()
+                + summarizedResults.stream().mapToInt(OperationResult::getHiddenRecordsCount).sum())
+                .as("represented submit-item results")
+                .isEqualTo(LARGE_ITERATIVE_TASK_ITEMS);
+
+        assertPerformance(task1.getOid(), "after")
+                .display()
+                .assertItemsProcessed(LARGE_ITERATIVE_TASK_ITEMS)
+                .assertErrors(0)
+                .assertProgress(LARGE_ITERATIVE_TASK_ITEMS)
                 .assertHasWallClockTime();
     }
 
@@ -2521,6 +2616,69 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertRealizationInProgress()
                     .assertStatusInProgress()
                 .end();
+    }
+
+    /**
+     * Verifies that bucketed workers stop after root tree suspension
+     * and continue processing remaining buckets after resume.
+     */
+    @Test
+    public void test320WorkerStopsTakingBucketsAfterRootSuspend() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        recorder.reset();
+
+        Task root = taskAdd(TASK_320_WORKER_ROOT_SUSPEND, result);
+
+        try {
+            waitFor("Waiting for the worker to process the first item", () -> !recorder.getExecutions().isEmpty(),
+                    10000, 100);
+
+            when("Root task tree is suspended");
+
+            taskManager.suspendTaskTree(root.getOid(), 10000, result);
+            int processedAfterSuspend = recorder.getExecutions().size();
+
+            // Waiting long enough verifies that workers do not continue processing while the tree is suspended.
+            MiscUtil.sleepCatchingInterruptedException(3000);
+
+            then();
+
+            displayDumpable("recorder", recorder);
+
+            assertThat(recorder.getExecutions())
+                    .as("items processed after root suspension")
+                    .hasSize(processedAfterSuspend);
+            assertThat(processedAfterSuspend)
+                    .as("items processed before suspension completed")
+                    .isLessThan(20);
+
+            when("Root task is resumed");
+
+            taskManager.resumeTaskTree(root.getOid(), result);
+            waitFor("Waiting for resumed workers to process more items",
+                    () -> recorder.getExecutions().size() > processedAfterSuspend,
+                    10000, 100);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 30000);
+
+            then("All buckets are eventually processed");
+
+            displayDumpable("recorder", recorder);
+
+            assertThat(recorder.getExecutions())
+                    .as("all items processed after root resume")
+                    .hasSizeGreaterThanOrEqualTo(20);
+
+            assertProgress(root.getOid(), "after resume")
+                    .display()
+                    .assertBuckets(4, 4);
+        } finally {
+            taskManager.suspendTaskTree(root.getOid(), TaskManager.WAIT_INDEFINITELY, result);
+            taskManager.deleteTaskTree(root.getOid(), result);
+        }
     }
 
     /**

@@ -26,6 +26,9 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
@@ -85,7 +88,7 @@ public class LensUtil {
             Task task,
             OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceType cached = context.getResource(resourceOid);
         if (cached != null) {
             return cached;
@@ -217,8 +220,43 @@ public class LensUtil {
         return objectTemplate != null ? objectTemplate.getIterationSpecification() : null;
     }
 
+    /**
+     * Determines the start value for iteration.
+     * Default value depends on whether maxIterations is defined:
+     * - If maxIterations is defined: defaults to 0
+     * - If maxIterations is not defined: defaults to 1
+     * @return the start value
+     */
+    public static int determineIterationStart(IterationSpecificationType iterationSpecType) {
+        if (iterationSpecType == null) {
+            return 0;
+        }
+        Integer start = iterationSpecType.getStart();
+        if (start != null) {
+            return start;
+        }
+
+        if (iterationSpecType.getMaxIterations() != null) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    /**
+     * Determines the maximum iteration value.
+     * If end is specified, it takes precedence over maxIterations.
+     * @return the maximum iteration value
+     */
     public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
-        return iterationSpecType != null ? or0(iterationSpecType.getMaxIterations()) : 0;
+        if (iterationSpecType == null) {
+            return 0;
+        }
+        Integer end = iterationSpecType.getEnd();
+        if (end != null) {
+            return end;
+        }
+        return determineIterationStart(iterationSpecType) + or0(iterationSpecType.getMaxIterations());
     }
 
     public static String formatIterationToken(
@@ -230,14 +268,22 @@ public class LensUtil {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (iterationSpec == null) {
-            return formatIterationTokenDefault(iteration);
+            return formatIterationTokenDefault(iteration, 0, true);
         }
+        boolean useTokenOnlyOnConflict = isUseTokenOnlyOnConflict(iterationSpec);
+        int start = determineIterationStart(iterationSpec);
+        // If useTokenOnlyOnConflict is true and this is the first attempt, don't evaluate token expression
+        if (useTokenOnlyOnConflict && iteration == start) {
+            return "";
+        }
+
         ExpressionType tokenExpressionType = iterationSpec.getTokenExpression();
         if (tokenExpressionType == null) {
-            return formatIterationTokenDefault(iteration);
+            return formatIterationTokenDefault(iteration, start, useTokenOnlyOnConflict);
         }
+
         PrismContext prismContext = PrismContext.get();
         PrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(ExpressionConstants.VAR_ITERATION_TOKEN_QNAME,
                 DOMUtil.XSD_STRING);
@@ -261,6 +307,13 @@ public class LensUtil {
                 new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
         sources.add(iterationSource);
 
+        if (variables == null) {
+            variables = new VariablesMap();
+        }
+        variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
+
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
                 sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), task);
         eeContext.setExpressionFactory(expressionFactory);
@@ -281,11 +334,36 @@ public class LensUtil {
         return realValue;
     }
 
-    public static String formatIterationTokenDefault(int iteration) {
-        if (iteration == 0) {
+    /**
+     * Formats the iteration token with default logic.
+     * If useTokenOnlyOnConflict is true and iteration equals start, returns empty string.
+     * Otherwise returns iteration as string.
+     *
+     * @param iteration current iteration value
+     * @param start the start value for iteration
+     * @param useTokenOnlyOnConflict whether to use token only on conflict (first attempt has no token)
+     * @return formatted iteration token
+     */
+    public static String formatIterationTokenDefault(int iteration, int start, boolean useTokenOnlyOnConflict) {
+        if (useTokenOnlyOnConflict && iteration == start) {
             return "";
         }
         return Integer.toString(iteration);
+    }
+
+    /**
+     * Determines the value of useTokenOnlyOnConflict flag.
+     * Default value is true.
+     *
+     * @param iterationSpec iteration specification
+     * @return true if token should be used only on conflict, false otherwise
+     */
+    public static boolean isUseTokenOnlyOnConflict(IterationSpecificationType iterationSpec) {
+        if (iterationSpec == null) {
+            return true;
+        }
+        Boolean useTokenOnlyOnConflict = iterationSpec.isUseTokenOnlyOnConflict();
+        return useTokenOnlyOnConflict == null || useTokenOnlyOnConflict;
     }
 
     public static <F extends ObjectType> boolean evaluateIterationCondition(
@@ -300,7 +378,7 @@ public class LensUtil {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (iterationSpecification == null) {
             return true;
         }
@@ -322,6 +400,8 @@ public class LensUtil {
 
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
+        variables.put(ExpressionConstants.VAR_ATTEMPT, iteration, Integer.class);
+        variables.registerAlias(ExpressionConstants.VAR_ATTEMPT, ExpressionConstants.VAR_ITERATION);
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null , variables, desc, task);
         eeContext.setExpressionFactory(expressionFactory);
@@ -367,7 +447,7 @@ public class LensUtil {
             LifecycleStateModelType lifecycleModel, String stateName,
             ObjectResolver objectResolver, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // We intentionally do not use DISTINCT option here, as it causes cache pass - at least in 4.8.
         // Instead, we do the deduplication by using a set, hoping it will work well enough
@@ -594,6 +674,7 @@ public class LensUtil {
         if (itemOld != null) {
             //noinspection unchecked, rawtypes
             itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
+            encryptLegacyPasswordHintInEstimatedOldValues(ctx, itemDelta);
             return;
         }
         // Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
@@ -608,7 +689,47 @@ public class LensUtil {
             if (itemOld != null) {
                 //noinspection unchecked, rawtypes
                 itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
+                encryptLegacyPasswordHintInEstimatedOldValues(ctx, itemDelta);
             }
+        }
+    }
+
+    /**
+     * A legacy clear-text password hint is tolerated in the objects but not in the deltas. So when the hint
+     * is being modified, its clear-text old value copied into the delta must be encrypted, otherwise the delta
+     * would fail the encryption check. The values are replaced by encrypted copies; the objects are not touched.
+     */
+    private static void encryptLegacyPasswordHintInEstimatedOldValues(LensElementContext<?> ctx, ItemDelta<?, ?> itemDelta) {
+        if (!SchemaConstants.PATH_PASSWORD_HINT.equivalent(itemDelta.getPath())
+                || ModelExecuteOptions.isNoCrypt(ctx.getLensContext().getOptions())) {
+            return;
+        }
+        Collection<? extends PrismValue> oldValues = itemDelta.getEstimatedOldValues();
+        if (oldValues == null || oldValues.isEmpty()) {
+            return;
+        }
+        List<PrismValue> replacement = new ArrayList<>(oldValues.size());
+        boolean replaced = false;
+        for (PrismValue oldValue : oldValues) {
+            if (oldValue instanceof PrismPropertyValue<?> ppv
+                    && ppv.getRealValue() instanceof ProtectedStringType protectedString
+                    && protectedString.getClearValue() != null
+                    && !protectedString.isHashed()) {
+                PrismPropertyValue<?> copy = ppv.clone();
+                try {
+                    ctx.getLensContext().getModelBeans().protector.encrypt((ProtectedStringType) copy.getRealValue());
+                } catch (EncryptionException e) {
+                    throw new SystemException("Couldn't encrypt legacy password hint: " + e.getMessage(), e);
+                }
+                replacement.add(copy);
+                replaced = true;
+            } else {
+                replacement.add(oldValue);
+            }
+        }
+        if (replaced) {
+            //noinspection unchecked, rawtypes
+            itemDelta.setEstimatedOldValues((Collection) replacement);
         }
     }
 

@@ -59,7 +59,7 @@ public class ObjectClassStatisticsComputationActivityRun
         var state = getActivityState();
         state.setWorkStateItemRealValues(
                 ObjectClassStatisticsComputationWorkStateType.F_STATISTICS_REF,
-                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.GENERIC_OBJECT));
+                ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SMART_INTEGRATION_ARTIFACT));
         state.flushPendingTaskModificationsChecked(result);
     }
 

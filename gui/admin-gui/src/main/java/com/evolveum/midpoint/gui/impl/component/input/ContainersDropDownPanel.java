@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -148,13 +149,11 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
 
                     if (!found) {
                         PrismContainer<Containerable> container = parentItem.getValue().getNewValue().findOrCreateContainer(object);
-                        Task task = getPageBase().createSimpleTask("create_action_container");
-                        WrapperContext ctx = new WrapperContext(task, task.getResult());
-                        ctx.setCreateIfEmpty(true);
-                        ItemWrapper iw = getPageBase().createItemWrapper(container, parentItem.getValue(), ItemStatus.ADDED, ctx);
-                        if (iw.isMultiValue()) {
-                            PrismValueWrapper value = getPageBase().createValueWrapper(iw, container.createNewValue(), ValueStatus.ADDED, ctx);
-                            iw.getValues().add(value);
+                        ItemWrapper iw = createNewContainerWrapper(container, parentItem.getValue());
+                        if (iw == null) {
+                            parentItem.getValue().getNewValue().remove(container);
+                            LOGGER.warn("Couldn't create wrapper for selected container {}", object);
+                            return;
                         }
                         parentItem.getValue().addItem(iw);
                     }
@@ -163,6 +162,19 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
                 }
             }
         };
+    }
+
+    protected ItemWrapper<?, ?> createNewContainerWrapper(
+            PrismContainer<Containerable> container, PrismContainerValueWrapper<?> parentValue) throws SchemaException {
+        Task task = getPageBase().createSimpleTask("create_action_container");
+        WrapperContext ctx = new WrapperContext(task, task.getResult());
+        ctx.setCreateIfEmpty(true);
+        ItemWrapper iw = getPageBase().createItemWrapper(container, parentValue, ItemStatus.ADDED, ctx);
+        if (iw != null && iw.isMultiValue()) {
+            PrismValueWrapper value = getPageBase().createValueWrapper(iw, container.createNewValue(), ValueStatus.ADDED, ctx);
+            iw.getValues().add(value);
+        }
+        return iw;
     }
 
     public IModel<ItemName> getDropDownModel() {
@@ -216,10 +228,35 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
             List<DisplayableValue<ItemName>> containers = new ArrayList<>();
             PrismContainerWrapper<C> parentItem = getModelObject();
             parentItem.getDefinitions().stream()
-                    .filter(def -> ((def instanceof PrismContainerDefinition) && validateChildContainer(def)))
+                    .filter(def -> ((def instanceof PrismContainerDefinition) && isSelectableContainerDefinition(def)))
                     .forEach(def -> containers.add(new ContainerDisplayableValue(def)));
             return containers;
         };
+    }
+
+    /**
+     * Deprecated containers should not be offered as new choices. However, if a deprecated
+     * container is already selected in existing configuration, keep it visible so the user
+     * can see it and migrate it to a supported option.
+     */
+    protected boolean isSelectableContainerDefinition(ItemDefinition<?> definition) {
+        return validateChildContainer(definition)
+                && (!definition.isDeprecated() || isExistingSelectedContainer(definition));
+    }
+
+    private boolean isExistingSelectedContainer(ItemDefinition<?> definition) {
+        try {
+            PrismContainerWrapper<C> parentItem = getModelObject();
+            return parentItem != null
+                    && parentItem.getValue() != null
+                    && parentItem.getValue().getContainers().stream()
+                            .anyMatch(container -> definition.getItemName().equivalent(container.getItemName())
+                                    && container.getValues().stream()
+                                            .anyMatch(value -> value.getStatus() != ValueStatus.DELETED));
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't determine selected synchronization action", e);
+            return false;
+        }
     }
 
     private class ContainerDisplayableValue implements DisplayableValue<ItemName>, Serializable {

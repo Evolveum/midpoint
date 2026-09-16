@@ -6,10 +6,13 @@
 
 package com.evolveum.midpoint.gui.api.component.result;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +23,8 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.dialog.SimplePopupable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import java.io.Serial;
+
 /**
  * @author honchar
  */
@@ -29,7 +34,7 @@ public class OperationResultPopupPanel extends SimplePopupable<OperationResult> 
 
     private static final String ID_OPERATION_RESULTS_PANEL = "operationResultsPanel";
     private static final String ID_BUTTONS = "buttons";
-    private static final String ID_CLOSE = "close";
+    private static final String ID_REPEATER = "repeater";
 
     private Fragment footer;
 
@@ -58,19 +63,24 @@ public class OperationResultPopupPanel extends SimplePopupable<OperationResult> 
 
     private Fragment initFooter() {
         Fragment footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
+        RepeatingView repeatingView = new RepeatingView(ID_REPEATER);
+        customizeFooterButtons(repeatingView);
+        footer.add(repeatingView);
+        return footer;
+    }
 
-        AjaxLink close = new AjaxLink<Void>(ID_CLOSE) {
+    protected void customizeFooterButtons(RepeatingView repeatingView) {
+        AjaxLinkPanel close = new AjaxLinkPanel(repeatingView.newChildId(), createStringResource("Button.close")) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onCloseClicked(target);
             }
         };
-        footer.add(close);
-
-        return footer;
+        close.add(AttributeAppender.replace("class", "btn btn-outline-primary"));
+        repeatingView.add(close);
     }
 
     protected void onCloseClicked(AjaxRequestTarget target) {

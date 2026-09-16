@@ -4,43 +4,13 @@
  * Licensed under the EUPL-1.2 or later.
  */
 
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/functions.scss";
+:root {
+    --app-content-bg: #f4f6f9;
+}
 
-@import "bootstrap-variables";
-@import "../../../node_modules/admin-lte/build/scss/bootstrap-variables";
-
-@import "admin-lte-variables";
-@import "../../../node_modules/admin-lte/build/scss/variables";
-@import "../../../node_modules/admin-lte/build/scss/variables-alt";
-
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/variables.scss";
-@import "../../../node_modules/admin-lte/node_modules/bootstrap/scss/mixins/breakpoints.scss";
-
-$grid-breakpoints: map-merge($grid-breakpoints, (
-        xxl: 1650px
-));
-
-$container-max-widths: map-merge($container-max-widths, (
-        xxl: 1600px
-));
-
-$blue: $blue;
-$ai: $indigo;
-
-$theme-colors: map-merge(
-                (
-                        "navy": $navy,
-                        "olive": $olive,
-                        "lime": $lime,
-                        "fuchsia": $fuchsia,
-                        "maroon": $maroon,
-                        "lightblue": $lightblue,
-                        "purple": $purple,
-                        "blue": $blue,
-                        "ai": $ai,
-                ),
-                $theme-colors
-);
+[data-bs-theme="dark"] {
+    --app-content-bg: #212529;
+}
 
 //Bootstrap extension
 // scss-docs-start theme-text-variables

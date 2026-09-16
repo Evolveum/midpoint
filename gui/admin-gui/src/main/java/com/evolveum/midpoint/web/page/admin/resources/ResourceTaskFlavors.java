@@ -11,10 +11,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.web.component.util.SerializableBiFunction;
-
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.web.component.util.SerializableBiFunction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
@@ -27,10 +26,18 @@ public final class ResourceTaskFlavors<T> implements ResourceTaskFlavor<T> {
                                     .correlators(correlators))
     );
 
-    public static final ResourceTaskFlavors<InlineMappingDefinitionType> MAPPING_PREVIEW_ACTIVITY =
+    public static final ResourceTaskFlavors<InlineInboundMappingsDefinitionType> INBOUND_MAPPING_PREVIEW_ACTIVITY =
             new ResourceTaskFlavors<>("Mapping", (resourceObjectSetType, mappings) ->
                     new WorkDefinitionsType()
-                            .mappings(new MappingWorkDefinitionType()
+                            .inboundMappingsSimulation(new InboundMappingsSimulationWorkDefType()
+                                    .resourceObjects(resourceObjectSetType)
+                                    .inlineMappings(mappings))
+            );
+
+    public static final ResourceTaskFlavors<InlineOutboundMappingsDefinitionType> OUTBOUND_MAPPING_PREVIEW_ACTIVITY =
+            new ResourceTaskFlavors<>("OutboundMapping", (resourceObjectSetType, mappings) ->
+                    new WorkDefinitionsType()
+                            .outboundMappingsSimulation(new OutboundMappingsSimulationWorkDefType()
                                     .resourceObjects(resourceObjectSetType)
                                     .inlineMappings(mappings))
             );

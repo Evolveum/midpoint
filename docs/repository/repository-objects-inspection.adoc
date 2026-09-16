@@ -1,4 +1,8 @@
-= Repository Objects Inspection
+---
+midpoint-feature: identity-repository
+doc-type: guide
+---
+= Repository objects inspection
 :page-wiki-name: Repository objects inspection HOWTO
 :page-wiki-id: 24674644
 :page-wiki-metadata-create-user: mederly
@@ -7,6 +11,8 @@
 :page-wiki-metadata-modify-date: 2017-07-06T19:32:39.446+02:00
 :page-upkeep-status: orange
 :page-display-order: 98
+:page-description: This guide shows how to inspect repository objects to resolve performance issues.
+:page-keywords: repository, database, performance, inspection, diagnose
 
 MidPoint performance can be sometimes lower than expected from quite unusual reason: objects in repository could grow too large.
 This can be the case e.g. because of big operation results (stored e.g. in tasks or shadows), because of model operation contexts stored in approval tasks, or because of evaluated triggers stored as part of assignments.

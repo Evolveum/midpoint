@@ -139,7 +139,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
             boolean privileged,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
         LOGGER.debug("Running {} as {} (privileged: {})", producer, newPrincipalObject, privileged);
         Authentication origAuthentication = getCurrentAuthentication();
         try {

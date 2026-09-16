@@ -12,7 +12,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCachePerforman
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.util.caching.CachePerformanceCollector.isExtra;
 

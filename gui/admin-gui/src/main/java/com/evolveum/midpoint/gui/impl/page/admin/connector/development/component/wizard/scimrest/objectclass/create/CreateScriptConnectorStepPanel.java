@@ -23,7 +23,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 /**
  * @author lskublik
@@ -36,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         containerPath = "empty")
 public class CreateScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-create-script";
+    public static final String PANEL_TYPE = "cdw-create-script";
 
     static final String TASK_CREATE_SCRIPTS_KEY = "taskCreateScriptKey";
     private final IModel<PrismContainerValueWrapper<ConnDevObjectClassInfoType>> valueModel;

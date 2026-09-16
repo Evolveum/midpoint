@@ -8,9 +8,13 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:extend>
-        <fieldset class="objectButtons d-flex flex-wrap align-items-start gap-1">
-            <legend><wicket:message key="ReportOperationalButtonsPanel.buttons.report"/></legend>
-            <a class="btn btn-sm" wicket:id="reportButtons"/>
+        <fieldset class="objectButtons d-flex flex-column align-items-start">
+            <legend>
+                <wicket:message key="ReportOperationalButtonsPanel.buttons.report"/>
+            </legend>
+            <div class="d-flex flex-wrap gap-1">
+                <a class="btn btn-sm" wicket:id="reportButtons"/>
+            </div>
         </fieldset>
     </wicket:extend>
 </wicket:panel>

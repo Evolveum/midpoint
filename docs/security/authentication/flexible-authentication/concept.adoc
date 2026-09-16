@@ -171,6 +171,10 @@ No suffix specified.
 | http://midpoint.evolveum.com/xml/ns/public/common/channels-3#identityRecovery
 |
 
+| /activate/accounts
+| http://midpoint.evolveum.com/xml/ns/public/common/channels-3#accountActivation
+| Account activation for users with hashed passwords, see xref:/midpoint/reference/security/credentials/password-storage-configuration/[Password Storage Configuration].
+
 
 |===
 

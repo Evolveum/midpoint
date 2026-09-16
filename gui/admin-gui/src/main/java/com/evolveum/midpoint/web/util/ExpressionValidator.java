@@ -68,7 +68,7 @@ public class ExpressionValidator<T, IW extends ItemWrapper> implements INullAcce
         try {
             expression = expressionFactory
                     .makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException e) {
+        } catch (CommonException e) {
             ValidationError error = new ValidationError();
             error.setMessage("Cannot make expression: " + e.getMessage());
             validatable.error(error);
@@ -86,8 +86,7 @@ public class ExpressionValidator<T, IW extends ItemWrapper> implements INullAcce
         PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
         try {
             outputTriple = expression.evaluate(context, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException e) {
             ValidationError error = new ValidationError();
             error.setMessage("Cannot evaluate expression: " + e.getMessage());
             validatable.error(error);

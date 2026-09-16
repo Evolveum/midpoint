@@ -11,7 +11,7 @@ doc-type: intro
 :page-wiki-metadata-modify-date: 2021-02-16T10:07:40.669+01:00
 :page-upkeep-status: green
 :page-toc: top
-:page-keywords: [ 'rest', 'interface', 'rest api', 'restful']
+:page-keywords: rest, interface, rest api, restful
 :search-alias: "rest"
 
 == Description

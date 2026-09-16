@@ -67,7 +67,7 @@ public class ParentClause extends SelectorClause {
     @Override
     public boolean matches(@NotNull PrismValue value, @NotNull MatchingContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         for (int i = 0; i < path.size(); i++) {
             var parent1 = value.getParent();
             PrismValue parent2 = parent1 instanceof Item<?, ?> item ? item.getParent() : null;
@@ -86,7 +86,7 @@ public class ParentClause extends SelectorClause {
     @Override
     public boolean toFilter(@NotNull FilteringContext ctx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         var parentClass = parentSelector.getEffectiveTypeClause().getTypeClass();
 
         var parentFilterCollector = FilterCollector.defaultOne();

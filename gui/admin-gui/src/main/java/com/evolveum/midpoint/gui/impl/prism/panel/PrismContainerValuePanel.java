@@ -25,7 +25,10 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
@@ -129,7 +132,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         expandableLabelContainer.setOutputMarkupId(true);
         expandableLabelContainer.setOutputMarkupPlaceholderTag(true);
         expandableLabelContainer.add(AttributeModifier.append("aria-expanded", getExpandedContainerValueModel()));
-        expandableLabelContainer.add(AttributeModifier.append("aria-label", getExpandableLabelContainerAriaLabelModel()));
         header.add(expandableLabelContainer);
 
         var headerLabelModel = getLabelModel();
@@ -143,19 +145,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         header.add(getHelpLabel());
 
         initButtons(header);
-
-        //commented due to wcag issue "Accessible labels are confusing"
-//        header.add(AttributeAppender.append(
-//                "aria-label",
-//                () -> {
-//                    String key = "PrismContainerPanel.header";
-//                    if (getModelObject().getDefinition().isMultiValue()) {
-//                        key = "PrismContainerValuePanel.header";
-//                    }
-//                    return getParentPage().createStringResource(
-//                                    key, headerLabelModel.getObject())
-//                            .getString();
-//                }));
 
         //TODO always visible if isObject
 
@@ -225,7 +214,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             }
         };
         sortPropertiesButton.add(AttributeAppender.append("data-tooltip", this::getSortButtonTitle));
-        sortPropertiesButton.add(AttributeAppender.append("aria-label", this::getSortButtonTitle));
+        sortPropertiesButton.add(AttributeAppender.append("aria-label", this::getSortButtonAriaLabel));
         sortPropertiesButton.add(new VisibleBehaviour(this::shouldBeButtonsShown));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
@@ -235,6 +224,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private String getSortButtonTitle() {
         return getModelObject().isSorted() ? getString("PrismObjectPanel.sortPropertiesByOrder")
                 : getString("PrismObjectPanel.sortPropertiesByName");
+    }
+
+    private String getSortButtonAriaLabel() {
+        return getModelObject().isSorted() ? getString("PrismObjectPanel.sortPropertiesByOrder.ariaLabel")
+                : getString("PrismObjectPanel.sortPropertiesByName.ariaLabel");
     }
 
     private AjaxLink createAddMoreButton() {
@@ -321,10 +315,21 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         target.add(getValuePanel());
         target.add(getSortButton());
         target.add(getFeedbackPanel());
+
+        WebMarkupContainer statusMessage = getAnnouncementStatusMessageComponent();
+        String announcement = wrapper.isSorted()
+                ? getString("PrismObjectPanel.sortPropertiesByName.announce")
+                : getString("PrismObjectPanel.sortPropertiesByOrder.announce");
+        target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageByPath('%s', '%s', %d);",
+                statusMessage.getPageRelativePath(), announcement, 150));
     }
 
     private ToggleIconButton<Void> getSortButton() {
         return (ToggleIconButton) get(createComponentPath(ID_MAIN_CONTAINER, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
+    }
+
+    private WebMarkupContainer getAnnouncementStatusMessageComponent() {
+        return (WebMarkupContainer) get(createComponentPath(ID_MAIN_CONTAINER, ID_HEADER_CONTAINER, ID_HEADER_STATUS_MESSAGE));
     }
 
     public void refreshPanel(AjaxRequestTarget target) {
@@ -367,15 +372,4 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
     }
 
-    private LoadableDetachableModel<String> getExpandableLabelContainerAriaLabelModel() {
-        return new LoadableDetachableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return getString(
-                        isContainerExpanded() ? "PrismObjectPanel.collapseContainer" : "PrismObjectPanel.expandContainer");
-            }
-        };
-    }
 }

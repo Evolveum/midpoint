@@ -2,7 +2,7 @@
 :page-nav-title: Sequence
 :page-display-order: 3000
 :page-toc: top
-:page-keywords: [ 'rest', 'sequnce', 'endpoint' ]
+:page-keywords: rest, sequnce, endpoint
 :page-upkeep-status: green
 
 == Description

@@ -12,21 +12,29 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerDescriptor;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.WizardHelpCollapsedItem;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Page;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
-public abstract class WizardModelWithParentSteps extends WizardModel {
+public abstract class WizardModelWithParentSteps extends WizardModel implements DrawerDescriptor {
 
     private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
+    private final WizardHelpCollapsedItem helpCollapsedItem = new WizardHelpCollapsedItem(this);
 
     public abstract void init(Page page);
 
@@ -49,11 +57,14 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
     }
 
     private @NotNull List<CollapsedItem> getCollapsedItemsList() {
+        if (helpCollapsedItem.isVisible()) {
+            return List.of(operationResultCollapsedItem, helpCollapsedItem);
+        }
         return List.of(operationResultCollapsedItem);
     }
 
     public boolean isCollapsedItemsVisible() {
-        return operationResultCollapsedItem.isVisible();
+        return operationResultCollapsedItem.isVisible() || helpCollapsedItem.isVisible();
     }
 
     public Optional<CollapsedItem> getSelectedCollapsedItem() {
@@ -76,8 +87,33 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
         operationResultCollapsedItem.addOperationResult(panelId, fixPanelId, result);
     }
 
+    public void addOperationResult(String panelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction) {
+        operationResultCollapsedItem.addOperationResult(panelId, null, result, fixAction);
+    }
+
+    /**
+     * Adds an entry whose fix button is repurposed for a different action than step navigation
+     * (e.g. disabling a broken sibling script's manifest entry instead of "fixing" it), with its
+     * own label/icon instead of the default "Fix it" - see {@link OperationResultWrapper}.
+     */
+    public void addOperationResult(
+            String panelId, OperationResult result, SerializableConsumer<AjaxRequestTarget> fixAction,
+            String fixButtonLabelKey, String fixButtonIcon) {
+        operationResultCollapsedItem.addOperationResult(panelId, null, result, fixAction, fixButtonLabelKey, fixButtonIcon);
+    }
+
     public void removeOperationResult(String panelId) {
         operationResultCollapsedItem.removeOperationResult(panelId);
+    }
+
+    /** Removes every drawer entry whose panelId starts with {@code prefix} (e.g. {@code "<stepId>."}). */
+    public void removeOperationResultsByPrefix(String prefix) {
+        operationResultCollapsedItem.removeOperationResultsByPrefix(prefix);
+    }
+
+    /** Removes every drawer entry whose fixPanelId is one of {@code fixPanelIds}. */
+    public void removeOperationResultsForFixSteps(Collection<String> fixPanelIds) {
+        operationResultCollapsedItem.removeOperationResultsForFixSteps(fixPanelIds);
     }
 
     public boolean isStepWithError(String stepId) {
@@ -88,9 +124,49 @@ public abstract class WizardModelWithParentSteps extends WizardModel {
                 .anyMatch(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()));
     }
 
+    public List<OperationResult> getOperationResultsForFixStep(String stepId) {
+        if (StringUtils.isEmpty(stepId)) {
+            return List.of();
+        }
+        return operationResultCollapsedItem.getResults().stream()
+                .filter(operationResultWrapper -> Strings.CS.equals(stepId, operationResultWrapper.getFixPanelId()))
+                .map(OperationResultWrapper::getResult)
+                .toList();
+    }
+
+    /**
+     * Same as {@link #getOperationResultsForFixStep(String)}, but aggregated across every step in
+     * {@code stepIds} - e.g. all script steps of one object class - for a summary action ("repair
+     * the whole object class") that has to see everything currently reported broken for it.
+     */
+    public List<OperationResult> getOperationResultsForFixSteps(Collection<String> stepIds) {
+        if (stepIds == null || stepIds.isEmpty()) {
+            return List.of();
+        }
+        return operationResultCollapsedItem.getResults().stream()
+                .filter(operationResultWrapper -> stepIds.contains(operationResultWrapper.getFixPanelId()))
+                .map(OperationResultWrapper::getResult)
+                .toList();
+    }
+
+    /**
+     * Like {@link #setActiveStepById(String)}, but only searches (and only ever moves the active
+     * step within) the part item that is already active - it never switches to a different part, so
+     * it never re-initializes one either. Has no effect if no step in the active part matches
+     * {@code id}.
+     */
+    public abstract void setActiveStepWithinActivePart(String id);
+
     public abstract boolean isShowedSummary();
 
     public abstract void showSummaryPanel();
+
+    /**
+     * Forces the cached children steps of the given parent step to be recomputed on next access
+     * (e.g. after a decision that {@link WizardParentStep#createChildrenSteps()} depends on, such
+     * as an integration type selection, has just been persisted).
+     */
+    public abstract void invalidateChildrenSteps(String parentStepId);
 
 //    public AbstractWizardController getWizardController() {
 //        return wizardController;

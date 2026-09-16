@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.mining;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.wicket.model.IModel;

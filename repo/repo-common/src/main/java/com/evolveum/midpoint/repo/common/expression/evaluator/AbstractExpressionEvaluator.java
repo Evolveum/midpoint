@@ -193,7 +193,7 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
      */
     public void applyValueMetadata(PrismValueDeltaSetTriple<V> triple, ExpressionEvaluationContext context,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (triple != null) {
             for (V value : triple.getPlusSet()) {
                 applyValueMetadata(value, context, result);
@@ -214,7 +214,7 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
 
     private void applyValueMetadata(PrismValue value, ExpressionEvaluationContext context, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (value != null) {
             if (context.getValueMetadataComputer() != null) {
                 value.setValueMetadata(

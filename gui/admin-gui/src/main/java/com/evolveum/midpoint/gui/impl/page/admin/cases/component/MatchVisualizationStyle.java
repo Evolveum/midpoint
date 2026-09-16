@@ -12,10 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 public enum MatchVisualizationStyle {
 
-    NOT_APPLICABLE("bg-info disabled color-palette"),
-    NONE("bg-danger disabled color-palette"),
-    PARTIAL("bg-warning disabled color-palette"),
-    FULL("bg-success disabled color-palette");
+    // Use softened contextual colors for match visualization.
+    NOT_APPLICABLE("bg-info opacity-75 text-white"),
+    NONE("bg-danger opacity-75 text-white"),
+    PARTIAL("bg-warning opacity-75 text-dark"),
+    FULL("bg-success opacity-75 text-white");
 
     private final String css;
 

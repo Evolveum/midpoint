@@ -11,7 +11,10 @@ import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategori
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.*;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.AdvancedClustering;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.OutlierClustering;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.StandardClustering;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;

@@ -73,7 +73,9 @@ public record SystemMappingSuggestion(
                 .description(scriptDescription)
                 .expressionEvaluator(
                         new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().code(script)));
+                                new ScriptExpressionEvaluatorType()
+                                        .language("mel")
+                                        .code(script)));
         return new SystemMappingSuggestion(
                 ItemPath.create(ShadowType.F_ATTRIBUTES, ItemName.from(SchemaConstants.NS_RI, shadowAttrName)),
                 focusPropertyPath,

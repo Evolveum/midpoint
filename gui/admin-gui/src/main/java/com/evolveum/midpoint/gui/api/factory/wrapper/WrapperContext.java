@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
@@ -74,6 +75,18 @@ public class WrapperContext {
     private boolean isShowedByWizard;
 
     private boolean isDeprecatedItemAllowed = false;
+
+    /**
+     * Indicates that the wrapped object was obtained from an already authorized case
+     * and should be used directly instead of being reloaded from the repository by OID.
+     */
+    private boolean suppliedObjectFromAuthorizedCase;
+
+    /**
+     * Precomputed edit/security definition for supplied/transient objects. When set, wrapper creation uses this
+     * definition instead of recomputing it from the wrapped object.
+     */
+    private PrismObjectDefinition<?> precomputedEditSecurityDefinition;
 
     /**
      * usually virtual containers are created only whtn the whole object wrapper is created
@@ -300,6 +313,22 @@ public class WrapperContext {
         isDeprecatedItemAllowed = deprecatedItemAllowed;
     }
 
+    public boolean isSuppliedObjectFromAuthorizedCase() {
+        return suppliedObjectFromAuthorizedCase;
+    }
+
+    public void setSuppliedObjectFromAuthorizedCase(boolean suppliedObjectFromAuthorizedCase) {
+        this.suppliedObjectFromAuthorizedCase = suppliedObjectFromAuthorizedCase;
+    }
+
+    public PrismObjectDefinition<?> getPrecomputedEditSecurityDefinition() {
+        return precomputedEditSecurityDefinition;
+    }
+
+    public void setPrecomputedEditSecurityDefinition(PrismObjectDefinition<?> precomputedEditSecurityDefinition) {
+        this.precomputedEditSecurityDefinition = precomputedEditSecurityDefinition;
+    }
+
     public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
         this.virtualContainers.addAll(virtualContainers);
         this.forceCreateVirtualContainers = true;
@@ -337,6 +366,8 @@ public class WrapperContext {
         ctx.setConfigureMappingType(configureMappingType);
         ctx.setShowedByWizard(isShowedByWizard);
         ctx.setSecurityConstraints(securityConstraints);
+        ctx.setSuppliedObjectFromAuthorizedCase(suppliedObjectFromAuthorizedCase);
+        ctx.setPrecomputedEditSecurityDefinition(precomputedEditSecurityDefinition);
         return ctx;
     }
 

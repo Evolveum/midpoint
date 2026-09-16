@@ -8,6 +8,8 @@ public interface EditableConnector extends DownloadedConnector {
 
     void saveFile(String filename, String content) throws IOException;
 
+    void deleteFileIfExists(String filename) throws IOException;
+
     String readFile(String filename) throws IOException;
 
     void updateProperty(String filename, String key, String value) throws IOException;

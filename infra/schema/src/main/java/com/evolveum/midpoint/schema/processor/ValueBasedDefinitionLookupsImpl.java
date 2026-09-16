@@ -121,7 +121,7 @@ public class ValueBasedDefinitionLookupsImpl {
         }
 
         @Override
-        public SchemaContext computeContext(PrismValue prismValue) {
+        public SchemaContext computeContext(@NotNull PrismValue prismValue) {
             if (prismValue instanceof PrismContainerValue<?> container) {
                 ResourceObjectTypeDefinitionType rotd = (ResourceObjectTypeDefinitionType) container.asContainerable();
                 ResourceType resource = (ResourceType) container.getRootObjectable();
@@ -150,7 +150,7 @@ public class ValueBasedDefinitionLookupsImpl {
         }
 
         @Override
-        public SchemaContext computeContext(PrismValue prismValue) {
+        public SchemaContext computeContext(@NotNull PrismValue prismValue) {
             if (prismValue instanceof PrismContainerValue<?> container) {
                 var setBean = (ResourceObjectSetType) container.asContainerable();
                 var resourceOid = getOid(setBean.getResourceRef());
@@ -180,7 +180,7 @@ public class ValueBasedDefinitionLookupsImpl {
         }
 
         @Override
-        public SchemaContext computeContext(PrismValue prismValue) {
+        public SchemaContext computeContext(@NotNull PrismValue prismValue) {
             if (prismValue instanceof PrismContainerValue<?> container) {
                 ConstructionType construction = (ConstructionType) container.asContainerable();
                 ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForConstruction(construction);

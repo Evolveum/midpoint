@@ -7,9 +7,12 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceObjectTypeArchetypeValueWrapperImpl;
@@ -20,7 +23,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
 
 import org.springframework.stereotype.Component;
 
@@ -60,7 +65,7 @@ public class ResourceObjectTypeArchetypeWrapperFactory<R extends Referencable> e
             ItemStatus status,
             WrapperContext ctx) {
         PrismReferenceWrapper<R> wrapper = super.createWrapperInternal(parent, item, status, ctx);
-        wrapper.setFilter((BiFunction<PrismReferenceWrapper, PageBase, ObjectFilter> & Serializable)
+        wrapper.setFilter((BiFunction<PrismReferenceWrapper, PageAdminLTE, ObjectFilter> & Serializable)
                 (referenceWrapper, pageBase) -> {
                     PrismContainerValueWrapper resourceFocusValue = referenceWrapper.getParent();
                     if (resourceFocusValue != null) {

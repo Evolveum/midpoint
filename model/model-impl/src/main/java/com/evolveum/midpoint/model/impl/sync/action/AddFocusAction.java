@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionHolderType;
 
 /**
  * Creates a focus object for (typically unmatched) shadow.
@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus",
         "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser" })
 @ActionDefinitionClass(AddFocusSynchronizationActionType.class)
-class AddFocusAction<F extends FocusType> extends BaseClockworkAction<F> {
+class AddFocusAction<F extends ProjectionHolderType> extends BaseClockworkAction<F> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddFocusAction.class);
 

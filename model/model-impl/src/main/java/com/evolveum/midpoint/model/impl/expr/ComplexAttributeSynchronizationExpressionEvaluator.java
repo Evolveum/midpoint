@@ -13,9 +13,20 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.schema.processor.*;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,25 +38,17 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSin
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundMappingContextSpecification;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ComplexAttributeSynchronizationExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Synchronizes complex attribute values by correlating and mapping them to values of respective focus item.
@@ -70,17 +73,17 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
     }
 
     @Override
-    public AssociationSynchronizationResult<PrismContainerValue<C>> evaluate(
+    public ComplexItemEvaluationResult<PrismContainerValue<C>> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         checkEvaluatorProfile(context);
 
         var defaultSource = stateNonNull(context.getDefaultSource(), "No default source");
         var refAttrDefinition =
                 castSafely(
-                        stateNonNull(defaultSource.getDefinition(), "No reference attribute definition"),
+                        stateNonNull(defaultSource.getDefinition(), "No complex attribute definition"),
                         ShadowReferenceAttributeDefinition.class);
 
         var inputTriple = defaultSource.getDeltaSetTriple();
@@ -93,12 +96,12 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                 .process(result);
     }
 
-    class Evaluation {
+    private class Evaluation {
 
         @NotNull private final Collection<? extends PrismValue> inputValues;
-        @NotNull private final AssociationSynchronizationResult<PrismContainerValue<C>> evaluatorResult =
-                new AssociationSynchronizationResult<>();
-        @NotNull private final ShadowReferenceAttributeDefinition refAttrDefinition;
+        @NotNull private final ComplexItemEvaluationResult<PrismContainerValue<C>> evaluatorResult =
+                new ComplexItemEvaluationResult<>();
+        @NotNull private final ShadowReferenceAttributeDefinition inputAttrDefinition;
         @NotNull private final ExpressionEvaluationContext context;
 
         @NotNull private final LensProjectionContext projectionContext =
@@ -111,11 +114,11 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
         Evaluation(
                 @NotNull Collection<? extends PrismValue> inputValues,
-                @NotNull ShadowReferenceAttributeDefinition refAttrDefinition,
+                @NotNull ShadowReferenceAttributeDefinition inputAttrDefinition,
                 @NotNull ExpressionEvaluationContext context)
                 throws ConfigurationException {
             this.inputValues = inputValues;
-            this.refAttrDefinition = refAttrDefinition;
+            this.inputAttrDefinition = inputAttrDefinition;
             this.context = context;
             this.focusItemPath = determineFocusItemPath(context.getTargetDefinitionBean());
             this.focusItemDefinition = determineFocusItemDefinition(focusItemPath);
@@ -140,25 +143,25 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
             var itemDef = objectDefinition.findItemDefinition(focusItemPath);
             configCheck( // TODO ref
                     itemDef instanceof PrismContainerDefinition<?>,
-                    "'{}' does not exist in {}", focusItemPath, objectDefinition);
+                    "'%s' does not exist in %s", focusItemPath, objectDefinition);
             configCheck( // TODO ref
                     itemDef instanceof PrismContainerDefinition<?>,
-                    "'{}' is not a container in {} (it's {})",
+                    "'%s' is not a container in %s (it's %s)",
                     focusItemPath, objectDefinition, itemDef.getClass().getSimpleName());
             //noinspection unchecked
             return (PrismContainerDefinition<C>) itemDef;
         }
 
-        public AssociationSynchronizationResult<PrismContainerValue<C>> process(OperationResult result)
+        ComplexItemEvaluationResult<PrismContainerValue<C>> process(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                ConfigurationException, ObjectNotFoundException {
+                ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
-            LOGGER.trace("Processing {} individual values of the reference attribute '{}'",
-                    inputValues.size(), refAttrDefinition.getItemName());
+            LOGGER.trace("Processing {} individual values of the complex attribute '{}'",
+                    inputValues.size(), inputAttrDefinition.getItemName());
 
             for (var inputValue : inputValues) {
                 var refAttrValue = (ShadowReferenceAttributeValue) inputValue;
-                LOGGER.trace("Processing reference attribute value: {}", refAttrValue);
+                LOGGER.trace("Processing complex attribute value: {}", refAttrValue);
                 new ValueProcessing(refAttrValue)
                         .process(result);
             }
@@ -178,7 +181,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
         }
 
         /**
-         * Complex processing of a embedded object (later: any embedded value):
+         * Complex processing of an embedded object (later: any embedded value):
          *
          * 1. transforming to object for correlation ("pre-focus")
          * 2. determining the target PCV + action (synchronizing or not)
@@ -186,20 +189,27 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
          */
         private class ValueProcessing {
 
-            @NotNull private final ShadowReferenceAttributeValue refAttrValue;
-            @NotNull private final AbstractShadow embeddedShadow;
+            /** The "reference value" wrapping the complex attribute value. */
+            @NotNull private final ShadowReferenceAttributeValue inputAttrValue;
 
-            ValueProcessing(@NotNull ShadowReferenceAttributeValue refAttrValue) {
-                this.refAttrValue = refAttrValue;
-                this.embeddedShadow = refAttrValue.getShadowRequired();
+            /** Unwrapped complex attribute value. */
+            @NotNull private final AbstractShadow inputValueAsShadow;
+
+            /** Definition of the complex attribute type, if available. If not, we do our best to copy the values as-is. */
+            @Nullable private final ResourceObjectTypeDefinition complexAttrTypeDef;
+
+            ValueProcessing(@NotNull ShadowReferenceAttributeValue inputAttrValue) {
+                this.inputAttrValue = inputAttrValue;
+                this.inputValueAsShadow = inputAttrValue.getShadowRequired();
+                this.complexAttrTypeDef = inputValueAsShadow.getObjectDefinition().getTypeDefinition();
             }
 
             void process(OperationResult parentResult)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
 
                 OperationResult result = parentResult.subresult(OP_PROCESS_COMPLEX_ATTRIBUTE_VALUE)
-                        .addArbitraryObjectAsParam("value", refAttrValue)
+                        .addArbitraryObjectAsParam("value", inputAttrValue)
                         .build();
                 try {
 
@@ -250,23 +260,186 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private C computeValueForCorrelation(OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
-                var typeDef = embeddedShadow.getObjectDefinition().getTypeDefinition();
-                if (typeDef == null) {
-                    throw new ExpressionEvaluationException("Couldn't evaluate inbound mapping for complex attribute value: "
-                            + "no type definition for the embedded shadow: " + embeddedShadow);
-                }
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var targetValue = instantiateTargetValue();
-                PreMappingsEvaluator.computePreFocus(
-                        embeddedShadow.getBean(),
-                        typeDef,
-                        determineInboundProcessingDefinition(typeDef),
-                        resource,
-                        targetValue,
-                        context.getTask(),
-                        result);
+                if (complexAttrTypeDef == null) {
+                    LOGGER.trace(
+                            "No explicit type definition for {}. We do our best to copy the values as-is.", inputValueAsShadow);
+                    copyValuesFromInputShadow(targetValue);
+                } else {
+                    PreMappingsEvaluator.computePreFocus(
+                            inputValueAsShadow.getBean(),
+                            complexAttrTypeDef,
+                            determineInboundProcessingDefinition(complexAttrTypeDef),
+                            resource,
+                            targetValue,
+                            context.getTask(),
+                            result);
+                }
                 LOGGER.trace("Target (for correlation):\n{}", targetValue.debugDumpLazily(1));
                 return targetValue;
+            }
+
+            /**
+             * Result of fake "as-is" mapping execution in {@link #copyValuesFromInputShadow(Containerable)}.
+             */
+            private record AsIsMappingResult(
+                    DeltaSetTripleIvwoMap tripleMap,
+                    PathKeyedMap<ItemDefinition<?>> itemDefinitionsMap,
+                    MappingEvaluationRequestsMap evaluationRequestsMap) {
+
+                private AsIsMappingResult() {
+                    this(new DeltaSetTripleIvwoMap(), new PathKeyedMap<>(), new MappingEvaluationRequestsMap());
+                }
+            }
+
+            /**
+             * Copies simple attributes from the {@link #inputValueAsShadow} to the target (focus) structured value
+             * in an "as-is" fashion. For example, copying values from SCIM email to {@link EmailAddressType}:
+             * both have `type`, `primary` and `value` properties, although from different namespaces.
+             *
+             * This is the only option if there is no explicit complex attribute type definition.
+             *
+             * Notes:
+             *
+             * - Converts individual values to the target type, if necessary, using {@link JavaTypeConverter}.
+             * - Ignores attributes that do not have a corresponding property definition in the target.
+             * - Fails if no corresponding items are found.
+             *
+             * Limitation / future work:
+             *
+             * - We deal only with simple attributes for now. Not doing recursive copying of complex attributes,
+             * ignoring references.
+             * - Should we fail if the items are there but without values?
+             */
+            private AsIsMappingResult copyValuesFromInputShadow(C targetValue) throws SchemaException {
+                var mappingResult = new AsIsMappingResult();
+                for (ShadowSimpleAttribute<?> simpleAttribute : inputValueAsShadow.getSimpleAttributes()) {
+                    LOGGER.trace("Copying simple attribute to target: {}", simpleAttribute);
+                    var name = simpleAttribute.getElementName();
+                    var targetPropertyDef =
+                            focusItemDefinition.findPropertyDefinition(ItemName.from("", name.getLocalPart()));
+                    if (targetPropertyDef != null) {
+                        ItemName targetPropertyName = targetPropertyDef.getItemName();
+                        @SuppressWarnings("unchecked")
+                        PrismProperty<Object> targetProperty =
+                                targetValue.asPrismContainerValue().findOrCreateProperty(targetPropertyName);
+                        targetProperty.clear();
+                        for (Object realValue : simpleAttribute.getRealValues()) {
+                            var targetPropertyRealValue = JavaTypeConverter.convert(targetPropertyDef.getTypeClass(), realValue);
+                            targetProperty.addRealValue(targetPropertyRealValue);
+                        }
+
+                        mappingResult.tripleMap.put(targetPropertyName, createDeltaSetTriple(targetProperty));
+                        mappingResult.itemDefinitionsMap.put(targetPropertyName, targetPropertyDef);
+                        // HACK! This information seems to be used for determining IvwoConsolidator#deleteExistingValues.
+                        // We hope it will not cause any problems.
+                        mappingResult.evaluationRequestsMap.put(targetPropertyName, List.of());
+                    } else {
+                        LOGGER.trace("Target does not have a property definition for '{}', skipping", name);
+                    }
+                }
+                if (targetValue.asPrismContainerValue().hasNoItems()) {
+                    throw new SchemaException(
+                            "Couldn't convert source complex value to the target type: no corresponding items found");
+                }
+                return mappingResult;
+            }
+
+            /**
+             * We need to create fake {@link DeltaSetTriple} for the newly computed target property.
+             * We simulate strong mappings here. No origin.
+             */
+            private static DeltaSetTriple<ItemValueWithOrigin<?, ?>> createDeltaSetTriple(PrismProperty<Object> targetProperty) {
+
+                // This is a delta set triple with plain PrismValues, without any origin information.
+                // Used to create "producer" below.
+                PrismValueDeltaSetTriple<PrismValue> deltaSetTriplePlain =
+                        PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
+                for (PrismValue targetPropertyValue : targetProperty.getValues()) {
+                    deltaSetTriplePlain.addToZeroSet(targetPropertyValue);
+                }
+
+                // This is a substition for implicit "as is" mapping after evaluation.
+                var producer = new PrismValueDeltaSetTripleProducer<>() {
+                    @Override
+                    public String toHumanReadableDescription() {
+                        return "";
+                    }
+
+                    @Override
+                    public String debugDump(int indent) {
+                        return "";
+                    }
+
+                    @Override
+                    public QName getTargetItemName() {
+                        return targetProperty.getElementName();
+                    }
+
+                    @Override
+                    public PrismValueDeltaSetTriple<PrismValue> getOutputTriple() {
+                        return deltaSetTriplePlain;
+                    }
+
+                    @Override
+                    public @NotNull MappingStrengthType getStrength() {
+                        return MappingStrengthType.STRONG;
+                    }
+
+                    @Override
+                    public PrismValueDeltaSetTripleProducer<PrismValue, ItemDefinition<?>> clone() {
+                        try {
+                            //noinspection unchecked
+                            return (PrismValueDeltaSetTripleProducer<PrismValue, ItemDefinition<?>>) super.clone();
+                        } catch (CloneNotSupportedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public boolean isExclusive() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isAuthoritative() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSourceless() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getIdentifier() {
+                        return "";
+                    }
+
+                    @Override
+                    public boolean isPushChanges() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isEnabled() {
+                        return true;
+                    }
+
+                    @Override
+                    public @Nullable ItemDefinition<?> getTargetItemDefinition() {
+                        return targetProperty.getDefinition();
+                    }
+                };
+
+                DeltaSetTriple<ItemValueWithOrigin<?, ?>> deltaSetTripleWithOrigins =
+                        PrismContext.get().deltaFactory().createDeltaSetTriple();
+                for (PrismValue targetPropertyValue : targetProperty.getValues()) {
+                    deltaSetTripleWithOrigins.addToZeroSet(
+                            new ItemValueWithOrigin<>(targetPropertyValue, producer, null));
+                }
+                return deltaSetTripleWithOrigins;
             }
 
             /**
@@ -306,7 +479,7 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
                     @NotNull SimplifiedCorrelationResult correlationResult,
                     @NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                    CommunicationException, ObjectNotFoundException {
+                    CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var situation = correlationResult.getSituation();
                 if (situation == CorrelationSituationType.NO_OWNER) {
                     executeAdd(result);
@@ -320,13 +493,17 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private void executeAdd(@NotNull OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, SecurityViolationException,
-                    CommunicationException, ObjectNotFoundException {
+                    CommunicationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var targetValue = instantiateTargetValue();
-                SingleShadowInboundsProcessing.evaluate(
-                        createShadowProcessingContext(targetValue, result),
-                        result);
+                if (complexAttrTypeDef == null) {
+                    copyValuesFromInputShadow(targetValue);
+                } else {
+                    SingleShadowInboundsProcessing.evaluate(
+                            createShadowProcessingContext(targetValue, result),
+                            result);
+                }
                 LOGGER.trace("Going to ADD a new value for target: {}:\n{}",
-                        refAttrDefinition, targetValue.debugDumpLazily(1));
+                        inputAttrDefinition, targetValue.debugDumpLazily(1));
                 setValueMetadata(targetValue.asPrismContainerValue(), result);
                 //noinspection unchecked
                 evaluatorResult.addToPlusSet(targetValue.asPrismContainerValue());
@@ -334,40 +511,50 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
 
             private void setValueMetadata(PrismContainerValue<?> pcv, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 var metadataComputer = context.getValueMetadataComputer();
                 if (metadataComputer != null) {
                     pcv.setValueMetadata(
-                            metadataComputer.compute(List.of(refAttrValue), result));
+                            metadataComputer.compute(List.of(inputAttrValue), result));
                 }
             }
 
             private void executeSynchronize(@NotNull SimplifiedCorrelationResult correlationResult, @NotNull OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-                    ConfigurationException, ObjectNotFoundException {
+                    ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
                 //noinspection unchecked
                 var targetValue = Objects.requireNonNull((C) correlationResult.getOwner());
-                var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(
-                        createShadowProcessingContext(targetValue, result),
-                        result);
-                var assignmentPath = focusItemPath.append(Objects.requireNonNull(targetValue.asPrismContainerValue().getId()));
-                evaluatorResult.mergeIntoOtherTriples(assignmentPath, innerProcessing.getOutputTripleMap());
-                evaluatorResult.mergeIntoItemDefinitionsMap(assignmentPath, innerProcessing.getItemDefinitionMap());
-                evaluatorResult.mergeIntoMappingEvaluationRequestsMap(assignmentPath, innerProcessing.getEvaluationRequestsMap());
+                var targetValuePath = focusItemPath.append(Objects.requireNonNull(targetValue.asPrismContainerValue().getId()));
+                if (complexAttrTypeDef == null) {
+                    C targetValueClone = CloneUtil.cloneCloneable(targetValue); // clone is discarded, mappingResult is important
+                    var mappingResult = copyValuesFromInputShadow(targetValueClone);
+                    evaluatorResult.mergeIntoInnerTriples(targetValuePath, mappingResult.tripleMap());
+                    evaluatorResult.mergeIntoInnerItemDefinitionsMap(targetValuePath, mappingResult.itemDefinitionsMap());
+                    evaluatorResult.mergeIntoInnerMappingEvaluationRequestsMap(
+                            targetValuePath, mappingResult.evaluationRequestsMap());
+                } else {
+                    var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(
+                            createShadowProcessingContext(targetValue, result),
+                            result);
+                    evaluatorResult.mergeIntoInnerTriples(targetValuePath, innerProcessing.getOutputTripleMap());
+                    evaluatorResult.mergeIntoInnerItemDefinitionsMap(targetValuePath, innerProcessing.getItemDefinitionMap());
+                    evaluatorResult.mergeIntoInnerMappingEvaluationRequestsMap(
+                            targetValuePath, innerProcessing.getEvaluationRequestsMap());
+                }
             }
 
             private @NotNull DefaultSingleShadowInboundsProcessingContextImpl<C> createShadowProcessingContext(
                     C targetValue, @NotNull OperationResult result)
                     throws SchemaException {
                 return new DefaultSingleShadowInboundsProcessingContextImpl<>(
-                        embeddedShadow,
+                        inputValueAsShadow,
                         resource,
                         createMappingContextSpecification(),
                         targetValue,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),
-                        embeddedShadow.getObjectDefinition(),
-                        embeddedShadow.getObjectDefinition(),
+                        inputValueAsShadow.getObjectDefinition(),
+                        inputValueAsShadow.getObjectDefinition(),
                         false);
             }
 

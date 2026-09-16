@@ -473,8 +473,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
      * . quick
      * . safe - it should not make any assumptions about event content that would cause it to throw an exception
      * . filter out events that obviously do not match the notifier - e.g. simpleUserNotifier should ensure that
-     * the focus type is really UserType; this allows nested filters to assume existence of
-     * e.g. requestee.fullName element.
+     * the focus type is really UserType; this allows nested filters to assume existence of user-specific properties.
      */
     protected boolean quickCheckApplicability(
             ConfigurationItem<? extends N> notifierConfig,
@@ -679,8 +678,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         }
         ObjectType requester = requesterRef.resolveObjectType(result, false);
         String name = PolyString.getOrig(requester.getName());
-        if (requester instanceof UserType) {
-            return name + " (" + PolyString.getOrig(((UserType) requester).getFullName()) + ")";
+        if (requester instanceof UserType requesterUser) {
+            return name + " (" + PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser)) + ")";
         } else {
             return name;
         }
@@ -691,9 +690,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             body.append("Requester: ");
             try {
                 ObjectType requester = event.getRequester().resolveObjectType(result, false);
-                if (requester instanceof UserType) {
-                    UserType requesterUser = (UserType) requester;
-                    body.append(requesterUser.getFullName()).append(" (").append(requester.getName()).append(")");
+                if (requester instanceof UserType requesterUser) {
+                    String displayName = PolyString.getOrig(ObjectTypeUtil.getDisplayNameOrFullName(requesterUser));
+                    body.append(displayName).append(" (").append(requester.getName()).append(")");
                 } else {
                     body.append(ObjectTypeUtil.toShortString(requester));
                 }

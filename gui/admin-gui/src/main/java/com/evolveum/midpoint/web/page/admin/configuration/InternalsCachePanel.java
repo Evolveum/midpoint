@@ -84,7 +84,7 @@ public class InternalsCachePanel extends BasePanel<Void>{
             public void onClick(AjaxRequestTarget target) {
                 String cacheInformation = getCacheInformation();
                 LOGGER.info("Dumping the content of the caches.\nCurrent counters:\n{}\n", cacheInformation);
-                MidPointApplication.get().getCacheRegistry().dumpContent();
+                MidPointApplication.get().getCacheDiagnosticsService().dumpContent();
 
                 getSession().success(getPageBase().getString("InternalsCachePanel.result.dumped"));
                 target.add(getPageBase());
@@ -109,7 +109,7 @@ public class InternalsCachePanel extends BasePanel<Void>{
 
     private String getCacheInformation() {
         StringBuilder sb = new StringBuilder();
-        CachesStateInformationType state = MidPointApplication.get().getCacheRegistry().getStateInformation();
+        CachesStateInformationType state = MidPointApplication.get().getCacheDiagnosticsService().getStateInformation();
         List<KeyValueTreeNode<String, SizeInformation>> trees = new ArrayList<>();
         for (SingleCacheStateInformationType entry : state.getEntry()) {
             if (isEmptyCacheStateInformationEntry(entry)) {

@@ -33,7 +33,7 @@ public class MockAsyncUpdateTaskHandler {
 
     public void processUpdates(ResourceOperationCoordinates coords, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, SubscriptionComplianceException {
 
         provisioningService.processAsynchronousUpdates(coords, (event, hResult) -> {
             if (event.isComplete()) {

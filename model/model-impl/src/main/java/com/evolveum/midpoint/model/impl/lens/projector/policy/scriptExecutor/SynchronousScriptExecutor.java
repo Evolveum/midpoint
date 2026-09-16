@@ -65,7 +65,7 @@ class SynchronousScriptExecutor {
 
     private ExecuteScriptConfigItem addInputIfNeeded(ExecuteScriptConfigItem specifiedExecuteScriptCI, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (specifiedExecuteScriptCI.value().getInput() == null) {
             FullDataBasedObjectSet objectSet = new FullDataBasedObjectSet(actx, result);
             objectSet.collect();

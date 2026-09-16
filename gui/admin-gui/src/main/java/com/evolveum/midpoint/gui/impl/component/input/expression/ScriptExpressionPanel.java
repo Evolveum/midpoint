@@ -12,11 +12,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.behavior.CaretPreservingOnChangeBehavior;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -29,6 +32,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -45,22 +49,29 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private static final String C_DATA_PREFIX = "<![CDATA[";
     private static final String C_DATA_SUFFIX = "]]>";
 
+    private IModel<String> descriptionModel;
+
     public ScriptExpressionPanel(String id, IModel<ExpressionType> model) {
-        super(id, model);
+        this(id, model, null);
+    }
+
+    public ScriptExpressionPanel(String id, IModel<ExpressionType> model, IModel<QName> expressionTargetTypeModel) {
+        super(id, model, expressionTargetTypeModel);
     }
 
     @Override
-    public IModel<String> getValueContainerLabelModel() {
-        return getPageBase().createStringResource("ScriptExpressionPanel.label");
+    public IModel<String> getValueContainerLabelModel(PageBase pageBase) {
+        return pageBase.createStringResource("ScriptExpressionPanel.label");
     }
 
     protected void initLayout(MarkupContainer parent) {
         IModel<ExpressionUtil.Language> languageModel = createLanguageModel();
+        descriptionModel = createDescriptionModel();
 
         SimpleAceEditorPanel codePanel = createCodeInputPanel(languageModel);
 
         parent.add(new Label(ID_DESCRIPTION_LABEL, createStringResource("ScriptExpressionEvaluatorType.description")));
-        parent.add(createDescriptionField(createDescriptionModel()));
+        parent.add(createDescriptionField(descriptionModel));
 
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
@@ -86,15 +97,27 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
      */
     private @NotNull IModel<String> createDescriptionModel() {
         return new IModel<>() {
+
+            private String description = getModelObject() != null ? getModelObject().getDescription() : null;
+
             @Override
             public String getObject() {
-                return getModelObject() != null ? getModelObject().getDescription() : null;
+                return description;
             }
 
             @Override
             public void setObject(String value) {
-                if (getModelObject() != null) {
-                    getModelObject().setDescription(value);
+                description = value;
+
+                ExpressionType expression = getModelObject();
+                if (expression == null && StringUtils.isNotEmpty(value)) {
+                    // Preserve a description entered before the script evaluator is created.
+                    expression = new ExpressionType();
+                    getModel().setObject(expression);
+                }
+
+                if (expression != null) {
+                    expression.setDescription(value);
                 }
             }
         };
@@ -107,7 +130,15 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         TextField<String> documentationField = new TextField<>(ScriptExpressionPanel.ID_DESCRIPTION_INPUT, model);
         documentationField.setOutputMarkupId(true);
         documentationField.add(AttributeAppender.append("class", "form-control form-control-sm mb-2"));
-        documentationField.add(new CaretPreservingOnChangeBehavior());
+
+        documentationField.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                // The model is updated before this callback. Avoid rerendering the
+                // unchanged field, as replacing it causes visible flickering.
+            }
+        });
+
         return documentationField;
     }
 
@@ -139,32 +170,27 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     private SimpleAceEditorPanel createCodeInputPanel(IModel<ExpressionUtil.Language> languageModel) {
 
         IModel<String> model = new IModel<>() {
+
             @Override
             public String getObject() {
-
                 ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
-
-                String ret = evaluatorWrapper.code;
+                String code = evaluatorWrapper.code;
 
                 if (ExpressionUtil.Language.VELOCITY.equals(evaluatorWrapper.language)) {
-                    if (ret.startsWith(C_DATA_PREFIX)) {
-                        ret = ret.substring(C_DATA_PREFIX.length());
+                    if (code.startsWith(C_DATA_PREFIX)) {
+                        code = code.substring(C_DATA_PREFIX.length());
                     }
-
-                    if (ret.endsWith(C_DATA_SUFFIX)) {
-                        ret = ret.substring(0, ret.length() - C_DATA_SUFFIX.length());
+                    if (code.endsWith(C_DATA_SUFFIX)) {
+                        code = code.substring(0, code.length() - C_DATA_SUFFIX.length());
                     }
                 }
-                return ret;
+
+                return code;
             }
 
             @Override
             public void setObject(String value) {
-                updateEvaluatorValue(value);
-            }
-
-            @Override
-            public void detach() {
+                updateEvaluatorValue(value, languageModel.getObject());
             }
         };
 
@@ -203,30 +229,52 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         ScriptExpressionWrapper wrapper = getEvaluatorValue();
         if ((ExpressionUtil.Language.GROOVY.equals(language) && wrapper.language == null)
                 || (language == null && wrapper.language == null)
-                || language.equals(wrapper.language))  {
+                || language.equals(wrapper.language)) {
             return;
         }
         try {
             ScriptExpressionEvaluatorType evaluator = wrapper.language(language).toEvaluator();
-            ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+            ExpressionType expression = ExpressionUtil.updateScriptExpressionValue(getModelObject(), evaluator);
+            preserveDescription(expression);
+            getModel().setObject(expression);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update generate expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update generate expression values: " + ex.getLocalizedMessage());
         }
     }
 
-    private void updateEvaluatorValue(String code) {
-        ExpressionType expressionType = getModelObject();
+    private void updateEvaluatorValue(String code, ExpressionUtil.Language language) {
         try {
-            ScriptExpressionWrapper evaluatorWrapper = getEvaluatorValue();
+            ScriptExpressionWrapper wrapper = getEvaluatorValue()
+                    .code(code)
+                    .language(language);
 
-            ScriptExpressionEvaluatorType evaluator = evaluatorWrapper.code(code).toEvaluator();
-            expressionType = ExpressionUtil.updateScriptExpressionValue(expressionType, evaluator);
-            getModel().setObject(expressionType);
+            ExpressionType expression = ExpressionUtil.updateScriptExpressionValue(
+                    getModelObject(), wrapper.toEvaluator());
+
+            expression = preserveDescription(expression);
+            getModel().setObject(expression);
         } catch (SchemaException ex) {
             LOGGER.error("Couldn't update script expression values: {}", ex.getLocalizedMessage());
             getPageBase().error("Couldn't update script expression values: " + ex.getLocalizedMessage());
         }
+    }
+
+    /**
+     * Restores the description after updating or recreating the expression.
+     */
+    private ExpressionType preserveDescription(@Nullable ExpressionType expression) {
+        String description = descriptionModel.getObject();
+
+        if (expression == null && StringUtils.isNotEmpty(description)) {
+            expression = new ExpressionType();
+        }
+
+        if (expression != null) {
+            expression.setDescription(description);
+        }
+
+        return expression;
     }
 
     //don't remove it, used by class and method name
@@ -281,7 +329,7 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
             if (StringUtils.isEmpty(code)) {
                 return null;
             }
-            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getLanguage());
+            return new ScriptExpressionEvaluatorType().code(code).language(language == null ? null : language.getShortForm());
         }
 
         public ScriptExpressionWrapper code(String code) {

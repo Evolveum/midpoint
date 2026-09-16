@@ -1,0 +1,89 @@
+= Shadow Sampling Configuration
+:page-toc: top
+:page-since: "4.11"
+:page-upkeep-status: green
+
+== Overview
+
+Smart Integration features in midPoint (such as AI-assisted correlation suggestions and mapping suggestions) inspect sample shadows from target resources to discover patterns and evaluate candidate suggestions.
+
+To balance suggestion quality and performance, midPoint uses different sampling limits depending on whether **shadow caching** is enabled:
+
+* **Cached Shadows (Enabled Caching):** When shadow caching is fully enabled (and all required attributes are cached), sampling is fast and happens directly in the midPoint repository without placing excessive load on the target resource. Therefore, larger sample sizes can be used.
+* **Uncached Shadows (Disabled Caching):** When shadow caching is disabled or not all required attributes are cached, midPoint must fetch full shadows directly from the live target system. To avoid degrading resource performance and incurring high communication overhead, smaller sample sizes are used by default.
+
+All sample size limits can be customized via the system configuration (`SystemConfigurationType`).
+
+== Configuration Elements
+
+Shadow sampling limits are configured inside the `<smartIntegration>` container under `<shadowSampling>`:
+
+[cols="35%,15%,15%,35%",options="header"]
+|===
+| Element | Type | Default | Description
+
+| `correlationSampleSizeCached`
+| `int`
+| `5000`
+| Maximum number of cached shadows sampled during correlation suggestion evaluation when shadow caching is enabled with all required attributes cached.
+
+| `correlationSampleSizeUncached`
+| `int`
+| `2000`
+| Maximum number of shadows sampled during correlation suggestion evaluation when shadow caching is disabled or required attributes are not cached.
+
+| `mappingLlmSampleSizeCached`
+| `int`
+| `50`
+| Number of sample shadows included in the LLM prompt for generating mapping suggestions when caching is enabled.
+
+| `mappingValidationSampleSizeCached`
+| `int`
+| `1000`
+| Number of sample shadows used to validate generated mapping expressions when caching is enabled.
+
+| `mappingLlmSampleSizeUncached`
+| `int`
+| `20`
+| Number of sample shadows included in the LLM prompt for generating mapping suggestions when caching is disabled.
+
+| `mappingValidationSampleSizeUncached`
+| `int`
+| `200`
+| Number of sample shadows used to validate generated mapping expressions when caching is disabled.
+|===
+
+== Configuration Example
+
+The following example demonstrates how to configure custom sampling limits in `SystemConfiguration`:
+
+[source,xml]
+----
+<systemConfiguration>
+
+    <smartIntegration>
+        <serviceUrl>http://localhost:8080</serviceUrl>
+
+        <!-- Shadow sampling configuration -->
+        <shadowSampling>
+            <!-- Correlation sampling limits -->
+            <correlationSampleSizeCached>8000</correlationSampleSizeCached>
+            <correlationSampleSizeUncached>1500</correlationSampleSizeUncached>
+
+            <!-- Mapping suggestion sampling limits (cached) -->
+            <mappingLlmSampleSizeCached>60</mappingLlmSampleSizeCached>
+            <mappingValidationSampleSizeCached>2000</mappingValidationSampleSizeCached>
+
+            <!-- Mapping suggestion sampling limits (uncached) -->
+            <mappingLlmSampleSizeUncached>30</mappingLlmSampleSizeUncached>
+            <mappingValidationSampleSizeUncached>300</mappingValidationSampleSizeUncached>
+        </shadowSampling>
+    </smartIntegration>
+
+</systemConfiguration>
+----
+
+[NOTE]
+====
+All properties in `<shadowSampling>` are optional. If an element is omitted, midPoint will use its default value.
+====

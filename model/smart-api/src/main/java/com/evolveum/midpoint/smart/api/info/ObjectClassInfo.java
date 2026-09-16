@@ -10,7 +10,7 @@ package com.evolveum.midpoint.smart.api.info;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSetStatisticsType;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ public record ObjectClassInfo(
         ResourceObjectClassDefinition definition,
         Collection<ResourceObjectTypeDefinition> objectTypes,
         ObjectClassSizeEstimationType sizeEstimation,
-        @Nullable ShadowObjectClassStatisticsType statistics) implements Serializable {
+        @Nullable ObjectSetStatisticsType statistics) implements Serializable {
 
     @Serial private static final long serialVersionUID = 1L;
 

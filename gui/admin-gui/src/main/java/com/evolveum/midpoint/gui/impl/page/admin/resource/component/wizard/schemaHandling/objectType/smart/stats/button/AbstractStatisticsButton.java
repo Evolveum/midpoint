@@ -49,7 +49,7 @@ public abstract class AbstractStatisticsButton<T> extends BasePanel<T> {
     }
 
     protected String getButtonCssClass() {
-        return isRegenerateMode() ? "btn btn-outline-primary" : "btn btn-sm btn-default";
+        return isRegenerateMode() ? "btn btn-outline-primary" : "btn btn-sm btn-light border";
     }
 
     protected IModel<String> getIconModel() {

@@ -2,6 +2,7 @@ package com.evolveum.midpoint.smart.impl.conndev.activity;
 
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -13,9 +14,12 @@ import com.evolveum.midpoint.repo.common.activity.run.LocalActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -117,6 +121,19 @@ public abstract class AbstractConnDevActivityHandler<T extends AbstractConnDevAc
                     siblingOids.size(), runningTask.getName());
             activityRun.getBeans().taskManager.suspendTasks(siblingOids, TaskManager.DO_NOT_WAIT, result);
         }
+    }
+
+    /** The node this task is currently running on, as an {@link ObjectReferenceType}. */
+    static ObjectReferenceType currentNodeRef(RunningTask task, OperationResult result) throws CommonException {
+        var nodeId = task.getNode();
+        var query = PrismContext.get().queryFor(NodeType.class)
+                .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
+                .build();
+        List<PrismObject<NodeType>> nodes = ConnDevBeans.get().modelService.searchObjects(NodeType.class, query, null, task, result);
+        if (nodes.isEmpty()) {
+            throw new ObjectNotFoundException("Could not find node " + nodeId, NodeType.class, nodeId);
+        }
+        return new ObjectReferenceType().oid(nodes.get(0).getOid()).type(NodeType.COMPLEX_TYPE);
     }
 
     private static final long SIBLING_POLL_INTERVAL_MS = 2000L;

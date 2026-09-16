@@ -19,7 +19,7 @@
                 <div class="input-group">
                     <input wicket:id="input" type="text" class="form-control form-control-sm" value="first"/>
 
-                    <div wicket:id="buttonGroup" class="input-group-append">
+                    <wicket:container wicket:id="buttonGroup">
                         <a wicket:id="edit" class="btn btn-sm btn-primary" title="Edit">
                             <i class="fa fa-pen-square"/>
                         </a>
@@ -29,7 +29,7 @@
                         <a wicket:id="add" class="btn btn-sm btn-success" title="Add">
                             <i class="fa fa-plus"/>
                         </a>
-                    </div>
+                    </wicket:container>
                 </div>
             </dd>
         </wicket:container>

@@ -132,4 +132,8 @@ public class NavigationPanel extends BasePanel {
     protected void onNextPerformed(AjaxRequestTarget target) {
 
     }
+
+    public Component getNextComponent(){
+        return get(ID_NEXT);
+    }
 }

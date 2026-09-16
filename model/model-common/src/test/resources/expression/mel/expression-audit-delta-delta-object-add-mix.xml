@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+    <code>
+        cel.bind(do, single(object.delta),
+            '%s %s(%s): %s'.format([
+                do.objectDelta.changeType.uc(),
+                default(do.objectDelta.objectToAdd.name, '[none]'),
+                do.objectDelta.oid,
+                do.executionResult.status
+            ])
+        )
+    </code>
+</script>

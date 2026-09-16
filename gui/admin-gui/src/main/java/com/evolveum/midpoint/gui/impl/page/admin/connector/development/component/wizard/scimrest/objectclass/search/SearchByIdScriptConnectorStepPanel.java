@@ -18,7 +18,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import org.apache.wicket.model.IModel;
 
@@ -35,7 +38,7 @@ import java.io.IOException;
         containerPath = "empty")
 public class SearchByIdScriptConnectorStepPanel extends ScriptConnectorStepPanel {
 
-    private static final String PANEL_TYPE = "cdw-search-by-id-script";
+    public static final String PANEL_TYPE = "cdw-search-by-id-script";
 
     static final String TASK_SEARCH_BY_ID_SCRIPTS_KEY = "taskSearchByIdScriptKey";
 

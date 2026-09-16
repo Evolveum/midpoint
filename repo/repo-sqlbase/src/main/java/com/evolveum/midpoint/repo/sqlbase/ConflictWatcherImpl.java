@@ -13,13 +13,34 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Detects write-write conflicts on objects by tracking expected object versions, like this:
+ *
+ * - After successful ADD and MODIFY operation, the expected version is updated (ADD sets it; MODIFY increases it)
+ * - Before MODIFY operation, it is checked that the expected version matches the current version in the repository.
+ *
+ * This object is local to the thread that uses it. This means that if a different thread modifies the object in the meanwhile,
+ * the current version in the repository will no longer match the expected version (on MODIFY operation start) and so the
+ * conflict will be detected.
+ *
+ * NOTE: This object does not prevent conflicting changes. It just detects them.
+ */
 public class ConflictWatcherImpl implements ConflictWatcher {
 
+    /** OID of the object we are watching. */
     @NotNull private final String oid;
+
+    /** Was this watcher initialized i.e. is expected version set? */
     private boolean initialized;
+
+    /** Was a conflict already detected? */
     private boolean hasConflict;
+
+    /** What is the expected version of an object? Meaningful only if {@link #initialized} is {@code true}. */
     private int expectedVersion;
-    private boolean objectDeleted;              // skip all future checks
+
+    /** Was the object deleted? This skips all future checks. */
+    private boolean objectDeleted;
 
     public ConflictWatcherImpl(@NotNull String oid) {
         this.oid = oid;
@@ -35,7 +56,6 @@ public class ConflictWatcherImpl implements ConflictWatcher {
         }
         expectedVersion = Integer.parseInt(version);
         initialized = true;
-        //System.out.println(Thread.currentThread().getName() + ": afterAddObject: " + this);
     }
 
     public void afterDeleteObject(String oid) {
@@ -56,7 +76,6 @@ public class ConflictWatcherImpl implements ConflictWatcher {
             return;
         }
         expectedVersion++;
-        //System.out.println(Thread.currentThread().getName() + ": afterModifyObject: " + this);
     }
 
     public void afterGetVersion(String oid, String currentRepoVersion) {
@@ -79,7 +98,6 @@ public class ConflictWatcherImpl implements ConflictWatcher {
 
     private void checkExpectedVersion(@NotNull String currentRepoVersion) {
         int current = Integer.parseInt(currentRepoVersion);
-        //System.out.println(Thread.currentThread().getName() + ": checkExpectedVersion: current=" + current + " in " + this);
         if (initialized) {
             if (current != expectedVersion) {
                 hasConflict = true;
@@ -88,7 +106,6 @@ public class ConflictWatcherImpl implements ConflictWatcher {
             initialized = true;
             expectedVersion = current;
         }
-        //System.out.println(Thread.currentThread().getName() + ": checkExpectedVersion finishing: current=" + current + " in " + this);
     }
 
     @Override
@@ -107,7 +124,6 @@ public class ConflictWatcherImpl implements ConflictWatcher {
         return initialized;
     }
 
-    // for testing purposes
     public int getExpectedVersion() {
         return expectedVersion;
     }

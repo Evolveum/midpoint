@@ -372,6 +372,8 @@ public class IconAndStylesUtil {
                 return GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC;
             case ENTITLEMENT:
                 return GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT;
+            case WORK:
+                return GuiStyleConstants.CLASS_SHADOW_ICON_WORK;
 
         }
 

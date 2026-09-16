@@ -11,8 +11,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DefinitionProcessing
 /**
  * How should be definitions processed when object is to be retrieved. Currently applies at the model level;
  * but in the future it might be used also elsewhere.
+ *
+ * The goal is to optimize the memory footprint of objects returned.
  */
-
 public enum DefinitionProcessingOption {
 
     /**

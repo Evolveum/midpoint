@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.smart.impl.conndev;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -15,14 +16,18 @@ import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIBuilder;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BooleanSupplier;
 
@@ -30,6 +35,7 @@ public class ServiceClient {
 
     private static final String SESSION_PATTERN = "{sessionId}";
     private static final String RELATIVE_SESSION_ENDPOINT = "session/{sessionId}";
+    private static final String API_KEY_HEADER = "X-API-Key";
 
 
 
@@ -39,14 +45,16 @@ public class ServiceClient {
     private final String apiBase;
 
     private static SSLContext trustAllContext;
+    private final String apiKey;
     private final String sessionId;
     private final CloseableHttpClient client;
     private final SessionRestoration restoration;
     private final SessionRestoration synchronization;
     private final String sessionEndpoint;
 
-    public ServiceClient(String apiBase, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client) {
+    public ServiceClient(String apiBase, String apiKey, String sessionId, SessionRestoration restoration, SessionRestoration synchronization, CloseableHttpClient client) {
         this.client = client;
+        this.apiKey = apiKey;
         this.sessionId = sessionId;
         this.restoration = restoration;
         this.synchronization = synchronization;
@@ -54,15 +62,22 @@ public class ServiceClient {
         this.sessionEndpoint = appendSession(this.apiBase + RELATIVE_SESSION_ENDPOINT);
     }
 
-    public Job postJob(String endpoint, boolean skipCache) throws IOException {
-        var job = new Job(apiBase+endpoint, skipCache);
+    private CloseableHttpResponse execute(ClassicHttpRequest request) throws IOException {
+        if (apiKey != null) {
+            request.setHeader(API_KEY_HEADER, apiKey);
+        }
+        return client.execute(request);
+    }
+
+    public Job postJob(String endpoint, String apiType, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
         job.startJob(request);
         return job;
     }
 
-    public Job postJob(String endpoint, ObjectNode body, boolean skipCache) throws IOException {
-        var job = new Job(apiBase+endpoint, skipCache);
+    public Job postJob(String endpoint, ObjectNode body, String apiType, boolean skipCache) throws IOException {
+        var job = new Job(apiBase+endpoint, apiType, skipCache);
         var request = job.postBuilder();
         request.setEntity(new StringEntity(body.toPrettyString(), ContentType.APPLICATION_JSON));
         job.startJob(request);
@@ -113,8 +128,8 @@ public class ServiceClient {
         return job;
     }
 
-    public RestorationClient synchronizationClient() {
-        return new RestorationClient();
+    public SynchronizationClient synchronizationClient() {
+        return new SynchronizationClient();
     }
 
 
@@ -128,6 +143,7 @@ public class ServiceClient {
     public class Job implements AutoCloseable {
 
         private final String uri;
+        private final String apiType;
         private final boolean skipCache;
         private String jobId = null;
 
@@ -135,15 +151,13 @@ public class ServiceClient {
         private ObjectNode latestResult;
 
         public Job(String uri, boolean skipCache) {
-            this.uri = appendSession(uri);
-            this.skipCache =skipCache;
+            this(uri, null, skipCache);
         }
 
-        private String appendSkipCache(String uri) {
-            if (!skipCache) {
-                return uri;
-            }
-            return uri + ( !uri.contains("?") ? "?" : "&" ) + "skipCache=true";
+        public Job(String uri, String apiType, boolean skipCache) {
+            this.uri = appendSession(uri);
+            this.apiType = apiType;
+            this.skipCache =skipCache;
         }
 
         @Override
@@ -152,7 +166,18 @@ public class ServiceClient {
         }
 
         public HttpPost postBuilder() {
-            return new HttpPost(appendSkipCache(uri));
+            try {
+                var builder = new URIBuilder(uri);
+                if (skipCache) {
+                    builder.addParameter("skipCache", "true");
+                }
+                if (apiType != null) {
+                    builder.addParameter("apiType", apiType);
+                }
+                return new HttpPost(builder.build());
+            } catch (URISyntaxException e) {
+                throw new SystemException(e);
+            }
         }
 
         public void startJob(HttpPost request) throws IOException {
@@ -165,7 +190,7 @@ public class ServiceClient {
         }
 
         public void startJob0(HttpPost request) throws IOException {
-            try(var response = client.execute(request)) {
+            try(var response = execute(request)) {
                 if (HttpStatus.SC_OK == response.getCode()) {
                     var result = parseJson(response.getEntity().getContent());
                     jobId = result.get("jobId").asText();
@@ -178,7 +203,7 @@ public class ServiceClient {
 
         public void refresh() {
             var request = new HttpGet(uri + "?jobId=" + jobId);
-            try(var response = client.execute(request)) {
+            try(var response = execute(request)) {
                 if (HttpStatus.SC_OK == response.getCode()) {
                     latestResult = parseJson(response.getEntity().getContent());
                     updateState();
@@ -226,22 +251,55 @@ public class ServiceClient {
                 try {
                     Thread.sleep(sleepTime);
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
+                    throw new SystemException("Interrupted while waiting for the connector generation service", e);
                 }
                 if (!canRun.getAsBoolean()) {
-                    throw new RuntimeException("Task interrupted");
+                    throw new SystemException("Operation was cancelled while waiting for the connector generation service");
                 }
             }
-            if (isFinished()) {
+            if (status == JobStatus.FAILED) {
+                var errors = extractErrors();
+                throw new SystemException("The connector generation service reported a failure"
+                        + (errors != null ? ":\n" + errors : ""));
+            }
+            if (status == JobStatus.COMPLETED) {
                 return transform.apply(getResult());
             }
-            throw new IllegalStateException("Job has been finished");
+            throw new SystemException("The connector generation service job did not finish successfully");
+        }
+
+        /**
+         * Extracts the {@code errors} array (if present) from the latest job response, so that
+         * service-side failures are surfaced in the exception message shown in the GUI instead of
+         * a generic, contextless error.
+         */
+        private String extractErrors() {
+            if (latestResult == null) {
+                return null;
+            }
+            var errorsNode = latestResult.get("errors");
+            if (errorsNode == null || errorsNode.isNull()) {
+                var resultNode = latestResult.get("result");
+                errorsNode = resultNode != null ? resultNode.get("errors") : null;
+            }
+            if (errorsNode == null || !errorsNode.isArray() || errorsNode.isEmpty()) {
+                return null;
+            }
+            var sb = new StringBuilder();
+            for (var error : errorsNode) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(error.asText());
+            }
+            return sb.length() == 0 ? null : sb.toString();
         }
     }
 
     private void ensureSessionExists() throws IOException {
         int code;
-        try (var response = client.execute(new HttpHead(sessionEndpoint))) {
+        try (var response = execute(new HttpHead(sessionEndpoint))) {
             code = response.getCode();
         }
         if (HttpStatus.SC_NOT_FOUND == code) {
@@ -253,7 +311,7 @@ public class ServiceClient {
 
     private void createSession() throws IOException {
         int code;
-        try (var response = client.execute(new HttpPost(sessionEndpoint))) {
+        try (var response = execute(new HttpPost(sessionEndpoint))) {
             code = response.getCode();
         }
         if (code == HttpStatus.SC_OK || code == HttpStatus.SC_CREATED) {
@@ -285,7 +343,7 @@ public class ServiceClient {
             var uri = appendSession(apiBase + apiUri);
             var request = new HttpPut(uri);
             request.setEntity(entitySupplier.get());
-            try (var uploadResponse = client.execute(request)) {
+            try (var uploadResponse = execute(request)) {
                 if (uploadResponse.getCode() >= 200 && uploadResponse.getCode() < 300) {
                     return;
                 }
@@ -296,13 +354,96 @@ public class ServiceClient {
         public void putDocumentationIfMissing(String apiUri, Supplier<HttpEntity> entitySupplier) throws IOException {
             var uri = appendSession(apiBase + apiUri);
             int checkCode;
-            try (var response = client.execute(new HttpHead(uri))) {
+            try (var response = execute(new HttpHead(uri))) {
                 checkCode = response.getCode();
             }
             if (checkCode == HttpStatus.SC_OK || checkCode == HttpStatus.SC_NO_CONTENT) {
                 return;
             }
             put(apiUri, entitySupplier);
+        }
+
+    }
+
+    /**
+     * Client for the documentation synchronization direction: upload dev documentation to the generation
+     * service, wait for it to be processed, and pull the processed result back. The service is the source
+     * of truth for processed documentation, so callers push with {@link #postDocumentation}, then, once
+     * {@link #awaitDocumentation} confirms processing, read the result with {@link #getDocumentation}.
+     */
+    public class SynchronizationClient {
+
+        private String documentationUri(String docId) {
+            return appendSession(apiBase + "session/{sessionId}/documentation/" + docId);
+        }
+
+        /**
+         * Uploads a single documentation file (multipart {@code documentation} part). The endpoint does
+         * not merely store it but hands it to the LLM, chunking it into {@code DocumentationItem}s (source
+         * {@code upload}, {@code doc_id == docId}) as an asynchronous job. Returns immediately; use
+         * {@link #awaitDocumentation} to wait for the job and {@link #getDocumentation} to pull the result.
+         */
+        public void postDocumentation(String docId, InputStream documentation, ContentType contentType, String filename) throws IOException {
+            ensureSessionExists();
+
+            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setMode(HttpMultipartMode.EXTENDED);
+            builder.addBinaryBody("documentation", documentation, contentType, filename);
+
+            var uri = documentationUri(docId);
+            var request = new HttpPost(uri);
+            request.setEntity(builder.build());
+            try (var response = execute(request)) {
+                if (response.getCode() < 200 || response.getCode() >= 300) {
+                    throw new IOException("Could not upload documentation " + docId + " to " + uri + ". Status code " + response.getCode());
+                }
+            }
+        }
+
+        /**
+         * Waits until an uploaded documentation has finished processing, by polling {@code HEAD
+         * documentation/{docId}}. Unlike the module job endpoints, the documentation endpoint has no
+         * {@code ?jobId=} status envelope; the HEAD status is the contract instead: {@code 204} once the
+         * chunks are persisted, {@code 202} while the upload job is still running, and {@code 404} when
+         * neither items nor a pending job exist (i.e. the upload failed).
+         */
+        public void awaitDocumentation(String docId, long sleepTime, BooleanSupplier canRun) throws IOException {
+            var uri = documentationUri(docId);
+            while (true) {
+                int code;
+                try (var response = execute(new HttpHead(uri))) {
+                    code = response.getCode();
+                }
+                if (code == HttpStatus.SC_NO_CONTENT || code == HttpStatus.SC_OK) {
+                    return;
+                }
+                if (code != HttpStatus.SC_ACCEPTED) {
+                    throw new IOException("Documentation " + docId + " was not processed. Status code " + code);
+                }
+                if (!canRun.getAsBoolean()) {
+                    throw new IOException("Cancelled while waiting for documentation " + docId + " to be processed");
+                }
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting for documentation " + docId, e);
+                }
+            }
+        }
+
+        /**
+         * Fetches a single processed documentation bundle ({@code docId} + its chunks) as raw JSON. Only
+         * call this once {@link #awaitDocumentation} has confirmed processing has finished.
+         */
+        public String getDocumentation(String docId) throws IOException {
+            var uri = documentationUri(docId);
+            try (var response = execute(new HttpGet(uri))) {
+                if (HttpStatus.SC_OK == response.getCode()) {
+                    return new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+                }
+                throw new IOException("Could not fetch documentation " + docId + " from " + uri + ". Status code " + response.getCode());
+            }
         }
 
     }

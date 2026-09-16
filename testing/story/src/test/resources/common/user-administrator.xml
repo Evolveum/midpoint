@@ -12,6 +12,7 @@
     xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>administrator</name>
     <fullName>midPoint Administrator</fullName>
+    <displayName>midPoint Administrator</displayName>
     <givenName>midPoint</givenName>
     <familyName>Administrator</familyName>
     <emailAddress>administrator@evolveum.com</emailAddress>

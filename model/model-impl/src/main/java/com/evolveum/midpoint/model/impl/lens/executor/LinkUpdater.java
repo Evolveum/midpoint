@@ -51,7 +51,7 @@ import static java.util.Objects.requireNonNull;
  * Takes care of updating the focus <-> shadow links during change execution.
  * (That includes `linkRef` and `synchronizationSituation`.)
  */
-class LinkUpdater<F extends FocusType> {
+class LinkUpdater<F extends ProjectionHolderType> {
 
     /** Intentionally using the main class for logs. At least for now. */
     private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
@@ -195,7 +195,7 @@ class LinkUpdater<F extends FocusType> {
 
         LOGGER.debug("Deleting linkRef {} from focus {}", matchingLinks, focusContext.getObjectCurrent());
         ObjectDelta<F> delta = prismContext.deltaFor(focusContext.getObjectTypeClass())
-                .item(FocusType.F_LINK_REF).deleteRealValues(CloneUtil.cloneCollectionMembers(matchingLinks))
+                .item(ProjectionHolderType.F_LINK_REF).deleteRealValues(CloneUtil.cloneCollectionMembers(matchingLinks))
                 .asObjectDelta(focusContext.getOid());
         executeFocusDelta(delta, OP_UNLINK_ACCOUNT, result);
     }
@@ -350,7 +350,7 @@ class LinkUpdater<F extends FocusType> {
 
         LOGGER.debug("Linking shadow {} to focus {}", projectionOid, focusContext.getObjectCurrent());
         ObjectDelta<F> delta = prismContext.deltaFor(focusContext.getObjectTypeClass())
-                .item(FocusType.F_LINK_REF)
+                .item(ProjectionHolderType.F_LINK_REF)
                 .deleteRealValues(CloneUtil.cloneCollectionMembers(linksWithWrongRelation))
                 .addRealValues(linksToAdd)
                 .asObjectDelta(focusContext.getOid());
@@ -475,7 +475,7 @@ class LinkUpdater<F extends FocusType> {
             ProvisioningOperationContext ctx = context.createProvisioningOperationContext();
             provisioningService.modifyObject(
                     ShadowType.class, projectionOid, syncSituationDeltas, null, options, ctx, task, result);
-        } catch (ObjectNotFoundException ex) {
+        } catch (ObjectNotFoundException | SubscriptionComplianceException ex) {
             // if the object not found exception is thrown, it's ok..probably
             // the account was deleted by previous execution of changes..just
             // log in the trace the message for the user..

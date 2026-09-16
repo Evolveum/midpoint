@@ -7,15 +7,11 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Array;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 
 import com.querydsl.sql.types.ArrayType;
 import com.querydsl.sql.types.EnumAsObjectType;
@@ -25,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -47,6 +44,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -54,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.EffectivePrivilegesModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
@@ -64,9 +63,8 @@ public class SqaleRepoContext extends SqlRepoContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqaleRepoContext.class);
 
-    private final String schemaChangeNumberLabel;
-
-    private final int schemaChangeNumberValue;
+    /** Component whose version should be checked at startup. */
+    private final SqaleUtils.VersionedComponent versionedComponent;
 
     private final UriCache uriCache;
     private final ExtItemCache extItemCache;
@@ -77,11 +75,11 @@ public class SqaleRepoContext extends SqlRepoContext {
             JdbcRepositoryConfiguration jdbcRepositoryConfiguration,
             DataSource dataSource,
             SchemaService schemaService,
-            QueryModelMappingRegistry mappingRegistry, String schemaChangeNumberLabel, int schemaChangeNumberValue) {
+            QueryModelMappingRegistry mappingRegistry,
+            SqaleUtils.VersionedComponent versionedComponent) {
         super(jdbcRepositoryConfiguration, dataSource, schemaService, mappingRegistry);
 
-        this.schemaChangeNumberLabel = schemaChangeNumberLabel;
-        this.schemaChangeNumberValue = schemaChangeNumberValue;
+        this.versionedComponent = versionedComponent;
 
         // each enum type must be registered if we want to map it as objects (to PG enum types)
         querydslConfig.register(new EnumAsObjectType<>(AccessCertificationCampaignStateType.class));
@@ -118,7 +116,6 @@ public class SqaleRepoContext extends SqlRepoContext {
         querydslConfig.register(new EnumAsObjectType<>(ExecutionModeType.class));
         querydslConfig.register(new EnumAsObjectType<>(PredefinedConfigurationType.class));
 
-
         // JSONB type support
         querydslConfig.register(new QuerydslJsonbType());
         querydslConfig.register(new ArrayType<>(
@@ -131,7 +128,7 @@ public class SqaleRepoContext extends SqlRepoContext {
     @PostConstruct
     public void initialize() {
         // skip version check if option was defined or option value is "true" (equals ignore case)
-        String skipVersionCheck = System.getProperty(MidpointConfiguration.MIDPOINT_SKIP_VERSION_CHECK + "1");
+        String skipVersionCheck = System.getProperty(MidpointConfiguration.MIDPOINT_SKIP_VERSION_CHECK);
         if (BooleanUtils.isNotTrue(Boolean.parseBoolean(skipVersionCheck))) {
             checkDBSchemaVersion();
         }
@@ -139,22 +136,28 @@ public class SqaleRepoContext extends SqlRepoContext {
         clearCaches();
     }
 
-    private void checkDBSchemaVersion(){
+    private void checkDBSchemaVersion() {
         LOGGER.debug("Checking DB schema version.");
 
         try (JdbcSession session = this.newJdbcSession().startReadOnlyTransaction()) {
             MGlobalMetadata metadata = session.newQuery().from(QGlobalMetadata.DEFAULT)
                     .select(QGlobalMetadata.DEFAULT)
-                    .where(QGlobalMetadata.DEFAULT.name.eq(schemaChangeNumberLabel))
+                    .where(QGlobalMetadata.DEFAULT.name.eq(versionedComponent.label))
                     .limit(1)
                     .fetchOne();
-            String current = metadata != null ? metadata.value : null;
-            Integer currentAsInt = current != null ? Integer.valueOf(current) : null;
+            String currentVersion = metadata != null ? metadata.value : null;
+            Integer currentVersionAsInt = currentVersion != null ? Integer.valueOf(currentVersion) : null;
 
-            if (!Objects.equals(currentAsInt, schemaChangeNumberValue)) {
-                throw new SystemException("Can't initialize sqale repository context, database schema version (" + current
-                        + ") doesn't match expected value (" + schemaChangeNumberValue + ") for label '" + schemaChangeNumberLabel
-                        + "'. Seems like mismatch between midPoint executable version and DB schema version. Maybe DB schema was not updated?");
+            if (!Objects.equals(currentVersionAsInt, versionedComponent.expectedVersion)) {
+                throw new SystemException(
+                        String.format(
+                                "Cannot use the database. The version of the schema in the database (%s) doesn't match "
+                                        + "the version expected by midPoint executable (%d) for the %s "
+                                        + "(guarded by '%s' in the global metadata). Maybe DB schema was not updated?",
+                                currentVersion,
+                                versionedComponent.expectedVersion,
+                                versionedComponent.humanReadableName,
+                                versionedComponent.label));
             }
 
             LOGGER.debug("DB schema version check OK.");
@@ -257,12 +260,13 @@ public class SqaleRepoContext extends SqlRepoContext {
         try {
             // Note that escaping invalid characters and using toString for unsupported types
             // is safe in the context of operation result serialization.
-            return createStringSerializer()
+            String str = createStringSerializer()
                     .options(SerializationOptions.createEscapeInvalidCharacters()
                             .serializeUnsupportedTypesAsString(true)
                             .skipWhitespaces(true))
-                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT)
-                    .getBytes(StandardCharsets.UTF_8);
+                    .serializeRealValue(operationResult, SchemaConstantsGenerated.C_OPERATION_RESULT);
+
+            return MiscUtil.stringToBytes(str);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception", e);
         }

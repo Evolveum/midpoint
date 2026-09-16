@@ -8,9 +8,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
-import com.evolveum.midpoint.web.application.*;
+import com.evolveum.midpoint.web.application.Counter;
+import com.evolveum.midpoint.web.application.InducementCounter;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
 
 //@PanelType(name = "inducements", defaultContainerPath = "inducement")
 @PanelInstance(identifier = "inducements", applicableForType = AbstractRoleType.class,

@@ -102,7 +102,7 @@ public abstract class ResourceObjectConstruction<
      */
     public NextRecompute evaluate(Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
         // Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
         // AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
         OperationResult result = parentResult.createMinorSubresult(getClass().getName() + ".evaluate"); // different for each subclass
@@ -133,7 +133,7 @@ public abstract class ResourceObjectConstruction<
 
     private void createEvaluatedConstructions(Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         evaluatedConstructionTriple = PrismContext.get().deltaFactory().createDeltaSetTriple();
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTriple(task, result);
@@ -148,7 +148,7 @@ public abstract class ResourceObjectConstruction<
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ResourceObjectMultiplicityType multiplicity = resourceObjectDefinition.getObjectMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return null;
@@ -227,7 +227,7 @@ public abstract class ResourceObjectConstruction<
 
     private NextRecompute evaluateConstructions(Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         NextRecompute nextRecompute = null;
 
         // This code may seem primitive and old-fashioned.
@@ -522,7 +522,7 @@ public abstract class ResourceObjectConstruction<
     //region Other
     protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         ModelBeans.get().contextLoader.loadFullShadow(projectionContext, desc, task, result);
     }
     //endregion

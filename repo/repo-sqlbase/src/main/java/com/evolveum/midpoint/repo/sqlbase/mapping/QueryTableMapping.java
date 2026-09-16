@@ -6,7 +6,6 @@
 
 package com.evolveum.midpoint.repo.sqlbase.mapping;
 
-import java.sql.Array;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;

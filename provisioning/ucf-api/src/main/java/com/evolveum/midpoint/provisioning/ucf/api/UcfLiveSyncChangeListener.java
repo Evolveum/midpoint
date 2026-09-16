@@ -6,9 +6,6 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**

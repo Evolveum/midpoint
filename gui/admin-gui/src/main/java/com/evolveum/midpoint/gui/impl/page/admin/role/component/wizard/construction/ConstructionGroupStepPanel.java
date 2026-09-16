@@ -16,7 +16,8 @@ import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AssociationSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectObjectTypeTileWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;

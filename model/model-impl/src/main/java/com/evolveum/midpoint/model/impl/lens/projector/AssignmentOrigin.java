@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
@@ -38,6 +41,19 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
      * Virtual assignments are always with isCurrent = true.
      */
     private final boolean virtual;
+
+    /**
+     * For virtual assignments that came from activities.
+     * This is the path of the activity where this virtual assignment is defined.
+     *
+     * An example: Policy rule "skip activity if too many deletions" is attached to an activity "X/Y" in the activity
+     * tree. It may gets executed in Y or any of its children (like "X/Y/Z"). But the activityPath for such virtual
+     * assignment is "X/Y" here, because it's defined for that activity.
+     *
+     * We assume that no assignment is both virtual and real, or virtual for multiple activities.
+     * In such cases, results are unpredictable.
+     */
+    @Nullable private final ActivityPath activityPath;
 
     /**
      * Assignment is present in the current object.
@@ -67,13 +83,17 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
     /** [EP:APSO] DONE */
     @NotNull private final ConfigurationItemOrigin configurationItemOrigin;
 
-    AssignmentOrigin(boolean virtual, @NotNull ConfigurationItemOrigin configurationItemOrigin) {
+    AssignmentOrigin(
+            boolean virtual,
+            @Nullable ActivityPath activityPath,
+            @NotNull ConfigurationItemOrigin configurationItemOrigin) {
         this.virtual = virtual;
+        this.activityPath = activityPath;
         this.configurationItemOrigin = configurationItemOrigin; // [EP:APSO] DONE 4/4
     }
 
     public static AssignmentOrigin inObject(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
-        AssignmentOrigin rv = new AssignmentOrigin(false, configurationItemOrigin); // [EP:APSO] DONE 2/2
+        AssignmentOrigin rv = new AssignmentOrigin(false, null, configurationItemOrigin); // [EP:APSO] DONE 2/2
         rv.isCurrent = true;
         return rv;
     }
@@ -81,15 +101,19 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
     /** Not in object, not virtual - to be used in tests. */
     @VisibleForTesting
     public static AssignmentOrigin other(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
-        return new AssignmentOrigin(false, configurationItemOrigin); // [EP:APSO] DONE (testing only)
+        return new AssignmentOrigin(false, null, configurationItemOrigin); // [EP:APSO] DONE (testing only)
     }
 
-    public static AssignmentOrigin virtual(@NotNull ConfigurationItemOrigin configurationItemOrigin) {
-        return new AssignmentOrigin(true, configurationItemOrigin); // [EP:APSO] DONE 1/1
+    public static AssignmentOrigin virtual(@Nullable ActivityPath activityPath, @NotNull ConfigurationItemOrigin configurationItemOrigin) {
+        return new AssignmentOrigin(true, activityPath, configurationItemOrigin); // [EP:APSO] DONE 1/1
     }
 
     public boolean isVirtual() {
         return virtual;
+    }
+
+    public @Nullable ActivityPath getActivityPath() {
+        return activityPath;
     }
 
     public boolean isNew() {
@@ -130,6 +154,9 @@ public class AssignmentOrigin extends AbstractFreezable implements Serializable 
         addLabel(labels, isInDeltaAdd, "inDeltaAdd");
         addLabel(labels, isInDeltaDelete, "inDeltaDelete");
         labels.add("origin=" + configurationItemOrigin);
+        if (activityPath != null) {
+            labels.add("activity path: '" + activityPath + "'");
+        }
         return String.join(", ", labels.toArray(new String[0]));
     }
 

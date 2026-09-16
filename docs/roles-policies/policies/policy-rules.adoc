@@ -24,14 +24,14 @@ compliance:
 Policy rules provide a basic mechanism for many xref:/iam/iga/[identity governance] and xref:/midpoint/compliance/[regulatory compliance] features, as policy rules often define high-level business-oriented policies.
 Governance policies defined by policy rules are applied on top of the usual access control policies, such as feature:rbac[role-based access control (RBAC)].
 
-Policy rules allow you to define conditions (_policy constraints_) that are evaluated against users, roles, assignments, or other objects. 
+Policy rules allow you to define conditions (_policy constraints_) that are evaluated against users, roles, assignments, or other objects.
 When these conditions are met or violated, midPoint can automatically respond with _policy actions_, such as triggering notifications, enforcing approvals, rejecting changes, annotating objects, or pruning assignments.
 
 Policy rules are a very powerful mechanism that covers a wide range of use cases.
 They are typically used to:
 
 * Enforce xref:/midpoint/reference/cases/approval/[approval] workflows for role assignments.
-* React to or restrict actions based on xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[object lifecycle state]. 
+* React to or restrict actions based on xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[object lifecycle state].
 * Implement xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties] and other access governance policies.
 * Trigger notifications and compliance-related actions.
 
@@ -201,6 +201,7 @@ This is currently supported for tasks.
 
 | `transition`
 | Triggers if the state of an object changes.
+    See <<policy-transitions>>.
 | xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#transition[Example]
 
 | `ref`
@@ -242,6 +243,56 @@ In addition to using the AND, and OR logical operators, policy rule constraints 
 
 See a xref:/midpoint/reference/roles-policies/policies/policy-rule-examples[full example] of how logical operators are used in policy rule constraints.
 
+==== Policy Transitions
+
+Policy transitions are a means to define _when_ during the operation in question is the policy rule evaluated.
+This is useful when you need to evaluate a value which may not exist before or after the operation (usually create and delete operations),
+or in case you need to evaluate a change of an attribute value from one value to another.
+
+There are two kinds of policy constraints in midPoint:
+
+* State-related constraints
+* Transition-related constraints
+
+A policy with a state-related constraint can evaluate an object at any time and fire because the object is not in the state prescribed by the policy.
+A transition-constrained policy rule, on the other hand, can trigger only in the context of an operation.
+
+Furthermore, midPoint distinguishes the states _before_ and _after_ operations:
+
+* Mappings generally consider both states.
+* Policy rules consider the _after_ state but you can override it with a policy transition statement.
+
+For example, if your operation deletes an object:
+
+* The focus is defined _before_ the operation (the object still exists).
+* The focus is `null` _after_ the operation (there is no object to refer to).
+
+You can create a custom transition-related policy rule constraint by combining two state-related constraints.
+For example:
+
+* Before operation: _cost center_ attribute is not null
+* After operation: _cost center_ attribute is null.
+
+This policy will trigger only after operations that clear the _cost center_ attribute value;
+not for operations that change the value, fill the empty value, or leave the attribute empty.
+
+Policy transition is defined as follows:
+
+[source,xml]
+----
+<policyRule>
+    <policyConstraints>
+        <transition>
+            <stateBefore>true</stateBefore> <1>
+            <stateAfter>false</stateAfter> <2>
+        <transition>
+    <policyConstraints>
+</policyRule>
+----
+<1> Forces evaluation of the policy rule _before_ the operation.
+<2> Disables evaluation of the policy rule _after_ the operation.
+
+See an example in xref:/midpoint/reference/roles-policies/policies/policy-rule-constraints-examples/#transition[].
 
 [[object_marks]]
 === Object Marks
@@ -325,6 +376,7 @@ Policy rules can be defined:
 * <<global_pr,Globally>>
 * <<direct_pr,Directly>>
 * <<metarole_pr,In policies and metaroles>>
+* <<activity_pr,In task activities>>
 
 [[global_pr]]
 === Global Policy Rules
@@ -435,6 +487,16 @@ feature:archetype[Archetypes] can also be used as metaroles to apply policy rule
 
 See xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[] page for more details about the metarole mechanism.
 
+[[activity_pr]]
+=== Rule Definitions in Task Activities
+
+Since midPoint 4.11, policy rules can also be attached to individual xref:/midpoint/reference/tasks/activities/[task activities].
+Such rules apply only to the objects processed by the given activity - either defined inline, taken from a referenced policy object, or applied through virtual assignments.
+A typical use case is a threshold that suspends an import or reconciliation activity after a certain number of changes.
+
+See xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities] for details.
+Note that this is different from xref:/midpoint/reference/tasks/activity-policies/[activity policies], which use a separate set of constraints reacting to the activity run itself (execution time, number of attempts, item processing errors).
+
 == Policy Rule Exceptions
 
 MidPoint has a mechanism to support _exceptions_ from policy rules.
@@ -525,3 +587,7 @@ See xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[].
 * xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[]
 
 * xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[]
+
+* xref:/midpoint/reference/tasks/focus-policies-in-activities/[Focus policies in activities]
+
+* xref:/midpoint/reference/tasks/activity-policies/[Activity policies]

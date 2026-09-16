@@ -141,8 +141,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
     }
 
     private void assignClubMembers(Task initTask, OperationResult initResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+            throws CommonException {
         // We need to know clubs OIDs, so let's do assertions here.
         pokerClubOid = assertOrgByName(CLUB_POKER_NAME, "after init")
                 .display()

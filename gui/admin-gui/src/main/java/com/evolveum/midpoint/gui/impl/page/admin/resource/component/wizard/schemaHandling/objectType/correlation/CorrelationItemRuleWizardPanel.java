@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -129,7 +131,24 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
 
     @Override
     protected boolean isBackButtonVisible() {
-        return isSuggestionApplied();
+        return true;
+    }
+
+    @Override
+    protected boolean isSubmitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected void onBackPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
+    }
+
+    @Override
+    protected void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+        WebPrismUtil.removeEmptyAddedValue(getValueModel().getObject());
+        removeLastBreadcrumb();
+        super.onExitPerformedAfterValidate(target);
     }
 
     @Override

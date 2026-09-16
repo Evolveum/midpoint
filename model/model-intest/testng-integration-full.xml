@@ -110,6 +110,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestShadowCaching"/>
             <class name="com.evolveum.midpoint.model.intest.TestDiscoveryBoundaries"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestQueries"/>
+            <class name="com.evolveum.midpoint.model.intest.behavior.TestBehaviorLastLoginMapping"/>
             <!-- Test for MID-10834. Disabled here because it is long-running; executed separately.  -->
             <!-- <class name="com.evolveum.midpoint.model.intest.TestMqlTicket10834"/> -->
         </classes>
@@ -146,10 +147,24 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleTaskMultipleThreads"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleThread"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyInParentActivity"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestVirtualAssignmentInActivity"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTaskActivityPolicies"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyContribution"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActions"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsComposite"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyActionsMultiNode"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyCombinations"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioSimple"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultithreaded"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultiTask"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestCustomPolicyReconciliationMultiNode"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyTreeCounters"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyNonIterativeScripting"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">
@@ -217,6 +232,18 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisableSlowProposed"/> -->
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
+        </classes>
+    </test>
+    <test name="Manual (modern ITSM integration)" preserve-order="true" parallel="none" verbose="10">
+        <parameter name="modernItsm" value="true"/>
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualCapabilities"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGrouping"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualGroupingProposed"/>
         </classes>
     </test>
     <test name="Smart Integration" preserve-order="true" parallel="none" verbose="10">

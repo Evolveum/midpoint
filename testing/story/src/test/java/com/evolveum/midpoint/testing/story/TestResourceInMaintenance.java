@@ -127,9 +127,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         turnMaintenanceModeOn(result);
     }
 
-    private void prepareCsvResource(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException,
-            PolicyViolationException, ObjectAlreadyExistsException {
+    private void prepareCsvResource(Task task, OperationResult result) throws CommonException {
         Object[] newRealValue = { sourceFilePath };
 
         ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()

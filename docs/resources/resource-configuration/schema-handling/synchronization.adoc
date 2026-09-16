@@ -58,7 +58,7 @@ For example, an account which was linked to a user has been deleted.
 MidPoint obviously should not blindly pretend that everything is all right.
 MidPoint should react.
 And the reaction may not be a simple "synchronize the attributes" algorithm.
-E.g., if this account was deleted we may want to leave it deleted and just unlink it, we may want to re-create the account, we may want to disable or even delete the user that was linked to that account or we may want to do a bunch of other things.
+E.g., if this account was deleted we may want to leave it deleted and synchronize the repository state, we may want to re-create the account, we may want to disable or even delete the user that was linked to that account or we may want to do a bunch of other things.
 Therefore, midPoint allows to specify a set of _actions_ to take place as part of the reaction.
 Although the actions are usually quite simple and straightforward, they can be combined into a very comprehensive policies.
 (Currently, the usual situation is that there is just a single action.)
@@ -108,7 +108,7 @@ An example:
         <reaction>
             <situation>deleted</situation>
             <actions>
-                <unlink/>
+                <synchronize/>
             </actions>
         </reaction>
         <reaction>

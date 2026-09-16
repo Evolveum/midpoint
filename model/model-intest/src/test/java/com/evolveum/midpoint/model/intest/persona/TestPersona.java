@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.intest.persona;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;

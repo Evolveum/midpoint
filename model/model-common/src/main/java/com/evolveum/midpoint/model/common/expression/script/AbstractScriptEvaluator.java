@@ -151,7 +151,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
      */
     protected Map<String, Object> prepareUnifiedScriptVariablesValueMap(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Map<String, Object> scriptVariableMap = new HashMap<>();
         prepareFunctionLibraryMap(context, scriptVariableMap,
                 variableTypedValue -> variableTypedValue.getValue());
@@ -165,7 +165,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
      */
     protected Map<String, TypedValue<?>> prepareScriptVariablesTypedValueMap(ScriptExpressionEvaluationContext context)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         final Map<String, TypedValue<?>> scriptVariableMap = new HashMap<>();
         prepareScriptVariablesMap(context, scriptVariableMap, variableTypedValue -> variableTypedValue);
         return scriptVariableMap;
@@ -192,7 +192,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
      */
     protected <T> void prepareScriptVariablesMap(ScriptExpressionEvaluationContext context, Map<String,T> map, Function<TypedValue<?>,T> converter)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
         // Variables
         VariablesMap variables = context.getVariables();

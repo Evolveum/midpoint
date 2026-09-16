@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection;
-import com.evolveum.midpoint.schema.util.ShadowAssociationsCollection.IterableAssociationValue;
 import com.evolveum.midpoint.schema.util.ShadowReferenceAttributesCollection;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -61,7 +60,8 @@ class AssociationsHelper {
      */
     void provideObjectsIdentifiersToSubject(
             ProvisioningContext ctx, ResourceObjectShadow objectToAdd, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         provideObjectsIdentifiersToAssociations(
                 ctx,
                 ShadowAssociationsCollection.ofShadow(objectToAdd.getBean()),
@@ -83,7 +83,8 @@ class AssociationsHelper {
             Collection<? extends ItemDelta<?, ?>> modifications,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
         for (ItemDelta<?, ?> modification : modifications) {
             provideObjectsIdentifiersToAssociations(
                     ctx,
@@ -103,7 +104,8 @@ class AssociationsHelper {
             ShadowAssociationsCollection associationsCollection,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         for (var iterableAssocValue : associationsCollection.getAllIterableValues()) {
             var assocValue = iterableAssocValue.associationValue();
@@ -117,7 +119,8 @@ class AssociationsHelper {
             ShadowReferenceAttributesCollection referenceAttributesCollection,
             String desc,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SubscriptionComplianceException {
 
         for (var iterableRefAttrValue : referenceAttributesCollection.getAllIterableValues()) {
             var refAttrValue = iterableRefAttrValue.value();

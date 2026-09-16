@@ -19,9 +19,6 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -178,8 +175,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
                             createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.warning").getString());
                 }
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(
                     createStringResource("pageTasks.message.deactivateServiceThreadsPerformed.fatalError").getString(), e);
         }
@@ -200,8 +196,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
                 result.recordStatus(OperationResultStatus.SUCCESS,
                         createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.success").getString());
             }
-        } catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-                | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+        } catch (CommonException e) {
             result.recordFatalError(
                     createStringResource("pageTasks.message.reactivateServiceThreadsPerformed.fatalError").getString(), e);
         }

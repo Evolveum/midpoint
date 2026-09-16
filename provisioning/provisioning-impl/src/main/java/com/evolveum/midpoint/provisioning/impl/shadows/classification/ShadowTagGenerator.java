@@ -62,7 +62,7 @@ public class ShadowTagGenerator {
             @NotNull Task task,
             @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_GENERATE)
                 .addParam("shadow", shadow)
                 .addParam("resource", resource)

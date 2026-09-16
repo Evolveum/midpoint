@@ -26,7 +26,8 @@ public class SuggestionsStorage implements Serializable, DebugDumpable {
         INBOUND_MAPPING,
         OUTBOUND_MAPPING,
         OBJECT_TYPE,
-        CORRELATION,
+        DELINEATION_CORRELATION,
+        ASSOCIATION_CORRELATION,
         ASSOCIATION
     }
 

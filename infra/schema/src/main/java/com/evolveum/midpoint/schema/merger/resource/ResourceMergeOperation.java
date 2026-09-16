@@ -12,10 +12,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.
 
 import java.util.Map;
 
-import com.evolveum.midpoint.prism.OriginMarker;
 import com.evolveum.midpoint.prism.impl.GenericItemMerger;
 import com.evolveum.midpoint.schema.OriginMarkerMixin;
-import com.evolveum.midpoint.schema.merger.*;
+import com.evolveum.midpoint.schema.merger.BaseMergeOperation;
+import com.evolveum.midpoint.schema.merger.IgnoreSourceItemMerger;
 
 import org.jetbrains.annotations.NotNull;
 

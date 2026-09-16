@@ -75,7 +75,7 @@ class ScriptExecutor<O extends ObjectType> {
 
     void executeReconciliationScripts(BeforeAfterType order, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+            ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         if (!projCtx.isDoReconciliation()) {
             return;
@@ -107,7 +107,7 @@ class ScriptExecutor<O extends ObjectType> {
     private void executeReconciliationScripts(OperationProvisioningScriptsType scripts,
             BeforeAfterType order, ExpressionProfile expressionProfile, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
         PrismObject<O> focus = getFocus(context);
         PrismObject<ShadowType> shadow = getShadow(projCtx, order);
@@ -167,7 +167,7 @@ class ScriptExecutor<O extends ObjectType> {
             VariablesMap variables,
             ExpressionProfile expressionProfile,
             OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 
         if (resourceScripts != null) {
@@ -206,14 +206,14 @@ class ScriptExecutor<O extends ObjectType> {
     private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
             VariablesMap variables, ExpressionProfile expressionProfile, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         return ExpressionUtil.evaluateConditionDefaultTrue(variables, script.getCondition(), expressionProfile,
                 b.expressionFactory, " condition for provisioning script ", task, result);
     }
 
     private void prepareScriptArgument(ProvisioningScriptArgumentType argument, VariablesMap variables, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         final QName fakeScriptArgumentName = new QName(SchemaConstants.NS_C, "arg");
 

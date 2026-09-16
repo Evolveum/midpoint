@@ -216,15 +216,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_APPLICATION_EDIT_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationEdit");
     public static final String AUTZ_UI_APPLICATION_EDIT_URL = NS_AUTHORIZATION_UI + "#applicationEdit";
 
-    //connectors
-    public static final QName AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorDevelopmentsAll");
-    public static final String AUTZ_UI_CONNECTOR_DEVELOPMENTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorDevelopmentsAll";
-
-    public static final QName AUTZ_UI_CONNECTOR_DEVELOPMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorDevelopments");
-    public static final String AUTZ_UI_CONNECTOR_DEVELOPMENTS_URL = NS_AUTHORIZATION_UI + "#connectorDevelopments";
-
-    public static final QName AUTZ_UI_CONNECTOR_DEVELOPMENT_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorDevelopment");
-    public static final String AUTZ_UI_CONNECTOR_DEVELOPMENT_URL = NS_AUTHORIZATION_UI + "#connectorDevelopment";
+    // connector generator wizard
+    public static final QName AUTZ_UI_CONNECTOR_WIZARD_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorWizard");
+    public static final String AUTZ_UI_CONNECTOR_WIZARD_URL = NS_AUTHORIZATION_UI + "#connectorWizard";
 
     //message template
     public static final QName AUTZ_UI_MESSAGE_TEMPLATE_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplate");
@@ -498,6 +492,7 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_SELF_REGISTRATION_FINISH_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRegistFinish");
     public static final String AUTZ_UI_SELF_REGISTRATION_FINISH_URL = NS_AUTHORIZATION_UI + "#selfRegistFinish";
     public static final String AUTZ_UI_INVITATION_URL = NS_AUTHORIZATION_UI + "#invitation";
+    public static final String AUTZ_UI_ACCOUNT_ACTIVATION_URL = NS_AUTHORIZATION_UI + "#accountActivation";
 
     public static final QName AUTZ_UI_PREVIEW_CHANGES_QNAME = new QName(NS_AUTHORIZATION_UI, "previewChanges");
     public static final String AUTZ_UI_PREVIEW_CHANGES_URL = NS_AUTHORIZATION_UI + "#previewChanges";
@@ -532,6 +527,19 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_DELEGATE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "delegate");
     public static final String AUTZ_UI_DELEGATE_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_DELEGATE_ACTION_QNAME);
+
+    public static final QName AUTZ_UI_CREDENTIALS_ALL = new QName(NS_AUTHORIZATION_UI, "credentials");
+    public static final String AUTZ_UI_CREDENTIALS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_ALL);
+
+    public static final QName AUTZ_UI_CREDENTIALS_PASSWORD = new QName(NS_AUTHORIZATION_UI, "credentialsPassword");
+    public static final String AUTZ_UI_CREDENTIALS_PASSWORD_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_PASSWORD);
+
+    public static final QName AUTZ_UI_CREDENTIALS_TOTP = new QName(NS_AUTHORIZATION_UI, "credentialsTotp");
+    public static final String AUTZ_UI_CREDENTIALS_TOTP_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_TOTP);
+
+    public static final QName AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS = new QName(NS_AUTHORIZATION_UI, "credentialsSecurityQuestions");
+    public static final String AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS_URL = QNameUtil.qNameToUri(AUTZ_UI_CREDENTIALS_SECURITY_QUESTIONS);
+
 
     // UI administrator authorizations
     //

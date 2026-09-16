@@ -2,7 +2,7 @@
 :page-nav-title: Generate And Validate
 :page-display-order: 220
 :page-toc: top
-:page-keywords: [ 'rest', 'generate', 'validate', 'operation' ]
+:page-keywords: rest, generate, validate, operation
 :page-upkeep-status: green
 
 == Description

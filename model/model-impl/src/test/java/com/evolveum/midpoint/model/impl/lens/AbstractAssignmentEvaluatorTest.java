@@ -32,8 +32,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;
@@ -957,9 +955,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
     }
 
     private <AH extends AssignmentHolderType> void evaluateConstructions(EvaluatedAssignmentImpl<AH> evaluatedAssignment,
-            ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
-            SecurityViolationException, ConfigurationException, CommunicationException {
+            ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws CommonException {
         evaluatedAssignment.evaluateConstructions(focusOdo, null, task, result);
     }
 }

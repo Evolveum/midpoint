@@ -2,7 +2,7 @@
 :page-nav-title: Import From Report
 :page-display-order: 400
 :page-toc: top
-:page-keywords: [ 'report', 'import' ,'reverse' ]
+:page-keywords: report, import, reverse
 :page-upkeep-status: green
 
 

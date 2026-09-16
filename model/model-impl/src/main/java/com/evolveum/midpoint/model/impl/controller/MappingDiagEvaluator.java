@@ -47,7 +47,7 @@ public class MappingDiagEvaluator {
     public MappingEvaluationResponseType evaluateMapping(
             @NotNull MappingEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, CommunicationException {
+            ConfigurationException, CommunicationException, SubscriptionComplianceException {
 
         MappingBuilder<?,?> builder = mappingFactory.createMappingBuilder();
 
@@ -107,8 +107,9 @@ public class MappingDiagEvaluator {
         return prismContext.getSchemaRegistry().findObjectDefinitionByType(request.getTargetContext());
     }
 
-    private <O extends Objectable> ObjectDeltaObject<O> createSourceContext(MappingEvaluationRequestType request, Task task,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <O extends Objectable> ObjectDeltaObject<O> createSourceContext(MappingEvaluationRequestType request, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         if (request.getSourceContext() == null) {
             return null;
         }

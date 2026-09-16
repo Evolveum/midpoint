@@ -68,7 +68,7 @@ public class MemberTilePanel<T extends Serializable> extends ObjectTilePanel<T, 
             });
         }
 
-        add(AttributeAppender.append("class", "card catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0"));
+        add(AttributeAppender.append("class", "card shadow-sm catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active selectable" : null));
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, new IModel<>() {
@@ -162,7 +162,7 @@ public class MemberTilePanel<T extends Serializable> extends ObjectTilePanel<T, 
     }
 
     protected String getCssForUnassignButton() {
-        return "btn btn-link mt-3 ml-auto";
+        return "btn btn-link mt-3 ms-auto";
     }
 
     protected List<InlineMenuItem> createMenuItems() {

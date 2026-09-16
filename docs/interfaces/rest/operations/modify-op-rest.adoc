@@ -2,7 +2,7 @@
 :page-nav-title: Modify
 :page-display-order: 500
 :page-toc: top
-:page-keywords: [ 'rest', 'modify', 'operation' ]
+:page-keywords: rest, modify, operation
 :page-upkeep-status: green
 
 == Description

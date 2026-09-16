@@ -1295,6 +1295,20 @@ public class OperationResult
         computeStatusIfUnknown();
     }
 
+    public void closeWithSummarizedSuccesses() {
+        closeWithSummarizedSuccesses(false);
+    }
+
+    /**
+     * Closes this result and summarizes successful subResults to reduce the size
+     * and memory footprint of large result trees (e.g. in task objects).
+     */
+    public void closeWithSummarizedSuccesses(boolean summarizeSubResults) {
+        close();
+        summarizeSuccesses = true;
+        summarize(summarizeSubResults);
+    }
+
     public boolean isClosed() {
         return status != OperationResultStatus.UNKNOWN
                 && status != null
@@ -2529,9 +2543,9 @@ public class OperationResult
         if (subresults == null) {
             return;
         }
-        Iterator<OperationResult> iterator = subresults.iterator();
-        while (iterator.hasNext()) {
-            OperationResult subresult = iterator.next();
+
+        // First pass: check for UNKNOWN status (throws exception if found)
+        for (OperationResult subresult : subresults) {
             if (subresult.getStatus() == OperationResultStatus.UNKNOWN) {
                 String message = "Subresult " + subresult.getOperation() + " of operation " + operation + " is still UNKNOWN during cleanup";
                 LOGGER.error("{}:\n{}", message, this.debugDump(), e);
@@ -2541,10 +2555,10 @@ public class OperationResult
                     throw new IllegalStateException(message + "; during handling of exception " + e, e);
                 }
             }
-            if (subresult.canCleanup(preserveDuringCleanup)) {
-                iterator.remove();
-            }
         }
+
+        // Second pass: remove cleanable subresults efficiently using removeIf (O(n) instead of O(n^2))
+        subresults.removeIf(subresult -> subresult.canCleanup(preserveDuringCleanup));
     }
 
     private boolean canCleanup(OperationResultImportanceType preserveDuringCleanup) {

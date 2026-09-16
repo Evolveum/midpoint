@@ -14,14 +14,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.*;
+import static com.evolveum.midpoint.report.impl.controller.CommonHtmlSupport.getHeadsOfWidget;
 
 /**
  * Controls the process of exporting widgets of dashboard-based reports.

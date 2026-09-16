@@ -96,7 +96,7 @@ public class RoleAnalysisPagingColumns extends Fragment {
         editButton.add(new VisibleBehaviour(() -> getMigrationButtonVisibility() && !isMultipleSelectedPatterns()));
         editButton.titleAsLabel(true);
         editButton.setOutputMarkupId(true);
-        editButton.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        editButton.add(AttributeModifier.append("class", "btn btn-light border btn-sm"));
 
         formBsProcess.add(editButton);
 

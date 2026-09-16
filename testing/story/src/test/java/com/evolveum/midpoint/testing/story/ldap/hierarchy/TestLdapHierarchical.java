@@ -66,8 +66,8 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 
     @Override
     protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+            throws CommonException,
+            DirectoryException {
         PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
         if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
             Entry groupEntry = openDJController.searchSingle("cn=" + orgName);
@@ -94,8 +94,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
     }
 
     private String getOuDn(PrismObject<OrgType> org)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws CommonException {
         StringBuilder sb = new StringBuilder();
         while (true) {
             sb.append("ou=");
@@ -118,7 +117,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
     @Override
     protected void recomputeIfNeeded(String changedOrgOid)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
         reconcileAllOrgs();
         reconcileAllUsers();
     }

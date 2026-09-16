@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -48,8 +49,10 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
@@ -64,6 +67,11 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
     private static final File USER_ELAINE = new File(TEST_DIR, "user-elaine.xml");
     private static final String USER_ELAINE_OID = "00998628-b2fd-11e5-88c0-4f82a8602266";
+    private static final ItemPath RECIPIENT_FILTER_EXPRESSION_PATH =
+            ItemPath.create(
+                    SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION,
+                    MessageTransportConfigurationType.F_MAIL,
+                    GeneralTransportConfigurationType.F_RECIPIENT_FILTER_EXPRESSION);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -456,6 +464,89 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         ObjectDelta<SystemConfigurationType> systemConfigDelta = objectWrapper.getObjectDelta();
         assertTrue("Delta should be empty!", systemConfigDelta.isEmpty());
 
+    }
+
+    @Test
+    public void test320DoNotCreateDeltaForNewEmptyRecipientFilterExpression() throws Exception {
+        given();
+        PrismObjectWrapper<SystemConfigurationType> objectWrapper = createMailTransportObjectWrapper(null);
+        PrismPropertyWrapper<ExpressionType> recipientFilterExpression =
+                findRecipientFilterExpressionWrapper(objectWrapper);
+
+        // Simulates Literal -> add empty row -> Undefined, leaving a non-null but semantically empty expression.
+        recipientFilterExpression.getValue().setRealValue(new ExpressionType());
+
+        when();
+        ObjectDelta<SystemConfigurationType> delta = objectWrapper.getObjectDelta();
+
+        then();
+        assertModificationsSize(delta, 0);
+        assertNull(
+                "Empty recipient filter expression must not produce a delta",
+                delta.findItemDelta(RECIPIENT_FILTER_EXPRESSION_PATH));
+    }
+
+    @Test
+    public void test321CreateDeleteDeltaWhenExistingRecipientFilterExpressionIsCleared() throws Exception {
+        given();
+        PrismObjectWrapper<SystemConfigurationType> objectWrapper =
+                createMailTransportObjectWrapper(createAsIsExpression());
+        PrismPropertyWrapper<ExpressionType> recipientFilterExpression =
+                findRecipientFilterExpressionWrapper(objectWrapper);
+
+        recipientFilterExpression.getValue().setRealValue(new ExpressionType());
+
+        when();
+        ObjectDelta<SystemConfigurationType> delta = objectWrapper.getObjectDelta();
+
+        then();
+        assertModificationsSize(delta, 1);
+        ItemDelta<?, ?> recipientFilterDelta = delta.findItemDelta(RECIPIENT_FILTER_EXPRESSION_PATH);
+        assertNotNull("Unexpected null recipient filter expression delta", recipientFilterDelta);
+        assertTrue("Expected delete modification but was " + recipientFilterDelta, recipientFilterDelta.isDelete());
+        assertEquals("Unexpected number of deleted values", 1, recipientFilterDelta.getValuesToDelete().size());
+        ExpressionType deletedExpression =
+                (ExpressionType) recipientFilterDelta.getValuesToDelete().iterator().next().getRealValue();
+        assertFalse(
+                "Deleted recipient filter expression should not be empty",
+                ExpressionUtil.isEmpty(deletedExpression));
+    }
+
+    private PrismObjectWrapper<SystemConfigurationType> createMailTransportObjectWrapper(ExpressionType existingExpression)
+            throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        SystemConfigurationType systemConfig = getSystemConfiguration().clone();
+        MessageTransportConfigurationType transportConfiguration = new MessageTransportConfigurationType();
+        MailTransportConfigurationType mailTransport = new MailTransportConfigurationType();
+        mailTransport.setName("test");
+        mailTransport.setRedirectToFile("target/mail-notifications.log");
+        if (existingExpression != null) {
+            mailTransport.setRecipientFilterExpression(existingExpression);
+        }
+        transportConfiguration.getMail().add(mailTransport);
+        systemConfig.setMessageTransportConfiguration(transportConfiguration);
+
+        WrapperContext ctx = new WrapperContext(task, result);
+        ctx.setCreateIfEmpty(true);
+        return createObjectWrapper(systemConfig.asPrismObject(), ItemStatus.NOT_CHANGED, ctx);
+    }
+
+    private PrismPropertyWrapper<ExpressionType> findRecipientFilterExpressionWrapper(
+            PrismObjectWrapper<SystemConfigurationType> objectWrapper) throws SchemaException {
+        PrismContainerWrapper<MailTransportConfigurationType> mailTransportWrapper = objectWrapper.findContainer(
+                ItemPath.create(
+                        SystemConfigurationType.F_MESSAGE_TRANSPORT_CONFIGURATION,
+                        MessageTransportConfigurationType.F_MAIL));
+        assertNotNull("Unexpected null mail transport wrapper", mailTransportWrapper);
+        assertEquals("Unexpected number of mail transport wrapper values", 1, mailTransportWrapper.getValues().size());
+
+        PrismPropertyWrapper<ExpressionType> recipientFilterExpression =
+                mailTransportWrapper.getValues().get(0)
+                        .findProperty(GeneralTransportConfigurationType.F_RECIPIENT_FILTER_EXPRESSION);
+        assertNotNull("Unexpected null recipient filter expression wrapper", recipientFilterExpression);
+        return recipientFilterExpression;
     }
 
     private PrismContainerValue<AssignmentType> createDummyResourceAssignment(PrismObjectWrapper<UserType> objectWrapper, int existingAssignments, Task task, OperationResult result) throws Exception {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~ Copyright (c) 2010-2026 Evolveum and contributors
   ~
   ~ Licensed under the EUPL-1.2 or later.
   -->
@@ -17,9 +17,8 @@
             <set>
                 <condition>
                     <script>
-                        <code>
-                            x != null &amp;&amp; x.targetRef?.type?.localPart == 'RoleType'
-                        </code>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                        <code>x.isTargetRole()</code>
                     </script>
                 </condition>
             </set>
@@ -30,8 +29,10 @@
             <set>
                 <condition>
                     <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                         <code>
-                            y != null &amp;&amp; y.targetRef?.type?.localPart == 'OrgType' &amp;&amp; !y.subtype.contains('combined')
+                            // y.targetType() == 'OrgType' &amp;&amp; !list(y.subtype).exists(s, s == 'combined')
+                            y.targetType() == 'OrgType' &amp;&amp; !y.subtype.contains('combined')
                         </code>
                     </script>
                 </condition>
@@ -41,6 +42,8 @@
             <assignmentTargetSearch>
                 <condition>
                     <script>
+                        <!-- Keeping this expression in Groovy by purpose. We want to test the logging. -->
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                         <code>
                             log.info('condition: x={}, y={}', x?.targetRef?.oid, y?.targetRef?.oid)
                             x != null &amp;&amp; y != null
@@ -53,8 +56,11 @@
                         <q:path>name</q:path>
                         <expression>
                             <script>
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                                <!-- Keeping the resolution of y reference is complex form,
+                                     to test the midpoint.resolveReference() function. -->
                                 <code>
-                                    midpoint.resolveReference(x?.targetRef)?.name + '-' + midpoint.resolveReference(y?.targetRef)?.name
+                                    x.targetName() + '-' + midpoint.resolveReference(y.targetRef).name
                                 </code>
                             </script>
                         </expression>
@@ -71,6 +77,8 @@
                         </target>
                         <expression>
                             <script>
+                                <!-- Keeping this expression in Groovy by purpose, test ref resolution in Groovy as well. -->
+                                <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                                 <code>
                                     midpoint.resolveReference(x?.targetRef)?.name + '-' + midpoint.resolveReference(y?.targetRef)?.name
                                 </code>
@@ -85,8 +93,11 @@
             <set>
                 <condition>
                     <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
                         <code>
-                            assignment?.subtype?.contains('combined')
+                            // list(assignment.subtype).exists(s, s == 'combined')
+                            // assignment.subtype.exists(s, s == 'combined')
+                            assignment.subtype.contains('combined')
                         </code>
                     </script>
                 </condition>

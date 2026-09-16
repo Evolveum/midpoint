@@ -10,14 +10,13 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.stats.SmartStatisticsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.component.SmartTaskProgressPanel;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.util.FocusObjectStatisticsTypeUtil;
+import com.evolveum.midpoint.schema.util.SmartIntegrationArtifactUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -56,10 +55,11 @@ public final class FocusStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_GET_FOCUS_STATISTICS);
 
         try {
+            var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
             if (!forceRegeneration) {
-                GenericObjectType latestStatistics =
+                var latestStatistics =
                         smartIntegrationService.getLatestFocusObjectStatistics(
-                                focusObjectTypeName, resourceOid, kind, intent, task.getResult());
+                                focusObjectTypeName, resourceOid, typeIdentification, task.getResult());
 
                 if (latestStatistics != null) {
                     showStatisticsPopup(target, pageBase, latestStatistics, preSelectedAttribute,
@@ -69,7 +69,7 @@ public final class FocusStatisticsActions {
             }
 
             String taskOid = smartIntegrationService.regenerateFocusObjectStatistics(
-                    focusObjectTypeName, resourceOid, kind, intent, task, task.getResult());
+                    focusObjectTypeName, resourceOid, typeIdentification, task, task.getResult());
 
             showProgressPopup(target, pageBase, smartIntegrationService,
                     focusObjectTypeName, resourceOid, kind, intent, taskOid, preSelectedAttribute);
@@ -85,15 +85,14 @@ public final class FocusStatisticsActions {
     private static void showStatisticsPopup(
             @NotNull AjaxRequestTarget target,
             @NotNull PageBase pageBase,
-            @NotNull GenericObjectType statisticsObject,
+            @NotNull SmartIntegrationArtifactType statisticsObject,
             @Nullable ItemPathType preSelectedAttribute,
             @NotNull QName focusObjectTypeName,
             @NotNull String resourceOid,
             @NotNull ShadowKindType kind,
             @NotNull String intent) throws SchemaException {
 
-        ShadowObjectClassStatisticsType statistics =
-                FocusObjectStatisticsTypeUtil.getFocusObjectStatisticsRequired(statisticsObject);
+        var statistics = SmartIntegrationArtifactUtil.getStatisticsRequired(statisticsObject);
 
         SmartStatisticsPanel panel = new SmartStatisticsPanel(
                 pageBase.getMainPopupBodyId(),
@@ -163,9 +162,10 @@ public final class FocusStatisticsActions {
         Task task = pageBase.createSimpleTask(OPERATION_REGENERATE_FOCUS_STATISTICS);
 
         try {
-            GenericObjectType latestStatistics =
+            var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
+            var latestStatistics =
                     smartIntegrationService.getLatestFocusObjectStatistics(
-                            focusObjectTypeName, resourceOid, kind, intent, task.getResult());
+                            focusObjectTypeName, resourceOid, typeIdentification, task.getResult());
 
             if (latestStatistics == null) {
                 pageBase.warn("Statistics computation finished, but no statistics object was found.");

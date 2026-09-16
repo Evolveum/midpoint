@@ -2649,10 +2649,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
     @SuppressWarnings("SameParameterValue")
     private void modifyRoleAddExclusionAndAssignOrg(
-            String roleOid, String excludedRoleOid, String orgOid, Task task, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-            ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            PolicyViolationException, SecurityViolationException {
+            String roleOid, String excludedRoleOid, String orgOid, Task task, OperationResult result) throws CommonException {
         ObjectDelta<RoleType> roleDelta = createAssignmentAssignmentHolderDelta(
                 RoleType.class, roleOid, orgOid, OrgType.COMPLEX_TYPE, null, null, null, true);
         PolicyRuleType exclusionPolicyRule = createExclusionPolicyRule(excludedRoleOid);
@@ -3465,10 +3462,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
                 .build();
     }
 
-    private void modifyJackValidTo()
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-            PolicyViolationException, SecurityViolationException {
+    private void modifyJackValidTo() throws CommonException{
         Task task = createPlainTask("modifyJackValidTo");
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result, JACK_VALID_TO_LONG_AHEAD);

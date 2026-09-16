@@ -25,19 +25,23 @@ Currently supported languages are:
 
 * xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (built-in) for expressions returning strings/texts
 
-[NOTE]
+[TIP]
 ====
-While you can use any of the languages above, using Groovy is your best bet.
-Virtually all examples in our documentation use Groovy, most of the community is used to it
+While you can use any of the languages above, MEL and Groovy are the best choices.
+
+xref:mel[MEL] should be a default choice for simple expressions and light customization.
+It is simple and safe.
+
+xref:groovy.adoc[Groovy] is good choice for scripts that need to do powerful computation or heavy customization.
+Groovy is the also the "traditional" choice.
+Virtually all examples in our documentation use Groovy, most of the community is used to it,
 and it is used by virtually all the deployments.
-Also, Groovy is packaged with the midPoint explicitly, while the JavaScript/ECMAScript support
+However, be aware that Groovy is too powerful, which brings security risks.
+====
+
+Groovy, MEL and Velocity are packaged with the midPoint explicitly, while the JavaScript/ECMAScript support
 depends on it being part of the JDK - which it is not since Java 15.
 Python is made optional too although still easy to enable even on newer JDKs.
-
-Using Groovy is highly recommended.
-
-Using Velocity for string/textual templates is perfectly OK as well.
-====
 
 == Script Expression Structure
 
@@ -204,18 +208,45 @@ This approach can be used to reduce typical LDAP multi-value attributes to a sin
 
 Script expressions are a code that runs inside midPoint servers.
 As such, script expressions are incredibly powerful.
-But with great powers comes great responsibility.
+However, with great powers comes great responsibility.
 Script expressions can do a lot of useful things, but they can also do a lot of harm.
-There are just a few simple internal safeguards when it comes to expression evaluation.
+
+Security of scripting expressions depends on script language.
+
+* xref:mel[MEL] is designed to be secure.
+MEL scripts are limited to safe operations only, they cannot directly compromise security of the system.
+MEL expressions are safe even for delegated administration.
+However, they still can do indirect harm.
+
+xref:groovy.adoc[Groovy] and the other general-purpose scripting languages (JavaScript/ECMAscript, Python, etc.) are way too powerful.
+They bring inherent security risks.
+There are just a few simple internal safeguards when it comes to evaluation of expressions in these general-purpose languages.
 E.g. midPoint script libraries will properly enforce authorization when executing the functions.
-However, script languages are powerful and a clever expression can find a way around this safeguards.
+However, script languages are powerful and a clever expression can find a way around such safeguards.
 MidPoint is *not* placing expressions in a sandbox, therefore expressions are free to do almost anything.
 The sandbox is not enforced from complexity and performance reasons, but it may be applied in future midPoint versions if necessary.
-For the time being, please be very careful who can define expressions in midPoint.
-Do not allow any untrusted user to modify the expressions.
+
+Be very careful who can define expressions in midPoint, and what scripting language can be used.
+As a general rule, do not allow any untrusted user to modify the expressions.
 
 See xref:/midpoint/features/planned/script-expression-sandboxing/[Script Expression Sandboxing] and
 xref:/midpoint/reference/expressions/expressions/security/[Expression Security] for more details.
+
+== Default Scripting Language
+
+_Groovy_ is the default scripting language, mostly due to the historic and compatibility reasons.
+However, _MEL_ expressions should be used as a default choice whenever possible.
+
+System-global default scripting language can be changed in xref:/midpoint/reference/concepts/system-configuration-object/[system configuration]:
+
+[source,xml]
+----
+<systemConfiguration>
+    <expressions>
+        <defaultScriptLanguage>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</defaultScriptLanguage>
+    </expressions>
+</systemConfiguration>
+----
 
 == Future
 

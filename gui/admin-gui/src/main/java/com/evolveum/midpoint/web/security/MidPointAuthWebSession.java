@@ -28,7 +28,6 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.protocol.http.ClientProperties;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
-import org.apache.wicket.request.cycle.RequestCycle;
 
 import java.util.Locale;
 

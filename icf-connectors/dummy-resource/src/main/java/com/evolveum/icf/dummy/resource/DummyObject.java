@@ -619,7 +619,11 @@ public abstract class DummyObject implements DebugDumpable {
      *
      * The {@link #resource} must be set up for the current object.
      */
-    public void addLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject) {
+    public void addLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject)
+            throws ConflictException, FileNotFoundException, SchemaViolationException,
+            InterruptedException, ConnectException {
+        checkModifyBreak();
+        delayOperation();
         var resource = getResourceRequired();
         var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
         if (linkDef.isFirst()) {
@@ -637,6 +641,8 @@ public abstract class DummyObject implements DebugDumpable {
     public void deleteLinkValue(@NotNull String linkName, @NotNull DummyObject linkedObject)
             throws ConflictException, FileNotFoundException, SchemaViolationException,
             InterruptedException, ConnectException {
+        checkModifyBreak();
+        delayOperation();
         var resource = getResourceRequired();
         var linkDef = getStructuralObjectClass().getLinkDefinitionRequired(linkName);
         if (linkDef.isFirst()) {

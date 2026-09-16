@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.message;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
 import org.apache.wicket.feedback.IFeedback;
@@ -30,16 +31,24 @@ public class FeedbackAlerts extends Panel implements IFeedback {
         initLayout();
     }
 
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
+        getFeedbackListView().setEscapeModelStrings(getEscapeModelStrings());
+    }
+
     protected void initLayout() {
-        FeedbackListView list = new FeedbackListView(ID_LIST, this);
-        list.add(new VisibleEnableBehaviour() {
+        FeedbackListView listView = new FeedbackListView(ID_LIST, this);
+        listView.setEscapeModelStrings(getEscapeModelStrings());
+
+        listView.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
                 return hasMessages();
             }
         });
-        add(list);
+        add(listView);
     }
 
     public boolean hasMessages() {

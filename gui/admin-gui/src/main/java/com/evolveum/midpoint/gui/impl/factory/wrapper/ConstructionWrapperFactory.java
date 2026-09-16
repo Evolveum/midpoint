@@ -61,7 +61,7 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
         PrismObject<ResourceType> resource;
         try {
             resource = getModelService().getObject(ResourceType.class, resourceRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), context.getTask(), context.getResult());
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommonException e) {
             LOGGER.error("Problem occurred during resolving resource, reason: {}", e.getMessage(), e);
             context.getResult().recordFatalError("A problem occurred during resolving resource, reason: " + e.getMessage(), e);
             return;

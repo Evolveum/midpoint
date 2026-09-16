@@ -19,4 +19,12 @@
         <description>This one can be applied.</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
+    <authorization>
+        <description>
+            The REST-level authorizations for the log operations are present, but the model-level "readLog"
+            one is not. Hence, the operations pass the REST layer and fail at the model layer.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getLog</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-rest-3#getLogSize</action>
+    </authorization>
 </role>

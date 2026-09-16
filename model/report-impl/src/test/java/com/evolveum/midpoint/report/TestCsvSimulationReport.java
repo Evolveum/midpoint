@@ -23,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
@@ -779,6 +778,8 @@ public class TestCsvSimulationReport extends TestCsvReport {
         UserType user = new UserType()
                 .name(userName)
                 .fullName("Jack Sparrow")
+                .preferredName("Jack Sparrow")
+                .displayName("Jack Sparrow")
                 .assignment(RESOURCE_DUMMY_OUTBOUND.assignmentWithConstructionOf(null, null))
                 .assignment(ARCHETYPE_BLUE.assignmentTo());
         addObject(user.asPrismObject(), task, result);

@@ -50,7 +50,7 @@ public class WizardHeaderStepPanel extends BasePanel<String> {
                 "step active" : "step"));
         add(AttributeAppender.append("tabindex", ()-> wizardHeaderStepHelper.isStepActive(index) ? "0" : "-1"));
 
-        Label stepDesc = new Label(ID_STEP_DESC, wizardHeaderStepHelper.getStepPanelAriaLabelModel(index, getModelObject()));
+        Label stepDesc = new Label(ID_STEP_DESC, wizardHeaderStepHelper.getStepPanelAriaLabelModel(index));
         stepDesc.setOutputMarkupId(true);
         add(stepDesc);
 

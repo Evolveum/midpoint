@@ -6,20 +6,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -34,21 +28,24 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisOutlierPartitionTileModel<T>> {
 
@@ -140,7 +137,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
     private void initLeftBatch() {
         Label label = buildCategoryPanel();
-        label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
+        label.add(AttributeModifier.append(CLASS_CSS, "badge text-bg-info"));
         label.add(new VisibleBehaviour(() -> false));
         add(label);
 
@@ -172,7 +169,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         String labelValue = "MOST IMPACTFUL";
         Label label = new Label(ID_RIGHT_BATCH, labelValue);
         label.setOutputMarkupId(true);
-        label.add(AttributeModifier.append(CLASS_CSS, "badge bg-danger"));
+        label.add(AttributeModifier.append(CLASS_CSS, "badge text-bg-danger"));
         label.add(new VisibleBehaviour(() -> getModelObject().isMostImpactful));
         add(label);
     }
@@ -403,7 +400,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         setOutputMarkupId(true);
 
         add(AttributeModifier.append(CLASS_CSS,
-                "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 elevation-1"));
+                "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 shadow-sm"));
 
         add(AttributeModifier.append(STYLE_CSS, "width:25%"));
     }
@@ -438,7 +435,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         examineButton.titleAsLabel(true);
         examineButton.setOutputMarkupId(true);
-        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm p-2"));
+        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-light border btn-sm p-2"));
 
         examineButton.setOutputMarkupId(true);
         add(examineButton);

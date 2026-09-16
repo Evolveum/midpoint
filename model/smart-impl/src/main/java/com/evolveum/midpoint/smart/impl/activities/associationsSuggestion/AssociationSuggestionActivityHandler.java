@@ -102,9 +102,8 @@ public class AssociationSuggestionActivityHandler
             var task = getRunningTask();
             var resourceOid = getWorkDefinition().getResourceOid();
 
-            var isInbound = true; // TODO: parametrize, it would be better represented by some enumeration
             var suggestedAssociations =
-                    SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(resourceOid, isInbound, task, result);
+                    SmartIntegrationBeans.get().smartIntegrationService.suggestAssociations(resourceOid, task, result);
 
             var state = getActivityState();
 

@@ -2,7 +2,7 @@
 :page-nav-title: Report Output Format
 :page-display-order: 300
 :page-toc: top
-:page-keywords: [ 'report', 'output' ,'format', 'export' ]
+:page-keywords: report, output, format, export
 :page-upkeep-status: green
 
 

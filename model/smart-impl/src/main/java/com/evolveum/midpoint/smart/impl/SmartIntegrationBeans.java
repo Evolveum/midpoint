@@ -10,9 +10,11 @@ package com.evolveum.midpoint.smart.impl;
 import com.evolveum.midpoint.prism.crypto.Protector;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
@@ -39,6 +41,7 @@ public class SmartIntegrationBeans {
     @Autowired public Clock clock;
     @Autowired public LocalizationService localizationService;
     @Autowired public Protector protector;
+    @Autowired @Qualifier("securityContextManager") public SecurityContextManager securityContextManager;
 
     @PostConstruct
     public void init() {

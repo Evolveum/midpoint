@@ -9,18 +9,17 @@ package com.evolveum.icf.dummy.connector;
 import com.evolveum.icf.dummy.resource.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.stream.Streams;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.spi.InstanceNameAware;
-import org.identityconnectors.framework.spi.operations.*;
+import org.identityconnectors.framework.spi.operations.PartialSchemaOp;
+import org.identityconnectors.framework.spi.operations.UpdateDeltaOp;
 import org.identityconnectors.framework.common.objects.*;
 
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.identityconnectors.common.logging.Log;
 

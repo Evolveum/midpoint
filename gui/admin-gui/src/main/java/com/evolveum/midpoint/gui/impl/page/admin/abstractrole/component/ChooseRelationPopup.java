@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.tile.TilePanel;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.ChooseRelationPanel;
-import com.evolveum.midpoint.web.component.*;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.SimplePopupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 

@@ -21,6 +21,13 @@ For example, imagine that by the mistake, thousands of accounts was disabled in 
 If no one noticed the mistake before the reconciliation run it would end up with disabling users across all connected systems.
 To prevent such situations midPoint has to know which changes are critical and what to do in the case they occur.
 
+[NOTE]
+====
+Since midPoint 4.11, policy rules with thresholds can also be defined directly on individual task activities,
+without assigning a policy-bearing role to the whole task.
+See xref:./focus-policies-in-activities[Focus policies in activities] and xref:./activity-policies[Activity policies].
+====
+
 == Setting Thresholds
 
 For now, it is possible to set up thresholds for different tasks (reconciliation, recomputation, synchronization,...).
@@ -58,6 +65,7 @@ Policy rule above specifies that midPoint should monitor creation of new users
 (specified by xref:/midpoint/devel/design/policy-constraints/[policyConstraints])
 and when the limit is reached (count=5), task execution is suspended (policyAction=suspendTask).
 The fifth user is not added.
+In general, the policy rules are enforced after the changes for an object are computed, but before they are executed, so the object that trips the threshold is not processed.
 
 After defining such role with policy rules, midPoint has to know that such role should be taken into account.
 Therefore, it is needed to assign this role to the task as in the example below.
@@ -217,6 +225,10 @@ tailoring:
 ----
 
 == See Also
+
+* xref:./focus-policies-in-activities[Focus policies in activities]
+
+* xref:./activity-policies[Activity policies]
 
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 

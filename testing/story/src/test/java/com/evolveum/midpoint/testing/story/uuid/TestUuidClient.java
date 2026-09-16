@@ -281,9 +281,7 @@ public class TestUuidClient extends AbstractUuidTest {
         // TODO
     }
 
-    private void assertLdapClient(PrismObject<UserType> user, String firstName, String lastName)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertLdapClient(PrismObject<UserType> user, String firstName, String lastName) throws CommonException {
         assertLiveLinks(user, 1);
         assertAssignments(user, RoleType.class, 1);
         assertAssignedRole(user, ROLE_CLIENT_OID);

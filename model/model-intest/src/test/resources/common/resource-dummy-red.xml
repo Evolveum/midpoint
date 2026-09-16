@@ -141,7 +141,7 @@
                     <expression>
                         <script>
                             <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
-                            <code>isEmpty(focus.?organization) ? str(organizationalUnit) : '%s / %s'.format([focus.organization[0], organizationalUnit])</code>
+                            <code>isEmpty(focus.organization) ? str(organizationalUnit) : '%s / %s'.format([focus.organization[0], organizationalUnit])</code>
                         </script>
                     </expression>
                 </outbound>

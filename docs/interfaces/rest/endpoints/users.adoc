@@ -2,7 +2,7 @@
 :page-nav-title: User
 :page-display-order: 200
 :page-toc: top
-:page-keywords: [ 'rest', 'user', 'endpoint' ]
+:page-keywords: rest, user, endpoint
 :page-upkeep-status: green
 
 == User Type REST Endpoint

@@ -15,19 +15,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import static com.evolveum.midpoint.authentication.impl.util.MidpointRequestMatchers.pathMatcher;
 
 public class ArchetypeSelectionAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/archetypeSelection", "POST");
+    private static final RequestMatcher DEFAULT_REQUEST_MATCHER = pathMatcher("/archetypeSelection", "POST");
     private static final String ARCHETYPE_OID_KEY = "archetypeOid";
     private static final String ALLOW_UNDEFINED_ARCHETYPE_KEY = "allowUndefinedArchetype";
     public ArchetypeSelectionAuthenticationFilter() {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER);
+        super(DEFAULT_REQUEST_MATCHER);
     }
 
     protected ArchetypeSelectionAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
+        super(DEFAULT_REQUEST_MATCHER, authenticationManager);
     }
 
     @Override

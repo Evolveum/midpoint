@@ -2,7 +2,7 @@
 :page-nav-title: Report Data
 :page-display-order: 2500
 :page-toc: top
-:page-keywords: [ 'rest', 'report', 'endpoint' ]
+:page-keywords: rest, report, endpoint
 :page-upkeep-status: green
 
 == Description

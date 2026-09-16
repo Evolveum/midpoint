@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- User template with tokenExpression using the attempt variable -->
+
+<objectTemplate oid="10000000-0000-0000-0000-0000000d1010"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>user-template-token-conflict-attempt</name>
+    <iterationSpecification>
+        <maxIterations>10</maxIterations>
+        <useTokenOnlyOnConflict>false</useTokenOnlyOnConflict>
+        <tokenExpression>
+            <script>
+                <code>
+                    if (attempt == 0) {
+                        return "+" + attempt
+                    } else {
+                        return "_" + attempt;
+                    }
+                </code>
+            </script>
+        </tokenExpression>
+    </iterationSpecification>
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    basic.concatName(givenName, familyName) + iterationToken
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+    </mapping>
+</objectTemplate>

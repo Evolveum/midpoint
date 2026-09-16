@@ -108,7 +108,7 @@ public final class LiveSyncActivityRun
     @Override
     public void iterateOverItemsInBucket(OperationResult opResult)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, SubscriptionComplianceException {
 
         LiveSyncEventHandler handler = new LiveSyncEventHandler() {
             @Override

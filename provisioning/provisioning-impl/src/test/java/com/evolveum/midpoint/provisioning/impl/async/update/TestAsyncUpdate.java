@@ -22,7 +22,9 @@ import javax.naming.NamingException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 
 import jakarta.jms.JMSException;
 import org.jetbrains.annotations.Contract;
@@ -502,9 +504,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     }
 
     @Contract("false,_,_ -> !null")
-    private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+    private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result) throws CommonException {
         var repoShadow = findAccountShadowByUsername("banderson", resource, result);
         assertNotNull("No Anderson shadow in repo", repoShadow);
         Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()

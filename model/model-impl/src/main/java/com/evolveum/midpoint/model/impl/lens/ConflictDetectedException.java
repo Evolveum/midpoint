@@ -6,7 +6,10 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.util.exception.SeverityAwareException;
 
 /**
  * TODO better name
@@ -16,7 +19,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
  *
  * Should occur on focus objects only. (For now.)
  */
-public class ConflictDetectedException extends Exception {
+public class ConflictDetectedException extends Exception implements SeverityAwareException {
 
     public ConflictDetectedException(String message, Throwable cause) {
         super(message, cause);
@@ -24,5 +27,17 @@ public class ConflictDetectedException extends Exception {
 
     public ConflictDetectedException(Throwable cause) {
         super(cause);
+    }
+
+    @Override
+    public @NotNull SeverityAwareException.Severity getSeverity() {
+        // We mark the exception as "handled error" in order to prevent false errors being reported in OperationResult.
+        //
+        // It is OK to do so, because:
+        //
+        // 1. If it is (later) handled by repeating the operation, it is really a "handled error".
+        // 2. Even if it causes the operation fail (e.g. if action=FAIL), the failure is represented by a separate
+        // exception, with its own severity of FATAL_ERROR.
+        return Severity.HANDLED_ERROR;
     }
 }

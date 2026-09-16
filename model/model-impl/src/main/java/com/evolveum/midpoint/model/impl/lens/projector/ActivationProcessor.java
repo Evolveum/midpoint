@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.config.OriginProvider;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.constants.SchemaConstants.ModelDisableReason;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -128,7 +129,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     <F extends ObjectType> void processProjectionsActivation(LensContext<F> context, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, SubscriptionComplianceException {
         OperationResult activationResult = result.subresult(OP_ACTIVATION)
                 .setMinor()
                 .build();
@@ -154,7 +155,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationResult result = parentResult.subresult(OP_PROJECTION_ACTIVATION)
                 .addParam("resourceOid", projectionContext.getResourceOid())
                 .addParam("resourceName", projectionContext.getResourceName())
@@ -223,7 +224,8 @@ public class ActivationProcessor implements ProjectorProcessor {
             XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
+            CommunicationException, ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException,
+            SubscriptionComplianceException {
 
         assert context.hasFocusContext();
 
@@ -555,7 +557,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         //   do this from GUI: REST or Java API call would be needed.)
         if (hasAdministrativeStatusDelta(projCtx.getPrimaryDelta())
                 && !hasAdministrativeStatusDelta(projCtx.getSecondaryDelta())) {
-            return SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
+            return ModelDisableReason.EXPLICIT.uri;
         }
 
         Boolean legal = projCtx.isLegal();
@@ -566,18 +568,18 @@ public class ActivationProcessor implements ProjectorProcessor {
             return SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
         }
 
-        if (!statusChanged && SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT.equals(oldDisableReason)) {
+        if (!statusChanged && ModelDisableReason.EXPLICIT.uri.equals(oldDisableReason)) {
             // Once explicit, always explicit. If we (e.g.) recompute the focus, we do not want the EXPLICIT reason
             // to disappear, even if we do not have the primary delta that caused the disablement.
             //
             // On the other hand, we do not want to keep obsolete/historic EXPLICIT value here:
             // if the account is explicitly disabled (-> EXPLICIT), then enabled by mapping, and then disabled by mapping,
             // we want to have MAPPED here. Hence the !statusChanged condition.
-            return SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
+            return ModelDisableReason.EXPLICIT.uri;
         }
 
         // No other reason: it must came through a mapping.
-        return SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
+        return ModelDisableReason.MAPPED.uri;
     }
 
     private static boolean hasAdministrativeStatusDelta(ObjectDelta<ShadowType> delta) {
@@ -594,7 +596,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         assert context.hasFocusContext();
 
@@ -670,7 +672,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             XMLGregorianCalendar now, MappingTimeEval evaluationTime,
             Task task, final OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
         final String projCtxDesc = projCtx.toHumanReadableString();
 
         final Boolean legal = projCtx.isLegal();
@@ -732,7 +734,9 @@ public class ActivationProcessor implements ProjectorProcessor {
                     .implicitSourcePath(LEGAL_PROPERTY_NAME)
                     .implicitTargetPath(SHADOW_EXISTS_PROPERTY_NAME);
 
-            builder.defaultSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
+            ItemDeltaItem<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> legalIdi = getLegalIdi(projCtx);
+            builder.defaultSource(new Source<>(legalIdi, ExpressionConstants.VAR_LEGAL_QNAME));
+            builder.additionalSource(new Source<>(legalIdi, ExpressionConstants.VAR_INPUT_QNAME));
             builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
             builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 
@@ -894,7 +898,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         LOGGER.trace("Evaluating '{}' of projection {} ({})", projectionPropertyPath, projCtx, evaluationTime);
 
@@ -987,7 +991,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException, SubscriptionComplianceException {
 
         if (bidirectionalMappingBean == null) {
             LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
@@ -1218,7 +1222,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     <F extends FocusType> void processLifecycle(LensContext<F> context, LensProjectionContext projCtx,
             @SuppressWarnings("unused") String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
         ResourceBidirectionalMappingType purposeMappings = getPurposeMappings(projCtx); // [EP:M:OM] DONE
         if (purposeMappings == null) {
