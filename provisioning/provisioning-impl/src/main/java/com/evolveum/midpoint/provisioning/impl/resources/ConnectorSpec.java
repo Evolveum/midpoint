@@ -136,16 +136,13 @@ public abstract class ConnectorSpec {
      * an abstract resource with missing connectorRef.
      */
     public final @Nullable String getConnectorOid() {
-        return resolvedConnectorOid != null ? resolvedConnectorOid : getConnectorOidFromDefinition();
+        return resolvedConnectorOid != null ? resolvedConnectorOid : getOid(getConnectorRef());
     }
-
-    protected abstract @Nullable String getConnectorOidFromDefinition();
 
     void setResolvedConnectorOid(@NotNull String resolvedConnectorOid) {
         this.resolvedConnectorOid = resolvedConnectorOid;
     }
 
-    /** Returns the backing connector reference, if present. */
     abstract @Nullable ObjectReferenceType getConnectorRef();
 
     /**
@@ -211,11 +208,6 @@ public abstract class ConnectorSpec {
         @Override
         public @Nullable String getConnectorName() {
             return null;
-        }
-
-        @Override
-        protected @Nullable String getConnectorOidFromDefinition() {
-            return ResourceTypeUtil.getConnectorOid(resource);
         }
 
         @Override
@@ -286,11 +278,6 @@ public abstract class ConnectorSpec {
             ItemPath path = definitionBean.asPrismContainerValue().getPath();
             checkPathValid(path);
             return path;
-        }
-
-        @Override
-        protected @Nullable String getConnectorOidFromDefinition() {
-            return getOid(definitionBean.getConnectorRef());
         }
 
         @Override

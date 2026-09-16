@@ -28,7 +28,9 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityHostType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.
@@ -62,6 +65,9 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     protected static final String RESOURCE_NS = MidPointConstants.NS_RI;
 
     protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
+    private static final String CSV_CONNECTOR_CONFIGURATION_NS =
+            "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/"
+                    + CSV_CONNECTOR_TYPE;
 
     private static final File CSV_TARGET_FILE = new File("target/midpoint.csv");
 
@@ -294,15 +300,17 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         PrismObject<ResourceType> resourceAfter = provisioningService.getObject(
                 ResourceType.class, resourceOid, null, task, result);
 
-        then("all connector refs are usable");
+        then("all connector refs are usable and carry the resolved OID in the completed resource");
         result.computeStatus();
         TestUtil.assertSuccess(result);
         ResourceType resourceAfterBean = resourceAfter.asObjectable();
-        assertNull("Primary connector OID resolution should not be visible in the resource object",
+        assertEquals("Wrong resolved primary connector OID in the completed resource", connectorOid,
                 resourceAfterBean.getConnectorRef().getOid());
+        assertNotNull("Primary connector filter should be preserved in the completed resource",
+                resourceAfterBean.getConnectorRef().getFilter());
         assertEquals("Wrong filtered additional connector name", "csv-additional-filtered",
                 resourceAfterBean.getAdditionalConnector().get(0).getName());
-        assertNull("Filtered additional connector OID resolution should not be visible in the resource object",
+        assertEquals("Wrong resolved additional connector OID in the completed resource", connectorOid,
                 resourceAfterBean.getAdditionalConnector().get(0).getConnectorRef().getOid());
         assertEquals("Wrong direct additional connector name", "csv-additional-direct",
                 resourceAfterBean.getAdditionalConnector().get(1).getName());
@@ -325,19 +333,10 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     public void test008AdditionalConnectorRefByFilterMatchesNone() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        String resourceOid = getConnectorRefTestResourceOid("cf1");
 
-        PrismObject<ResourceType> resourceToAdd = cloneResourceForConnectorRefTest(
-                repositoryService.getObject(ResourceType.class, getResourceOid(), null, result),
-                resourceOid,
-                "Test CSV: no connector match");
-        ResourceType resourceBean = resourceToAdd.asObjectable();
-        resourceBean.getAdditionalConnector().clear();
-        resourceBean.getAdditionalConnector().add(
-                new ConnectorInstanceSpecificationType()
-                        .name("csv-additional")
-                        .connectorRef(createConnectorRefByConnectorType("no.such.Connector")));
-        repositoryService.addObject(resourceToAdd, null, result);
+        String resourceOid = addResourceWithAdditionalConnector(
+                "cf1", "Test CSV: no connector match",
+                createConnectorRefByConnectorType("no.such.Connector"), result);
 
         when("the resource with an unresolvable additional connector filter is retrieved through provisioning");
         String failureText = getResourceExpectingConnectorResolutionFailure(resourceOid, task, result);
@@ -356,21 +355,11 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
     public void test009AdditionalConnectorRefByFilterMatchesMultiple() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        String resourceOid = getConnectorRefTestResourceOid("cf2");
 
         assertAllConnectorsFilterIsAmbiguous(result);
 
-        PrismObject<ResourceType> resourceToAdd = cloneResourceForConnectorRefTest(
-                repositoryService.getObject(ResourceType.class, getResourceOid(), null, result),
-                resourceOid,
-                "Test CSV: multiple connector matches");
-        ResourceType resourceBean = resourceToAdd.asObjectable();
-        resourceBean.getAdditionalConnector().clear();
-        resourceBean.getAdditionalConnector().add(
-                new ConnectorInstanceSpecificationType()
-                        .name("csv-additional")
-                        .connectorRef(createAllConnectorsRef()));
-        repositoryService.addObject(resourceToAdd, null, result);
+        String resourceOid = addResourceWithAdditionalConnector(
+                "cf2", "Test CSV: multiple connector matches", createAllConnectorsRef(), result);
 
         when("the resource with an ambiguous additional connector filter is retrieved through provisioning");
         String failureText = getResourceExpectingConnectorResolutionFailure(resourceOid, task, result);
@@ -380,6 +369,122 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertTextContains(failureText, "cannot be resolved: filter matches");
         assertTextContains(failureText, "objects");
         assertTextDoesNotContain(failureText, "Connector OID missing in ConnectorSpec.Additional");
+    }
+
+    /**
+     * Verifies that a connector reference with a present filter that has no filter clause reports a clear
+     * resolution error instead of silently matching all connectors.
+     */
+    @Test
+    public void test010AdditionalConnectorRefByEmptyFilterInDelta() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        SearchFilterType filterWithoutClause = new SearchFilterType();
+        filterWithoutClause.setDescription("no filter clause here");
+        ObjectDelta<ResourceType> delta = prismContext.deltaFor(ResourceType.class)
+                .item(ResourceType.F_ADDITIONAL_CONNECTOR)
+                .add(new ConnectorInstanceSpecificationType()
+                        .name("csv-additional")
+                        .connectorRef(new ObjectReferenceType()
+                                .type(ConnectorType.COMPLEX_TYPE)
+                                .filter(filterWithoutClause)))
+                .asObjectDelta(getResourceOid());
+        delta.addModification(createRawFilePathDelta("target/midpoint-empty-filter.csv"));
+
+        when("definitions are applied to a delta adding a connector with an empty filter");
+        try {
+            provisioningService.applyDefinition(delta, task, result);
+            fail("Unexpected success of applyDefinition");
+        } catch (ConfigurationException e) {
+            then("the failure reason is clear");
+            assertTextContains(e.getMessage(), "Connector reference in new connector 'csv-additional'");
+            assertTextContains(e.getMessage(), "filter has no content");
+        }
+    }
+
+    /**
+     * Verifies that a connector reference whose filter contains an expression is rejected with a clear error.
+     */
+    @Test
+    public void test011AdditionalConnectorRefByExpressionFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String filterXml =
+                "<filter xmlns=\"http://prism.evolveum.com/xml/ns/public/query-3\""
+                        + " xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">"
+                        + "<equal><path>c:connectorType</path>"
+                        + "<c:expression><c:script><c:code>'" + CSV_CONNECTOR_TYPE + "'</c:code></c:script></c:expression>"
+                        + "</equal></filter>";
+        SearchFilterType filterBean = PrismTestUtil.parseAtomicValue(filterXml, SearchFilterType.COMPLEX_TYPE);
+        String resourceOid = addResourceWithAdditionalConnector(
+                "cf4", "Test CSV: expression connector filter",
+                new ObjectReferenceType()
+                        .type(ConnectorType.COMPLEX_TYPE)
+                        .filter(filterBean),
+                result);
+
+        when("the resource with an expression-bearing additional connector filter is retrieved through provisioning");
+        String failureText = getResourceExpectingConnectorResolutionFailure(resourceOid, task, result);
+
+        then("the failure reason is clear");
+        assertTextContains(failureText, "Connector reference in ConnectorSpec.Additional");
+        assertTextContains(failureText, "filter contains an expression");
+    }
+
+    /**
+     * Verifies that definitions are applied to a raw connector configuration modification delta even if
+     * the resource connector references are filter-based (the completed resource carries the resolved OIDs).
+     */
+    @Test
+    public void test012ApplyDefinitionToDeltaWithFilteredConnectorRef() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String resourceOid = getConnectorRefTestResourceOid("cf0"); // the resource created in test007
+
+        ObjectDelta<ResourceType> delta =
+                prismContext.deltaFactory().object().createEmptyModifyDelta(ResourceType.class, resourceOid);
+        delta.addModification(createRawFilePathDelta("target/midpoint-filtered.csv"));
+
+        when("definitions are applied to a raw configuration delta of the resource with filtered connector refs");
+        provisioningService.applyDefinition(delta, task, result);
+
+        then("the configuration property delta has a definition");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertNotNull("No definition in configuration property delta",
+                delta.getModifications().iterator().next().getDefinition());
+        assertTextDoesNotContain(result.debugDump(), "Connector OID is missing");
+    }
+
+    /** Creates a connector configuration property delta without a definition, as e.g. REST clients do. */
+    private PropertyDelta<String> createRawFilePathDelta(String filePath) throws Exception {
+        ItemPath propertyPath = ItemPath.create(
+                ResourceType.F_CONNECTOR_CONFIGURATION,
+                SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME,
+                new QName(CSV_CONNECTOR_CONFIGURATION_NS, "filePath"));
+        PropertyDelta<String> propertyDelta = prismContext.deltaFactory().property().create(propertyPath, null);
+        propertyDelta.setRealValuesToReplace(filePath);
+        return propertyDelta;
+    }
+
+    private String addResourceWithAdditionalConnector(
+            String oidSuffix, String name, ObjectReferenceType additionalConnectorRef, OperationResult result)
+            throws Exception {
+        String resourceOid = getConnectorRefTestResourceOid(oidSuffix);
+        PrismObject<ResourceType> resourceToAdd = cloneResourceForConnectorRefTest(
+                repositoryService.getObject(ResourceType.class, getResourceOid(), null, result),
+                resourceOid,
+                name);
+        ResourceType resourceBean = resourceToAdd.asObjectable();
+        resourceBean.getAdditionalConnector().clear();
+        resourceBean.getAdditionalConnector().add(
+                new ConnectorInstanceSpecificationType()
+                        .name("csv-additional")
+                        .connectorRef(additionalConnectorRef));
+        repositoryService.addObject(resourceToAdd, null, result);
+        return resourceOid;
     }
 
     private String getConnectorRefTestResourceOid(String suffix) {
