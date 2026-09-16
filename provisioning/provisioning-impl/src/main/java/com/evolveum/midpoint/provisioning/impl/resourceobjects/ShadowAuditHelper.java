@@ -135,7 +135,6 @@ public class ShadowAuditHelper {
                     auditConfiguration.getEventRecordingExpression(),
                     auditRecord,
                     object,
-                    operationContext.expressionProfile(),
                     operationContext.expressionEnvironmentSupplier(),
                     ctx.getTask(),
                     result);

@@ -111,8 +111,8 @@ public class ReportServiceImpl implements ReportService {
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
         try {
-            return ExpressionUtil.evaluateExpressionNative(null, variablesCopy, null, expression,
-                    determineExpressionProfile(report, result), expressionFactory, shortDesc, task, result);
+            return ExpressionUtil.evaluateExpressionNative(
+                    null, variablesCopy, null, expression, expressionFactory, shortDesc, task, result);
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }
@@ -143,12 +143,6 @@ public class ReportServiceImpl implements ReportService {
 
     public PrismContext getPrismContext() {
         return prismContext;
-    }
-
-    private ExpressionProfile determineExpressionProfile(
-            @NotNull PrismObject<ReportType> report, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        return expressionProfileManager.determineExpressionProfile(report, result);
     }
 
     @Override

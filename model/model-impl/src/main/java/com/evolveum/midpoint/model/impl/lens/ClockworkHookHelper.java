@@ -149,7 +149,7 @@ public class ClockworkHookHelper {
     }
 
     private void executeScriptingHook(LensContext<?> context,
-            ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result)
+            ScriptExpressionEvaluatorType scriptBean, String shortDesc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         LOGGER.trace("Executing {}", shortDesc);
@@ -158,8 +158,7 @@ public class ClockworkHookHelper {
         var expressionProfile = context.getPrivilegedExpressionProfile();
         var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
-                scriptExpressionEvaluatorType, null,
-                expressionProfile, scriptExpressionEvaluatorProfile, shortDesc, result);
+                scriptBean, null, expressionProfile, scriptExpressionEvaluatorProfile, shortDesc, result);
 
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);

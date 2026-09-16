@@ -34,9 +34,6 @@ import com.evolveum.midpoint.util.exception.*;
  */
 public class VelocityScriptExecutor extends AbstractScriptExecutor {
 
-    private static final String LANGUAGE_NAME = "velocity";
-    private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
-
     public VelocityScriptExecutor(
             PrismContext prismContext,
             Protector protector,
@@ -84,11 +81,11 @@ public class VelocityScriptExecutor extends AbstractScriptExecutor {
 
     @Override
     public String getLanguageName() {
-        return LANGUAGE_NAME;
+        return MidPointConstants.EXPRESSION_LANGUAGE_VELOCITY_NAME;
     }
 
     @Override
     public @NotNull String getLanguageUrl() {
-        return LANGUAGE_URL;
+        return MidPointConstants.EXPRESSION_LANGUAGE_VELOCITY_URL;
     }
 }

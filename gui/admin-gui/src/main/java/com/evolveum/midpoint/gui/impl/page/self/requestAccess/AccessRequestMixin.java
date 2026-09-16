@@ -60,7 +60,7 @@ public interface AccessRequestMixin {
             VariablesMap variables = new VariablesMap();
             variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);
 
-            return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
+            return ExpressionUtil.evaluateFilterExpressions(filter, variables,
                     page.getExpressionFactory(), "group selection search filter template", task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);

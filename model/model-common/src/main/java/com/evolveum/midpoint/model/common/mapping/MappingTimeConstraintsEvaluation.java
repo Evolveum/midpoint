@@ -149,7 +149,6 @@ class MappingTimeConstraintsEvaluation implements Serializable {
                             timeVariables,
                             timeDefinition,
                             expressionBean,
-                            m.getExpressionProfile(),
                             ModelCommonBeans.get().expressionFactory,
                             "time expression in " + m.getMappingContextDescription(),
                             m.getTask(),

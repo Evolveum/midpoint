@@ -120,8 +120,7 @@ class ResourceObjectReferenceResolver {
         VariablesMap variables = new VariablesMap();
         ObjectQuery evaluatedRefQuery =
                 ExpressionUtil.evaluateQueryExpressions(
-                        refQuery, variables, MiscSchemaUtil.getExpressionProfile(), expressionFactory,
-                        desc, ctx.getTask(), result);
+                        refQuery, variables, expressionFactory, desc, ctx.getTask(), result);
 
         ObjectFilter completeFilter = prismContext.queryFactory().createAnd(
                 ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClassName),

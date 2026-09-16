@@ -85,12 +85,8 @@ public class LibraryFunctionExecutor {
             var task = ScriptExecutionContext.getTaskRequired();
             D outputDefinition = ExpressionEvaluationUtil.prepareFunctionOutputDefinition(function);
 
-            ExpressionProfile functionExpressionProfile =
-                    functionLibraryManager.determineFunctionExpressionProfile(library, result);
-
             Expression<V, D> expression =
-                    functionLibraryManager.createFunctionExpression(
-                            function, outputDefinition, functionExpressionProfile, task, result);
+                    functionLibraryManager.createFunctionExpression(function, outputDefinition, task, result);
 
             ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, params, task);
 

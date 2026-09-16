@@ -86,12 +86,9 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
             functionLibraryManager.checkCallAllowed(function, context.getExpressionProfile());
 
-            ExpressionProfile functionExpressionProfile =
-                    functionLibraryManager.determineFunctionExpressionProfile(function.library(), result);
-
             Expression<V, D> functionExpression =
                     functionLibraryManager.createFunctionExpression(
-                            function.function(), outputDefinition, functionExpressionProfile, context.getTask(), result);
+                            function.function(), outputDefinition, context.getTask(), result);
 
             ExpressionEvaluationContext functionEvaluationContext = createFunctionEvaluationContext(function, context, result);
 
@@ -129,7 +126,6 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
                         .makeExpression(
                                 argumentExpressionCI,
                                 argumentValueDefinition,
-                                context.getExpressionProfile(), // this is the caller's profile
                                 shortDesc, context.getTask(), argumentResult);
 
                 var argumentEvaluationContext = context.shallowClone();

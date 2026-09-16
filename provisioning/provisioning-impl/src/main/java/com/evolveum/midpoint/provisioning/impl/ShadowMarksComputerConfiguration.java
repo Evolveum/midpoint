@@ -52,7 +52,6 @@ public class ShadowMarksComputerConfiguration {
             return ExpressionUtil.evaluateFilterExpressions(
                     rawFilter,
                     variables,
-                    MiscSchemaUtil.getExpressionProfile(), // TODO
                     CommonBeans.get().expressionFactory,
                     "protected filter",
                     ctx.getTask(),

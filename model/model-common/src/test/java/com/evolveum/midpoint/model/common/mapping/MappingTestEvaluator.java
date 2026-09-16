@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
@@ -85,7 +87,8 @@ public class MappingTestEvaluator {
 
         SchemaDebugUtil.initializePrettyPrinter();
 
-        ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
+        ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans(
+                IntegrationTestTools.testingFullExpressionProfileSupplier());
 
         if (withMetadata) {
             BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry = new BuiltinMetadataMappingsRegistry();
@@ -186,6 +189,8 @@ public class MappingTestEvaluator {
         MappingType mappingBean = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
+        TrustDescriptorSetter.setDescriptors(mappingBean, IntegrationTestTools.trustedForTests());
+
         MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mappingBuilder =
                 mappingFactory.createMappingBuilder(
                         mappingBean, ConfigurationItemOrigin.generated(), testName);
@@ -225,7 +230,6 @@ public class MappingTestEvaluator {
         }
 
         mappingBuilder.now(XmlTypeConverter.createXMLGregorianCalendar());
-        mappingBuilder.explicitExpressionProfile(ExpressionProfile.full()); // no archetype manager is present
 
         return mappingBuilder;
     }
@@ -237,6 +241,8 @@ public class MappingTestEvaluator {
 
         MappingType mappingBean = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
+
+        TrustDescriptorSetter.setDescriptors(mappingBean, IntegrationTestTools.trustedForTests());
 
         MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> builder =
                 mappingFactory.createMappingBuilder(mappingBean, ConfigurationItemOrigin.generated(), testName);
@@ -256,8 +262,6 @@ public class MappingTestEvaluator {
 
         builder.originType(OriginType.INBOUND);
         builder.originObject(resource);
-
-        builder.explicitExpressionProfile(ExpressionProfile.full()); // no archetype manager is present
 
         return builder.build();
     }

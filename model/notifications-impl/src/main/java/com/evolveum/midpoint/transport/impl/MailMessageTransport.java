@@ -108,13 +108,13 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo,
                     mailMessage.getTo(), configuration, task, result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc,
                     mailMessage.getCc(), configuration, task, result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
             TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc,
                     mailMessage.getBcc(), configuration, task, result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
 
             if (redirectToFile != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {

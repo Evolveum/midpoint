@@ -134,8 +134,8 @@ public class SearchExecutor extends BaseActionExecutor {
             if (unresolvedObjectQuery != null) {
                 VariablesMap variables = new VariablesMap();
                 item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
-                objectQuery = ExpressionUtil.evaluateQueryExpressions(
-                        unresolvedObjectQuery, variables, context.getExpressionProfile(), expressionFactory,
+                objectQuery = ExpressionUtil.evaluateQueryExpressions( // TODO we could re-use the expression profile
+                        unresolvedObjectQuery, variables, expressionFactory,
                         "bulk action query", context.getTask(), globalResult);
             } else {
                 objectQuery = null;

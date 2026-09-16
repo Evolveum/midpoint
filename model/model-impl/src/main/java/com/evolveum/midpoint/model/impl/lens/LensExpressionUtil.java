@@ -110,8 +110,7 @@ public class LensExpressionUtil {
                         new QName(SchemaConstants.NS_C, "result"), typeName);
         ExpressionFactory expressionFactory = ModelCommonBeans.get().expressionFactory;
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-                expressionFactory.makeExpression(
-                        expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
+                expressionFactory.makeExpression(expressionBean, resultDef, contextDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, contextDesc, task);
         LensContext<? extends ObjectType> lensContext = elementContext != null ? elementContext.getLensContext() : null;
         LensProjectionContext projectionContext = elementContext instanceof LensProjectionContext ?

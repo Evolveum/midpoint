@@ -133,7 +133,8 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
         PrismPropertyDefinition<String> outputDefinition = PrismContext.get().definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
-        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(
+                expressionType, outputDefinition, contextDesc, task, result);
         VariablesMap variables = new VariablesMap();
         variables.put(ExpressionConstants.VAR_OBJECT, object, object.asPrismContainerValue().getDefinition());
         addAdditionalVariablesMap(variables);

@@ -14,8 +14,8 @@ import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 /**
  * @author semancik
  */
-@SuppressWarnings("UnstableApiUsage") // because of NotNullByDefault
-@NotNullByDefault
+@NullMarked
 @Component
 public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 

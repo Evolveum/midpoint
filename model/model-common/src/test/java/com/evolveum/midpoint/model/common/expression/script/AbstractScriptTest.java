@@ -407,12 +407,12 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
     }
 
     private Script createScript(
-            ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
-        var language = Objects.requireNonNull(expressionType.getLanguage());
+            ScriptExpressionEvaluatorType scriptBean, ItemDefinition<?> outputDefinition) {
+        var language = Objects.requireNonNull(scriptBean.getLanguage());
         var scriptLanguageExpressionProfile = createScriptLanguageExpressionProfile(language);
         var expressionProfile = createExpressionProfile(scriptLanguageExpressionProfile);
         var script = new Script(
-                expressionType,
+                scriptBean,
                 Objects.requireNonNull(scriptFactory.getExecutorSimple(language)),
                 expressionProfile,
                 scriptLanguageExpressionProfile);

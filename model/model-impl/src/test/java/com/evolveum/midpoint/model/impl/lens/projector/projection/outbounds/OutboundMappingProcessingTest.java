@@ -13,6 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeMethod;
@@ -119,10 +123,8 @@ public class OutboundMappingProcessingTest extends AbstractEmptyInternalModelTes
                         .path(new ItemPathType(UserType.F_GIVEN_NAME)))
                 .source(new VariableBindingDefinitionType()
                         .path(new ItemPathType(UserType.F_FAMILY_NAME)))
-                .expression(new ExpressionType().expressionEvaluator(
-                        new ObjectFactory().createScript(new ScriptExpressionEvaluatorType()
-                                .code("givenName + '-' + familyName")
-                                .language("mel"))));
+                .expression(SimpleExpressionUtil.melExpression(
+                        "givenName + '-' + familyName", IntegrationTestTools.trustedForTests()));
 
         and("'name' as a target attribute");
         final ItemPath targetPath = ItemPath.create("name");

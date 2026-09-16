@@ -2379,7 +2379,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ExpressionEvaluationException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
             SubscriptionComplianceException {
         ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(
-                compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
+                compiledCollection.getFilter(), variables,
                 expressionFactory, "collection filter", task, result);
         if (filter == null) {
             LOGGER.warn("Couldn't find filter");

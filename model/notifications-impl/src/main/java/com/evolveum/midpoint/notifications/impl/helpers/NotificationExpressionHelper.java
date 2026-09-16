@@ -89,10 +89,7 @@ public class NotificationExpressionHelper {
         PrismPropertyDefinition<Boolean> resultDef =
                 prismContext.definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
         Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
-                expressionFactory.makeExpression(
-                        expressionCI,
-                        resultDef, ctx.defaultExpressionProfile(),
-                        shortDesc, task, result);
+                expressionFactory.makeExpression(expressionCI, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
 
@@ -139,8 +136,7 @@ public class NotificationExpressionHelper {
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, origin),
-                        resultDef, ctx.defaultExpressionProfile(),
-                        shortDesc, task, result);
+                        resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
@@ -182,8 +178,7 @@ public class NotificationExpressionHelper {
         Expression<PrismPropertyValue<RecipientExpressionResultType>, PrismPropertyDefinition<RecipientExpressionResultType>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, origin),
-                        resultDef,
-                        ctx.defaultExpressionProfile(), shortDesc, task, result);
+                        resultDef, shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(this::recipientConverter);
@@ -252,8 +247,7 @@ public class NotificationExpressionHelper {
         Expression<PrismContainerValue<NotificationMessageAttachmentType>, PrismContainerDefinition<NotificationMessageAttachmentType>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, origin),
-                        resultDef, ctx.defaultExpressionProfile(),
-                        shortDesc, task, result);
+                        resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
 

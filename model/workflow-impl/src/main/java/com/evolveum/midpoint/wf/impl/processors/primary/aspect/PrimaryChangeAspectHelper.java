@@ -102,7 +102,7 @@ public class PrimaryChangeAspectHelper {
             return true;
         }
 
-        ExpressionType expressionType = config.getApplicabilityCondition();
+        ExpressionType expressionBean = config.getApplicabilityCondition();
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().newPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
@@ -117,8 +117,8 @@ public class PrimaryChangeAspectHelper {
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple;
         try {
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
-                    expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(),
-                            "applicability condition expression", task, result);
+                    expressionFactory.makeExpression(
+                            expressionBean, resultDef, "applicability condition expression", task, result);
             ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
                     null, variablesMap, "applicability condition expression", task);
             eeContext.setExpressionFactory(expressionFactory);

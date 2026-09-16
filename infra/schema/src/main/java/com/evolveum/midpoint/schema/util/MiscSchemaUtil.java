@@ -415,14 +415,6 @@ public class MiscSchemaUtil {
     }
 
     /**
-     * This is NOT A REAL METHOD. It just returns null. It is here to mark all the places
-     * where proper handling of expression profiles should be later added.
-     */
-    public static ExpressionProfile getExpressionProfile() {
-        return null;
-    }
-
-    /**
      * This is NOT A REAL METHOD. It is here to mark all the places
      * where proper handling of expression profiles should be later added.
      */

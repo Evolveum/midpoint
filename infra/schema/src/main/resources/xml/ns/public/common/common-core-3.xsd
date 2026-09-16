@@ -13302,7 +13302,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="bulkActions" type="xsd:string">
+            <xsd:element name="bulkActions" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression profile for midPoint actions running under an unprivileged principal.
@@ -13312,7 +13312,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="privilegedBulkActions" type="xsd:string">
+            <xsd:element name="privilegedBulkActions" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression profile for midPoint actions running under a privileged principal.
@@ -13322,7 +13322,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="customWorkflowNotifications" type="xsd:string">
+            <xsd:element name="customWorkflowNotifications" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expression profile for custom workflow notifications, used e.g. for escalations.
@@ -13334,19 +13334,22 @@
                         <a:experimental>true</a:experimental>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
+                        <a:removed>true</a:removed>
+                        <a:removedSince>4.11</a:removedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="gui" type="xsd:string" minOccurs="0">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            Expression profile for expressions used in GUI customizations.-->
-            <!--        </xsd:documentation>-->
-            <!--        <xsd:appinfo>-->
-            <!--            <a:displayName>ExpressionProfileType.gui</a:displayName>-->
-            <!--        </xsd:appinfo>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:element>-->
+            <xsd:element name="general" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default expression profile for situations when nothing other applies.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DefaultExpressionProfilesConfigurationType.default</a:displayName>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

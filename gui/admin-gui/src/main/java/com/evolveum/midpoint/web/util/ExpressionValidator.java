@@ -66,8 +66,7 @@ public class ExpressionValidator<T, IW extends ItemWrapper> implements INullAcce
         ExpressionFactory expressionFactory = serviceLocator.getExpressionFactory();
         Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression;
         try {
-            expression = expressionFactory
-                    .makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
+            expression = expressionFactory.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
         } catch (CommonException e) {
             ValidationError error = new ValidationError();
             error.setMessage("Cannot make expression: " + e.getMessage());

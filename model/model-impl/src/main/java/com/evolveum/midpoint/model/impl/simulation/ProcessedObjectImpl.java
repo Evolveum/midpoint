@@ -996,7 +996,6 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
         return ExpressionUtil.evaluateConditionDefaultFalse(
                 variables,
                 expression,
-                MiscSchemaUtil.getExpressionProfile(),
                 ModelCommonBeans.get().expressionFactory,
                 "matching expression",
                 task,

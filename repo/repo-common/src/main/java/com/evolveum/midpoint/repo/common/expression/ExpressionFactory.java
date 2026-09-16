@@ -10,9 +10,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 
+import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import jakarta.annotation.PostConstruct;
@@ -66,16 +69,22 @@ public class ExpressionFactory implements CacheInvalidationListener, CacheDiagno
     private ExpressionEvaluatorFactory defaultEvaluatorFactory;
     private ObjectResolver objectResolver;
 
+    /** Computes profiles from trust descriptors. Currently defined system-wide. */
+    private ExpressionProfileSupplier expressionProfileSupplier;
+
     // Used by Spring
-    public ExpressionFactory(SecurityContextManager securityContextManager, LocalizationService localizationService) {
+    public ExpressionFactory(
+            SecurityContextManager securityContextManager,
+            LocalizationService localizationService) {
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
     }
 
     @VisibleForTesting
-    public ExpressionFactory(LocalizationService localizationService) {
+    public ExpressionFactory(LocalizationService localizationService, ExpressionProfileSupplier expressionProfileSupplier) {
         this.securityContextManager = null;
         this.localizationService = localizationService;
+        this.expressionProfileSupplier = expressionProfileSupplier;
     }
 
     @PostConstruct
@@ -94,6 +103,10 @@ public class ExpressionFactory implements CacheInvalidationListener, CacheDiagno
         this.objectResolver = objectResolver;
     }
 
+    public void setExpressionProfileSupplier(ExpressionProfileSupplier expressionProfileSupplier) {
+        this.expressionProfileSupplier = expressionProfileSupplier;
+    }
+
     public LocalizationService getLocalizationService() {
         return localizationService;
     }
@@ -103,25 +116,28 @@ public class ExpressionFactory implements CacheInvalidationListener, CacheDiagno
     }
 
     /**
-     * Temporary method, until migrated to {@link #makeExpression(ExpressionConfigItem, ItemDefinition,
-     * ExpressionProfile, String, Task, OperationResult)}.
+     * Temporary method, until migrated to {@link #makeExpression(ExpressionConfigItem, ItemDefinition, String, Task,
+     * OperationResult)}.
      *
-     * We use {@link ConfigurationItemOrigin#undeterminedSafe()}, as it is *not* used for expression profile determination.
+     * As for origin, we use {@link ConfigurationItemOrigin#undeterminedSafe()}, as the origin is *no longer* used
+     * for expression profile determination. We cannot provide diagnostics context via
+     * (hence {@link ConfigurationItemOrigin#embedded(Object)}) because {@link ExpressionType} is a prism property real value,
+     * so it does not have a link to its parent object.
      */
     @Deprecated // use the variant with config item instead
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
             @Nullable ExpressionType expressionBean,
             D outputDefinition,
-            ExpressionProfile expressionProfile,
             String shortDesc,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         return makeExpression(
                 expressionBean != null ? // This is temporary, see the javadoc
-                        ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undeterminedSafe()) :
+                        ExpressionConfigItem.of(
+                                expressionBean, ConfigurationItemOrigin.undeterminedSafe()) :
                         null,
-                outputDefinition, expressionProfile, shortDesc, task, result
+                outputDefinition, shortDesc, task, result
         );
     }
 
@@ -132,11 +148,11 @@ public class ExpressionFactory implements CacheInvalidationListener, CacheDiagno
     public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
             @Nullable ExpressionConfigItem expressionCI,
             D outputDefinition,
-            ExpressionProfile expressionProfile,
             String shortDesc,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
+        var expressionProfile = getExpressionProfile(expressionCI, task, result);
         ExpressionIdentifier eid = new ExpressionIdentifier(expressionCI, outputDefinition, expressionProfile);
         try {
             //noinspection unchecked
@@ -160,19 +176,36 @@ public class ExpressionFactory implements CacheInvalidationListener, CacheDiagno
         }
     }
 
+    private @NotNull ExpressionProfile getExpressionProfile(
+            @Nullable ExpressionConfigItem expressionCI,
+            Task task,
+            OperationResult result) throws SecurityViolationException {
+        if (expressionCI == null) {
+            // For simplicity, we assume asIs is the default expression. That was the case for ages.
+            MiscUtil.stateCheck(SchemaConstantsGenerated.C_AS_IS.equals(defaultEvaluatorFactory.getElementName()),
+                    "Default evaluator factory is not 'asIs' but %s", defaultEvaluatorFactory.getElementName());
+            // Although we could return ExpressionProfile.full() here, limiting the profile is much safer.
+            return ExpressionProfile.asIsOnly();
+        } else {
+            var trustDescriptor = expressionCI.getTrustDescriptorRequired();
+            return MiscUtil.stateNonNull(expressionProfileSupplier,
+                            "Expression profile supplier in ExpressionFactory is not set. A problem in Spring wiring?")
+                    .getExpressionProfile(trustDescriptor, task, result);
+        }
+    }
+
     public <T> Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> makePropertyExpression(
-            ExpressionType expressionType, QName outputPropertyName,
-            ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
+            ExpressionType expressionType, QName outputPropertyName, String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
         //noinspection unchecked
         PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
-        return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
+        return makeExpression(expressionType, outputDefinition, shortDesc, task, result);
     }
 
     private @NotNull <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createExpression(
             @Nullable ExpressionConfigItem expressionCI,
             @Nullable D outputDefinition,
-            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionProfile expressionProfile,
             @NotNull String shortDesc,
             @NotNull Task task,
             @NotNull OperationResult result) {

@@ -1620,7 +1620,6 @@ public final class WebComponentUtil {
         try {
             return ExpressionUtil.evaluateFilterExpressions(
                     objectFilter, variables,
-                    MiscSchemaUtil.getExpressionProfile(),
                     pageBase.getExpressionFactory(),
                     "collection filter", pageBase.createSimpleTask(result.getOperation()), result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
@@ -3703,8 +3702,8 @@ public final class WebComponentUtil {
         Object value;
         try {
             value = ExpressionUtil.evaluateExpressionNative(null, new VariablesMap(), null,
-                    expression, MiscSchemaUtil.getExpressionProfile(),
-                    modelServiceLocator.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
+                    expression, modelServiceLocator.getExpressionFactory(),
+                    "evaluate expression for allowed values", task, task.getResult());
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
             if (modelServiceLocator instanceof PageBase) {

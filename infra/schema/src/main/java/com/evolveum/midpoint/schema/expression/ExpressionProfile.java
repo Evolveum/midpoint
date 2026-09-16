@@ -75,6 +75,19 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY);
 
+    /** Profile that allows "asIs" evaluator only. Used when evaluating empty expressions. */
+    private static final ExpressionProfile AS_IS_ONLY = new ExpressionProfile(
+            SchemaConstants.AS_IS_ONLY_PROFILE_ID,
+            new ExpressionEvaluatorsProfile(
+                    AccessDecision.DENY,
+                    List.of(new ExpressionEvaluatorProfileImpl(
+                            SchemaConstantsGenerated.C_AS_IS,
+                            AccessDecision.ALLOW,
+                            List.of()))),
+            BulkActionsProfile.none(),
+            FunctionLibrariesProfile.none(),
+            AccessDecision.DENY);
+
     /**
      * Identifier of the expression profile, referencable from e.g. archetypes on which it is used.
      *
@@ -121,6 +134,10 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
 
     public static @NotNull ExpressionProfile safeScriptingOnly() {
         return SAFE_SCRIPTING_ONLY;
+    }
+
+    public static @NotNull ExpressionProfile asIsOnly() {
+        return AS_IS_ONLY;
     }
 
     public @NotNull String getIdentifier() {

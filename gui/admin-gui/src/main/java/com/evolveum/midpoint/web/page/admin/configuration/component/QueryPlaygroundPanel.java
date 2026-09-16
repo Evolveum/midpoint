@@ -629,7 +629,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         ObjectQuery queryWithExprEvaluated = null;
         if (midPointQueryScript != null) {
             PrismPropertyValue<?> filterValue = ExpressionUtil.evaluateExpression(
-                    new VariablesMap(), null, midPointQueryScript, MiscSchemaUtil.getExpressionProfile(),
+                    new VariablesMap(), null, midPointQueryScript,
                     getPageBase().getExpressionFactory(), "", task, task.getResult());
             if (filterValue != null) {
                 var realValue = filterValue.getRealValue();
@@ -649,7 +649,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             ObjectQuery objectQuery = prismContext.queryFactory().createQuery(filter);
             queryWithExprEvaluated = ExpressionUtil.evaluateQueryExpressions(
                     objectQuery, new VariablesMap(),
-                    MiscSchemaUtil.getExpressionProfile(),
                     getPageBase().getExpressionFactory(),
                     "evaluate query expressions", task, result);
         }

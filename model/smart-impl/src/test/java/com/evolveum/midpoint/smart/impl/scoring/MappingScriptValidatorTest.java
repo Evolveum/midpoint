@@ -14,6 +14,8 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.testng.Assert;
@@ -48,7 +50,8 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
 
     @BeforeClass
     void setupBeans() throws SchemaException, IOException, SAXException {
-        final ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
+        final ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans(
+                IntegrationTestTools.testingFullExpressionProfileSupplier());
         this.expressionFactory = beans.expressionFactory;
         final var scriptExpressionEvaluatorFactory = ((ScriptExpressionEvaluatorFactory) this.expressionFactory
                 .getEvaluatorFactory(SchemaConstantsGenerated.C_SCRIPT));
@@ -134,11 +137,7 @@ public class MappingScriptValidatorTest extends AbstractUnitTest implements Infr
     }
 
     private static ExpressionType createExpression(String lang, String code) {
-        return new ExpressionType()
-                .description("test expression in %s language".formatted(lang))
-                .expressionEvaluator(new ObjectFactory().createScript(
-                        new ScriptExpressionEvaluatorType()
-                                .language(lang)
-                                .code(code)));
+        return SimpleExpressionUtil.scriptExpression(lang, code, IntegrationTestTools.trustedForTests())
+                .description("test expression in %s language".formatted(lang));
     }
 }

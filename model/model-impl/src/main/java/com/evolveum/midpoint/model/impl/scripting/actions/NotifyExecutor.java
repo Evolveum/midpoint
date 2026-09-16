@@ -91,7 +91,6 @@ public class NotifyExecutor extends BaseActionExecutor {
             notificationManager.processEvent(
                     event,
                     handlerConfigItem,
-                    context.getExpressionProfile(),
                     context.getTask(),
                     globalResult);
             eventCount.incrementAndGet();
@@ -103,7 +102,6 @@ public class NotifyExecutor extends BaseActionExecutor {
                         notificationManager.processEvent(
                                 event,
                                 handlerConfigItem,
-                                context.getExpressionProfile(),
                                 context.getTask(),
                                 result);
                         eventCount.incrementAndGet();

@@ -6,6 +6,8 @@
 
 package com.evolveum.midpoint.model.common.expression;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.trustedForTests;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -15,6 +17,8 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
+import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
 
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
@@ -89,8 +93,7 @@ public class TestExpression extends AbstractModelCommonTest {
     protected PrismContext prismContext;
     private ExpressionFactory expressionFactory;
 
-    // Default "null" expression profile, no restrictions.
-    private ExpressionProfile expressionProfile = null;
+    private ExpressionProfile expressionProfile;
 
     private long lastScriptExecutionCount;
 
@@ -99,7 +102,10 @@ public class TestExpression extends AbstractModelCommonTest {
         SchemaDebugUtil.initializePrettyPrinter();
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
+        // We provide the expression profile regardless of the trust descriptor for expressions.
+        // We simply use predefined profile, specific for each class.
+        ExpressionProfileSupplier expressionProfileSupplier = (descriptor, task, result) -> getExpressionProfile();
+        ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans(expressionProfileSupplier);
         prismContext = beans.prismContext;
         expressionFactory = beans.expressionFactory;
         expressionProfile = compileExpressionProfile(getExpressionProfileName());
@@ -423,7 +429,9 @@ public class TestExpression extends AbstractModelCommonTest {
     }
 
     protected ExpressionType parseExpression(File file) throws SchemaException, IOException {
-        return PrismTestUtil.parseAtomicValue(file, ExpressionType.COMPLEX_TYPE);
+        ExpressionType expressionBean = PrismTestUtil.parseAtomicValue(file, ExpressionType.COMPLEX_TYPE);
+        expressionBean.setTrustDescriptor(trustedForTests());
+        return expressionBean;
     }
 
     protected Source<PrismPropertyValue<String>, PrismPropertyDefinition<String>> prepareStringSource() throws SchemaException {
@@ -451,32 +459,32 @@ public class TestExpression extends AbstractModelCommonTest {
     }
 
     protected <V extends PrismValue, D extends ItemDefinition<?>> PrismValueDeltaSetTriple<V> evaluateExpression(
-            ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
+            ExpressionType expressionBean, D outputDefinition, ExpressionEvaluationContext expressionContext,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
-        Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
-                expressionContext.getContextDescription(), expressionContext.getTask(), result);
+        Expression<V, D> expression = expressionFactory.makeExpression(
+                expressionBean, outputDefinition, expressionContext.getContextDescription(), expressionContext.getTask(), result);
         logger.debug("Starting evaluation of expression: {}", expression);
         return expression.evaluate(expressionContext, result);
     }
 
     protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
-            ExpressionType expressionType, QName outputType,
+            ExpressionType expressionBean, QName outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
         PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().newPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
-        return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
+        return evaluateExpression(expressionBean, outputDefinition, expressionContext, result);
     }
 
-    protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
-            ExpressionType expressionType, PrimitiveType outputType,
+    private <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
+            ExpressionType expressionBean, PrimitiveType outputType,
             ExpressionEvaluationContext expressionContext, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SubscriptionComplianceException {
-        return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
+        return evaluatePropertyExpression(expressionBean, outputType.getQname(), expressionContext, result);
     }
 
     protected <V extends PrismValue, D extends ItemDefinition<?>> void evaluateExpressionRestricted(
@@ -486,8 +494,8 @@ public class TestExpression extends AbstractModelCommonTest {
         Expression<V, D> expression;
         try {
 
-            expression = expressionFactory.makeExpression(expressionType, outputDefinition, getExpressionProfile(),
-                    expressionContext.getContextDescription(), expressionContext.getTask(), result);
+            expression = expressionFactory.makeExpression(
+                    expressionType, outputDefinition, expressionContext.getContextDescription(), expressionContext.getTask(), result);
 
         } catch (SecurityViolationException e) {
             displayExpectedException(e);
@@ -550,7 +558,7 @@ public class TestExpression extends AbstractModelCommonTest {
     private ExpressionProfile compileExpressionProfile(String profileName)
             throws SchemaException, IOException, ConfigurationException {
         if (profileName == null) {
-            return null;
+            return ExpressionProfile.full();
         }
         PrismObject<SystemConfigurationType> systemConfig = PrismTestUtil.parseObject(getSystemConfigurationFile());
         SystemConfigurationExpressionsType expressions = systemConfig.asObjectable().getExpressions();

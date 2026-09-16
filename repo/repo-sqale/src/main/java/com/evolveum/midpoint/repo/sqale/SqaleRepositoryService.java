@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
@@ -184,7 +186,14 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             object = readByOid(jdbcSession, type, oidUuid, options);
             jdbcSession.commit();
         }
+        setTrustDescriptors(object);
         return object;
+    }
+
+    private void setTrustDescriptors(ObjectType object) {
+        TrustDescriptorSetter.setDescriptors(
+                object.asPrismContainerValue(),
+                MidPointTrustDescriptor.forRepositoryObject(object));
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */
@@ -201,7 +210,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException {
         SqaleTableMapping<S, QObject<MObject>, MObject> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
-        return internalReadByOid(jdbcSession, rootMapping, oid, options, false).schemaObject;
+        var object = internalReadByOid(jdbcSession, rootMapping, oid, options, false).schemaObject;
+        setTrustDescriptors(object);
+        return object;
     }
 
     private <S extends ObjectType, Q extends QObject<R>, R extends MObject> MappedTuple<S> internalReadByOid(
@@ -1028,9 +1039,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     SqaleQueryContext.from(type, sqlRepoContext),
                     query,
                     options));
-            //noinspection unchecked
             return result.map(
-                    o -> (PrismObject<T>) o.asPrismObject());
+                    o -> {
+                        setTrustDescriptors(o);
+                        //noinspection unchecked
+                        return (PrismObject<T>) o.asPrismObject();
+                    });
         } catch (ObjectNotFoundException | ObjectAlreadyExistsException e) {
             throw new SystemException("Should not happen", e);
         } finally {
@@ -1160,6 +1174,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // process page results
                 for (PrismObject<T> object : objects) {
                     lastProcessedObject = object;
+                    setTrustDescriptors(object.asObjectable());
                     var resultProvidingHandler =
                             handler.providingOwnOperationResult(opNamePrefix + OP_HANDLE_OBJECT_FOUND);
                     if (!resultProvidingHandler.handle(object, operationResult)) {
@@ -1213,8 +1228,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqaleQueryContext<T, FlexibleRelationalPathBase<Object>, Object> queryContext =
                     SqaleQueryContext.from(type, sqlRepoContext);
 
-            // Wrap handler to convert ObjectType to PrismObject
+            // Wrap handler to convert ObjectType to PrismObject + set trust descriptors
             ObjectHandler<T> wrappedHandler = (object, opResult) -> {
+                setTrustDescriptors(object);
                 @SuppressWarnings("unchecked")
                 PrismObject<T> prismObject = (PrismObject<T>) object.asPrismObject();
                 return handler.handle(prismObject, opResult);

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -70,7 +69,7 @@ public class TransportUtil {
 
     @Deprecated
     private static boolean isRecipientAllowed(String recipient, NotificationTransportConfigurationType transportConfigurationType,
-            Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
+            Task task, OperationResult result, ExpressionFactory expressionFactory, Trace logger) {
         if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
             throw new IllegalArgumentException("Couldn't use more than one choice from 'blackList', 'whiteList' and 'recipientFilterExpression'");
         }
@@ -79,8 +78,8 @@ public class TransportUtil {
             VariablesMap variables = new VariablesMap();
             variables.put("recipientAddress", recipient, String.class);
             try {
-                PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
-                        expressionFactory, "Recipient filter", task, result);
+                PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(
+                        variables, filter, expressionFactory, "Recipient filter", task, result);
                 if (allowedRecipient == null || allowedRecipient.getValue() == null) {
                     throw new IllegalArgumentException("Return value from expression for filtering recipient is null");
                 }
@@ -129,11 +128,12 @@ public class TransportUtil {
     }
 
     @Deprecated
-    public static void validateRecipient(List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
-            NotificationTransportConfigurationType transportConfigurationType, Task task, OperationResult result, ExpressionFactory expressionFactory,
-            ExpressionProfile expressionProfile, Trace logger) {
+    public static void validateRecipient(
+            List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
+            NotificationTransportConfigurationType transportConfigurationType, Task task, OperationResult result,
+            ExpressionFactory expressionFactory, Trace logger) {
         for (String recipient : recipients) {
-            if (TransportUtil.isRecipientAllowed(recipient, transportConfigurationType, task, result, expressionFactory, expressionProfile, logger)) {
+            if (TransportUtil.isRecipientAllowed(recipient, transportConfigurationType, task, result, expressionFactory, logger)) {
                 logger.debug("Recipient " + recipient + "is allowed");
                 allowedRecipient.add(recipient);
             } else {
@@ -172,7 +172,7 @@ public class TransportUtil {
 
     private static boolean isRecipientAllowed(
             String recipient, GeneralTransportConfigurationType transportConfigurationType,
-            Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
+            Task task, OperationResult result, ExpressionFactory expressionFactory, Trace logger) {
         if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
             throw new IllegalArgumentException("Couldn't use more than one choice from 'blackList', 'whiteList' and 'recipientFilterExpression'");
         }
@@ -181,8 +181,8 @@ public class TransportUtil {
             VariablesMap variables = new VariablesMap();
             variables.put("recipientAddress", recipient, String.class);
             try {
-                PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
-                        expressionFactory, "Recipient filter", task, result);
+                PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(
+                        variables, filter, expressionFactory, "Recipient filter", task, result);
                 if (allowedRecipient == null || allowedRecipient.getValue() == null) {
                     throw new IllegalArgumentException("Return value from expression for filtering recipient is null");
                 }
@@ -222,12 +222,10 @@ public class TransportUtil {
             Task task,
             OperationResult result,
             ExpressionFactory expressionFactory,
-            ExpressionProfile expressionProfile,
             Trace logger) {
         for (String recipient : recipients) {
             if (TransportUtil.isRecipientAllowed(
-                    recipient, transportConfigurationType, task, result,
-                    expressionFactory, expressionProfile, logger)) {
+                    recipient, transportConfigurationType, task, result, expressionFactory, logger)) {
                 logger.debug("Recipient " + recipient + "is allowed");
                 allowedRecipient.add(recipient);
             } else {

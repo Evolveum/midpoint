@@ -152,9 +152,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ExpressionProfile expressionProfile = ExpressionProfile.full();
         var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
         Script script = scriptFactory.createScript(
-                scriptType, outputDefinition, expressionProfile,
-                scriptExpressionEvaluatorProfile,
-                shortTestName, result);
+                scriptType, outputDefinition, expressionProfile, scriptExpressionEvaluatorProfile, shortTestName, result);
         VariablesMap variables =
                 createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
 

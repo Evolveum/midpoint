@@ -114,8 +114,7 @@ public class FocusLifecycleProcessor implements ProjectorProcessor {
         // TODO: more variables?
 
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-                conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(),
-                MiscSchemaUtil.getExpressionProfile(), desc, task, result);
+                conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(), desc, task, result);
         ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
         expressionContext.setExpressionFactory(expressionFactory);
         ModelExpressionEnvironment<?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);

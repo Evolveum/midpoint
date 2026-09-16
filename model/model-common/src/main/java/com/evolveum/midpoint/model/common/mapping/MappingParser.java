@@ -196,7 +196,6 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     ExtraSetSpecification.fromBean(sourceDefinition),
                     sourceItemDefinition,
                     m.valueMetadataDefinition,
-                    m.getExpressionProfile(),
                     ModelCommonBeans.get().expressionFactory,
                     variableName,
                     null, // FIXME: Why?

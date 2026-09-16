@@ -43,7 +43,7 @@ class FilterExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<
         if (object != null) {
             ObjectFilter objectFilter = PrismContext.get().getQueryConverter().parseFilter(evaluator.getExpressionEvaluatorBean().getFilter(), object.getDefinition());
             ObjectFilter evaluatedObjectFilter = ExpressionUtil.evaluateFilterExpressions(
-                    objectFilter, eeCtx.getVariables(), eeCtx.getExpressionProfile(), eeCtx.getExpressionFactory(),
+                    objectFilter, eeCtx.getVariables(), eeCtx.getExpressionFactory(),
                     vtCtx.getContextDescription(), eeCtx.getTask(), result);
             match = evaluatedObjectFilter.match(object.getValue(), PrismContext.get().getMatchingRuleRegistry());
         }

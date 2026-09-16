@@ -241,8 +241,7 @@ class ResourceSchemaHelper {
             ExpressionType expressionType = (ExpressionType) expressionWrapper.getExpression();
 
             Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression =
-                    expressionFactory.makeExpression(
-                            expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                    expressionFactory.makeExpression(expressionType, propDef, shortDesc, task, result);
             VariablesMap variables = new VariablesMap();
 
             PrismObject<?> configuration = asPrismObject(resourceManager.getSystemConfiguration());

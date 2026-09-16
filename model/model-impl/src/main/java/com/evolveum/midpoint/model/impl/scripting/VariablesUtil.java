@@ -137,7 +137,7 @@ public class VariablesUtil {
         ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, shortDesc);
         ExpressionFactory expressionFactory = ModelBeans.get().expressionFactory;
         Expression<PrismValue, ItemDefinition<?>> expression = expressionFactory
-                .makeExpression(definition.getExpression(), outputDefinition, expressionProfile, shortDesc, task, result);
+                .makeExpression(definition.getExpression(), outputDefinition, shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, task);
         context.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<?> triple =

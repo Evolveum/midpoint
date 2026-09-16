@@ -779,6 +779,9 @@ public abstract class SchemaConstants {
     /** ID of expression profile for mappings quality assessment. */
     public static final String MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID = "##mappingsQualityAssessment";
 
+    /** ID of expression profile for "asIs" evaluator only. */
+    public static final String AS_IS_ONLY_PROFILE_ID = "##asIsOnly";
+
     /**
      * The ID for built-in Groovy permission and script expression profiles.
      *

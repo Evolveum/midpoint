@@ -75,7 +75,7 @@ public class BulkActionsExecutor {
             //todo should we parse from initialVariables and create BulkActionExecutionOptions here? e.g. parse runPrivileged?
             var expressionProfile =
                     expressionProfileManager.determineBulkActionsProfile(
-                            executeScript.origin(), options.privileged(), task, result);
+                            executeScript.getTrustDescriptorRequired(), options.privileged(), task, result);
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(
                     initialVariables, executeScriptBean.getVariables(),
                     expressionProfile, task, result);

@@ -8,8 +8,8 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 
-import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,8 +19,7 @@ import java.io.Serializable;
  *
  * Part of {@link ExpressionEvaluatorProfile}.
  */
-@SuppressWarnings("UnstableApiUsage")
-@NotNullByDefault
+@NullMarked
 public interface ScriptLanguageExpressionProfile extends Serializable {
 
     final class EmptyImpl implements ScriptLanguageExpressionProfile {

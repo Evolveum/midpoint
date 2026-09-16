@@ -50,9 +50,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GroovyScriptExecutor extends AbstractCachingScriptExecutor<GroovyClassLoader, Class<?>, String> {
 
-    public static final String LANGUAGE_NAME = "Groovy";
-    private static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
-
     static final String SANDBOX_ERROR_PREFIX = "[SANDBOX] ";
 
     /**
@@ -76,12 +73,12 @@ public class GroovyScriptExecutor extends AbstractCachingScriptExecutor<GroovyCl
 
     @Override
     public String getLanguageName() {
-        return LANGUAGE_NAME;
+        return MidPointConstants.EXPRESSION_LANGUAGE_GROOVY_NAME;
     }
 
     @Override
     public @NotNull String getLanguageUrl() {
-        return LANGUAGE_URL;
+        return MidPointConstants.EXPRESSION_LANGUAGE_GROOVY_URL;
     }
 
     @Override

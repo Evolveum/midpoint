@@ -343,9 +343,7 @@ public class Expression<V extends PrismValue, D extends ItemDefinition<?>> {
             sb.append(processedVariables.debugDump(1));
         }
         sb.append("\nOutput definition: ").append(MiscUtil.toString(outputDefinition));
-        if (context.getExpressionProfile() != null) {
-            sb.append("\nExpression profile: ").append(context.getExpressionProfile().getIdentifier());
-        }
+        sb.append("\nExpression profile: ").append(context.getExpressionProfile().getIdentifier());
         var origin = expressionCI != null ? expressionCI.origin() : null;
         if (origin != null) {
             sb.append("\nOrigin: ").append(origin);

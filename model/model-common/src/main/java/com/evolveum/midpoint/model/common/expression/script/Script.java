@@ -33,8 +33,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
-import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Executable form of {@link ScriptExpressionEvaluatorType}.
@@ -48,8 +48,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Radovan Semancik
  */
-@SuppressWarnings("UnstableApiUsage")
-@NotNullByDefault
+@NullMarked
 public class Script {
 
     private static final String OP_EXECUTE = Script.class.getName() + ".execute";

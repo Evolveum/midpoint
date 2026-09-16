@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -258,10 +259,18 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             if (isComplexAttribute()) {
                 // "<asIs>" won't work for complex attributes -> the reasonable default is "<complexAttributeSynchronization>"
                 builder.defaultExpressionSupplier(
-                        () -> new ExpressionType()
-                                .expressionEvaluator(
-                                        new ObjectFactory().createComplexAttributeSynchronization(
-                                                new ComplexAttributeSynchronizationExpressionEvaluatorType())));
+                        () -> {
+                            var expression = new ExpressionType()
+                                    .expressionEvaluator(
+                                            new ObjectFactory().createComplexAttributeSynchronization(
+                                                    new ComplexAttributeSynchronizationExpressionEvaluatorType()));
+                            // We can fully trust this empty expression evaluator. We just must make sure that referenced
+                            // mappings are evaluated under right expression profile, depending on their own placement.
+                            // This is to be ensured by ComplexAttributeSynchronizationExpressionEvaluator.
+                            expression.setTrustDescriptor(
+                                    MidPointTrustDescriptor.trusted());
+                            return expression;
+                        });
             }
 
             if (!inboundsTarget.isFocusBeingDeleted()) {

@@ -66,9 +66,6 @@ public class MelScriptExecutor extends AbstractCachingScriptExecutor<CelRuntime,
 
     private static final Trace LOGGER = TraceManager.getTrace(MelScriptExecutor.class);
 
-    public static final String LANGUAGE_NAME = "mel";
-    public static final String LANGUAGE_URL = MidPointConstants.EXPRESSION_LANGUAGE_URL_BASE + LANGUAGE_NAME;
-
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final CelOptions celOptions = CelOptions.current()
             .enableRegexPartialMatch(true)
@@ -105,12 +102,12 @@ public class MelScriptExecutor extends AbstractCachingScriptExecutor<CelRuntime,
 
     @Override
     public String getLanguageName() {
-        return LANGUAGE_NAME;
+        return MidPointConstants.EXPRESSION_LANGUAGE_MEL_NAME;
     }
 
     @Override
     public @NotNull String getLanguageUrl() {
-        return LANGUAGE_URL;
+        return MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL;
     }
 
     @Override

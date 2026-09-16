@@ -153,9 +153,10 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
             Task task = pageBase.createSimpleTask("evaluate filter expression");
             try {
-                variables.put(parameterName, new TypedValue(getValue().getValue(), parameterValueType));
-                PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, filterExpression,
-                        MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
+                variables.put(parameterName, new TypedValue<>(getValue().getValue(), parameterValueType));
+                PrismValue filterValue = ExpressionUtil.evaluateExpression(
+                        variables, outputDefinition, filterExpression, pageBase.getExpressionFactory(),
+                        "", task, task.getResult());
                 if (filterValue == null || filterValue.getRealValue() == null) {
                     LOGGER.error("FilterExpression returned null: {}", filterExpression);
                 } else {

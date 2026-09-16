@@ -96,9 +96,8 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
         try {
             ModelExpressionEnvironment<?, ?> env = new ModelExpressionEnvironment<>(task, result);
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(env);
-            return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile,
-                    expressionFactory, "evaluate query expressions",
-                    task, result);
+            return ExpressionUtil.evaluateQueryExpressions(
+                    query, variables, expressionFactory, "evaluate query expressions", task, result);
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }

@@ -366,7 +366,7 @@ public abstract class AbstractReport {
         variables.put(ExpressionConstants.VAR_RECORD, record, record.getClass());
         try {
             return !ExpressionUtil.evaluateConditionDefaultTrue(variables, recordFilteringExpression,
-                    null, beans.expressionFactory, "record filtering expression", task, result);
+                    beans.expressionFactory, "record filtering expression", task, result);
         } catch (CommonException e) {
             // Maybe we could propagate the checked exception upwards (later!)
             throw new SystemException("Couldn't evaluate record filtering expression for " + record + ": " + e.getMessage(), e);

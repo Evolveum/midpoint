@@ -11,7 +11,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
 
 import java.util.function.Consumer;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
 
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.test.annotation.DirtiesContext;
@@ -56,12 +59,8 @@ public class TestGuiProfiledPrincipalManager extends AbstractInternalModelIntegr
         executeDeputyLimitationsTest(
                 null, // because of no deputy
                 (a) -> a.beginCondition()
-                        .beginExpression()
-                        .expressionEvaluator(
-                                new JAXBElement<>(new QName("script"),
-                                        ScriptExpressionEvaluatorType.class,
-                                        new ScriptExpressionEvaluatorType().code("false"))
-                        ));
+                        .expression(SimpleExpressionUtil.groovyExpression(
+                                "false", IntegrationTestTools.trustedForTests())));
     }
 
     @Test

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -64,10 +65,11 @@ public class ExpressionTestUtil {
     }
 
     private static ExpressionFactory createInitializedExpressionFactory(
-            ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock) {
+            ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock,
+            ExpressionProfileSupplier expressionProfileSupplier) {
 
         ExpressionFactory expressionFactory =
-                new ExpressionFactory(LocalizationTestUtil.getLocalizationService());
+                new ExpressionFactory(LocalizationTestUtil.getLocalizationService(), expressionProfileSupplier);
         expressionFactory.setObjectResolver(resolver);
 
         // NOTE: we need to register the evaluator factories to expressionFactory manually here
@@ -135,7 +137,8 @@ public class ExpressionTestUtil {
         return config;
     }
 
-    public static ModelCommonBeans initializeModelCommonBeans() throws SchemaException, IOException, SAXException {
+    public static ModelCommonBeans initializeModelCommonBeans(ExpressionProfileSupplier expressionProfileSupplier)
+            throws SchemaException, IOException, SAXException {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
@@ -145,7 +148,8 @@ public class ExpressionTestUtil {
 
         ((PrismContextImpl) prismContext).setDefaultProtector(protector);
         ExpressionFactory expressionFactory =
-                ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
+                ExpressionTestUtil.createInitializedExpressionFactory(
+                        resolver, protector, prismContext, clock, expressionProfileSupplier);
 
         ModelCommonBeans modelCommonBeans = new ModelCommonBeans();
         modelCommonBeans.expressionFactory = expressionFactory;

@@ -70,7 +70,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
 
         // WHEN
         when();
-        commandLineScriptExecutor.executeScript(scriptType, null, "test", task, result);
+        commandLineScriptExecutor.executeScript(scriptType, new VariablesMap(), "test", task, result);
 
         // THEN
         then();

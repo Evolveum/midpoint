@@ -211,7 +211,12 @@
         <constructor-arg ref="localizationService"/>
         <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
+        <property name="expressionProfileSupplier" ref="modelExpressionProfileSupplier"/>
     </bean>
+
+    <bean id="modelExpressionProfileSupplier"
+            factory-bean="expressionProfileManager"
+            factory-method="getDefaultExpressionProfileSupplier"/>
 
     <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory">
         <property name="beans" ref="modelCommonBeans"/>

@@ -112,13 +112,13 @@ public class LegacyMailTransport implements Transport<GeneralTransportConfigurat
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo,
                     mailMessage.getTo(), mailConfigurationBean, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
+                    expressionFactory, LOGGER);
             TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc,
                     mailMessage.getCc(), mailConfigurationBean, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
+                    expressionFactory, LOGGER);
             TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc,
                     mailMessage.getBcc(), mailConfigurationBean, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
+                    expressionFactory, LOGGER);
 
             if (redirectToFile != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {

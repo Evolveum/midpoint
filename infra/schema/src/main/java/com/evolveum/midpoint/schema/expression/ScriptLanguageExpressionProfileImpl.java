@@ -8,8 +8,8 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 
-import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
@@ -20,8 +20,8 @@ import java.io.Serializable;
  *
  * @author semancik
  */
-@SuppressWarnings({ "ClassCanBeRecord", "UnstableApiUsage" })
-@NotNullByDefault
+@SuppressWarnings("ClassCanBeRecord")
+@NullMarked
 public class ScriptLanguageExpressionProfileImpl implements Serializable, ScriptLanguageExpressionProfile {
 
     /** Language (specified by URI) to which this profile applies. E.g. Groovy, Velocity, ... */
