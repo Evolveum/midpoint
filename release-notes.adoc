@@ -210,6 +210,7 @@ See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authen
 * Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
 * Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
 * Fixed transient `effectiveOperationPolicy` being persisted and displayed in audited shadow ADD deltas. See bug:MID-11951[].
+* Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
 
 === Releases Of Other Components
 
