@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -21,6 +22,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.util.string.JavaScriptUtils;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -99,9 +101,16 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
                 super.renderHead(component, response);
+
                 Component label = get(createComponentPath(ID_DETAILS_BOX, ID_MESSAGE, ID_MESSAGE_LABEL));
-                response.render(OnDomReadyHeaderItem.forScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
-                        detailBoxMessage.getMarkupId(), label.getDefaultModelObjectAsString(), 10)));
+                String message = label.getDefaultModelObjectAsString();
+                String escapedMessage = StringEscapeUtils.escapeEcmaScript(message);
+                response.render(OnDomReadyHeaderItem.forScript(
+                        String.format(
+                                "MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                                detailBoxMessage.getMarkupId(),
+                                escapedMessage,
+                                10)));
             }
         });
         detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
