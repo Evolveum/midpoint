@@ -31,6 +31,7 @@ import com.evolveum.midpoint.smart.api.conndev.ConnDevArtifactValidationResult;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.smart.api.conndev.SupportedAuthorization;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentOperation;
+import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,8 +45,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpChapter;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LogSegmentType;
 
@@ -781,6 +786,87 @@ public class ConnectorDevelopmentWizardUtil {
             return new ScimConnectorWizardStrategy();
         }
         return new RestConnectorWizardStrategy();
+    }
+
+    /**
+     * The protocol the wizard help documentation is resolved for - the integration type
+     * ({@code scim}, {@code rest} or {@code sql}) chosen for this connector development, or
+     * {@code null} when nothing has been chosen yet (only the generic documentation pages match
+     * in that case).
+     *
+     * <p>The integration type may live in either the connector part or the application part,
+     * depending on how far the wizard has progressed - the connector part wins when both carry
+     * a value.
+     */
+    @Nullable
+    public static String helpProtocol(ConnectorDevelopmentDetailsModel detailsModel) {
+        return integrationProtocol(
+                integrationTypeFromPart(detailsModel, ConnectorDevelopmentType.F_CONNECTOR),
+                integrationTypeFromPart(detailsModel, ConnectorDevelopmentType.F_APPLICATION));
+    }
+
+    /**
+     * The protocol for the given integration type values: the connector-part value wins over the
+     * application-part one when both are set.
+     */
+    @Nullable
+    public static String integrationProtocol(
+            @Nullable ConnDevIntegrationType connectorPart, @Nullable ConnDevIntegrationType applicationPart) {
+        ConnDevIntegrationType value = connectorPart != null ? connectorPart : applicationPart;
+        return value != null ? value.value() : null;
+    }
+
+    /**
+     * Resolves the conndev documentation topics for the given key (falling back to
+     * {@code fallbackKey} when the primary key has no page at all) and maps them onto the wizard
+     * help drawer: one tab holding one chapter per topic.
+     *
+     * @return an empty list when nothing matches, which makes the help drawer item hide itself
+     */
+    @NotNull
+    public static List<HelpTab> helpTabs(
+            ConnectorDevelopmentService service, @Nullable String protocol, String key, @Nullable String fallbackKey) {
+        var topics = service.getDocumentationTopics(key, protocol);
+        if (topics.isEmpty() && fallbackKey != null) {
+            topics = service.getDocumentationTopics(fallbackKey, protocol);
+        }
+        if (topics.isEmpty()) {
+            return List.of();
+        }
+
+        var chapters = topics.stream()
+                .map(topic -> new HelpChapter(
+                        Model.of(topic.title() != null ? topic.title() : topic.key()),
+                        Model.of(topic.html()),
+                        true))
+                .toList();
+        return List.of(new HelpTab(Model.of("Documentation"), chapters));
+    }
+
+    /**
+     * {@link #helpTabs(ConnectorDevelopmentService, String, String, String)} with the service and
+     * protocol taken from the connector development details model.
+     */
+    @NotNull
+    public static List<HelpTab> helpTabs(
+            ConnectorDevelopmentDetailsModel detailsModel, String key, @Nullable String fallbackKey) {
+        return helpTabs(
+                detailsModel.getServiceLocator().getConnectorService(), helpProtocol(detailsModel), key, fallbackKey);
+    }
+
+    @Nullable
+    private static ConnDevIntegrationType integrationTypeFromPart(
+            ConnectorDevelopmentDetailsModel detailsModel, ItemName part) {
+        try {
+            PrismPropertyWrapper<ConnDevIntegrationType> integrationType = detailsModel.getObjectWrapper().findProperty(
+                    ItemPath.create(part, ConnDevConnectorType.F_INTEGRATION_TYPE));
+            if (integrationType == null || integrationType.getValue() == null) {
+                return null;
+            }
+            return integrationType.getValue().getRealValue();
+        } catch (SchemaException e) {
+            return null;
+        }
     }
 
     public static List<ItemName> getVisibleAuthorizationAttributes(

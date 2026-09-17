@@ -35,6 +35,8 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevApplicationInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
 
 /**
  * @author lskublik
@@ -194,5 +196,10 @@ public class ConnectionConnectorStepPanel extends AbstractFormWizardStepPanel<Co
     @Override
     protected String getSubTextContainerCssClass() {
         return "text-secondary col-12 pb-4";
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.APPLICATION_IDENTIFICATION, null);
     }
 }

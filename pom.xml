@@ -1105,6 +1105,32 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+
+            <!-- ConnDev: documentation catalog tooling (devtools-base) and the documentation JARs
+                 carrying the connector wizard help topics (META-INF/conndev-doc). -->
+            <dependency>
+                <groupId>com.evolveum.polygon.conndev</groupId>
+                <artifactId>devtools-base</artifactId>
+                <version>0.1-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.polygon.conndev</groupId>
+                <artifactId>conndev-docs</artifactId>
+                <version>0.1-SNAPSHOT</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.polygon.scimrest</groupId>
+                <artifactId>connector-scimrest-docs</artifactId>
+                <version>0.2-SNAPSHOT</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.polygon.sql</groupId>
+                <artifactId>connector-sql-docs</artifactId>
+                <version>0.1-SNAPSHOT</version>
+                <scope>runtime</scope>
+            </dependency>
             <!-- End connectors -->
 
             <dependency>

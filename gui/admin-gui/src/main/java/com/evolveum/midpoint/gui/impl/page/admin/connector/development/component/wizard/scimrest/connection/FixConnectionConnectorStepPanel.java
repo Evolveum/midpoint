@@ -64,6 +64,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SimpleAceEditorPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
 
 @PanelType(name = "cdw-fix-connection")
 @PanelInstance(identifier = "cdw-fix-connection",
@@ -523,5 +525,10 @@ public class FixConnectionConnectorStepPanel extends AbstractWizardStepPanel<Con
     @Override
     protected String getSubTextContainerCssClass() {
         return "text-secondary col-12 pb-4";
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.FIX_CONNECTION, null);
     }
 }

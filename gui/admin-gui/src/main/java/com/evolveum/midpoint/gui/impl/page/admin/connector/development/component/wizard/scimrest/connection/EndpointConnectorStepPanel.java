@@ -54,6 +54,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
 
 /**
  * @author lskublik
@@ -378,5 +380,10 @@ public class EndpointConnectorStepPanel extends AbstractWizardStepPanel<Connecto
     @Override
     protected String getSubTextContainerCssClass() {
         return "text-secondary col-12 pb-4";
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.CONNECTIVITY_ENDPOINT, ConnectorWizardHelpTopics.ENDPOINT_SELECTION);
     }
 }
