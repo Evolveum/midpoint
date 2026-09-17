@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright (c) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!--
+  Composite task from issue 11051:
+   - child "preview": reconciliation in preview mode, suspend policy when at least 10 users would be deactivated
+     (custom constraint using midpoint.focusDeactivated, evaluated on the focus object);
+   - child "execute": reconciliation in full mode, without any policy.
+  The intent is that "execute" runs only if "preview" passed without a policy violation.
+-->
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="e4f00000-0000-0000-0000-000000000011">
+    <name>hr-reconciliation-deactivation</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <order>1</order>
+                <identifier>preview</identifier>
+                <work>
+                    <reconciliation>
+                        <resourceObjects>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000004"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </reconciliation>
+                </work>
+                <execution>
+                    <mode>preview</mode>
+                </execution>
+                <reporting>
+                    <simulationResult>
+                        <enabled>true</enabled>
+                    </simulationResult>
+                </reporting>
+                <policies>
+                    <policy>
+                        <name>max-deactivated</name>
+                        <policyConstraints>
+                            <custom>
+                                <expression>
+                                    <script>
+                                        <code>midpoint.focusDeactivated</code>
+                                    </script>
+                                </expression>
+                            </custom>
+                        </policyConstraints>
+                        <policyThreshold>
+                            <lowWaterMark>
+                                <count>10</count>
+                            </lowWaterMark>
+                        </policyThreshold>
+                        <policyActions>
+                            <suspendTask/>
+                        </policyActions>
+                        <evaluationTarget>object</evaluationTarget>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <order>2</order>
+                <identifier>execute</identifier>
+                <work>
+                    <reconciliation>
+                        <resourceObjects>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000004"/>
+                            <kind>account</kind>
+                            <intent>default</intent>
+                        </resourceObjects>
+                    </reconciliation>
+                </work>
+                <execution>
+                    <mode>full</mode>
+                </execution>
+            </activity>
+        </composition>
+    </activity>
+</task>

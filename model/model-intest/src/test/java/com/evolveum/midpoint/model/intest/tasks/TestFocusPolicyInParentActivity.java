@@ -49,7 +49,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
             TestTask.file(TEST_DIR, "task-100-reconciliation-simulate-execute.xml", "4a0e5fe6-b512-4fb0-a750-7bec5d6e0fbb");
 
     /**
-    /**
+     * /**
      * Counter values captured at the first suspension. The repeated-execution assertions must be relative
      * to these (each worker thread may add at most one increment before the suspension propagates),
      * not to the original threshold value.
@@ -212,16 +212,16 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
                         .end()
                     .previewModePolicyRulesCounters()
                         .assertCounterMinMax(ruleAddNotificationId,
-                                addNotificationCounterAfterFirstRun + 1, addNotificationCounterAfterFirstRun + getThreads())
+                                addNotificationCounterAfterFirstRun, addNotificationCounterAfterFirstRun)
                         .assertCounterMinMax(suspendPolicyIdentifier,
-                                addSuspendCounterAfterFirstRun + 1, addSuspendCounterAfterFirstRun + getThreads())
+                                addSuspendCounterAfterFirstRun, addSuspendCounterAfterFirstRun)
                         .assertCounterCount(2)
                         .end()
                     .progress()
-                        .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
+                        .assertUncommitted(0, 0, 0) // re-suspends at run start, before any item is processed
                         .end()
                     .itemProcessingStatistics()
-                        .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
+                        .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
                     .end();
         // @formatter:on
     }
@@ -329,11 +329,11 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
                     .previewModePolicyRulesCounters()
                         .display()
                         .assertCounterMinMax(ruleModifyCostCenterNotificationId,
-                                modifyNotificationCounterAfterFirstRun + 1, modifyNotificationCounterAfterFirstRun + getThreads())
+                                modifyNotificationCounterAfterFirstRun, modifyNotificationCounterAfterFirstRun)
                         .end()
                     .itemProcessingStatistics()
                         .display()
-                        .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
+                        .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 1, 0)
                         .end();
         // @formatter:on
     }
@@ -483,7 +483,7 @@ public class TestFocusPolicyInParentActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .display()
                     .assertCounterMinMax(ruleDeleteNotificationId,
-                            deleteNotificationCounterAfterFirstRun + 1, deleteNotificationCounterAfterFirstRun + getThreads())
+                            deleteNotificationCounterAfterFirstRun, deleteNotificationCounterAfterFirstRun)
                     .end();
         // @formatter:on
     }

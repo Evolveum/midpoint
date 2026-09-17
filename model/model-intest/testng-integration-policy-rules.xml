@@ -54,6 +54,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioSimple"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultithreaded"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrScenarioMultiTask"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyHrDeactivation"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestCustomPolicyReconciliationMultiNode"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestFocusPolicyTreeCounters"/>
         </classes>

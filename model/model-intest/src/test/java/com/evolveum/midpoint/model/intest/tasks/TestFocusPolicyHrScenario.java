@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * than allowed.
  *
  * Recovery paths are contrasted. Once the source is fixed so fewer users would be deleted: a plain resume
- * re-suspends (the delete counter is not cleared), and only a fresh run completes; whereas a
+ * re-suspends at run start (the delete counter is not cleared), and only a fresh run completes; whereas a
  * {@code restartActivity} action clears the counter each cycle, so the task recovers on its own. Separately,
  * with the source left broken, clearing the activity policy states through the model interaction service resets
  * the preview delete counter, so a resume lets the same suspended task keep processing before it trips again.
@@ -430,7 +430,7 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
      * activity policy states:
      *
      * - the simulate (preview) reconciliation trips the max-deleted threshold and suspends;
-     * - a plain resume re-suspends at once (the persisted counter/trigger is untouched), doing no new work;
+     * - a plain resume re-suspends at run start (the persisted counter is untouched), doing no new work;
      * - clearing the activity policy states removes the simulate trigger and its preview delete counter;
      * - the next resume lets the reconciliation process objects again before it trips once more, so the number
      * of processed objects strictly increases even though the source stays broken.
@@ -461,14 +461,13 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         taskManager.resumeTaskTree(TASK_HR.oid, result);
         waitForTaskCloseOrSuspend(TASK_HR.oid, TIMEOUT);
 
-        then("it re-suspends in simulate — the persisted counter trips again after barely any new work; "
-                + "and only 'threads()' new rule violations");
-        assertSimulateSuspended(TASK_HR.oid, id, counterAfterFirst + 1);
+        then("it re-suspends in simulate right at run start - the persisted counter is still over the threshold, "
+                + "so no new work is done and the counter does not move");
+        assertSimulateSuspended(TASK_HR.oid, id, counterAfterFirst);
         int processedAfterPlainResume = simulateItemsProcessed(TASK_HR.oid);
         assertThat(processedAfterPlainResume)
-                .as("plain resume re-trips almost at once, so it makes hardly any progress")
-                .isGreaterThanOrEqualTo(processedAtFirstSuspend)
-                .isLessThan(processedAtFirstSuspend + DELETE_THRESHOLD);
+                .as("plain resume re-trips before processing anything")
+                .isEqualTo(processedAtFirstSuspend);
 
         when("the activity policy states (the preview delete counter) are cleared via model interaction service");
         boolean changed = modelInteractionService.clearAllActivityPolicyStates(
