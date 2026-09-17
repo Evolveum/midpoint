@@ -8,16 +8,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
         xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <ul class="details-menu" role="menu">
+    <ul class="details-menu">
         <wicket:container wicket:id="menu">
-            <li class="navigation-details" wicket:id="navLinkStyle" role="menuitem">
+            <li class="navigation-details" wicket:id="navLinkStyle">
                 <a wicket:id="navItemLink" class="d-flex align-items-center">
-                    <div class="d-flex flex-grow-1 me-auto align-items-center">
+                    <div class="visually-hidden" wicket:id="navItemSrCurrentMessage"/>
+                    <div class="d-flex flex-grow-1 me-auto align-items-center" aria-hidden="true">
                         <i wicket:id="navItemIcon"></i>
-                        <div class="visually-hidden" wicket:id="navItemSrCurrentMessage"/>
                         <div class="text-truncate" wicket:id="navItem"/>
                     </div>
-                    <div class="d-flex gap-1 flex-grow-1 details-menu-items align-items-center">
+                    <div class="d-flex gap-1 flex-grow-1 details-menu-items align-items-center" aria-hidden="true">
                         <wicket:enclosure key="count">
                             <span class="visually-hidden"><wicket:message key="DetailsNavigationPanel.count"/></span>
                             <span class="badge text-bg-blue" wicket:id="count"></span>
