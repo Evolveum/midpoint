@@ -22,6 +22,10 @@ import com.evolveum.midpoint.model.common.stringpolicy.StringPolicy;
 import com.evolveum.midpoint.model.common.stringpolicy.StringPolicy.CharacterClassLimitation;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -415,7 +419,9 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     private ValuePolicyType parsePasswordPolicy(String filename) throws SchemaException, IOException {
         File file = new File(TEST_DIR, filename);
-        return (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
+        var object = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
+        TrustDescriptorSetter.setDescriptors(object, IntegrationTestTools.trustedForTests());
+        return object;
     }
 
     private boolean isPasswordValid(String password, ValuePolicyType pp) throws CommonException {

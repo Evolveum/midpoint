@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.schema.expression;
 
-import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -28,25 +30,36 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public class TrustDescriptorSetter {
 
-    /** Sets the provided descriptor to all expressions and scripts within the provided root container. */
-    public static void setDescriptors(Containerable root, MidPointTrustDescriptor descriptor) {
-        setDescriptors(root.asPrismContainerValue(), descriptor);
-    }
-
-    public static void setDescriptors(PrismContainerValue<?> root, MidPointTrustDescriptor descriptor) {
+    public static void setDescriptors(PrismValue root, MidPointTrustDescriptor descriptor) {
         root.accept(
                 new CombinedVisitor<>(descriptor));
     }
 
     /** Sets the provided descriptor to all expressions and scripts within the provided value. */
-    public static void setDescriptors(AbstractPlainStructured root, MidPointTrustDescriptor descriptor) {
+    public static void setDescriptors(JaxbVisitable root, MidPointTrustDescriptor descriptor) {
         root.accept(
                 new CombinedVisitor<>(descriptor));
     }
 
+    public static <F extends ObjectType> void setDescriptors(
+            ObjectDelta<F> delta, MidPointTrustDescriptor midPointTrustDescriptor) {
+        if (delta.isAdd()) {
+            setDescriptors(delta.getObjectableToAdd(), midPointTrustDescriptor);
+        } else if (delta.isModify()) {
+            for (ItemDelta<?, ?> modification : delta.getModifications()) {
+                for (PrismValue newValue : modification.getNewValues()) {
+                    setDescriptors(newValue, midPointTrustDescriptor);
+                }
+            }
+        } else {
+            assert delta.isDelete();
+            // nothing to do here
+        }
+    }
 
     @SuppressWarnings("ClassCanBeRecord")
-    private static class CombinedVisitor<V extends Visitable<V>> implements Visitor<V>, JaxbVisitor {
+    private static class CombinedVisitor<V extends Visitable<V>>
+            implements Visitor<V>, JaxbVisitor, ConfigurableVisitor<V> {
 
         private final MidPointTrustDescriptor descriptor;
 
@@ -68,6 +81,12 @@ public class TrustDescriptorSetter {
                 if (realValue instanceof JaxbVisitable jaxbVisitable) {
                     jaxbVisitable.accept(this);
                 }
+            } else if (visitable instanceof PrismReferenceValue referenceValue) {
+                // TODO remove this code - after filter is visited by default accept method in PrismReferenceValueImpl
+                SearchFilterType filter = referenceValue.getFilter();
+                if (filter != null) {
+                    filter.accept(this);
+                }
             }
         }
 
@@ -79,6 +98,11 @@ public class TrustDescriptorSetter {
             } else if (value instanceof ExecuteScriptType executeScriptBean) {
                 executeScriptBean.setTrustDescriptor(descriptor);
             }
+        }
+
+        @Override
+        public boolean shouldVisitEmbeddedObjects() {
+            return true;
         }
     }
 }
