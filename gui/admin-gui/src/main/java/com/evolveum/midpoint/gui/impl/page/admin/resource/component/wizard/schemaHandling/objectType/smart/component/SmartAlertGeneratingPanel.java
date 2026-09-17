@@ -119,7 +119,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
     private void showErrors(AjaxRequestTarget target) {
         OperationResultPopupPanel body = new OperationResultPopupPanel(
                 getPageBase().getMainPopupBodyId(),
-                Model.of(getModelObject().getErrorsOperationResult())) {
+                () -> getModelObject().getErrorsOperationResult()) {
 
             @Override
             protected void customizeFooterButtons(RepeatingView repeatingView) {
@@ -140,7 +140,6 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         DetailsPageUtil.dispatchToObjectDetailsPage(TaskType.class, taskObject.getOid(), this, false);
-
                     }
                 };
 
@@ -149,7 +148,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
             }
         };
         body.setOutputMarkupId(true);
-        getPageBase().showMainPopup(body, target);
+        getPageBase().replaceMainPopup(body, target);
     }
 
     /** Initializes action buttons (suggest, show, refresh). */
@@ -158,9 +157,7 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
 
         AjaxIconButton partialErrorsButton = new AjaxIconButton(
                 buttonsView.newChildId(),
-                () -> getModelObject().isFailed()
-                        ? "fa fa-triangle-exclamation text-danger"
-                        : "fa fa-triangle-exclamation text-warning",
+                Model.of("fa fa-triangle-exclamation"),
                 createStringResource("SmartGeneratingPanel.button.completed.errors")) {
 
             @Override
@@ -170,8 +167,8 @@ public abstract class SmartAlertGeneratingPanel extends BasePanel<SmartGeneratin
         };
 
         partialErrorsButton.add(AttributeModifier.append("class", () -> getModelObject().isFailed()
-                ? "btn-outline-danger bg-white"
-                : "btn-outline-warning bg-white"));
+                ? "btn-outline-danger bg-white-until-hover"
+                : "btn-outline-warning bg-white-until-hover"));
         partialErrorsButton.showTitleAsLabel(true);
         partialErrorsButton.setOutputMarkupId(true);
         partialErrorsButton.add(
