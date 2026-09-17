@@ -118,8 +118,6 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         AjaxLink<?> link = createNavigationLink(containerPanelDto, containerListModel);
         navigationDetails.add(link);
 
-        addParentMenuItemDescription(link, panelConfig);
-
         DetailsNavigationPanel<O> subPanel = createDetailsSubNavigationPanel(containerPanelDto);
         navigationDetails.add(subPanel);
 
@@ -275,20 +273,26 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
                 key = "DetailsNavigationPanel.srMenuItemMessage";
             }
             StringBuilder sb = new StringBuilder(getString(key));
+            sb.append(" ").append(createButtonLabel(panelConfig).getObject());
+
+            SimpleCounter<ObjectDetailsModels<O>, O> counter = getCounterProvider(panelConfig);
+            if (counter != null) {
+                int count = counter.count(objectDetailsModel, getPageBase());
+                sb.append(", ").append(getString("DetailsNavigationPanel.count")).append(" ").append(count);
+            }
+
             if (doesSubMenuExist(panelConfig)) {
-                sb.append(getString(panelConfigDto.isExpanded() ?
+                sb.append(", ").append(getString(panelConfigDto.isExpanded() ?
                         "DetailsNavigationPanel.srSubItemsExpanded" : "DetailsNavigationPanel.srSubItemsCollapsed"));
             }
-//            if (ID_SUB_NAVIGATION.equals(this.getId())) {
-//                key = "DetailsNavigationPanel.srSubItemMessage";
-//                return getPageBase().createStringResource(key).getString();
-//            }
+
+            String parentDescription = getParentMenuItemDescription(link);
+            if (parentDescription != null) {
+                sb.append(", ").append(parentDescription);
+            }
+
             return sb.toString();
         });
-//        srCurrentMessage.add(new VisibleBehaviour(() -> {
-//            ContainerPanelConfigurationType storageConfig = getConfigurationFromStorage();
-//            return isMenuActive(storageConfig, panelConfig) || hasActiveSubmenu(storageConfig, panelConfig);
-//        }));
         link.add(srCurrentMessage);
     }
 
@@ -316,20 +320,17 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         link.add(submenuLink);
     }
 
-    private void addParentMenuItemDescription(@NotNull AjaxLink<?> link, ContainerPanelConfigurationType panelConfig) {
-        // in case there is parent menu item (e.g. Assignments is parent for Role menu item)
-        // we want to add a description for a screen reader to describe this parent item
+    private String getParentMenuItemDescription(@NotNull AjaxLink<?> link) {
         DetailsNavigationPanel<?> parentPanel = link.findParent(DetailsNavigationPanel.class);
         WebMarkupContainer parentMenuItemPanel = parentPanel != null ? (WebMarkupContainer) parentPanel.getParent() : null;
         if (parentMenuItemPanel != null && ID_NAVIGATION_DETAILS.equals(parentMenuItemPanel.getId())) {
             Component labelComponent = parentMenuItemPanel.get(ID_NAV_ITEM_LINK).get(ID_NAV_ITEM);
             Object parentLinkLabel = labelComponent.getDefaultModelObject();
             if (parentLinkLabel instanceof String parentLabel && StringUtils.isNotEmpty(parentLabel)) {
-                String currentItemLabel = createButtonLabel(panelConfig).getObject();
-                link.add(AttributeAppender.append("aria-label",
-                        createStringResource("DetailsNavigationPanel.parentMenuItemDescription", currentItemLabel, parentLabel)));
+                return createStringResource("DetailsNavigationPanel.parentMenuItemDescriptionSuffix", parentLabel).getString();
             }
         }
+        return null;
     }
 
     private DetailsNavigationPanel<O> createDetailsSubNavigationPanel(ContainerPanelDto containerPanelDto) {

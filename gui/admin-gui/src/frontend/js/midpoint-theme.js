@@ -522,8 +522,6 @@ export default class MidPointTheme {
             var sideBar = $(".sidebar-menu");
             self.keydownForMenuItems(sideBar, self);
 
-            var detailsMenu = $(".details-panel-navigation");
-            self.keydownForMenuItems(detailsMenu, self);
         });
 
         jQuery(function ($) {
