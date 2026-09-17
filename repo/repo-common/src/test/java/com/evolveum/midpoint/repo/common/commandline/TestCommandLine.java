@@ -14,6 +14,10 @@ import java.nio.charset.StandardCharsets;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
+
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -109,6 +113,7 @@ public class TestCommandLine extends AbstractIntegrationTest {
 
     private CommandLineScriptType getScript(File file) throws SchemaException, IOException {
         PrismObject<ReportType> report = parseObject(file);
+        TrustDescriptorSetter.setDescriptors(report.asObjectable(), IntegrationTestTools.trustedForTests());
         return report.asObjectable().getPostReportScript();
     }
 }
