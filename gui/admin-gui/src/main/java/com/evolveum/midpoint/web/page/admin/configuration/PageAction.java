@@ -12,6 +12,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -125,6 +126,7 @@ public class PageAction extends PageAdminConfiguration {
                                 parsed.getClass()).getString());
             } else {
                 typed = ScriptingBeansUtil.asExecuteScriptCommand(parsed);
+                typed.setTrustDescriptor(MidPointTrustDescriptor.untrusted()); // TODO rename to something like "as authenticated"
             }
         } catch (SchemaException | RuntimeException e) {
             result.recordFatalError(createStringResource("PageAction.message.startPerformed.fatalError.parse").getString(), e);

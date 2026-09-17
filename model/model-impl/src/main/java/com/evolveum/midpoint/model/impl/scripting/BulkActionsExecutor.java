@@ -80,10 +80,10 @@ public class BulkActionsExecutor {
             var expressionProfile =
                     expressionProfileManager.determineBulkActionsProfile(
                             executeScript.getTrustDescriptorRequired(), options.privileged(), task, result);
-            setTrustDescriptorsToScriptBean(executeScriptBeanClone, expressionProfile);
+            setTrustDescriptorsToScriptBeanAndVariables(executeScriptBeanClone, expressionProfile);
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(
                     initialVariables, executeScriptBeanClone.getVariables(),
-                    expressionProfile, task, result);
+                    task, result);
             PipelineData inputPipeline = PipelineData.parseFrom(executeScriptBeanClone.getInput(), frozenVariables);
             ExecutionContext context = new ExecutionContext(
                     executeScriptBeanClone.getOptions(), task, this,
@@ -106,11 +106,19 @@ public class BulkActionsExecutor {
      * but also a functional requirement: the bulk action itself is evaluated under certain profile: there are special rules
      * for bulk actions, like that - by default - when logged in as administrator, untrusted bulk actions are evaluated with
      * full privileges. These special rules would not apply if we wouldn't propagate the profile to the embedded expressions.
+     *
+     * Besides bulk action itself, we set the trust descriptors on variable definitions, as they may contain expressions as well.
      */
-    private static void setTrustDescriptorsToScriptBean(ExecuteScriptType bean, ExpressionProfile expressionProfile) {
+    private static void setTrustDescriptorsToScriptBeanAndVariables(ExecuteScriptType bean, ExpressionProfile expressionProfile) {
         TrustDescriptorSetter.setDescriptors(
                 bean.getScriptingExpression().getValue(),
                 MidPointTrustDescriptor.explicit(expressionProfile));
+        var variablesDefinitionBean = bean.getVariables();
+        if (variablesDefinitionBean != null) {
+            TrustDescriptorSetter.setDescriptors(
+                    variablesDefinitionBean,
+                    MidPointTrustDescriptor.explicit(expressionProfile));
+        }
     }
 
     // not to be called from outside

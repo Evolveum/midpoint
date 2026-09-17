@@ -489,6 +489,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                         new FunctionExpressionEvaluatorType()
                                 .libraryRef(FUNCTION_LIBRARY_TESTLIB.ref())
                                 .name(functionName)));
+        expressionBean.setTrustDescriptor(IntegrationTestTools.trustedForTests());
         PrismPropertyDefinition<?> outputDefinition =
                 PrismContext.get().definitionFactory()
                         .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, outputTypeName);
