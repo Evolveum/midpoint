@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
@@ -67,7 +68,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
                             SchemaConstantsGenerated.C_SCRIPT,
                             AccessDecision.DENY,
                             List.of(new ScriptLanguageExpressionProfileImpl(
-                                    "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel",
+                                    MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL,
                                     AccessDecision.ALLOW,
                                     true,
                                     null))))),
