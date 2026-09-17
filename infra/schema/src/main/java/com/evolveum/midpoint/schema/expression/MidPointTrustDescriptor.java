@@ -44,6 +44,13 @@ public interface MidPointTrustDescriptor extends TrustDescriptor {
     }
 
     /**
+     * Denotes an object that is untrusted. Typically because it comes from an external source (like REST).
+     */
+    static MidPointTrustDescriptor untrusted() {
+        return new Untrusted();
+    }
+
+    /**
      * Trust description carrying explicit {@link ExpressionProfile}.
      *
      * USE WITH CARE! If misused, it circumvents the safety checks and can lead to execution of untrusted code.
@@ -95,6 +102,14 @@ public interface MidPointTrustDescriptor extends TrustDescriptor {
         public String toString() {
             return "RepositoryObject[%s: %s, archetypes: %s, subtypes: %s]".formatted(
                     type.getSimpleName(), oid, archetypeOids, subtypes);
+        }
+    }
+
+    /** @see MidPointTrustDescriptor#untrusted() */
+    record Untrusted() implements MidPointTrustDescriptor {
+        @Override
+        public String toString() {
+            return "Untrusted";
         }
     }
 }

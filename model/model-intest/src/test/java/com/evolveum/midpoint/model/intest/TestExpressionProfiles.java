@@ -15,6 +15,8 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -926,9 +928,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("bulk action is executed");
-        var script = prismContext.parserFor(FILE_SCRIPTING_GENERATE_VALUE)
-                .xml()
-                .parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(FILE_SCRIPTING_GENERATE_VALUE, MidPointTrustDescriptor.untrusted());
         var executionResult = bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
@@ -1023,7 +1023,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("bulk action is executed");
-        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(file, descriptorForOrigin(origin));
         bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, origin),
                 VariablesMap.emptyMap(),
@@ -1033,6 +1033,22 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         and("'boomed' flag is set");
         BOOMED_FLAG.assertSet();
+    }
+
+    private MidPointTrustDescriptor descriptorForOrigin(ConfigurationItemOrigin origin) {
+        if (origin instanceof ConfigurationItemOrigin.External) {
+            return MidPointTrustDescriptor.untrusted();
+        } else if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
+            return MidPointTrustDescriptor.forRepositoryObject(inObject.getOriginatingPrismObject().asObjectable());
+        } else {
+            throw new IllegalArgumentException("Unexpected origin type: " + origin);
+        }
+    }
+
+    private ExecuteScriptType parseScript(File file, MidPointTrustDescriptor trustDescriptor) throws IOException, SchemaException {
+        var scriptBean = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        TrustDescriptorSetter.setDescriptors(scriptBean, trustDescriptor);
+        return scriptBean;
     }
 
     private ConfigurationItemOrigin originForArchetype(TestObject<ArchetypeType> archetype) {
@@ -1061,7 +1077,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         resetBoomed();
 
         when("dangerous bulk action is executed");
-        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(file, MidPointTrustDescriptor.untrusted());
         try {
             bulkActionsService.executeBulkAction(
                     ExecuteScriptConfigItem.of(script, origin),
@@ -1094,7 +1110,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("dangerous bulk action is executed");
-        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(file, MidPointTrustDescriptor.untrusted());
         bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(
                         script,

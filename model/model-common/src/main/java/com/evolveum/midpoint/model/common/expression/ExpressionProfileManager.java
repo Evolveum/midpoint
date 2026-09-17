@@ -45,15 +45,20 @@ public class ExpressionProfileManager {
     @Autowired SecurityEnforcer securityEnforcer;
 
     /**
-     * This is a default because of compatibility reasons. In some cases, setting more restrictive profile may cause
-     * system to break.
+     * This is a default for expressions stored in repository objects because of compatibility reasons.
+     * In some cases, setting more restrictive profile may cause system to break.
      */
-    private static final ExpressionProfile DEFAULT_EXPRESSION_PROFILE = ExpressionProfile.full();
+    private static final ExpressionProfile DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS = ExpressionProfile.full();
 
     public ExpressionProfile determineExpressionProfile(
             MidPointTrustDescriptor trustDescriptor, Task task, OperationResult result)
             throws SecurityViolationException {
-        return determineExpressionProfileInternal(trustDescriptor, result, this::getGeneralDefaultProfileId);
+        return determineExpressionProfileInternal(
+                trustDescriptor,
+                result,
+                this::getGeneralDefaultProfileId,
+                DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS,
+                ExpressionProfile.none());
     }
 
     /**
@@ -64,50 +69,56 @@ public class ExpressionProfileManager {
             MidPointTrustDescriptor trustDescriptor, boolean privileged, Task task, OperationResult result)
             throws SecurityViolationException {
 
-        return determineExpressionProfileInternal(trustDescriptor, result, (lResult) -> {
-            if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
-                return getPrivilegedBulkActionsProfileId(result);
-            } else {
-                return getUnprivilegedBulkActionsProfileId(result);
-            }
-        });
+        return determineExpressionProfileInternal(
+                trustDescriptor,
+                result,
+                (lResult) -> {
+                    if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
+                        return getPrivilegedBulkActionsProfileId(result);
+                    } else {
+                        return getUnprivilegedBulkActionsProfileId(result);
+                    }
+                },
+                DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS,
+                privileged ? ExpressionProfile.full() : ExpressionProfile.legacyUnprivilegedBulkActions());
     }
 
     private ExpressionProfile determineExpressionProfileInternal(
-            MidPointTrustDescriptor trustDescriptor, OperationResult result, ExpressionProfileIdSupplier defaultProfileIdSupplier)
+            MidPointTrustDescriptor trustDescriptor,
+            OperationResult result,
+            ExpressionProfileIdSupplier defaultProfileIdSupplier,
+            ExpressionProfile defaultForRepositoryObjects,
+            ExpressionProfile defaultForUntrusted)
             throws SecurityViolationException {
+
         if (trustDescriptor instanceof MidPointTrustDescriptor.Explicit explicit) {
             return explicit.expressionProfile();
-        } else if (trustDescriptor instanceof MidPointTrustDescriptor.RepositoryObject repositoryObject) {
-            return determineExpressionProfile(repositoryObject, defaultProfileIdSupplier, result);
-        } else {
-            throw new UnsupportedOperationException();
-            //return ExpressionProfile.none();
         }
-    }
 
-    /**
-     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
-     * If no explicit profile is defined, `null` is returned, allowing to plug in a custom default.
-     */
-    private ExpressionProfile determineExpressionProfile(
-            MidPointTrustDescriptor.RepositoryObject objectSpec,
-            ExpressionProfileIdSupplier defaultProfileIdSupplier,
-            OperationResult result)
-            throws SecurityViolationException {
         try {
-            var profileId = determineExpressionProfileId(objectSpec, result);
+            String profileId;
+            if (trustDescriptor instanceof MidPointTrustDescriptor.RepositoryObject repositoryObject) {
+                profileId = determineExpressionProfileId(repositoryObject, result);
+            } else if (trustDescriptor instanceof MidPointTrustDescriptor.Untrusted) {
+                profileId = null;
+            } else {
+                throw new UnsupportedOperationException("Unsupported trust descriptor: " + trustDescriptor);
+            }
+
             if (profileId == null) {
                 profileId = defaultProfileIdSupplier.getExpressionProfileId(result);
             }
             if (profileId != null) {
                 return systemObjectCache.getExpressionProfile(profileId, result);
+            }
+            if (trustDescriptor instanceof MidPointTrustDescriptor.RepositoryObject) {
+                return defaultForRepositoryObjects;
             } else {
-                return DEFAULT_EXPRESSION_PROFILE;
+                return defaultForUntrusted;
             }
         } catch (CommonException e) {
             throw new SecurityViolationException(
-                    "Couldn't determine expression profile for %s: %s".formatted(objectSpec, e.getMessage()),
+                    "Couldn't determine expression profile for %s: %s".formatted(trustDescriptor, e.getMessage()),
                     e);
         }
     }

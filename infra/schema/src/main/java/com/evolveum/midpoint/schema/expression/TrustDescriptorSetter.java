@@ -6,12 +6,16 @@
 
 package com.evolveum.midpoint.schema.expression;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jspecify.annotations.NullMarked;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sets provided {@link MidPointTrustDescriptor} to all relevant values in a given {@link Containerable}
@@ -34,6 +38,13 @@ public class TrustDescriptorSetter {
                 new CombinedVisitor<>(descriptor));
     }
 
+    /** Sets the provided descriptor to all expressions and scripts within the provided value. */
+    public static void setDescriptors(AbstractPlainStructured root, MidPointTrustDescriptor descriptor) {
+        root.accept(
+                new CombinedVisitor<>(descriptor));
+    }
+
+
     @SuppressWarnings("ClassCanBeRecord")
     private static class CombinedVisitor<V extends Visitable<V>> implements Visitor<V>, JaxbVisitor {
 
@@ -45,27 +56,32 @@ public class TrustDescriptorSetter {
 
         @Override
         public void visit(JaxbVisitable visitable) {
-            if (visitable instanceof ExpressionType expressionBean) {
-                expressionBean.setTrustDescriptor(descriptor);
-            } else {
-                // Should we parse not-yet-parsed RawType here?
-                JaxbVisitable.visitPrismStructure(visitable, this);
-            }
+            setTrustDescriptorsIfApplicable(visitable);
+            // We can have expressions in bulk actions, filters in expressions, and so on - hence we go deeper even if we
+            // set the trust descriptor on the current object.
+            JaxbVisitable.visitPrismStructure(visitable, this);
         }
 
         @Override
         public void visit(V visitable) {
             if (visitable instanceof PrismPropertyValue<?> propertyValue) {
                 Object realValue = propertyValue.getRealValue();
-                if (realValue instanceof ExpressionType expressionBean) {
-                    expressionBean.setTrustDescriptor(descriptor);
-                } else if (realValue instanceof SearchFilterType searchFilterBean) {
-                    searchFilterBean.setTrustDescriptor(descriptor);
-                }
+                setTrustDescriptorsIfApplicable(realValue);
+                // We can have expressions in bulk actions, filters in expressions, and so on - hence we go deeper even if we
+                // set the trust descriptor on the current object.
                 if (realValue instanceof JaxbVisitable jaxbVisitable) {
-                    // in theory, we can have expressions-in-expressions, so let's go inside
                     jaxbVisitable.accept(this);
                 }
+            }
+        }
+
+        private void setTrustDescriptorsIfApplicable(@Nullable Object value) {
+            if (value instanceof ExpressionType expressionBean) {
+                expressionBean.setTrustDescriptor(descriptor);
+            } else if (value instanceof SearchFilterType searchFilterBean) {
+                searchFilterBean.setTrustDescriptor(descriptor);
+            } else if (value instanceof ExecuteScriptType executeScriptBean) {
+                executeScriptBean.setTrustDescriptor(descriptor);
             }
         }
     }

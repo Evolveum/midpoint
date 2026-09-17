@@ -152,7 +152,7 @@ public class SearchExecutor extends BaseActionExecutor {
                     }
                     JAXBElement<?> childExpression = action.getScriptingExpression();
                     try {
-                        PipelineData searchResult = bulkActionsExecutor.execute(
+                        PipelineData searchResult = bulkActionsExecutor.executeInternal(
                                 (ScriptingExpressionType) childExpression.getValue(),
                                 PipelineData.create(object.getValue(), item.getVariables()), context, globalResult);
                         if (!BooleanUtils.isFalse(action.isAggregateOutput())) {

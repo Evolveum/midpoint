@@ -41,7 +41,8 @@ class FilterExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<
         PrismObject<?> object = determineObject();
         boolean match = false;
         if (object != null) {
-            ObjectFilter objectFilter = PrismContext.get().getQueryConverter().parseFilter(evaluator.getExpressionEvaluatorBean().getFilter(), object.getDefinition());
+            ObjectFilter objectFilter = PrismContext.get().getQueryConverter().parseFilter(
+                    evaluator.getExpressionEvaluatorBean().getFilter(), object.getDefinition());
             ObjectFilter evaluatedObjectFilter = ExpressionUtil.evaluateFilterExpressions(
                     objectFilter, eeCtx.getVariables(), eeCtx.getExpressionFactory(),
                     vtCtx.getContextDescription(), eeCtx.getTask(), result);

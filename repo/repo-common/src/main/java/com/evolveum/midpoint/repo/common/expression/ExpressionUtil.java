@@ -755,12 +755,12 @@ public class ExpressionUtil {
 
             } catch (RuntimeException ex) {
                 throw new SystemException(
-                        "Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
+                        "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
             } catch (SchemaException ex) {
                 throw new SchemaException(
-                        "Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
+                        "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
             } catch (ObjectNotFoundException ex) {
-                throw ex.wrap("Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression));
+                throw ex.wrap("Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression));
             } catch (ExpressionEvaluationException ex) {
                 throw new ExpressionEvaluationException(
                         "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
