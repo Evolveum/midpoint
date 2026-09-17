@@ -32,6 +32,17 @@ export default class MidPointAceEditor {
 
                 let clone = input.cloneNode(true);
 
+                // The clone must not be submitted under the same name as the real field - two
+                // values for one parameter get joined by the server (observed as a literal ";"
+                // ending up as the field's bound value once both are empty). Keep the original
+                // name around under a data attribute so addRightAttributeForForm() can still
+                // report it as "hpField-<name>".
+                let originalName = input.getAttribute("name");
+                if (originalName != null) {
+                    clone.setAttribute("data-honeypot-name", originalName);
+                    clone.removeAttribute("name");
+                }
+
                 input.classList.add("midpoint-input-prefix");
                 clone.classList.add("midpoint-input-suffix");
 
@@ -72,7 +83,7 @@ export default class MidPointAceEditor {
                 if (inputs && inputs.length > 0)
                     for (let i = 0; i < inputs.length; i++) {
                         let input = inputs[i];
-                        if (input.classList.contains("midpoint-input-sufix")) {
+                        if (input.classList.contains("midpoint-input-suffix")) {
                             $("#" + input.id).prop('disabled', true);
                         }
                     }
@@ -104,18 +115,19 @@ export default class MidPointAceEditor {
 
         for (let i = 0; i < inputs.length; i++) {
             let input = inputs[i];
-            let name = input.getAttribute("name");
-            if (name != null) {
-                if (input.classList.contains("midpoint-input-suffix")) {
-                    let originalValue = input.getAttribute("original-value");
-                    let inputValue = input.value;
-                    if (originalValue != null && originalValue === input.value) {
-                        inputValue = "";
-
-                    }
-                    valuesForAdd.set("hpField-" + name, inputValue);
-                }
+            if (!input.classList.contains("midpoint-input-suffix")) {
+                continue;
             }
+            let name = input.getAttribute("data-honeypot-name");
+            if (name == null) {
+                continue;
+            }
+            let originalValue = input.getAttribute("original-value");
+            let inputValue = input.value;
+            if (originalValue != null && originalValue === input.value) {
+                inputValue = "";
+            }
+            valuesForAdd.set("hpField-" + name, inputValue);
         }
 
         valuesForAdd.forEach((value, key) => {

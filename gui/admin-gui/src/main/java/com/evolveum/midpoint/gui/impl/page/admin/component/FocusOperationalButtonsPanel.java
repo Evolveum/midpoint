@@ -13,7 +13,10 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.util.visit.IVisit;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -99,6 +102,21 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
             protected void onClickOnActionButton(AjaxRequestTarget target) {
                 executeOptionsModel.getObject().setTaskMode(null);
                 previewPerformed(target);
+            }
+
+            @Override
+            protected void refreshOnError(AjaxRequestTarget target) {
+                super.refreshOnError(target);
+
+                // The field which contains the error, should be visualized with an error (is-incorrect) style
+                Form<?> form = findParent(Form.class);
+                if (form != null) {
+                    form.visitChildren(FormComponent.class, (FormComponent<?> component, IVisit<Void> visit) -> {
+                        if (component.hasErrorMessage()) {
+                            target.add(component);
+                        }
+                    });
+                }
             }
         };
         preview.add(new VisibleEnableBehaviour() {

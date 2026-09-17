@@ -84,6 +84,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         add(header);
 
         RepeatingView itemView = new RepeatingView(ID_PROPERTY);
+        itemView.setOutputMarkupId(true);
         add(itemView);
 
         for (AbstractFormItemType formItem : formItems) {

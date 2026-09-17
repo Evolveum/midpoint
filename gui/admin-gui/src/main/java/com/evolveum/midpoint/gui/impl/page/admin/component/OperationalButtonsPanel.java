@@ -17,11 +17,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.visit.IVisit;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -243,6 +245,16 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
             @Override
             protected void onError(AjaxRequestTarget target) {
                 target.add(getPageBase().getFeedbackPanel());
+
+                Form<?> form = findParent(Form.class);
+                if (form != null) {
+                    // The field which contains the error, should be visualized with an error (is-incorrect) style
+                    form.visitChildren(FormComponent.class, (FormComponent<?> component, IVisit<Void> visit) -> {
+                        if (component.hasErrorMessage()) {
+                            target.add(component);
+                        }
+                    });
+                }
             }
         };
 
