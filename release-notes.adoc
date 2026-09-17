@@ -95,6 +95,7 @@ including import of signed allowed-connectors list and subscription compliance e
 * Account activation now uses a dedicated authentication sequence and a one-time link.
 This is mainly used when password hashing is enabled.
 See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
+* Fixed object marks not being removed immediately after unassigning the policy that induces them. See bug:MID-10641[].
 
 #TODO#
 
