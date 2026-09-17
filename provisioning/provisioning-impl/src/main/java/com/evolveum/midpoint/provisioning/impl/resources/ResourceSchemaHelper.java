@@ -187,9 +187,9 @@ class ResourceSchemaHelper {
         try {
             //noinspection unchecked
             configurationContainer.accept(visitable -> {
-                if ((visitable instanceof PrismProperty<?>)) {
+                if ((visitable instanceof PrismProperty<?> prismProperty)) {
                     try {
-                        evaluateExpression((PrismProperty<?>)visitable, resource.asPrismObject(), task, result);
+                        evaluateExpression(prismProperty, resource.asPrismObject(), task, result);
                     } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
                              ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                         throw new TunnelException(e);

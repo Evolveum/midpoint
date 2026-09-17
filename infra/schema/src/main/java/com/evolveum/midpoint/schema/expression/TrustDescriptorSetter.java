@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.expression;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -76,10 +77,14 @@ public class TrustDescriptorSetter {
         @Override
         public void visit(V visitable) {
             if (visitable instanceof PrismPropertyValue<?> propertyValue) {
-                Object realValue = propertyValue.getRealValue();
-                setTrustDescriptorsIfApplicable(realValue);
-                if (realValue instanceof JaxbVisitable jaxbVisitable) {
-                    jaxbVisitable.accept(this);
+                if (propertyValue.isRaw()) {
+                    ((XNodeImpl) propertyValue.getRawElement()).setTrustDescriptor(descriptor);
+                } else {
+                    Object realValue = propertyValue.getRealValue();
+                    setTrustDescriptorsIfApplicable(realValue);
+                    if (realValue instanceof JaxbVisitable jaxbVisitable) {
+                        jaxbVisitable.accept(this);
+                    }
                 }
             } else if (visitable instanceof PrismReferenceValue referenceValue) {
                 // TODO remove this code - after filter is visited by default accept method in PrismReferenceValueImpl
