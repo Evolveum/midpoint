@@ -6,12 +6,11 @@
 
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
@@ -19,26 +18,25 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -50,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Here we test the basic functionality of marks, like the application of "no synchronization" policy or "read-only" policy.
  * Plus some ad-hoc tests related to managed/unmanaged shadows.
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
 
@@ -82,8 +80,12 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
     private static final String TYPE_DEVELOPER = "developer";
     private static final String INTENT_DEVELOPER = "developer";
 
-    private static final String PRIVILEGED_ACCESS_MARK_NAME = "Privileged access";
-    private static final String PRIVILEGED_ACCESS_POLICY_NAME = "Privileged access policy";
+    private static final TestObject<MarkType> MARK_PRIVILEGED_ACCESS = TestObject.file(
+            TEST_DIR, "mark-privileged-access.xml", "c58394cd-c883-4e41-927c-f90a7c7a0c97");
+
+    /** Simplified "Privileged access" classification from the compliance sample. See #10641. */
+    private static final TestObject<PolicyType> POLICY_PRIVILEGED_ACCESS = TestObject.file(
+            TEST_DIR, "policy-privileged-access.xml", "d7b06d3c-4a0e-4a9d-9c47-3d1f2e6f5a01");
 
     /** Mark containing policy that prevents [inbound] synchronization. */
     private String markNoSyncOid;
@@ -106,7 +108,9 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
 
         initAndTestDummyResource(RESOURCE_SHADOW_MARKS, initTask, initResult);
         initTestObjects(initTask, initResult,
-                MARK_HAS_UNMANAGED_PROJECTION);
+                MARK_HAS_UNMANAGED_PROJECTION,
+                MARK_PRIVILEGED_ACCESS,
+                POLICY_PRIVILEGED_ACCESS);
 
         markNoSyncOid = addObject(
                 new MarkType()
@@ -589,6 +593,7 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
         reconcileUser(userOid, task, result);
         assertSuccess(result);
     }
+
     /**
      * Tests lifecycle-aware default operation policy for `account/developer` (MID-9972):
      * for production, it is `unmanaged`, while we are experimenting with `managed` for the development mode.
@@ -797,64 +802,79 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     *
-     * MID-10641
+     * Mark induced by a policy assigned to a role must disappear right when the policy is unassigned,
+     * without a recompute. See #10641.
      */
-    @Test(enabled = false)
+    @Test
     public void test700ObjectMarkOnUnassign() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var roleName = getTestNameShort();
 
-        given("a privileged classification policy inducing a mark 'Privileged access'");
-        var markOid = addObject(
-                new MarkType()
-                        .name(PRIVILEGED_ACCESS_MARK_NAME),
-                task, result);
-
-        var policyOid = addObject(
-                new PolicyType()
-                        .name(PRIVILEGED_ACCESS_POLICY_NAME)
-                        .inducement(
-                                new AssignmentType()
-                                        .policyRule(
-                                                new PolicyRuleType()
-                                                        .policyConstraints(
-                                                                new PolicyConstraintsType()
-                                                                        .alwaysTrue(
-                                                                                new AlwaysTruePolicyConstraintType()
-                                                                                        .name("mark-focus-always-true")
-                                                                        )
-                                                        )
-                                                        .markRef(markOid, MarkType.COMPLEX_TYPE)
-                                                        .policyActions(
-                                                                new PolicyActionsType()
-                                                                        .record(new RecordPolicyActionType())
-                                                        )
-                                        )
-                        ),
-                task, result);
-
-
-        when("the role with policy assignment is created and marked");
+        given("a role classified as privileged access");
         var roleOid = addObject(
                 new RoleType()
                         .name(roleName)
-                        .assignment(
-                                new AssignmentType()
-                                        .targetRef(policyOid, PolicyType.COMPLEX_TYPE)),
+                        .assignment(POLICY_PRIVILEGED_ACCESS.assignmentTo()),
                 task, result);
 
         then("the role is marked");
         assertRole(roleOid, "before")
-                .assertEffectiveMarks(markOid);
+                .assertEffectiveMarks(MARK_PRIVILEGED_ACCESS.oid)
+                .assertTriggeredPolicyRules(1);
 
-        when("unassign a privileged classification policy from the role");
-        unassign(PolicyType.class, policyOid, roleOid, task, result);
+        when("the classification is unassigned from the role");
+        unassignPolicy(RoleType.class, roleOid, POLICY_PRIVILEGED_ACCESS.oid, task, result);
 
-        then("the role is not marked anymore");
+        then("the role is not marked anymore and no rule is recorded");
         assertRole(roleOid, "after unmarked")
-                .assertEffectiveMarks();
+                .display()
+                .assertEffectiveMarks()
+                .assertNoTriggeredPolicyRules();
+    }
+
+    /**
+     * The same as test700, but for a user that is marked through a role classified as privileged access.
+     * When the role is unassigned from the user, the user's mark must disappear immediately. See #10641.
+     */
+    @Test
+    public void test705UserMarkOnRoleUnassign() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var name = getTestNameShort();
+
+        given("a role classified as privileged access");
+        var roleOid = addObject(
+                new RoleType()
+                        .name(name + "-role")
+                        .assignment(POLICY_PRIVILEGED_ACCESS.assignmentTo()),
+                task, result);
+
+        when("a user is created with the role assigned");
+        var userOid = addObject(
+                new UserType()
+                        .name(name + "-user")
+                        .assignment(new AssignmentType()
+                                .targetRef(roleOid, RoleType.COMPLEX_TYPE)),
+                task, result);
+
+        then("the user is marked");
+        assertUser(userOid, "with role")
+                .assertEffectiveMarks(MARK_PRIVILEGED_ACCESS.oid)
+                .assertTriggeredPolicyRules(1);
+
+        when("the role is unassigned from the user");
+        unassignRole(userOid, roleOid, task, result);
+
+        then("the user is not marked anymore and no rule is recorded");
+        assertUser(userOid, "without role")
+                .display()
+                .assertEffectiveMarks()
+                .assertNoTriggeredPolicyRules();
+
+        and("the role itself is still marked");
+        assertRole(roleOid, "still classified")
+                .assertEffectiveMarks(MARK_PRIVILEGED_ACCESS.oid);
     }
 
     /**

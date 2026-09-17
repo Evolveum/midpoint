@@ -37,6 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinition
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.DefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismContainerDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * @author lskublik
@@ -200,5 +203,10 @@ public class ShowSchemaConnectorStepPanel extends ScriptConfirmationPanel {
     @Override
     protected String getSubTextContainerCssClass() {
         return "text-secondary col-12 pb-4";
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.OBJECT_CLASS_SCHEMA, null);
     }
 }

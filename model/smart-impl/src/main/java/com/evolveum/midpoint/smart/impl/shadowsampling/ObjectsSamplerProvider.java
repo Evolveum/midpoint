@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
@@ -60,9 +61,10 @@ public class ObjectsSamplerProvider {
         boolean cached = requiredAttributePaths != null
                 ? areRequiredAttributesCached(typeDefinition, requiredAttributePaths)
                 : areAllAttributesCached(typeDefinition);
-        return cached
-                ? new CorrelationObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition, getCorrelationSampleSizeCached())
-                : new CorrelationObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition, getCorrelationSampleSizeUncached());
+        return new CorrelationObjectsSampler(
+                modelService, resource, typeDefinition,
+                cached ? getCorrelationSampleSizeCached() : getCorrelationSampleSizeUncached(),
+                cached ? GetOperationOptions.createNoFetchReadOnlyCollection() : GetOperationOptions.readOnly());
     }
 
     /**
@@ -72,9 +74,12 @@ public class ObjectsSamplerProvider {
             ResourceObjectDefinition typeDefinition, ResourceType resource) {
         Objects.requireNonNull(typeDefinition, "typeDefinition cannot be null");
         Objects.requireNonNull(resource, "resource cannot be null");
-        return areAllAttributesCached(typeDefinition)
-                ? new MappingObjectsSamplerWhenShadowCacheEnabled(modelService, resource, typeDefinition, getMappingLlmSampleSizeCached(), getMappingValidationSampleSizeCached())
-                : new MappingObjectsSamplerWhenShadowCacheDisabled(modelService, resource, typeDefinition, getMappingLlmSampleSizeUncached(), getMappingValidationSampleSizeUncached());
+        boolean cached = areAllAttributesCached(typeDefinition);
+        return new MappingObjectsSampler(
+                modelService, resource, typeDefinition,
+                cached ? getMappingLlmSampleSizeCached() : getMappingLlmSampleSizeUncached(),
+                cached ? getMappingValidationSampleSizeCached() : getMappingValidationSampleSizeUncached(),
+                cached ? GetOperationOptions.createNoFetchReadOnlyCollection() : GetOperationOptions.readOnly());
     }
 
     /**
@@ -91,42 +96,42 @@ public class ObjectsSamplerProvider {
         var config = getShadowSamplingConfiguration();
         return (config != null && config.getCorrelationSampleSizeCached() != null)
                 ? config.getCorrelationSampleSizeCached()
-                : CorrelationObjectsSamplerWhenShadowCacheEnabled.DEFAULT_SAMPLE_SIZE;
+                : CorrelationObjectsSampler.DEFAULT_SAMPLE_SIZE_CACHED;
     }
 
     private int getCorrelationSampleSizeUncached() {
         var config = getShadowSamplingConfiguration();
         return (config != null && config.getCorrelationSampleSizeUncached() != null)
                 ? config.getCorrelationSampleSizeUncached()
-                : CorrelationObjectsSamplerWhenShadowCacheDisabled.DEFAULT_SAMPLE_SIZE;
+                : CorrelationObjectsSampler.DEFAULT_SAMPLE_SIZE_UNCACHED;
     }
 
     private int getMappingLlmSampleSizeCached() {
         var config = getShadowSamplingConfiguration();
         return (config != null && config.getMappingLlmSampleSizeCached() != null)
                 ? config.getMappingLlmSampleSizeCached()
-                : MappingObjectsSamplerWhenShadowCacheEnabled.DEFAULT_LLM_SAMPLE_SIZE;
+                : MappingObjectsSampler.DEFAULT_LLM_SAMPLE_SIZE_CACHED;
     }
 
     private int getMappingValidationSampleSizeCached() {
         var config = getShadowSamplingConfiguration();
         return (config != null && config.getMappingValidationSampleSizeCached() != null)
                 ? config.getMappingValidationSampleSizeCached()
-                : MappingObjectsSamplerWhenShadowCacheEnabled.DEFAULT_VALIDATION_SAMPLE_SIZE;
+                : MappingObjectsSampler.DEFAULT_VALIDATION_SAMPLE_SIZE_CACHED;
     }
 
     private int getMappingLlmSampleSizeUncached() {
         var config = getShadowSamplingConfiguration();
         return (config != null && config.getMappingLlmSampleSizeUncached() != null)
                 ? config.getMappingLlmSampleSizeUncached()
-                : MappingObjectsSamplerWhenShadowCacheDisabled.DEFAULT_LLM_SAMPLE_SIZE;
+                : MappingObjectsSampler.DEFAULT_LLM_SAMPLE_SIZE_UNCACHED;
     }
 
     private int getMappingValidationSampleSizeUncached() {
         var config = getShadowSamplingConfiguration();
         return (config != null && config.getMappingValidationSampleSizeUncached() != null)
                 ? config.getMappingValidationSampleSizeUncached()
-                : MappingObjectsSamplerWhenShadowCacheDisabled.DEFAULT_VALIDATION_SAMPLE_SIZE;
+                : MappingObjectsSampler.DEFAULT_VALIDATION_SAMPLE_SIZE_UNCACHED;
     }
 
     @Nullable

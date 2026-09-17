@@ -165,6 +165,25 @@
             <artifactId>jakarta.ws.rs-api</artifactId>
         </dependency>
 
+        <!-- ConnDev documentation: catalog tooling (devtools-base) + the documentation JARs
+             carrying the connector wizard help topics (META-INF/conndev-doc) -->
+        <dependency>
+            <groupId>com.evolveum.polygon.conndev</groupId>
+            <artifactId>devtools-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.polygon.conndev</groupId>
+            <artifactId>conndev-docs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.polygon.scimrest</groupId>
+            <artifactId>connector-scimrest-docs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.polygon.sql</groupId>
+            <artifactId>connector-sql-docs</artifactId>
+        </dependency>
+
         <!--<dependency>-->
         <!--    <groupId>com.google.guava</groupId>-->
         <!--    <artifactId>guava</artifactId>-->

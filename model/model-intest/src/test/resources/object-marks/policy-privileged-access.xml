@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!-- Simplified "Privileged access" classification from the compliance sample. See #10641. -->
+<policy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="d7b06d3c-4a0e-4a9d-9c47-3d1f2e6f5a01">
+    <name>Privileged access</name>
+    <inducement>
+        <identifier>mark-focus</identifier>
+        <documentation>Marks any object classified with this classification.</documentation>
+        <policyRule>
+            <policyConstraints>
+                <alwaysTrue>
+                    <name>mark-focus-always-true</name>
+                </alwaysTrue>
+            </policyConstraints>
+            <markRef oid="c58394cd-c883-4e41-927c-f90a7c7a0c97" type="MarkType"/>
+            <policyActions>
+                <record/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <identifier>mark-user</identifier>
+        <documentation>Marks users that are (indirectly) affected by any role classified as privileged.</documentation>
+        <policyRule>
+            <policyConstraints>
+                <alwaysTrue>
+                    <name>mark-user-always-true</name>
+                </alwaysTrue>
+            </policyConstraints>
+            <markRef oid="c58394cd-c883-4e41-927c-f90a7c7a0c97" type="MarkType"/>
+            <policyActions>
+                <record/>
+            </policyActions>
+        </policyRule>
+        <orderConstraint>
+            <order>2</order>
+        </orderConstraint>
+        <focusType>UserType</focusType>
+    </inducement>
+</policy>

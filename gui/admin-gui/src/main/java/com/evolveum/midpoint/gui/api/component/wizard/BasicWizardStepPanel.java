@@ -314,13 +314,31 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
                 .setDefaultValue("");
     }
 
+    private List<HelpTab> cachedHelpTabs;
+    private boolean helpTabsComputed;
+
     /**
      * Context aware list of documentation tabs for this step, one tab per help source. When it returns a
      * non-empty list, the drawer shows tabs and chapter navigation.
      *
+     * <p>The result of {@link #computeHelpTabs()} is computed once per panel instance and cached, since
+     * the wizard drawer queries this on every render ({@code WizardHelpCollapsedItem.isVisible()}).
+     *
      * @return
      */
     public List<HelpTab> getHelpTabs() {
+        if (!helpTabsComputed) {
+            cachedHelpTabs = computeHelpTabs();
+            helpTabsComputed = true;
+        }
+        return cachedHelpTabs;
+    }
+
+    /**
+     * Provides the documentation tabs for this step; panels override it. The returned list (or {@code null})
+     * is cached by {@link #getHelpTabs()}.
+     */
+    protected List<HelpTab> computeHelpTabs() {
         return null;
     }
 

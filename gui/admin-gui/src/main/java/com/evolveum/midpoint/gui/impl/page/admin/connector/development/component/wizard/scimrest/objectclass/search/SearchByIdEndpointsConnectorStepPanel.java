@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 import java.util.Collection;
 import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * Wizard step for selecting endpoint for Search By ID (search one / read by ID) script generation.
@@ -76,5 +79,10 @@ public class SearchByIdEndpointsConnectorStepPanel extends EndpointsConnectorSte
     @Override
     protected ItemPath getScriptItemName() {
         return ConnDevObjectClassInfoType.F_SEARCH_ID_OPERATION;
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.SEARCH_BY_ID_ENDPOINT, ConnectorWizardHelpTopics.ENDPOINT_SELECTION);
     }
 }

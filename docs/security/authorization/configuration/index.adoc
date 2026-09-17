@@ -143,7 +143,7 @@ E.g. the following code shows a modified version of the default End User role th
 <role oid="00000000-0000-0000-0000-000000000008">
     <name>End user</name>
     <authorization> <!-- GUI authorization -->
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#dashboard</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard</action>
     </authorization>
     <authorization> <!-- Request authorization -->
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
@@ -166,7 +166,7 @@ E.g. the following code shows a modified version of the default End User role th
 This role allows access to a "Dashboard" GUI page where a user can see details about himself.
 For this role to work three authorization statements are needed:
 
-* GUI authorization statement for action `http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#dashboard` allows access to the "Dashboard" GUI page.
+* GUI authorization statement for action `http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard` allows access to the "Dashboard" GUI page.
 
 * The request authorization for action `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read` allows the Dashboard page to _request_ read operation of the user object that describes currently logged-in user (defined by the `self` statement, see below).
 
@@ -206,7 +206,7 @@ E.g.
 [source,xml]
 ----
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#dashboard</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#dashboard</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#myPasswords</action>
     </authorization>
 ----

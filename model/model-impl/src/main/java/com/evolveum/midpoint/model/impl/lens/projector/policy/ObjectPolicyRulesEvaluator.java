@@ -11,23 +11,22 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.DirectlyEvaluatedClockworkPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.DirectlyEvaluatedClockworkPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Evaluates policy rules attached to the objects represented by {@link LensElementContext} (focus and projections).
@@ -91,9 +90,34 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
 
     @Override
     void record(OperationResult result) throws SchemaException {
-        new PolicyStateRecorder().applyObjectState(
-                elementContext,
-                selectRulesToRecord(elementContext.getObjectPolicyRules()));
+        List<DirectlyEvaluatedClockworkPolicyRuleImpl> rulesToRecord =
+                selectRulesToRecord(elementContext.getObjectPolicyRules()).stream()
+                        .filter(rule -> !isFromDeletedAssignment(rule))
+                        .toList();
+        new PolicyStateRecorder().applyObjectState(elementContext, rulesToRecord);
+    }
+
+    /**
+     * Rules coming from assignments that are being deleted are evaluated (e.g. to run scripts on unassignment,
+     * see {@link PolicyRulesCollector#collectObjectRules(OperationResult)}), but they must not be recorded into
+     * the object: the resulting object no longer has the assignment, so its marks, situations and triggered
+     * rules do not apply to it. See #10641.
+     */
+    private boolean isFromDeletedAssignment(DirectlyEvaluatedClockworkPolicyRuleImpl rule) {
+        var originatingAssignment = rule.getOriginatingAssignment();
+        if (originatingAssignment == null) {
+            return false;
+        }
+        // The origin covers also assignments deleted in previous waves: those are evaluated again in later waves
+        // (with an unchanged "no change" item, so the mode alone is not sufficient). Compare with the handling
+        // of assignment-related policy state in PolicyStateRecorder.
+        boolean deleted = originatingAssignment.isBeingDeleted()
+                || originatingAssignment.getMode() == PlusMinusZero.MINUS;
+        if (deleted) {
+            LOGGER.trace("Not recording rule '{}' as its originating assignment is being deleted: {}",
+                    rule.getName(), originatingAssignment);
+        }
+        return deleted;
     }
 
     /** Evaluates object policy rules attached to the focus. */

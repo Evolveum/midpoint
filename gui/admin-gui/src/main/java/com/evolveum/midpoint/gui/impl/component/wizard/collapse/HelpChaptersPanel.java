@@ -13,11 +13,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.string.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -174,13 +174,27 @@ public class HelpChaptersPanel extends BasePanel<List<HelpChapter>> {
         return chapterTitle;
     }
 
-    private @NotNull MultiLineLabel createChapterContent() {
-        MultiLineLabel content = new MultiLineLabel(ID_CHAPTER_CONTENT, () -> {
-            HelpChapter chapter = getSelectedChapter();
-            return chapter != null ? chapter.getContentModel().getObject() : "";
-        });
+    private @NotNull Label createChapterContent() {
+        Label content = new Label(ID_CHAPTER_CONTENT, this::chapterContentMarkup);
         content.setEscapeModelStrings(false);
         return content;
+    }
+
+    /**
+     * HTML chapters are rendered as-is; plain text chapters keep the multi-line conversion a
+     * {@code MultiLineLabel} would apply (newlines become {@code <br>}, blank lines become
+     * paragraph breaks).
+     */
+    private @NotNull String chapterContentMarkup() {
+        HelpChapter chapter = getSelectedChapter();
+        if (chapter == null) {
+            return "";
+        }
+        String text = chapter.getContentModel().getObject();
+        if (text == null) {
+            return "";
+        }
+        return chapter.isHtml() ? text : Strings.toMultilineMarkup(text).toString();
     }
 
     private void previousChapter() {
