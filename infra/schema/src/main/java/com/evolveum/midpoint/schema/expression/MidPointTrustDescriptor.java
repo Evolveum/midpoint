@@ -45,6 +45,9 @@ public interface MidPointTrustDescriptor extends TrustDescriptor {
 
     /**
      * Denotes an object that is untrusted. Typically because it comes from an external source (like REST).
+     *
+     * TODO maybe it should be called "trusted by authorization" because (at least for bulk actions) we look at
+     *  who is the principal
      */
     static MidPointTrustDescriptor untrusted() {
         return new Untrusted();

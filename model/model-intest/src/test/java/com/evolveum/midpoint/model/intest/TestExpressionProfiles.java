@@ -1077,7 +1077,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         resetBoomed();
 
         when("dangerous bulk action is executed");
-        var script = parseScript(file, MidPointTrustDescriptor.untrusted());
+        var script = parseScript(file, descriptorForOrigin(origin));
         try {
             bulkActionsService.executeBulkAction(
                     ExecuteScriptConfigItem.of(script, origin),

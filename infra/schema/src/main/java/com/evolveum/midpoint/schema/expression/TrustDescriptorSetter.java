@@ -57,8 +57,6 @@ public class TrustDescriptorSetter {
         @Override
         public void visit(JaxbVisitable visitable) {
             setTrustDescriptorsIfApplicable(visitable);
-            // We can have expressions in bulk actions, filters in expressions, and so on - hence we go deeper even if we
-            // set the trust descriptor on the current object.
             JaxbVisitable.visitPrismStructure(visitable, this);
         }
 
@@ -67,8 +65,6 @@ public class TrustDescriptorSetter {
             if (visitable instanceof PrismPropertyValue<?> propertyValue) {
                 Object realValue = propertyValue.getRealValue();
                 setTrustDescriptorsIfApplicable(realValue);
-                // We can have expressions in bulk actions, filters in expressions, and so on - hence we go deeper even if we
-                // set the trust descriptor on the current object.
                 if (realValue instanceof JaxbVisitable jaxbVisitable) {
                     jaxbVisitable.accept(this);
                 }

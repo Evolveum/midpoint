@@ -106,6 +106,7 @@ public class NotificationManagerImpl implements NotificationManager {
         try {
             eventHandlerRegistry.forwardToHandler(eventHandlerConfig, ctx, result);
         } catch (Throwable t) {
+            result.recordException(t);
             LoggingUtils.logUnexpectedException(LOGGER, "Event couldn't be processed: {}", t, ctx);
         }
     }
