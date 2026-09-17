@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public abstract class ConnectorSpec {
 
     @NotNull protected final ResourceType resource;
+    @Nullable private String resolvedConnectorOid;
 
     private ConnectorSpec(@NotNull ResourceType resource) {
         this.resource = resource;
@@ -134,7 +135,15 @@ public abstract class ConnectorSpec {
      * Note that connector OID is not required here, as the resource may be not resolved yet, or it may be
      * an abstract resource with missing connectorRef.
      */
-    public abstract @Nullable String getConnectorOid();
+    public final @Nullable String getConnectorOid() {
+        return resolvedConnectorOid != null ? resolvedConnectorOid : getOid(getConnectorRef());
+    }
+
+    void setResolvedConnectorOid(@NotNull String resolvedConnectorOid) {
+        this.resolvedConnectorOid = resolvedConnectorOid;
+    }
+
+    abstract @Nullable ObjectReferenceType getConnectorRef();
 
     /**
      * To be used when we are sure to deal with fully expanded, non-abstract resources.
@@ -202,8 +211,8 @@ public abstract class ConnectorSpec {
         }
 
         @Override
-        public @Nullable String getConnectorOid() {
-            return ResourceTypeUtil.getConnectorOid(resource);
+        @Nullable ObjectReferenceType getConnectorRef() {
+            return resource.getConnectorRef();
         }
 
         @Override
@@ -272,8 +281,8 @@ public abstract class ConnectorSpec {
         }
 
         @Override
-        public @Nullable String getConnectorOid() {
-            return getOid(definitionBean.getConnectorRef());
+        @Nullable ObjectReferenceType getConnectorRef() {
+            return definitionBean.getConnectorRef();
         }
 
         @Override

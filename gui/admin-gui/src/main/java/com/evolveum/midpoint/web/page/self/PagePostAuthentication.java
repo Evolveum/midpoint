@@ -76,6 +76,8 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
     private IModel<UserType> userModel;
     private PrismObjectWrapper<UserType> objectWrapper;
+    private Panel mainPanel;
+    private Panel passwordPanel;
 
     public PagePostAuthentication() {
         super(null);
@@ -140,11 +142,11 @@ public class PagePostAuthentication extends PageAbstractFlow {
         WebMarkupContainer wrappers = new WebMarkupContainer(ID_WRAPPER_CONTENT);
 
         try {
-            Panel main = initItemPanel(ID_MAIN_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(Model.of(objectWrapper), ItemPath.EMPTY_PATH), null);
-            wrappers.add(main);
+            mainPanel = initItemPanel(ID_MAIN_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(Model.of(objectWrapper), ItemPath.EMPTY_PATH), null);
+            wrappers.add(mainPanel);
 
-            Panel password = initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(Model.of(objectWrapper), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null);
-            wrappers.add(password);
+            passwordPanel = initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(Model.of(objectWrapper), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null);
+            wrappers.add(passwordPanel);
 
         } catch (SchemaException e) {
             LOGGER.error("Cannot create panel, {}", e.getMessage(), e);
@@ -246,5 +248,15 @@ public class PagePostAuthentication extends PageAbstractFlow {
     @Override
     protected String getSubmitLabelKey() {
         return "PageBase.button.submit";
+    }
+
+    @Override
+    protected void handleErrors(AjaxRequestTarget target) {
+        if (mainPanel != null) {
+            target.add(mainPanel);
+        }
+        if (passwordPanel != null) {
+            target.add(passwordPanel);
+        }
     }
 }

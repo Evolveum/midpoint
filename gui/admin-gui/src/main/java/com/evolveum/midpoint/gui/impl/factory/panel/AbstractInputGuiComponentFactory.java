@@ -108,6 +108,10 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
                 formComponent.add(AttributeAppender.append("aria-required", "true"));
             }
 
+            // visual indication of the validation error
+            formComponent.add(AttributeAppender.append("class", () -> formComponent.hasErrorMessage() ? "is-invalid" : ""));
+            formComponent.add(AttributeAppender.append("aria-invalid", () ->  formComponent.hasErrorMessage() ? "true" : "false"));
+
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));
             }

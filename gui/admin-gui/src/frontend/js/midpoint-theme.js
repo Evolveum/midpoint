@@ -1050,7 +1050,7 @@ export default class MidPointTheme {
         }
     }
 
-    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose, messageCurrent) {
+    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose, messageCurrent, messageViewSelected) {
         const picker = new TempusDominus(containerId, configuration);
         const pickerStatus = document.getElementById(pickerStatusId);
 
@@ -1090,49 +1090,44 @@ export default class MidPointTheme {
             });
             // announce navigation between months/years/decades (previous/next buttons,
             // or switching into a different view)
+            let updateAnnounceTimer = null;
             picker.subscribe('update.td', () => {
                 const switchEl = picker.display && picker.display.widget
                     && picker.display.widget.querySelector('.calendar-header .picker-switch');
-                const label = switchEl && switchEl.textContent.trim();
+                let label = switchEl && switchEl.textContent.trim();
                 if (!label) {
                     return;
                 }
+                const highlightedCell = picker.display.widget.querySelector('.date-container [data-action].active')
+                    || picker.display.widget.querySelector('.date-container [data-action].today');
+                if (highlightedCell) {
+                    label += ', ' + highlightedCell.textContent.trim();
+                }
+                const formatted = messageViewSelected.replace('{0}', label);
                 pickerStatus.textContent = '';
-                setTimeout(() => {
-                    pickerStatus.textContent = label;
-                }, 250);
+                if (updateAnnounceTimer) {
+                    clearTimeout(updateAnnounceTimer);
+                }
+                updateAnnounceTimer = setTimeout(() => {
+                    pickerStatus.textContent = formatted;
+                }, 500);
             });
         }
         picker.subscribe('show.td', () => {
-            var $dateContainer = $('.date-container');
+            var $dateContainer = $(picker.display.widget);
 
             var $dateContainerDecades = $('.date-container-decades');
             var $dateContainerYears = $('.date-container-years');
             var $dateContainerMonths = $('.date-container-months');
             var $dateContainerDays = $('.date-container-days');
-            if ($dateContainerDecades.length > 0) {
-                $dateContainerDecades.attr({
-                    'role': 'grid'
-                });
-            }
-            if ($dateContainerYears.length > 0) {
-                $dateContainerYears.attr({
-                    'role': 'grid'
-                });
-            }
-            if ($dateContainerMonths.length > 0) {
-                $dateContainerMonths.attr({
-                    'role': 'grid'
-                });
-            }
-            if ($dateContainerDays.length > 0) {
-                $dateContainerDays.attr({
-                    'role': 'grid'
-                });
-            }
+
+            $dateContainerDecades.attr({ 'role': 'grid' });
+            $dateContainerYears.attr({ 'role': 'grid' });
+            $dateContainerMonths.attr({ 'role': 'grid' });
+            $dateContainerDays.attr({ 'role': 'grid' });
 
             if ($dateContainer.length > 0) {
-                $dateContainer.on('keydown', function (e) {
+                $dateContainer.off('keydown.mpDateTimePicker').on('keydown.mpDateTimePicker', function (e) {
                     if (e.key === 'Escape' || e.keyCode === 27) {
                         if (picker && picker.display && picker.display.isVisible) {
                             picker.hide(); // close only this picker
@@ -1182,12 +1177,38 @@ export default class MidPointTheme {
             $switchEl.attr('role', 'button');
 
             // we add aria-live="polite" to every focused element so that it is announced
-            $actionElements.on('focus', function () {
+            $actionElements.off('focus.mpAriaLive').on('focus.mpAriaLive', function () {
                 $actionElements.removeAttr('aria-live');
                 if ($(this).closest('.calendar-header').length === 0) {
                     $(this).attr('aria-live', 'polite');
                 }
             });
+
+            if (pickerStatus) {
+                $actionElements.off('focus.mpAnnounceGridEntry').on('focus.mpAnnounceGridEntry', function (e) {
+                    const $this = $(this);
+                    if ($this.closest('.calendar-header').length > 0) {
+                        return;
+                    }
+                    const relatedTarget = e.relatedTarget;
+                    const cameFromWithinWidget = relatedTarget && $(relatedTarget).closest('.tempus-dominus-widget').length > 0;
+                    const cameFromSameGrid = relatedTarget && $(relatedTarget).closest(
+                        '.date-container-days, .date-container-months, .date-container-years, .date-container-decades').length > 0;
+                    if (!cameFromWithinWidget || cameFromSameGrid) {
+                        return;
+                    }
+                    const switchEl = document.querySelector('.calendar-header .picker-switch');
+                    let label = switchEl && switchEl.textContent.trim();
+                    if (!label) {
+                        return;
+                    }
+                    label += ', ' + $this.text().trim();
+                    pickerStatus.textContent = '';
+                    setTimeout(() => {
+                        pickerStatus.textContent = label;
+                    }, 250);
+                });
+            }
 
             const prevButton = $('.calendar-header .previous');
             const nextButton = $('.calendar-header .next');
@@ -1195,13 +1216,13 @@ export default class MidPointTheme {
             prevButton.focus();
             nextButton.attr('role', 'button');
 
-            prevButton.on('click', function () {
+            prevButton.off('click.mpDateTimePicker').on('click.mpDateTimePicker', function () {
                 event.preventDefault();
                 const button = $(this);
                 button.focus();
             });
 
-            nextButton.on('click', function () {
+            nextButton.off('click.mpDateTimePicker').on('click.mpDateTimePicker', function () {
                 event.preventDefault();
                 const button = $(this);
                 button.focus();
@@ -1982,18 +2003,21 @@ export default class MidPointTheme {
     }
 
     updatePasswordErrorState(errorId, fieldId) {
-        const INVALID_CLASS = 'is-invalid';
         const error = document.getElementById(errorId);
-        const field = document.getElementById(fieldId);
-
-        if (error && field) {
-            const hasError = error.textContent.trim() !== '';
-            if (hasError && !field.classList.contains(INVALID_CLASS)) {
-                field.classList.add(INVALID_CLASS);
-            } else if (!hasError && field.classList.contains(INVALID_CLASS)) {
-                field.classList.remove(INVALID_CLASS);
-            }
+        if (!error) {
+            return;
         }
+        this.setFieldInvalid(fieldId, error.textContent.trim() !== '');
+    }
+
+    setFieldInvalid(fieldId, invalid) {
+        const INVALID_CLASS = 'is-invalid';
+        const field = document.getElementById(fieldId);
+        if (!field) {
+            return;
+        }
+        field.classList.toggle(INVALID_CLASS, invalid);
+        field.setAttribute('aria-invalid', invalid ? 'true' : 'false');
     }
 
     saveFocus(componentId) {

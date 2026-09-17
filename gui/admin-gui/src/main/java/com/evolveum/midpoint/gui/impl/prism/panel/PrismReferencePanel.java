@@ -61,12 +61,12 @@ public class PrismReferencePanel<R extends Referencable>
                             .add(AttributeAppender.append(
                                     "aria-label",
                                     getParentPage().createStringResource(
-                                            "PrismReferencePanel.readOnlyText", getHeader().createLabelModel().getObject())));
+                                            "PrismReferencePanel.readOnlyAriaLabel", getHeader().createLabelModel().getObject())));
                     ((ValueChoosePanel) inputPanel).getEditButton()
                             .add(AttributeAppender.append(
                                     "aria-label",
                                     getParentPage().createStringResource(
-                                            "PrismReferencePanel.editButtonTitle", getHeader().createLabelModel().getObject())));
+                                            "PrismReferencePanel.editButtonAriaLabel", getHeader().createLabelModel().getObject())));
                 } else if (refValuePanel != null) {
                     refValuePanel.visitChildren(
                             FormComponent.class,

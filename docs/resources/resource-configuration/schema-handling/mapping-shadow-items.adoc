@@ -1,0 +1,89 @@
+= Mapping Shadow Items
+:page-description: This page explains how to configure inbound mappings for shadow items.
+:page-keywords: mapping, shadow, inbound mapping, resource attribute, resource schema, resource object, shadow item
+:page-toc: top
+
+This page explains how to configure inbound mappings for shadow items.
+
+== Introduction
+
+xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound mappings] are commonly used to bring values from resource attributes into a focus object.
+In most cases, the mapping source is therefore a resource attribute, such as `ri:uid` or `ri:cn`.
+
+However, not all resource information is represented as a standard resource attribute.
+A shadow contains more than just resource attributes.
+It can also contain items maintained by midPoint that describe the state of the resource object.
+These items are not stored as resource attributes, but in dedicated shadow containers, for example:
+
+* `activation` for the account activation state,
+* `behavior` for behavioral data such as the xref:/midpoint/reference/resources/resource-configuration/capabilities/#last-login-timestamp-capability[last login timestamp].
+
+You may want to use such information in an inbound mapping as well.
+For example, to copy the last login timestamp from the shadow to a property on the focus object.
+
+Such mappings require a slightly different configuration than standard inbound mappings because these shadow items are not resource attributes and therefore cannot be used as the basis of an `attribute` mapping directly.
+
+== Configuration
+
+Standard inbound mappings for resource attributes are defined within `attribute` elements that represent existing resource attributes.
+
+However, inbound mappings for non-attribute shadow items cannot be defined independently and have to be attached to existing resource attributes.
+The `attribute` element then acts only as a wrapper for the inbound mapping, even if the attribute itself is not used as the mapping source.
+Use the `ref` element to specify the resource attribute under which the mapping is defined.
+
+Inbound mapping for shadow items should contain the following elements:
+
+[%autowidth]
+|===
+| Element | Description
+
+| `name`
+| Optional name used to identify the mapping.
+
+| `source`
+| Explicitly defines the shadow item from which the mapping obtains its value.
+Use a path starting with `$projection` to reference the item.
+
+| `expression`
+| An expression has to be explicitly defined when mapping a shadow item this way.
+Otherwise the mapping fails. +
+See xref:/midpoint/reference/expressions/mappings/#expression[Expression configuration].
+
+| `target`
+| The target is configured the same way as for standard inbound mappings. +
+See xref:/midpoint/reference/expressions/mappings/#target[Target configuration] for more information.
+
+|===
+
+
+== Example
+
+The following example shows and inbound mapping that uses `lastLoginTimestamp` from the shadow's `behavior` container as its source and stores the value in an extension property on the focus object.
+
+Note that the mapping is attached to the existing `ri:cn` attribute only as a wrapper.
+The `cn` attribute itself is not used as the mapping source.
+
+[source,xml]
+----
+<attribute>
+        <ref>ri:cn</ref> <1>
+        <inbound>
+            <name>last-login-from-behavior</name>
+            <source>
+                <path>$projection/behavior/lastLoginTimestamp</path> <2>
+            </source>
+            <expression>
+                <script>
+                    <code>lastLoginTimestamp</code> <3>
+                </script>
+            </expression>
+            <target>
+                <path>$focus/extension/lastLoginTimestamp</path> <4>
+            </target>
+        </inbound>
+</attribute>
+----
+<1> Existing `cn` resource attribute to which the inbound mapping is attached.
+<2> `lastLoginTimestamp` property from the `behavior` container of the shadow.
+<3> Expression that returns the `lastLoginTimestamp` source value unchanged.
+<4> Target path on the focus object, in this case an extension property defined by the schema extension.

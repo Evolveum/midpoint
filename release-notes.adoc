@@ -90,7 +90,11 @@ including import of signed allowed-connectors list and subscription compliance e
 * Added English (Europe) locale. See bug:MID-10286[].
 * Added auditing of Smart Integration service calls, including request payload recording and full-text payload search. See bug:MID-11325[].
 * Form multipart limit (adminGuiConfiguration/formMaxMultiparts) now defaults to the Tomcat server.tomcat.max-part-count value instead of a fixed 100.
+* Improved security filtering of transient pending objects before GUI rendering. See bug:MID-12062[]
 * Changed password hints to be stored as ProtectedStringType instead of plain strings. See bug:MID-12111[] and xref:/midpoint/guides/migrating-plaintext-password-hints/[migration guide].
+* Account activation now uses a dedicated authentication sequence and a one-time link.
+This is mainly used when password hashing is enabled.
+See xref:/midpoint/guides/account-activation-sequence/[Account Activation Authentication Sequence] for the required configuration.
 
 #TODO#
 
@@ -206,6 +210,9 @@ including import of signed allowed-connectors list and subscription compliance e
 * Fixed stale effective marks remaining on focus objects when one of several marking policy rules stops matching. See bug:MID-12154[].
 * Fixed endless discovery loop causing stalled tasks and OOM when resource repeatedly reported "Already exists" on modification issue. See bug:MID-11979[].
 * Fixed transient `effectiveOperationPolicy` being persisted and displayed in audited shadow ADD deltas. See bug:MID-11951[].
+* Fixed unbounded growth of task operation results during iterative item processing. See bug:MID-12197[]
+* Fixed persisted ItemPath values losing dynamic schema extension namespace declarations. See bug:MID-11241[]
+* Fixed additional connector failure when connectorRef is specified using a filter. See bug:MID-9537[]
 
 === Releases Of Other Components
 
