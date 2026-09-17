@@ -3613,6 +3613,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="haltingInformation" type="tns:ActivityHaltingInformationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Present when a run of this activity was halted by a policy action (currently suspendTask).
+                        Unlike abortingInformation, the realization stays in progress and can continue. However, while
+                        this item is present, any run whose policy counters reside in this state halts again right
+                        at its start (unless the policy processing is switched off). It is removed by clearing
+                        the activity policy states, by a restart of the activity, and by a new realization.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3783,6 +3797,63 @@
                     <xsd:documentation>
                         Policy action that caused the activity to be aborted.
                         Currently supported are SkipActivityPolicyActionType and RestartActivityPolicyActionType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityHaltingInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                More details why an activity was halted.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="activityPath" type="tns:ActivityPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Activity whose run was halted. It may differ from the activity holding this state,
+                        e.g. for reconciliation sub-activities or workers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="policyAction" type="tns:PolicyActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy action that caused the halt. Currently only SuspendTaskPolicyActionType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="policyIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of the violated policy rule, in the form used for the counters. Informational only.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="policyName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the violated policy rule. Informational only.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Violation message, reported again when a later run is halted because of this item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the activity was halted.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

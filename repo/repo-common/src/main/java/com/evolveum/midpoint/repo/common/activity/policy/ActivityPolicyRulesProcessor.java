@@ -201,7 +201,8 @@ public class ActivityPolicyRulesProcessor {
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, ABORTED, cause);
             } else if (action instanceof SuspendTaskPolicyActionType) {
                 LOGGER.debug("Going to suspend the task because of policy violation, rule: {}", rule);
-                var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
+                var cause = ActivityPolicyBasedHaltException.forRule(
+                        message, defaultMessage, action, rule.getRuleIdentifier().asString(), ruleName);
                 throw new ActivityRunPolicyException(defaultMessage, FATAL_ERROR, HALTING_ERROR, cause);
             } else {
                 LOGGER.debug("No action to take for policy violation, rule: {}", rule);

@@ -283,6 +283,7 @@ public class ActivityTreePurger {
                     beans.prismContext.deltaFor(TaskType.class)
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_STATE)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_ABORTING_INFORMATION)).replace()
+                            .item(ctx.currentStateItemPath.append(ActivityStateType.F_HALTING_INFORMATION)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_START_TIMESTAMP)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_REALIZATION_END_TIMESTAMP)).replace()
                             .item(ctx.currentStateItemPath.append(ActivityStateType.F_RUN_START_TIMESTAMP)).replace()
