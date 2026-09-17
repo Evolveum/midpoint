@@ -68,6 +68,12 @@
                     <typeChecking>true</typeChecking>
                     <permissionProfile>script-safe</permissionProfile>
                 </script>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#mel</language>
+                    <decision>allow</decision>
+                    <typeChecking>true</typeChecking>
+                    <permissionProfile>mel-safe</permissionProfile>
+                </script>
             </evaluator>
         </expressionProfile>
         <permissionProfile>
@@ -81,6 +87,11 @@
             <package>
                 <name>com.evolveum.prism.xml.ns._public.types_3</name>
                 <description>Prism schema - bean classes</description>
+                <decision>allow</decision>
+            </package>
+            <package>
+                <name>com.evolveum.midpoint.prism.impl.binding</name>
+                <description>Prism data (e.g. ObjectReferenceType.getOid because it is inherited from here)</description>
                 <decision>allow</decision>
             </package>
             <class>
@@ -238,6 +249,20 @@
                 <name>com.evolveum.midpoint.prism.PrismReferenceValue</name>
                 <decision>allow</decision>
             </class>
+        </permissionProfile>
+        <permissionProfile>
+            <identifier>mel-safe</identifier>
+            <decision>allow</decision>
+            <package>
+                <name>midpoint</name>
+                <description>midpoint.* MEL language extension</description>
+                <decision>deny</decision>
+            </package>
+            <package>
+                <name>secret</name>
+                <description>secret.* MEL language extension</description>
+                <decision>deny</decision>
+            </package>
         </permissionProfile>
     </expressions>
 
