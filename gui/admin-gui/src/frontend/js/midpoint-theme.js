@@ -2003,18 +2003,21 @@ export default class MidPointTheme {
     }
 
     updatePasswordErrorState(errorId, fieldId) {
-        const INVALID_CLASS = 'is-invalid';
         const error = document.getElementById(errorId);
-        const field = document.getElementById(fieldId);
-
-        if (error && field) {
-            const hasError = error.textContent.trim() !== '';
-            if (hasError && !field.classList.contains(INVALID_CLASS)) {
-                field.classList.add(INVALID_CLASS);
-            } else if (!hasError && field.classList.contains(INVALID_CLASS)) {
-                field.classList.remove(INVALID_CLASS);
-            }
+        if (!error) {
+            return;
         }
+        this.setFieldInvalid(fieldId, error.textContent.trim() !== '');
+    }
+
+    setFieldInvalid(fieldId, invalid) {
+        const INVALID_CLASS = 'is-invalid';
+        const field = document.getElementById(fieldId);
+        if (!field) {
+            return;
+        }
+        field.classList.toggle(INVALID_CLASS, invalid);
+        field.setAttribute('aria-invalid', invalid ? 'true' : 'false');
     }
 
     saveFocus(componentId) {
