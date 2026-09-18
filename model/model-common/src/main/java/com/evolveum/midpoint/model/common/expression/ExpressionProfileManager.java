@@ -69,18 +69,27 @@ public class ExpressionProfileManager {
             MidPointTrustDescriptor trustDescriptor, boolean privileged, Task task, OperationResult result)
             throws SecurityViolationException {
 
+        // TODO optimize this to avoid checking the enforcer before actually needed
+        boolean authorized;
+        try {
+            authorized = privileged || securityEnforcer.isAuthorizedAll(task, result);
+        } catch (CommonException e) {
+            throw new SecurityViolationException(e); // TODO
+        }
+        var defaultProfile = authorized ? ExpressionProfile.full() : ExpressionProfile.legacyUnprivilegedBulkActions();
+
         return determineExpressionProfileInternal(
                 trustDescriptor,
                 result,
                 (lResult) -> {
-                    if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
+                    if (authorized) {
                         return getPrivilegedBulkActionsProfileId(result);
                     } else {
                         return getUnprivilegedBulkActionsProfileId(result);
                     }
                 },
-                DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS,
-                privileged ? ExpressionProfile.full() : ExpressionProfile.legacyUnprivilegedBulkActions());
+                defaultProfile, // this is the default for bulk actions in repo objects (e.g., tasks)
+                defaultProfile);
     }
 
     private ExpressionProfile determineExpressionProfileInternal(
