@@ -37,6 +37,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundMappingMainConfigurationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundMappingOptionalConfigurationStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.InboundMappingRangeStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping.OutboundMappingRangeStepPanel;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -176,6 +178,12 @@ public class AssociationMappingWizardPanel<C extends Containerable> extends Abst
                 showTableFragment(target, initialTab);
             }
         });
+        steps.add(new InboundMappingRangeStepPanel(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, initialTab);
+            }
+        });
         steps.add(new InboundMappingOptionalConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -197,6 +205,12 @@ public class AssociationMappingWizardPanel<C extends Containerable> extends Abst
             IModel<PrismContainerValueWrapper<MappingType>> valueModel, MappingDirection initialTab) {
         List<WizardStep> steps = new ArrayList<>();
         steps.add(new OutboundMappingMainConfigurationStepPanel<>(getAssignmentHolderModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target, initialTab);
+            }
+        });
+        steps.add(new OutboundMappingRangeStepPanel<>(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target, initialTab);

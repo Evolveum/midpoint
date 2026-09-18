@@ -119,6 +119,12 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
                 showFocusMappingWizard(target, valueModel, FocusMappingMappingsStepPanel.PANEL_TYPE);
             }
         });
+        steps.add(new FocusMappingMappingRangeStepPanel<>(getAssignmentHolderModel(), rowModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showFocusMappingWizard(target, valueModel, FocusMappingMappingsStepPanel.PANEL_TYPE);
+            }
+        });
         steps.add(new FocusMappingMappingOptionalStepPanel(getAssignmentHolderModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
