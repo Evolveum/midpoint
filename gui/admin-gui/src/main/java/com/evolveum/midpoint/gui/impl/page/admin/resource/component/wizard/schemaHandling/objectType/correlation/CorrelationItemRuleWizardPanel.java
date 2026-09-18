@@ -152,6 +152,14 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
     }
 
     @Override
+    protected boolean isBackButtonVisible() {
+        if (isSuggestionApplied()) {
+            return true;
+        }
+        return super.isBackButtonVisible();
+    }
+
+    @Override
     protected String getButtonContainerAdditionalCssClass() {
         return "";
     }
