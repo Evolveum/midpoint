@@ -126,7 +126,7 @@ public class PageAction extends PageAdminConfiguration {
                                 parsed.getClass()).getString());
             } else {
                 typed = ScriptingBeansUtil.asExecuteScriptCommand(parsed);
-                typed.setTrustDescriptor(MidPointTrustDescriptor.untrusted()); // TODO rename to something like "as authenticated"
+                typed.setTrustDescriptor(MidPointTrustDescriptor.forCurrentPrincipal());
             }
         } catch (SchemaException | RuntimeException e) {
             result.recordFatalError(createStringResource("PageAction.message.startPerformed.fatalError.parse").getString(), e);

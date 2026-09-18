@@ -110,14 +110,11 @@ public class BulkActionsExecutor {
      * Besides bulk action itself, we set the trust descriptors on variable definitions, as they may contain expressions as well.
      */
     private static void setTrustDescriptorsToScriptBeanAndVariables(ExecuteScriptType bean, ExpressionProfile expressionProfile) {
-        TrustDescriptorSetter.setDescriptors(
-                bean.getScriptingExpression().getValue(),
-                MidPointTrustDescriptor.explicit(expressionProfile));
+        var trustDescriptor = MidPointTrustDescriptor.explicit(expressionProfile);
+        TrustDescriptorSetter.setDescriptors(bean.getScriptingExpression().getValue(), trustDescriptor);
         var variablesDefinitionBean = bean.getVariables();
         if (variablesDefinitionBean != null) {
-            TrustDescriptorSetter.setDescriptors(
-                    variablesDefinitionBean,
-                    MidPointTrustDescriptor.explicit(expressionProfile));
+            TrustDescriptorSetter.setDescriptors(variablesDefinitionBean, trustDescriptor);
         }
     }
 

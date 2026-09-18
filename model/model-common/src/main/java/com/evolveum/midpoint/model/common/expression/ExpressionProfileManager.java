@@ -106,9 +106,9 @@ public class ExpressionProfileManager {
 
         try {
             String profileId;
-            if (trustDescriptor instanceof MidPointTrustDescriptor.RepositoryObject repositoryObject) {
-                profileId = determineExpressionProfileId(repositoryObject, result);
-            } else if (trustDescriptor instanceof MidPointTrustDescriptor.Untrusted) {
+            if (trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject authorizedObject) {
+                profileId = determineExpressionProfileId(authorizedObject, result);
+            } else if (trustDescriptor instanceof MidPointTrustDescriptor.CurrentPrincipal) {
                 profileId = null;
             } else {
                 throw new UnsupportedOperationException("Unsupported trust descriptor: " + trustDescriptor);
@@ -120,7 +120,7 @@ public class ExpressionProfileManager {
             if (profileId != null) {
                 return systemObjectCache.getExpressionProfile(profileId, result);
             }
-            if (trustDescriptor instanceof MidPointTrustDescriptor.RepositoryObject) {
+            if (trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject) {
                 return defaultForRepositoryObjects;
             } else {
                 return defaultForUntrusted;
@@ -140,7 +140,7 @@ public class ExpressionProfileManager {
      * conflicts. So, we do it in more explicit way.
      */
     private @Nullable String determineExpressionProfileId(
-            MidPointTrustDescriptor.RepositoryObject objectSpec, OperationResult result)
+            MidPointTrustDescriptor.AuthorizedObject objectSpec, OperationResult result)
             throws ConfigurationException, SchemaException, ObjectNotFoundException {
 
         // hopefully obtained from the cache

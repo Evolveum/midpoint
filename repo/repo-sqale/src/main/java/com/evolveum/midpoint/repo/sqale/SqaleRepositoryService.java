@@ -193,7 +193,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private void setTrustDescriptors(ObjectType object) {
         TrustDescriptorSetter.setDescriptors(
                 object.asPrismContainerValue(),
-                MidPointTrustDescriptor.forRepositoryObject(object));
+                MidPointTrustDescriptor.forAuthorizedObject(object));
     }
 
     /** Read object using provided {@link JdbcSession} as a part of already running transaction. */

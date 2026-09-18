@@ -928,7 +928,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("bulk action is executed");
-        var script = parseScript(FILE_SCRIPTING_GENERATE_VALUE, MidPointTrustDescriptor.untrusted());
+        var script = parseScript(FILE_SCRIPTING_GENERATE_VALUE, MidPointTrustDescriptor.forCurrentPrincipal());
         var executionResult = bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
@@ -1037,9 +1037,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private MidPointTrustDescriptor descriptorForOrigin(ConfigurationItemOrigin origin) {
         if (origin instanceof ConfigurationItemOrigin.External) {
-            return MidPointTrustDescriptor.untrusted();
+            return MidPointTrustDescriptor.forCurrentPrincipal();
         } else if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
-            return MidPointTrustDescriptor.forRepositoryObject(inObject.getOriginatingPrismObject().asObjectable());
+            return MidPointTrustDescriptor.forAuthorizedObject(inObject.getOriginatingPrismObject().asObjectable());
         } else {
             throw new IllegalArgumentException("Unexpected origin type: " + origin);
         }
@@ -1110,7 +1110,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("dangerous bulk action is executed");
-        var script = parseScript(file, MidPointTrustDescriptor.untrusted());
+        var script = parseScript(file, MidPointTrustDescriptor.forCurrentPrincipal());
         bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(
                         script,

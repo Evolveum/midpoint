@@ -258,7 +258,7 @@ public class Projector {
                     // should be the case; checking just to be sure
                     TrustDescriptorSetter.setDescriptors(
                             primaryDelta,
-                            MidPointTrustDescriptor.forRepositoryObject(object.asObjectable()));
+                            MidPointTrustDescriptor.forAuthorizedObject(object.asObjectable()));
                     focusContext.setPrimaryDeltaAfterStart(primaryDelta);
                 }
             }
