@@ -625,7 +625,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
             @Override
             protected String getPanelAdditionalCssClass() {
-                return BoxedTablePanel.this.getPanelAdditionalCssClass();
+                return BoxedTablePanel.this.getNoValuePanelAdditionalCssClass();
             }
         };
         components.setOutputMarkupId(true);
@@ -634,7 +634,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return components;
     }
 
-    protected String getPanelAdditionalCssClass() {
+    protected String getNoValuePanelAdditionalCssClass() {
         return "card shadow-sm mb-3";
     }
 

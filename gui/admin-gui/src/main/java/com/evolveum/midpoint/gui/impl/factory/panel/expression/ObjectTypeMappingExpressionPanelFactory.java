@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -56,7 +57,7 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
 
-        return new ExpressionPanel(panelCtx.getComponentId(),
+        ExpressionPanel components = new ExpressionPanel(panelCtx.getComponentId(),
                 panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel()) {
 
             @Override
@@ -75,7 +76,7 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
             }
 
             @Override
-            protected List<ExpressionPanel.RecognizedEvaluator> getChoices() {
+            protected List<RecognizedEvaluator> getChoices() {
                 return ObjectTypeMappingExpressionPanelFactory.this.getChoices(super.getChoices());
             }
 
@@ -130,6 +131,9 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
                 return getAdditionalLabelClass(panelCtx.unwrapWrapperModel());
             }
         };
+
+        components.add(AttributeModifier.append("class", " flex-wrap"));
+        return components;
     }
 
     private String getAdditionalLabelClass(PrismPropertyWrapper<ExpressionType> wrapper) {
@@ -183,7 +187,8 @@ public class ObjectTypeMappingExpressionPanelFactory extends AbstractGuiComponen
 
         return createStringResource(
                 "ObjectTypeMappingExpressionPanelFactory.for.mapping",
-                new Object[] { baseTitle.getObject(), mappingName });    }
+                new Object[] { baseTitle.getObject(), mappingName });
+    }
 
     private static @Nullable String getMappingName(PrismPropertyPanelContext<ExpressionType> panelCtx) {
         PrismPropertyWrapper<ExpressionType> expressionWrapper = panelCtx.getItemWrapperModel().getObject();

@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationItemRulePanel;
@@ -222,10 +221,6 @@ public class CorrelationCandidatePanel extends BasePanel<ProcessedObject<?>> {
                         getPageBase().getMainPopupBodyId(),
                         () -> correlatorWrapper,
                         () -> definitionWrapper) {
-                    @Override
-                    protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
-                        return findCandidateMappingsAsWrapper(getPageBase(), getSimulationResultModel().getObject());
-                    }
 
                     @Override
                     protected boolean isReadOnly() {

@@ -6,33 +6,30 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.component.input.PopoverActionChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationMappingCreationUtil.createMapping;
 
 /**
  * @author katka
@@ -40,7 +37,7 @@ import java.util.List;
 @Component
 public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
@@ -55,59 +52,80 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
         PrismPropertyWrapper<ItemPathType> item = panelCtx.unwrapWrapperModel();
 
         List<ItemPathType> itemPaths = getTargetsOfInboundMappings(item);
-        if (itemPaths.isEmpty()) {
-            IModel<String> valueModel = new IModel<>() {
-                @Override
-                public String getObject() {
-                    return GuiDisplayNameUtil.getDisplayName(panelCtx.getRealValueModel().getObject());
-                }
 
-                @Override
-                public void setObject(String object) {
-                    panelCtx.getRealValueModel().setObject(PrismContext.get().itemPathParser().asItemPathType(object));
-                }
-            };
+        PopoverActionChoicePanel<ItemPathType> typePanel =
+                new PopoverActionChoicePanel<>(
+                        panelCtx.getComponentId(),
+                        panelCtx.getRealValueModel(),
+                        Model.ofList(itemPaths),
+                        true) {
 
-            AutoCompleteTextPanel<String> panel = new AutoCompleteTextPanel<>(
-                    panelCtx.getComponentId(), valueModel, String.class, true) {
-                @Override
-                public Iterator<String> getIterator(String input) {
-                    return iteratorForAvariableDefinitions(input, item);
-                }
-            };
-            panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            return panel;
-        }
+                    @Override
+                    protected IModel<String> getChoicesIconCssModel() {
+                        return Model.of("fa fa-tag fa-fw text-muted me-1");
+                    }
 
-        DropDownChoicePanel<ItemPathType> typePanel = new DropDownChoicePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                Model.ofList(itemPaths), true);
-        typePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+                    @Override
+                    protected IModel<String> getActionIconCssModel() {
+                        return Model.of("fas fa-plus-circle me-1");
+                    }
+
+                    @Override
+                    protected void onActionClick(
+                            AjaxRequestTarget target,
+                            PopoverActionChoicePanel<ItemPathType> component) {
+
+                        PrismContainerValueWrapper<CorrelationItemType> correlationItem =
+                                item.getParentContainerValue(CorrelationItemType.class);
+
+                        createMappingPerformed(
+                                target,
+                                (PageBase) panelCtx.getPageBase(),
+                                () -> correlationItem,
+                                component);
+                    }
+
+                    @Override
+                    protected void onChoiceSelected(
+                            AjaxRequestTarget target,
+                            PopoverActionChoicePanel<ItemPathType> component) {
+                        // Nothing else to refresh here.
+                    }
+                };
+
         typePanel.setOutputMarkupId(true);
+
         return typePanel;
     }
 
-    private Iterator<String> iteratorForAvariableDefinitions(String input, PrismPropertyWrapper<ItemPathType> item) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = item.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
-        if (objectType != null) {
-            FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(null);
-            return provider.collectAvailableDefinitions(input, objectType.getRealValue()).iterator();
+    private void createMappingPerformed(
+            @NotNull AjaxRequestTarget target,
+            @NotNull PageBase pageBase,
+            @NotNull IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel,
+            @NotNull PopoverActionChoicePanel<ItemPathType> panel) {
+
+        PrismContainerValueWrapper<CorrelationItemType> correlationItem = rowModel.getObject();
+
+        if (correlationItem == null) {
+            return;
         }
 
-        if (item.getParentContainerValue(ShadowAssociationDefinitionType.class) != null) {
-            FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(null) {
-                @Override
-                protected PrismContainerDefinition<? extends Containerable> getFocusTypeDefinition(ResourceObjectTypeDefinitionType resourceObjectType) {
-                    return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
-                }
-            };
-            return provider.collectAvailableDefinitions(input, null).iterator();
+        PrismContainerValueWrapper<ItemsSubCorrelatorType> correlator = correlationItem
+                .getParentContainerValue(ItemsSubCorrelatorType.class);
+
+        if (correlator == null) {
+            return;
         }
 
-        return Collections.emptyIterator();
+        createMapping(target, pageBase,
+                () -> correlator,
+                ajaxTarget -> ajaxTarget.add(panel),
+                rowModel);
     }
 
     private List<ItemPathType> getTargetsOfInboundMappings(PrismPropertyWrapper<ItemPathType> item) {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = item.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = item
+                .getParentContainerValue(ResourceObjectTypeDefinitionType.class);
         if (objectType != null) {
             List<ResourceAttributeDefinitionType> attributeDefinitions = objectType.getRealValue().getAttribute();
             List<ItemPathType> targets = new ArrayList<>();
@@ -120,7 +138,8 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
             return targets;
         }
 
-        PrismContainerValueWrapper<AssociationSynchronizationExpressionEvaluatorType> association = item.getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class);
+        PrismContainerValueWrapper<AssociationSynchronizationExpressionEvaluatorType> association = item
+                .getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class);
         if (association != null) {
             List<AttributeInboundMappingsDefinitionType> attributeDefinitions = new ArrayList<>();
             attributeDefinitions.addAll(association.getRealValue().getAttribute());
