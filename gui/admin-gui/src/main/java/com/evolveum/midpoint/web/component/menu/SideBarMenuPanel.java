@@ -98,10 +98,10 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
             @Override
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
-                Component header = createHeader(item.getModel());
+                Component header = createHeader(item.getModel(), item.getIndex() + 1, getModelObject().size());
                 item.add(header);
 
-                Component menuItems = createMenuItems(header, item.getModel());
+                Component menuItems = createMenuItems(item.getModel());
                 item.add(menuItems);
             }
         };
@@ -171,10 +171,12 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         };
     }
 
-    private Component createHeader(IModel<SideBarMenuItem> model) {
+    private Component createHeader(IModel<SideBarMenuItem> model, int posinset, int setsize) {
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));
         header.add(AttributeAppender.append("aria-label", getHeaderMenuItemName(model)));
+        header.add(AttributeAppender.append("aria-posinset", String.valueOf(posinset)));
+        header.add(AttributeAppender.append("aria-setsize", String.valueOf(setsize)));
 
         Label name = new Label(ID_NAME, () -> getHeaderMenuItemName(model));
         header.add(name);
@@ -206,8 +208,9 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         return createStringResource("SideBarMenuPanel.headerAriaLabel.withState", expandedState).getString();
     }
 
-    private Component createMenuItems(Component header, IModel<SideBarMenuItem> model) {
-        ListView<MainMenuItem> items = new ListView<>(ID_ITEMS, new PropertyModel<>(model, SideBarMenuItem.F_ITEMS)) {
+    private Component createMenuItems(IModel<SideBarMenuItem> model) {
+        IModel<List<MainMenuItem>> categoryItemsModel = new PropertyModel<>(model, SideBarMenuItem.F_ITEMS);
+        ListView<MainMenuItem> items = new ListView<>(ID_ITEMS, categoryItemsModel) {
 
             @Override
             protected void populateItem(final ListItem<MainMenuItem> listItem) {
@@ -222,16 +225,36 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
                 item.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible()));
                 listItem.add(item);
 
-                // needed to help assistive technologies to associate menu items with their header
-                // In this case header (e.g. "Self service") is not a parent of it's menu containers in DOM tree,
-                // "home", "credentials" are on the same level. Aria-owns establishes this relationship.
-                // See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-owns for more
-                header.add(AttributeAppender.append("aria-owns", item.getItem().getMarkupId()));
+                // see the comment on createHeader() - scopes this item's announced position/count to
+                // just the (visible) items of its own category, instead of the browser's default of
+                // every flat <li> sibling across the whole sidebar.
+                item.getItem().add(AttributeAppender.append("aria-posinset",
+                        () -> visiblePosition(categoryItemsModel.getObject(), listItem.getModelObject())));
+                item.getItem().add(AttributeAppender.append("aria-setsize",
+                        () -> visibleCount(categoryItemsModel.getObject())));
             }
         };
 
         items.setReuseItems(true);
         return items;
+    }
+
+    private int visibleCount(List<MainMenuItem> categoryItems) {
+        return (int) categoryItems.stream().filter(MainMenuItem::isVisible).count();
+    }
+
+    private int visiblePosition(List<MainMenuItem> categoryItems, MainMenuItem current) {
+        int position = 0;
+        for (MainMenuItem item : categoryItems) {
+            if (!item.isVisible()) {
+                continue;
+            }
+            position++;
+            if (item == current) {
+                return position;
+            }
+        }
+        return position;
     }
 
     private void onMenuClick(IModel<SideBarMenuItem> model, Component headerStateDescr, AjaxRequestTarget target) {

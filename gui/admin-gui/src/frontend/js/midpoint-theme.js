@@ -519,9 +519,16 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-            var sideBar = $(".sidebar-menu");
-            self.keydownForMenuItems(sideBar, self);
-
+            // Left sidebar menu intentionally relies on plain Tab-based navigation only (WCAG 5.3) -
+            // no custom role="menu"/menuitem widget, no arrow-key interception. AdminLTE's own generic
+            // accessibility script still treats any ".nav"-classed list as an arrow-key-navigable menu
+            // (it keys off the CSS class, not the ARIA role), so stop the event here before it bubbles
+            // up to AdminLTE's document-level listener.
+            $(".sidebar-menu").on("keydown", function (e) {
+                if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+                    e.stopPropagation();
+                }
+            });
         });
 
         jQuery(function ($) {
@@ -656,157 +663,6 @@ export default class MidPointTheme {
             }
         });
     };
-
-    keydownForMenuItems(sideBar, self) {
-        if (!sideBar.length) {
-            return;
-        }
-
-        sideBar.on("keydown", "li[role='menuitem']", function (e, t) {
-            var menuItemEl = $(this).get(0);
-            var directLink = $(this).children("a").get(0);
-
-            var isRelevantFocus = menuItemEl === document.activeElement
-                || directLink === document.activeElement
-                || menuItemEl.classList.contains('active');
-
-            if (!isRelevantFocus) {
-                return;
-            }
-
-            if (e.key == " " || e.code == "Space" || e.keyCode == 32 || e.key == "Enter" || e.keyCode == 13) {
-                var link = $(this).find("a");
-                if (link.length) {
-                    self.clickOnMenuItem(link, $(this), false, e);
-                } else {
-                    $(this).click();
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            if (e.key == "Arrow Right" || e.code == "ArrowRight" || e.keyCode == 39) {
-                var link = $(this).find("a");
-                if (link.length > 1) {
-                    self.clickOnMenuItem(link, $(this), true, e);
-                } else {
-                    const focusableElement = self.findFirstFocusableElementOnMainPanel();
-                    if (focusableElement) {
-                        focusableElement.focus();
-                        focusableElement.scrollIntoView({block: "center"});
-                    }
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            if (e.key == "Arrow Left" || e.code == "ArrowLeft" || e.keyCode == 37 || e.key == "ESC" || e.keyCode == 27) {
-                var parent = $(this).parent().closest("li[role='menuitem']");
-                if (parent.length) {
-                    var link = parent.find("a");
-                    link.get(0).click();
-                    parent.get(0).focus();
-                    parent.get(0).scrollIntoView({block: "center"});
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            var parent = $(this).closest("ul[role='menu']");
-            var list = parent.children("li[role='menuitem']");
-            var focusIndex = null;
-            if (e.key == "Arrow Up" || e.code == "ArrowUp" || e.keyCode == 38) {
-                focusIndex = list.index($(this)) - 1;
-            }
-
-            if (e.key == "Arrow Down" || e.code == "ArrowDown" || e.keyCode == 40) {
-                focusIndex = list.index($(this)) + 1;
-            }
-
-            if (focusIndex < 0 || e.key == "End" || e.keyCode == 35) {
-                focusIndex = list.length - 1;
-            }
-
-            if (focusIndex >= list.length || e.key == "Home" || e.keyCode == 36) {
-                focusIndex = 0;
-            }
-
-            if (focusIndex == null) {
-                return;
-            }
-
-            var focusItem = list.get(focusIndex);
-            if (focusItem) {
-                focusItem.focus();
-                focusItem.scrollIntoView({block: "center"});
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        });
-    }
-
-    findFirstFocusableElementOnMainPanel() {
-        const mainElement = document.querySelector('main[role="main"]');
-        if (!mainElement) {
-            return null;
-        }
-
-        const focusableSelectors = `
-            a[href],
-            button:not([disabled]),
-            input:not([disabled]),
-            select:not([disabled]),
-            textarea:not([disabled]),
-            [tabindex]:not([tabindex="-1"]),
-            details
-        `;
-
-        const focusableElements = mainElement.querySelectorAll(focusableSelectors);
-
-        for (const element of focusableElements) {
-            if (this.isElementVisible(element)) {
-                return element;
-            }
-        }
-
-        return null;
-    }
-
-    isElementVisible(element) {
-        if (!element) return false;
-
-        const style = window.getComputedStyle(element);
-
-        return (
-            style.display !== 'none' &&
-            style.visibility !== 'hidden' &&
-            style.visibility !== 'collapse' &&
-            element.offsetWidth > 0 &&
-            element.offsetHeight > 0 &&
-            element.getClientRects().length > 0
-        );
-    }
-
-    clickOnMenuItem(link, menuItem, onlySubmenu, e) {
-        if (!onlySubmenu) {
-            link.get(0).click();
-        }
-        var hasPopup = menuItem.attr("aria-haspopup");
-        if (hasPopup == "true") {
-            if (onlySubmenu) {
-                link.get(0).click();
-            }
-            var subitems = menuItem.find("li[role='menuitem']");
-            if (subitems.length) {
-                subitems.get(0).focus();
-                subitems.get(0).scrollIntoView({block: "center"});
-                e.preventDefault()
-            }
-        }
-    }
 
     focusByArrowKeys(elements, self) {
         if (!elements || elements.length === 0) {
@@ -1693,25 +1549,44 @@ export default class MidPointTheme {
     }
 
     initPushMenuButton() {
-        $('a[data-lte-toggle="sidebar"]').on("click", function (e) {
-            setAriaExpandedForPushMenu($(this), false);
-        });
-        setAriaExpandedForPushMenu($('a[data-lte-toggle="sidebar"]'), true);
-
-        function setAriaExpandedForPushMenu(menuButton, processAfterClick) {
-            var valueExpand = "true";
-            var valueCollapse = "false";
-            if (!processAfterClick) {
-                valueExpand = "false";
-                valueCollapse = "true";
-            }
-
-            if ($('body').hasClass('sidebar-collapse')) {
-                menuButton.attr("aria-expanded", valueCollapse);
-            } else {
-                menuButton.attr("aria-expanded", valueExpand);
-            }
+        const button = document.querySelector('a[data-lte-toggle="sidebar"]');
+        const status = document.getElementById('menuToggleStatus');
+        if (!button) {
+            return;
         }
+
+        const syncTitle = () => {
+            const isCompact = document.body.classList.contains('sidebar-collapse');
+            const title = button.getAttribute(isCompact ? 'data-title-collapsed' : 'data-title-expanded');
+            if (title) {
+                button.setAttribute('title', title);
+                if (button.hasAttribute('data-original-title')) {
+                    button.setAttribute('data-original-title', title);
+                }
+            }
+        };
+
+        const announce = (isExpanded) => {
+            if (!status) {
+                return;
+            }
+            const message = button.getAttribute(isExpanded ? 'data-expanded-message' : 'data-collapsed-message');
+            status.textContent = '';
+            setTimeout(() => {
+                status.textContent = message;
+            }, 100);
+        };
+
+        syncTitle();
+
+        document.addEventListener('collapsed.lte.push-menu', () => {
+            syncTitle();
+            announce(false);
+        });
+        document.addEventListener('opened.lte.push-menu', () => {
+            syncTitle();
+            announce(true);
+        });
     }
 
     createSparkline(id, options, data) {
