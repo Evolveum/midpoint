@@ -26,6 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import org.apache.wicket.model.IModel;
 
 import java.io.IOException;
+import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * Wizard step for reviewing and editing the Search Filter script.
@@ -83,5 +87,10 @@ public class SearchFilterScriptConnectorStepPanel extends ScriptConnectorStepPan
     @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.SEARCH_FILTER_DEFINITION;
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.SEARCH_FILTER, null);
     }
 }

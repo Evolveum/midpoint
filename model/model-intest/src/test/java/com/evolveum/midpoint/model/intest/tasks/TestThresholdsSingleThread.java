@@ -31,13 +31,13 @@ public class TestThresholdsSingleThread extends TestThresholdsSingleTask {
     void additionalTest100RepeatedExecutionAsserts(ActivityStateAsserter<TaskAsserter<Void>> asserter) {
         asserter
                 .previewModePolicyRulesCounters()
-                    .assertCounter(ruleAddId, USER_ADD_ALLOWED + 2)
+                    .assertCounter(ruleAddId, USER_ADD_ALLOWED + 1) // halted at run start, nothing counted
                 .end()
                 .progress()
-                    .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
+                    .assertUncommitted(0, 0, 0) // halted at run start, before any item is processed
                 .end()
                 .itemProcessingStatistics()
-                    .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
+                    .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
                 .end();
     }
 
@@ -53,10 +53,10 @@ public class TestThresholdsSingleThread extends TestThresholdsSingleTask {
     void additionalTest200RepeatedExecutionAsserts(ActivityStateAsserter<TaskAsserter<Void>> asserter) {
         asserter
                 .previewModePolicyRulesCounters()
-                    .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 2)
+                    .assertCounter(ruleModifyCostCenterId, USER_MODIFY_ALLOWED + 1)
                 .end()
                 .itemProcessingStatistics()
-                    .assertTotalCounts(USER_MODIFY_ALLOWED*4, 2, 0)
+                    .assertTotalCounts(USER_MODIFY_ALLOWED*4, 1, 0)
                 .end();
     }
 
@@ -65,7 +65,7 @@ public class TestThresholdsSingleThread extends TestThresholdsSingleTask {
         asserter
                 .previewModePolicyRulesCounters()
                     .display()
-                    .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 2)
+                    .assertCounter(ruleDeleteId, USER_DELETE_ALLOWED + 1)
                 .end();
     }
 }

@@ -52,7 +52,8 @@ public class WaitingAuthScriptsConnectorStepPanel extends WaitingScriptConnector
 
     @Override
     protected String getNewTaskToken(Task task, OperationResult result, boolean regenerate) {
-        return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateAuthenticationScript(regenerate, task, result);
+        return getDetailsModel().getConnectorDevelopmentOperation().submitGenerateAuthenticationScript(
+                regenerate, getRepairScript(), getRepairErrors(), task, result);
     }
 
     @Override

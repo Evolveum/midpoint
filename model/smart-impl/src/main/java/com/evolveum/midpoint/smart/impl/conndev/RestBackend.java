@@ -12,16 +12,22 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.apache.hc.core5.http.ContentType;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RestBackend extends ConnectorDevelopmentBackend {
 
     protected static final JsonNodeFactory JSON_FACTORY = JsonNodeFactory.instance;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorDevelopmentBackend.class);
     private static final int MAX_SCRAPE_ITERATIONS = 2;

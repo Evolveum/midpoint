@@ -62,11 +62,37 @@ public interface ConnectorDevelopmentOperation {
     String submitGenerateArtifact(ConnDevArtifactType artifact, boolean retry, Task testTask, OperationResult testOperationResult);
 
     default String submitGenerateNativeSchema(String objectClass, boolean retry, Task task, OperationResult result) {
-        return submitGenerateArtifact(NATIVE_SCHEMA_DEFINITION.create(objectClass), retry, task, result);
+        return submitGenerateNativeSchema(objectClass, retry, null, List.of(), task, result);
+    }
+
+    default String submitGenerateNativeSchema(String objectClass, boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        var artifact = NATIVE_SCHEMA_DEFINITION.create(objectClass);
+        if (currentScript != null) {
+            artifact.setContent(currentScript);
+        }
+        return submitGenerateArtifact(artifact,
+                definition -> {
+                    if (midpointErrors != null) {
+                        definition.getMidpointError().addAll(midpointErrors);
+                    }
+                }, retry, task, result);
     }
 
     default String submitGenerateAuthenticationScript(boolean retry, Task task, OperationResult result) {
-        return submitGenerateArtifact(AUTHENTICATION_CUSTOMIZATION.create(), retry, task, result);
+        return submitGenerateAuthenticationScript(retry, null, List.of(), task, result);
+    }
+
+    default String submitGenerateAuthenticationScript(boolean retry, String currentScript, List<String> midpointErrors, Task task, OperationResult result) {
+        var artifact = AUTHENTICATION_CUSTOMIZATION.create();
+        if (currentScript != null) {
+            artifact.setContent(currentScript);
+        }
+        return submitGenerateArtifact(artifact,
+                definition -> {
+                    if (midpointErrors != null) {
+                        definition.getMidpointError().addAll(midpointErrors);
+                    }
+                }, retry, task, result);
     }
 
 

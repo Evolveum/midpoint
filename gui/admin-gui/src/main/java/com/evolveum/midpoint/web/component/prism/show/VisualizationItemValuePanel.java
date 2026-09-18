@@ -173,7 +173,8 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
                 return null;
             }
             if (val.getSourceValue() != null && val.getSourceValue() instanceof PrismReferenceValue) {
-                return "[" + RelationUtil.getRelationLabelValue((PrismReferenceValue) val.getSourceValue(), getPageBase()) + "]";
+                String relationLabel = RelationUtil.getRelationLabelValue((PrismReferenceValue) val.getSourceValue(), getPageBase());
+                return StringUtils.isNotEmpty(relationLabel) ? "[" + relationLabel + "]" : null;
             }
             return WebComponentUtil.translateMessage(getModelObject().getAdditionalText());
         }

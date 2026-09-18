@@ -21,6 +21,9 @@ import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardPare
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * @author lskublik
@@ -61,5 +64,10 @@ public class InitObjectClassConnectorStepPanel extends AbstractObjectClassConnec
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageConnectorDevelopment.wizard.step.initObjectClass.subText");
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.APPLICATION_IDENTIFICATION, null);
     }
 }
