@@ -8,13 +8,8 @@ package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.exception.ProgramLimitException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -28,40 +23,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SqaleUtils {
-
-    /**
-     * Custom PostgreSQL SQLState codes that are not natively defined in
-     * {@link org.postgresql.util.PSQLState}.
-     *
-     * <p>PostgreSQL uses a five-character error code system (SQLSTATE) to communicate specific
-     * server errors to applications. While the driver maps a curated subset of these codes,
-     * this enum expands coverage for handling internal system limitations and limits.</p>
-     *
-     * @see <a href="https://postgresql.org">PostgreSQL Error Codes Appendix</a>
-     */
-    public enum ExtendedPSQLState {
-
-        /**
-         * Program Limit Exceeded (54000).
-         *
-         * <p>Indicates that a hard internal limit built into the PostgreSQL engine has been breached.</p>
-         */
-        PROGRAM_LIMIT_EXCEEDED("54000");
-
-        private final String state;
-
-        ExtendedPSQLState(String state) {
-            this.state = state;
-        }
-
-        public String getState() {
-            return this.state;
-        }
-    }
 
     public enum VersionedComponent {
 
@@ -96,6 +63,7 @@ public class SqaleUtils {
     public static final String OWNER_OID = "ownerOid";
     public static final String FULL_ID_PATH = "containerIdPath";
     public static final String REINDEX_NEEDED = "sqale.reindexNeeded";
+    public static final String PSQL_STATE_PROGRAM_LIMIT_EXCEEDED = "54000";
 
     /**
      * Returns version from midPoint object as a number.
@@ -174,7 +142,7 @@ public class SqaleUtils {
 
     /** Throws more specific exception or returns and then original exception should be rethrown. */
     public static void handlePostgresException(Exception exception)
-            throws ObjectAlreadyExistsException {
+            throws ObjectAlreadyExistsException, SchemaException {
         PSQLException psqlException = ExceptionUtil.findCause(exception, PSQLException.class);
         if (psqlException == null) {
             // We can not specially handle this exception based on postgresql state, so it should be handled in caller.
@@ -201,23 +169,20 @@ public class SqaleUtils {
             }
         }
 
-        if (ExtendedPSQLState.PROGRAM_LIMIT_EXCEEDED.getState().equals(state)) {
-            var intexSizePattern = Pattern.compile(
-                    "index row size \\d+ exceeds maximum \\d+ for index \"([^\"]+)\""
-            );
+        if (PSQL_STATE_PROGRAM_LIMIT_EXCEEDED.equals(state) ||
+                PSQLState.STRING_DATA_RIGHT_TRUNCATION.getState().equals(state)
+        ) {
 
-            String indexName = Optional.ofNullable(message)
-                    .filter(StringUtils::isNotBlank)
-                    .map(intexSizePattern::matcher)
-                    .filter(Matcher::find)
-                    .map(matcher -> matcher.group(1))
-                    .orElse(null);
-
-            throw new ProgramLimitException(
-                    "Operation is too large to complete. Please try with less data%s."
-                            .formatted(StringUtils.isNotBlank(indexName) ? " for " + indexName : ""),
+            var schemaException = new SchemaException(
+                    new LocalizableMessageBuilder()
+                        .key("limitationValueSize.exceptionMessage")
+                        .build(),
                     exception
             );
+
+            schemaException.setTechnicalMessage("Value too long for repository");
+
+            throw schemaException;
         }
     }
 
