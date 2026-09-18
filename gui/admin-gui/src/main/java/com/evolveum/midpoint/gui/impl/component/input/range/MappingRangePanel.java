@@ -52,6 +52,11 @@ public class MappingRangePanel extends BasePanel<PrismContainerValueWrapper<Mapp
         setOutputMarkupId(true);
         rangeModel = new MappingRangeModel(getModel());
 
+        if (rangeModel.getObject() == null) {
+            // fallback if no range mapping is defined(usually for generic auto forms)
+            rangeModel.setObject(MappingRangeUtils.defaultRange(getModelObject()));
+        }
+
         add(createRangeChoice());
         add(createConditionPanel());
     }
