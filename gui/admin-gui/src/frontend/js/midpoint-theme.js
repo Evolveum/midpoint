@@ -1549,25 +1549,44 @@ export default class MidPointTheme {
     }
 
     initPushMenuButton() {
-        $('a[data-lte-toggle="sidebar"]').on("click", function (e) {
-            setAriaExpandedForPushMenu($(this), false);
-        });
-        setAriaExpandedForPushMenu($('a[data-lte-toggle="sidebar"]'), true);
-
-        function setAriaExpandedForPushMenu(menuButton, processAfterClick) {
-            var valueExpand = "true";
-            var valueCollapse = "false";
-            if (!processAfterClick) {
-                valueExpand = "false";
-                valueCollapse = "true";
-            }
-
-            if ($('body').hasClass('sidebar-collapse')) {
-                menuButton.attr("aria-expanded", valueCollapse);
-            } else {
-                menuButton.attr("aria-expanded", valueExpand);
-            }
+        const button = document.querySelector('a[data-lte-toggle="sidebar"]');
+        const status = document.getElementById('menuToggleStatus');
+        if (!button) {
+            return;
         }
+
+        const syncTitle = () => {
+            const isCompact = document.body.classList.contains('sidebar-collapse');
+            const title = button.getAttribute(isCompact ? 'data-title-collapsed' : 'data-title-expanded');
+            if (title) {
+                button.setAttribute('title', title);
+                if (button.hasAttribute('data-original-title')) {
+                    button.setAttribute('data-original-title', title);
+                }
+            }
+        };
+
+        const announce = (isExpanded) => {
+            if (!status) {
+                return;
+            }
+            const message = button.getAttribute(isExpanded ? 'data-expanded-message' : 'data-collapsed-message');
+            status.textContent = '';
+            setTimeout(() => {
+                status.textContent = message;
+            }, 100);
+        };
+
+        syncTitle();
+
+        document.addEventListener('collapsed.lte.push-menu', () => {
+            syncTitle();
+            announce(false);
+        });
+        document.addEventListener('opened.lte.push-menu', () => {
+            syncTitle();
+            announce(true);
+        });
     }
 
     createSparkline(id, options, data) {

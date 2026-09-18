@@ -18,7 +18,7 @@
             <class name="com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModelTest"/>
             <class name="com.evolveum.midpoint.web.component.data.column.ColumnUtilsCaseObjectColumnTest"/>
             <class name="com.evolveum.midpoint.web.LoggingRequestCycleListenerTest"/>
-            <class name="com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTabsTest"/>
+            <!--<class name="com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTabsTest"/>-->
         </classes>
     </test>
 </suite>

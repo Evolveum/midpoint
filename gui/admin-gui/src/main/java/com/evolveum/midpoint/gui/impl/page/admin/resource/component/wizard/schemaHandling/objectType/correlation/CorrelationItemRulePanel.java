@@ -171,25 +171,9 @@ public class CorrelationItemRulePanel<C extends Containerable> extends BasePanel
             public @NotNull IModel<PrismContainerValueWrapper<C>> getMappingContainerParent() {
                 return CorrelationItemRulePanel.this.getParentContainerWrapper();
             }
-
-            @Override
-            protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings(ItemName fAttribute) {
-                return CorrelationItemRulePanel.this.getMappings();
-            }
         };
         table.setOutputMarkupId(true);
         return table;
-    }
-
-    protected @Nullable PrismContainerWrapper<ResourceAttributeDefinitionType> getMappings() {
-        PrismContainerWrapper<ResourceAttributeDefinitionType> mappings = null;
-        try {
-            mappings = getParentContainerWrapper().getObject()
-                    .findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
-        } catch (SchemaException e) {
-            LOGGER.warn("Couldn't find attribute container in resource object type definition.", e);
-        }
-        return mappings;
     }
 
     protected boolean isShowEmptyField() {

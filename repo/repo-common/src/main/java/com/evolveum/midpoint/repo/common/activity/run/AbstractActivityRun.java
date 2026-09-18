@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionMo
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityHaltingInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
@@ -367,6 +369,11 @@ public abstract class AbstractActivityRun<
             activityState.setResultStatus(currentResultStatus);
         }
 
+        var haltingInformation = runResult.getHaltingInformation();
+        if (haltingInformation != null) {
+            recordHalt(haltingInformation, result);
+        }
+
         try {
             getRunningTask()
                     .updateAndStoreStatisticsIntoRepository(true, result); // Contains implicit task flush
@@ -376,6 +383,29 @@ public abstract class AbstractActivityRun<
         }
 
         activityState.close();
+    }
+
+    /**
+     * Records that this run was halted by a policy action, so that the activity cannot continue (and eventually complete,
+     * letting e.g. the next activity of a composition start) until the policy states are cleared. It is stored where
+     * the policy counters are, to stop all the runs that share them: e.g. all the workers, or the whole reconciliation.
+     */
+    private void recordHalt(@NotNull ActivityHaltingInformationType information, OperationResult result)
+            throws ActivityRunException {
+        ActivityState stateForThresholds;
+        try {
+            stateForThresholds = getActivityStateForThresholds(result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            throw new ActivityRunException("Couldn't record the halt of the activity", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+        LOGGER.debug("Recording halt of '{}' by policy rule '{}' in the state of '{}' in task {}",
+                getActivityPath(), information.getPolicyName(), stateForThresholds.getActivityPath(),
+                stateForThresholds.getTaskOid());
+        stateForThresholds.setHaltingInformation(
+                information.clone()
+                        .activityPath(getActivityPath().toBean())
+                        .timestamp(XmlTypeConverter.createXMLGregorianCalendar(endTimestamp)));
+        stateForThresholds.flushPendingTaskModificationsChecked(result); // it may reside in another task
     }
 
     private void logStart() {

@@ -52,7 +52,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.action", icon = "fa fa-wrench"),
         expanded = true)
-public class ActionStepPanel extends AbstractWizardStepPanel {
+public class ActionStepPanel extends AbstractWizardStepPanel<ResourceDetailsModel> {
 
     public static final String OBJECT_TYPE_PANEL_TYPE = "rw-synchronization-reaction-action";
     public static final String ASSOCIATION_TYPE_PANEL_TYPE = "rw-association-synchronization-reaction-action";
@@ -81,6 +81,7 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
     protected void onInitialize() {
         super.onInitialize();
         initValueModel();
+        expanded = getValueModel().getObject() == null || getValueModel().getObject().isExpanded();
         initLayout();
     }
 
@@ -126,7 +127,7 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
     private WebMarkupContainer createActionPanel() {
         WebMarkupContainer actionContainer = new WebMarkupContainer(ID_ACTION_CONTAINER);
         actionContainer.setOutputMarkupId(true);
-        actionContainer.add(new VisibleBehaviour(() -> getValueModel().getObject() != null ? getValueModel().getObject().isExpanded() : expanded));
+        actionContainer.add(new VisibleBehaviour(() -> expanded));
 
         ContainersDropDownPanel<SynchronizationActionsType> panel = new ContainersDropDownPanel(
                 ID_ACTION_PANEL,
@@ -175,7 +176,7 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
             }
         };
         panel.setOutputMarkupId(true);
-        panel.add(new VisibleBehaviour(() -> getValueModel().getObject() != null));
+        panel.add(new VisibleBehaviour(() -> getValueModel().getObject() != null && expanded));
         return panel;
     }
 
@@ -233,12 +234,7 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
     }
 
     private void onHeaderClick(AjaxRequestTarget target) {
-        PrismContainerValueWrapper wrapper = getValueModel().getObject();
-        if (wrapper == null) {
-            expanded = !expanded;
-        } else {
-            wrapper.setExpanded(!wrapper.isExpanded());
-        }
+        expanded = !expanded;
         refreshPanel(target);
     }
 

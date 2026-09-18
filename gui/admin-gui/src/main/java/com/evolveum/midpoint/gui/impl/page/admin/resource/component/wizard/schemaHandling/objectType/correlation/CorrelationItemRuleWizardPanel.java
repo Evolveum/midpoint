@@ -130,16 +130,6 @@ public class CorrelationItemRuleWizardPanel<C extends Containerable> extends Abs
     }
 
     @Override
-    protected boolean isBackButtonVisible() {
-        return true;
-    }
-
-    @Override
-    protected boolean isSubmitButtonVisible() {
-        return false;
-    }
-
-    @Override
     protected void onBackPerformed(AjaxRequestTarget target) {
         onExitPerformed(target);
     }

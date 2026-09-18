@@ -522,7 +522,7 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
     /**
      * An add policy in `preview (simulate)` mode increments the preview-mode
      * counters and suspends the simulate run without committing anything. Also covers repeated execution:
-     * on resume the persistent preview counter re-trips immediately.
+     * on resume the persistent preview counter re-trips at run start, before any item is processed.
      */
     @Test(dataProvider = "forms")
     public void test500SimulateAdd(ContributionForm form) throws Exception {
@@ -552,7 +552,7 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
         taskManager.resumeTaskTree(task.oid, result);
         waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, result, TIMEOUT);
 
-        then("persistent preview counter re-trips immediately; still nothing committed");
+        then("persistent preview counter re-trips at run start, before any item is processed; still nothing committed");
         // @formatter:off
         assertTaskTree(task.oid, "after repeated execution")
                 .display()
@@ -560,7 +560,7 @@ public class TestFocusPolicyContribution extends AbstractEmptyModelIntegrationTe
                 .assertFatalError()
                 .rootActivityState()
                     .previewModePolicyRulesCounters()
-                        .assertCounterMinMax(id, ADD_THRESHOLD + 1, ADD_THRESHOLD + 1);
+                        .assertCounterMinMax(id, ADD_THRESHOLD, ADD_THRESHOLD);
         // @formatter:on
         assertImportedUserCount(0);
     }

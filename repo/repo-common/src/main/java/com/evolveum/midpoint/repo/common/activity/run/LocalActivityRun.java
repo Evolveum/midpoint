@@ -19,17 +19,22 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.ActivityTreeStateOverview;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesCollector;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -38,6 +43,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityHaltingInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -113,6 +119,9 @@ public abstract class LocalActivityRun<
         try {
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
+
+            haltIfHaltedByPolicy(localResult);
+
             runResult = runLocally(localResult);
         } catch (ActivityInterruptedException e) {
             localResult.recordException(e); // TODO reconsider if it's ok to write WARNING as status?
@@ -129,6 +138,38 @@ public abstract class LocalActivityRun<
         updateStateOnRunEnd(localResult, runResult, result);
 
         return runResult;
+    }
+
+    /**
+     * An activity halted by a policy action in a previous run must not continue until the halt is cleared (along with
+     * the other policy states), or the policy processing is switched off. Otherwise, e.g. after resuming a task suspended
+     * by a threshold, it could complete without meeting the policy rule again, and let the next activity of a composition
+     * start.
+     */
+    private void haltIfHaltedByPolicy(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ActivityRunPolicyException {
+        ActivityHaltingInformationType information = getActivityStateForThresholds(result).getHaltingInformation();
+        if (information == null) {
+            return;
+        }
+        if (ActivityPolicyUtils.isActivityPolicyProcessingDisabled(activity)
+                || ActivityPolicyUtils.isVirtualAssignmentPolicyProcessingDisabled(activity)) {
+            // Switching the policy processing off is an explicit decision to let the activity continue.
+            LOGGER.debug("Ignoring the halt recorded for '{}', as the policy processing is switched off", getActivityPath());
+            return;
+        }
+        String ruleName = information.getPolicyName();
+        String technicalMessage =
+                "Activity was halted by policy rule '%s'. Clear the activity policy states to let it continue."
+                        .formatted(ruleName);
+        LocalizableMessage message = information.getMessage() != null ?
+                LocalizationUtil.toLocalizableMessage(information.getMessage()) :
+                new SingleLocalizableMessage(
+                        "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName }, technicalMessage);
+        LOGGER.debug("Not starting the run of '{}': {}", getActivityPath(), technicalMessage);
+        throw new ActivityRunPolicyException(
+                technicalMessage, FATAL_ERROR, ActivityRunResultStatus.HALTING_ERROR,
+                new ActivityPolicyBasedHaltException(message, technicalMessage));
     }
 
     public @NotNull TaskExecutionMode getTaskExecutionMode() throws ConfigurationException {
