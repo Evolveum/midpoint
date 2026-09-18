@@ -233,8 +233,11 @@ The _suspend task_ policy action will immediately suspend the whole task or task
 Task will be suspended with `FATAL_ERROR` result.
 
 Suspending preserves the activity state, including policy triggers and threshold counters.
-When the task is resumed, they continue from where they were.
-It might be suspended right away if policy threshold were hit previously.
+The activity state also records that the activity was halted by the policy (`haltingInformation`).
+While this record is present, resuming the task halts the activity again right at its start, before any item is processed.
+This holds even if no item that would meet the policy again is left, so e.g. a simulation halted by a threshold cannot silently complete and let the following activity of a composition start.
+To let the activity continue, clear the policy state or switch off the policy processing; see <<User interface>> and <<_disabling_policy_processing,Disabling policy processing>>.
+The record is kept regardless of where the rule came from (activity policies, virtual assignments, roles assigned to the task, global policy rules).
 
 [[restartactivity]]
 === Restart activity
@@ -326,12 +329,8 @@ For applying focus policy rules to processed objects (including via `policyRef` 
 [#_disabling_policy_processing]
 == Disabling policy processing
 
-Individual rules can be disabled declaratively by setting their `enabled` flag to `false`.
-The flag is honored for rules from all sources: inline rules, rules coming from `policyRef`, and rules brought in by virtual assignments.
-However, for the latter two the rules live in a shared object, so disabling them there affects every task referencing that object.
-
-Since midPoint 4.11, policy processing can be switched off operationally using the `processing` element in the `policies` container of an activity definition.
-Unlike the per-rule `enabled` flag, the switch does not modify any rule definition, and it covers all policy sources.
+Policy processing is switched off using the `processing` element in the `policies` container of an activity definition.
+The switch is operational: it does not modify any rule definition, so it can be set and removed again without touching the policies themselves.
 
 The element contains two independent scopes:
 
@@ -345,10 +344,24 @@ Each scope has a value of `full` (the default) or `none`.
 Suppression declared on an activity applies to policies declared at that activity and all of its child activities.
 Policies declared on ancestor activities are not affected.
 The switch takes effect on the next activity run, because policies are collected at run start.
-Existing policy triggers and threshold counters are kept untouched.
+Existing policy triggers, threshold counters, and the record of the activity being halted by a policy are kept untouched.
 
-The typical use case is resuming a task that was suspended by a threshold: set the relevant scope to `none` (or use the GUI action described below) and resume the task.
+The switch covers only the policies attached to the activity itself.
+Focus policy rules that reach the processed objects in another way (roles assigned to the task, roles assigned to the objects, global policy rules) are still evaluated, and their preserved counters can suspend the task again.
+
+The typical use case is forcing a task suspended by a threshold to finish: set the relevant scope to `none` (or use the GUI action described below) and resume the task.
 The suppressed policies are not collected, so the preserved counters cannot re-trigger them.
+The halt recorded by the `suspendTask` action is ignored while either of the scopes is set to `none`.
+When the processing is switched back on, the preserved counters and the recorded halt apply again, so a task resumed after that is suspended right away.
+If the policies should stay enforced while the task continues, clear the policy state instead; see <<User interface>>.
+
+[NOTE]
+====
+The per-rule `enabled` flag is deprecated.
+It is still honored for rules from all sources (inline rules, rules coming from `policyRef`, rules brought in by virtual assignments), so existing configurations keep working.
+However, it requires changing the rule definition, and for rules living in a shared object it affects every task that references that object.
+Use the `processing` element instead.
+====
 
 .Activity with policy processing switched off
 [source,xml]
@@ -372,11 +385,12 @@ The suppressed policies are not collected, so the preserved counters cannot re-t
 Activity policies are configured in the activity definition XML only.
 The task details page offers three actions:
 
-* _Disable activity policies_ sets the <<_disabling_policy_processing,processing switch>> on the root activity (both scopes to `none`), suppressing all policies of the task: inline, `policyRef`-based, and those brought in by virtual assignments.
+* _Disable activity policies_ sets the <<_disabling_policy_processing,processing switch>> on the root activity (both scopes to `none`), suppressing the policies attached to the activities of the task: inline, `policyRef`-based, and those brought in by virtual assignments.
+Focus policy rules coming from elsewhere (roles assigned to the task or to the processed objects, global policy rules) are not affected.
 This is useful when you want to force a task to finish even when some policies prevent it from happening (e.g., there is a triggered policy that suspends the task).
 * _Enable activity policies_ removes the `processing` element from the root activity, restoring full processing.
 Note that this removes the element even if it was configured by hand.
-* _Clear activity policies state_ removes activity policy triggers and threshold counters, while keeping the policies and the rest of the activity state untouched.
+* _Clear activity policies state_ removes activity policy triggers, threshold counters, and the record of the activity being halted by a policy, while keeping the policies and the rest of the activity state untouched.
 Triggers are cleared for all policies.
 
 .Activity policies options in task details
@@ -402,8 +416,8 @@ This is a real limitation, steming from the current architecture and ConnId Conn
 Such exceptions are reported from ConnId as failures of the whole search operation, and can be seen in midPoint as such.
 They usually cause halting the whole activity.
 //** When shadow object is being initialized after connector object was returned from the connector.
-* When a threshold-based policy suspends the task, the threshold counters (stored in the task's activity state) are preserved.
-Simply resuming the task will re-trigger the policy and suspend it again.
+* When a policy suspends the task, the threshold counters and the record of the halt (stored in the task's activity state) are preserved.
+Simply resuming the task will suspend it again, right at the start of the halted activity.
 To resume, first switch off <<_disabling_policy_processing,policy processing>> or clear the policy state via the <<User interface>>.
 
 == Examples

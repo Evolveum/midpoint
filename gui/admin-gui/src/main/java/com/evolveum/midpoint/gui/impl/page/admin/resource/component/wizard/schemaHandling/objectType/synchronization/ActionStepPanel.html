@@ -10,19 +10,19 @@
     <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="col-8" wicket:id="container">
-        <div class="p-2 ps-3 pe-3 card shadow-sm btn" wicket:id="header">
-            <div class="row">
+    <div class="col-8 card shadow-sm" wicket:id="container">
+        <div class="p-2 ps-3 pe-3" wicket:id="header" style="cursor: pointer">
+            <div class="d-flex">
                 <span>
                     <i class="fa fa-wrench"></i>
                     <span style="text-decoration: none;">
                 <wicket:message key="PageResource.wizard.step.synchronization.reaction.action"/>
             </span>
                 </span>
-                <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool text-body ms-auto" trigger="hover"></button>
+                <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer" class="btn btn-tool text-body ms-auto p-0" trigger="hover"></button>
             </div>
         </div>
-        <div class="card shadow-sm mb-3 border-top">
+        <div class="border-top">
             <div class="p-3 mb-0" wicket:id="actionContainer">
                 <span class="mt-4 text-secondary fw-bold text-center">
                     <span style="text-decoration: none;">

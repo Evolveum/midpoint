@@ -2655,6 +2655,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             }
         }
 
+        // The halt recorded by a policy action would otherwise stop the activity again right at its next start.
+        ActivityHaltingInformationType haltingInformation = state.getHaltingInformation();
+        if (haltingInformation != null) {
+            // noinspection unchecked
+            PrismContainerValue<ActivityHaltingInformationType> value = haltingInformation.asPrismContainerValue();
+            delta.addModificationDeleteContainer(value.getParent().getPath(), value.clone());
+        }
+
         // Cleanup of policy rule counters. We clear ALL of them, regardless of where the rule came from:
         // besides activity policies (inline, policyRef, virtual assignments), also clockwork-evaluated rules
         // with thresholds (from assigned roles, task assignments, global policy rules) store counters here,

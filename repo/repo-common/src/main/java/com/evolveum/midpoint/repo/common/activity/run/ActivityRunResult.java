@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import com.evolveum.midpoint.repo.common.activity.AbortingInformationAware;
+import com.evolveum.midpoint.repo.common.activity.ActivityPolicyBasedHaltException;
 import com.evolveum.midpoint.repo.common.activity.ActivityPolicyViolationException;
 import com.evolveum.midpoint.repo.common.activity.ActivityRunResultStatus;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyEnforcementException;
@@ -60,6 +61,12 @@ public class ActivityRunResult implements ShortDumpable {
      */
     @Nullable private ActivityAbortingInformationType abortingInformation;
 
+    /**
+     * Details for a run halted by a policy action. Present only in the result of the run where the halt occurred
+     * (not in the results of its ancestors), so that it is recorded in the activity state exactly once.
+     */
+    @Nullable private ActivityHaltingInformationType haltingInformation;
+
     /** Details for {@link #runResultStatus} being {@link ActivityRunResultStatus#RESTART_REQUESTED}. */
     @Nullable private RestartRequestingInformation restartRequestingInformation;
 
@@ -92,11 +99,15 @@ public class ActivityRunResult implements ShortDumpable {
      */
     public static ActivityRunResult fromException(
             OperationResultStatus opStatus, ActivityRunResultStatus runStatus, Throwable throwable) {
-        return new ActivityRunResult(
+        var runResult = new ActivityRunResult(
                 opStatus,
                 runStatus,
                 throwable,
                 throwable instanceof AbortingInformationAware aia ? aia.getAbortingInformation() : null);
+        if (throwable instanceof ActivityPolicyBasedHaltException haltException) {
+            runResult.haltingInformation = haltException.getHaltingInformation();
+        }
+        return runResult;
     }
 
     /**
@@ -309,6 +320,10 @@ public class ActivityRunResult implements ShortDumpable {
                 getAbortingInformationRequired().getActivityPath(),
                 "No activity path in aborting information");
         return ActivityPath.fromBean(pathBean);
+    }
+
+    @Nullable ActivityHaltingInformationType getHaltingInformation() {
+        return haltingInformation;
     }
 
     @Nullable RestartRequestingInformation getRestartRequestingInformation() {

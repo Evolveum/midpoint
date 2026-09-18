@@ -64,6 +64,20 @@ class ResourceSchemaHelper {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     /**
+     * Applies connector schemas to an object that is about to be added.
+     *
+     * Unlike normal resource completion, this must not materialize filter-resolved connector OIDs,
+     * because the resource is the live {@code objectToAdd} that will later be persisted.
+     */
+    private void applyConnectorSchemasToAddDeltaObject(
+            @NotNull ResourceType resource,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
+            SubscriptionComplianceException {
+        applyConnectorSchemasToResource(resource, result, false);
+    }
+
+    /**
      * Applies a definition on a resource we know nothing about - i.e. it may be unexpanded.
      * So, expanding if (presumably) needed.
      */
@@ -71,6 +85,15 @@ class ResourceSchemaHelper {
             @NotNull ResourceType resource,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
+        applyConnectorSchemasToResource(resource, result, true);
+    }
+
+    private void applyConnectorSchemasToResource(
+            @NotNull ResourceType resource,
+            @NotNull OperationResult result,
+            boolean materializeResolvedConnectorOid)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
+
         ResourceType expanded;
         if (ResourceTypeUtil.doesNeedExpansion(resource)) {
             expanded = resource.clone();
@@ -78,7 +101,7 @@ class ResourceSchemaHelper {
         } else {
             expanded = resource;
         }
-        applyConnectorSchemasToResource(resource, expanded, result);
+        applyConnectorSchemasToResource(resource, expanded, materializeResolvedConnectorOid, result);
     }
 
     /** Use this if the resource is already expanded. */
@@ -86,19 +109,20 @@ class ResourceSchemaHelper {
             @NotNull ResourceType resource,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
-        applyConnectorSchemasToResource(resource, resource, result);
+        applyConnectorSchemasToResource(resource, resource, true, result);
     }
 
     /**
-     * Applies proper definition (connector schema) to the resource.
+     * Applies proper definitions (connector schemas) to the resource.
      *
      * @param target Resource on which we need to apply the definition
-     * @param source A variant of `resource` used to derive the definition (e.g. expanded version - to be able to
+     * @param source A variant of {@code target} used to derive the definition (e.g. expanded version - to be able to
      * obtain connector OIDs); may be the resource itself.
      */
     private void applyConnectorSchemasToResource(
             @NotNull ResourceType target,
             @NotNull ResourceType source,
+            boolean materializeResolvedConnectorOid,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, SubscriptionComplianceException {
         checkMutable(target.asPrismObject());
@@ -106,7 +130,12 @@ class ResourceSchemaHelper {
         for (ConnectorSpec sourceConnectorSpec : ConnectorSpec.all(source)) {
             try {
                 ConnectorSpec targetConnectorSpec = ConnectorSpec.find(target, sourceConnectorSpec.getConnectorName());
-                applyConnectorSchemaToResource(targetConnectorSpec, sourceConnectorSpec, newResourceDefinition, result);
+
+                applyConnectorSchemaDefinitionToResource(targetConnectorSpec, sourceConnectorSpec, newResourceDefinition, result);
+
+                if (materializeResolvedConnectorOid) {
+                    setResolvedConnectorOid(targetConnectorSpec, sourceConnectorSpec);
+                }
             } catch (CommunicationException | SecurityViolationException e) {
                 throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e); // fixme temporary solution
             }
@@ -135,8 +164,19 @@ class ResourceSchemaHelper {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
 
-        var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
+        applyConnectorSchemaDefinitionToResource(targetConnectorSpec, sourceConnectorSpec, targetDefinition, result);
         setResolvedConnectorOid(targetConnectorSpec, sourceConnectorSpec);
+    }
+
+    private void applyConnectorSchemaDefinitionToResource(
+            @Nullable ConnectorSpec targetConnectorSpec,
+            @NotNull ConnectorSpec sourceConnectorSpec,
+            @NotNull PrismObjectDefinition<ResourceType> targetDefinition,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
+
+        var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
         var configurationContainerDefinition = connectorWithSchema.getConfigurationContainerDefinition();
 
         var targetConfigurationContainer =
@@ -306,7 +346,7 @@ class ResourceSchemaHelper {
 
         if (delta.isAdd()) {
             ResourceType resource = delta.getObjectToAdd().asObjectable();
-            applyConnectorSchemasToResource(resource, result);
+            applyConnectorSchemasToAddDeltaObject(resource, result);
         } else if (delta.isModify()) {
             applyDefinitionToModifyDelta(delta, resourceWhenNoOid, options, task, result);
         } else {

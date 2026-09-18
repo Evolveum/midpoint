@@ -11,7 +11,7 @@ NOTE: This needs to be done before attaching partition, because PostgreSQL refus
 
 === New Installations
 
-On new installations shadow partitioning is enabled by default in system confirutation:
+On new installations shadow partitioning is enabled by default in system configuration:
 
 .System Configuration
 [source, xml]

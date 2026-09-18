@@ -44,6 +44,9 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * @author lskublik
@@ -382,5 +385,10 @@ public class ObjectClassSelectConnectorStepPanel extends AbstractWizardStepPanel
     @Override
     protected String getSubTextContainerCssClass() {
         return "text-secondary col-12 pb-4";
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.SELECT_OBJECT_CLASS, null);
     }
 }

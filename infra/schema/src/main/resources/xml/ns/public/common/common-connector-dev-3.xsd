@@ -190,6 +190,16 @@
 
             <xsd:element name="testOperation" type="tns:ConnDevArtifactType"/>
             <xsd:element name="authenticationScript" type="tns:ConnDevArtifactType"/>
+            <xsd:element minOccurs="0" name="intent" type="tns:ConnDevConnectorIntentType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Intent of the connector. A business-domain lens used by the connector
+                        generation service to prioritize and order object classes during
+                        object class detection. Defaults to Identity Management &amp; Governance
+                        when not set.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -628,6 +638,48 @@
                 </xsd:annotation>
             </xsd:enumeration>
             -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ConnDevConnectorIntentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Intent of the connector. A business-domain lens through which the connector
+                generation service prioritizes and orders object classes during
+                object class detection. Values match the service's {@code intent} parameter.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="management">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identity Management &amp; Governance. The current default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MANAGEMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="itsm">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        ITSM (ticketing).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITSM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="management_itsm">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        ITSM + Identity Management. Both domains are treated as primary.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MANAGEMENT_ITSM"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

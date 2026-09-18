@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.CustomFormStepPanel;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -35,13 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound.range", icon = "fa fa-filter"),
         expanded = true)
-public class InboundMappingRangeStepPanel extends AbstractWizardStepPanel<ResourceDetailsModel> {
+public class InboundMappingRangeStepPanel extends CustomFormStepPanel<ResourceDetailsModel> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     public static final String PANEL_TYPE = "rw-attributes-inbound-range";
-
-    private static final String ID_RANGE = "range";
 
     private final IModel<PrismContainerValueWrapper<MappingType>> valueModel;
 
@@ -52,9 +53,8 @@ public class InboundMappingRangeStepPanel extends AbstractWizardStepPanel<Resour
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-        add(new MappingRangePanel(ID_RANGE, valueModel));
+    protected WebMarkupContainer createPanel(String idPanel) {
+        return new MappingRangePanel(idPanel, valueModel);
     }
 
     @Override

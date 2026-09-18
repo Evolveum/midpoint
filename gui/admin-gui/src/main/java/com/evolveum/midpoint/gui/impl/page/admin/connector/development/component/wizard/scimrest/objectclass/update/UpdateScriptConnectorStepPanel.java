@@ -27,6 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevArtifactType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevObjectClassInfoType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 
 /**
  * @author lskublik
@@ -82,5 +86,10 @@ public class UpdateScriptConnectorStepPanel extends ScriptConnectorStepPanel {
     @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType() {
         return ConnectorDevelopmentArtifacts.KnownArtifactType.UPDATE;
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.UPDATE, null);
     }
 }

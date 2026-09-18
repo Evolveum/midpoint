@@ -354,6 +354,13 @@ public class PasswordPanel extends InputPanel {
         return new ArrayList<>();
     }
 
+    public void refreshPasswordPolicyState(AjaxRequestTarget target) {
+        boolean satisfiesPolicy = getLimitationsForActualPassword().stream()
+                .allMatch(StringLimitationResult::isSuccess);
+        target.appendJavaScript(String.format("MidPointTheme.setFieldInvalid('%s', %s);",
+                getBaseFormComponent().getMarkupId(), !satisfiesPolicy));
+    }
+
     protected <F extends FocusType> ValuePolicyType getValuePolicy() {
         ValuePolicyType valuePolicy = null;
         if (prismObject == null || !prismObject.canRepresent(ResourceType.class)) {

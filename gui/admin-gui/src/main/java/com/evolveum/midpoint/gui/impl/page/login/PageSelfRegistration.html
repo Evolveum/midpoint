@@ -14,6 +14,7 @@
                 <div class="mb-3">
                     <label class="col-form-label">
                         <wicket:message key="UserType.givenName"/>
+                        <span class="text-danger fw-bold" wicket:message="title:prismPropertyPanel.required">*</span>
                     </label>
                     <div wicket:id="firstName"/>
                     <div wicket:id="firstNameFeedback"/>
@@ -21,6 +22,7 @@
                 <div class="mb-3">
                     <label class="col-form-label">
                         <wicket:message key="UserType.familyName"/>
+                        <span class="text-danger fw-bold" wicket:message="title:prismPropertyPanel.required">*</span>
                     </label>
                     <div wicket:id="lastName"/>
                     <div wicket:id="lastNameFeedback"/>
@@ -28,6 +30,7 @@
                 <div class="mb-3">
                     <label class="col-form-label">
                         <wicket:message key="UserType.emailAddress"/>
+                        <span class="text-danger fw-bold" wicket:message="title:prismPropertyPanel.required">*</span>
                     </label>
                     <div wicket:id="email"/>
                     <div wicket:id="emailFeedback"/>
@@ -35,6 +38,7 @@
                 <div class="mb-3">
                     <label class="col-form-label">
                         <wicket:message key="CredentialsType.password"/>
+                        <span class="text-danger fw-bold" wicket:message="title:prismPropertyPanel.required">*</span>
                     </label>
                     <div wicket:id="password"/>
                     <div wicket:id="inputContainerFeedback"/>

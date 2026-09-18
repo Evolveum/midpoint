@@ -240,6 +240,7 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
+                passwordPanel.refreshPasswordPolicyState(target);
                 changePasswordPerformed(target);
             }
 

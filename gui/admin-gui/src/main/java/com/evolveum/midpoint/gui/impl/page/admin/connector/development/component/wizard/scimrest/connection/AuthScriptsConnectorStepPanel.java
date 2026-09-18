@@ -28,6 +28,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import java.io.IOException;
+import java.util.List;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
+import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorWizardHelpTopics;
 
 /**
  * @author lskublik
@@ -83,5 +86,10 @@ public class AuthScriptsConnectorStepPanel extends ScriptConnectorStepPanel {
     @Override
     protected ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType(){
         return ConnectorDevelopmentArtifacts.KnownArtifactType.AUTHENTICATION_CUSTOMIZATION;
+    }
+
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        return ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), ConnectorWizardHelpTopics.AUTHENTICATION, null);
     }
 }
