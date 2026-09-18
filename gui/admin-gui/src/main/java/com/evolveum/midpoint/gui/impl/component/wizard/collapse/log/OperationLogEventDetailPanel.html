@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex flex-column h-100">
+        <div class="d-flex flex-row align-items-center justify-content-between mb-2">
+            <a class="btn btn-sm btn-link px-0" wicket:id="back">
+                <i class="fa fa-chevron-left"></i>
+                <wicket:message key="OperationLogPanel.back"/>
+            </a>
+            <a class="btn btn-sm btn-link" wicket:id="exportEntry">
+                <i class="fa fa-download"></i>
+                <wicket:message key="OperationLogPanel.export"/>
+            </a>
+        </div>
+        <div class="fw-bold mb-2"><wicket:message key="OperationLogPanel.eventView"/></div>
+
+        <div class="border rounded bg-white mb-3">
+            <div class="p-2 border-bottom" wicket:id="fieldRow">
+                <div class="small text-secondary" wicket:id="fieldLabel"></div>
+                <div class="text-break" wicket:id="fieldValue"></div>
+            </div>
+        </div>
+
+        <div class="flex-grow-1 overflow-y-auto" wicket:id="tabs"></div>
+    </div>
+
+    <wicket:fragment wicket:id="detailsFragment">
+        <div class="p-2">
+            <div class="text-break mb-2" wicket:id="detailsMessage"></div>
+            <div class="small text-secondary fw-bold" wicket:id="stacktraceLabel"></div>
+            <pre class="bg-light p-2 rounded small" wicket:id="stacktrace"></pre>
+        </div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="protocolUnavailableFragment">
+        <div class="p-2 text-secondary fst-italic" wicket:id="protocolUnavailableText"></div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

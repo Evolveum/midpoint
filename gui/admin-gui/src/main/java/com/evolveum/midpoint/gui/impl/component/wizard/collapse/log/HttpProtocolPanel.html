@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="mb-3">
+        <div class="fw-bold mb-1"><wicket:message key="OperationLogPanel.protocol.request"/></div>
+        <div class="d-flex flex-row align-items-center gap-2 mb-2">
+            <span class="badge text-bg-secondary" wicket:id="method"></span>
+            <span class="small text-secondary"><wicket:message key="OperationLogPanel.protocol.url"/>:</span>
+            <span class="text-break" wicket:id="url"></span>
+        </div>
+        <div wicket:id="requestBody"></div>
+    </div>
+    <div>
+        <div class="fw-bold mb-1"><wicket:message key="OperationLogPanel.protocol.response"/></div>
+        <div class="d-flex flex-row align-items-center gap-2 mb-2">
+            <span class="small text-secondary"><wicket:message key="OperationLogPanel.protocol.statusCode"/>:</span>
+            <span class="badge text-bg-secondary" wicket:id="statusCode"></span>
+        </div>
+        <div wicket:id="responseBody"></div>
+    </div>
+</wicket:panel>
+</html>

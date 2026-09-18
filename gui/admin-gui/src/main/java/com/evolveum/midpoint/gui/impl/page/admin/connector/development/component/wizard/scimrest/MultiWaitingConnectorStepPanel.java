@@ -14,7 +14,6 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -546,10 +545,7 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
                     fixTarget -> restartFailedActivity(activityType, fixTarget));
         }
 
-        Component collapsedInfoPanel = getWizard().getPanel().get("mainForm:collapsedInfoPanel");
-        if (collapsedInfoPanel != null) {
-            target.add(collapsedInfoPanel);
-        }
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
     }
 
     private void restartFailedActivity(ItemName activityType, AjaxRequestTarget target) {
@@ -575,10 +571,7 @@ public abstract class MultiWaitingConnectorStepPanel extends AbstractWizardStepP
         target.add(get(ID_RETRY_BUTTON));
         target.add(get(ID_ELAPSED_TIME));
 
-        Component collapsedInfoPanel = getWizard().getPanel().get("mainForm:collapsedInfoPanel");
-        if (collapsedInfoPanel != null) {
-            target.add(collapsedInfoPanel);
-        }
+        ConnectorDevelopmentWizardUtil.refreshDrawerPanel(this, target);
     }
 
     /** Resubmits the task for the given activity. Used by the 'Fix it' button when the previous run failed. */
