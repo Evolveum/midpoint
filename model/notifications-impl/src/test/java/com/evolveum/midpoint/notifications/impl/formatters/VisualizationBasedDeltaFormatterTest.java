@@ -120,9 +120,9 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 propertyFormatter, indentationGenerator);
         final PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter =
                 new ContainerPropertiesModificationFormatter(propertiesFormatter, this.indentationGenerator,
-                        modifiedPropertiesFormatter);
+                        modifiedPropertiesFormatter, this.localizationService);
         final PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter =
-                new AdditionalIdentificationFormatter(propertiesFormatter, this.indentationGenerator);
+                new AdditionalIdentificationFormatter(propertiesFormatter, this.indentationGenerator, this.localizationService);
         this.formatter = new VisualizationBasedDeltaFormatter(propertiesFormatter, additionalIdentificationFormatter,
                 containerPropertiesModificationFormatter, indentationGenerator, this.localizationService);
     }
@@ -197,6 +197,26 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 |\tModified properties:
                 |\t|\tFull name: Moric -> Ferdo Moric""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void userPropertyAdded_slovakContext_headingIsLocalized()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final UserType oldUser = createUserRudy();
+        oldUser.familyName("Moric");
+        this.repoAddObject(oldUser);
+
+        final UserType modifiedUser = oldUser.clone();
+        modifiedUser.givenName("Ferdo");
+
+        final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+
+        final String formattedDelta = this.formatter.formatVisualization(
+                visualization,
+                new FormattingContext(Locale.forLanguageTag("sk")));
+
+        Assertions.assertThat(formattedDelta).contains("Pridané vlastnosti:");
     }
 
     @Test
@@ -281,6 +301,13 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 |\t|\tTarget: Accounting
                 |\t|\tDelete "Activation\"""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+
+        final String slovakFormattedDelta = this.formatter.formatVisualization(
+                visualization,
+                new FormattingContext(Locale.forLanguageTag("sk")));
+        Assertions.assertThat(slovakFormattedDelta)
+                .contains("Role \"Accounting\" unassigned:")
+                .contains("Zmazať \"Aktivácia\"");
     }
 
     @Test

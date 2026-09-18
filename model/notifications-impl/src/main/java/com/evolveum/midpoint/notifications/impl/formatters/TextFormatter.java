@@ -69,6 +69,15 @@ public class TextFormatter {
             FocusType.F_LINK_REF,
             ShadowType.F_TRIGGER);
 
+    private static final List<ItemPath> RESOURCE_OBJECT_NOTIFICATION_PATHS_TO_SHOW = List.of(
+            ShadowType.F_RESOURCE_REF,
+            ShadowType.F_KIND,
+            ShadowType.F_INTENT,
+            ShadowType.F_ATTRIBUTES,
+            ShadowType.F_CREDENTIALS,
+            ShadowType.F_ACTIVATION,
+            ShadowType.F_ASSOCIATIONS);
+
     @Autowired
     ValueFormatter valueFormatter;
     @Autowired
@@ -159,6 +168,15 @@ public class TextFormatter {
     }
 
     public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
+            boolean showSynchronizationAttributes, boolean showOperationalAttributes,
+            FormattingContext formattingContext) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObjectModificationDelta(objectDelta, pathsToShow, showSynchronizationAttributes, showOperationalAttributes,
+                task, task.getResult(), formattingContext);
+    }
+
+    public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes, Task task,
             OperationResult result) {
@@ -174,6 +192,52 @@ public class TextFormatter {
         final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes,
                 showOperationalAttributes);
         return formatObjectModificationDelta(objectDelta, pathsToShow, hiddenPaths, showOperationalAttributes, task, result);
+    }
+
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
+            boolean showSynchronizationAttributes, boolean showOperationalAttributes, Task task,
+            OperationResult result, FormattingContext formattingContext) {
+        final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showOperationalAttributes);
+        final Visualization visualization = createVisualization(
+                objectDelta, showOperationalAttributes, pathsToShow, hiddenPaths, task, result);
+        return deltaFormatter.formatVisualization(visualization, formattingContext);
+    }
+
+    public String formatResourceObjectDelta(
+            ObjectDelta<ShadowType> shadowDelta, boolean showSynchronizationItems,
+            boolean showAuxiliaryAttributes, Task task, OperationResult result) {
+        if (shadowDelta == null || !(shadowDelta.isAdd() || shadowDelta.isModify())) {
+            return "";
+        }
+
+        boolean effectiveShowAuxiliaryAttributes = !shadowDelta.isAdd() && showAuxiliaryAttributes;
+        if (task == null) {
+            return formatObjectModificationDelta(
+                    shadowDelta, RESOURCE_OBJECT_NOTIFICATION_PATHS_TO_SHOW,
+                    showSynchronizationItems, effectiveShowAuxiliaryAttributes);
+        }
+        return formatObjectModificationDelta(
+                shadowDelta, RESOURCE_OBJECT_NOTIFICATION_PATHS_TO_SHOW,
+                showSynchronizationItems, effectiveShowAuxiliaryAttributes, task, result);
+    }
+
+    public String formatResourceObjectDelta(
+            ObjectDelta<ShadowType> shadowDelta, boolean showSynchronizationItems,
+            boolean showAuxiliaryAttributes, Task task, OperationResult result, FormattingContext context) {
+        if (shadowDelta == null || !(shadowDelta.isAdd() || shadowDelta.isModify())) {
+            return "";
+        }
+
+        boolean effectiveShowAuxiliaryAttributes = !shadowDelta.isAdd() && showAuxiliaryAttributes;
+        if (task == null) {
+            return formatObjectModificationDelta(
+                    shadowDelta, RESOURCE_OBJECT_NOTIFICATION_PATHS_TO_SHOW,
+                    showSynchronizationItems, effectiveShowAuxiliaryAttributes, context);
+        }
+        return formatObjectModificationDelta(
+                shadowDelta, RESOURCE_OBJECT_NOTIFICATION_PATHS_TO_SHOW,
+                showSynchronizationItems, effectiveShowAuxiliaryAttributes, task, result, context);
     }
 
     /**

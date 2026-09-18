@@ -198,16 +198,18 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             @Nullable RecipientExpressionResultType recipient,
             EventProcessingContext<? extends E> ctx, OperationResult result)
             throws SchemaException {
+        Locale recipientLocale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)) : null;
+        Locale formattingLocale = recipientLocale != null ? recipientLocale : localizationService.getDefaultLocale();
+
         MessageTemplateContentType messageTemplateContent = findMessageContent(notifierConfig.value(), recipient, result);
 
-        String body = getBody(notifierConfig, messageTemplateContent, variables, transportName, ctx, result);
+        String body = getBody(notifierConfig, messageTemplateContent, variables, transportName, formattingLocale, ctx, result);
         if (body == null) {
             return new Message();
         }
 
-        Locale locale = recipient != null ? LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)) : null;
         String subscriptionFooter =
-                SubscriptionUtil.missingSubscriptionAppeal(localizationService, locale);
+                SubscriptionUtil.missingSubscriptionAppeal(localizationService, recipientLocale);
         if (subscriptionFooter != null) {
             body += '\n' + subscriptionFooter;
         }
@@ -377,7 +379,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     @Nullable
     private String getBody(
             ConfigurationItem<? extends N> notifierConfig, MessageTemplateContentType messageContent,
-            VariablesMap variables, String transportName, EventProcessingContext<? extends E> ctx, OperationResult result)
+            VariablesMap variables, String transportName, Locale locale, EventProcessingContext<? extends E> ctx, OperationResult result)
             throws SchemaException {
         ExpressionType bodyExpression = notifierConfig.value().getBodyExpression();
         if (bodyExpression == null && messageContent != null) {
@@ -391,7 +393,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                     ctx, result);
         } else {
             // default hardcoded in notifier classes
-            return getBody(notifierConfig, transportName, ctx, result);
+            return getBody(notifierConfig, transportName, locale, ctx, result);
         }
     }
 
@@ -498,6 +500,17 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
             EventProcessingContext<? extends E> ctx,
             OperationResult result) {
         return null;
+    }
+
+    /** Returns default body if no body expression is used. */
+    protected String getBody(
+            ConfigurationItem<? extends N> notifierConfig,
+            String transport,
+            Locale locale,
+            EventProcessingContext<? extends E> ctx,
+            OperationResult result)
+            throws SchemaException {
+        return getBody(notifierConfig, transport, ctx, result);
     }
 
     /** Returns default body if no body expression is used. */

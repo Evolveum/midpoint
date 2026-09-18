@@ -73,6 +73,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/notifications");
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    private static final File LOCALIZED_DELTA_NOTIFICATION_FILE = new File(TEST_DIR, "notification-localized-delta.xml");
 
     private static final TestObject<ArchetypeType> ARCHETYPE_DUMMY = TestObject.file(TEST_DIR, "archetype-dummy.xml", "c97780b7-6b07-4a25-be95-60125af6f650");
     private static final TestObject<RoleType> ROLE_DUMMY = TestObject.file(TEST_DIR, "role-dummy.xml", "8bc6d827-6ea6-4671-a506-a8388f117880");
@@ -593,6 +594,99 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertChannel(dummyTransport.getMessages("dummy:simpleUserNotifier-ADD").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
         assertChannel(dummyTransport.getMessages("dummy:simpleAccountNotifier-SUCCESS").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
         assertChannel(dummyTransport.getMessages("dummy:simpleAccountNotifier-ADD-SUCCESS").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
+    }
+
+    /**
+     * Verifies that delta notification bodies are localized according to each recipient's locale.
+     *
+     * The same user modification is sent to English and Slovak recipients using a test-specific
+     * notification handler, and each recipient must receive the delta formatter headings in the
+     * corresponding language.
+     */
+    @Test
+    public void test180DeltaBodyIsLocalizedForEachRecipient() throws Exception {
+        given();
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        String testUserOid = UUID.randomUUID().toString();
+        UserType testUser = new UserType()
+                .oid(testUserOid)
+                .name("mid-10631-localization");
+        repositoryService.addObject(testUser.asPrismObject(), null, result);
+
+        EventHandlerType handler = prismContext.parserFor(LOCALIZED_DELTA_NOTIFICATION_FILE)
+                .parseRealValue(EventHandlerType.class);
+        ItemPath handlerPath = ItemPath.create(
+                SystemConfigurationType.F_NOTIFICATION_CONFIGURATION, NotificationConfigurationType.F_HANDLER);
+        try {
+            assertThat(repositoryService.getObject(UserType.class, testUserOid, null, result)
+                    .asObjectable()
+                    .getNickName())
+                    .isNull();
+            modifyObjectAddContainer(
+                    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), handlerPath,
+                    task, result, handler);
+            prepareNotifications();
+
+            when();
+            executeChanges(
+                    prismContext.deltaFor(UserType.class)
+                            .item(UserType.F_NICK_NAME)
+                            .add(PolyString.fromOrig("Localized nickname"))
+                            .asObjectDelta(testUserOid),
+                    null, task, result);
+
+            then();
+            result.computeStatus();
+            TestUtil.assertSuccess("executeChanges result", result);
+            notificationManager.setDisabled(true);
+
+            List<Message> messages = dummyTransport.getMessages("dummy:localizedDeltaNotifier");
+            assertThat(messages).hasSize(2);
+
+            Message englishMessage = messages.stream()
+                    .filter(message -> message.getTo().contains("delta-en@example.com"))
+                    .findFirst()
+                    .orElseThrow();
+            Message slovakMessage = messages.stream()
+                    .filter(message -> message.getTo().contains("delta-sk@example.com"))
+                    .findFirst()
+                    .orElseThrow();
+
+            assertThat(englishMessage.getBody()).contains("Added properties:");
+            assertThat(slovakMessage.getBody()).contains("Pridané vlastnosti:");
+            assertThat(slovakMessage.getBody()).isNotEqualTo(englishMessage.getBody());
+        } finally {
+            // Clean up the handler installed only for this test and the dedicated test user.
+            notificationManager.setDisabled(true);
+            Task cleanupTask = createPlainTask();
+            OperationResult cleanupResult = cleanupTask.getResult();
+            try {
+                repositoryService
+                        .getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, cleanupResult)
+                        .asObjectable()
+                        .getNotificationConfiguration()
+                        .getHandler()
+                        .stream()
+                        .filter(candidate -> "MID-10631 localized delta test".equals(candidate.getName()))
+                        .findFirst()
+                        .ifPresent(installedHandler -> {
+                            try {
+                                EventHandlerType detachedHandler = installedHandler.clone();
+                                detachedHandler.asPrismContainerValue().setParent(null);
+                                modifyObjectDeleteContainer(
+                                        SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), handlerPath,
+                                        cleanupTask, cleanupResult, detachedHandler);
+                            } catch (CommonException e) {
+                                throw new AssertionError("Couldn't remove MID-10631 test notification handler", e);
+                            }
+                        });
+            } finally {
+                repositoryService.deleteObject(UserType.class, testUserOid, cleanupResult);
+            }
+        }
     }
 
     @Test

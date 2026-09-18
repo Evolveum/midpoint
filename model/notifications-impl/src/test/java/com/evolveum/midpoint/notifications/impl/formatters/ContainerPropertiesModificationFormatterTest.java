@@ -47,7 +47,7 @@ public class ContainerPropertiesModificationFormatterTest {
         final ModifiedPropertiesFormatter modifiedPropertiesFormatter =
                 new ModifiedPropertiesFormatter(propertyFormatter, indentationGenerator);
         this.formatter = new ContainerPropertiesModificationFormatter(propertiesFormatter, indentationGenerator,
-                modifiedPropertiesFormatter);
+                modifiedPropertiesFormatter, localizationService);
     }
 
     @Test

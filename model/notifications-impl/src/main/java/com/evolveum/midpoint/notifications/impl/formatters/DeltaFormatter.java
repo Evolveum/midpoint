@@ -13,4 +13,6 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
  */
 public interface DeltaFormatter {
     String formatVisualization(Visualization visualization);
+
+    String formatVisualization(Visualization visualization, FormattingContext context);
 }

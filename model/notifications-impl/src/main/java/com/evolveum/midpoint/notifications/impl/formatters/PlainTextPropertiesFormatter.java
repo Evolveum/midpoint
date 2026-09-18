@@ -30,7 +30,7 @@ final class PlainTextPropertiesFormatter implements PropertiesFormatter<Visualiz
 
     @Override
     public <U extends VisualizationItem> String formatProperties(Collection<U> items,
-            Function<U, Collection<? extends VisualizationItemValue>> valuesExtractor, int nestingLevel) {
+            Function<U, Collection<? extends VisualizationItemValue>> valuesExtractor, int nestingLevel, FormattingContext context) {
         LOGGER.trace("Formatting the properties: {}", items);
         if (items.isEmpty()) {
             return "";
@@ -41,13 +41,18 @@ final class PlainTextPropertiesFormatter implements PropertiesFormatter<Visualiz
         var formatingResult =  items.stream()
                 .map(item -> {
                     final Collection<? extends VisualizationItemValue> values = valuesExtractor.apply(item);
-                    final String formattedValues = this.propertyFormatter.itemValue(values, valuesIndentation);
-                    final String formattedLabel = this.propertyFormatter.itemLabel(item.getName());
+                    final String formattedValues = this.propertyFormatter.itemValue(values, valuesIndentation, context);
+                    final String formattedLabel = this.propertyFormatter.itemLabel(item.getName(), context);
                     return indentation + formattedLabel + ":" + formattedValues;
                 })
                 .collect(Collectors.joining("\n"));
         LOGGER.trace("Properties formatting ends up with result: {}", formatingResult);
         return formatingResult;
+    }
+
+    @Override
+    public FormattingContext defaultFormattingContext() {
+        return this.propertyFormatter.defaultFormattingContext();
     }
 
 }

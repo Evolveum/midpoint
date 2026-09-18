@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2026 Evolveum and contributors
+  ~
+  ~ Licensed under the EUPL-1.2 or later.
+  -->
+
+<handler xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>MID-10631 localized delta test</name>
+    <simpleUserNotifier>
+        <recipientExpression>
+            <value xsi:type="UserType">
+                <name>delta-en</name>
+                <emailAddress>delta-en@example.com</emailAddress>
+                <locale>en</locale>
+            </value>
+            <value xsi:type="UserType">
+                <name>delta-sk</name>
+                <emailAddress>delta-sk@example.com</emailAddress>
+                <locale>sk_SK</locale>
+            </value>
+        </recipientExpression>
+        <transport>dummy:localizedDeltaNotifier</transport>
+    </simpleUserNotifier>
+</handler>

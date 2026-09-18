@@ -6,9 +6,7 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -202,29 +200,8 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
     @Override
     public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes,
             Task task, OperationResult result) {
-        final ObjectDelta<ShadowType> shadowDelta = getShadowDelta();
-        if (shadowDelta == null) {
-            return "";
-        }
-        if (shadowDelta.isAdd() || shadowDelta.isModify()) {
-            showAuxiliaryAttributes = !shadowDelta.isAdd() && showAuxiliaryAttributes;
-            List<ItemPath> pathsToShowList = new ArrayList<>();
-            pathsToShowList.add(ShadowType.F_RESOURCE_REF);
-            pathsToShowList.add(ShadowType.F_KIND);
-            pathsToShowList.add(ShadowType.F_INTENT);
-            pathsToShowList.add(ShadowType.F_ATTRIBUTES);
-            pathsToShowList.add(ShadowType.F_CREDENTIALS);
-            pathsToShowList.add(ShadowType.F_ACTIVATION);
-            pathsToShowList.add(ShadowType.F_ASSOCIATIONS);
-            if (task == null) {
-                return getTextFormatter().formatObjectModificationDelta(shadowDelta, pathsToShowList, showSynchronizationItems,
-                        showAuxiliaryAttributes);
-            }
-            return getTextFormatter().formatObjectModificationDelta(shadowDelta, pathsToShowList, showSynchronizationItems,
-                    showAuxiliaryAttributes, task, result);
-        } else {
-            return "";
-        }
+        return getTextFormatter().formatResourceObjectDelta(
+                getShadowDelta(), showSynchronizationItems, showAuxiliaryAttributes, task, result);
     }
 
     @Override

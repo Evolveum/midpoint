@@ -9,14 +9,19 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+import com.evolveum.midpoint.notifications.impl.formatters.FormattingContext;
+import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
@@ -40,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEvent, SimpleFocalObjectNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleFocalObjectNotifier.class);
+
+    @Autowired private TextFormatter textFormatter;
 
     @Override
     public @NotNull Class<ModelEvent> getEventType() {
@@ -105,7 +112,7 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
 
     @Override
     protected String getBody(ConfigurationItem<? extends SimpleFocalObjectNotifierType> configuration,
-            String transport,
+            String transport, Locale locale,
             EventProcessingContext<? extends ModelEvent> ctx,
             OperationResult result) throws SchemaException {
 
@@ -140,9 +147,9 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         final Task task = ctx.task();
         if (delta.isAdd()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("created with the following data:\n");
-            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result)).append("\n");
+            body.append(formatEventContent(event, delta, watchAuxiliaryAttributes, task, result, locale)).append("\n");
         } else if (delta.isModify()) {
-            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result)).append("\n");
+            body.append(formatEventContent(event, delta, watchAuxiliaryAttributes, task, result, locale)).append("\n");
         } else if (delta.isDelete()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("removed.\n");
         }
@@ -161,6 +168,17 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         }
 
         return body.toString();
+    }
+
+    private String formatEventContent(ModelEvent event, ObjectDelta<AssignmentHolderType> delta, boolean showAuxiliaryAttributes,
+            Task task, OperationResult result, Locale locale) {
+        try {
+            return textFormatter.formatObjectModificationDelta(
+                    delta, List.of(), false, showAuxiliaryAttributes, task, result, new FormattingContext(locale));
+        } catch (Throwable t) {
+            // Preserve the existing event formatting behavior, including its user-visible fallback on formatting errors.
+            return event.getContentAsFormattedList(showAuxiliaryAttributes, task, result);
+        }
     }
 
     private String getDisplayName(AssignmentHolderType focus) {

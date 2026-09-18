@@ -7,13 +7,17 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import java.util.Date;
+import java.util.Locale;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
+import com.evolveum.midpoint.notifications.impl.formatters.FormattingContext;
+import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
@@ -27,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<ResourceObjectEvent, SimpleResourceObjectNotifierType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleResourceObjectNotifier.class);
+    @Autowired private TextFormatter textFormatter;
 
     @Override
     public @NotNull Class<ResourceObjectEvent> getEventType() {
@@ -79,7 +84,7 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
     @Override
     protected String getBody(
             ConfigurationItem<? extends SimpleResourceObjectNotifierType> configuration,
-            String transport,
+            String transport, Locale locale,
             EventProcessingContext<? extends ResourceObjectEvent> ctx,
             OperationResult result) {
 
@@ -138,13 +143,15 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
 
         if (delta.isAdd()) {
             body.append("created on the resource with attributes:\n");
-            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes, task,
-                    result));
+            body.append(textFormatter.formatResourceObjectDelta(
+                    event.getShadowDelta(), watchSynchronizationAttributes, watchAuxiliaryAttributes,
+                    task, result, new FormattingContext(locale)));
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
-            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes, task,
-                    result));
+            body.append(textFormatter.formatResourceObjectDelta(
+                    event.getShadowDelta(), watchSynchronizationAttributes, watchAuxiliaryAttributes,
+                    task, result, new FormattingContext(locale)));
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("removed from the resource.\n\n");

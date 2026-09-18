@@ -26,27 +26,35 @@ public final class PropertyFormatter {
         this.multiValuePrefix = multiValuePrefix;
     }
 
-    String itemLabel(Name itemName) {
+    String itemLabel(Name itemName, FormattingContext context) {
         if (itemName.getDisplayName() != null) {
-            return this.localizationService.translate(itemName.getDisplayName());
+            return this.localizationService.translate(itemName.getDisplayName(), context.locale());
         } else if (itemName.getSimpleName() != null) {
-            return this.localizationService.translate(itemName.getSimpleName());
+            return this.localizationService.translate(itemName.getSimpleName(), context.locale());
         }
-        return "Unknown";
+        return translate("PropertyFormatter.unknown", context, "Unknown");
     }
 
-    String itemValue(Collection<? extends VisualizationItemValue> values, String indentation) {
+    String itemValue(Collection<? extends VisualizationItemValue> values, String indentation, FormattingContext context) {
         if (values.isEmpty()) {
             return "";
         }
 
         if (values.size() == 1) {
-            return this.singleValuePrefix + this.localizationService.translate(values.iterator().next().getText());
+            return this.singleValuePrefix + this.localizationService.translate(values.iterator().next().getText(), context.locale());
         }
 
         return this.multiValuePrefix + values.stream()
-                .map(value -> indentation + this.localizationService.translate(value.getText()))
+                .map(value -> indentation + this.localizationService.translate(value.getText(), context.locale()))
                 .collect(Collectors.joining(multiValuePrefix));
+    }
+
+    String translate(String key, FormattingContext context, String defaultMessage) {
+        return this.localizationService.translate(key, new Object[0], context.locale(), defaultMessage);
+    }
+
+    FormattingContext defaultFormattingContext() {
+        return new FormattingContext(this.localizationService.getDefaultLocale());
     }
 
 }

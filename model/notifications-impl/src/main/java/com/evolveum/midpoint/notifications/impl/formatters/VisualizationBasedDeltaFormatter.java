@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsCombiner;
 import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,7 +38,6 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
     private final PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter;
     private final IndentationGenerator indentationGenerator;
     private final LocalizationService localizationService;
-    private final Locale defaultLocale;
 
     public VisualizationBasedDeltaFormatter(PropertiesFormatter<VisualizationItem> propertiesFormatter,
             PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter,
@@ -48,22 +49,26 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
         this.containerPropertiesModificationFormatter = containerPropertiesModificationFormatter;
         this.indentationGenerator = indentationGenerator;
         this.localizationService = localizationService;
-        this.defaultLocale = Locale.getDefault();
     }
 
     @Override
     public String formatVisualization(Visualization visualization) {
-        LOGGER.trace("Starting to format visualization {}", getObjectName(visualization.getName()));
-        var formatingResult = formatContainer(visualization, 0);
+        return formatVisualization(visualization, new FormattingContext(this.localizationService.getDefaultLocale()));
+    }
+
+    @Override
+    public String formatVisualization(Visualization visualization, FormattingContext context) {
+        LOGGER.trace("Starting to format visualization {}", getObjectName(visualization.getName(), context));
+        var formatingResult = formatContainer(visualization, 0, context);
         LOGGER.trace("Visualization formating ends up with a result: {}", formatingResult);
         return formatingResult;
     }
 
-    private String formatContainer(Visualization visualization, int nestingLevel) {
+    private String formatContainer(Visualization visualization, int nestingLevel, FormattingContext context) {
         final int nextNestingLevel = nestingLevel + 1;
         final StringBuilder formattedContainer = new StringBuilder(this.indentationGenerator.indentation(nestingLevel))
-                .append(createHeading(visualization));
-        final String formattedProperties = formatProperties(visualization, nextNestingLevel);
+                .append(createHeading(visualization, context));
+        final String formattedProperties = formatProperties(visualization, nextNestingLevel, context);
         if (!formattedProperties.isEmpty()) {
                 formattedContainer.append(":\n")
                         .append(formattedProperties);
@@ -72,17 +77,17 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
         }
 
         for (final Visualization partialVisualization : visualization.getPartialVisualizations()) {
-            formattedContainer.append("\n").append(formatContainer(partialVisualization, nextNestingLevel));
+            formattedContainer.append("\n").append(formatContainer(partialVisualization, nextNestingLevel, context));
         }
         return formattedContainer.toString();
     }
 
-    private String formatProperties(Visualization visualization, int nestingLevel) {
+    private String formatProperties(Visualization visualization, int nestingLevel, FormattingContext context) {
 
         return switch (visualization.getChangeType()) {
             case ADD, DELETE -> {
                 final List<VisualizationItem> properties = new ArrayList<>(visualization.getItems());
-                yield this.propertiesFormatter.formatProperties(properties, nestingLevel);
+                yield this.propertiesFormatter.formatProperties(properties, nestingLevel, context);
             }
             case MODIFY -> {
                 final List<VisualizationItem> items = new ArrayList<>();
@@ -100,71 +105,107 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
                 // Items, which in the "MODIFY" case are not "delta" items, are most likely additional identification
                 // (akka descriptive) properties.
                 final String additionalIdentification = this.additionalIdentificationFormatter.formatProperties(items,
-                        nestingLevel);
+                        nestingLevel, context);
                 final String containerProperties = this.containerPropertiesModificationFormatter.formatProperties(
-                        deltaItems, nestingLevel);
+                        deltaItems, nestingLevel, context);
                 yield concatenateNonEmptyStrings("\n", additionalIdentification, containerProperties);
             }
         };
     }
 
-    private String createHeading(Visualization visualization) {
+    private String createHeading(Visualization visualization, FormattingContext formattingContext) {
+
         final var customizableOverview = visualization.getName().getCustomizableOverview();
+
         if (customizableOverview != null) {
-            return customizableOverview.wrap(
-                    LocalizationPartsWrapper.from(
-                            (object, context) -> object,
-                            (objectName, context) -> "\"" + objectName + "\"",
-                            (action, context) -> action,
-                            (additionalInfo, context) -> additionalInfo,
-                            helpingWords -> helpingWords))
-                    .combineParts(LocalizationPartsCombiner.joiningWithSpaceIfNotEmpty())
-                    .translate(this.localizationService, this.defaultLocale);
+            final var customizableHeading = customizableOverview.wrap(localizationPartsWrapper())
+                            .combineParts(LocalizationPartsCombiner.joiningWithSpaceIfNotEmpty());
+
+            final var englishContext =
+                    new FormattingContext(Locale.ENGLISH);
+
+            final String englishHeading =
+                    customizableHeading.translate(
+                            this.localizationService,
+                            englishContext.locale());
+
+            /*
+             * Simple ADD/DELETE headings equivalent to the generic formatter
+             * heading are safe to translate. More complex visualizer messages
+             * are kept in English to avoid partially localized sentences.
+             */
+            if ((visualization.getChangeType() == ChangeType.ADD
+                    || visualization.getChangeType() == ChangeType.DELETE)
+                    && englishHeading.equals(
+                    createActionHeading(visualization, englishContext))) {
+
+                return customizableHeading.translate(
+                        this.localizationService,
+                        formattingContext.locale());
+            }
+
+            return englishHeading;
         }
 
         return switch (visualization.getChangeType()) {
-            case ADD, DELETE -> createAddOrDeleteHeading(visualization);
-            case MODIFY -> createModificationHeading(visualization);
+            case ADD, DELETE -> createActionHeading(visualization, formattingContext);
+            case MODIFY -> createModificationHeading(visualization, formattingContext);
         };
     }
 
-    private String createModificationHeading(Visualization visualization) {
-        final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
-        final String objectType = getObjectType(visualization);
+    private LocalizationPartsWrapper<String, LocalizationCustomizationContext, String>
+    localizationPartsWrapper() {
 
-        return concatenateNonEmptyStrings(" ", objectType, objectName, "was modified");
+        return LocalizationPartsWrapper.from(
+                (String object, LocalizationCustomizationContext context) -> object,
+                (String objectName, LocalizationCustomizationContext context)
+                        -> "\"" + objectName + "\"",
+                (String action, LocalizationCustomizationContext context) -> action,
+                (String additionalInfo, LocalizationCustomizationContext context)
+                        -> additionalInfo,
+                (String helpingWords) -> helpingWords);
     }
 
-    private String createAddOrDeleteHeading(Visualization visualization) {
+    private String createModificationHeading(Visualization visualization, FormattingContext context) {
+        final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName(), context), "\"", "\"");
+        final String objectType = getObjectType(visualization, context);
+        final String defaultMessage = concatenateNonEmptyStrings(" ", objectType, objectName, "was modified");
+
+        return this.localizationService.translate(
+                "VisualizationBasedDeltaFormatter.objectWasModified",
+                new Object[] { objectType, objectName }, context.locale(),
+                defaultMessage).trim();
+    }
+
+    private String createActionHeading(Visualization visualization, FormattingContext context) {
         final String changeLocalizationKey = enumLocalizationKey(visualization.getChangeType());
-        final String changeType = this.localizationService.translate(changeLocalizationKey, new Object[0],
-                this.defaultLocale);
-        final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
-        final String objectType = getObjectType(visualization);
+        final String changeType = this.localizationService.translate(changeLocalizationKey, new Object[0], context.locale());
+        final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName(), context), "\"", "\"");
+        final String objectType = getObjectType(visualization, context);
 
         return concatenateNonEmptyStrings(" ", changeType, objectType, objectName);
     }
 
-    private String getObjectName(Name objectName) {
+    private String getObjectName(Name objectName, FormattingContext context) {
         if (objectName.getDisplayName() == null) {
-            return this.localizationService.translate(objectName.getSimpleName(), this.defaultLocale);
+            return this.localizationService.translate(objectName.getSimpleName(), context.locale());
         }
 
         final String displayName = emptyIfNull(this.localizationService.translate(objectName.getDisplayName(),
-                this.defaultLocale));
+                context.locale()));
         if (objectName.getSimpleName() == null) {
             return displayName;
         }
 
         final String simpleName = emptyIfNull(this.localizationService.translate(objectName.getSimpleName(),
-                this.defaultLocale));
+                context.locale()));
         if (displayName.equalsIgnoreCase(simpleName)) {
             return displayName;
         }
         return displayName + encloseIfNotEmpty(simpleName, " (", ")");
     }
 
-    private String getObjectType(Visualization visualization) {
+    private String getObjectType(Visualization visualization, FormattingContext context) {
         if (visualization.getOwner() != null) {
             // This means visualization is not top level, thus the change is on container. For this scenario I am not
             // sure how to retrieve translated object type right now.
@@ -177,7 +218,7 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
                     "Definition of focal object is not present. Unable to properly format object type.");
         }
         final String typeKey = SchemaConstants.OBJECT_TYPE_KEY_PREFIX + definition.getTypeName().getLocalPart();
-        return emptyIfNull(this.localizationService.translate(typeKey, new Object[0], this.defaultLocale));
+        return emptyIfNull(this.localizationService.translate(typeKey, new Object[0], context.locale()));
     }
 
     private static String enumLocalizationKey(Enum<?> enumValue) {

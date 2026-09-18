@@ -14,10 +14,15 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 
 public interface PropertiesFormatter<T extends VisualizationItem> {
     default String formatProperties(Collection<T> items, int nestingLevel) {
-        return formatProperties(items, VisualizationItem::getNewValues, nestingLevel);
+        return formatProperties(items, nestingLevel, defaultFormattingContext());
+    }
+
+    default String formatProperties(Collection<T> items, int nestingLevel, FormattingContext context) {
+        return formatProperties(items, VisualizationItem::getNewValues, nestingLevel, context);
     }
 
     <U extends T> String formatProperties(Collection<U> items,
             Function<U, Collection<? extends VisualizationItemValue>> valuesExtractor,
-            int nestingLevel);
+            int nestingLevel, FormattingContext context);
+    FormattingContext defaultFormattingContext();
 }

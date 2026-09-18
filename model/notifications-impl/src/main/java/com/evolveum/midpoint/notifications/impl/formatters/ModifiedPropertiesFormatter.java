@@ -33,7 +33,7 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
     }
 
     @Override
-    public String formatProperties(Collection<VisualizationDeltaItem> propertiesDeltas, int nestingLevel) {
+    public String formatProperties(Collection<VisualizationDeltaItem> propertiesDeltas, int nestingLevel, FormattingContext context) {
         LOGGER.trace("Formatting the properties: {}", propertiesDeltas);
         final String labelIndentation = this.indentationGenerator.indentation(nestingLevel);
         final String operationIndentation = this.indentationGenerator.indentation(nestingLevel + 1);
@@ -43,10 +43,10 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
         final List<String> addedOrDeletedProperties = new ArrayList<>();
         for (final VisualizationDeltaItem delta : propertiesDeltas) {
             if (isPropertyReplaced(delta)) {
-                replacedProperties.add(formatReplacedValues(delta, labelIndentation));
+                replacedProperties.add(formatReplacedValues(delta, labelIndentation, context));
             } else {
                 addedOrDeletedProperties.add(formatValuesAdditionsAndDeletions(delta, labelIndentation,
-                        operationIndentation, valuesIndentation));
+                        operationIndentation, valuesIndentation, context));
             }
         }
         var formatingResult = Stream.of(replacedProperties, addedOrDeletedProperties)
@@ -58,23 +58,25 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
 
     @Override
     public <U extends VisualizationDeltaItem> String formatProperties(Collection<U> items,
-            Function<U, Collection<? extends VisualizationItemValue>> valuesExtractor, int nestingLevel) {
+            Function<U, Collection<? extends VisualizationItemValue>> valuesExtractor, int nestingLevel, FormattingContext context) {
         throw new UnsupportedOperationException("Generic version of this method is not supported by this "
                 + "implementation.");
     }
 
     private String formatValuesAdditionsAndDeletions(VisualizationDeltaItem delta, String labelIndentation,
-            String operationIndentation, String valuesIndentation) {
-        final String formattedAdditions = formatModifiedProperties(delta.getAddedValues(), "Added values",
-                operationIndentation, valuesIndentation);
-        final String formattedDeletions = formatModifiedProperties(delta.getDeletedValues(), "Deleted values",
-                operationIndentation, valuesIndentation);
+            String operationIndentation, String valuesIndentation, FormattingContext context) {
+        final String formattedAdditions = formatModifiedProperties(delta.getAddedValues(),
+                this.propertyFormatter.translate("ModifiedPropertiesFormatter.addedValues", context, "Added values"),
+                operationIndentation, valuesIndentation, context);
+        final String formattedDeletions = formatModifiedProperties(delta.getDeletedValues(),
+                this.propertyFormatter.translate("ModifiedPropertiesFormatter.deletedValues", context, "Deleted values"),
+                operationIndentation, valuesIndentation, context);
 
         final String label;
         if (formattedAdditions.isEmpty() && formattedDeletions.isEmpty()) {
             return "";
         } else {
-            label = labelIndentation + this.propertyFormatter.itemLabel(delta.getName()) + ":";
+            label = labelIndentation + this.propertyFormatter.itemLabel(delta.getName(), context) + ":";
         }
         return Stream.of(label, formattedAdditions, formattedDeletions)
                 // we don't want an empty additions or deletions to cause extra new line so filter them out.
@@ -83,8 +85,8 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
     }
 
     private String formatModifiedProperties(Collection<? extends VisualizationItemValue> values,
-            String operationLabel, String operationIndentation, String valuesIndentation) {
-        final String formattedValues = this.propertyFormatter.itemValue(values, valuesIndentation);
+            String operationLabel, String operationIndentation, String valuesIndentation, FormattingContext context) {
+        final String formattedValues = this.propertyFormatter.itemValue(values, valuesIndentation, context);
         if (formattedValues.isEmpty()) {
             return  "";
         } else {
@@ -92,15 +94,20 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
         }
     }
 
-    private String formatReplacedValues(VisualizationDeltaItem delta, String labelIndentation) {
-        return labelIndentation + this.propertyFormatter.itemLabel(delta.getName()) + ":"
-                + this.propertyFormatter.itemValue(delta.getDeletedValues(), "") + " ->"
-                + this.propertyFormatter.itemValue(delta.getAddedValues(), "");
+    private String formatReplacedValues(VisualizationDeltaItem delta, String labelIndentation, FormattingContext context) {
+        return labelIndentation + this.propertyFormatter.itemLabel(delta.getName(), context) + ":"
+                + this.propertyFormatter.itemValue(delta.getDeletedValues(), "", context) + " ->"
+                + this.propertyFormatter.itemValue(delta.getAddedValues(), "", context);
     }
 
     private static boolean isPropertyReplaced(VisualizationDeltaItem delta) {
         return delta.getAddedValues().size() == 1 && delta.getDeletedValues().size() == 1 && delta.getUnchangedValues()
                 .isEmpty();
+    }
+
+    @Override
+    public FormattingContext defaultFormattingContext() {
+        return this.propertyFormatter.defaultFormattingContext();
     }
 
 }
