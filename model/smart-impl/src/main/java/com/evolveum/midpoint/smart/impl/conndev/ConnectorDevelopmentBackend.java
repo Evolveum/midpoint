@@ -1020,6 +1020,17 @@ public abstract class ConnectorDevelopmentBackend {
     }
 
     /**
+     * The connector intent for the generation service ({@code intent} query parameter of the
+     * object-class extraction endpoint). {@code null} when not set, so the service applies its
+     * own default (Identity Management &amp; Governance).
+     */
+    protected String connectorIntent() {
+        var connector = developmentObject().getConnector();
+        var intent = connector != null ? connector.getIntent() : null;
+        return intent != null ? intent.value() : null;
+    }
+
+    /**
      * Pushes each freshly built dev-shadow documentation to the connector-generation service via
      * {@code POST session/{sessionId}/documentation/{docId}} and pulls the processed result back into
      * midPoint. The service processes each upload with the LLM (chunking it into {@code DocumentationItem}s)
@@ -1086,7 +1097,7 @@ public abstract class ConnectorDevelopmentBackend {
 
     public List<ConnDevBasicObjectClassInfoType> discoverObjectClassesUsingDocumentation(
             List<ConnDevBasicObjectClassInfoType> connectorDiscovered, boolean includeUnrelated, boolean skipCache) {
-        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), skipCache)) {
+        try (var job = client().postJob("digester/{sessionId}/classes", apiType(), connectorIntent(), skipCache)) {
             return job.waitAndProcess(SLEEP_TIME, canRun(), o -> {
                 var ret = new ArrayList<ConnDevBasicObjectClassInfoType>();
                 var jsonClasses = o.get("objectClasses");
