@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.prism.util.PrismAsserts.assertReferenceValue
 import java.io.File;
 import java.util.*;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +161,10 @@ public class TestStrings extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_OPERATION_REQUEST,
+                CommonInitialObjects.ARCHETYPE_APPROVAL_CASE);
 
         transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_FILE, initTask, initResult);
 

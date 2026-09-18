@@ -14,6 +14,8 @@ import java.util.Arrays;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -119,6 +121,10 @@ public class TestDelivery extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_OPERATION_REQUEST,
+                CommonInitialObjects.ARCHETYPE_APPROVAL_CASE);
 
         repoAddObjectFromFile(LIBRARY_FILE, initResult);
 
