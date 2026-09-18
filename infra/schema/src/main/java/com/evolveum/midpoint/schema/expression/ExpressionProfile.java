@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionPackageProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
 
 import org.jetbrains.annotations.NotNull;
@@ -57,10 +59,11 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             AccessDecision.DENY); // this actually does not matter
 
     /**
-     * Profile for safe scripting: allows only MEL script evaluator.
-     * This profile is used when evaluating AI-generated or untrusted mapping scripts.
+     * Profile for mappings suggested by smart integration (primarily LLMs): allows only MEL script evaluator and excludes
+     * potentially dangerous modules, namely `midpoint` and `crypto`. This profile is used when evaluating AI-generated
+     * or untrusted mapping scripts.
      */
-    private static final ExpressionProfile SAFE_SCRIPTING_ONLY = new ExpressionProfile(
+    private static final ExpressionProfile MAPPINGS_QUALITY_ASSESSMENT = new ExpressionProfile(
             SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
             new ExpressionEvaluatorsProfile(
                     AccessDecision.DENY,
@@ -71,7 +74,17 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
                                     MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL,
                                     AccessDecision.ALLOW,
                                     true,
-                                    null))))),
+                                    ExpressionPermissionProfile.closed(
+                                            SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
+                                            AccessDecision.ALLOW,
+                                            List.of(
+                                                    new ExpressionPermissionPackageProfileType()
+                                                            .name(MidPointConstants.MEL_EXTENSION_MIDPOINT_NAME)
+                                                            .decision(AuthorizationDecisionType.DENY),
+                                                    new ExpressionPermissionPackageProfileType()
+                                                            .name(MidPointConstants.MEL_EXTENSION_SECRET_NAME)
+                                                            .decision(AuthorizationDecisionType.DENY)),
+                                            List.of())))))),
             BulkActionsProfile.none(),
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY);
@@ -133,8 +146,9 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
         return LEGACY_UNPRIVILEGED_BULK_ACTIONS;
     }
 
-    public static @NotNull ExpressionProfile safeScriptingOnly() {
-        return SAFE_SCRIPTING_ONLY;
+    /** @see #MAPPINGS_QUALITY_ASSESSMENT */
+    public static @NotNull ExpressionProfile mappingsQualityAssessment() {
+        return MAPPINGS_QUALITY_ASSESSMENT;
     }
 
     public static @NotNull ExpressionProfile asIsOnly() {

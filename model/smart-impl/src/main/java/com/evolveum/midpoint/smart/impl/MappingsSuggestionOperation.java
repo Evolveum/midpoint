@@ -483,7 +483,7 @@ class MappingsSuggestionOperation {
         if (script == null || script.isEmpty() || "input".equals(script) || "null".equals(script)) {
             return null;
         }
-        var safeScriptingTrustDescriptor = MidPointTrustDescriptor.explicit(ExpressionProfile.safeScriptingOnly());
+        var safeScriptingTrustDescriptor = MidPointTrustDescriptor.explicit(ExpressionProfile.mappingsQualityAssessment());
         return SimpleExpressionUtil.melExpression(script, safeScriptingTrustDescriptor)
                 .description(scriptDescription);
     }
