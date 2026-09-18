@@ -23,6 +23,9 @@ import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -41,6 +44,23 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class MappingRangeUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingRangeUtils.class);
+
+    /**
+     * Path of the autoassign focus specification, relative to the role
+     */
+    public static final ItemPath AUTOASSIGN_FOCUS_PATH = ItemPath.create(
+            AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_FOCUS);
+
+    /**
+     * Path of an autoassign mapping value, relative to the role
+     */
+    public static final ItemPath AUTOASSIGN_MAPPING_PATH =
+            AUTOASSIGN_FOCUS_PATH.append(FocalAutoassignSpecificationType.F_MAPPING);
+
+    /**
+     * Path of an autoassign mapping's {@code target} property, relative to the role
+     */
+    public static final ItemPath AUTOASSIGN_MAPPING_TARGET_PATH = AUTOASSIGN_MAPPING_PATH.append(MappingType.F_TARGET);
 
     /**
      * Options to offer for the mapping. Matching the provenance needs a midPoint property to read the
@@ -99,6 +119,10 @@ public class MappingRangeUtils {
      * @return true when the target may hold more than one value.
      */
     public static boolean isMultiValueTarget(PrismContainerValueWrapper<MappingType> mappingValue) {
+        if (isAutoassignMapping(mappingValue)) {
+            return true;
+        }
+
         ItemPath targetPath = getTargetPath(mappingValue);
         if (targetPath == null) {
             return false;
@@ -111,6 +135,13 @@ public class MappingRangeUtils {
 
         ItemDefinition<?> targetDefinition = focusDefinition.findItemDefinition(targetPath);
         return targetDefinition == null || targetDefinition.isMultiValue();
+    }
+
+    private static boolean isAutoassignMapping(PrismContainerValueWrapper<MappingType> mappingValue) {
+        if (mappingValue == null) {
+            return false;
+        }
+        return mappingValue.getPath().namedSegmentsOnly().equivalent(AUTOASSIGN_MAPPING_PATH);
     }
 
     /**
