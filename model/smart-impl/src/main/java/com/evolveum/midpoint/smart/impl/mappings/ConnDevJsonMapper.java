@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl.mappings;
 
+import com.evolveum.midpoint.smart.api.conndev.ConnDevScriptFormat;
 import com.evolveum.midpoint.smart.api.conndev.ConnectorDevelopmentArtifacts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -261,7 +262,9 @@ public class ConnDevJsonMapper {
         if (knownType == null) {
             return null;
         }
-        return knownType.create(objectClass).content(toText(script.get("code")));
+        var artifact = knownType.create(objectClass).content(toText(script.get("code")));
+        var format = ConnDevScriptFormat.fromResponseField(toText(script.get("format")));
+        return artifact.filename(format.withExtension(artifact.getFilename()));
     }
 
     // ---- Utilities ----

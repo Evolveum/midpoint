@@ -93,7 +93,7 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
     }
 
     @Override
-    protected IModel<PrismContainerWrapper<MappingType>> getContainerModel() {
+    public IModel<PrismContainerWrapper<MappingType>> getContainerModel() {
         return createVirtualMappingContainerModel(
                 getPageBase(),
                 getValueModel(),

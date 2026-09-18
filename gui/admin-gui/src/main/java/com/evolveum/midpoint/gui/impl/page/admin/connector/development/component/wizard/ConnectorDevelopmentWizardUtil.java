@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
@@ -293,6 +294,23 @@ public class ConnectorDevelopmentWizardUtil {
         Component drawerInfoPanel = step.getWizard().getPanel().get("mainForm:drawerInfoPanel");
         if (drawerInfoPanel != null) {
             target.add(drawerInfoPanel);
+        }
+    }
+
+    /**
+     * Registers {@code provider} as the log viewer drawer's source for {@code panelId} and refreshes the
+     * drawer, mirroring {@link #reportScriptValidationErrors} - Phase 1 only, {@code provider} is currently
+     * always a {@code MockOperationLogProvider} (see its javadoc), the real backend for structured logging is a
+     * future phase.
+     */
+    public static void reportOperationLogs(
+            AbstractWizardStepPanel<?> step, String panelId, OperationLogProvider provider, AjaxRequestTarget target) {
+        if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
+            return;
+        }
+        wizardModel.addOperationLogs(panelId, provider);
+        if (target != null) {
+            refreshDrawerPanel(step, target);
         }
     }
 

@@ -224,7 +224,10 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                         enforceNotificationAction(policyRule, "suspend task", task, result);
 
                         LOGGER.debug("Going to suspend the task because of policy violation, rule: {}", policyRule);
-                        var cause = new ActivityPolicyBasedHaltException(message, defaultMessage);
+                        var ruleIdentifier = policyRule.getRuleIdentifier();
+                        var cause = ActivityPolicyBasedHaltException.forRule(
+                                message, defaultMessage, action,
+                                ruleIdentifier != null ? ruleIdentifier.asString() : null, policyRule.getName());
 
                         throw new ThresholdPolicyViolationException(message, defaultMessage, cause);
                     } else if (action instanceof RestartActivityPolicyActionType || action instanceof SkipActivityPolicyActionType) {

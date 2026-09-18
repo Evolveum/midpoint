@@ -207,8 +207,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     void assertTest100TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception {
         // we're in simulation so clockwork notifier hook will be skipped
         assertNotifications(DUMMY_POLICY_NOTIFIER, RULE_ADD_NOTIFICATION_NAME, 0);
-        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
-        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        // no new item is processed on resume (the persisted counter re-trips at run start), so no new notification
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", 9);
 
         var suspendPolicyIdentifier = createRuleAddIdentifier(importTask);
@@ -230,16 +229,16 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                     .end()
                 .previewModePolicyRulesCounters()
                     .assertCounterMinMax(ruleAddNotificationId,
-                            addNotificationCounterAfterFirstRun + 1, addNotificationCounterAfterFirstRun + getThreads())
+                            addNotificationCounterAfterFirstRun, addNotificationCounterAfterFirstRun)
                     .assertCounterMinMax(suspendPolicyIdentifier,
-                            addSuspendCounterAfterFirstRun + 1, addSuspendCounterAfterFirstRun + getThreads())
+                            addSuspendCounterAfterFirstRun, addSuspendCounterAfterFirstRun)
                     .assertCounterCount(2)
                     .end()
                 .progress()
-                    .assertUncommitted(0, 1, 0) // fails immediately because of persistent counters
+                    .assertUncommitted(0, 0, 0) // re-suspends at run start, before any item is processed
                     .end()
                 .itemProcessingStatistics()
-                    .assertTotalCounts(USER_ADD_ALLOWED, 2, 0)
+                    .assertTotalCounts(USER_ADD_ALLOWED, 1, 0)
                 .end();
         // @formatter:on
     }
@@ -358,8 +357,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
     void assertTest200TaskAfterRepeatedExecution(TestObject<TaskType> importTask) throws Exception {
         // we're in simulation so clockwork notifier hook will be skipped
         assertNotifications(DUMMY_POLICY_NOTIFIER, "modify-5-costCenter-notification", 0);
-        // there are 9 notifications, because for the 10th time, activity policy rules are not being evaluated,
-        // because task is suspended from clockwork policy rule (before activity policies evaluation).
+        // no new item is processed on resume (the persisted counter re-trips at run start), so no new notification
         assertNotifications(DUMMY_ACTIVITY_POLICY_NOTIFIER, "Execution time 0s", USER_MODIFY_ALLOWED * 4);
 
         var suspendPolicyIdentifier = createRuleModifyCostCenterIdentifier(importTask);
@@ -373,14 +371,14 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .display()
                     .assertCounterMinMax(ruleModifyCostCenterNotificationId,
-                            modifyNotificationCounterAfterFirstRun + 1, modifyNotificationCounterAfterFirstRun + getThreads())
+                            modifyNotificationCounterAfterFirstRun, modifyNotificationCounterAfterFirstRun)
                     .assertCounterMinMax(suspendPolicyIdentifier,
-                            modifySuspendCounterAfterFirstRun + 1, modifySuspendCounterAfterFirstRun + getThreads())
+                            modifySuspendCounterAfterFirstRun, modifySuspendCounterAfterFirstRun)
                     .assertCounterCount(2)
                     .end()
                 .itemProcessingStatistics()
                     .display()
-                    .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 2, 0)
+                    .assertTotalCounts(USER_MODIFY_ALLOWED * 4, 1, 0)
                     .end();
         // @formatter:on
     }
@@ -540,7 +538,7 @@ public class TestFocusPolicyInActivity extends TestFocusPolicies {
                 .previewModePolicyRulesCounters()
                     .display()
                     .assertCounterMinMax(ruleDeleteNotificationId,
-                            deleteNotificationCounterAfterFirstRun + 1, deleteNotificationCounterAfterFirstRun + getThreads())
+                            deleteNotificationCounterAfterFirstRun, deleteNotificationCounterAfterFirstRun)
                     .end();
         // @formatter:on
     }

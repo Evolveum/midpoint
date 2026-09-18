@@ -13,9 +13,11 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.CollapsedItem;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.DrawerDescriptor;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationLogCollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultCollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.WizardHelpCollapsedItem;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.OperationResultWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogProvider;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.SerializableConsumer;
 
@@ -27,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,7 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
 
     private final OperationResultCollapsedItem operationResultCollapsedItem = new OperationResultCollapsedItem();
     private final WizardHelpCollapsedItem helpCollapsedItem = new WizardHelpCollapsedItem(this);
+    private final OperationLogCollapsedItem operationLogCollapsedItem = new OperationLogCollapsedItem();
 
     public abstract void init(Page page);
 
@@ -57,14 +61,19 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
     }
 
     private @NotNull List<CollapsedItem> getCollapsedItemsList() {
-        if (helpCollapsedItem.isVisible()) {
-            return List.of(operationResultCollapsedItem, helpCollapsedItem);
+        List<CollapsedItem> items = new ArrayList<>();
+        items.add(operationResultCollapsedItem);
+        if (operationLogCollapsedItem.isVisible()) {
+            items.add(operationLogCollapsedItem);
         }
-        return List.of(operationResultCollapsedItem);
+        if (helpCollapsedItem.isVisible()) {
+            items.add(helpCollapsedItem);
+        }
+        return items;
     }
 
     public boolean isCollapsedItemsVisible() {
-        return operationResultCollapsedItem.isVisible() || helpCollapsedItem.isVisible();
+        return operationResultCollapsedItem.isVisible() || operationLogCollapsedItem.isVisible() || helpCollapsedItem.isVisible();
     }
 
     public Optional<CollapsedItem> getSelectedCollapsedItem() {
@@ -76,7 +85,11 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
     public void fireActiveStepChanged(WizardStep step) {
         super.fireActiveStepChanged(step);
         removeOperationResult(step.getStepId());
-        getCollapsedItemsList().forEach(item -> item.setSelected(false));
+        removeOperationLogs(step.getStepId());
+
+        operationResultCollapsedItem.setSelected(false);
+        operationLogCollapsedItem.setSelected(false);
+        helpCollapsedItem.setSelected(false);
     }
 
     public void addOperationResult(String panelId, OperationResult result) {
@@ -114,6 +127,14 @@ public abstract class WizardModelWithParentSteps extends WizardModel implements 
     /** Removes every drawer entry whose fixPanelId is one of {@code fixPanelIds}. */
     public void removeOperationResultsForFixSteps(Collection<String> fixPanelIds) {
         operationResultCollapsedItem.removeOperationResultsForFixSteps(fixPanelIds);
+    }
+
+    public void addOperationLogs(String panelId, OperationLogProvider provider) {
+        operationLogCollapsedItem.addLogs(panelId, provider);
+    }
+
+    public void removeOperationLogs(String panelId) {
+        operationLogCollapsedItem.removeLogs(panelId);
     }
 
     public boolean isStepWithError(String stepId) {
