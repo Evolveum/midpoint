@@ -171,10 +171,54 @@ Therefore the reconciliation part of the projector will not compute any reconcil
 But when the grace period expires, provisioning component stops to pretend that they were applied.
 And if the changes are not already in the CSV then the reconciliation detects that, new modifications are executed and new case is created.
 
+== ITSM Ticketing
+
+Since midPoint 4.11 the built-in manual connector can optionally manage the tickets on a real ITSM system, using a dedicated xref:/midpoint/reference/resources/manual/ticketing/[ticketing resource].
+See the xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing] page for details and the ticketing resource setup.
+
+The manual connector is configured by the following configuration items (in the `connectorConfiguration` of the resource):
+
+[%autowidth,cols="1,1,4"]
+|===
+| Item | Default | Description
+
+| `ticketingResourceOid`
+| _not set_
+| OID of the ticketing resource used to manage the tickets on the ITSM system.
+If not set, the cases are managed internally by midPoint.
+
+| `ticketingObjectKind`
+| `generic`
+| Kind of the ticket object type on the ticketing resource (`work` in the standard setup).
+
+| `ticketingObjectIntent`
+| `ticket`
+| Intent of the ticket object type on the ticketing resource.
+
+|===
+
+Example:
+
+[source,xml]
+----
+<connectorConfiguration
+        xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector">
+    <!-- OID of the ticketing resource -->
+    <conf:ticketingResourceOid>6a1a5f1e-9c7d-4b2a-8e5f-0d3c4b5a6978</conf:ticketingResourceOid>
+
+    <!-- The ticket object type on the ticketing resource: (kind, intent) -->
+    <conf:ticketingObjectKind>work</conf:ticketingObjectKind>
+    <conf:ticketingObjectIntent>ticket</conf:ticketingObjectIntent>
+</connectorConfiguration>
+----
+
+When `ticketingResourceOid` is set, the manual connector creates the provisioning cases with a ticket projection on the ITSM system.
+The ticket state is tracked by reading it back from the ITSM system (via the xref:/midpoint/reference/tasks/shadow-refresh-task/[shadow refresh task] and the inbound mappings on the ticketing resource).
+
 == ITSM Plugin
 
-Both manual and semi-manual resources are often used with ITSM integration plugins.
-See xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM Plugin] page for more details.
+Both manual and semi-manual resources are often used with ITSM integration.
+See the xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing] page for the built-in integration (no custom development needed) and the xref:/midpoint/reference/resources/manual/itsm-plugin/[ITSM Plugin] page for the custom plugin approach.
 
 == Refresh Task
 
@@ -220,6 +264,8 @@ Which means a new ticket will be created.
 == See Also
 
 * xref:/midpoint/reference/resources/manual/[Manual Resource and ITSM Integration]
+
+* xref:/midpoint/reference/resources/manual/ticketing/[ITSM Ticketing]
 
 * xref:/midpoint/reference/resources/multi-connector-resource/[Multi-Connector Resource]
 

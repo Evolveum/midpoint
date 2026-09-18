@@ -61,6 +61,13 @@ Overall, midPoint 4.10 opens up the world of identity management and governance 
 * bug:MID-11358[] Added connector signature verification for production environments without an active subscription,
 including import of signed allowed-connectors list and subscription compliance enforcement. See #TODO link to docs#
 
+* xref:/midpoint/reference/resources/manual/ticketing/[ITSM ticketing]: the built-in manual connector can now manage provisioning tickets on a real ITSM system, using a dedicated ticketing resource.
+The ticket is managed as a projection (a shadow of the `work` kind) of the midPoint case.
+
+* New `work` shadow kind for work items (issues, tickets, cases, work packages).
+
+* Cases can now hold projections: the new `ProjectionHolderType` schema type is a common parent of `FocusType` and `CaseType`.
+
 #TODO#
 
 === Other Improvements
