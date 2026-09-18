@@ -5,26 +5,25 @@
   -->
 
 <!--
-  Composite task from issue 11051:
-   - child "preview": reconciliation in preview mode, suspend policy when at least 10 users would be deactivated
-     (custom constraint using midpoint.focusDeactivated, evaluated on the focus object);
-   - child "execute": reconciliation in full mode, without any policy.
-  The intent is that "execute" runs only if "preview" passed without a policy violation.
+  HR source reconciliation as reported in issue 11051. Composite:
+   - child "simulate": reconciliation in preview mode; suspend policy on max deleted users
+   - child "execute": reconciliation in full mode, without any policy
+  The intent is that "execute" runs only if "simulate" passed without a policy violation.
 -->
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        oid="e4f00000-0000-0000-0000-000000000011">
-    <name>hr-reconciliation-deactivation</name>
+        oid="e4f00000-0000-0000-0000-000000000003">
+    <name>hr-reconciliation-unguarded-execute</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>
         <composition>
             <activity>
                 <order>1</order>
-                <identifier>preview</identifier>
+                <identifier>simulate</identifier>
                 <work>
                     <reconciliation>
                         <resourceObjects>
-                            <resourceRef oid="c1a70000-0000-0000-0000-000000000004"/>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000001"/>
                             <kind>account</kind>
                             <intent>default</intent>
                         </resourceObjects>
@@ -35,30 +34,25 @@
                 </execution>
                 <reporting>
                     <simulationResult>
-                        <enabled>true</enabled>
+                        <enabled>false</enabled>
                     </simulationResult>
                 </reporting>
                 <policies>
                     <policy>
-                        <name>max-deactivated</name>
+                        <name>max-deleted</name>
                         <policyConstraints>
-                            <custom>
-                                <expression>
-                                    <script>
-                                        <code>midpoint.focusDeactivated</code>
-                                    </script>
-                                </expression>
-                            </custom>
+                            <modification>
+                                <operation>delete</operation>
+                            </modification>
                         </policyConstraints>
                         <policyThreshold>
                             <lowWaterMark>
-                                <count>10</count>
+                                <count>5</count>
                             </lowWaterMark>
                         </policyThreshold>
                         <policyActions>
                             <suspendTask/>
                         </policyActions>
-                        <evaluationTarget>object</evaluationTarget>
                     </policy>
                 </policies>
             </activity>
@@ -68,7 +62,7 @@
                 <work>
                     <reconciliation>
                         <resourceObjects>
-                            <resourceRef oid="c1a70000-0000-0000-0000-000000000004"/>
+                            <resourceRef oid="c1a70000-0000-0000-0000-000000000001"/>
                             <kind>account</kind>
                             <intent>default</intent>
                         </resourceObjects>

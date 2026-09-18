@@ -50,6 +50,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * {@code restartActivity} action clears the counter each cycle, so the task recovers on its own. Separately,
  * with the source left broken, clearing the activity policy states through the model interaction service resets
  * the preview delete counter, so a resume lets the same suspended task keep processing before it trips again.
+ *
+ * A variant of the task with the "execute" child not guarded by any policy covers the customer scenario:
+ * once "simulate" is halted by the policy, resuming the task must not let "execute" start.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -64,6 +67,8 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
 
     private static final TestTask TASK_HR =
             TestTask.file(TEST_DIR, "hr-reconciliation.xml", "e4f00000-0000-0000-0000-000000000001");
+    private static final TestTask TASK_HR_UNGUARDED_EXECUTE =
+            TestTask.file(TEST_DIR, "hr-reconciliation-unguarded-execute.xml", "e4f00000-0000-0000-0000-000000000003");
     private static final TestTask TASK_HR_IMPORT =
             TestTask.file(TEST_DIR, "hr-import.xml", "e4f00000-0000-0000-0000-0000000000ff");
 
@@ -368,6 +373,100 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         return null;
     }
 
+    /** All tasks of the tree: the root and its subtasks (where the distributed flavor keeps the activity states). */
+    private List<Task> tasksOfTree(String rootOid) throws Exception {
+        OperationResult result = getTestOperationResult();
+        Task root = taskManager.getTaskTree(rootOid, result);
+        List<Task> tasks = new ArrayList<>();
+        tasks.add(root);
+        tasks.addAll(root.listSubtasksDeeply(true, result));
+        return tasks;
+    }
+
+    /** The most recent run start in the task tree; it moves only if some task of the tree really ran again. */
+    private long latestRunStart(String rootOid) throws Exception {
+        long latest = 0;
+        for (Task task : tasksOfTree(rootOid)) {
+            Long start = task.getLastRunStartTimestamp();
+            if (start != null) {
+                latest = Math.max(latest, start);
+            }
+        }
+        return latest;
+    }
+
+    /** Halts recorded by policy actions anywhere in the task tree. */
+    private List<ActivityHaltingInformationType> haltingInformation(String rootOid) throws Exception {
+        List<ActivityHaltingInformationType> found = new ArrayList<>();
+        for (Task task : tasksOfTree(rootOid)) {
+            TaskActivityStateType taskState = task.getActivitiesStateOrClone();
+            if (taskState != null) {
+                collectHaltingInformation(taskState.getActivity(), found);
+            }
+        }
+        return found;
+    }
+
+    private static void collectHaltingInformation(ActivityStateType state, List<ActivityHaltingInformationType> found) {
+        if (state == null) {
+            return;
+        }
+        if (state.getHaltingInformation() != null) {
+            found.add(state.getHaltingInformation());
+        }
+        for (ActivityStateType child : state.getActivity()) {
+            collectHaltingInformation(child, found);
+        }
+    }
+
+    /** The simulate activity is halted by the max-deleted policy, the halt is recorded, and nobody was deleted. */
+    private int assertSimulateHalted(String counterId, int min) throws Exception {
+        int counter = assertSimulateSuspended(TASK_HR_UNGUARDED_EXECUTE.oid, counterId, min);
+        assertThat(haltingInformation(TASK_HR_UNGUARDED_EXECUTE.oid))
+                .as("recorded halts")
+                .isNotEmpty()
+                .allSatisfy(halt -> {
+                    assertThat(halt.getPolicyName()).as("halting policy name").isEqualTo("max-deleted");
+                    assertThat(halt.getPolicyIdentifier()).as("halting policy identifier").isEqualTo(counterId);
+                });
+        assertThat(countUsers()).as("users (nothing really deleted)").isEqualTo(ACCOUNTS);
+        return counter;
+    }
+
+    /**
+     * Removes the given number of accounts, lets the simulate activity of the "unguarded execute" task trip the policy,
+     * and resumes the suspended task. The resumed task must be halted again, without doing any work.
+     */
+    private void tripSimulateAndResume(int removedAccounts) throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestTask task = TASK_HR_UNGUARDED_EXECUTE;
+
+        given("all users linked, then " + removedAccounts + " accounts removed on the source");
+        importAllAndLink(result);
+        assertThat(countUsers()).as("users before").isEqualTo(ACCOUNTS);
+        deleteAccounts(0, removedAccounts);
+
+        when("running the HR reconciliation with the unguarded execute activity");
+        deleteIfPresent(task, result);
+        addObject(task, getTestTask(), result, topology());
+        waitForTaskCloseOrSuspend(task.oid, TIMEOUT);
+
+        then("the simulate activity suspends on the delete threshold; nothing is really deleted");
+        String id = TestActivityPolicyUtils.buildPolicyIdentifier(getTask(task.oid), SIMULATE, "max-deleted", true);
+        int counterAfterFirst = assertSimulateHalted(id, DELETE_THRESHOLD);
+        int processedAtFirstSuspend = simulateItemsProcessed(task.oid);
+        long runStartAtFirstSuspend = latestRunStart(task.oid);
+
+        when("the suspended task is resumed");
+        taskManager.resumeTaskTree(task.oid, result);
+        waitForTaskCloseOrSuspend(task.oid, TIMEOUT);
+
+        then("the tree really ran again, and was halted at the start of simulate with no work done");
+        assertThat(latestRunStart(task.oid)).as("latest run start after resume").isGreaterThan(runStartAtFirstSuspend);
+        assertSimulateHalted(id, counterAfterFirst);
+        assertThat(simulateItemsProcessed(task.oid)).as("items processed after resume").isEqualTo(processedAtFirstSuspend);
+    }
+
     // endregion
 
     /**
@@ -524,4 +623,47 @@ public abstract class TestFocusPolicyHrScenario extends AbstractEmptyModelIntegr
         assertThat(countUsers()).as("only the allowed (4 < 5) users deleted").isEqualTo(ACCOUNTS - 4);
         assertThat(policyNotifications()).as("notification fired on each restart trip").isGreaterThanOrEqualTo(1);
     }
+
+    //region Customer scenario: simulate guarded by a suspend policy, execute not guarded at all
+
+    /** More accounts removed than allowed: some of them are left for the resumed simulate activity to count. */
+    @Test
+    public void test300UnguardedExecuteResumeAboveThreshold() throws Exception {
+        tripSimulateAndResume(DELETE_THRESHOLD + 3);
+    }
+
+    /**
+     * Exactly as many accounts removed as the threshold: nothing countable is left for the resumed simulate activity,
+     * so without the recorded halt it would complete, and the unguarded execute activity would delete the users.
+     */
+    @Test
+    public void test310UnguardedExecuteResumeAtThreshold() throws Exception {
+        tripSimulateAndResume(DELETE_THRESHOLD);
+    }
+
+    /** Clearing the activity policy states acknowledges the halt: the resumed task continues to the execute activity. */
+    @Test
+    public void test320UnguardedExecuteClearPolicyStatesAcknowledgesHalt() throws Exception {
+        OperationResult result = getTestOperationResult();
+        TestTask task = TASK_HR_UNGUARDED_EXECUTE;
+
+        given("simulate halted at the threshold, resume halted again");
+        tripSimulateAndResume(DELETE_THRESHOLD);
+
+        when("the policy states are cleared and the task is resumed");
+        boolean changed = modelInteractionService.clearAllActivityPolicyStates(getTask(task.oid), getTestTask(), result);
+        assertThat(changed).as("clearAllActivityPolicyStates made a change").isTrue();
+        assertThat(haltingInformation(task.oid)).as("recorded halts after clearing").isEmpty();
+        taskManager.resumeTaskTree(task.oid, result);
+        waitForTaskCloseOrSuspend(task.oid, TIMEOUT);
+
+        then("the task completes and the execute activity deletes the users");
+        assertTaskTree(task.oid, "after clearing and resume")
+                .display()
+                .assertClosed()
+                .assertSuccess();
+        assertThat(countUsers()).as("users after the acknowledged halt").isEqualTo(ACCOUNTS - DELETE_THRESHOLD);
+    }
+
+    //endregion
 }
