@@ -94,15 +94,10 @@ public class TestXlsxReportImportClassic extends EmptyReportIntegrationTest {
 
     @Override
     protected FileFormatConfigurationType getFileFormatConfiguration() {
-        return new FileFormatConfigurationType()
-                .type(FileFormatTypeType.XLSX)
-                .xlsx(new XlsxFileFormatType().multivalueDelimiter("\n"));
+        return new FileFormatConfigurationType().type(FileFormatTypeType.XLSX);
     }
 
-    /**
-     * Report has no file format type (CSV by default). The XLSX format of the report data object wins.
-     * The XLSX configuration of the report (line break as multivalue delimiter) is still applied.
-     */
+    /** Report has no file format (CSV by default); the XLSX format of the report data object wins. */
     @Test(priority = 100)
     public void test100ImportUsers() throws Exception {
         given();
@@ -113,8 +108,6 @@ public class TestXlsxReportImportClassic extends EmptyReportIntegrationTest {
         addObject(createReportData(REPORT_DATA_TEST100_OID, REPORT_IMPORT_USERS_CLASSIC, xlsxFile, FileFormatTypeType.XLSX).asPrismObject());
         addObject(OBJECT_COLLECTION_ALL_USERS_WITH_VIEW, task, result);
         addObject(REPORT_IMPORT_USERS_CLASSIC, task, result);
-        modifyObjectReplaceContainer(ReportType.class, REPORT_IMPORT_USERS_CLASSIC.oid, ReportType.F_FILE_FORMAT,
-                task, result, new FileFormatConfigurationType().xlsx(new XlsxFileFormatType().multivalueDelimiter("\n")));
 
         when();
         runImportTask(REPORT_IMPORT_USERS_CLASSIC, REPORT_DATA_TEST100_OID, result);
@@ -269,9 +262,9 @@ public class TestXlsxReportImportClassic extends EmptyReportIntegrationTest {
         assertThat(user3.getSubtype()).containsExactly("sub31");
     }
 
-    /** Without a configured delimiter a cell is one value, even if it contains line breaks. */
+    /** Without a configured delimiter, line breaks in a cell separate values (the default delimiter). */
     @Test(dependsOnMethods = { "test130ImportUsersWithCommaDelimiter" }, priority = 140)
-    public void test140ImportWithoutDelimiterKeepsCellWhole() throws Exception {
+    public void test140ImportWithDefaultDelimiter() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -293,7 +286,7 @@ public class TestXlsxReportImportClassic extends EmptyReportIntegrationTest {
                 .assertSuccess()
                 .display();
         UserType user3 = searchObjectByName(UserType.class, "testUser03").asObjectable();
-        assertThat(user3.getSubtype()).containsExactly("sub31\nsub32");
+        assertThat(user3.getSubtype()).containsExactly("sub31", "sub32");
     }
 
     /** HTML cannot be imported; the task must fail before touching any object. */

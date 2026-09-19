@@ -20352,13 +20352,15 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0">
+                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" default="&#10;">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Delimiter for multiple values in one cell.
-                                On export, values are joined by it; if not set, they are put on separate lines
-                                within the cell. On import, a cell is split by it; if not set, the cell is
-                                always taken as a single value.
+                                Delimiter for multiple values in one cell, used for both export (values are joined by it)
+                                and import (the cell is split by it).
+                                To import cells as single values regardless of their content, set the delimiter to a string
+                                that does not occur in the data.
+
+                                Default value: \n
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>XlsxExportType.multivalueDelimiter</a:displayName>

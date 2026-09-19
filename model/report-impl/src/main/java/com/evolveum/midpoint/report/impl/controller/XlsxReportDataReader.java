@@ -33,8 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
  *
  * Cells are read as displayed text (numbers and dates formatted by their cell format), so a file created by
  * a spreadsheet application and a file created by {@link XlsxReportDataWriter} are handled the same way.
- * A cell is split into multiple values only if a multivalue delimiter is configured; otherwise the whole
- * cell text (line breaks included) is one value, like in the CSV import.
+ * Multiple values in one cell are separated by the configured multivalue delimiter (line break by default),
+ * matching the XLSX export.
  * Rows without any value are skipped.
  */
 public class XlsxReportDataReader implements ReportDataReader {
@@ -51,9 +51,8 @@ public class XlsxReportDataReader implements ReportDataReader {
         boolean fileHasHeader = CommonXlsxSupport.isHeader(configuration);
         String multivalueDelimiter = CommonXlsxSupport.getMultivalueDelimiter(configuration);
         // a line break in a cell may be CRLF, depending on the application that wrote the file
-        String splitRegex = multivalueDelimiter == null ? null
-                : CommonXlsxSupport.LINE_BREAK.equals(multivalueDelimiter) ? "\r?\n"
-                : Pattern.quote(multivalueDelimiter);
+        String splitRegex = CommonXlsxSupport.LINE_BREAK.equals(multivalueDelimiter) ?
+                "\r?\n" : Pattern.quote(multivalueDelimiter);
         if (viewHeaders.isEmpty() && !fileHasHeader) {
             throw new IllegalArgumentException("Couldn't find headers please "
                     + "define them via view element or write them to the first row of the sheet and set "
@@ -90,7 +89,7 @@ public class XlsxReportDataReader implements ReportDataReader {
                         continue;
                     }
                     String value = i < cells.size() ? StringUtils.defaultIfEmpty(cells.get(i), null) : null;
-                    if (value != null && splitRegex != null && value.contains(multivalueDelimiter)) {
+                    if (value != null && value.contains(multivalueDelimiter)) {
                         variables.put(name, Arrays.asList(value.split(splitRegex)), String.class);
                     } else {
                         variables.put(name, value, String.class);

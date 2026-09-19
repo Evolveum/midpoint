@@ -53,20 +53,19 @@ class CommonXlsxSupport implements AutoCloseable {
                 || !Boolean.FALSE.equals(configuration.getXlsx().isHeader());
     }
 
-    /** Configured delimiter for multiple values in one cell; null if none is configured. */
-    static @Nullable String getMultivalueDelimiter(@Nullable FileFormatConfigurationType configuration) {
+    /** Delimiter for multiple values in one cell; line break unless configured otherwise. Used for export and import. */
+    static @NotNull String getMultivalueDelimiter(@Nullable FileFormatConfigurationType configuration) {
         if (configuration != null && configuration.getXlsx() != null
                 && StringUtils.isNotEmpty(configuration.getXlsx().getMultivalueDelimiter())) {
             return configuration.getXlsx().getMultivalueDelimiter();
         }
-        return null;
+        return LINE_BREAK;
     }
 
-    /** Delimiter used when writing; without configuration each value goes on its own line. */
     @NotNull private final String multivalueDelimiter;
 
     CommonXlsxSupport(@Nullable FileFormatConfigurationType configuration) {
-        multivalueDelimiter = StringUtils.defaultString(getMultivalueDelimiter(configuration), LINE_BREAK);
+        multivalueDelimiter = getMultivalueDelimiter(configuration);
         workbook = new SXSSFWorkbook(ROW_ACCESS_WINDOW_SIZE);
         wrappedStyle = workbook.createCellStyle();
         wrappedStyle.setWrapText(true);
