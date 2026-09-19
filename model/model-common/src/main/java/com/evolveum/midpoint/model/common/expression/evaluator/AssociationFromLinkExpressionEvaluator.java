@@ -75,12 +75,10 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<ShadowAssociationValue> evaluate(
+    protected PrismValueDeltaSetTriple<ShadowAssociationValue> evaluateInternal(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        checkEvaluatorProfile(context);
 
         String desc = context.getContextDescription();
 

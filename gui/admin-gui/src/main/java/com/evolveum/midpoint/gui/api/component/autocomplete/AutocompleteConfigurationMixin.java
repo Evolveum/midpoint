@@ -59,7 +59,7 @@ public interface AutocompleteConfigurationMixin {
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
 
             Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                    factory.makeExpression(expressionType, outputDefinition, MiscSchemaUtil.getExpressionProfile(), contextDesc, task, result);
+                    factory.makeExpression(expressionType, outputDefinition, contextDesc, task, result);
 
             VariablesMap variables = new VariablesMap();
             variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());

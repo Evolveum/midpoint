@@ -73,11 +73,12 @@ class GenericSupport {
         return label;
     }
 
-    static boolean evaluateCondition(ExpressionType condition, VariablesMap variables, ExpressionFactory factory, Task task, OperationResult result)
+    static boolean evaluateCondition(
+            ExpressionType condition, VariablesMap variables, ExpressionFactory factory, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
-        PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition,
-                null, factory, "Evaluate condition", task, result);
+        PrismPropertyValue<Boolean> conditionValue =
+                ExpressionUtil.evaluateCondition(variables, condition, factory, "Evaluate condition", task, result);
         return conditionValue != null && !Boolean.FALSE.equals(conditionValue.getRealValue());
     }
 

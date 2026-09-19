@@ -9,10 +9,10 @@
         oid="885bc0b4-2493-4658-a523-8a3f7eeb770b">
     <name>restricted-auto-filter-expression</name>
     <documentation>
-        Auto-assigned role that contains an expression in a filter.
+        Auto-assigned role that contains an expression in a filter in object selector (not supported -> not evaluated).
     </documentation>
     <assignment>
-        <targetRef oid="a2242707-43cd-4f18-b986-573cb468693d" type="ArchetypeType"/>
+        <targetRef oid="2a68ff58-b009-11f0-9b5e-236da66bcdb4" type="ArchetypeType"/>
     </assignment>
     <autoassign>
         <enabled>true</enabled>

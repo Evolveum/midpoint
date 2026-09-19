@@ -47,7 +47,7 @@ We will construct the following mapping in the default user template:
          <script>
              <relativityMode>relative</relativityMode> <!-- actually, this is the default -->
             <code>
-                boolean isNew = com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext.getThreadLocal().isEvaluateNew()
+                boolean isNew = midpoint.isEvaluateNew
                 log.info("considering emailAddress = {}, isNew = {}", emailAddresses, isNew)    // there is only one address at a time, because the evaluation mode is relative
 
                 if (isNew &amp;&amp; emailAddresses != null) {

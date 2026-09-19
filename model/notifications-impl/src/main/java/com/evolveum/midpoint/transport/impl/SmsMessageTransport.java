@@ -103,7 +103,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(
                     allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, ctx.task(), result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty()) {
@@ -344,7 +344,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionType, ConfigurationItemOrigin.undeterminedSafe()),
-                        resultDef, ctx.expressionProfile(), shortDesc, task, result);
+                        resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =

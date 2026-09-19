@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.common.expression.script.mel.value.QNameCelVa
 import com.evolveum.midpoint.model.common.expression.script.mel.value.ReferenceCelValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,7 +45,7 @@ public class CelMidPointExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelMidPointExtensions.class);
 
-    private static final String FUNCTION_NAME_PREFIX = "midpoint";
+    private static final String FUNCTION_NAME_PREFIX = MidPointConstants.MEL_EXTENSION_MIDPOINT_NAME;
     private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
     private static final String FUNCTION_NAME_PREFIX_DASH = FUNCTION_NAME_PREFIX+"-";
 

@@ -415,11 +415,11 @@ public class MiscSchemaUtil {
     }
 
     /**
-     * This is NOT A REAL METHOD. It just returns null. It is here to mark all the places
+     * This is NOT A REAL METHOD. It is here to mark all the places
      * where proper handling of expression profiles should be later added.
      */
-    public static ExpressionProfile getExpressionProfile() {
-        return null;
+    public static ExpressionProfile getExpressionProfileFull() {
+        return ExpressionProfile.full();
     }
 
     public static void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {

@@ -59,9 +59,11 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * ====
  * When resolving archetype references (i.e. obtaining archetype objects from references in object assignments and
  * `archetypeRef` values, as well as when resolving super-archetypes), we currently handle dangling references
- * (non-existing objects) by ignoring them. We just log the exception, and keep the {@link OperationResultStatus#FATAL_ERROR}
- * in the result tree - where the lower-level code put it. (It may or may not be available to the ultimate caller; depending
- * on the overall operation result processing.)
+ * (non-existing objects) by ignoring them (except for methods marked as `strict`).
+ *
+ * We just log the exception, and keep the {@link OperationResultStatus#FATAL_ERROR} in the result tree - where the
+ * lower-level code put it. (It may or may not be available to the ultimate caller; depending on the overall
+ * operation result processing.)
  * ====
  *
  * @author Radovan Semancik
@@ -132,6 +134,17 @@ public class ArchetypeManager implements CacheInvalidationListener, CacheDiagnos
             } catch (ObjectNotFoundException e) {
                 LOGGER.warn("Archetype {} for {} cannot be found", oid, context);
             }
+        }
+        return archetypes;
+    }
+
+    /** As {@link #resolveArchetypeOids(Collection, Object, OperationResult)} but throws an exception for dangling references. */
+    public List<ArchetypeType> resolveArchetypeOidsStrict(Collection<String> oids, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        List<ArchetypeType> archetypes = new ArrayList<>();
+        for (String oid : oids) {
+            archetypes.add(
+                    getArchetype(oid, result));
         }
         return archetypes;
     }
@@ -359,9 +372,9 @@ public class ArchetypeManager implements CacheInvalidationListener, CacheDiagnos
                 systemConfiguration);
     }
 
-    private static <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
-            Class<O> objectClass,
-            List<String> objectSubtypes,
+    public static ObjectPolicyConfigurationType determineObjectPolicyConfiguration(
+            Class<? extends ObjectType> objectClass,
+            Collection<String> objectSubtypes,
             SystemConfigurationType systemConfiguration) throws ConfigurationException {
         ObjectPolicyConfigurationType applicablePolicyConfigurationType = null;
         for (ObjectPolicyConfigurationType aPolicyConfiguration: systemConfiguration.getDefaultObjectPolicyConfiguration()) {

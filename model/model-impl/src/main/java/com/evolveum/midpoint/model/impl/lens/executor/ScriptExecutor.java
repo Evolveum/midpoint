@@ -100,12 +100,11 @@ class ScriptExecutor<O extends ObjectType> {
         if (resourceScripts == null) {
             return;
         }
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-        executeReconciliationScripts(resourceScripts, order, expressionProfile, result);
+        executeReconciliationScripts(resourceScripts, order, result);
     }
 
     private void executeReconciliationScripts(OperationProvisioningScriptsType scripts,
-            BeforeAfterType order, ExpressionProfile expressionProfile, OperationResult result)
+            BeforeAfterType order, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
 
@@ -120,7 +119,7 @@ class ScriptExecutor<O extends ObjectType> {
                 new ModelExpressionEnvironment<>(context, projCtx, task, result));
         try {
             OperationProvisioningScriptsType preparedScripts = prepareScripts(scripts, key,
-                    ProvisioningOperationTypeType.RECONCILE, order, variables, expressionProfile, result);
+                    ProvisioningOperationTypeType.RECONCILE, order, variables, result);
             for (OperationProvisioningScriptType script : preparedScripts.getScript()) {
                 ModelImplUtils.setRequestee(task, context);
                 try {
@@ -165,7 +164,6 @@ class ScriptExecutor<O extends ObjectType> {
             ProvisioningOperationTypeType operation,
             BeforeAfterType order,
             VariablesMap variables,
-            ExpressionProfile expressionProfile,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
@@ -190,7 +188,7 @@ class ScriptExecutor<O extends ObjectType> {
                     continue;
                 }
                 // Let's do the most expensive evaluation last
-                if (!evaluateScriptCondition(script, variables, expressionProfile, result)) {
+                if (!evaluateScriptCondition(script, variables, result)) {
                     continue;
                 }
                 for (ProvisioningScriptArgumentType argument : script.getArgument()) {
@@ -204,10 +202,10 @@ class ScriptExecutor<O extends ObjectType> {
     }
 
     private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
-            VariablesMap variables, ExpressionProfile expressionProfile, OperationResult result)
+            VariablesMap variables, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-        return ExpressionUtil.evaluateConditionDefaultTrue(variables, script.getCondition(), expressionProfile,
+        return ExpressionUtil.evaluateConditionDefaultTrue(variables, script.getCondition(),
                 b.expressionFactory, " condition for provisioning script ", task, result);
     }
 
@@ -222,8 +220,7 @@ class ScriptExecutor<O extends ObjectType> {
         scriptArgumentDefinition.freeze();
         String shortDesc = "Provisioning script argument expression";
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                b.expressionFactory.makeExpression(argument, scriptArgumentDefinition,
-                        MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                b.expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, task, result);
 
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
         eeContext.setExpressionFactory(b.expressionFactory);

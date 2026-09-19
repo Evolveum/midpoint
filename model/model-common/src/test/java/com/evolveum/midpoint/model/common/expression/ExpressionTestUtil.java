@@ -10,12 +10,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.expression.script.TestingExpressionConfiguration;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -30,9 +33,9 @@ import com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressi
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptExecutor;
+import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptExecutor;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
@@ -62,10 +65,11 @@ public class ExpressionTestUtil {
     }
 
     private static ExpressionFactory createInitializedExpressionFactory(
-            ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock) {
+            ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock,
+            ExpressionProfileSupplier expressionProfileSupplier) {
 
         ExpressionFactory expressionFactory =
-                new ExpressionFactory(LocalizationTestUtil.getLocalizationService());
+                new ExpressionFactory(LocalizationTestUtil.getLocalizationService(), expressionProfileSupplier);
         expressionFactory.setObjectResolver(resolver);
 
         // NOTE: we need to register the evaluator factories to expressionFactory manually here
@@ -105,20 +109,24 @@ public class ExpressionTestUtil {
         Collection<FunctionLibraryBinding> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibraryBinding(prismContext, protector, clock));
         functions.add(FunctionLibraryUtil.createLogFunctionLibraryBinding(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(functions, resolver);
+        ScriptFactory scriptFactory = new ScriptFactory(functions, resolver);
 
-        scriptExpressionFactory.registerEvaluator(
-                new GroovyScriptEvaluator(
-                        prismContext, protector, LocalizationTestUtil.getLocalizationService()));
+        scriptFactory.registerExecutor(
+                new GroovyScriptExecutor(
+                        prismContext, protector, LocalizationTestUtil.getLocalizationService(), testingExpressionsConfiguration()));
 
-        Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator(
-                "ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());
-        if (jsEvaluator.isInitialized()) {
-            scriptExpressionFactory.registerEvaluator(jsEvaluator);
+        Jsr223ScriptExecutor jsExecutor = new Jsr223ScriptExecutor(
+                "ECMAScript",
+                prismContext,
+                protector,
+                LocalizationTestUtil.getLocalizationService(),
+                testingExpressionsConfiguration());
+        if (jsExecutor.isInitialized()) {
+            scriptFactory.registerExecutor(jsExecutor);
         }
 
         expressionFactory.registerEvaluatorFactory(
-                new ScriptExpressionEvaluatorFactory(scriptExpressionFactory));
+                new ScriptExpressionEvaluatorFactory(scriptFactory));
 
         return expressionFactory;
     }
@@ -129,7 +137,8 @@ public class ExpressionTestUtil {
         return config;
     }
 
-    public static ModelCommonBeans initializeModelCommonBeans() throws SchemaException, IOException, SAXException {
+    public static ModelCommonBeans initializeModelCommonBeans(ExpressionProfileSupplier expressionProfileSupplier)
+            throws SchemaException, IOException, SAXException {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
         PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 
@@ -139,7 +148,8 @@ public class ExpressionTestUtil {
 
         ((PrismContextImpl) prismContext).setDefaultProtector(protector);
         ExpressionFactory expressionFactory =
-                ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
+                ExpressionTestUtil.createInitializedExpressionFactory(
+                        resolver, protector, prismContext, clock, expressionProfileSupplier);
 
         ModelCommonBeans modelCommonBeans = new ModelCommonBeans();
         modelCommonBeans.expressionFactory = expressionFactory;
@@ -149,5 +159,13 @@ public class ExpressionTestUtil {
         modelCommonBeans.init();
 
         return modelCommonBeans;
+    }
+
+    public static ExpressionsConfigurationSection testingExpressionsConfiguration() {
+        return new TestingExpressionConfiguration(false);
+    }
+
+    public static ExpressionsConfigurationSection testingExpressionsConfiguration(boolean restrictedMode) {
+        return new TestingExpressionConfiguration(restrictedMode);
     }
 }

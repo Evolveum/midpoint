@@ -348,7 +348,6 @@ class AuditingServiceClient implements ServiceClient {
                 record,
                 primaryObject,
                 null,
-                null,
                 callContext.task(),
                 result);
     }

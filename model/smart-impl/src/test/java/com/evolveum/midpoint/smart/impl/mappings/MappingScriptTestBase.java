@@ -10,6 +10,8 @@ package com.evolveum.midpoint.smart.impl.mappings;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.xml.sax.SAXException;
@@ -22,7 +24,7 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.mel.MelScriptExecutor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -60,18 +62,16 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
     }
 
     protected static ExpressionType createScriptExpression(String melCode, String description) {
-        return new ExpressionType()
-                .description(description)
-                .expressionEvaluator(
-                        new ObjectFactory().createScript(
-                                new ScriptExpressionEvaluatorType().language("mel").code(melCode)));
+        return SimpleExpressionUtil.melExpression(melCode, IntegrationTestTools.trustedForTests())
+                .description(description);
     }
 
     /**
      * WARNING: Returned validator does not support invocation of the MidPoint Functions Library from MEL expressions.
      */
     private static MappingScriptValidator validator() throws SchemaException, IOException, SAXException {
-        final ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
+        final ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans(
+                IntegrationTestTools.testingFullExpressionProfileSupplier());
         final ExpressionFactory expressionFactory = beans.expressionFactory;
         final var scriptExpressionEvaluatorFactory = (ScriptExpressionEvaluatorFactory) expressionFactory
                 .getEvaluatorFactory(SchemaConstantsGenerated.C_SCRIPT);
@@ -79,11 +79,12 @@ public abstract class MappingScriptTestBase extends AbstractUnitTest implements 
         final FunctionLibraryBinding basicFunctionLibraryBinding =
                 FunctionLibraryUtil.createBasicFunctionLibraryBinding(beans.prismContext, beans.protector, new Clock());
         //noinspection DataFlowIssue - supress warnings caused by the `null` midpointFunctions parameter
-        scriptExpressionEvaluatorFactory.getScriptExpressionFactory().registerEvaluator(
-                new MelScriptEvaluator(
+        scriptExpressionEvaluatorFactory.getScriptFactory().registerExecutor(
+                new MelScriptExecutor(
                         beans.prismContext,
                         beans.protector,
                         LocalizationTestUtil.getLocalizationService(),
+                        ExpressionTestUtil.testingExpressionsConfiguration(),
                         (BasicExpressionFunctions) basicFunctionLibraryBinding.getImplementation(),
                         // Instantiating MidPointFunctionsImpl manually in this test would be a nightmare (if even
                         // possible). We don't even need it for our purposes, so just set it to null. We just need to

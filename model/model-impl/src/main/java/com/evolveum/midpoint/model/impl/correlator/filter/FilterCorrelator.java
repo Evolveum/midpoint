@@ -19,7 +19,6 @@ import com.evolveum.midpoint.model.api.correlator.Confidence;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.CorrelationResult;
@@ -36,10 +35,8 @@ import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectSet;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -102,8 +99,6 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
         @NotNull private final CorrelationContext correlationContext;
         @NotNull private final Task task;
         @NotNull private final String contextDescription;
-        /** TODO: determine from the resource */
-        @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         Correlation(@NotNull CorrelationContext.Shadow correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
@@ -195,7 +190,6 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 boolean value = ExpressionUtil.evaluateConditionDefaultFalse(
                         getVariablesMap(correlationContext.getPreFocus()),
                         condition,
-                        expressionProfile,
                         beans.expressionFactory,
                         "filter condition in " + contextDescription,
                         task,
@@ -265,7 +259,6 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                 return ExpressionUtil.evaluateQueryExpressions(
                         origQuery,
                         getVariablesMap(correlationContext.getPreFocus()),
-                        expressionProfile,
                         beans.expressionFactory,
                         contextDescription,
                         task,
@@ -331,7 +324,7 @@ public class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     beans.expressionFactory.makeExpression(
-                            configurationBean.getConfirmation(), outputDefinition, expressionProfile, shortDesc, task, result);
+                            configurationBean.getConfirmation(), outputDefinition, shortDesc, task, result);
 
             // TODO contention for "focus" variable (candidate, pre-focus)
             VariablesMap variables = getVariablesMap(candidate);

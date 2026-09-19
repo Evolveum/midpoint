@@ -83,7 +83,7 @@ public class ExpressionEvaluationHelper {
         if (multiValued) {
             resultDef.mutator().setMaxOccurs(-1);
         }
-        Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
+        Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, contextDescription, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
         context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(additionalConvertor);

@@ -14,7 +14,10 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -391,17 +394,14 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         if (explicitMapping != null) {
             selectionMapping = explicitMapping.clone();
         } else {
+            // TODO rewrite into MEL, as Groovy can be disabled in some environments #12267
             String code = String.format(
                     "midpoint.selectIdentityItemValues("
                             + "identity, defaultAuthoritativeSource, prismContext.itemPathParser().asItemPath('%s'))",
                     ref.toStringStandalone()
                             .replace("'", "\\'"));
-            var mappingBean = new ObjectTemplateMappingType()
-                    .expression(new ExpressionType()
-                            .expressionEvaluator(
-                                    new ObjectFactory().createScript(
-                                            new ScriptExpressionEvaluatorType()
-                                                    .code(code))));
+            var mappingBean = new ObjectTemplateMappingType().expression(
+                    SimpleExpressionUtil.groovyExpression(code, MidPointTrustDescriptor.trusted()));
             selectionMapping = ObjectTemplateMappingConfigItem.of(mappingBean, OriginProvider.generated());
         }
         selectionMapping.setDefaultStrong();

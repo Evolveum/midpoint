@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -313,9 +316,11 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
             Task task, OperationResult result, String axiomExpected) throws CommonException, IOException, PrismQuerySerialization.NotSupportedException {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        SearchFilterType filterType = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
+        SearchFilterType filterBean =
+                PrismTestUtil.parseAtomicValue(new File(TEST_DIR, filename), SearchFilterType.COMPLEX_TYPE);
+        filterBean.setTrustDescriptor(IntegrationTestTools.trustedForTests());
 
-        ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterType);
+        ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(UserType.class, filterBean);
 
         PrismPropertyValue<String> pval = null;
         if (input != null) {
@@ -333,8 +338,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 
         // WHEN
         ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                filter, variables,
-                MiscSchemaUtil.getExpressionProfile(), expressionFactory,
+                filter, variables, expressionFactory,
                 "evaluating filter with null value not allowed", task, result);
 
         // THEN

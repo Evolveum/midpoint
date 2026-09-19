@@ -1047,7 +1047,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 focus, shadow, resource.asPrismObject(), context.getSystemConfiguration(), elementContext);
         // Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
         variables.put(ExpressionConstants.VAR_DELTA, projCtx.getCurrentDelta(), ObjectDelta.class);
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                 new ModelExpressionEnvironment<>(context, projCtx, task, result));
@@ -1055,7 +1054,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
             ProjectionContextKey key = projCtx.getKey();
             return scriptExecutor.prepareScripts(
-                    resourceScripts, key, operation, null, variables, expressionProfile, result);
+                    resourceScripts, key, operation, null, variables, result);
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }

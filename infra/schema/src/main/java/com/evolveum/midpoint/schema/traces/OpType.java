@@ -139,7 +139,11 @@ public enum OpType {
             "Consolidation: ${m:getItemConsolidationInfo}"),
 
     SCRIPT_EXECUTION(OperationKindType.SCRIPT_EVALUATION, "Script evaluation",
-            "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate"),
+            null,
+            List.of(
+                    "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate", // before 4.11
+                    "com.evolveum.midpoint.model.common.expression.script.Script.execute"),
+            null),
 
     CHANGE_EXECUTION(OperationKindType.OTHER, "Change execution",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute",

@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
 import com.evolveum.midpoint.model.common.expression.functions.LibraryFunctionExecutor;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.model.common.expression.script.mel.value.PolyStringCelValue;
 import com.evolveum.midpoint.schema.config.FunctionConfigItem;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -41,14 +41,14 @@ public class FunctionLibraryProcessor {
     private static final String FUNCTION_ID_SUFFIX_NOARG = "-noarg";
     private static final String FUNCTION_ID_SUFFIX_UNARY = "-unary";
 
-    public void addCompilerCustomLibraryDeclarations(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context,
+    public void addCompilerCustomLibraryDeclarations(CelCompilerBuilder builder, ScriptExecutionContext context,
             FunctionLibraryBinding funcLibBinding) throws ConfigurationException {
         for (var function : funcLibBinding.getParsedLibrary().getFunctions()) {
             addCompilerCustomFunctionDeclaration(builder, context, funcLibBinding, function);
         }
     }
 
-    private void addCompilerCustomFunctionDeclaration(CelCompilerBuilder builder, ScriptExpressionEvaluationContext context,
+    private void addCompilerCustomFunctionDeclaration(CelCompilerBuilder builder, ScriptExecutionContext context,
             FunctionLibraryBinding funcLibBinding, FunctionConfigItem function) throws ConfigurationException {
 
         List<ExpressionParameterType> parameterSpecs = function.getParameters();
@@ -79,7 +79,7 @@ public class FunctionLibraryProcessor {
         );
     }
 
-    public void addRuntimeCustomLibraryImplementations(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context,
+    public void addRuntimeCustomLibraryImplementations(CelRuntimeBuilder builder, ScriptExecutionContext context,
             FunctionLibraryBinding funcLibBinding, FunctionLibrary parsedLibrary) throws ConfigurationException {
         Object implementation = funcLibBinding.getImplementation();
         if (implementation instanceof LibraryFunctionExecutor executor) {
@@ -91,7 +91,7 @@ public class FunctionLibraryProcessor {
         }
     }
 
-    private void addRuntimeCustomFunctionImplementation(CelRuntimeBuilder builder, ScriptExpressionEvaluationContext context,
+    private void addRuntimeCustomFunctionImplementation(CelRuntimeBuilder builder, ScriptExecutionContext context,
             FunctionLibraryBinding funcLibBinding, LibraryFunctionExecutor executor, FunctionConfigItem function) throws ConfigurationException {
 
         String functionName = function.getName();

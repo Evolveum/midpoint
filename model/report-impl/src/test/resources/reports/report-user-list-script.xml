@@ -25,9 +25,9 @@
                             <script>
                                 <code>
                                     if (!activation) {
-                                    return null;
+                                        return null
                                     }
-                                    return activation;
+                                    return activation
                                 </code>
                             </script>
                         </expression>
@@ -39,17 +39,22 @@
                             <script>
                                 <objectVariableMode>prismReference</objectVariableMode>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
+                                    import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable
 
                                     if (!organization) {
-                                    return null;
+                                        return null
                                     }
 
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(organization.getOid());
-                                    ort.setRelation(organization.getRelation());
-                                    ort.setType(organization.getTargetType());
-                                    return ort;
+                                    // all of this is needed to make Groovy static type checking satisfied
+                                    def ort = new ObjectReferenceType() as AbstractReferencable
+                                    def organization = organization as AbstractReferencable
+
+                                    ort.setOid(organization.getOid())
+                                    ort.setRelation(organization.getRelation())
+                                    ort.setType(organization.getType())
+
+                                    return ort
                                 </code>
                             </script>
                         </expression>
@@ -61,17 +66,22 @@
                             <script>
                                 <objectVariableMode>prismReference</objectVariableMode>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                    import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
 
                                     if (!role) {
-                                    return null;
+                                        return null
                                     }
 
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(role.getOid());
-                                    ort.setRelation(role.getRelation());
-                                    ort.setType(role.getTargetType());
-                                    return ort;
+                                    // all of this is needed to make Groovy static type checking satisfied
+                                    def ort = new ObjectReferenceType() as AbstractReferencable
+                                    def role = role as AbstractReferencable
+
+                                    ort.setOid(role.getOid())
+                                    ort.setRelation(role.getRelation())
+                                    ort.setType(role.getType())
+
+                                    return ort
                                 </code>
                             </script>
                         </expression>
@@ -83,17 +93,22 @@
                             <script>
                                 <objectVariableMode>prismReference</objectVariableMode>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
+                                    import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable
 
                                     if (!resource) {
-                                    return null;
+                                        return null
                                     }
 
-                                    ObjectReferenceType ort = new ObjectReferenceType();
-                                    ort.setOid(resource.getOid());
-                                    ort.setRelation(resource.getRelation());
-                                    ort.setType(resource.getTargetType());
-                                    return ort;
+                                    // all of this is needed to make Groovy static type checking satisfied
+                                    def ort = new ObjectReferenceType() as AbstractReferencable
+                                    def resource = resource as AbstractReferencable
+
+                                    ort.setOid(resource.getOid())
+                                    ort.setRelation(resource.getRelation())
+                                    ort.setType(resource.getType())
+
+                                    return ort
                                 </code>
                             </script>
                         </expression>

@@ -2795,7 +2795,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         var messageTemplate = new MessageTemplateType()
                 .name(objectName)
                 .defaultContent(new MessageTemplateContentType()
-                        .subjectExpression(velocityExpression("subject")));
+                        .subjectExpression(velocityExpression("subject", null)));
 
         when("adding it to the repository");
         repositoryService.addObject(messageTemplate.asPrismObject(), null, result);

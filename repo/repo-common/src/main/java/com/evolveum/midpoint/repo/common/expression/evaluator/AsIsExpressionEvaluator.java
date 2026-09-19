@@ -33,11 +33,9 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, SubscriptionComplianceException {
-
-        checkEvaluatorProfile(context);
 
         Source<V,D> source;
         if (context.getSources().isEmpty()) {

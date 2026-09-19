@@ -35,7 +35,6 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     @NotNull private final ExtraSetSpecification extraSetSpecification;
     private final D itemDefinition;
     private final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
-    private final ExpressionProfile expressionProfile;
     private final ExpressionFactory expressionFactory;
     private final String additionalVariableName;
     private final MappingSpecificationType mappingSpecification;
@@ -55,7 +54,6 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
             @NotNull ExtraSetSpecification extraSetSpecification,
             @NotNull D itemDefinition,
             PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition,
-            ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
             String additionalVariableName,
             MappingSpecificationType mappingSpecification,
@@ -69,7 +67,6 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
         this.itemDefinition = itemDefinition;
         this.valueMetadataDefinition = valueMetadataDefinition;
-        this.expressionProfile = expressionProfile;
         this.expressionFactory = expressionFactory;
         this.additionalVariableName = additionalVariableName;
         this.mappingSpecification = mappingSpecification;
@@ -87,11 +84,11 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         }
         ExpressionType conditionBean = setDefinitionBean.getCondition();
         if (conditionBean != null) {
-            condition = ExpressionUtil.createCondition(conditionBean, expressionProfile, expressionFactory, shortDesc, task, result);
+            condition = ExpressionUtil.createCondition(conditionBean, expressionFactory, shortDesc, task, result);
         }
         ExpressionType yieldConditionBean = setDefinitionBean.getYieldCondition();
         if (yieldConditionBean != null) {
-            yieldCondition = ExpressionUtil.createCondition(yieldConditionBean, expressionProfile, expressionFactory, shortDesc, task, result);
+            yieldCondition = ExpressionUtil.createCondition(yieldConditionBean, expressionFactory, shortDesc, task, result);
         }
     }
 

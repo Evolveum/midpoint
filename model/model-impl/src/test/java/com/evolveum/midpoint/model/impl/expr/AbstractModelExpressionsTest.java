@@ -20,7 +20,10 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -33,9 +36,8 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.script.Script;
+import com.evolveum.midpoint.model.common.expression.script.ScriptFactory;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
@@ -85,7 +86,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
     private static final String SOMEHOW_USEFUL = "somehow useful";
 
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptFactory scriptFactory;
     @Autowired private ExpressionFactory expressionFactory;
 
     private static final File TEST_EXPRESSIONS_OBJECTS_FILE = new File(BASE_TEST_DIR, "orgstruct.xml");
@@ -148,15 +149,16 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         PrismPropertyDefinition<String> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, DOMUtil.XSD_STRING, 0, -1);
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                shortTestName, result);
+        ExpressionProfile expressionProfile = ExpressionProfile.full();
+        var scriptExpressionEvaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
+        Script script = scriptFactory.createScript(
+                scriptType, outputDefinition, expressionProfile, scriptExpressionEvaluatorProfile, shortTestName, result);
         VariablesMap variables =
                 createVariables(ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition());
 
         // WHEN
         List<PrismPropertyValue<String>> scriptOutputs =
-                evaluate(scriptExpression, variables, false, shortTestName, task, result);
+                execute(script, variables, false, shortTestName, task, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -185,8 +187,10 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + testName + ".xml");
         PrismPropertyDefinition<Boolean> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
-                MiscSchemaUtil.getExpressionProfile(), testName, result);
+        var expressionProfile = ExpressionProfile.full();
+        var evaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
+        Script script = scriptFactory.createScript(
+                scriptType, outputDefinition, expressionProfile, evaluatorProfile, testName, result);
 
         VariablesMap variables = createVariables(
                 ExpressionConstants.VAR_FOCUS, chef, chef.getDefinition(),
@@ -194,7 +198,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
 
         // WHEN
         List<PrismPropertyValue<Boolean>> scriptOutputs =
-                evaluate(scriptExpression, variables, false, testName, task, result);
+                execute(script, variables, false, testName, task, result);
 
         // THEN
         display("Script output", scriptOutputs);
@@ -573,9 +577,10 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(
                         PROPERTY_NAME, type, 0, maxOccurs);
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                getTestNameShort(), result);
+        var expressionProfile = ExpressionProfile.full();
+        var evaluatorProfile = ScriptExpressionEvaluatorFactory.getEvaluatorProfile(expressionProfile);
+        Script script = scriptFactory.createScript(
+                scriptType, outputDefinition, expressionProfile, evaluatorProfile, getTestNameShort(), result);
         if (variables == null) {
             variables = new VariablesMap();
         }
@@ -583,7 +588,7 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
         // WHEN
         when();
         List<PrismPropertyValue<T>> scriptOutputs =
-                evaluate(scriptExpression, variables, false, getTestNameShort(), task, result);
+                execute(script, variables, false, getTestNameShort(), task, result);
 
         // THEN
         then();
@@ -595,22 +600,21 @@ public abstract class AbstractModelExpressionsTest extends AbstractInternalModel
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> List<PrismPropertyValue<T>> evaluate(
-            ScriptExpression scriptExpression, VariablesMap variables, boolean useNew,
+    private <T> List<PrismPropertyValue<T>> execute(
+            Script script, VariablesMap variables, boolean useNew,
             String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ModelExpressionEnvironment<>(task, result));
 
-            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            ScriptExecutionContext context = new ScriptExecutionContext(script);
             context.setVariables(variables);
             context.setEvaluateNew(useNew);
-            context.setScriptExpression(scriptExpression);
             context.setContextDescription(contextDescription);
             context.setTask(task);
             context.setResult(result);
 
-            return scriptExpression.evaluate(context);
+            return context.execute();
         } finally {
             ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
         }

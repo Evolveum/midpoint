@@ -140,10 +140,8 @@ public class ValuePolicyProcessor {
             ObjectBasedValuePolicyOriginResolver<?> originResolver,
             String shortDesc, Task task) {
         ProhibitedValuesType prohibitedValues = valuePolicy != null ? valuePolicy.getProhibitedValues() : null;
-        // TODO: this needs to be determined from ValuePolicyType archetype
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
         return new ValueChecker(
-                stringPolicy, prohibitedValues, expressionProfile, originResolver, shortDesc, protector, expressionFactory, task);
+                stringPolicy, prohibitedValues, originResolver, shortDesc, protector, expressionFactory, task);
     }
 
     public List<StringLimitationResult> validateValue(

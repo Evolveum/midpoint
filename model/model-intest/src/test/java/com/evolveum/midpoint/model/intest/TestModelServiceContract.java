@@ -4151,8 +4151,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .getItem();
         PrismAsserts2.assertPropertyValueExpressions(
                 propertyAfterAdd, "config property",
-                Objects.requireNonNull(constPpv1.getExpression()).getExpression(),
-                Objects.requireNonNull(constPpv2.getExpression()).getExpression());
+                Objects.requireNonNull(constPpv1.getExpression()),
+                Objects.requireNonNull(constPpv2.getExpression()));
 
         when("one of the values is removed");
         executeChanges(
@@ -4171,7 +4171,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 .getItem();
         PrismAsserts2.assertPropertyValueExpressions(
                 propertyAfterDelete, "config property after value removal",
-                Objects.requireNonNull(constPpv2.getExpression()).getExpression());
+                Objects.requireNonNull(constPpv2.getExpression()));
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {

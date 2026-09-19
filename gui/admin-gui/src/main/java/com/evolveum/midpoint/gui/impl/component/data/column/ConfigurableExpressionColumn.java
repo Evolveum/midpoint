@@ -276,7 +276,6 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         //noinspection unchecked
         return (Collection<V>) ExpressionUtil.evaluateStringExpression(
                 variablesMap, expression,
-                MiscSchemaUtil.getExpressionProfile(),
                 getPageBase().getExpressionFactory(),
                 "evaluate column expression", task, result);
     }

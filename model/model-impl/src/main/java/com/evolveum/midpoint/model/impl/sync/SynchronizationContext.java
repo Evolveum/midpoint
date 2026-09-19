@@ -93,8 +93,6 @@ public abstract class SynchronizationContext<F extends ProjectionHolderType>
     /** TODO */
     private final String channel;
 
-    private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-
     @NotNull private final Task task;
 
     @NotNull private final ExecutionModeType executionMode;
@@ -382,10 +380,6 @@ public abstract class SynchronizationContext<F extends ProjectionHolderType>
         return channel;
     }
 
-    public ExpressionProfile getExpressionProfile() {
-        return expressionProfile;
-    }
-
     @Override
     public @NotNull Task getTask() {
         return task;
@@ -428,7 +422,6 @@ public abstract class SynchronizationContext<F extends ProjectionHolderType>
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "channel", channel, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "synchronizationPolicy", synchronizationPolicy, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "preFocus", preFocus, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", linkedOwner, indent + 1);

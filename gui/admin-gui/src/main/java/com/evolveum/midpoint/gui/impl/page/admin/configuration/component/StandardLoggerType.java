@@ -13,7 +13,7 @@ public enum StandardLoggerType {
 
     MAPPING("com.evolveum.midpoint.model.common.mapping.Mapping"),
     EXPRESSION("com.evolveum.midpoint.model.common.expression.Expression"),
-    SCRIPT_EXPRESSION("com.evolveum.midpoint.model.common.expression.script.ScriptExpression"),
+    SCRIPT_EXPRESSION("com.evolveum.midpoint.model.common.expression.script.Script"),
     PROJECTOR("com.evolveum.midpoint.model.impl.lens.projector.Projector"),
     PROJECTOR_DETAIL("com.evolveum.midpoint.model.impl.lens.projector"),
     CLOCKWORK("com.evolveum.midpoint.model.impl.lens.Clockwork"),

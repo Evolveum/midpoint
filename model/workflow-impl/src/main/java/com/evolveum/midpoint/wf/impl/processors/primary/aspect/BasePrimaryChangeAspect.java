@@ -131,7 +131,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
             ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                    origFilter, variables, MiscSchemaUtil.getExpressionProfile(), mappingFactory.getExpressionFactory(),
+                    origFilter, variables, mappingFactory.getExpressionFactory(),
                      " evaluating approverRef filter expression ", task, result);
 
             if (evaluatedFilter == null) {

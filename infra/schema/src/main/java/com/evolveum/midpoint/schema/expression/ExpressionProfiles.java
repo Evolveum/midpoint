@@ -16,7 +16,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 /**
- * An indexed set of {@link ExpressionProfile} objects.
+ * A set of {@link ExpressionProfile} objects indexed by their identifiers.
  *
  * @author semancik
  */

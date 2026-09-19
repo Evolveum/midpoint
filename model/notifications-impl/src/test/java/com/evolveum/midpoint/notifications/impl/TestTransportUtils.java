@@ -71,7 +71,7 @@ public class TestTransportUtils extends AbstractSpringTest {
 
         when();
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
-                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
+                task.getResult(), expressionFactory, logger);
 
         then();
         assertThat(allowRecipient).as("allowRecipient").hasSize(4);
@@ -110,7 +110,7 @@ public class TestTransportUtils extends AbstractSpringTest {
 
         when();
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
-                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
+                task.getResult(), expressionFactory, logger);
 
         then();
         assertThat(allowRecipient).as("allowRecipient").hasSize(4);
@@ -148,7 +148,7 @@ public class TestTransportUtils extends AbstractSpringTest {
 
         when();
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
-                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
+                task.getResult(), expressionFactory, logger);
 
         then();
         assertThat(forbiddenRecipient).withFailMessage("forbiddenRecipient").hasSize(4);
@@ -187,7 +187,7 @@ public class TestTransportUtils extends AbstractSpringTest {
 
         when();
         TransportUtil.validateRecipient(allowRecipient, forbiddenRecipient, recipients, config, task,
-                task.getResult(), expressionFactory, MiscSchemaUtil.getExpressionProfile(), logger);
+                task.getResult(), expressionFactory, logger);
 
         then();
         assertThat(forbiddenRecipient).withFailMessage("forbiddenRecipient").hasSize(4);

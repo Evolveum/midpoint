@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an expression evaluator (e.g. literal, path, script, assignmentTargetSearch, etc).
- * Can apply it in given evaluation context.
+ * Can be applied in given evaluation context.
  *
  * The evaluators were originally stateless; but they are created anew for each expression evaluation (at least when evaluated
  * as part of mappings evaluation), so we can afford to keep some state in them - as needed for (experimental)
@@ -30,6 +30,8 @@ public interface ExpressionEvaluator<V extends PrismValue> {
     /**
      * Executes the evaluation in a given context. The context provides necessary data,
      * evaluator provides definition of processing that should be carried out.
+     *
+     * It is the responsibility of the implementation to check the expression profile!
      *
      * @return Result of the evaluation in the form of delta set triple (i.e. added, deleted, unchanged values).
      */

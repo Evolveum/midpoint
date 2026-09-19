@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IntegerStatType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalStyleType;
@@ -41,8 +42,8 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
 
         ProportionalStyleType style = expressionEvaluatorBean.getStyle();
 

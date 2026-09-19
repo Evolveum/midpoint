@@ -160,6 +160,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
         AssignmentType assignmentType = unmarshalValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
+        markAsTrusted(assignmentType);
         AssignmentType assignmentInUser = assignmentType.clone();
         user.asObjectable().getAssignment().add(assignmentInUser);
 
@@ -226,6 +227,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
         AssignmentType assignmentType = unmarshalValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE);
+        markAsTrusted(assignmentType);
         assignmentType.setDescription(null);
         AssignmentType assignmentInUser = assignmentType.clone();
         user.asObjectable().getAssignment().add(assignmentInUser);

@@ -18,7 +18,7 @@ import org.codehaus.groovy.transform.stc.StaticTypeCheckingVisitor;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryBinding;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExecutionContext;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -39,8 +39,8 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
         super(typeCheckingVisitor);
     }
 
-    private @NotNull ScriptExpressionEvaluationContext getContext() {
-        return ScriptExpressionEvaluationContext.getThreadLocalRequired();
+    private @NotNull ScriptExecutionContext getContext() {
+        return ScriptExecutionContext.getThreadLocalRequired();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
         AccessDecision decision = decideClass(targetDeclaringClass.getName(), target.getName());
 
         if (decision != AccessDecision.ALLOW) {
-            StringBuilder sb = new StringBuilder(GroovyScriptEvaluator.SANDBOX_ERROR_PREFIX);
+            StringBuilder sb = new StringBuilder(GroovyScriptExecutor.SANDBOX_ERROR_PREFIX);
             sb.append("Access to Groovy method ");
             sb.append(targetDeclaringClass.getName()).append("#").append(target.getName()).append(" ");
             if (decision == AccessDecision.DENY) {
@@ -57,25 +57,19 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
             } else {
                 sb.append("not allowed");
             }
-            if (getContext().getExpressionProfile() != null) {
-                sb.append(" (applied expression profile '").append(getContext().getExpressionProfile().getIdentifier()).append("')");
-            }
+            sb.append(" (expression profile '").append(getContext().getExpressionProfile().getIdentifier()).append("')");
             addStaticTypeError(sb.toString(), expression);
         }
     }
 
     private @NotNull AccessDecision decideClass(String className, String methodName) {
-        AccessDecision builtinDecision = GroovyScriptEvaluator.decideGroovyBuiltin(className, methodName);
+        AccessDecision builtinDecision = GroovyScriptExecutor.decideGroovyBuiltin(className, methodName);
         LOGGER.trace("decideClass: builtin [{},{}] : {}", className, methodName, builtinDecision);
         if (builtinDecision != AccessDecision.DEFAULT) {
             return builtinDecision;
         }
-        var scriptExpressionProfile = getContext().getScriptExpressionProfile();
-        if (scriptExpressionProfile == null) {
-            LOGGER.trace("decideClass: profile==null [{},{}] : ALLOW", className, methodName);
-            return AccessDecision.ALLOW;
-        }
-        var methodDecision = scriptExpressionProfile.decideClassAccess(className, methodName);
+        var languageProfile = getContext().getScriptLanguageExpressionProfile();
+        var methodDecision = languageProfile.decideClassAccess(className, methodName);
         LOGGER.trace("decideClass: profile({}) [{},{}] : {}",
                 getContext().getExpressionProfile().getIdentifier(), className, methodName, methodDecision);
         return methodDecision;
@@ -84,7 +78,7 @@ public class SandboxTypeCheckingExtension extends AbstractTypeCheckingExtension 
     @Override
     public boolean handleUnresolvedVariableExpression(VariableExpression vExp) {
         String variableName = vExp.getName();
-        ScriptExpressionEvaluationContext context = getContext();
+        ScriptExecutionContext context = getContext();
         String contextDescription = context.getContextDescription();
 
         if (!isDynamic(vExp)) {

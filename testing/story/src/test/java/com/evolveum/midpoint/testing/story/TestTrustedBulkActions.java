@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.story;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -81,6 +83,8 @@ public class TestTrustedBulkActions extends AbstractStoryTest {
         ROLE_WITH_SCRIPTING_ACTION.initRaw(this, initResult);
 
         initTestObjects(initTask, initResult,
+                CommonInitialObjects.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK,
+                CommonInitialObjects.ARCHETYPE_SINGLE_BULK_ACTION_TASK,
                 FUNCTION_LIBRARY_ONE,
                 ARCHETYPE_TRUSTED_TASK,
                 ARCHETYPE_LITTLE_TRUSTED_TASK,
@@ -122,7 +126,7 @@ public class TestTrustedBulkActions extends AbstractStoryTest {
         assertTask(taskOid, "after")
                 .display()
                 .assertPartialError()
-                .assertResultMessageContains("Access to script expression evaluator not allowed");
+                .assertResultMessageContains("Script interpreter for language 'Groovy' is not allowed");
 
         FLAG.assertNotSet();
     }
@@ -146,7 +150,7 @@ public class TestTrustedBulkActions extends AbstractStoryTest {
         assertTask(taskOid, "after")
                 .display()
                 .assertFatalError()
-                .assertResultMessageContains("Access to script expression evaluator not allowed");
+                .assertResultMessageContains("Script interpreter for language 'Groovy' is not allowed");
 
         FLAG.assertNotSet();
     }

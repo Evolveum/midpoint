@@ -15,6 +15,8 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -105,8 +107,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     // auto-assigned roles are initialized only in specific tests (and then deleted)
     private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_GOOD = TestObject.file(
             TEST_DIR, "role-restricted-auto-good.xml", "a6ace69f-ecfb-457b-97ea-0b5a8b4a6ad3");
-    private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION = TestObject.file(
-            TEST_DIR, "role-restricted-auto-filter-expression.xml", "885bc0b4-2493-4658-a523-8a3f7eeb770b");
+    private static final TestObject<RoleType> ROLE_SAFE_AUTO_FILTER_EXPRESSION = TestObject.file(
+            TEST_DIR, "role-safe-auto-filter-expression.xml", "885bc0b4-2493-4658-a523-8a3f7eeb770b");
     private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_EXPRESSION = TestObject.file(
             TEST_DIR, "role-restricted-auto-bad-mapping-expression.xml", "26f61dc6-efff-4614-aac6-25753b81512f");
     private static final TestObject<RoleType> ROLE_RESTRICTED_AUTO_BAD_MAPPING_CONDITION = TestObject.file(
@@ -149,7 +151,6 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<RoleType> ROLE_SAFE_BAD_MEL = TestObject.file(
             TEST_DIR, "role-safe-bad-mel.xml", "9f78c6e2-124d-11f1-a7ec-8f778e084091");
 
-
     private static final File FILE_SCRIPTING_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-execute-script.xml");
     private static final File FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT = new File(TEST_DIR, "scripting-expression-execute-script.xml");
     private static final File FILE_SCRIPTING_NOTIFICATION_CUSTOM_HANDLER = new File(TEST_DIR, "scripting-notification-custom-handler.xml");
@@ -165,7 +166,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
     private static final String DETAIL_REASON_MESSAGE_BOOM_RESTRICTED =
             "Access to Groovy method com.evolveum.midpoint.model.intest.TestExpressionProfiles#boom denied"
-                    + " (applied expression profile 'restricted')";
+                    + " (expression profile 'restricted')";
+
+    private static final String MSG_GROOVY_IS_NOT_ALLOWED = "Script interpreter for language 'Groovy' is not allowed";
+    private static final String MSG_SCRIPT_EXECUTION_PROHIBITED = "script execution prohibited";
+    private static final String MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS = "expression profile '##legacyUnprivilegedBulkActions'";
 
     private static final RunFlag BOOMED_FLAG = new RunFlag();
 
@@ -213,7 +218,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
-    /** "Correct" restricted auto-assigned role is used. */
+    /** Auto-assigned role under {@code restricted} profile. Compliant. */
     @Test
     public void test100RestrictedRoleAutoGood() throws Exception {
         Task task = getTestTask();
@@ -241,12 +246,13 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_GOOD.oid);
         }
 
-        // only by mistake, as the role does not involve such a call
+        // this could happen only by strange mistake, because the role does not involve such a call
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** "Correct" safe auto-assigned role is used.
-     * Filter expression for autoassignment.
+    /**
+     * Auto-assigned role under {@code safe} profile. Compliant.
+     * Filter expression is used for autoassignment.
      */
     @Test
     public void test102SafeRoleAutoGoodFilter() throws Exception {
@@ -279,8 +285,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** "Correct" safe auto-assigned role is used.
-     *  Filter expression with path for autoassignment.
+    /**
+     * Auto-assigned role under {@code safe} profile. Compliant.
+     * Filter expression with path is used for autoassignment.
      */
     @Test
     public void test104SafeRoleAutoGoodFilterPath() throws Exception {
@@ -314,8 +321,9 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** "Correct" safe auto-assigned role is used.
-     *  MEL expression for autoassignment.
+    /**
+     * Auto-assigned role under {@code safe} profile. Compliant.
+     * MEL expression is used for autoassignment.
      */
     @Test
     public void test105SafeRoleAutoGoodMel() throws Exception {
@@ -349,16 +357,20 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
 
-    /** This checks that expressions inside filters are not supported - hence, safe. :) */
+    /**
+     * Auto-assigned role under {@code safe} profile. Not compliant.
+     *
+     * Proves that expressions in filters in object selectors are not evaluated.
+     */
     @Test
-    public void test110RestrictedRoleAutoExpressionInsideFilter() throws Exception {
+    public void test110SafeRoleAutoExpressionInsideFilter() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         resetBoomed();
 
         given("auto-assigned role is imported");
-        ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION.init(this, task, result);
+        ROLE_SAFE_AUTO_FILTER_EXPRESSION.init(this, task, result);
 
         try {
             when("user that should get auto role is added");
@@ -371,20 +383,22 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
             assertUserAfter(userOid)
                     .assertAssignments(0);
         } finally {
-            deleteObject(RoleType.class, ROLE_RESTRICTED_AUTO_FILTER_EXPRESSION.oid);
+            deleteObject(RoleType.class, ROLE_SAFE_AUTO_FILTER_EXPRESSION.oid);
         }
 
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** This checks that expressions inside filters are not supported - hence, safe. :) */
+    /** Auto-assigned role under {@code safe} profile. Not compliant because of Groovy code in filter. */
     @Test
     public void test112SafeRoleAutoGroovyInFilter() throws Exception {
-        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY_IN_FILTER,
-                "Access to script language http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy not allowed");
+        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY_IN_FILTER, MSG_GROOVY_IS_NOT_ALLOWED);
     }
 
-    /** Non-compliant script in mapping expression. */
+    /**
+     * Auto-assigned role under {@code restricted} profile.
+     * Not compliant because of a forbidden method in a Groovy script in a mapping expression.
+     */
     @Test
     public void test120RestrictedRoleAutoBadMappingExpression() throws Exception {
         Task task = getTestTask();
@@ -426,14 +440,19 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** Non-compliant groovy script in mapping expression. */
+    /**
+     * Auto-assigned role under {@code safe} profile.
+     * Not compliant because using Groovy script in mapping condition.
+     */
     @Test
     public void test122SafeRoleAutoBadGroovy() throws Exception {
-        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY,
-                "Access to script language http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy not allowed");
+        runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_GROOVY, MSG_GROOVY_IS_NOT_ALLOWED);
     }
 
-    /** Non-compliant groovy script in mapping expression. */
+    /**
+     * Auto-assigned role under {@code safe} profile.
+     * Not compliant because using MEL with forbidden package (`midpoint`).
+     */
     @Test
     public void test123SafeRoleAutoBadMel() throws Exception {
         runNegativeSafeRoleAutoassignmentTest(ROLE_SAFE_AUTO_BAD_MEL,
@@ -471,7 +490,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** Non-compliant script in mapping condition. */
+    /**
+     * Auto-assigned role under {@code restricted} profile.
+     * Not compliant because of a forbidden method in a Groovy script in a mapping condition.
+     */
     @Test
     public void test130RestrictedRoleAutoBadMappingCondition() throws Exception {
         Task task = getTestTask();
@@ -513,7 +535,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         resetBoomed();
     }
 
-    /** "Correct" restricted role is used. */
+    /** Role under {@code restricted} profile. Compliant. */
     @Test
     public void test200RestrictedRoleGood() throws Exception {
         Task task = getTestTask();
@@ -535,13 +557,13 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 .display();
     }
 
-    /** "Correct" semi-safe role is used. */
+    /** Role under {@code safe} profile. Compliant. */
     @Test
     public void test202SafeRoleGood() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        when("user with correct restricted role is added");
+        when("user with correct safe role is added");
         String name = getTestNameShort();
         UserType user = new UserType()
                 .name(name)
@@ -557,22 +579,28 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 .display();
     }
 
-    /** "Incorrect" restricted role is used: bad focus mapping. */
+    /**
+     * Role under {@code restricted} profile.
+     * Not compliant because of a forbidden method in a Groovy script in a focus mapping expression.
+     */
     @Test
     public void test210RestrictedRoleBadFocusMapping() throws Exception {
         runNegativeRoleAssignmentTest(ROLE_RESTRICTED_BAD_FOCUS_MAPPING, null); // FIXME path
     }
 
-    /** "Incorrect" safe role is used: groovy expressions. */
+    /**
+     * Role under {@code safe} profile.
+     * Not compliant because of using Groovy (forbidden) in focus mapping expression.
+     */
     @Test
     public void test212SafeRoleGroovy() throws Exception {
-        runNegativeRoleAssignmentTest(
-                ROLE_SAFE_BAD_GROOVY, null,
-                "Access to script language http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy not allowed",
-                "");
+        runNegativeRoleAssignmentTest(ROLE_SAFE_BAD_GROOVY, null, MSG_GROOVY_IS_NOT_ALLOWED, "");
     }
 
-    /** "Incorrect" safe role is used: MEL expressions using midpoint.*. */
+    /**
+     * Role under {@code safe} profile.
+     * Not compliant because of a forbidden package in a MEL script in a focus mapping expression.
+     */
     @Test
     public void test213SafeRoleMel() throws Exception {
         runNegativeRoleAssignmentTest(
@@ -587,6 +615,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeRoleAssignmentTest(
                 role, expectedPath, "Denied access to functionality of script", DETAIL_REASON_MESSAGE_BOOM_RESTRICTED);
     }
+
     private void runNegativeRoleAssignmentTest(
             @NotNull TestObject<RoleType> role, @Nullable ItemPath expectedPath, @NotNull String msg1, @NotNull String msg2)
             throws CommonException {
@@ -613,13 +642,20 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         BOOMED_FLAG.assertNotSet();
     }
 
-    /** "Incorrect" restricted role is used: bad mapping in construction. */
+    /**
+     * Assigning a role under {@code restricted} profile.
+     * Not compliant because of a forbidden method in a construction mapping expression.
+     */
     @Test
     public void test220RestrictedRoleBadConstructionMapping() throws Exception {
         runNegativeRoleAssignmentTest(ROLE_RESTRICTED_BAD_CONSTRUCTION_MAPPING, null); // FIXME path
     }
 
-    /** Bad condition in metarole assignment. This time it is impossible even to create the role. */
+    /**
+     * Creating a role under {@code restricted} profile.
+     * Not compliant because of a forbidden method in a assignment condition.
+     * The role creation fails because the assignment condition is evaluated during the process.
+     */
     @Test
     public void test230RestrictedRoleBadAssignmentCondition() throws Exception {
         runNegativeRoleCreationTest(ROLE_RESTRICTED_BAD_ASSIGNMENT_CONDITION);
@@ -654,7 +690,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * The bad role was added into the repository. We check we are not able to evaluate it.
+     * As in {@link #test230RestrictedRoleBadAssignmentCondition()}, but the role is already in the repository.
+     * We check we are not able to evaluate it.
      */
     @Test
     public void test235RestrictedRoleBadAssignmentConditionAlreadyInRepo() throws Exception {
@@ -667,7 +704,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 RoleType.F_ASSIGNMENT.append(111L));
     }
 
-    /** Bad condition in inducement. */
+    /**
+     * Assigning a role under {@code restricted} profile.
+     * Failing because of a forbidden method in a condition in an inducement.
+     */
     @Test
     public void test240RestrictedRoleBadInducementCondition() throws Exception {
         runNegativeRoleAssignmentTest(
@@ -675,21 +715,30 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 RoleType.F_INDUCEMENT.append(111L));
     }
 
-    /** Bad condition in role itself. */
+    /**
+     * Assigning a role under {@code restricted} profile.
+     * Failing because of a forbidden method in a condition in role itself.
+     */
     @Test
     public void test245RestrictedRoleBadRoleCondition() throws Exception {
         runNegativeRoleAssignmentTest(
                 ROLE_RESTRICTED_BAD_ROLE_CONDITION, null); // FIXME path
     }
 
-    /** Bad expression in assignment `targetRef` filter. Role cannot be created. */
+    /**
+     * Creating a role under {@code restricted} profile.
+     * Failing because of a forbidden method in assignment `targetRef` filter.
+     */
     @Test
     public void test250RestrictedRoleBadAssignmentTargetFilter() throws Exception {
         runNegativeRoleCreationTest(
                 ROLE_RESTRICTED_BAD_ASSIGNMENT_TARGET_FILTER); // FIXME path
     }
 
-    /** Bad expression in assignment `targetRef` filter. Role was put into repo in raw mode. */
+    /**
+     * As in {@link #test250RestrictedRoleBadAssignmentTargetFilter()}, but the role is already in the repository.
+     * We check we are not able to evaluate it.
+     */
     @Test
     public void test255RestrictedRoleBadAssignmentTargetFilterAlreadyInRepo() throws Exception {
         given("role is put into the repo in raw mode (not evaluating expressions)");
@@ -700,7 +749,10 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 ROLE_RESTRICTED_BAD_ASSIGNMENT_TARGET_FILTER, null); // FIXME path
     }
 
-    /** Bad expression in inducement `targetRef` filter. */
+    /**
+     * Assigning a role under {@code restricted} profile.
+     * Failing because of a forbidden method in inducement `targetRef` filter (evaluated at runtime).
+     */
     @Test
     public void test260RestrictedRoleBadInducementTargetFilter() throws Exception {
         runNegativeRoleAssignmentTest(
@@ -708,7 +760,11 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
                 RoleType.F_INDUCEMENT.append(333L));
     }
 
-    /** Bad `inducement/focusMappings/mapping/expression/assignmentTargetSearch/filter` filter. Should fail. */
+    /**
+     * Assigning a role under {@code no-privilege-elevation} profile.
+     * Failing because we try to do privilege elevation in
+     * `inducement/focusMappings/mapping/expression/assignmentTargetSearch/filter`.
+     */
     @Test
     public void test265NoElevationRoleBadAssignmentTargetSearchFilter() throws Exception {
         runNegativeRoleAssignmentTest(
@@ -730,8 +786,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeBulkActionTest(
                 FILE_SCRIPTING_EXECUTE_SCRIPT,
                 ConfigurationItemOrigin.rest(),
-                "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedBulkActions");
+                MSG_SCRIPT_EXECUTION_PROHIBITED,
+                MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
     /** Executing script via expression (with the default profile). Should fail. */
@@ -740,8 +796,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeBulkActionTest(
                 FILE_SCRIPTING_EXPRESSION_EXECUTE_SCRIPT,
                 ConfigurationItemOrigin.rest(),
-                "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedBulkActions");
+                MSG_SCRIPT_EXECUTION_PROHIBITED,
+                MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
     /** Executing script via notification (with the default profile). Should fail. */
@@ -756,8 +812,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeBulkActionTest(
                 FILE_SCRIPTING_SCRIPT_IN_QUERY,
                 ConfigurationItemOrigin.rest(),
-                "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedBulkActions");
+                MSG_SCRIPT_EXECUTION_PROHIBITED,
+                MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
     /** Executing script via filter in `unassign` action. Should fail. */
@@ -766,8 +822,8 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         runNegativeBulkActionTest(
                 FILE_SCRIPTING_SCRIPT_IN_UNASSIGN_FILTER,
                 ConfigurationItemOrigin.rest(),
-                "Access to script expression evaluator not allowed",
-                "expression profile: ##legacyUnprivilegedBulkActions");
+                MSG_SCRIPT_EXECUTION_PROHIBITED,
+                MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS);
     }
 
     /**
@@ -872,9 +928,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("bulk action is executed");
-        var script = prismContext.parserFor(FILE_SCRIPTING_GENERATE_VALUE)
-                .xml()
-                .parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(FILE_SCRIPTING_GENERATE_VALUE, MidPointTrustDescriptor.forCurrentPrincipal());
         var executionResult = bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, ConfigurationItemOrigin.rest()),
                 VariablesMap.emptyMap(),
@@ -969,7 +1023,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("bulk action is executed");
-        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(file, descriptorForOrigin(origin));
         bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(script, origin),
                 VariablesMap.emptyMap(),
@@ -979,6 +1033,22 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         and("'boomed' flag is set");
         BOOMED_FLAG.assertSet();
+    }
+
+    private MidPointTrustDescriptor descriptorForOrigin(ConfigurationItemOrigin origin) {
+        if (origin instanceof ConfigurationItemOrigin.External) {
+            return MidPointTrustDescriptor.forCurrentPrincipal();
+        } else if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
+            return MidPointTrustDescriptor.forAuthorizedObject(inObject.getOriginatingPrismObject().asObjectable());
+        } else {
+            throw new IllegalArgumentException("Unexpected origin type: " + origin);
+        }
+    }
+
+    private ExecuteScriptType parseScript(File file, MidPointTrustDescriptor trustDescriptor) throws IOException, SchemaException {
+        var scriptBean = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        TrustDescriptorSetter.setDescriptors(scriptBean, trustDescriptor);
+        return scriptBean;
     }
 
     private ConfigurationItemOrigin originForArchetype(TestObject<ArchetypeType> archetype) {
@@ -998,6 +1068,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         runNegativeBulkActionTestLoggedIn(file, origin, msg1, msg2);
     }
+
     private void runNegativeBulkActionTestLoggedIn(
             File file, ConfigurationItemOrigin origin, String msg1, String msg2)
             throws CommonException, IOException {
@@ -1006,7 +1077,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         resetBoomed();
 
         when("dangerous bulk action is executed");
-        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(file, descriptorForOrigin(origin));
         try {
             bulkActionsService.executeBulkAction(
                     ExecuteScriptConfigItem.of(script, origin),
@@ -1039,7 +1110,7 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
         login(USER_JOE.getNameOrig());
 
         when("dangerous bulk action is executed");
-        var script = prismContext.parserFor(file).xml().parseRealValue(ExecuteScriptType.class);
+        var script = parseScript(file, MidPointTrustDescriptor.forCurrentPrincipal());
         bulkActionsService.executeBulkAction(
                 ExecuteScriptConfigItem.of(
                         script,
@@ -1056,9 +1127,13 @@ public class TestExpressionProfiles extends AbstractEmptyModelIntegrationTest {
 
         // these asserts may be fragile
         assertThat(result.getMessage())
-                .contains("Access to script expression evaluator not allowed")
-                .contains("expression profile: ##legacyUnprivilegedBulkActions")
-                .contains("in event filter expression");
+                .contains(MSG_SCRIPT_EXECUTION_PROHIBITED)
+                .contains(MSG_PROFILE_LEGACY_UNPRIVILEGED_BULK_ACTIONS)
+                .contains("in (new) event filter expression");
+        // Note: the "(new)" string is there because of a different place in the code where the exception is thrown
+        // Previously it was when Script was constructed, now it is when the expression is evaluated.
+        // The expression is evaluated in a "isEvaluateNew" context, hence the "(new)" string.
+        // (Although it does not make sense for the user.)
     }
 
     // TODO what about import-time resolution? Is that even supported? Probably not but we should write a test for it.

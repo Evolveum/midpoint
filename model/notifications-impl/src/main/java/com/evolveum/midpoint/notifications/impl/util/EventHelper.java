@@ -8,8 +8,6 @@ package com.evolveum.midpoint.notifications.impl.util;
 
 import com.evolveum.midpoint.schema.config.BaseEventHandlerConfigItem;
 
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,13 +29,12 @@ public class EventHelper {
     @Autowired private NotificationManager notificationManager;
 
     public void processEvent(Event event, Task task, OperationResult parentResult) {
-        processEvent(event, null, null, task, parentResult);
+        processEvent(event, null, task, parentResult);
     }
 
     public void processEvent(
             Event event,
             BaseEventHandlerConfigItem adHocEventHandler,
-            ExpressionProfile adHocEventExpressionProfile,
             Task task,
             OperationResult parentResult) {
         // It would be better if we could go without creating a subresult. However, we need to record
@@ -49,7 +46,6 @@ public class EventHelper {
             notificationManager.processEvent(
                     event,
                     adHocEventHandler,
-                    adHocEventExpressionProfile,
                     task,
                     result);
         } catch (RuntimeException e) {

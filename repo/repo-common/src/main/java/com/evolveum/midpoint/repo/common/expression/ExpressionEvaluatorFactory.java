@@ -47,7 +47,7 @@ public interface ExpressionEvaluatorFactory {
     <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             @NotNull Collection<JAXBElement<?>> evaluatorElements,
             @Nullable D outputDefinition,
-            @Nullable ExpressionProfile expressionProfile,
+            @NotNull ExpressionProfile expressionProfile,
             @NotNull ExpressionFactory expressionFactory,
             @NotNull String contextDescription,
             @NotNull Task task,

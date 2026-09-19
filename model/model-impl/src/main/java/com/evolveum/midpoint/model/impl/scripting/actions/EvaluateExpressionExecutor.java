@@ -89,7 +89,6 @@ public class EvaluateExpressionExecutor extends AbstractExecuteExecutor<Expressi
                     variables,
                     parameters.outputDefinition,
                     parameters.expressionBean,
-                    context.getExpressionProfile(),
                     expressionFactory,
                     "in '" + getName() + "' action",
                     context.getTask(), result);

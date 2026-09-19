@@ -623,8 +623,7 @@ public class CollectionProcessor {
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         VariablesMap variables = new VariablesMap(); // do we want to put any variables here?
         return ExpressionUtil.evaluateFilterExpressions(
-                filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory, "collection filter", task, result);
+                filterRaw, variables, expressionFactory, "collection filter", task, result);
     }
 
     private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

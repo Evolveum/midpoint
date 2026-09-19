@@ -6,20 +6,24 @@
 
 package com.evolveum.midpoint.model.common.expression.script;
 
+import static com.evolveum.midpoint.model.common.expression.ExpressionTestUtil.testingExpressionsConfiguration;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.common.Clock;
 
+import com.evolveum.midpoint.common.configuration.api.ExpressionsConfigurationSection;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptLanguageExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,7 +35,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptExecutor;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -45,8 +49,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Override
-    protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector, Clock clock) {
-        return new GroovyScriptEvaluator(prismContext, protector, localizationService);
+    protected ScriptExecutor createExecutor(PrismContext prismContext, Protector protector, Clock clock, boolean restrictedMode) {
+        return new GroovyScriptExecutor(
+                prismContext, protector, localizationService, testingExpressionsConfiguration(restrictedMode));
     }
 
     @Override
@@ -324,7 +329,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-poison-look.xml",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -341,7 +346,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-poison-smell.xml",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -358,7 +363,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-poison-smell-tricky.xml",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -376,7 +381,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-poison-smell-dynamic.xml",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -394,7 +399,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-poison-smell-very-dynamic.xml",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -412,7 +417,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-poison-smell-reflection.xml",
                 createPoisonVariables(poison),
                 RESULT_POISON_OK);
@@ -432,7 +437,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         try {
-            evaluateAndAssertStringScalarExpression(
+            executeAndAssertStringScalarExpression(
                     "expression-poison-drink.xml",
                     createPoisonVariables(poison),
                     "");
@@ -463,7 +468,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         try {
-            evaluateAndAssertStringScalarExpression(
+            executeAndAssertStringScalarExpression(
                     "expression-syntax-error.xml",
                     createPoisonVariables(poison),
                     RESULT_POISON_OK);
@@ -480,12 +485,12 @@ public class TestGroovyExpressions extends AbstractScriptTest {
      */
     @Test
     public void testStringExec() throws Exception {
-        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available Windows");
+        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available in Windows");
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-string-exec.xml",
-                null,
+                createVariables(),
                 RESULT_STRING_EXEC);
 
         // THEN
@@ -497,12 +502,12 @@ public class TestGroovyExpressions extends AbstractScriptTest {
      */
     @Test
     public void testListExec() throws Exception {
-        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available Windows");
+        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available in Windows");
 
         // WHEN
-        evaluateAndAssertStringScalarExpression(
+        executeAndAssertStringScalarExpression(
                 "expression-list-exec.xml",
-                null,
+                createVariables(),
                 RESULT_STRING_EXEC);
 
         // THEN
@@ -514,9 +519,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // GIVEN
 
         // We need to start with a clean slate
-        initializeScriptEvaluator();
+        initializeScriptExecutors();
         InternalMonitor.reset();
-
 
         assertScriptMonitor(0, 0, "init");
 
@@ -547,16 +551,16 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         assertTrue("Even Horatio was wrong! " + horatio1Time + " -> " + horatio2Time, horatio2Time <= horatio1Time);
     }
 
-    private long executeCachingScript(String filname, String expectedResult, String desc)
+    private long executeCachingScript(String filename, String expectedResult, String desc)
             throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, IOException {
         // GIVEN
         OperationResult result = createOperationResult(desc);
-        ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
+        ScriptExpressionEvaluatorType scriptType = parseScriptType(filename);
         ItemDefinition<?> outputDefinition =
                 getPrismContext().definitionFactory().newPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
 
-        ScriptExpression scriptExpression = createCachingScriptExpression(scriptType, outputDefinition);
+        Script script = createCachingScriptExpression(scriptType, outputDefinition);
 
         VariablesMap variables = VariablesMap.create(getPrismContext(),
                 "foo", "FOO", PrimitiveType.STRING,
@@ -566,14 +570,13 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         // WHEN
         long startTime = System.currentTimeMillis();
 
-        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+        ScriptExecutionContext context = new ScriptExecutionContext(script);
         context.setVariables(variables);
         context.setEvaluateNew(false);
-        context.setScriptExpression(scriptExpression);
         context.setContextDescription(desc);
         context.setResult(result);
 
-        List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(context);
+        List<PrismPropertyValue<String>> scripResults = context.execute();
         long endTime = System.currentTimeMillis();
 
         // THEN
@@ -587,15 +590,16 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         return (endTime - startTime);
     }
 
-    private ScriptExpression createCachingScriptExpression(
+    private Script createCachingScriptExpression(
             ScriptExpressionEvaluatorType expressionType, ItemDefinition<?> outputDefinition) {
-        ScriptExpression expression = new ScriptExpression(
-                scriptExpressionfactory.getEvaluatorSimple(expressionType.getLanguage()),
-                expressionType);
-        expression.setOutputDefinition(outputDefinition);
-        expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctionLibraryBindings(new ArrayList<>(scriptExpressionfactory.getBuiltInLibraryBindings()));
-        return expression;
+        Script script = new Script(
+                expressionType, Objects.requireNonNull(scriptFactory.getExecutorSimple(expressionType.getLanguage())),
+                ExpressionProfile.full(),
+                ScriptLanguageExpressionProfile.full());
+        script.setOutputDefinition(outputDefinition);
+        script.setObjectResolver(scriptFactory.getObjectResolver());
+        script.setFunctionLibraryBindings(new ArrayList<>(scriptFactory.getBuiltInLibraryBindings()));
+        return script;
     }
 
     private String asScalarString(List<PrismPropertyValue<String>> expressionResultList) {
@@ -608,5 +612,21 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         return expressionResultList.iterator().next().getValue();
     }
 
-
+    /**
+     * If {@link ExpressionsConfigurationSection#isSafeExpressionsOnly()} is set to {@code true}, then the script evaluator
+     * should not be able to execute scripts that are not safe, like those in Groovy.
+     */
+    @Test
+    public void testInRestrictedMode() throws CommonException, IOException {
+        switchToRestrictedMode();
+        try {
+            executeSimpleScript();
+            fail("unexpected success");
+        } catch (SecurityViolationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining("is not considered safe; script execution prohibited");
+        } finally {
+            switchToUnrestrictedMode();
+        }
+    }
 }

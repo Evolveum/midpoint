@@ -41,12 +41,10 @@ class AssociationConstructionExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<ShadowAssociationValue> evaluate(
+    protected PrismValueDeltaSetTriple<ShadowAssociationValue> evaluateInternal(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-
-        checkEvaluatorProfile(context);
 
         return AssociationValuesTripleComputation.compute(
                 outputDefinition,

@@ -76,12 +76,10 @@ public class ReferenceAttributeFromLinkExpressionEvaluator
     }
 
     @Override
-    public PrismValueDeltaSetTriple<ShadowReferenceAttributeValue> evaluate(
+    protected PrismValueDeltaSetTriple<ShadowReferenceAttributeValue> evaluateInternal(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        checkEvaluatorProfile(context);
 
         String desc = context.getContextDescription();
 

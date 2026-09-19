@@ -282,8 +282,7 @@ public class DashboardServiceImpl implements DashboardService {
         } else {
             query = prismContext.queryFactory().createQuery();
             ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                    objectFilter, new VariablesMap(), MiscSchemaUtil.getExpressionProfile(),
-                    expressionFactory, "collection filter", task, result);
+                    objectFilter, new VariablesMap(), expressionFactory, "collection filter", task, result);
             query.setFilter(evaluatedFilter);
         }
         @NotNull Collection<SelectorOptions<GetOperationOptions>> option = combineAuditOption(collectionRef, collection, task, result);
@@ -488,8 +487,9 @@ public class DashboardServiceImpl implements DashboardService {
                 for (DashboardWidgetVariationType variation : widget.getPresentation().getVariation()) {
                     Task task = taskManager.createTaskInstance("Evaluate variation");
                     try {
-                        boolean usingVariation = ExpressionUtil.evaluateConditionDefaultFalse(variables, variation.getCondition(),
-                                MiscSchemaUtil.getExpressionProfile(), expressionFactory, "Variation", task, task.getResult());
+                        boolean usingVariation = ExpressionUtil.evaluateConditionDefaultFalse(
+                                variables, variation.getCondition(),
+                                expressionFactory, "Variation", task, task.getResult());
                         if (usingVariation) {
                             data.setDisplay(combineDisplay(widget.getDisplay(), variation.getDisplay()));
                             variationUsed = true;
@@ -551,7 +551,7 @@ public class DashboardServiceImpl implements DashboardService {
             Collection<String> contentTypeList = null;
             try {
                 contentTypeList = ExpressionUtil.evaluateStringExpression(
-                        variables, expression, null, expressionFactory, shortDes, task, result);
+                        variables, expression, expressionFactory, shortDes, task, result);
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                      | ConfigurationException | SecurityViolationException | SubscriptionComplianceException e) {
                 LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);

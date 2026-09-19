@@ -121,8 +121,7 @@ class ConstraintReferenceMatcher<O extends ObjectType> {
                     new ModelExpressionEnvironment<>(evalContext.lensContext, null, evalContext.task, operationResult));
             try {
                 filter = ExpressionUtil.evaluateFilterExpressions(filter,
-                        variables, MiscSchemaUtil.getExpressionProfile(),
-                        expressionFactory, contextDescription,
+                        variables, expressionFactory, contextDescription,
                         evalContext.task, operationResult);
             } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException | CommunicationException |
                      ExpressionEvaluationException | SubscriptionComplianceException e) {

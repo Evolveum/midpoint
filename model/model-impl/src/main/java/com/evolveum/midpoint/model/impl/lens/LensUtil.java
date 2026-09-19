@@ -291,7 +291,6 @@ public class LensUtil {
                 expressionFactory.makeExpression(
                         tokenExpressionType,
                         outputDefinition,
-                        MiscSchemaUtil.getExpressionProfile(),
                         "iteration token expression in "+accountContext.getHumanReadableName(),
                         task,
                         result);
@@ -395,7 +394,7 @@ public class LensUtil {
             return true;
         }
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-                expressionType, ExpressionUtil.createConditionOutputDefinition(), MiscSchemaUtil.getExpressionProfile(),
+                expressionType, ExpressionUtil.createConditionOutputDefinition(),
                 desc, task, result);
 
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);

@@ -10,6 +10,10 @@ import static com.evolveum.midpoint.schema.util.ScriptingBeansUtil.getActionType
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+
 import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,21 +74,22 @@ public class BulkActionsExecutor {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
-        var executeScriptBean = executeScript.value();
+        var executeScriptBeanClone = executeScript.value().clone(); // Cloning because we set trust descriptors (see below)
         try {
             //todo should we parse from initialVariables and create BulkActionExecutionOptions here? e.g. parse runPrivileged?
             var expressionProfile =
                     expressionProfileManager.determineBulkActionsProfile(
-                            executeScript.origin(), options.privileged(), task, result);
+                            executeScript.getTrustDescriptorRequired(), options.privileged(), task, result);
+            setTrustDescriptorsToScriptBeanAndVariables(executeScriptBeanClone, expressionProfile);
             VariablesMap frozenVariables = VariablesUtil.initialPreparation(
-                    initialVariables, executeScriptBean.getVariables(),
-                    expressionProfile, task, result);
-            PipelineData inputPipeline = PipelineData.parseFrom(executeScriptBean.getInput(), frozenVariables);
+                    initialVariables, executeScriptBeanClone.getVariables(),
+                    task, result);
+            PipelineData inputPipeline = PipelineData.parseFrom(executeScriptBeanClone.getInput(), frozenVariables);
             ExecutionContext context = new ExecutionContext(
-                    executeScriptBean.getOptions(), task, this,
+                    executeScriptBeanClone.getOptions(), task, this,
                     options, frozenVariables, expressionProfile);
-            PipelineData output = execute(
-                    executeScriptBean.getScriptingExpression().getValue(), inputPipeline, context, result);
+            PipelineData output = executeInternal(
+                    executeScriptBeanClone.getScriptingExpression().getValue(), inputPipeline, context, result);
             context.setFinalOutput(output);
             result.computeStatusIfUnknown();
             context.computeResults();
@@ -95,16 +100,38 @@ public class BulkActionsExecutor {
         }
     }
 
-    // not to be called from outside
-    public PipelineData execute(JAXBElement<? extends ScriptingExpressionType> expression, PipelineData input,
-            ExecutionContext context, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, SubscriptionComplianceException {
-        return execute(expression.getValue(), input, context, parentResult);
+    /**
+     * In order to correctly evaluate embedded expressions, we need to set trust descriptors on them.
+     * It is partly a performance optimization (so that we don't have to determine the profile for each embedded expression),
+     * but also a functional requirement: the bulk action itself is evaluated under certain profile: there are special rules
+     * for bulk actions, like that - by default - when logged in as administrator, untrusted bulk actions are evaluated with
+     * full privileges. These special rules would not apply if we wouldn't propagate the profile to the embedded expressions.
+     *
+     * Besides bulk action itself, we set the trust descriptors on variable definitions, as they may contain expressions as well.
+     */
+    private static void setTrustDescriptorsToScriptBeanAndVariables(ExecuteScriptType bean, ExpressionProfile expressionProfile) {
+        var trustDescriptor = MidPointTrustDescriptor.explicit(expressionProfile);
+        TrustDescriptorSetter.setDescriptors(bean.getScriptingExpression().getValue(), trustDescriptor);
+        var variablesDefinitionBean = bean.getVariables();
+        if (variablesDefinitionBean != null) {
+            TrustDescriptorSetter.setDescriptors(variablesDefinitionBean, trustDescriptor);
+        }
     }
 
     // not to be called from outside
-    public PipelineData execute(
+    public PipelineData executeInternal(
+            JAXBElement<? extends ScriptingExpressionType> expression,
+            PipelineData input,
+            ExecutionContext context,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
+            SubscriptionComplianceException {
+        return executeInternal(expression.getValue(), input, context, result);
+    }
+
+    // not to be called from outside
+    public PipelineData executeInternal(
             ScriptingExpressionType value, PipelineData input, ExecutionContext context, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             CommunicationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, SubscriptionComplianceException {
@@ -163,7 +190,7 @@ public class BulkActionsExecutor {
             SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException,
             SubscriptionComplianceException {
         for (JAXBElement<? extends ScriptingExpressionType> expressionType : pipeline.getScriptingExpression()) {
-            data = execute(expressionType, data, context, result);
+            data = executeInternal(expressionType, data, context, result);
         }
         return data;
     }
@@ -178,7 +205,7 @@ public class BulkActionsExecutor {
         for (int i = 0; i < scriptingExpression.size(); i++) {
             JAXBElement<? extends ScriptingExpressionType> expressionType = scriptingExpression.get(i);
             PipelineData branchInput = i < scriptingExpression.size() - 1 ? input.cloneMutableState() : input;
-            lastOutput = execute(expressionType, branchInput, context, result);
+            lastOutput = executeInternal(expressionType, branchInput, context, result);
         }
         return lastOutput;
     }
@@ -193,10 +220,10 @@ public class BulkActionsExecutor {
             value = constant.getParsedValue(null, null);
         } else {
             Object object = constant.getParsedRealValue(expectedClass);
-            if (object instanceof Referencable) {
-                value = ((Referencable) object).asReferenceValue();
-            } else if (object instanceof Containerable) {
-                value = ((Containerable) object).asPrismContainerValue();
+            if (object instanceof Referencable referencable) {
+                value = referencable.asReferenceValue();
+            } else if (object instanceof Containerable containerable) {
+                value = containerable.asPrismContainerValue();
             } else {
                 value = prismContext.itemFactory().createPropertyValue(object);
             }

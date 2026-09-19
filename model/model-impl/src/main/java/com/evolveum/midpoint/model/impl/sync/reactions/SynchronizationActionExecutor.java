@@ -148,7 +148,6 @@ public class SynchronizationActionExecutor<F extends ProjectionHolderType> {
             boolean value = ExpressionUtil.evaluateConditionDefaultFalse(
                     variables,
                     condition,
-                    syncCtx.getExpressionProfile(),
                     ModelBeans.get().expressionFactory,
                     desc,
                     task,

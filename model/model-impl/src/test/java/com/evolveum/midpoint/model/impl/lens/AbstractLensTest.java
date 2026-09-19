@@ -12,6 +12,10 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+
+import com.evolveum.midpoint.test.IntegrationTestTools;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -162,6 +166,10 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     @Autowired protected Clockwork clockwork;
     @Autowired protected TaskManager taskManager;
 
+    protected static void markAsTrusted(AssignmentType assignmentType) {
+        TrustDescriptorSetter.setDescriptors(assignmentType, IntegrationTestTools.trustedForTests());
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -173,6 +181,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     AssignmentType getAssignmentBean(File assignmentFile)
             throws java.io.IOException, SchemaException {
         AssignmentType assignmentType = unmarshalValueFromFile(assignmentFile);
+        markAsTrusted(assignmentType);
 
         // We need to make sure that the assignment has a parent
         PrismContainerDefinition<AssignmentType> assignmentContainerDefinition =

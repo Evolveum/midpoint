@@ -29,8 +29,9 @@ import com.evolveum.midpoint.repo.api.ClusterwideCacheInvalidationDispatcher;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExpressionConfigItem;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.util.SimpleExpressionUtil;
 import com.evolveum.midpoint.task.api.ExpressionEnvironment;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -317,11 +318,8 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
 
     private void callTestLibraryFunction(Task task, OperationResult result) throws CommonException {
         String libraryMethodExecutionCode = "testlib.execute('test', [:])";
-        ExpressionType expressionBean = new ExpressionType();
-        expressionBean.getExpressionEvaluator().add(
-                new ObjectFactory().createScript(
-                        new ScriptExpressionEvaluatorType()
-                                .code(libraryMethodExecutionCode)));
+        ExpressionType expressionBean =
+                SimpleExpressionUtil.groovyExpression(libraryMethodExecutionCode, IntegrationTestTools.trustedForTests());
         PrismPropertyDefinition<String> outputDefinition =
                 PrismContext.get().definitionFactory()
                         .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
@@ -329,7 +327,6 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.generated()),
                         outputDefinition,
-                        ExpressionProfile.full(),
                         "",
                         task,
                         result);
@@ -492,6 +489,7 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                         new FunctionExpressionEvaluatorType()
                                 .libraryRef(FUNCTION_LIBRARY_TESTLIB.ref())
                                 .name(functionName)));
+        expressionBean.setTrustDescriptor(IntegrationTestTools.trustedForTests());
         PrismPropertyDefinition<?> outputDefinition =
                 PrismContext.get().definitionFactory()
                         .newPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, outputTypeName);
@@ -499,7 +497,6 @@ public class TestFunctions extends AbstractInitializedModelIntegrationTest {
                 expressionFactory.makeExpression(
                         ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.generated()),
                         outputDefinition,
-                        ExpressionProfile.full(),
                         "",
                         task,
                         result);

@@ -31,7 +31,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,14 +53,13 @@ public class VariablesUtil {
     static @NotNull VariablesMap initialPreparation(
             VariablesMap initialVariables,
             ScriptingVariablesDefinitionType derivedVariables,
-            ExpressionProfile expressionProfile,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         VariablesMap rv = new VariablesMap();
         addProvidedVariables(rv, initialVariables, task);
-        addDerivedVariables(rv, derivedVariables, expressionProfile, task, result);
+        addDerivedVariables(rv, derivedVariables, task, result);
         return rv;
     }
 
@@ -74,9 +72,8 @@ public class VariablesUtil {
         }
     }
 
-    private static void addDerivedVariables(VariablesMap resultingVariables,
-            ScriptingVariablesDefinitionType definitions, ExpressionProfile expressionProfile,
-            Task task, OperationResult result)
+    private static void addDerivedVariables(
+            VariablesMap resultingVariables, ScriptingVariablesDefinitionType definitions, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         if (definitions == null) {
@@ -84,10 +81,14 @@ public class VariablesUtil {
         }
         for (ScriptingVariableDefinitionType definition : definitions.getVariable()) {
             if (definition.getExpression() == null) {
-                continue;       // todo or throw an exception?
+                continue; // todo or throw an exception?
             }
             String shortDesc = "scripting variable " + definition.getName();
             // TODO why the difference between path and others?
+            //  - the problem is the outputDefinition, that is required when evaluating "path" expressions normally
+            //  - but we don't want to require users to provide the definition explicitly
+            //  - not a big problem, but we should check whether we are allowed to use "path" expression evaluator
+            //    (although it's generally safe)
             TypedValue<?> valueAndDef;
             if (definition.getExpression().getExpressionEvaluator().size() == 1 &&
                     QNameUtil.match(SchemaConstantsGenerated.C_PATH, definition.getExpression().getExpressionEvaluator().get(0).getName())) {
@@ -95,7 +96,7 @@ public class VariablesUtil {
                         resultingVariables, definition.getExpression().getExpressionEvaluator().get(0), shortDesc, task, result);
             } else {
                 valueAndDef =
-                        variableFromOtherExpression(resultingVariables, definition, expressionProfile, shortDesc, task, result);
+                        variableFromOtherExpression(resultingVariables, definition, shortDesc, task, result);
             }
             putImmutableValue(resultingVariables, definition.getName(), valueAndDef);
         }
@@ -129,15 +130,14 @@ public class VariablesUtil {
     private static TypedValue<?> variableFromOtherExpression(
             VariablesMap resultingVariables,
             ScriptingVariableDefinitionType definition,
-            ExpressionProfile expressionProfile,
             String shortDesc,
             Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
         ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, shortDesc);
         ExpressionFactory expressionFactory = ModelBeans.get().expressionFactory;
-        Expression<PrismValue, ItemDefinition<?>> expression = expressionFactory
-                .makeExpression(definition.getExpression(), outputDefinition, expressionProfile, shortDesc, task, result);
+        Expression<PrismValue, ItemDefinition<?>> expression = expressionFactory.makeExpression(
+                definition.getExpression(), outputDefinition, shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, task);
         context.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<?> triple =

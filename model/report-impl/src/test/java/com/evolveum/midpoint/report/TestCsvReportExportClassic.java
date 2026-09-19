@@ -166,7 +166,13 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test119ObjectCollectionWithSubreportParamReport() throws Exception {
-        testClassicExport(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, 2, 2, "\"will\";\"TestRole1230,TestRole123010\"");
+        testClassicExport(
+                REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM,
+                2, 2,
+                // After a change in evaluating the expressions, List is converted to Set, so the order is no longer guaranteed.
+                List.of("\"will\";\"TestRole1230,TestRole123010\"",
+                        "\"will\";\"TestRole123010,TestRole1230\""),
+                null);
     }
 
     @Test

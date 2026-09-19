@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression.script.mel.extension;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.script.mel.CelTypeMapper;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -28,6 +29,9 @@ public class CelSecretExtensions extends AbstractMidPointCelExtensions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CelSecretExtensions.class);
 
+    private static final String FUNCTION_NAME_PREFIX = MidPointConstants.MEL_EXTENSION_SECRET_NAME;
+    private static final String FUNCTION_NAME_PREFIX_DOT = FUNCTION_NAME_PREFIX+".";
+    private static final String FUNCTION_NAME_PREFIX_DASH = "mel-"+FUNCTION_NAME_PREFIX+"-"; // TODO why "mel-" prefix?
 
     private final BasicExpressionFunctions basicExpressionFunctions;
     private final Protector protector;
@@ -45,14 +49,14 @@ public class CelSecretExtensions extends AbstractMidPointCelExtensions {
             // secret.resolveBinary(provider, key)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
-                            "secret.resolveBinary",
+                            FUNCTION_NAME_PREFIX_DOT+"resolveBinary",
                             CelOverloadDecl.newGlobalOverload(
-                                    "mel-secret-resolveBinary",
+                                    FUNCTION_NAME_PREFIX_DASH+"resolveBinary",
                                     "Resolves a secret specified by the key, using a provider specified by its name. "
                                             + "Returns the secret in binary form (bytes).",
                                     SimpleType.BYTES,
                                     SimpleType.STRING, SimpleType.STRING)),
-                    CelFunctionBinding.from("mel-secret-resolveBinary", String.class, String.class,
+                    CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH+"resolveBinary", String.class, String.class,
                             this::secretResolveBinary)
 
             ),
@@ -60,14 +64,14 @@ public class CelSecretExtensions extends AbstractMidPointCelExtensions {
             // secret.resolveString(provider, key)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
-                            "secret.resolveString",
+                            FUNCTION_NAME_PREFIX_DOT+"resolveString",
                             CelOverloadDecl.newGlobalOverload(
-                                    "mel-secret-resolveString",
+                                    FUNCTION_NAME_PREFIX_DASH+"resolveString",
                                     "Resolves a secret specified by the key, using a provider specified by its name. "
                                             + "Returns the secret in string form.",
                                     SimpleType.STRING,
                                     SimpleType.STRING, SimpleType.STRING)),
-                    CelFunctionBinding.from("mel-secret-resolveString", String.class, String.class,
+                    CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH+"resolveString", String.class, String.class,
                             this::secretResolveString)
 
             ),
@@ -75,14 +79,14 @@ public class CelSecretExtensions extends AbstractMidPointCelExtensions {
             // secret.resolveProtectedString(provider, key)
             new Function(
                     CelFunctionDecl.newFunctionDeclaration(
-                            "secret.resolveProtectedString",
+                            FUNCTION_NAME_PREFIX_DOT+"resolveProtectedString",
                             CelOverloadDecl.newGlobalOverload(
-                                    "mel-secret-resolveProtectedString",
+                                    FUNCTION_NAME_PREFIX_DASH+"resolveProtectedString",
                                     "Resolves a secret specified by the key, using a provider specified by its name. "
                                             + "Returns the secret in protected string form.",
                                     CelTypeMapper.PROTECTED_STRING_CEL_TYPE,
                                     SimpleType.STRING, SimpleType.STRING)),
-                    CelFunctionBinding.from("mel-secret-resolveProtectedString", String.class, String.class,
+                    CelFunctionBinding.from(FUNCTION_NAME_PREFIX_DASH+"resolveProtectedString", String.class, String.class,
                             this::secretResolveProtectedString)
 
             )
@@ -99,7 +103,7 @@ public class CelSecretExtensions extends AbstractMidPointCelExtensions {
 
         @Override
         public String name() {
-            return "secret";
+            return MidPointConstants.MEL_EXTENSION_SECRET_NAME;
         }
 
         @Override

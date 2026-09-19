@@ -94,8 +94,6 @@ public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorTyp
         @NotNull private final CorrelationContext correlationContext;
         @NotNull private final Task task;
         @NotNull private final String contextDescription;
-        /** TODO: determine from the resource */
-        @Nullable private final ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
         Correlation(@NotNull CorrelationContext.Shadow correlationContext) {
             this.resourceObject = correlationContext.getResourceObject();
@@ -138,8 +136,7 @@ public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorTyp
             }
 
             Expression<PrismValue, ItemDefinition<?>> expression =
-                    beans.expressionFactory.makeExpression(
-                            expressionBean, outputDefinition, expressionProfile, contextDescription, task, result);
+                    beans.expressionFactory.makeExpression(expressionBean, outputDefinition, contextDescription, task, result);
 
             VariablesMap variables = getVariablesMap();
             ExpressionEvaluationContext eeContext =

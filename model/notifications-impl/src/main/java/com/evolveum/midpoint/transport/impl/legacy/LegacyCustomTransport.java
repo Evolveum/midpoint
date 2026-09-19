@@ -112,11 +112,13 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(
                     allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
-            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
-            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
-                    expressionFactory, ctx.expressionProfile(), LOGGER);
+                    expressionFactory, LOGGER);
+            TransportUtil.validateRecipient(
+                    allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
+                    expressionFactory, LOGGER);
+            TransportUtil.validateRecipient(
+                    allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
+                    expressionFactory, LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
@@ -178,7 +180,6 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
                         expressionBean != null ?
                                 ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undeterminedSafe()) : null,
                         resultDef,
-                        ctx.expressionProfile(),
                         shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);

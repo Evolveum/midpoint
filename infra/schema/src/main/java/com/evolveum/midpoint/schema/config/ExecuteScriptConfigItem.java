@@ -6,7 +6,9 @@
 
 package com.evolveum.midpoint.schema.config;
 
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
 import com.evolveum.midpoint.schema.util.ExecuteScriptUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 
 import org.jetbrains.annotations.NotNull;
@@ -46,5 +48,14 @@ public class ExecuteScriptConfigItem
     @Override
     public @NotNull String localDescription() {
         return "script execution request (ExecuteScriptType)";
+    }
+
+    /** @see ExpressionConfigItem#getTrustDescriptorRequired() */
+    public MidPointTrustDescriptor getTrustDescriptorRequired() {
+        var descriptor =
+                MiscUtil.stateNonNull(
+                        value().getTrustDescriptor(),
+                        "TrustDescriptor is required but not set in %s", this);
+        return (MidPointTrustDescriptor) descriptor; // safe because there are no other types of descriptors in the system
     }
 }

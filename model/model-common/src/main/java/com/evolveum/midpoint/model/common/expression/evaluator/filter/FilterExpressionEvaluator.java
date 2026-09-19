@@ -46,12 +46,6 @@ public class FilterExpressionEvaluator<V extends PrismValue, D extends ItemDefin
     }
 
     @Override
-    protected void checkEvaluatorProfile(ExpressionEvaluationContext context) {
-        // TODO!
-        // Do nothing here. The profile will be checked inside ScriptExpression.
-    }
-
-    @Override
     protected @NotNull List<V> transformSingleValue(
             @NotNull ValueTransformationContext vtCtx, @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,

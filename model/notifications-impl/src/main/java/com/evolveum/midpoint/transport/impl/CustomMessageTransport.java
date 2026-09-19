@@ -91,13 +91,13 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(
                     allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
             TransportUtil.validateRecipient(
                     allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
             TransportUtil.validateRecipient(
                     allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
-                    transportSupport.expressionFactory(), ctx.expressionProfile(), LOGGER);
+                    transportSupport.expressionFactory(), LOGGER);
 
             if (file != null) {
                 if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
@@ -160,8 +160,7 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
                 expressionFactory.makeExpression(
                         expressionBean != null ?
                                 ExpressionConfigItem.of(expressionBean, ConfigurationItemOrigin.undeterminedSafe()) : null,
-                        resultDef, ctx.expressionProfile(),
-                        shortDesc, task, result);
+                        resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);

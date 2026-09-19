@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
+
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,12 +37,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 /**
  * @author semancik
  */
+@NullMarked
 @Component
 public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
     public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_SCRIPT;
 
-    @Autowired private ScriptExpressionFactory scriptExpressionFactory;
+    @Autowired private ScriptFactory scriptFactory;
     @Autowired private LocalizationService localizationService;
     @Autowired private Protector protector;
 
@@ -48,8 +52,8 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     }
 
     @VisibleForTesting
-    public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory) {
-        this.scriptExpressionFactory = scriptExpressionFactory;
+    public ScriptExpressionEvaluatorFactory(ScriptFactory scriptFactory) {
+        this.scriptFactory = scriptFactory;
     }
 
     @Override
@@ -59,31 +63,30 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
 
     @Override
     public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
-            @NotNull Collection<JAXBElement<?>> evaluatorElements,
+            Collection<JAXBElement<?>> evaluatorElements,
             @Nullable D outputDefinition,
-            @Nullable ExpressionProfile expressionProfile,
-            @NotNull ExpressionFactory expressionFactory,
-            @NotNull String contextDescription,
-            @NotNull Task task,
-            @NotNull OperationResult result) throws SchemaException, SecurityViolationException {
+            ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory,
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException, SecurityViolationException {
 
-        ScriptExpressionEvaluatorType evaluatorBean =
+        ScriptExpressionEvaluatorType scriptBean =
                 getSingleEvaluatorBeanRequired(evaluatorElements, ScriptExpressionEvaluatorType.class, contextDescription);
+        var expressionEvaluatorProfile = getEvaluatorProfile(expressionProfile);
 
-        ScriptExpression scriptExpression =
-                scriptExpressionFactory.createScriptExpression(
-                        evaluatorBean, outputDefinition, expressionProfile, contextDescription, result);
+        Script script =
+                scriptFactory.createScript(
+                        scriptBean, outputDefinition, expressionProfile, expressionEvaluatorProfile, contextDescription, result);
 
-        return new ScriptExpressionEvaluator<>(
-                ELEMENT_NAME,
-                evaluatorBean,
-                outputDefinition,
-                protector,
-                scriptExpression,
-                localizationService);
+        return new ScriptExpressionEvaluator<>(ELEMENT_NAME, script, protector, localizationService);
     }
 
-    public ScriptExpressionFactory getScriptExpressionFactory() {
-        return scriptExpressionFactory;
+    public ScriptFactory getScriptFactory() {
+        return scriptFactory;
+    }
+
+    public static ExpressionEvaluatorProfile getEvaluatorProfile(ExpressionProfile expressionProfile) {
+        return expressionProfile.getEvaluatorProfile(ELEMENT_NAME);
     }
 }

@@ -149,8 +149,7 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
                 prismContext.definitionFactory().newPropertyDefinition(resultName, NotificationMessageType.COMPLEX_TYPE);
 
         Expression<PrismPropertyValue<NotificationMessageType>, PrismPropertyDefinition<NotificationMessageType>> expression =
-                expressionFactory.makeExpression(
-                        expressionCI, resultDef, ctx.defaultExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(expressionCI, resultDef, shortDesc, task, result);
         ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult =

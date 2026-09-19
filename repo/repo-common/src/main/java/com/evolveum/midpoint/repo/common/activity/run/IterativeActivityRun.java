@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
 import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.SimulationTransaction;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -297,7 +296,7 @@ public abstract class IterativeActivityRun<
         variables.put(ExpressionConstants.VAR_BUCKET, bucket, WorkBucketType.class);
 
         try {
-            return ExpressionUtil.evaluateConditionDefaultTrue(variables, condition, null,
+            return ExpressionUtil.evaluateConditionDefaultTrue(variables, condition,
                     beans.expressionFactory, "bucket condition expression", getRunningTask(), result);
         } catch (CommonException e) {
             throw new SystemException("Couldn't evaluate bucket processing condition: " + e.getMessage(), e);

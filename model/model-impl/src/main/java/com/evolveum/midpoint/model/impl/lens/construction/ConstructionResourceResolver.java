@@ -127,12 +127,7 @@ class ConstructionResourceResolver {
         LOGGER.debug("Orig filter {}", origFilter);
         // TODO skip determination of expression profile if there is no expression in the filter
         ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                origFilter, variables,
-                ModelBeans.get().expressionProfileManager.determineExpressionProfileStrict(
-                        construction.constructionConfigItem.originFor(
-                                ConstructionType.F_RESOURCE_REF.append(ObjectReferenceType.F_FILTER)),
-                        task, result),
-                ModelBeans.get().expressionFactory,
+                origFilter, variables, ModelBeans.get().expressionFactory,
                 " evaluating resource filter expression ", task, result);
         LOGGER.debug("evaluatedFilter filter {}", evaluatedFilter);
 

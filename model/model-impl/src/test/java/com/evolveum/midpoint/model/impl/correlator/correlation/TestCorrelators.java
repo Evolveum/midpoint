@@ -23,6 +23,8 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationPropertyDefinition
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.schema.expression.TrustDescriptorSetter;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -515,6 +517,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
             throws CommonException, IOException {
         AbstractCorrelatorType configBean = prismContext.parserFor(correlator.file)
                 .parseRealValue(AbstractCorrelatorType.class);
+        TrustDescriptorSetter.setDescriptors(configBean, IntegrationTestTools.trustedForTests());
         correlator.correlatorContext =
                 new CorrelatorContext<>(
                         CorrelatorConfiguration.typed(configBean),

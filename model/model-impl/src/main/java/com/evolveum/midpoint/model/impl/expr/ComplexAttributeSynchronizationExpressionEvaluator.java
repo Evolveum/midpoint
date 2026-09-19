@@ -73,12 +73,10 @@ class ComplexAttributeSynchronizationExpressionEvaluator<C extends Containerable
     }
 
     @Override
-    public ComplexItemEvaluationResult<PrismContainerValue<C>> evaluate(
+    protected ComplexItemEvaluationResult<PrismContainerValue<C>> evaluateInternal(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, SubscriptionComplianceException {
-
-        checkEvaluatorProfile(context);
 
         var defaultSource = stateNonNull(context.getDefaultSource(), "No default source");
         var refAttrDefinition =

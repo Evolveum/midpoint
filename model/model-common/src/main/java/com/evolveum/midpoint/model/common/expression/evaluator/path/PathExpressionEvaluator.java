@@ -33,10 +33,11 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+    protected PrismValueDeltaSetTriple<V> evaluateInternal(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SubscriptionComplianceException {
-        ExpressionUtil.checkEvaluatorProfileSimple(this, context);
+
+        checkEvaluatorProfile(context);
 
         return new PathExpressionEvaluation<>(this, context)
                 .evaluate(result);

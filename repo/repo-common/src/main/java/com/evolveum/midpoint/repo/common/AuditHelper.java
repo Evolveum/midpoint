@@ -144,8 +144,8 @@ public class AuditHelper {
         }
     }
 
-    public AuditEventRecord evaluateRecordingExpression(ExpressionType expression, AuditEventRecord auditRecord,
-            PrismObject<? extends ObjectType> primaryObject, ExpressionProfile expressionProfile,
+    public AuditEventRecord evaluateRecordingExpression(
+            ExpressionType expression, AuditEventRecord auditRecord, PrismObject<? extends ObjectType> primaryObject,
             ExpressionEnvironmentSupplier expressionEnvironmentSupplier, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_RECORDING_SCRIPT);
@@ -164,7 +164,7 @@ public class AuditHelper {
                 PrismValue returnValue = ExpressionUtil.evaluateExpression(
                         variables,
                         null,
-                        expression, expressionProfile,
+                        expression,
                         expressionFactory,
                         OP_EVALUATE_RECORDING_SCRIPT,
                         task,
@@ -217,7 +217,7 @@ public class AuditHelper {
                 variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
                 String shortDesc = "value for custom column of audit table";
                 Collection<String> values = ExpressionUtil.evaluateStringExpression(
-                        variables, expression, expressionProfile, expressionFactory, shortDesc, task, result);
+                        variables, expression, expressionFactory, shortDesc, task, result);
                 if (values == null || values.isEmpty()) {
                     // nothing to do
                 } else if (values.size() == 1) {

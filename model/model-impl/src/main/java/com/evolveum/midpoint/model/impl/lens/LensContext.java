@@ -1795,7 +1795,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     public ExpressionProfile getPrivilegedExpressionProfile() {
         // TODO: determine from system configuration.
-        return MiscSchemaUtil.getExpressionProfile();
+        return MiscSchemaUtil.getExpressionProfileFull();
     }
 
     public ConstraintsCheckingStrategyType getFocusConstraintsCheckingStrategy() {

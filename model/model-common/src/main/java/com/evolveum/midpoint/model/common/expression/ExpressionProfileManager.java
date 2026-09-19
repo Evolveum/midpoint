@@ -6,31 +6,29 @@
 
 package com.evolveum.midpoint.model.common.expression;
 
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.MidPointTrustDescriptor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.ExpressionProfileSupplier;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultExpressionProfilesConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Manages (cached) expression profiles.
@@ -38,6 +36,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * Because of implementation reasons, the profiles are cached within {@link SystemObjectCache}.
  * This probably should change in the future, along with moving this class to `repo-common` (at least partly).
  */
+@NullMarked
 @Component
 public class ExpressionProfileManager {
 
@@ -46,31 +45,90 @@ public class ExpressionProfileManager {
     @Autowired SecurityEnforcer securityEnforcer;
 
     /**
-     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
-     * If no explicit profile can be found, the {@link ExpressionProfile#full()} is returned.
-     * This is the legacy (pre-4.8) behavior.
+     * This is a default for expressions stored in repository objects because of compatibility reasons.
+     * In some cases, setting more restrictive profile may cause system to break.
      */
-    public <O extends ObjectType> @NotNull ExpressionProfile determineExpressionProfile(
-            @NotNull PrismObject<O> object, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        return Objects.requireNonNullElse(
-                determineExpressionProfileOrNull(object, result),
-                ExpressionProfile.full());
+    private static final ExpressionProfile DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS = ExpressionProfile.full();
+
+    public ExpressionProfile determineExpressionProfile(
+            MidPointTrustDescriptor trustDescriptor, Task task, OperationResult result)
+            throws SecurityViolationException {
+        return determineExpressionProfileInternal(
+                trustDescriptor,
+                result,
+                this::getGeneralDefaultProfileId,
+                DEFAULT_EXPRESSION_PROFILE_FOR_REPOSITORY_OBJECTS,
+                ExpressionProfile.none());
     }
 
     /**
-     * Returns {@link ExpressionProfile} for given object, based on its archetype policy.
-     * If no explicit profile is defined, `null` is returned, allowing to plug in a custom default.
+     * Determining expression profile for scripting (bulk actions). It is driven by different defaults than the general
+     * expression profile.
      */
-    private <O extends ObjectType> @Nullable ExpressionProfile determineExpressionProfileOrNull(
-            @NotNull PrismObject<O> object, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        Preconditions.checkNotNull(object, "Object is null"); // explicitly checking to avoid false 'null' profiles
-        var profileId = determineExpressionProfileId(object, result);
-        if (profileId != null) {
-            return systemObjectCache.getExpressionProfile(profileId, result);
-        } else {
-            return null;
+    public ExpressionProfile determineBulkActionsProfile(
+            MidPointTrustDescriptor trustDescriptor, boolean privileged, Task task, OperationResult result)
+            throws SecurityViolationException {
+
+        // TODO optimize this to avoid checking the enforcer before actually needed
+        boolean authorized;
+        try {
+            authorized = privileged || securityEnforcer.isAuthorizedAll(task, result);
+        } catch (CommonException e) {
+            throw new SecurityViolationException(e); // TODO
+        }
+        var defaultProfile = authorized ? ExpressionProfile.full() : ExpressionProfile.legacyUnprivilegedBulkActions();
+
+        return determineExpressionProfileInternal(
+                trustDescriptor,
+                result,
+                (lResult) -> {
+                    if (authorized) {
+                        return getPrivilegedBulkActionsProfileId(result);
+                    } else {
+                        return getUnprivilegedBulkActionsProfileId(result);
+                    }
+                },
+                defaultProfile, // this is the default for bulk actions in repo objects (e.g., tasks)
+                defaultProfile);
+    }
+
+    private ExpressionProfile determineExpressionProfileInternal(
+            MidPointTrustDescriptor trustDescriptor,
+            OperationResult result,
+            ExpressionProfileIdSupplier defaultProfileIdSupplier,
+            ExpressionProfile defaultForRepositoryObjects,
+            ExpressionProfile defaultForUntrusted)
+            throws SecurityViolationException {
+
+        if (trustDescriptor instanceof MidPointTrustDescriptor.Explicit explicit) {
+            return explicit.expressionProfile();
+        }
+
+        try {
+            String profileId;
+            if (trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject authorizedObject) {
+                profileId = determineExpressionProfileId(authorizedObject, result);
+            } else if (trustDescriptor instanceof MidPointTrustDescriptor.CurrentPrincipal) {
+                profileId = null;
+            } else {
+                throw new UnsupportedOperationException("Unsupported trust descriptor: " + trustDescriptor);
+            }
+
+            if (profileId == null) {
+                profileId = defaultProfileIdSupplier.getExpressionProfileId(result);
+            }
+            if (profileId != null) {
+                return systemObjectCache.getExpressionProfile(profileId, result);
+            }
+            if (trustDescriptor instanceof MidPointTrustDescriptor.AuthorizedObject) {
+                return defaultForRepositoryObjects;
+            } else {
+                return defaultForUntrusted;
+            }
+        } catch (CommonException e) {
+            throw new SecurityViolationException(
+                    "Couldn't determine expression profile for %s: %s".formatted(trustDescriptor, e.getMessage()),
+                    e);
         }
     }
 
@@ -81,14 +139,12 @@ public class ExpressionProfileManager {
      * as it tries to merge the policy from all archetypes; and it's 1. slow, 2. unreliable, because of ignoring potential
      * conflicts. So, we do it in more explicit way.
      */
-    private <O extends ObjectType> @Nullable String determineExpressionProfileId(
-            @NotNull PrismObject<O> object, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-
-        O objectable = object.asObjectable();
+    private @Nullable String determineExpressionProfileId(
+            MidPointTrustDescriptor.AuthorizedObject objectSpec, OperationResult result)
+            throws ConfigurationException, SchemaException, ObjectNotFoundException {
 
         // hopefully obtained from the cache
-        var archetypes = archetypeManager.determineArchetypes(objectable, result);
+        var archetypes = archetypeManager.resolveArchetypeOidsStrict(objectSpec.archetypeOids(), result);
 
         Set<String> idsFromArchetypes = new HashSet<>();
         for (ArchetypeType archetype : archetypes) {
@@ -101,69 +157,19 @@ public class ExpressionProfileManager {
 
         if (idsFromArchetypes.size() > 1) {
             throw new ConfigurationException(
-                    "Multiple expression profile IDs for %s: %s".formatted(
-                            object, idsFromArchetypes));
+                    "Multiple expression profile IDs for %s: %s".formatted(objectSpec, idsFromArchetypes));
         } else if (idsFromArchetypes.size() == 1) {
             return idsFromArchetypes.iterator().next();
         } else {
-            var objectPolicy = archetypeManager.determineObjectPolicyConfiguration(objectable, result);
-            return objectPolicy != null ? objectPolicy.getExpressionProfile() : null;
-        }
-    }
-
-    /**
-     * Determines {@link ExpressionProfile} for given configuration item origin.
-     * Does not allow undetermined profiles, and treats external profiles with care.
-     */
-    public @NotNull ExpressionProfile determineExpressionProfileStrict(
-            @NotNull ConfigurationItemOrigin origin, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
-        if (origin instanceof ConfigurationItemOrigin.External external) {
-            return determineExpressionProfileForChannel(external.getChannelUri(), task, result);
-        } else {
-            return determineExpressionProfileCommon(origin, result);
-        }
-    }
-
-    /**
-     * Determines {@link ExpressionProfile} for given configuration item origin.
-     *
-     * FIXME this is a transitory, unsafe implementation: various unknown/external origins are treated as trustworthy.
-     *   This should be changed before expression profiles are declared fully functional.
-     */
-    public @NotNull ExpressionProfile determineExpressionProfileUnsafe(
-            @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        if (origin instanceof ConfigurationItemOrigin.Undetermined undetermined) {
-            stateCheck(!undetermined.isSafe(), "Safe undetermined origin cannot be used to derive expression profile");
-            return ExpressionProfile.full(); // Later, we may throw an exception here
-        } else if (origin instanceof ConfigurationItemOrigin.External) {
-            return ExpressionProfile.full(); // FIXME we should perhaps return a restricted profile here (from the configuration?)
-        } else {
-            return determineExpressionProfileCommon(origin, result);
-        }
-    }
-
-    /**
-     * A strict version of {@link #determineExpressionProfileUnsafe(ConfigurationItemOrigin, OperationResult)} that does not
-     * allow undetermined nor external profiles.
-     */
-    private @NotNull ExpressionProfile determineExpressionProfileCommon(
-            @NotNull ConfigurationItemOrigin origin, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
-        if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
-            return determineExpressionProfile(inObject.getOriginatingPrismObject(), result);
-        } else if (origin instanceof ConfigurationItemOrigin.InDelta inDelta) {
-            return determineExpressionProfile(inDelta.getTargetPrismObject(), result);
-        } else if (origin instanceof ConfigurationItemOrigin.Generated) {
-            return ExpressionProfile.full(); // Most probably OK
-        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
-            throw new IllegalStateException("Undetermined origin for expression profile is not supported");
-        } else if (origin instanceof ConfigurationItemOrigin.External) {
-            throw new IllegalStateException("'External' origin for expression profile is not supported");
-        } else {
-            throw new AssertionError(origin);
+            var systemConfig = systemObjectCache.getSystemConfigurationBean(result);
+            if (systemConfig != null) {
+                var objectPolicy = ArchetypeManager.determineObjectPolicyConfiguration(
+                        objectSpec.type(), objectSpec.subtypes(), systemConfig);
+                if (objectPolicy != null) {
+                    return objectPolicy.getExpressionProfile();
+                }
+            }
+            return null;
         }
     }
 
@@ -178,8 +184,7 @@ public class ExpressionProfileManager {
      *
      * This could be made configurable in the future.
      */
-    private @NotNull ExpressionProfile determineExpressionProfileForChannel(
-            @NotNull String channelUri, @NotNull Task task, @NotNull OperationResult result)
+    private ExpressionProfile determineExpressionProfileForChannel(String channelUri, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, SubscriptionComplianceException {
         if (SchemaConstants.CHANNEL_INIT_URI.equals(channelUri)
@@ -195,79 +200,59 @@ public class ExpressionProfileManager {
         }
     }
 
-    /**
-     * Special version of {@link #determineExpressionProfileUnsafe(ConfigurationItemOrigin, OperationResult)}
-     * for scripting (bulk actions). It is not as permissive: some origins are banned, and the default for non-root users
-     * is the restricted profile (unless `privileged` is set to true - in order to provide backwards compatibility with 4.7).
-     */
-    public @NotNull ExpressionProfile determineBulkActionsProfile(
-            @NotNull ConfigurationItemOrigin origin, boolean privileged, @NotNull Task task, @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
-        @Nullable ExpressionProfile profile;
-        if (origin instanceof ConfigurationItemOrigin.InObject inObject) {
-            profile = determineExpressionProfileOrNull(inObject.getOriginatingPrismObject(), result);
-        } else if (origin instanceof ConfigurationItemOrigin.InDelta inDelta) {
-            profile = determineExpressionProfileOrNull(inDelta.getTargetPrismObject(), result);
-        } else if (origin instanceof ConfigurationItemOrigin.Generated) {
-            profile = ExpressionProfile.full(); // Most probably OK
-        } else if (origin instanceof ConfigurationItemOrigin.Undetermined) {
-            throw new UnsupportedOperationException("Undetermined origin for bulk actions is not supported");
-        } else if (origin instanceof ConfigurationItemOrigin.External) {
-            profile = null;
-        } else {
-            throw new AssertionError(origin);
-        }
-        if (profile != null) {
-            return profile;
-        }
-        if (privileged || securityEnforcer.isAuthorizedAll(task, result)) {
-            return getPrivilegedBulkActionsProfile(result);
-        } else {
-            return getUnprivilegedBulkActionsProfile(result);
-        }
-    }
-
-    private @NotNull ExpressionProfile getPrivilegedBulkActionsProfile(@NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
+    private @Nullable String getPrivilegedBulkActionsProfileId(OperationResult result)
+            throws SchemaException {
         var defaults = getDefaults(result);
-        var defaultProfileId = defaults != null ? defaults.getPrivilegedBulkActions() : null;
-        if (defaultProfileId != null) {
-            return systemObjectCache.getExpressionProfile(defaultProfileId, result);
-        } else {
-            return ExpressionProfile.full();
+        if (defaults == null) {
+            return null;
         }
+        var privileged = defaults.getPrivilegedBulkActions();
+        if (privileged != null) {
+            return privileged;
+        }
+        var otherBulk = defaults.getBulkActions();
+        if (otherBulk != null) {
+            return otherBulk;
+        }
+        return defaults.getGeneral();
     }
 
-    private @NotNull ExpressionProfile getUnprivilegedBulkActionsProfile(@NotNull OperationResult result)
-            throws SchemaException, ConfigurationException {
+    private @Nullable String getUnprivilegedBulkActionsProfileId(OperationResult result)
+            throws SchemaException {
         var defaults = getDefaults(result);
-        var defaultProfileId = defaults != null ? defaults.getBulkActions() : null;
-        if (defaultProfileId != null) {
-            return systemObjectCache.getExpressionProfile(defaultProfileId, result);
-        } else {
-            return ExpressionProfile.legacyUnprivilegedBulkActions();
+        if (defaults == null) {
+            return null;
         }
+        var bulkActions = defaults.getBulkActions();
+        if (bulkActions != null) {
+            return bulkActions;
+        }
+        return defaults.getGeneral();
     }
 
-    private DefaultExpressionProfilesConfigurationType getDefaults(@NotNull OperationResult result) throws SchemaException {
+    private @Nullable String getGeneralDefaultProfileId(OperationResult result)
+            throws SchemaException {
+        var defaults = getDefaults(result);
+        if (defaults == null) {
+            return null;
+        }
+        return defaults.getGeneral();
+    }
+
+    private @Nullable DefaultExpressionProfilesConfigurationType getDefaults(OperationResult result) throws SchemaException {
         var config = systemObjectCache.getSystemConfigurationBean(result);
         var expressions = config != null ? config.getExpressions() : null;
         return expressions != null ? expressions.getDefaults() : null;
     }
 
-    /**
-     * Origin for custom workflow notifications is blurred, because they travel from policy rules to object triggers.
-     * Hence, we should either disable them completely, or use a safe profile for them.
-     */
-    public @NotNull ExpressionProfile getProfileForCustomWorkflowNotifications(OperationResult result)
-            throws SchemaException, ConfigurationException {
-        var defaults = getDefaults(result);
-        var notifications = defaults != null ? defaults.getCustomWorkflowNotifications() : null;
-        if (notifications != null) {
-            return systemObjectCache.getExpressionProfile(notifications, result);
-        } else {
-            return ExpressionProfile.legacyUnprivilegedBulkActions();
-        }
+    @SuppressWarnings("unused") // used by Spring
+    public ExpressionProfileSupplier getDefaultExpressionProfileSupplier() {
+        return this::determineExpressionProfile;
+    }
+
+    public interface ExpressionProfileIdSupplier extends Serializable {
+
+        @Nullable String getExpressionProfileId(OperationResult result)
+                throws CommonException;
     }
 }

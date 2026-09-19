@@ -149,8 +149,9 @@ class RawChangesExecutor {
         AuditEventRecord processedRecord;
         if (auditEventRecordingExpression != null) {
             processedRecord = auditHelper.evaluateRecordingExpression(
-                    auditEventRecordingExpression, originalRecord, null, null,
-                    (sTask, sResult) -> new ModelExpressionEnvironment<>(null, null, sTask, sResult), task, result);
+                    auditEventRecordingExpression, originalRecord, null,
+                    (sTask, sResult) -> new ModelExpressionEnvironment<>(null, null, sTask, sResult),
+                    task, result);
         } else {
             processedRecord = originalRecord;
         }

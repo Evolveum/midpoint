@@ -11,14 +11,19 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionPermissionPackageProfileType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionProfileType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+
 /**
- * Profile for evaluation of "regular" expressions, bulk actions, and function libraries.
+ * Profile for evaluation of all kinds of expressions.
  *
  * @author Radovan Semancik
  */
@@ -33,16 +38,15 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             AccessDecision.ALLOW);
 
     /**
-     * Profile that mimics the legacy non-root behavior for bulk actions:
-     * no expressions - this limits all of "execute-script", "notification" (with unsafe custom event handler), and
-     * the new "evaluate-expression" actions.
+     * Profile that mimics the legacy non-root behavior for bulk actions: there are no expressions allowed. This ensures the
+     * safety of unsafe actions: `execute-script`, `evaluate-expression`, and `notification` (with unsafe custom event handler).
      */
     private static final ExpressionProfile LEGACY_UNPRIVILEGED_BULK_ACTIONS = new ExpressionProfile(
             SchemaConstants.LEGACY_UNPRIVILEGED_BULK_ACTIONS_PROFILE_ID,
             ExpressionEvaluatorsProfile.none(),
             BulkActionsProfile.full(), // actions without scripts/expressions are safe
             FunctionLibrariesProfile.none(),
-            AccessDecision.DENY); // actually does not matter
+            AccessDecision.DENY); // this actually does not matter
 
     /**
      * Profile that forbids everything.
@@ -52,24 +56,48 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
             ExpressionEvaluatorsProfile.none(),
             BulkActionsProfile.none(),
             FunctionLibrariesProfile.none(),
-            AccessDecision.DENY); // actually does not matter
+            AccessDecision.DENY); // this actually does not matter
 
     /**
-     * Profile for safe scripting: allows only MEL script evaluator.
-     * This profile is used when evaluating AI-generated or untrusted mapping scripts.
+     * Profile for mappings suggested by smart integration (primarily LLMs): allows only MEL script evaluator and excludes
+     * potentially dangerous modules, namely `midpoint` and `crypto`. This profile is used when evaluating AI-generated
+     * or untrusted mapping scripts.
      */
-    private static final ExpressionProfile SAFE_SCRIPTING_ONLY = new ExpressionProfile(
+    private static final ExpressionProfile MAPPINGS_QUALITY_ASSESSMENT = new ExpressionProfile(
             SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
             new ExpressionEvaluatorsProfile(
                     AccessDecision.DENY,
-                    List.of(new ExpressionEvaluatorProfile(
+                    List.of(new ExpressionEvaluatorProfileImpl(
                             SchemaConstantsGenerated.C_SCRIPT,
                             AccessDecision.DENY,
-                            List.of(new ScriptLanguageExpressionProfile(
-                                    "http://midpoint.evolveum.com/xml/ns/public/expression/language#mel",
+                            List.of(new ScriptLanguageExpressionProfileImpl(
+                                    MidPointConstants.EXPRESSION_LANGUAGE_MEL_URL,
                                     AccessDecision.ALLOW,
                                     true,
-                                    null))))),
+                                    ExpressionPermissionProfile.closed(
+                                            SchemaConstants.MAPPINGS_QUALITY_ASSESSMENT_PROFILE_ID,
+                                            AccessDecision.ALLOW,
+                                            List.of(
+                                                    new ExpressionPermissionPackageProfileType()
+                                                            .name(MidPointConstants.MEL_EXTENSION_MIDPOINT_NAME)
+                                                            .decision(AuthorizationDecisionType.DENY),
+                                                    new ExpressionPermissionPackageProfileType()
+                                                            .name(MidPointConstants.MEL_EXTENSION_SECRET_NAME)
+                                                            .decision(AuthorizationDecisionType.DENY)),
+                                            List.of())))))),
+            BulkActionsProfile.none(),
+            FunctionLibrariesProfile.none(),
+            AccessDecision.DENY);
+
+    /** Profile that allows "asIs" evaluator only. Used when evaluating empty expressions. */
+    private static final ExpressionProfile AS_IS_ONLY = new ExpressionProfile(
+            SchemaConstants.AS_IS_ONLY_PROFILE_ID,
+            new ExpressionEvaluatorsProfile(
+                    AccessDecision.DENY,
+                    List.of(new ExpressionEvaluatorProfileImpl(
+                            SchemaConstantsGenerated.C_AS_IS,
+                            AccessDecision.ALLOW,
+                            List.of()))),
             BulkActionsProfile.none(),
             FunctionLibrariesProfile.none(),
             AccessDecision.DENY);
@@ -81,6 +109,7 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
      */
     @NotNull private final String identifier;
 
+    /** Profiles for individual evaluators (`script`, `path`, `value`, etc). */
     @NotNull private final ExpressionEvaluatorsProfile evaluatorsProfile;
 
     /** Profile for midPoint scripting language (bulk actions). */
@@ -117,8 +146,13 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
         return LEGACY_UNPRIVILEGED_BULK_ACTIONS;
     }
 
-    public static @NotNull ExpressionProfile safeScriptingOnly() {
-        return SAFE_SCRIPTING_ONLY;
+    /** @see #MAPPINGS_QUALITY_ASSESSMENT */
+    public static @NotNull ExpressionProfile mappingsQualityAssessment() {
+        return MAPPINGS_QUALITY_ASSESSMENT;
+    }
+
+    public static @NotNull ExpressionProfile asIsOnly() {
+        return AS_IS_ONLY;
     }
 
     public @NotNull String getIdentifier() {
@@ -139,8 +173,8 @@ public class ExpressionProfile implements Serializable { // TODO: DebugDumpable
                 identifier, bulkActionsProfile.getIdentifier(), librariesProfile.getIdentifier());
     }
 
-    public @NotNull ExpressionEvaluatorsProfile getEvaluatorsProfile() {
-        return evaluatorsProfile;
+    public ExpressionEvaluatorProfile getEvaluatorProfile(QName qualifiedEvaluatorName) {
+        return evaluatorsProfile.getEvaluatorProfile(qualifiedEvaluatorName);
     }
 
     public @NotNull AccessDecision getPrivilegeElevation() {

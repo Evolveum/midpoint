@@ -200,19 +200,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final Collection<V> originalTargetValues;
 
     /**
-     * Expression profile for tests, where archetype manager is not available, so they must be set explicitly.
-     * NEVER use in production.
-     */
-    @VisibleForTesting
-    @Nullable private final ExpressionProfile explicitExpressionProfile;
-
-    /**
-     * Expression profile to be used when evaluating various expressions (condition,
-     * "main" expression, value set expressions, etc). Initialized right at the start of the evaluation.
-     */
-    @NotNull private final FreezableReference<ExpressionProfile> expressionProfileReference;
-
-    /**
      * Information on the kind of mapping. (Partially overlaps with {@link #mappingKind}.)
      * It is put into output triples as an origin metadata. Deprecated. Most probably will
      * be replaced by provenance metadata.
@@ -437,8 +424,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         targetPathExecutionOverride = builder.getTargetPathExecutionOverride();
         defaultSource = builder.defaultSource;
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
-        explicitExpressionProfile = builder.getExplicitExpressionProfile();
-        expressionProfileReference = new FreezableReference<>();
         defaultTargetPath = builder.getDefaultTargetPath();
         originalTargetValues = builder.getOriginalTargetValues();
         defaultSourceContextIdi = builder.defaultSourceContextIdi;
@@ -496,8 +481,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.defaultTargetPath = prototype.defaultTargetPath;
         this.defaultTargetDefinition = prototype.defaultTargetDefinition;
         this.originalTargetValues = prototype.originalTargetValues;
-        this.explicitExpressionProfile = prototype.explicitExpressionProfile;
-        this.expressionProfileReference = prototype.expressionProfileReference;
 
         this.originType = prototype.originType;
         this.originObject = prototype.originObject;
@@ -578,13 +561,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     @NotNull
     public MBT getMappingBean() {
         return mappingBean;
-    }
-
-    /** Should be called on prepared mapping. */
-    public @NotNull ExpressionProfile getExpressionProfile() {
-        return stateNonNull(
-                expressionProfileReference.getValue(),
-                "no expression profile; state = %s", state);
     }
 
     @Override
@@ -790,8 +766,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         assertState(MappingEvaluationState.UNINITIALIZED);
         try {
 
-            determineExpressionProfile(result);
-
             parser.parseSourcesAndTarget(result);
 
         } catch (Throwable t) {
@@ -801,21 +775,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         transitionState(MappingEvaluationState.PREPARED);
         result.recordSuccess();
-    }
-
-    /** Determines and sets the expression profile in {@link #expressionProfileReference}. Callable only once. */
-    private void determineExpressionProfile(OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException, SubscriptionComplianceException {
-        @NotNull ExpressionProfile profile;
-        if (explicitExpressionProfile != null) {
-            profile = explicitExpressionProfile;
-        } else {
-            profile = ModelCommonBeans.get().expressionProfileManager.determineExpressionProfileStrict(
-                    mappingConfigItem.origin(), getTask(), result);
-        }
-        expressionProfileReference.setValue(profile);
-        expressionProfileReference.freeze();
     }
 
     public boolean isActivated() {
@@ -1005,7 +964,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
                 valueMetadataDefinition,
-                getExpressionProfile(),
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
@@ -1325,7 +1283,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             sb.append(expression.shortDebugDump());
         }
 
-        sb.append("\nExpression profile: ").append(getExpressionProfile());
         sb.append("\nOrigin: ").append(mappingConfigItem.origin().fullDescription());
 
         if (stateProperties != null) {
@@ -1437,7 +1394,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     ExpressionUtil.createCondition(
                             conditionExpressionBean,
-                            getExpressionProfile(),
                             ModelCommonBeans.get().expressionFactory,
                             "condition in " + getMappingContextDescription(),
                             task, result);
@@ -1460,7 +1416,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
                 expressionBean != null ? expressionBean : defaultExpressionSupplier.get(),
                 getOutputDefinition(),
-                getExpressionProfile(),
                 "expression in " + getMappingContextDescription(),
                 task,
                 result);
@@ -1611,7 +1566,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (defaultTargetDefinition == null) {
             if (other.defaultTargetDefinition != null) { return false; }
         } else if (!defaultTargetDefinition.equals(other.defaultTargetDefinition)) { return false; }
-        if (!Objects.equals(expressionProfileReference, other.expressionProfileReference)) { return false; }
         if (!mappingBean.equals(other.mappingBean)) { return false; }
         if (originObject == null) {
             if (other.originObject != null) { return false; }

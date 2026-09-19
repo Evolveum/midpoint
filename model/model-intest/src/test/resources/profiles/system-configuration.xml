@@ -15,7 +15,9 @@
         <expressionProfile>
             <identifier>safe</identifier>
             <description>
-                Expression profile which contains only safe expression evaluators.
+                Expression profile which contains only safe expression evaluators:
+                no Groovy/JS/Python/Velocity, only MEL - and even that is restricted (no midpoint.*, secret.*).
+
                 THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
                 DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
             </description>
@@ -55,6 +57,11 @@
         <expressionProfile>
             <identifier>restricted</identifier>
             <description>
+                Expression profile which contains only "quite safe" expression evaluators:
+
+                - Groovy with restrictions (but beware, these could be circumvented)
+                - MEL with restrictions (no midpoint.*, secret.*).
+
                 THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
                 DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
             </description>
@@ -107,7 +114,14 @@
         </expressionProfile>
         <expressionProfile>
             <identifier>little-trusted</identifier>
-            <documentation>Trusts but only so that a "simpleTrustedFunction" is allowed to be run.</documentation>
+            <documentation>
+                Very limited.
+
+                Nothing allowed, except for:
+
+                - scripting: restricted MEL only
+                - functions: only "simpleTrustedFunction" is allowed.
+            </documentation>
             <decision>deny</decision> <!-- no expressions except for specified ones -->
             <evaluator>
                 <type>function</type>

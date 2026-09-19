@@ -735,6 +735,11 @@
                 <version>26.0.2</version>
             </dependency>
             <dependency>
+                <groupId>org.jspecify</groupId>
+                <artifactId>jspecify</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.annotation</groupId>
                 <artifactId>jsr250-api</artifactId>
                 <version>1.0</version>

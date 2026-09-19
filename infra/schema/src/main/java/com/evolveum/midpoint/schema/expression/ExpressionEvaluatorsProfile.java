@@ -8,10 +8,13 @@ package com.evolveum.midpoint.schema.expression;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -27,8 +30,8 @@ public class ExpressionEvaluatorsProfile implements Serializable {
     /** Default decision to be used if the suitable evaluator profile can be found. */
     @NotNull private final AccessDecision defaultDecision;
 
-    /** Profiles for individual evaluators (e.g. script, path, value, etc). Immutable. */
-    @NotNull private final List<ExpressionEvaluatorProfile> evaluatorProfiles;
+    /** Profiles for individual evaluators (e.g. script, path, value, etc). Immutable. Keyed by qualified evaluator name. */
+    @NotNull private final Map<QName, ExpressionEvaluatorProfileImpl> evaluatorProfilesMap;
 
     /** "Allow all" profile. */
     private static final ExpressionEvaluatorsProfile FULL = new ExpressionEvaluatorsProfile(
@@ -42,9 +45,10 @@ public class ExpressionEvaluatorsProfile implements Serializable {
 
     public ExpressionEvaluatorsProfile(
             @NotNull AccessDecision defaultDecision,
-            @NotNull List<ExpressionEvaluatorProfile> evaluatorProfiles) {
+            @NotNull List<ExpressionEvaluatorProfileImpl> evaluatorProfiles) {
         this.defaultDecision = defaultDecision;
-        this.evaluatorProfiles = evaluatorProfiles;
+        this.evaluatorProfilesMap = evaluatorProfiles.stream()
+                .collect(Collectors.toUnmodifiableMap(ExpressionEvaluatorProfileImpl::getType, p -> p));
     }
 
     public static @NotNull ExpressionEvaluatorsProfile full() {
@@ -55,16 +59,12 @@ public class ExpressionEvaluatorsProfile implements Serializable {
         return NONE;
     }
 
-    public @NotNull AccessDecision getDefaultDecision() {
-        return defaultDecision;
-    }
-
-    public @Nullable ExpressionEvaluatorProfile getEvaluatorProfile(@NotNull QName type) {
-        for (ExpressionEvaluatorProfile evaluatorProfile : evaluatorProfiles) {
-            if (QNameUtil.match(evaluatorProfile.getType(), type)) {
-                return evaluatorProfile;
-            }
-        }
-        return null;
+    @NotNull ExpressionEvaluatorProfile getEvaluatorProfile(@NotNull QName qualifiedEvaluatorName) {
+        Preconditions.checkArgument(
+                QNameUtil.isQualified(qualifiedEvaluatorName),
+                "Expression evaluator name must be qualified: %s", qualifiedEvaluatorName);
+        return Objects.requireNonNullElseGet(
+                evaluatorProfilesMap.get(qualifiedEvaluatorName),
+                () -> ExpressionEvaluatorProfile.forDecision(defaultDecision));
     }
 }
