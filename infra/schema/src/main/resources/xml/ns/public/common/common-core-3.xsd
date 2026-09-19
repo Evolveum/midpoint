@@ -20064,6 +20064,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>ExportConfigurationType.xlsx</a:displayName>
+                            <a:since>4.11</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -20098,6 +20099,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="XLSX"/>
+                        <a:since>4.11</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -20327,10 +20329,12 @@
     <xsd:complexType name="XlsxFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
-                XLSX export type for Report.
+                XLSX export type for Report. All values are written as text cells, so they are never
+                interpreted as formulas by spreadsheet applications.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.11</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

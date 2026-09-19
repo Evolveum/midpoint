@@ -11,7 +11,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -74,7 +76,7 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
-    public void exportsObjectCollectionAsXlsx() throws Exception {
+    public void test100ExportObjectCollection() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -119,7 +121,7 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
     }
 
     @Test
-    public void exportsDashboardAsXlsx() throws Exception {
+    public void test110ExportDashboard() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -150,18 +152,18 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
         assertThat(outputFile.getName()).endsWith(".xlsx");
 
         try (var inputStream = new FileInputStream(outputFile); var workbook = new XSSFWorkbook(inputStream)) {
-            assertThat(workbook.getNumberOfSheets()).isEqualTo(1);
-            Sheet sheet = workbook.getSheetAt(0);
-            List<String> values = IntStream.rangeClosed(sheet.getFirstRowNum(), sheet.getLastRowNum())
-                    .mapToObj(sheet::getRow)
-                    .filter(java.util.Objects::nonNull)
-                    .flatMap(row -> IntStream.range(0, row.getLastCellNum())
-                            .mapToObj(row::getCell)
-                            .filter(java.util.Objects::nonNull)
-                            .map(Cell::getStringCellValue))
-                    .toList();
-            assertThat(values)
-                    .contains("Resources all", "User all", "jack", "will");
+            // summary sheet + one sheet per widget with table data
+            assertThat(workbook.getNumberOfSheets()).isGreaterThan(1);
+
+            Sheet summarySheet = workbook.getSheetAt(0);
+            assertThat(cellValues(summarySheet))
+                    .contains("Resources all", "User all")
+                    .doesNotContain("jack", "will");
+            List<String> widgetSheetValues = new ArrayList<>();
+            for (int i = 1; i < workbook.getNumberOfSheets(); i++) {
+                widgetSheetValues.addAll(cellValues(workbook.getSheetAt(i)));
+            }
+            assertThat(widgetSheetValues).contains("jack", "will");
         }
 
         PrismObject<DashboardType> dashboard = getObject(DashboardType.class, DASHBOARD_DEFAULT_COLUMNS.oid);
@@ -173,8 +175,22 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
                 MIME_APPLICATION_VND_MSEXCEL_2007);
     }
 
+    private static List<Cell> cells(Sheet sheet) {
+        return IntStream.rangeClosed(sheet.getFirstRowNum(), sheet.getLastRowNum())
+                .mapToObj(sheet::getRow)
+                .filter(Objects::nonNull)
+                .flatMap(row -> IntStream.range(0, row.getLastCellNum())
+                        .mapToObj(row::getCell)
+                        .filter(Objects::nonNull))
+                .toList();
+    }
+
+    private static List<String> cellValues(Sheet sheet) {
+        return cells(sheet).stream().map(Cell::getStringCellValue).toList();
+    }
+
     @Test
-    public void rejectsDistributedXlsxBeforeCreatingGlobalReportData() throws Exception {
+    public void test200RejectDistributedExport() throws Exception {
         given();
 
         Task task = getTestTask();

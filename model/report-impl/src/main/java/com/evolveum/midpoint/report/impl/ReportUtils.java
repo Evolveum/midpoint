@@ -1055,7 +1055,7 @@ public class ReportUtils {
             case CSV:
                 return new CsvReportDataWriter(reportService, report.getFileFormat());
             case XLSX:
-                return new XlsxReportDataWriter(reportService, report.getFileFormat());
+                return new XlsxReportDataWriter(reportService, compiledView, report.getFileFormat());
             default:
                 throw new AssertionError(formatType);
         }
