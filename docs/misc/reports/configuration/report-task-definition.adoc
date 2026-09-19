@@ -45,7 +45,8 @@ The reports can be either "Export" reports or "Import" reports.
 === Import From Report
 
 The second kind of reports are the *"Import"* reports, these work the other way around.
-A CSV is uploaded into midPoint in a similar format as a report, based on this midPoint will create or update objects.
+A CSV or XLSX file is uploaded into midPoint in a similar format as a report, based on this midPoint will create or update objects.
+The format is taken from the uploaded file name (`.xlsx` means XLSX, anything else CSV); the report's `fileFormat` is used when the report data object does not say.
 For some more information on Import reports, have a look at xref:/midpoint/reference/misc/reports/configuration/import-report.adoc[this] page.
 
 - Supports multithreading but not bucketing (multi-node mode). Contains only one parameter 'reportRef'.
