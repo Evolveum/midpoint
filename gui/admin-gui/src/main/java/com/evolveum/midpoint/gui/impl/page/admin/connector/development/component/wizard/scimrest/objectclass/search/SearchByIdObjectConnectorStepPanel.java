@@ -158,7 +158,7 @@ public class SearchByIdObjectConnectorStepPanel extends ScriptConfirmationPanel 
                         wizardModel.addOperationResult(getStepId(), "cdw-search-by-id-script", connIdResult);
 
                     });
-
+                    ConnectorDevelopmentWizardUtil.reportConnectorLogs(SearchByIdObjectConnectorStepPanel.this, getStepId(), result, null);
                 }
             }
 

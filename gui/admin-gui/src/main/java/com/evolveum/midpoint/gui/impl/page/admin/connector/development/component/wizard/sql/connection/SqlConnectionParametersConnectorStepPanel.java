@@ -101,11 +101,19 @@ public class SqlConnectionParametersConnectorStepPanel extends AbstractFormWizar
     }
 
     private void enableConnectorDevelopmentMode(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
-        objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION_PROPERTIES.append(DEVELOPMENT_MODE_ITEM_NAME)).getValue().setRealValue(true);
+        PrismPropertyWrapper<Boolean> developmentMode =
+                objectDetailsModel.getObjectWrapper().findProperty(CONNECTOR_CONFIGURATION_PROPERTIES.append(DEVELOPMENT_MODE_ITEM_NAME));
+        if (developmentMode != null) {
+            developmentMode.getValue().setRealValue(true);
+        }
     }
 
+    /** No-op when the property is not part of the connector configuration schema. */
     private void disableConnIdProducerProxy(ObjectDetailsModels<ResourceType> objectDetailsModel) throws SchemaException {
-        objectDetailsModel.getObjectWrapper().findProperty(PRODUCER_BUFFER_SIZE).getValue().setRealValue(0);
+        PrismPropertyWrapper<Integer> producerBufferSize = objectDetailsModel.getObjectWrapper().findProperty(PRODUCER_BUFFER_SIZE);
+        if (producerBufferSize != null) {
+            producerBufferSize.getValue().setRealValue(0);
+        }
     }
 
     @Override

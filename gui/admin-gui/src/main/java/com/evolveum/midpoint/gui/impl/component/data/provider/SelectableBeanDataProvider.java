@@ -77,6 +77,10 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     private Integer cachedCount;
     private boolean cachedCountAvailable;
 
+
+
+    private boolean alwaysProvideResult = false;
+
     public Set<T> getSelected() {
         return selected;
     }
@@ -140,6 +144,9 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
             return handleNotSuccessOrHandledErrorInIterator(result);
         } finally {
             result.computeStatusIfUnknown();
+            if (alwaysProvideResult) {
+                this.result = result;
+            }
         }
 
         LOGGER.trace("end::iterator() {}", result);
@@ -371,6 +378,10 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
     @Nullable
     public OperationResult getResult() {
         return result;
+    }
+
+    public void setAlwaysProvideResult(boolean alwaysProvideResult) {
+        this.alwaysProvideResult = alwaysProvideResult;
     }
 
     @Override

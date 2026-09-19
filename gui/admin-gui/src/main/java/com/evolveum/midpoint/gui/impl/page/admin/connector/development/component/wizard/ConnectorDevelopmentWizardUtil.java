@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationLogProvider;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.log.OperationResultLogProvider;
 import com.evolveum.midpoint.gui.impl.component.wizard.withnavigation.WizardModelWithParentSteps;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
@@ -299,12 +300,13 @@ public class ConnectorDevelopmentWizardUtil {
 
     /**
      * Registers {@code provider} as the log viewer drawer's source for {@code panelId} and refreshes the
-     * drawer, mirroring {@link #reportScriptValidationErrors} - Phase 1 only, {@code provider} is currently
-     * always a {@code MockOperationLogProvider} (see its javadoc), the real backend for structured logging is a
-     * future phase.
+     * drawer, mirroring {@link #reportScriptValidationErrors}.
      */
     public static void reportOperationLogs(
             AbstractWizardStepPanel<?> step, String panelId, OperationLogProvider provider, AjaxRequestTarget target) {
+        if (provider == null) {
+            return;
+        }
         if (!(step.getWizard() instanceof WizardModelWithParentSteps wizardModel)) {
             return;
         }
@@ -312,6 +314,18 @@ public class ConnectorDevelopmentWizardUtil {
         if (target != null) {
             refreshDrawerPanel(step, target);
         }
+    }
+
+    /**
+     * Extracts the ConnId connector logs from the given operation result (see {@link #getConnectorLogs}),
+     * parses their structured events (conndev devtools, see {@link OperationResultLogProvider}) and
+     * registers the result as the log viewer drawer's source for {@code panelId}. No-op when the result
+     * carries no connector logs or none of them is a structured log line.
+     */
+    public static void reportConnectorLogs(
+            AbstractWizardStepPanel<?> step, String panelId, OperationResult result, AjaxRequestTarget target) {
+        OperationResultLogProvider provider = OperationResultLogProvider.fromLines(getConnectorLogs(result));
+        reportOperationLogs(step, panelId, provider, target);
     }
 
     public static <C extends PrismContainerWrapper<?>> boolean existContainerValue(C container, ItemPath path) {
