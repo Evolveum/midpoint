@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandlerRegist
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -136,9 +137,10 @@ public class DistributedReportExportActivityHandler
                 "resolve report ref",
                 runningTask,
                 result);
+        FileFormatTypeType formatType = ReportUtils.getFileFormatType(report, FileFormatTypeType.CSV);
         stateCheck(
-                report.getFileFormat() == null || report.getFileFormat().getType() != FileFormatTypeType.XLSX,
-                "XLSX output is not supported for distributed report export");
+                ReportUtils.isTextFormat(formatType),
+                "%s output is not supported for distributed report export", formatType);
 
         ActivityState activityState =
                 DistributedReportExportActivitySupport.getWholeActivityState(

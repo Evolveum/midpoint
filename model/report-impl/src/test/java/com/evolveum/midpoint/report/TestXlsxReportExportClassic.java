@@ -8,20 +8,15 @@ package com.evolveum.midpoint.report;
 
 import static com.evolveum.midpoint.common.MimeTypeUtil.MIME_APPLICATION_VND_MSEXCEL_2007;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.XlsxReportDataWriter;
-
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -39,15 +34,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Verifies that object collection and dashboard reports are exported as valid XLSX workbooks,
  * that XLSX notifications use the correct content type, and that unsupported
  * distributed XLSX export is rejected without creating report data.
- *
- * Also verifies that XLSX output cannot be represented through the legacy
- * string-based report data path.
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
-
-    @Autowired private ReportServiceImpl reportService;
 
     private static final TestObject<TaskType> TASK_DISTRIBUTED_EXPORT = TestObject.file(
             TEST_DIR_REPORTS,
@@ -217,14 +207,5 @@ public class TestXlsxReportExportClassic extends EmptyReportIntegrationTest {
                 .display();
         assertThat(repositoryService.countObjects(ReportDataType.class, null, null, result))
                 .isEqualTo(reportDataCountBefore);
-    }
-
-    @Test
-    public void xlsxCannotBeRepresentedAsStringData() {
-        XlsxReportDataWriter writer = new XlsxReportDataWriter(reportService, getFileFormatConfiguration());
-
-        assertThatThrownBy(writer::getStringData)
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessage("XLSX reports cannot be represented as String data");
     }
 }

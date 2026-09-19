@@ -37,11 +37,6 @@ public class XlsxReportDataWriter
     }
 
     @Override
-    public String getStringData() {
-        throw new UnsupportedOperationException("XLSX reports cannot be represented as String data");
-    }
-
-    @Override
     public void writeCompletedReport(@NotNull OutputStream outputStream) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet();

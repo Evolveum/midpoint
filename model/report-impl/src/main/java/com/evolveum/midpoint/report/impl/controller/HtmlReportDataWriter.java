@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurat
  * Creates and manipulates exported reports in HTML format.
  */
 public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends ExportedReportHeaderRow>
-        extends AbstractReportDataWriter<ED, EH> {
+        extends AbstractTextReportDataWriter<ED, EH> {
 
     @NotNull private final CommonHtmlSupport support;
 

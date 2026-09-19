@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurat
 /**
  * Creates and manipulates exported reports in CSV format.
  */
-public class CsvReportDataWriter extends AbstractReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow>
+public class CsvReportDataWriter extends AbstractTextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow>
         implements DashboardReportDataWriter {
 
     @NotNull private final CommonCsvSupport support;

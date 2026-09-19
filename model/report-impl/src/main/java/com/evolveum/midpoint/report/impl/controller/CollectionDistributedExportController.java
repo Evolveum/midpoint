@@ -57,8 +57,11 @@ public class CollectionDistributedExportController<C extends Containerable> exte
      */
     @NotNull private final ObjectReferenceType globalReportDataRef;
 
+    /** The same writer as in the superclass, but typed as text writer, as we need partial data in text form. */
+    @NotNull private final TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> textDataWriter;
+
     public CollectionDistributedExportController(@NotNull ReportDataSource<C> dataSource,
-            @NotNull ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
+            @NotNull TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> dataWriter,
             @NotNull ReportType report,
             @NotNull ObjectReferenceType globalReportDataRef,
             @NotNull ReportServiceImpl reportService,
@@ -68,6 +71,7 @@ public class CollectionDistributedExportController<C extends Containerable> exte
         super(dataSource, dataWriter, report, reportService, compiledCollection, reportParameters);
 
         this.globalReportDataRef = globalReportDataRef;
+        this.textDataWriter = dataWriter;
     }
 
     /**
@@ -86,8 +90,8 @@ public class CollectionDistributedExportController<C extends Containerable> exte
             return;
         }
 
-        String data = dataWriter.getStringData();
-        dataWriter.reset();
+        String data = textDataWriter.getStringData();
+        textDataWriter.reset();
 
         LOGGER.debug("Bucket {} is complete ({} chars in report). Let's create the partial report data object:\n{}",
                 bucketNumber, data.length(), data);

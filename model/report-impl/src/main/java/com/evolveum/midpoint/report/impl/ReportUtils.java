@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.delta.DeltaScannerResult;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -1026,14 +1027,28 @@ public class ReportUtils {
                 report.getBehavior().getDirection() : DirectionTypeType.EXPORT;
     }
 
+    public static @NotNull FileFormatTypeType getFileFormatType(@NotNull ReportType report, @NotNull FileFormatTypeType defaultType) {
+        if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
+            return report.getFileFormat().getType();
+        } else {
+            return defaultType;
+        }
+    }
+
+    /**
+     * Returns true if the format produces text output that can be created in pieces and concatenated,
+     * i.e. if its writer is a {@link TextReportDataWriter}. Only such formats are usable for distributed export.
+     */
+    public static boolean isTextFormat(@NotNull FileFormatTypeType formatType) {
+        return switch (formatType) {
+            case CSV, HTML -> true;
+            case XLSX -> false;
+        };
+    }
+
     public static ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> createDataWriter(@NotNull ReportType report,
             @NotNull FileFormatTypeType defaultType, ReportServiceImpl reportService, CompiledObjectCollectionView compiledView) {
-        FileFormatTypeType formatType;
-        if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
-            formatType = report.getFileFormat().getType();
-        } else {
-            formatType = defaultType;
-        }
+        FileFormatTypeType formatType = getFileFormatType(report, defaultType);
         switch (formatType) {
             case HTML:
                 return new HtmlReportDataWriter<>(reportService, compiledView, report.getFileFormat());
@@ -1044,6 +1059,21 @@ public class ReportUtils {
             default:
                 throw new AssertionError(formatType);
         }
+    }
+
+    /**
+     * As {@link #createDataWriter(ReportType, FileFormatTypeType, ReportServiceImpl, CompiledObjectCollectionView)},
+     * but for callers that need text output (distributed export). Fails for binary formats.
+     */
+    public static TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> createTextDataWriter(
+            @NotNull ReportType report, @NotNull FileFormatTypeType defaultType, ReportServiceImpl reportService,
+            CompiledObjectCollectionView compiledView) throws ConfigurationException {
+        var dataWriter = createDataWriter(report, defaultType, reportService, compiledView);
+        if (dataWriter instanceof TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> textDataWriter) {
+            return textDataWriter;
+        }
+        throw new ConfigurationException(
+                dataWriter.getType() + " output is not supported for distributed report export");
     }
 
     public static ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> createDashboardDataWriter(

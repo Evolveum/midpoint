@@ -36,6 +36,7 @@ import com.evolveum.midpoint.report.impl.controller.DashboardReportDataWriter;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
 import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -102,7 +103,7 @@ class SaveReportFileSupport {
     /** @see #saveAggregatedReportData(String, ReportDataWriter, ObjectReferenceType, OperationResult) */
     void saveAggregatedReportData(
             @NotNull String aggregatedData,
-            @NotNull ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
+            @NotNull TextReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> completingDataWriter,
             @NotNull ObjectReferenceType preExistingDataRef,
             @NotNull OperationResult result) throws CommonException {
         saveReportData(completingDataWriter, preExistingDataRef, result,
@@ -218,7 +219,7 @@ class SaveReportFileSupport {
 
     private void writeToReportFile(String contextOfFile, String aggregatedFilePath, @NotNull Charset encoding) {
         try (var outputStream = FileUtils.openOutputStream(new File(aggregatedFilePath))) {
-            ReportDataWriter.writeText(contextOfFile, encoding, outputStream);
+            TextReportDataWriter.writeText(contextOfFile, encoding, outputStream);
         } catch (IOException e) {
             throw new SystemException("Couldn't write aggregated report to " + aggregatedFilePath, e);
         }

@@ -15,7 +15,7 @@ import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingR
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportDataRow;
 import com.evolveum.midpoint.report.impl.controller.ExportedReportHeaderRow;
-import com.evolveum.midpoint.report.impl.controller.ReportDataWriter;
+import com.evolveum.midpoint.report.impl.controller.TextReportDataWriter;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,7 +52,7 @@ final class ReportDataAggregationActivityRun
     private final StringBuilder aggregatedData = new StringBuilder();
 
     /** Data writer which completes the content of the report (e.g. by providing HTML code at the end) */
-    private ReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> completingDataWriter;
+    private TextReportDataWriter<ExportedReportDataRow, ExportedReportHeaderRow> completingDataWriter;
 
     /** The number of bucket we expect (during collection of partial results). */
     private int expectedSequentialNumber = 1;
@@ -79,7 +79,7 @@ final class ReportDataAggregationActivityRun
 
         support.beforeRun(result);
 
-        completingDataWriter = ReportUtils.createDataWriter(
+        completingDataWriter = ReportUtils.createTextDataWriter(
                 support.getReport(),
                 FileFormatTypeType.CSV, // default type
                 getActivityHandler().reportService,

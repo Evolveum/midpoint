@@ -82,18 +82,5 @@ public abstract class AbstractReportDataWriter<ED extends ExportedReportDataRow,
     }
 
     @Override
-    public abstract String getStringData();
-
-    @Override
     public abstract boolean shouldWriteHeader();
-
-    @Override
-    public String completeReport(String aggregatedData) {
-        return aggregatedData;
-    }
-
-    @Override
-    public String completeReport() {
-        return completeReport(getStringData());
-    }
 }
