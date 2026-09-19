@@ -18,6 +18,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
 /**
  * Creates and manipulates exported reports in HTML format.
@@ -109,13 +110,8 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
     }
 
     @Override
-    public String getTypeSuffix() {
-        return ".html";
-    }
-
-    @Override
-    public String getType() {
-        return "HTML";
+    public @NotNull FileFormatTypeType getFileFormatType() {
+        return FileFormatTypeType.HTML;
     }
 
     @Override

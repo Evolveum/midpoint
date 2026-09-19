@@ -193,18 +193,18 @@ class SaveReportFileSupport {
 
         String reportName = StringUtils.replace(reportType.getName().getOrig(), File.separator, "_");
         String fileNamePrefix = reportName + "-EXPORT " + timestampSuffix + "-" + randomStringSuffix;
-        String fileName = fileNamePrefix + dataWriter.getTypeSuffix();
+        String fileName = fileNamePrefix + "." + dataWriter.getFileFormatType().value();
         return new File(exportDir, MiscUtil.fixFileName(fileName)).getPath();
     }
 
-    static String getNameOfExportedReportData(ReportType reportType, String type) {
+    static String getNameOfExportedReportData(ReportType reportType, FileFormatTypeType type) {
         return getNameOfExportedReportData(reportType, type, getDateTimeString(), getRandomString());
     }
 
-    static String getNameOfExportedReportData(ReportType reportType, String type, String timestampSuffix,
+    static String getNameOfExportedReportData(ReportType reportType, FileFormatTypeType type, String timestampSuffix,
             String randomStringSuffix) {
         String fileName = reportType.getName().getOrig() + "-EXPORT " + timestampSuffix + "-" + randomStringSuffix;
-        return fileName + " - " + type;
+        return fileName + " - " + type.name();
     }
 
     private static String getDateTimeString() {
@@ -293,7 +293,7 @@ class SaveReportFileSupport {
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, SubscriptionComplianceException {
 
-        String reportDataName = getNameOfExportedReportData(report, dataWriter.getType(), timestampSuffix, randomStringSuffix);
+        String reportDataName = getNameOfExportedReportData(report, dataWriter.getFileFormatType(), timestampSuffix, randomStringSuffix);
 
         ReportDataType reportDataObject = new ReportDataType();
 
@@ -301,11 +301,9 @@ class SaveReportFileSupport {
         reportDataObject.setReportRef(MiscSchemaUtil.createObjectReference(report.getOid(), ReportType.COMPLEX_TYPE));
         reportDataObject.setName(new PolyStringType(reportDataName));
         if (report.getDescription() != null) {
-            reportDataObject.setDescription(report.getDescription() + " - " + dataWriter.getType());
+            reportDataObject.setDescription(report.getDescription() + " - " + dataWriter.getFileFormatType().name());
         }
-        if (dataWriter.getFileFormatConfiguration() != null) {
-            reportDataObject.setFileFormat(dataWriter.getFileFormatConfiguration().getType());
-        }
+        reportDataObject.setFileFormat(dataWriter.getFileFormatType());
 
         reportDataObject.setNodeRef(
                 getCurrentNodeRef(result));

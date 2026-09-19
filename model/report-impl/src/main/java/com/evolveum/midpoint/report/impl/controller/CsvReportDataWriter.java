@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
 /**
  * Creates and manipulates exported reports in CSV format.
@@ -77,13 +78,8 @@ public class CsvReportDataWriter extends AbstractTextReportDataWriter<ExportedRe
     }
 
     @Override
-    public String getTypeSuffix() {
-        return ".csv";
-    }
-
-    @Override
-    public String getType() {
-        return "CSV";
+    public @NotNull FileFormatTypeType getFileFormatType() {
+        return FileFormatTypeType.CSV;
     }
 
     @Override

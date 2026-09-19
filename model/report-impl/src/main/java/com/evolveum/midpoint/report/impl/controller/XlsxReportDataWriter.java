@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
 /** Creates exported reports in XLSX format. */
 public class XlsxReportDataWriter
@@ -72,13 +73,8 @@ public class XlsxReportDataWriter
     }
 
     @Override
-    public String getTypeSuffix() {
-        return ".xlsx";
-    }
-
-    @Override
-    public String getType() {
-        return "XLSX";
+    public @NotNull FileFormatTypeType getFileFormatType() {
+        return FileFormatTypeType.XLSX;
     }
 
     @Override

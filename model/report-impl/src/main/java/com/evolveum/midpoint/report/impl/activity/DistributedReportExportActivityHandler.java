@@ -150,20 +150,13 @@ public class DistributedReportExportActivityHandler
         }
 
         ReportDataType reportData = new ReportDataType()
-                .name(SaveReportFileSupport.getNameOfExportedReportData(report, getType(report)));
+                .name(SaveReportFileSupport.getNameOfExportedReportData(report, formatType));
         String oid = commonTaskBeans.repositoryService.addObject(reportData.asPrismObject(), null, result);
 
         activityState.setWorkStateItemRealValues(F_REPORT_DATA_REF, createObjectRef(oid, ObjectTypes.REPORT_DATA));
         activityState.flushPendingTaskModifications(result);
 
         LOGGER.info("Created empty report data object {}", reportData);
-    }
-
-    private String getType(ReportType report) {
-        if (report == null || report.getFileFormat() == null || report.getFileFormat().getType() == null) {
-            return FileFormatTypeType.CSV.name();
-        }
-        return report.getFileFormat().getType().name();
     }
 
     @Override

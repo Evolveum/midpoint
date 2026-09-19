@@ -1073,7 +1073,7 @@ public class ReportUtils {
             return textDataWriter;
         }
         throw new ConfigurationException(
-                dataWriter.getType() + " output is not supported for distributed report export");
+                dataWriter.getFileFormatType() + " output is not supported for distributed report export");
     }
 
     public static ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> createDashboardDataWriter(

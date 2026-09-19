@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
 /**
  * Responsible for creating and manipulating an exported report.
@@ -68,9 +69,9 @@ public interface ReportDataWriter<ED extends ExportedReportDataRow, EH extends E
         return null;
     }
 
-    String getTypeSuffix();
+    /** The format this writer produces; resolved by the factory, so it is present even if the report has no explicit configuration. */
+    @NotNull FileFormatTypeType getFileFormatType();
 
-    String getType();
-
+    /** The format-specific configuration from the report; may be null. */
     FileFormatConfigurationType getFileFormatConfiguration();
 }
