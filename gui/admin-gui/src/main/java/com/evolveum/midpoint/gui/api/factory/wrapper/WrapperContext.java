@@ -95,6 +95,12 @@ public class WrapperContext {
      */
     private boolean forceCreateVirtualContainers;
 
+    /**
+     * When set, {@link #forceCreateVirtualContainer(List)} is ignored: no virtual containers are
+     * hooked into this context, so items are not moved into (and hidden behind) virtual sections.
+     */
+    private boolean virtualContainersDisabled;
+
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
         this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -330,12 +336,23 @@ public class WrapperContext {
     }
 
     public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
+        if (virtualContainersDisabled) {
+            return;
+        }
         this.virtualContainers.addAll(virtualContainers);
         this.forceCreateVirtualContainers = true;
     }
 
     public boolean isForceCreateVirtualContainers() {
         return forceCreateVirtualContainers;
+    }
+
+    public void setVirtualContainersDisabled(boolean virtualContainersDisabled) {
+        this.virtualContainersDisabled = virtualContainersDisabled;
+    }
+
+    public boolean isVirtualContainersDisabled() {
+        return virtualContainersDisabled;
     }
 
     public void setSecurityConstraints(ItemSecurityConstraints securityConstraints) {
@@ -368,6 +385,7 @@ public class WrapperContext {
         ctx.setSecurityConstraints(securityConstraints);
         ctx.setSuppliedObjectFromAuthorizedCase(suppliedObjectFromAuthorizedCase);
         ctx.setPrecomputedEditSecurityDefinition(precomputedEditSecurityDefinition);
+        ctx.setVirtualContainersDisabled(virtualContainersDisabled);
         return ctx;
     }
 

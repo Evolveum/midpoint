@@ -67,4 +67,15 @@ public class ConnectorDevelopmentTypeResourceValueWrapperImpl<T extends Referenc
 
         return super.createNewPrismObject(result, pageAdminLTE);
     }
+
+    /**
+     * The connector development wizard renders the testing resource configuration properties with
+     * plain form panels, which do not render virtual (group) sections. Without this override the
+     * grouped properties would be marked for a virtual container and thus hidden from those forms.
+     */
+    @Override
+    protected WrapperContext createWrapperContextForNewObject(WrapperContext wrapperContext) {
+        wrapperContext.setVirtualContainersDisabled(true);
+        return wrapperContext;
+    }
 }

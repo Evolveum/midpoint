@@ -8,14 +8,22 @@ package com.evolveum.midpoint.gui;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.RESOURCE_DUMMY_OID;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertSame;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStatePanel;
@@ -23,8 +31,19 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ContainerWithLifecyclePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ConfigurationStepPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormContainerHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ConnectorDevelopmentTypeResourceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,6 +52,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnDevTestingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorDevelopmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -178,6 +199,260 @@ public class TestPageResource extends AbstractInitializedGuiIntegrationTest {
                 resourceAfter.asObjectable().getLifecycleState());
     }
 
+    /**
+     * Verifies that the resource configuration wizard step groups the connector configuration
+     * properties into labeled sections (from the ICF {@code groupMessageKey} annotation) and that,
+     * when there are more than three groups, the sections without a mandatory item start collapsed
+     * while the section with the mandatory item stays expanded.
+     */
+    @Test
+    public void test130ConfigurationStepCollapsesNonMandatorySections() throws Exception {
+        PageParameters params = new PageParameters();
+        params.set(TestConfigurationCollapsePage.PARAM_RESOURCE_OID, resourceDummy.getOid());
+        tester.startPage(TestConfigurationCollapsePage.class, params);
+        tester.assertRenderedPage(TestConfigurationCollapsePage.class);
+
+        ConfigurationStepPanel configurationStep = findComponent(ConfigurationStepPanel.class);
+        assertNotNull("Configuration step panel was not found", configurationStep);
+
+        List<VerticalFormPrismContainerPanel> sections =
+                findChildComponents(configurationStep, VerticalFormPrismContainerPanel.class);
+        assertEquals(
+                "Unexpected number of configuration sections (4 labeled groups + main)",
+                5,
+                sections.size());
+
+        Map<String, Boolean> expandedByTitle = new TreeMap<>();
+        Map<String, java.util.Set<String>> itemsByTitle = new TreeMap<>();
+        for (VerticalFormPrismContainerPanel section : sections) {
+            AjaxButton titleLabel = findChildComponent(section, AjaxButton.class, "label");
+            assertNotNull("Section title label was not found", titleLabel);
+            PrismContainerWrapper<?> sectionWrapper = (PrismContainerWrapper<?>) section.getModelObject();
+            String title = titleLabel.getModel().getObject();
+            assertNotNull("Section title must not be null", title);
+            expandedByTitle.put(title, sectionWrapper.isExpanded());
+            itemsByTitle.put(title, collectRenderedItemNames(section));
+        }
+
+        logger.info("Configuration step sections and their expanded state: {}", expandedByTitle);
+        logger.info("Configuration step sections and their rendered items: {}", itemsByTitle);
+
+        assertTrue(
+                "Section with the mandatory item (General) should be expanded",
+                expandedByTitle.getOrDefault("General", false));
+        assertFalse(
+                "Section without mandatory items (Schema) should start collapsed",
+                expandedByTitle.getOrDefault("Schema", true));
+        assertFalse(
+                "Section without mandatory items (Validation) should start collapsed",
+                expandedByTitle.getOrDefault("Validation", true));
+        assertFalse(
+                "Section without mandatory items (Support) should start collapsed",
+                expandedByTitle.getOrDefault("Support", true));
+
+        // The sections are backed by virtual containers; the connector configuration properties
+        // must actually be rendered inside them (not just the empty section shells). The General
+        // section starts expanded, so its grouped property must be rendered right away.
+        java.util.Set<String> generalItems = itemsByTitle.getOrDefault("General", java.util.Set.of());
+        assertTrue(
+                "The General section must render its grouped property (instanceId), but rendered: " + generalItems,
+                generalItems.contains("instanceId"));
+
+        // Collapsed sections render their items lazily, so simulate a user clicking the header of
+        // the collapsed main (ungrouped) section to expand it and verify the properties show up.
+        VerticalFormPrismContainerPanel configurationSection = findSection(sections, "Configuration");
+        VerticalFormContainerHeaderPanel configurationHeader =
+                findChildComponent(configurationSection, VerticalFormContainerHeaderPanel.class, null);
+        assertNotNull("Configuration section header was not found", configurationHeader);
+        tester.executeAjaxEvent(configurationHeader.getPageRelativePath(), "click");
+
+        VerticalFormPrismContainerPanel expandedConfigurationSection = findSection(sections, "Configuration");
+
+        // The properties of a new resource are empty; the section hides empty fields by default.
+        // Simulate a user clicking the "show empty fields" button and verify the properties show up.
+        java.util.Set<String> configurationItemsBefore = collectRenderedItemNames(expandedConfigurationSection);
+        logger.info("Configuration section items after expansion (empty fields hidden): {}", configurationItemsBefore);
+        AjaxIconButton showEmptyButton = findChildComponent(expandedConfigurationSection, AjaxIconButton.class, "showEmptyButton");
+        assertNotNull("Show empty fields button was not found in the Configuration section", showEmptyButton);
+        tester.executeAjaxEvent(showEmptyButton.getPageRelativePath(), "click");
+
+        VerticalFormPrismContainerPanel updatedConfigurationSection = findSection(sections, "Configuration");
+        java.util.Set<String> configurationItems = collectRenderedItemNames(updatedConfigurationSection);
+        logger.info("Configuration section items after showing empty fields: {}", configurationItems);
+        assertTrue(
+                "The expanded main section must render the ungrouped properties (supportValidity) "
+                        + "after showing empty fields, but rendered: " + configurationItems,
+                configurationItems.contains("supportValidity"));
+    }
+
+    private VerticalFormPrismContainerPanel findSection(List<VerticalFormPrismContainerPanel> sections, String title) {
+        return sections.stream()
+                .filter(section -> {
+                    AjaxButton titleLabel = findChildComponent(section, AjaxButton.class, "label");
+                    return titleLabel != null && title.equals(titleLabel.getModel().getObject());
+                })
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Section with title " + title + " was not found"));
+    }
+
+    /**
+     * Collects the local names of the configuration properties rendered inside the given section.
+     */
+    private java.util.Set<String> collectRenderedItemNames(VerticalFormPrismContainerPanel section) {
+        java.util.Set<String> itemNames = new java.util.TreeSet<>();
+        for (Component component : findChildComponents(section, Component.class)) {
+            if (!(component instanceof ItemPanel<?, ?> itemPanel)) {
+                continue;
+            }
+            Object modelObject = itemPanel.getModelObject();
+            if (modelObject instanceof ItemWrapper<?, ?> itemWrapper) {
+                itemNames.add(itemWrapper.getItemName().getLocalPart());
+            }
+        }
+        return itemNames;
+    }
+
+    /**
+     * Verifies that the resource "Connector configuration" details panel groups the connector
+     * configuration properties into collapsible cards (virtual containers). Each labeled group
+     * (from the ICF {@code groupMessageKey} annotation) is rendered as a separate collapsible card.
+     */
+    @Test
+    public void test140ResourceConfigurationRendersGroupCards() throws Exception {
+        PageParameters params = new PageParameters();
+        params.set(TestResourceConfigurationGroupingPage.PARAM_RESOURCE_OID, resourceDummy.getOid());
+        tester.startPage(TestResourceConfigurationGroupingPage.class, params);
+        tester.assertRenderedPage(TestResourceConfigurationGroupingPage.class);
+
+        SingleContainerPanel<?> configurationPanel = findComponent(SingleContainerPanel.class);
+        assertNotNull("Configuration container panel was not found", configurationPanel);
+
+        List<PrismContainerPanel> cards = findChildComponents(configurationPanel, PrismContainerPanel.class);
+        logger.info("Configuration group cards rendered: {}", cards.size());
+        assertFalse("No configuration group cards were rendered", cards.isEmpty());
+        assertTrue(
+                "Expected at least 4 configuration group cards (General, Schema, Validation, Support), got " + cards.size(),
+                cards.size() >= 4);
+
+        // The group sections must be backed by materialized virtual containers (on the object
+        // wrapper) that together contain all the configuration properties; otherwise the sections
+        // render empty (the items were not resolved into the virtual containers).
+        PrismContainerWrapper<?> configurationWrapper = configurationPanel.getModelObject();
+        assertNotNull("Configuration container wrapper was not found in the panel model", configurationWrapper);
+        PrismContainerValueWrapper<?> configurationValue = configurationWrapper.getValue();
+        List<? extends ItemWrapper<?, ?>> allProperties = configurationValue.getNonContainers();
+        assertTrue("No configuration properties found on " + configurationWrapper.getItemName(),
+                !allProperties.isEmpty());
+
+        // Walk up to the object value wrapper, where the virtual (group) containers live.
+        PrismContainerValueWrapper<?> connectorConfigurationValue = configurationWrapper.getParent();
+        ItemWrapper<?, ?> connectorConfigurationWrapper = connectorConfigurationValue.getParent();
+        PrismContainerValueWrapper<?> objectValue = connectorConfigurationWrapper.getParent();
+        assertNotNull("Object value wrapper was not found", objectValue);
+
+        // The virtual (group) sections are materialized at the object level; note the same section
+        // can be materialized more than once, so deduplicate by identifier before counting.
+        int totalSectionItems = 0;
+        int virtualSections = 0;
+        java.util.Set<String> seenIdentifiers = new java.util.LinkedHashSet<>();
+        for (ItemWrapper<?, ?> item : objectValue.getItems()) {
+            if (!(item instanceof PrismContainerWrapper<?> sectionWrapper) || !sectionWrapper.isVirtual()) {
+                continue;
+            }
+            String identifier = sectionWrapper.getIdentifier();
+            if (!seenIdentifiers.add(identifier)) {
+                continue;
+            }
+            virtualSections++;
+            PrismContainerValueWrapper<?> sectionValue = sectionWrapper.getValue();
+            if (sectionValue == null) {
+                continue;
+            }
+            List<? extends ItemWrapper<?, ?>> sectionItems = sectionValue.getNonContainers();
+            logger.info("Virtual section {} contains {} items", identifier, sectionItems.size());
+            totalSectionItems += sectionItems.size();
+        }
+        assertTrue("No virtual (group) sections were materialized", virtualSections > 0);
+        assertEquals(
+                "The group sections should together contain all configuration properties",
+                allProperties.size(), totalSectionItems);
+    }
+
+    /**
+     * Verifies that the connector development wizard does not apply configuration grouping to the
+     * testing resource. The wizard renders the testing resource configuration properties with plain
+     * form panels, which do not render virtual (group) sections; if the properties were moved into
+     * virtual containers they would be hidden from those forms. Wrapping the same resource in a
+     * regular (non connector-development) context must still use the grouping.
+     */
+    @Test
+    public void test150ConnectorDevelopmentTestingResourceSkipsConfigurationGrouping() throws Exception {
+        PageResource page = (PageResource) renderPage(PageResource.class, RESOURCE_DUMMY_OID);
+
+        PrismObject<ConnectorDevelopmentType> conndevObject = prismContext.createObject(ConnectorDevelopmentType.class);
+        ConnectorDevelopmentType conndev = conndevObject.asObjectable();
+        ConnDevTestingType testing = conndev.getTesting();
+        if (testing == null) {
+            testing = new ConnDevTestingType();
+            conndev.setTesting(testing);
+        }
+        testing.testingResource(resourceDummy.getOid(), ResourceType.COMPLEX_TYPE);
+
+        Task conndevTask = getTestTask();
+        WrapperContext conndevContext = new WrapperContext(conndevTask, conndevTask.getResult());
+        conndevContext.setCreateIfEmpty(true);
+        PrismObjectWrapper<ConnectorDevelopmentType> conndevWrapper =
+                page.findObjectWrapperFactory(conndevObject.getDefinition())
+                        .createObjectWrapper(conndevObject, ItemStatus.ADDED, conndevContext);
+
+        PrismReferenceValueWrapperImpl<Referencable> testingResourceWrapper = conndevWrapper.findReference(
+                ItemPath.create(ConnectorDevelopmentType.F_TESTING, ConnDevTestingType.F_TESTING_RESOURCE)).getValue();
+        assertTrue(
+                "Unexpected wrapper for the testing resource reference: " + testingResourceWrapper,
+                testingResourceWrapper instanceof ConnectorDevelopmentTypeResourceValueWrapperImpl);
+
+        ObjectDetailsModels<ResourceType> testingResourceModel = testingResourceWrapper.getNewObjectModel(
+                null, page, new OperationResult("getTestingResourceModel"));
+        PrismObjectWrapper<ResourceType> testingResource = testingResourceModel.getObjectWrapper();
+
+        for (String propertyName : List.of("instanceId", "supportSchema", "supportActivation", "forbiddenNames")) {
+            PrismPropertyWrapper<?> property = testingResource.findProperty(
+                    ItemPath.create("connectorConfiguration", "configurationProperties", propertyName));
+            assertNotNull(propertyName + " wrapper was not found in the testing resource", property);
+            assertFalse(
+                    propertyName + " must not be marked for a virtual container in the connector development wizard",
+                    property.isShowInVirtualContainer());
+        }
+
+        assertEquals(
+                "No virtual (group) sections must be materialized for the testing resource",
+                0,
+                countVirtualSections(testingResource));
+
+        // Positive control: the same resource wrapped in a regular context must use the grouping.
+        Task plainTask = getTestTask();
+        WrapperContext plainContext = new WrapperContext(plainTask, plainTask.getResult());
+        plainContext.setCreateIfEmpty(true);
+        PrismObjectWrapper<ResourceType> plainResource =
+                page.findObjectWrapperFactory(resourceDummy.getDefinition())
+                        .createObjectWrapper(resourceDummy, ItemStatus.NOT_CHANGED, plainContext);
+
+        PrismPropertyWrapper<?> plainInstanceId = plainResource.findProperty(
+                ItemPath.create("connectorConfiguration", "configurationProperties", "instanceId"));
+        assertNotNull("instanceId wrapper was not found in the regular resource wrapper", plainInstanceId);
+        assertTrue(
+                "instanceId must be marked for a virtual container in the regular resource context",
+                plainInstanceId.isShowInVirtualContainer());
+        assertTrue(
+                "Virtual (group) sections must be materialized in the regular resource context",
+                countVirtualSections(plainResource) > 0);
+    }
+
+    private long countVirtualSections(PrismObjectWrapper<?> objectWrapper) {
+        return objectWrapper.getValue().getItems().stream()
+                .filter(item -> item instanceof PrismContainerWrapper<?> container && container.isVirtual())
+                .count();
+    }
 
     private <C extends Component> C findComponent(Class<C> type) {
         return findChildComponent(tester.getLastRenderedPage(), type, null);
