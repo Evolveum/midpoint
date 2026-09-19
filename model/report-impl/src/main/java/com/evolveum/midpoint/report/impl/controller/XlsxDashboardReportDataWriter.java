@@ -86,7 +86,7 @@ public class XlsxDashboardReportDataWriter
 
     @Override
     public void writeCompletedReport(@NotNull OutputStream outputStream) throws IOException {
-        try (CommonXlsxSupport support = new CommonXlsxSupport()) {
+        try (CommonXlsxSupport support = new CommonXlsxSupport(configuration)) {
             Sheet summarySheet = null;
             int summaryNextRow = 0;
             for (Map.Entry<String, ExportedWidgetData> entry : data.entrySet()) {
@@ -126,7 +126,7 @@ public class XlsxDashboardReportDataWriter
 
     @Override
     public boolean shouldWriteHeader() {
-        return true;
+        return CommonXlsxSupport.isHeader(configuration);
     }
 
     @Override

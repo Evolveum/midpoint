@@ -1076,6 +1076,21 @@ public class ReportUtils {
                 dataWriter.getFileFormatType() + " output is not supported for distributed report export");
     }
 
+    /**
+     * Creates the reader for an import report. The format of the data object wins (it describes the actual file);
+     * the report's format is the fallback, defaulting to CSV.
+     */
+    public static @NotNull ReportDataReader createDataReader(@NotNull ReportType report, @NotNull ReportDataType reportData)
+            throws ConfigurationException {
+        FileFormatTypeType formatType = reportData.getFileFormat() != null ?
+                reportData.getFileFormat() : getFileFormatType(report, FileFormatTypeType.CSV);
+        return switch (formatType) {
+            case CSV -> new CsvReportDataReader(report.getFileFormat());
+            case XLSX -> new XlsxReportDataReader(report.getFileFormat());
+            case HTML -> throw new ConfigurationException(formatType + " input is not supported for report import");
+        };
+    }
+
     public static ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> createDashboardDataWriter(
             @NotNull ReportType report, ReportServiceImpl reportService, Map<String,
                     CompiledObjectCollectionView> mapOfCompiledView) {

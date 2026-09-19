@@ -7,11 +7,6 @@
 package com.evolveum.midpoint.report.impl.controller;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -19,10 +14,6 @@ import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.text.StringEscapeUtils;
@@ -35,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.report.impl.activity.InputReportLine;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -46,6 +38,7 @@ import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -75,8 +68,6 @@ public class ImportController {
      */
     private List<GuiObjectColumnType> columns;
 
-    @NotNull private final CommonCsvSupport support;
-
     // Useful Spring beans
     private final ReportServiceImpl reportService;
     private final SchemaRegistry schemaRegistry;
@@ -104,7 +95,6 @@ public class ImportController {
         } else {
             this.script = null;
         }
-        this.support = new CommonCsvSupport(report.getFileFormat());
     }
 
     /**
@@ -398,11 +388,13 @@ public class ImportController {
         return reportService.getPrismContext().parserFor(embedded).xml().definition(def).parseRealValue();
     }
 
+    /**
+     * Reads the input file into rows of named values. The file format is determined by
+     * {@link ReportUtils#createDataReader(ReportType, ReportDataType)}.
+     */
     public List<VariablesMap> parseColumnsAsVariablesFromFile(ReportDataType reportData)
-            throws IOException {
+            throws IOException, ConfigurationException {
         List<String> headers = new ArrayList<>();
-        Reader reader = getReportReader(reportData);
-        CSVFormat csvFormat = support.createCsvFormat();
         if (compiledCollection != null) {
             Class<ObjectType> type = compiledCollection.getTargetClass();
             if (type == null) {
@@ -412,64 +404,9 @@ public class ImportController {
                     type, PrismObjectDefinition.class);
             for (GuiObjectColumnType column : columns) {
                 Validate.notNull(column.getName(), "Name of column is null");
-                String label = GenericSupport.getLabel(column, def, localizationService);
-                headers.add(label);
+                headers.add(GenericSupport.getLabel(column, def, localizationService));
             }
-        } else {
-            csvFormat = csvFormat.withFirstRecordAsHeader();
         }
-        if (support.isHeader()) {
-            if (!headers.isEmpty()) {
-                String[] arrayHeader = new String[headers.size()];
-                arrayHeader = headers.toArray(arrayHeader);
-                csvFormat = csvFormat.withHeader(arrayHeader);
-            }
-            csvFormat = csvFormat.withSkipHeaderRecord(true);
-        } else {
-            if (headers.isEmpty()) {
-                throw new IllegalArgumentException("Couldn't find headers please "
-                        + "define them via view element or write them to csv file and set "
-                        + "header element in file format configuration to true.");
-            }
-            csvFormat = csvFormat.withSkipHeaderRecord(false);
-        }
-        CSVParser csvParser = new CSVParser(reader, csvFormat);
-        if (headers.isEmpty()) {
-            headers = csvParser.getHeaderNames();
-        }
-
-        List<VariablesMap> variablesMaps = new ArrayList<>();
-        for (CSVRecord csvRecord : csvParser) {
-            VariablesMap variables = new VariablesMap();
-            for (String name : headers) {
-                String value;
-                if (support.isHeader()) {
-                    value = csvRecord.get(name);
-                } else {
-                    value = csvRecord.get(headers.indexOf(name));
-                }
-                if (value != null && value.isEmpty()) {
-                    value = null;
-                }
-                if (value != null && value.contains(support.getMultivalueDelimiter())) {
-                    String[] realValues = value.split(support.getMultivalueDelimiter());
-                    variables.put(name, Arrays.asList(realValues), String.class);
-                } else {
-                    variables.put(name, value, String.class);
-                }
-            }
-            variablesMaps.add(variables);
-        }
-        return variablesMaps;
-    }
-
-    private Reader getReportReader(ReportDataType reportData) throws IOException {
-        InputStream in = Files.newInputStream(Paths.get(reportData.getFilePath()));
-        BOMInputStream bomIn = BOMInputStream.builder()
-                .setInputStream(in)
-                .get();
-        return new InputStreamReader(
-                bomIn,
-                support.getEncoding());
+        return ReportUtils.createDataReader(report, reportData).read(reportData, headers);
     }
 }

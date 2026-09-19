@@ -38,7 +38,7 @@ public class XlsxReportDataWriter
 
     @Override
     public void writeCompletedReport(@NotNull OutputStream outputStream) throws IOException {
-        try (CommonXlsxSupport support = new CommonXlsxSupport()) {
+        try (CommonXlsxSupport support = new CommonXlsxSupport(configuration)) {
             Sheet sheet = support.createSheet(getSheetName());
 
             int rowIndex = 0;
@@ -69,7 +69,7 @@ public class XlsxReportDataWriter
 
     @Override
     public boolean shouldWriteHeader() {
-        return true;
+        return CommonXlsxSupport.isHeader(configuration);
     }
 
     @Override

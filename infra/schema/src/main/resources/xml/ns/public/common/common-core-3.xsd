@@ -20338,7 +20338,35 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:AbstractFileFormatType"/>
+            <xsd:extension base="c:AbstractFileFormatType">
+                <xsd:sequence>
+                    <xsd:element name="header" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether the first row of the sheet is a header with column labels.
+                                Applies to both export (the header is written) and import (the header is skipped
+                                or, if no view columns are defined, used to name the columns).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>XlsxExportType.header</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delimiter for multiple values in one cell.
+                                On export, values are joined by it; if not set, they are put on separate lines
+                                within the cell. On import, a cell is split by it; if not set, the cell is
+                                always taken as a single value.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>XlsxExportType.multivalueDelimiter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 

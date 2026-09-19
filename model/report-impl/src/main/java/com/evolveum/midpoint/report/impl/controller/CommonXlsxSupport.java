@@ -22,6 +22,8 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+
 /**
  * Generally useful methods for writing XLSX report files.
  * To be used by XLSX report writers.
@@ -36,6 +38,7 @@ class CommonXlsxSupport implements AutoCloseable {
     private static final int SHEET_DEFAULT_COLUMN_WIDTH = 5000;
     private static final int ROW_ACCESS_WINDOW_SIZE = 100;
     private static final String DEFAULT_SHEET_NAME = "Report";
+    static final String LINE_BREAK = "\n";
     /** Excel limit for sheet names; POI enforces it in {@link WorkbookUtil#createSafeSheetName(String)}. */
     private static final int MAX_SHEET_NAME_LENGTH = 31;
 
@@ -43,7 +46,27 @@ class CommonXlsxSupport implements AutoCloseable {
     @NotNull private final CellStyle wrappedStyle;
     @NotNull private final Set<String> sheetNames = new HashSet<>();
 
-    CommonXlsxSupport() {
+    /** Whether the file has (or should have) a header row; true unless switched off in the XLSX configuration. */
+    static boolean isHeader(@Nullable FileFormatConfigurationType configuration) {
+        return configuration == null
+                || configuration.getXlsx() == null
+                || !Boolean.FALSE.equals(configuration.getXlsx().isHeader());
+    }
+
+    /** Configured delimiter for multiple values in one cell; null if none is configured. */
+    static @Nullable String getMultivalueDelimiter(@Nullable FileFormatConfigurationType configuration) {
+        if (configuration != null && configuration.getXlsx() != null
+                && StringUtils.isNotEmpty(configuration.getXlsx().getMultivalueDelimiter())) {
+            return configuration.getXlsx().getMultivalueDelimiter();
+        }
+        return null;
+    }
+
+    /** Delimiter used when writing; without configuration each value goes on its own line. */
+    @NotNull private final String multivalueDelimiter;
+
+    CommonXlsxSupport(@Nullable FileFormatConfigurationType configuration) {
+        multivalueDelimiter = StringUtils.defaultString(getMultivalueDelimiter(configuration), LINE_BREAK);
         workbook = new SXSSFWorkbook(ROW_ACCESS_WINDOW_SIZE);
         wrappedStyle = workbook.createCellStyle();
         wrappedStyle.setWrapText(true);
@@ -74,12 +97,12 @@ class CommonXlsxSupport implements AutoCloseable {
         }
     }
 
-    /** Writes a data row. Multiple values of a column go into one cell, each on its own line. */
+    /** Writes a data row. Multiple values of a column go into one cell, separated by the multivalue delimiter. */
     void writeDataRow(@NotNull Sheet sheet, int rowIndex, @NotNull List<List<String>> values) {
         Row row = sheet.createRow(rowIndex);
         for (int i = 0; i < values.size(); i++) {
             Cell cell = row.createCell(i);
-            String text = String.join("\n", values.get(i));
+            String text = String.join(multivalueDelimiter, values.get(i));
             cell.setCellValue(text);
             if (text.contains("\n")) {
                 cell.setCellStyle(wrappedStyle);

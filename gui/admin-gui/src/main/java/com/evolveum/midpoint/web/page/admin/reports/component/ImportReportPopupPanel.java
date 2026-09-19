@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -77,7 +78,8 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     private static final String ID_NAME_FOR_DATA = "reportDataName";
     private static final String ID_FILE_AS_NAME = "fileAsString";
 
-    private static final String CSV_SUFFIX = ".csv"; //Import report now support only csv format, so we use it
+    private static final String CSV_SUFFIX = ".csv";
+    private static final String XLSX_SUFFIX = ".xlsx";
 
 
     public ImportReportPopupPanel(String id, @NotNull ReportType report) {
@@ -185,7 +187,8 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
             return;
         }
 
-        String storedFileName = UUID.randomUUID() + CSV_SUFFIX;
+        FileFormatTypeType fileFormat = determineFileFormat(uploadedFile);
+        String storedFileName = UUID.randomUUID() + (fileFormat == FileFormatTypeType.XLSX ? XLSX_SUFFIX : CSV_SUFFIX);
         File newFile = new File(importDir, storedFileName);
         String newFilePath = newFile.getAbsolutePath();
         // Save file
@@ -219,6 +222,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
         }
         reportImportData.setName(new PolyStringType(dataName));
         reportImportData.setFilePath(newFilePath);
+        reportImportData.setFileFormat(fileFormat);
         ObjectReferenceType reportRef = new ObjectReferenceType();
         reportRef.setType(ReportType.COMPLEX_TYPE);
         reportRef.setOid(getModelObject().getOid());
@@ -251,6 +255,14 @@ public class ImportReportPopupPanel extends BasePanel<ReportType> implements Pop
     }
 
     protected void importConfirmPerformed(AjaxRequestTarget target, ReportDataType reportImportData) {
+    }
+
+    /** XLSX is recognized by the uploaded file name; everything else (including text input) is treated as CSV. */
+    private FileFormatTypeType determineFileFormat(FileUpload uploadedFile) {
+        if (uploadedFile != null && StringUtils.endsWithIgnoreCase(uploadedFile.getClientFileName(), XLSX_SUFFIX)) {
+            return FileFormatTypeType.XLSX;
+        }
+        return FileFormatTypeType.CSV;
     }
 
     private FileUpload getUploadedFile() {
