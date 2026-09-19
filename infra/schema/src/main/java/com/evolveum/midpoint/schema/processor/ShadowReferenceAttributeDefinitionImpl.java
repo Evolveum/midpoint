@@ -469,6 +469,10 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
+    public void setExternalGroup(String group) {
+    }
+
+    @Override
     public void setDocumentation(String documentation) {
     }
 

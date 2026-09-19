@@ -907,6 +907,11 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
+    public void setExternalGroup(String group) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setDocumentation(String documentation) {
         throw new UnsupportedOperationException();
     }
@@ -1003,6 +1008,11 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public String getHelp() {
+        return null;
+    }
+
+    @Override
+    public String getExternalGroup() {
         return null;
     }
 

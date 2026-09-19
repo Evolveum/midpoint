@@ -594,6 +594,11 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
     }
 
     @Override
+    public String getExternalGroup() {
+        return getItemDefinition().getExternalGroup();
+    }
+
+    @Override
     public String getDocumentationPreview() {
         return getItemDefinition().getDocumentationPreview();
     }

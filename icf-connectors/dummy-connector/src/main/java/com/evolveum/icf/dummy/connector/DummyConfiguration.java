@@ -76,7 +76,9 @@ public class DummyConfiguration extends AbstractConfiguration {
      * parallel. This ID selects one of them. If not set a default instance will be selected.
      */
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
-            helpMessageKey = "UI_INSTANCE_ID_HELP")
+            helpMessageKey = "UI_INSTANCE_ID_HELP",
+            groupMessageKey = "GROUP_GENERAL",
+            required = true)
     public String getInstanceId() {
         return instanceId;
     }
@@ -90,7 +92,8 @@ public class DummyConfiguration extends AbstractConfiguration {
      * get the schema.
      */
     @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_SCHEMA",
-            helpMessageKey = "UI_SUPPORT_SCHEMA_HELP")
+            helpMessageKey = "UI_SUPPORT_SCHEMA_HELP",
+            groupMessageKey = "GROUP_SCHEMA")
     public boolean getSupportSchema() {
         return supportSchema;
     }
@@ -103,7 +106,8 @@ public class DummyConfiguration extends AbstractConfiguration {
      * If set to true the connector will expose activation special attribute (ENABLED). True is the default.
      */
     @ConfigurationProperty(displayMessageKey = "UI_SUPPORT_ACTIVATION",
-            helpMessageKey = "UI_SUPPORT_ACTIVATION_HELP")
+            helpMessageKey = "UI_SUPPORT_ACTIVATION_HELP",
+            groupMessageKey = "GROUP_SUPPORT")
     public boolean getSupportActivation() {
         return supportActivation;
     }
@@ -352,7 +356,8 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_FORBIDDEN_NAMES",
-            helpMessageKey = "UI_FORBIDDEN_NAMES_HELP")
+            helpMessageKey = "UI_FORBIDDEN_NAMES_HELP",
+            groupMessageKey = "GROUP_VALIDATION")
     public String[] getForbiddenNames() {
         return forbiddenNames.clone();
     }
