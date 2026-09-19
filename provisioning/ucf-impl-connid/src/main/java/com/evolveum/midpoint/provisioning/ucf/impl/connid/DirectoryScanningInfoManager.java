@@ -93,6 +93,24 @@ public class DirectoryScanningInfoManager implements ConnectorInfoManager {
         return List.of();
     }
 
+    /**
+     * Reloads the connector bundle at the given URI, discarding the cached
+     * {@link ConnectorInfoManager} (and its classloader / parsed configuration) and
+     * re-registering the bundle so that a subsequently generated configuration schema
+     * reflects any bundle modifications (e.g. a changed {@code configurationOverride.properties}).
+     *
+     * <p>The ICF {@link ConnectorInfoManagerFactory} singleton cache must be cleared before
+     * calling this, otherwise {@code getLocalManager(url)} would return the stale
+     * manager and the reload would be a no-op.
+     */
+    List<ConnectorInfo> reloadConnector(URI bundle) {
+        ConnectorInfoManager existing = uriToManager.remove(bundle);
+        if (existing != null) {
+            managers.remove(existing);
+        }
+        return registerConnector(bundle);
+    }
+
 
     URI findConnectorUri(ConnectorKey manager) {
         return uriToManager.entrySet().stream().filter(entry -> entry.getValue().findConnectorInfo(manager) != null)

@@ -69,8 +69,6 @@ public abstract class ConnectorDevelopmentBackend {
     ConnDevBeans beans;
     private ConnectorDevelopmentType development;
     private EditableConnector editableConnector;
-    protected boolean deleteConnectorSchema = false;
-    protected boolean skipConfigurationPropsUpgrade = true;
 
     public ConnectorDevelopmentBackend(ConnDevBeans beans, ConnectorDevelopmentType development, Task task, OperationResult result) {
         this.beans = beans;
@@ -696,13 +694,18 @@ public abstract class ConnectorDevelopmentBackend {
         return ret;
     }
 
+    /**
+     * (Re)generates the connector's {@code configurationOverride.properties} file based on the
+     * currently selected authentication types: configuration properties belonging to the
+     * non-selected types are marked with {@code ignore}, so that ICF excludes them from the
+     * connector configuration schema.
+     *
+     * <p>The stored connector configuration schema is not touched here; to make the updated
+     * file effective, call {@link #refreshConnectorSchema(OperationResult)} afterwards.
+     */
     public void updateConfigurationOverride() throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException, PolicyViolationException,
             ObjectAlreadyExistsException, SubscriptionComplianceException {
-        if (skipConfigurationPropsUpgrade) {
-            return;
-        }
-
         var props = new Properties();
         updateConfigurationOverride(props);
 
@@ -710,17 +713,26 @@ public abstract class ConnectorDevelopmentBackend {
             props.store(stream, null);
             var propString = stream.toString(StandardCharsets.UTF_8);
             editableConnector().saveFile(CONFIGURATION_OVERRIDE, propString);
+
+            refreshConnectorSchema(result);
+
         } catch (IOException e) {
             throw new SystemException("Couldn't write connector configuration override (" + CONFIGURATION_OVERRIDE + ")", e);
         }
-        var connRef = development.getConnector().getConnectorRef();
-        if (connRef != null && deleteConnectorSchema) {
-            var delta = PrismContext.get().deltaFor(ConnectorType.class)
-                            .item(ConnectorType.F_SCHEMA).replace()
-                            .<ConnectorType>asObjectDelta(connRef.getOid());
-            beans.modelService.executeChanges( List.of(delta), null, task, result);
+    }
 
+    /**
+     * Reloads the connector bundle in the UCF framework, regenerates the connector configuration
+     * schema and stores it into the connector object in the repository, so that it reflects the
+     * current (possibly modified) bundle content.
+     */
+    public void refreshConnectorSchema(OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, SubscriptionComplianceException,
+    ObjectAlreadyExistsException {
+        var connRef = development.getConnector() != null ? development.getConnector().getConnectorRef() : null;
+        if (connRef == null || connRef.getOid() == null) {
+            throw new ConfigurationException("No connector created in " + development.getOid());
         }
+        beans.provisioningService.refreshConnectorConfigurationSchema(connRef.getOid(), task, parentResult);
     }
 
     protected void updateConfigurationOverride(Properties props) {

@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -73,6 +75,7 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
     private static final String ID_RECOMMENDED_BADGE = "recommendedBadge";
     private static final String ID_SHOW_ALL = "showAll";
     private static final String ID_HIDE_ALL = "hideAll";
+    private static final String OP_UPDATE_CONFIGURATION = "authenticationUpdated";
 
     private LoadableModel<List<PrismContainerValueWrapper<ConnDevAuthInfoType>>> valuesModel;
     private IModel<Boolean> showAllModel = Model.of(false);
@@ -373,7 +376,12 @@ public class SupportedAuthMethodConnectorStepPanel extends AbstractWizardStepPan
         }
 
         OperationResult result = getHelper().onSaveObjectPerformed(target);
-        getDetailsModel().getConnectorDevelopmentOperation();
+        try {
+            Task task = getPageBase().createSimpleTask(OP_UPDATE_CONFIGURATION);
+            getDetailsModel().getConnectorDevelopmentOperation().authenticationSelectionUpdated(task,task.getResult());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (result != null && !result.isError()) {
             super.onNextPerformed(target);
         } else {

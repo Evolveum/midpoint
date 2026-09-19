@@ -401,7 +401,7 @@ public class ConnectorDevelopmentServiceImpl implements ConnectorDevelopmentServ
                 getTask(token, task, result),
                 ConnDevCreateConnectorWorkStateType.F_RESULT,
                 ConnDevDiscoverGlobalInformationResultType.class
-                );
+        );
     }
 
     @Override
