@@ -111,12 +111,14 @@ public class ResourceTestConnectorStepPanel extends AbstractWizardStepPanel<Conn
 
             @Override
             protected void onFinishActionPerform(AjaxRequestTarget target) {
+                ConnectorDevelopmentWizardUtil.reportConnectorLogs(ResourceTestConnectorStepPanel.this, PANEL_TYPE, getLastResult(), target);
                 nextButtonVisible = true;
                 target.add(getButtonContainer());
             }
 
             @Override
             protected void onFailureActionPerform(AjaxRequestTarget target) {
+                ConnectorDevelopmentWizardUtil.reportConnectorLogs(ResourceTestConnectorStepPanel.this, PANEL_TYPE, getLastResult(), target);
                 if (getWizard() instanceof WizardModelWithParentSteps wizardModel) {
                     wizardModel.addOperationResult(PANEL_TYPE, fixConnectionPanelType, getLastFailedResult());
                     wizardModel.setActiveStepById(fixConnectionPanelType);

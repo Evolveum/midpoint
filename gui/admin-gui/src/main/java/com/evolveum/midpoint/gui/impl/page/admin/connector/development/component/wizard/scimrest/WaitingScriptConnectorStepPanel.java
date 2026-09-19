@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.connector.development.componen
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.collapse.HelpTab;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.ConnectorDevelopmentDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.connector.development.component.wizard.ConnectorDevelopmentWizardUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -56,6 +57,17 @@ public abstract class WaitingScriptConnectorStepPanel extends WaitingConnectorSt
 
     @Override
     protected abstract ConnectorDevelopmentArtifacts.KnownArtifactType getScriptType();
+
+    /**
+     * The waiting screen shows the same documentation as the script screen it precedes.
+     */
+    @Override
+    protected List<HelpTab> computeHelpTabs() {
+        String key = ConnectorDevelopmentWizardUtil.helpTopicFor(getScriptType());
+        return key == null
+                ? List.of()
+                : ConnectorDevelopmentWizardUtil.helpTabs(getDetailsModel(), key, null);
+    }
 
     @Override
     public boolean isCompleted() {
